@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 class AssignOpTest {
   AssignOpTest() {}
 
@@ -65,9 +64,9 @@ class AssignOpTest {
     Expect.equals(0xF8, x);
     x |= 0xF00;
     Expect.equals(0xFF8, x);
-    x &=0xF0;
+    x &= 0xF0;
     Expect.equals(0xF0, x);
-    x ^=0x11;
+    x ^= 0x11;
     Expect.equals(0xE1, x);
 
     var y = 100;
@@ -89,6 +88,7 @@ class AssignOpTest {
   static var f;
   var instf;
 }
+
 main() {
   for (int i = 0; i < 20; i++) {
     AssignOpTest.testMain();

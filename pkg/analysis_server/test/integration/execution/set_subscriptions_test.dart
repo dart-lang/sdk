@@ -17,9 +17,7 @@ main() {
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   test_subscribe() async {
     standardAnalysisSetup();
+    // ignore: deprecated_member_use
     await sendExecutionSetSubscriptions([ExecutionService.LAUNCH_DATA]);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

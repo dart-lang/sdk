@@ -11,11 +11,15 @@ class Tester<T> {
 }
 
 abstract class A = B with C;
+
 class B {}
+
 class C {}
 
 class X extends Y with Z {}
+
 class Y {}
+
 class Z {}
 
 main() {

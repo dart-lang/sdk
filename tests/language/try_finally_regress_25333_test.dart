@@ -39,7 +39,7 @@ void test1() {
   } finally {
     try {
       throw "Frisbee";
-    } catch(e) {
+    } catch (e) {
       print("test 1 catch: $e");
       Expect.equals(e, "Frisbee");
     }
@@ -52,13 +52,12 @@ void test2() {
   } finally {
     try {
       throw "Frisbee";
-    } catch(e) {
+    } catch (e) {
       print("test 2 catch: $e");
       Expect.equals(e, "Frisbee");
     }
   }
 }
-
 
 void throwError() {
   throw "Ball";

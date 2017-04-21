@@ -21,6 +21,7 @@ void main() {
       asyncEnd();
     };
   }
+
   Capability c1 = new Capability();
   Capability c2 = new Capability();
   Capability c3 = (new RawReceivePort()..close()).sendPort;

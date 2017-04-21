@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library LocalStorageTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -19,7 +20,7 @@ main() {
       try {
         fn();
       } finally {
-      window.localStorage.clear();
+        window.localStorage.clear();
       }
     });
   }
@@ -60,8 +61,10 @@ main() {
     expect(window.localStorage['key4'], 'val4');
 
     expect(window.localStorage['key3'], 'val3');
-    expect(window.localStorage.putIfAbsent('key3',
-        () => expect(false, isTrue, reason: 'should not be called')), 'val3');
+    expect(
+        window.localStorage.putIfAbsent('key3',
+            () => expect(false, isTrue, reason: 'should not be called')),
+        'val3');
     expect(window.localStorage['key3'], 'val3');
   });
 

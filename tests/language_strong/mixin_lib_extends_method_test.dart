@@ -12,9 +12,11 @@ class S {
   baz() => "S-baz";
 }
 
-class C extends S with L.M1 { }
-class D extends S with L.M1, L.M2 { }
-class E extends S with L.M2, L.M1 { }
+class C extends S with L.M1 {}
+
+class D extends S with L.M1, L.M2 {}
+
+class E extends S with L.M2, L.M1 {}
 
 class F extends E {
   fez() => "F-fez";

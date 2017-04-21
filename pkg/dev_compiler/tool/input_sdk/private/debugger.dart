@@ -325,11 +325,17 @@ class JsonMLElement {
 /// of properties.
 bool isNativeJavaScriptObject(object) {
   var type = _typeof(object);
+  if (type != 'object' && type != 'function') return true;
+
+  // Consider all regular JS objects that do not represent Dart modules native
+  // JavaScript objects.
+  if (dart.isJsInterop(object) && dart.getModuleName(object) == null) {
+    return true;
+  }
+
   // Treat Node objects as a native JavaScript type as the regular DOM render
   // in devtools is superior to the dart specific view.
-  return (type != 'object' && type != 'function') ||
-      dart.isJsInterop(object) ||
-      object is html.Node;
+  return object is html.Node;
 }
 
 /// Class implementing the Devtools Formatter API described by:

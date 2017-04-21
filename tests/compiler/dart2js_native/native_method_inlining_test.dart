@@ -11,10 +11,10 @@ typedef int Int2Int(int x);
 
 @Native("A")
 class A {
-  int foo([x, y, z]) native ;
+  int foo([x, y, z]) native;
 
   // Calls can be inlined provided they don't pass an argument.
-  int callFun([Int2Int fn]) native ;
+  int callFun([Int2Int fn]) native;
 }
 
 class B {
@@ -49,9 +49,9 @@ class B {
   }
 }
 
-A makeA() native ;
+A makeA() native;
 
-String findMethodTextContaining(instance, string) native ;
+String findMethodTextContaining(instance, string) native;
 
 void setup() native r"""
 function A() {}

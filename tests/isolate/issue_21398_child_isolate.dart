@@ -13,7 +13,7 @@ main(List<String> args, message) {
   var sendPort = message;
   try {
     sendPort.send(new FromChildIsolate());
-  } catch(error) {
+  } catch (error) {
     Expect.isTrue(error is ArgumentError);
     sendPort.send("Invalid Argument(s).");
   }

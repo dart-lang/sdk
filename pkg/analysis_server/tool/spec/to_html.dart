@@ -36,10 +36,6 @@ body {
   -webkit-font-smoothing: auto;
 }
 
-h1 {
-  text-align: center;
-}
-
 h2, h3, h4, h5 {
   margin-bottom: 0;
 }
@@ -113,6 +109,10 @@ a {
 
 a:focus, a:hover {
   text-decoration: underline;
+}
+
+.deprecated {
+  text-decoration: line-through;
 }
 
 /* Styles for index */
@@ -200,8 +200,10 @@ abstract class HtmlMixin {
   void html(void callback()) => element('html', {}, callback);
   void i(void callback()) => element('i', {}, callback);
   void li(void callback()) => element('li', {}, callback);
-  void link(String id, void callback()) {
-    element('a', {'href': '#$id'}, callback);
+  void link(String id, void callback(), [Map<dynamic, String> attributes]) {
+    attributes ??= {};
+    attributes['href'] = '#$id';
+    element('a', attributes, callback);
   }
 
   void p(void callback()) => element('p', {}, callback);
@@ -209,6 +211,8 @@ abstract class HtmlMixin {
   void title(void callback()) => element('title', {}, callback);
   void tt(void callback()) => element('tt', {}, callback);
   void ul(void callback()) => element('ul', {}, callback);
+  void span(String cls, void callback()) =>
+      element('span', {'class': cls}, callback);
 }
 
 /**
@@ -329,29 +333,46 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h5(() => write("Requests"));
     element('ul', {}, () {
       for (var request in requests) {
-        element(
-            'li',
-            {},
-            () => link(
-                'request_${request.longMethod}', () => write(request.method)));
+        if (!request.experimental) {
+          element(
+              'li',
+              {},
+              () => link('request_${request.longMethod}',
+                  () => write(request.method)));
+        }
       }
     });
   }
 
+  void generateDomainsHeader() {
+    h1(() {
+      write('Domains');
+    });
+  }
+
   void generateTableOfContents() {
-    ul(() {
+    for (var domain in api.domains.where((domain) => !domain.experimental)) {
       writeln();
 
-      for (var domain in api.domains.where((domain) => !domain.experimental)) {
-        write('      ');
-        li(() {
-          link('domain_${domain.name}', () {
-            write(_toTitleCase(domain.name));
-          });
+      p(() {
+        link('domain_${domain.name}', () {
+          write(_toTitleCase(domain.name));
         });
-        writeln();
-      }
-    });
+      });
+
+      ul(() {
+        for (Request request in domain.requests) {
+          li(() {
+            link('request_${request.longMethod}', () {
+              write(request.longMethod);
+            }, request.deprecated ? {'class': 'deprecated'} : null);
+          });
+          writeln();
+        }
+      });
+
+      writeln();
+    }
   }
 
   void generateTypesIndex(Set<String> types) {
@@ -421,6 +442,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           continue;
         }
         switch (node.localName) {
+          case 'domains':
+            generateDomainsHeader();
+            break;
           case 'domain':
             visitDomain(apiMappings.domains[node]);
             break;
@@ -513,11 +537,6 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       anchor('notification_${notification.longEvent}', () {
         write(notification.longEvent);
       });
-      write(' (');
-      link('notification_${notification.longEvent}', () {
-        write('#');
-      });
-      write(')');
     });
     dd(() {
       box(() {
@@ -551,15 +570,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitRequest(Request request) {
-    dt('request', () {
+    if (request.experimental) {
+      return;
+    }
+    dt(request.deprecated ? 'request deprecated' : 'request', () {
       anchor('request_${request.longMethod}', () {
         write(request.longMethod);
       });
-      write(' (');
-      link('request_${request.longMethod}', () {
-        write('#');
-      });
-      write(')');
     });
     dd(() {
       box(() {
@@ -578,7 +595,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     if (typeDefinition.experimental) {
       return;
     }
-    dt('typeDefinition', () {
+    dt(
+        typeDefinition.deprecated
+            ? 'typeDefinition deprecated'
+            : 'typeDefinition', () {
       anchor('type_${typeDefinition.name}', () {
         write('${typeDefinition.name}: ');
         TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
@@ -610,7 +630,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
         break;
       }
     }
-    dt('value', () {
+    dt(typeEnumValue.deprecated ? 'value deprecated' : 'value', () {
       write(typeEnumValue.value);
     });
     if (isDocumented) {
@@ -641,22 +661,24 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypeObjectField(TypeObjectField typeObjectField) {
     dt('field', () {
       b(() {
-        write(typeObjectField.name);
+        if (typeObjectField.deprecated) {
+          span('deprecated', () {
+            write(typeObjectField.name);
+          });
+        } else {
+          write(typeObjectField.name);
+        }
         if (typeObjectField.value != null) {
           write(' = ${JSON.encode(typeObjectField.value)}');
         } else {
-          write(' (');
-          if (typeObjectField.optional) {
-            gray(() {
-              write('optional');
-            });
-            write(' ');
-          }
+          write(': ');
           TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
           addAll(typeVisitor.collectHtml(() {
             typeVisitor.visitTypeDecl(typeObjectField.type);
           }));
-          write(')');
+          if (typeObjectField.optional) {
+            gray(() => write(' (optional)'));
+          }
         }
       });
     });

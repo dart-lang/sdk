@@ -124,8 +124,10 @@ class Zone;
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
-  V(uword, native_call_wrapper_entry_point_,                                   \
-    NativeEntry::NativeCallWrapperEntry(), 0)                                  \
+  V(uword, no_scope_native_wrapper_entry_point_,                               \
+    NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
+  V(uword, auto_scope_native_wrapper_entry_point_,                             \
+    NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
   V(uword, double_negate_address_,                                             \
@@ -159,7 +161,6 @@ class Thread : public BaseThread {
     kCompilerTask = 0x2,
     kSweeperTask = 0x4,
     kMarkerTask = 0x8,
-    kFinalizerTask = 0x10,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);

@@ -108,6 +108,8 @@ class Tag {
   static const int VectorSet = 104;
   static const int VectorCopy = 105;
 
+  static const int ClosureCreation = 106;
+
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
   static const int SpecializedPayloadMask = 0x7; // 00000111

@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 
 class NumberSyntaxTest {
-
   static void testMain() {
     testShortDoubleSyntax();
     testDotSelectorSyntax();
@@ -23,13 +22,13 @@ class NumberSyntaxTest {
     Expect.equals('1', 1.toString());
     Expect.equals('123', 123.toString());
 
-    Expect.equals('0', 0 .toString());
-    Expect.equals('1', 1 .toString());
-    Expect.equals('123', 123 .toString());
+    Expect.equals('0', 0.toString());
+    Expect.equals('1', 1.toString());
+    Expect.equals('123', 123.toString());
 
-    Expect.equals('0', 0. toString());
-    Expect.equals('1', 1. toString());
-    Expect.equals('123', 123. toString());
+    Expect.equals('0', 0.toString());
+    Expect.equals('1', 1.toString());
+    Expect.equals('123', 123.toString());
 
     // Doubles.
     Expect.equals((0.0).toString(), 0.0.toString());
@@ -37,23 +36,23 @@ class NumberSyntaxTest {
     Expect.equals((1.1).toString(), 1.1.toString());
     Expect.equals((123.4).toString(), 123.4.toString());
 
-    Expect.equals((0.0).toString(), 0.0 .toString());
-    Expect.equals((0.1).toString(), .1 .toString());
-    Expect.equals((1.1).toString(), 1.1 .toString());
-    Expect.equals((123.4).toString(), 123.4 .toString());
+    Expect.equals((0.0).toString(), 0.0.toString());
+    Expect.equals((0.1).toString(), .1.toString());
+    Expect.equals((1.1).toString(), 1.1.toString());
+    Expect.equals((123.4).toString(), 123.4.toString());
 
-    Expect.equals((0.0).toString(), 0.0. toString());
-    Expect.equals((0.1).toString(), .1. toString());
-    Expect.equals((1.1).toString(), 1.1. toString());
-    Expect.equals((123.4).toString(), 123.4. toString());
+    Expect.equals((0.0).toString(), 0.0.toString());
+    Expect.equals((0.1).toString(), .1.toString());
+    Expect.equals((1.1).toString(), 1.1.toString());
+    Expect.equals((123.4).toString(), 123.4.toString());
 
     // Exponent notation.
     Expect.equals((0e0).toString(), 0e0.toString());
     Expect.equals((1e+1).toString(), 1e+1.toString());
     Expect.equals((2.1e-34).toString(), 2.1e-34.toString());
   }
-
 }
+
 main() {
   NumberSyntaxTest.testMain();
 }

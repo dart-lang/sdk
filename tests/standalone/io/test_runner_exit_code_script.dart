@@ -13,26 +13,22 @@ main(List<String> arguments) {
   var progressType = arguments[0];
   // Build a progress indicator.
   var startTime = new DateTime.now();
-  var progress =
-    new ProgressIndicator.fromName(progressType, startTime, false);
+  var progress = new ProgressIndicator.fromName(progressType, startTime, false);
   if (progressType == 'buildbot') {
     BuildbotProgressIndicator.stepName = 'myStepName';
   }
   // Build a dummy test case.
   var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
   var dummyCommand = new Command("noop", []);
-  var testCase = new TestCase('failing_test.dart',
-                              [dummyCommand],
-                              configuration,
-                              (_) => null,
-                              new Set<String>.from(['PASS']));
+  var testCase = new TestCase('failing_test.dart', [dummyCommand],
+      configuration, (_) => null, new Set<String>.from(['PASS']));
 
   // Simulate the test.dart use of the progress indicator.
   progress.testAdded();
   progress.allTestsKnown();
   progress.start(testCase);
   new CommandOutput.fromCase(testCase, dummyCommand, 1, false, false, [], [],
-                             new DateTime.now().difference(startTime), false);
+      new DateTime.now().difference(startTime), false);
   progress.done(testCase);
   progress.allDone();
 }

@@ -15,7 +15,8 @@ import 'package:async_helper/async_helper.dart';
 const UNEXPECTED_MESSAGE = 'Created isolate from missing file.';
 
 Future doTest() {
-  return Isolate.spawnUri(Uri.base.resolve('no_such_file'), [], null)
+  return Isolate
+      .spawnUri(Uri.base.resolve('no_such_file'), [], null)
       .then((Isolate isolate) {
     throw UNEXPECTED_MESSAGE;
   }).catchError((error) {

@@ -34,7 +34,6 @@ bool testRemote(Function main, SendPort port) {
   }
   var testResponses = new Map<String, List>();
 
-
   ClosureMirror closure = reflect(main);
   LibraryMirror library = closure.function.owner;
 
@@ -51,15 +50,16 @@ bool testRemote(Function main, SendPort port) {
         testResponses[name] = message;
         break;
       case "logMessage":
-        break;  // Ignore.
+        break; // Ignore.
       case "summary":
-        throw message[1];  // Uncaught error.
+        throw message[1]; // Uncaught error.
       case "done":
         receivePort.close();
         _simulateTests(testResponses);
         break;
     }
   }
+
   try {
     Isolate.spawnUri(library.uri, null, receivePort.sendPort);
     receivePort.listen(remoteAction);
@@ -84,22 +84,30 @@ class RemoteConfiguration implements Configuration {
 
   bool get autoStart => true;
 
-  void onInit() { }
+  void onInit() {}
 
-  void onStart() { }
+  void onStart() {}
 
   void onTestStart(TestCase testCase) {
     _port.send(["testStart", testCase.description]);
   }
 
   void onTestResult(TestCase testCase) {
-    _port.send(["testResult", testCase.description,
-                testCase.result, testCase.message]);
+    _port.send([
+      "testResult",
+      testCase.description,
+      testCase.result,
+      testCase.message
+    ]);
   }
 
   void onTestResultChanged(TestCase testCase) {
-    _port.send(["testResultChanged", testCase.description,
-                testCase.result, testCase.message]);
+    _port.send([
+      "testResultChanged",
+      testCase.description,
+      testCase.result,
+      testCase.message
+    ]);
   }
 
   void onLogMessage(TestCase testCase, String message) {

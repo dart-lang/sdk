@@ -14,7 +14,7 @@ import 'dart:convert';
 main() {
   // Uri.http
   test("http://example.org/path?q=dart",
-      new Uri.http("example.org", "/path", { "q" : "dart" }));
+      new Uri.http("example.org", "/path", {"q": "dart"}));
   test("http://user:pass@localhost:8080",
       new Uri.http("user:pass@localhost:8080", ""));
   test("http://example.org/a%20b", new Uri.http("example.org", "a b"));
@@ -43,24 +43,24 @@ main() {
   // toFilePath.
   Expect.equals(r"xxx/yyy", Uri.parse("xxx/yyy").toFilePath(windows: false));
   Expect.equals(r"xxx/yyy/", Uri.parse("xxx/yyy/").toFilePath(windows: false));
-  Expect.equals(r"/xxx/yyy",
-      Uri.parse("file:///xxx/yyy").toFilePath(windows: false));
-  Expect.equals(r"/xxx/yyy/",
-      Uri.parse("file:///xxx/yyy/").toFilePath(windows: false));
+  Expect.equals(
+      r"/xxx/yyy", Uri.parse("file:///xxx/yyy").toFilePath(windows: false));
+  Expect.equals(
+      r"/xxx/yyy/", Uri.parse("file:///xxx/yyy/").toFilePath(windows: false));
   Expect.equals(r"/C:", Uri.parse("file:///C:").toFilePath(windows: false));
   Expect.equals(r"/C:a", Uri.parse("file:///C:a").toFilePath(windows: false));
 
   Expect.equals(r"xxx\yyy", Uri.parse("xxx/yyy").toFilePath(windows: true));
   Expect.equals(r"xxx\yyy\", Uri.parse("xxx/yyy/").toFilePath(windows: true));
-  Expect.equals(r"\xxx\yyy",
-      Uri.parse("file:///xxx/yyy").toFilePath(windows: true));
-  Expect.equals(r"\xxx\yyy\",
-      Uri.parse("file:///xxx/yyy/").toFilePath(windows: true));
-  Expect.equals(r"C:\xxx\yyy",
-      Uri.parse("file:///C:/xxx/yyy").toFilePath(windows: true));
+  Expect.equals(
+      r"\xxx\yyy", Uri.parse("file:///xxx/yyy").toFilePath(windows: true));
+  Expect.equals(
+      r"\xxx\yyy\", Uri.parse("file:///xxx/yyy/").toFilePath(windows: true));
+  Expect.equals(
+      r"C:\xxx\yyy", Uri.parse("file:///C:/xxx/yyy").toFilePath(windows: true));
   Expect.throws(() => Uri.parse("file:C:xxx/yyy").toFilePath(windows: true));
   Expect.equals(r"\\server\share\file",
-      Uri.parse("file://server/share/file").toFilePath(windows: true));  //
+      Uri.parse("file://server/share/file").toFilePath(windows: true)); //
 
   // replace.
   Uri uri1 = Uri.parse("a://b@c:4/d/e?f#g");

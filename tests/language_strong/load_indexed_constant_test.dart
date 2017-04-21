@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   Expect.equals(101, stringIndexedLoad());
   Expect.equals(102, arrayIndexedLoad());

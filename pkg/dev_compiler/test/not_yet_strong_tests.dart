@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:path/path.dart' as path;
 
 /// The set of tests that are not yet strong mode safe.
 final notYetStrongTests = new HashSet<String>.from([
@@ -2090,6 +2091,25 @@ final notYetStrongTests = new HashSet<String>.from([
   'corelib/symbol_test_none_multi',
   'corelib/uri_path_test',
   'corelib/uri_query_test',
+  'lib/async/async_await_sync_completer_test',
+  'lib/async/async_await_zones_test',
+  'lib/async/catch_errors2_test',
+  'lib/async/catch_errors3_test',
+  'lib/async/catch_errors_test',
+  'lib/async/future_microtask_test',
+  'lib/async/future_or_bad_type_test_00_multi',
+  'lib/async/future_or_bad_type_test_01_multi',
+  'lib/async/future_or_only_in_async_test_00_multi',
+  'lib/async/future_test_none_multi',
+  'lib/async/future_test_01_multi',
+  'lib/async/future_value_chain4_test',
+  'lib/async/print_test_01_multi',
+  'lib/async/print_test_none_multi',
+  'lib/async/slow_consumer3_test',
+  'lib/async/stream_controller_test',
+  'lib/async/stream_event_transformed_test',
+  'lib/async/stream_transformer_test',
+  'lib/async/zone_debug_test',
   'lib/convert/chunked_conversion1_test',
   'lib/math/min_max_test',
   'lib/typed_data/float32x4_test',
@@ -2418,4 +2438,4 @@ final notYetStrongTests = new HashSet<String>.from([
   // TODO(jmesserly): these are both under "dart:html" as well.
   'js_test',
   'js_util_test'
-]);
+].map((p) => p.replaceAll('/', path.separator)));

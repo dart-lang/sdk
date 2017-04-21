@@ -6,10 +6,12 @@
 // etc. The test is using getField, as invoke, setField, and getField all share
 // the same caching.
 
+library lib;
+
+@MirrorsUsed(targets: const ["lib", "dart.core"])
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
-
 
 class Foo {
   Foo(this.length);
@@ -17,9 +19,7 @@ class Foo {
 }
 
 main() {
-  Expect.equals(
-      1, reflect(new Foo(1)).getField(#length).reflectee);
-  Expect.equals(
-      2, reflect(new Foo(2)).getField(#length).reflectee);
+  Expect.equals(1, reflect(new Foo(1)).getField(#length).reflectee);
+  Expect.equals(2, reflect(new Foo(2)).getField(#length).reflectee);
   Expect.equals(0, reflect([]).getField(#length).reflectee);
 }

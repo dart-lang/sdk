@@ -4,6 +4,7 @@
 
 library test.reflected_type_special_types;
 
+@MirrorsUsed(targets: "test.reflected_type_special_types")
 import 'dart:mirrors';
 
 import 'reflected_type_helper.dart';
@@ -12,7 +13,7 @@ main() {
   TypeMirror dynamicMirror = currentMirrorSystem().dynamicType;
   TypeMirror dynamicMirror2 = reflectType(dynamic);
   TypeMirror voidMirror = currentMirrorSystem().voidType;
-  
+
   expectReflectedType(dynamicMirror, dynamic);
   expectReflectedType(dynamicMirror2, dynamic);
   expectReflectedType(voidMirror, null);

@@ -4,8 +4,6 @@
 
 library analyzer.src.dart.ast.token;
 
-import 'package:front_end/src/scanner/token.dart';
-
 export 'package:front_end/src/scanner/token.dart'
     show
         BeginToken,
@@ -17,20 +15,7 @@ export 'package:front_end/src/scanner/token.dart'
         SimpleToken,
         StringToken,
         StringTokenWithComment,
+        SyntheticKeywordToken,
+        SyntheticStringToken,
         TokenClass,
         TokenWithComment;
-
-/**
- * A token whose value is independent of it's type.
- */
-class SyntheticStringToken extends StringToken {
-  /**
-   * Initialize a newly created token to represent a token of the given [type]
-   * with the given [value] at the given [offset].
-   */
-  SyntheticStringToken(TokenType type, String value, int offset)
-      : super(type, value, offset);
-
-  @override
-  bool get isSynthetic => true;
-}

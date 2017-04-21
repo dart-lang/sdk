@@ -4,9 +4,9 @@
 
 import "package:expect/expect.dart";
 
-const m1 = const { '__proto__': 400 + 99 };
-const m2 = const { 'a': 499, 'b': 42 };
-const m3 = const { '__proto__': 499 };
+const m1 = const {'__proto__': 400 + 99};
+const m2 = const {'a': 499, 'b': 42};
+const m3 = const {'__proto__': 499};
 
 bool isUnsupportedError(o) => o is UnsupportedError;
 
@@ -34,8 +34,8 @@ main() {
   Expect.throws(() => m1.clear(), isUnsupportedError);
   Expect.throws(() => m1['b'] = 42, isUnsupportedError);
   Expect.throws(() => m1['__proto__'] = 499, isUnsupportedError);
-  Expect.throws(() => m1.putIfAbsent('__proto__', () => 499),
-                isUnsupportedError);
+  Expect.throws(
+      () => m1.putIfAbsent('__proto__', () => 499), isUnsupportedError);
   Expect.throws(() => m1.putIfAbsent('z', () => 499), isUnsupportedError);
 
   Expect.equals(499, m2['a']);
@@ -69,8 +69,8 @@ main() {
   Expect.throws(() => m2['b'] = 42, isUnsupportedError);
   Expect.throws(() => m2['__proto__'] = 499, isUnsupportedError);
   Expect.throws(() => m2.putIfAbsent('a', () => 499), isUnsupportedError);
-  Expect.throws(() => m2.putIfAbsent('__proto__', () => 499),
-                isUnsupportedError);
+  Expect.throws(
+      () => m2.putIfAbsent('__proto__', () => 499), isUnsupportedError);
   Expect.throws(() => m2['a'] = 499, isUnsupportedError);
 
   Expect.isTrue(identical(m1, m3));

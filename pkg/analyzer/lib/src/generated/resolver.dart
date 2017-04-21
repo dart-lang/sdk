@@ -1699,6 +1699,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
+          identical(dataErrorCode,
+              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
           identical(
               dataErrorCode,
               CheckedModeCompileTimeErrorCode
@@ -2104,7 +2106,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       LibraryElement library = exportElement.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
-          _checkCombinator(exportElement.exportedLibrary, combinator);
+          _checkCombinator(library, combinator);
         }
       }
     }
@@ -3701,14 +3703,19 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
     // check if useless reading
     AstNode parent = node.parent;
-    if (parent.parent is ExpressionStatement &&
-        (parent is PrefixExpression ||
-            parent is PostfixExpression ||
-            parent is AssignmentExpression && parent.leftHandSide == node)) {
-      // v++;
-      // ++v;
-      // v += 2;
-      return false;
+    if (parent.parent is ExpressionStatement) {
+      if (parent is PrefixExpression || parent is PostfixExpression) {
+        // v++;
+        // ++v;
+        return false;
+      }
+      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+        // v ??= doSomething();
+        //   vs.
+        // v += 2;
+        TokenType operatorType = parent.operator?.type;
+        return operatorType == TokenType.QUESTION_QUESTION_EQ;
+      }
     }
     // OK
     return true;
@@ -4082,7 +4089,7 @@ class ImportsVerifier {
    */
   void _addAdditionalLibrariesForExports(LibraryElement library,
       ImportDirective importDirective, Set<LibraryElement> visitedLibraries) {
-    if (!visitedLibraries.add(library)) {
+    if (library == null || !visitedLibraries.add(library)) {
       return;
     }
     List<ExportElement> exports = library.exports;
@@ -7157,9 +7164,18 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      ErrorCode errorCode;
+      int namedParameterCount = namedParameters?.length ?? 0;
+      int namedArgumentCount = usedNames?.length ?? 0;
+      if (namedParameterCount > namedArgumentCount) {
+        errorCode = (reportAsError
+            ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
+            : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED);
+      } else {
+        errorCode = (reportAsError
+            ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+            : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      }
       if (onError != null) {
         onError(errorCode, argumentList,
             [unnamedParameterCount, positionalArgumentCount]);

@@ -21,13 +21,12 @@ void testGetEmptyRequest() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((response) {
-        response.listen(
-            (data) {},
-            onDone: server.close);
-      });
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+      response.listen((data) {}, onDone: server.close);
+    });
   });
 }
 
@@ -40,28 +39,26 @@ void testGetDataRequest() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((response) {
-        int count = 0;
-        response.listen(
-          (data) => count += data.length,
-          onDone: () {
-            server.close();
-            Expect.equals(data.length, count);
-          });
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+      int count = 0;
+      response.listen((data) => count += data.length, onDone: () {
+        server.close();
+        Expect.equals(data.length, count);
       });
+    });
   });
 }
 
 void testGetInvalidHost() {
   asyncStart();
   var client = new HttpClient();
-  client.get("__SOMETHING_INVALID__", 8888, "/")
-    .catchError((error) {
-      client.close();
-      asyncEnd();
-    });
+  client.get("__SOMETHING_INVALID__", 8888, "/").catchError((error) {
+    client.close();
+    asyncEnd();
+  });
 }
 
 void testGetServerClose() {
@@ -75,10 +72,11 @@ void testGetServerClose() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((response) => response.drain())
-      .then((_) => asyncEnd());
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) => response.drain())
+        .then((_) => asyncEnd());
   });
 }
 
@@ -89,13 +87,14 @@ void testGetServerCloseNoKeepAlive() {
     int port = server.port;
     server.first.then((request) => request.response.close());
 
-    client.get("127.0.0.1", port, "/")
-      .then((request) => request.close())
-      .then((response) => response.drain())
-      .then((_) => client.get("127.0.0.1", port, "/"))
-      .then((request) => request.close())
-      .then((_) => Expect.fail('should not succeed'), onError: (_) {})
-      .then((_) => asyncEnd());
+    client
+        .get("127.0.0.1", port, "/")
+        .then((request) => request.close())
+        .then((response) => response.drain())
+        .then((_) => client.get("127.0.0.1", port, "/"))
+        .then((request) => request.close())
+        .then((_) => Expect.fail('should not succeed'), onError: (_) {})
+        .then((_) => asyncEnd());
   });
 }
 
@@ -107,13 +106,13 @@ void testGetServerForceClose() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((response) {
-        Expect.fail("Request not expected");
-      })
-      .catchError((error) => asyncEnd(),
-                  test: (error) => error is HttpException);
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+      Expect.fail("Request not expected");
+    }).catchError((error) => asyncEnd(),
+            test: (error) => error is HttpException);
   });
 }
 
@@ -130,24 +129,23 @@ void testGetDataServerForceClose() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((response) {
-        // Close the (incomplete) response, now that we have seen
-        // the response object.
-        completer.complete(null);
-        int errors = 0;
-        response.listen(
-          (data) {},
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+      // Close the (incomplete) response, now that we have seen
+      // the response object.
+      completer.complete(null);
+      int errors = 0;
+      response.listen((data) {},
           onError: (error) => errors++,
           onDone: () {
             Expect.equals(1, errors);
             asyncEnd();
           });
-      });
+    });
   });
 }
-
 
 void testOpenEmptyRequest() {
   var client = new HttpClient();
@@ -157,7 +155,8 @@ void testOpenEmptyRequest() {
     [client.put, 'PUT'],
     [client.delete, 'DELETE'],
     [client.patch, 'PATCH'],
-    [client.head, 'HEAD']];
+    [client.head, 'HEAD']
+  ];
 
   for (var method in methods) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -169,12 +168,11 @@ void testOpenEmptyRequest() {
       method[0]("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) {
-            response.listen((data) {}, onDone: server.close);
-          });
+        response.listen((data) {}, onDone: server.close);
+      });
     });
   }
 }
-
 
 void testOpenUrlEmptyRequest() {
   var client = new HttpClient();
@@ -184,7 +182,8 @@ void testOpenUrlEmptyRequest() {
     [client.putUrl, 'PUT'],
     [client.deleteUrl, 'DELETE'],
     [client.patchUrl, 'PATCH'],
-    [client.headUrl, 'HEAD']];
+    [client.headUrl, 'HEAD']
+  ];
 
   for (var method in methods) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -196,12 +195,11 @@ void testOpenUrlEmptyRequest() {
       method[0](Uri.parse("http://127.0.0.1:${server.port}/"))
           .then((request) => request.close())
           .then((response) {
-            response.listen((data) {}, onDone: server.close);
-          });
+        response.listen((data) {}, onDone: server.close);
+      });
     });
   }
 }
-
 
 void testNoBuffer() {
   asyncStart();
@@ -214,37 +212,38 @@ void testNoBuffer() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) => request.close())
-      .then((clientResponse) {
-        var iterator = new StreamIterator(
-            clientResponse.transform(UTF8.decoder)
-                          .transform(new LineSplitter()));
-        iterator.moveNext().then((hasValue) {
-          Expect.isTrue(hasValue);
-          Expect.equals('init', iterator.current);
-          int count = 0;
-          void run() {
-            if (count == 10) {
-              response.close();
-              iterator.moveNext().then((hasValue) {
-                Expect.isFalse(hasValue);
-                server.close();
-                asyncEnd();
-              });
-            } else {
-              response.writeln('output$count');
-              iterator.moveNext().then((hasValue) {
-                Expect.isTrue(hasValue);
-                Expect.equals('output$count', iterator.current);
-                count++;
-                run();
-              });
-            }
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((clientResponse) {
+      var iterator = new StreamIterator(
+          clientResponse.transform(UTF8.decoder).transform(new LineSplitter()));
+      iterator.moveNext().then((hasValue) {
+        Expect.isTrue(hasValue);
+        Expect.equals('init', iterator.current);
+        int count = 0;
+        void run() {
+          if (count == 10) {
+            response.close();
+            iterator.moveNext().then((hasValue) {
+              Expect.isFalse(hasValue);
+              server.close();
+              asyncEnd();
+            });
+          } else {
+            response.writeln('output$count');
+            iterator.moveNext().then((hasValue) {
+              Expect.isTrue(hasValue);
+              Expect.equals('output$count', iterator.current);
+              count++;
+              run();
+            });
           }
-          run();
-        });
+        }
+
+        run();
       });
+    });
   });
 }
 
@@ -266,17 +265,17 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
     client.maxConnectionsPerHost = connectionCap;
     for (int i = 0; i < connections; i++) {
       asyncStart();
-      client.get("127.0.0.1", server.port, "/")
-        .then((request) => request.close())
-        .then((response) {
-          response.listen(null, onDone: () {
-            asyncEnd();
-          });
+      client
+          .get("127.0.0.1", server.port, "/")
+          .then((request) => request.close())
+          .then((response) {
+        response.listen(null, onDone: () {
+          asyncEnd();
         });
+      });
     }
   });
 }
-
 
 void main() {
   testGetEmptyRequest();

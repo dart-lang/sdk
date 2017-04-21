@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  foo() { }
+  foo() {}
 }
 
 main() {
@@ -16,4 +16,3 @@ main() {
   Expect.isFalse(f == null);
   Expect.isFalse(null == f);
 }
-

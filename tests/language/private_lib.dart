@@ -6,9 +6,7 @@
 part of PrivateLib;
 
 class PrivateLib {
-
   final _myPrecious;
 
   const PrivateLib() : this._myPrecious = "The Ring";
-
 }

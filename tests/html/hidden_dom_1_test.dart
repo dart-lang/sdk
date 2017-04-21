@@ -1,4 +1,5 @@
 library HiddenDom1Test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -17,19 +18,22 @@ Hello World!
     Element e = document.query('#div1');
     expect(e, isNotNull);
 
-    checkNoSuchMethod(() { confuse(e).onfocus = null; });
+    checkNoSuchMethod(() {
+      confuse(e).onfocus = null;
+    });
   });
-
 }
 
 class Decoy {
-  void set onfocus(x) { throw 'dead code'; }
+  void set onfocus(x) {
+    throw 'dead code';
+  }
 }
 
 confuse(x) => opaqueTrue() ? x : (opaqueTrue() ? new Object() : new Decoy());
 
 /** Returns [:true:], but in a way that confuses the compiler. */
-opaqueTrue() => true;  // Expand as needed.
+opaqueTrue() => true; // Expand as needed.
 
 checkNoSuchMethod(action()) {
   var ex = null;

@@ -4,6 +4,12 @@
 
 library fasta.diet_listener;
 
+import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
+    show KernelAstFactory;
+
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
+
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -29,11 +35,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../builder/builder.dart';
 
-import '../builder/scope.dart' show Scope;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-
-import '../kernel/kernel_library_builder.dart' show isConstructorName;
 
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
@@ -44,6 +46,8 @@ class DietListener extends StackListener {
 
   final bool isDartLibrary;
 
+  final TypeInferrer localTypeInferrer;
+
   ClassBuilder currentClass;
 
   /// For top-level declarations, this is the library scope. For class members,
@@ -53,7 +57,8 @@ class DietListener extends StackListener {
   @override
   Uri uri;
 
-  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes)
+  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
+      this.localTypeInferrer)
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
@@ -130,7 +135,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
   }
 
@@ -388,8 +393,19 @@ class DietListener extends StackListener {
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
-        hierarchy, coreTypes, currentClass, isInstanceMember, uri);
+    return new BodyBuilder(
+        library,
+        builder,
+        memberScope,
+        formalParameterScope,
+        hierarchy,
+        coreTypes,
+        currentClass,
+        isInstanceMember,
+        uri,
+        localTypeInferrer,
+        new KernelAstFactory())
+      ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }
 
   void buildFunctionBody(Token token, ProcedureBuilder builder) {
@@ -405,6 +421,8 @@ class DietListener extends StackListener {
   }
 
   void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
+    // TODO(paulberry): don't re-parse the field if we've already parsed it
+    // for type inference.
     parseFields(createListener(builder, memberScope, builder.isInstanceMember),
         token, isTopLevel);
   }
@@ -422,7 +440,7 @@ class DietListener extends StackListener {
     assert(currentClass == null);
     currentClass = lookupBuilder(token, null, name);
     assert(memberScope == library.scope);
-    memberScope = currentClass.computeInstanceScope(memberScope);
+    memberScope = currentClass.scope;
   }
 
   @override
@@ -495,8 +513,9 @@ class DietListener extends StackListener {
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
-      if (listener.stack.length == 1) {
+      if (listener.stack.length == 2) {
         listener.pop(); // constructor initializers
+        listener.pop(); // separator before constructor initializers
       }
       listener.checkEmpty(token.charOffset);
       listener.finishFunction(formals, asyncModifier, body);
@@ -518,37 +537,33 @@ class DietListener extends StackListener {
   }
 
   Builder lookupBuilder(Token token, Token getOrSet, String name) {
+    // TODO(ahe): Can I move this to Scope or ScopeBuilder?
     Builder builder;
     if (currentClass != null) {
-      builder = currentClass.members[name];
-      if (builder == null && isConstructorName(name, currentClass.name)) {
-        int index = name.indexOf(".");
-        name = index == -1 ? "" : name.substring(index + 1);
-        builder = currentClass.members[name];
+      if (getOrSet != null && optional("set", getOrSet)) {
+        builder = currentClass.scope.setters[name];
+      } else {
+        builder = currentClass.scope.local[name];
       }
+      if (builder == null) {
+        if (name == currentClass.name) {
+          name = "";
+        } else {
+          int index = name.indexOf(".");
+          name = name.substring(index + 1);
+        }
+        builder = currentClass.constructors.local[name];
+      }
+    } else if (getOrSet != null && optional("set", getOrSet)) {
+      builder = library.scope.setters[name];
     } else {
-      builder = library.members[name];
+      builder = library.scopeBuilder[name];
     }
     if (builder == null) {
       return internalError("Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
-      Builder getterBuilder;
-      Builder setterBuilder;
-      Builder current = builder;
-      while (current != null) {
-        if (current.isGetter && getterBuilder == null) {
-          getterBuilder = current;
-        } else if (current.isSetter && setterBuilder == null) {
-          setterBuilder = current;
-        } else {
-          return inputError(uri, token.charOffset, "Duplicated name: $name");
-        }
-        current = current.next;
-      }
-      assert(getOrSet != null);
-      if (optional("get", getOrSet)) return getterBuilder;
-      if (optional("set", getOrSet)) return setterBuilder;
+      return inputError(uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
   }

@@ -198,11 +198,21 @@ const char* Platform::LibraryExtension() {
 }
 
 
+const char* Platform::LocaleName() {
+  wchar_t locale_name[LOCALE_NAME_MAX_LENGTH];
+  int result = GetUserDefaultLocaleName(locale_name, LOCALE_NAME_MAX_LENGTH);
+  if (result == 0) {
+    return NULL;
+  }
+  return StringUtilsWin::WideToUtf8(locale_name);
+}
+
+
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 #if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
   return false;
 #else
-  if (!Socket::Initialize()) {
+  if (!SocketBase::Initialize()) {
     return false;
   }
   return gethostname(buffer, buffer_length) == 0;

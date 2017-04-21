@@ -7,7 +7,9 @@ import "package:expect/expect.dart";
 class FixedHashCode {
   final int _hashCode;
   const FixedHashCode(this._hashCode);
-  int get hashCode { return _hashCode; }
+  int get hashCode {
+    return _hashCode;
+  }
 }
 
 class SetIteratorTest {
@@ -80,8 +82,10 @@ class SetIteratorTest {
     int count = 0;
     for (int i = 0; i < 100; i++) {
       set.add(i);
-      if (i % 2 == 0) set.remove(i);
-      else count += i;
+      if (i % 2 == 0)
+        set.remove(i);
+      else
+        count += i;
     }
     it = set.iterator;
     sum(count, it);

@@ -17,6 +17,6 @@ String get bigString {
 }
 
 main() {
-  stdout;  // Be sure to mark stdout as non-blocking.
+  stdout; // Be sure to mark stdout as non-blocking.
   print(bigString);
 }

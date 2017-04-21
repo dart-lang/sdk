@@ -15,7 +15,6 @@ part "testing_server.dart";
 const CONNECTIONS = 200;
 
 class SocketManyConnectionsTest {
-
   SocketManyConnectionsTest.start()
       : _connections = 0,
         _sockets = new List<Socket>(CONNECTIONS) {
@@ -23,7 +22,6 @@ class SocketManyConnectionsTest {
   }
 
   void run() {
-
     void connectHandler() {
       _connections++;
       if (_connections == CONNECTIONS) {
@@ -64,7 +62,6 @@ class SocketManyConnectionsTest {
   int _connections;
 }
 
-
 void startTestServer(SendPort replyPort) {
   var server = new TestServer();
   server.init().then((port) {
@@ -73,7 +70,6 @@ void startTestServer(SendPort replyPort) {
 }
 
 class TestServer extends TestingServer {
-
   void onConnection(Socket connection) {
     Socket _client;
 
@@ -89,10 +85,7 @@ class TestServer extends TestingServer {
     }
 
     _connections++;
-    connection.listen(
-        (data) {},
-        onDone: closeHandler,
-        onError: errorHandler);
+    connection.listen((data) {}, onDone: closeHandler, onError: errorHandler);
   }
 
   int _connections = 0;

@@ -23,7 +23,7 @@ main([args, port]) async {
     // Expecting a null resolution for inexistent package mapping.
     if (msg[0] != null) {
       throw "Bad package config in child isolate: ${msg[0]}\n"
-            "Expected: 'Foo'";
+          "Expected: 'Foo'";
     }
     print("SUCCESS");
   };

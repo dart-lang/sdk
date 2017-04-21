@@ -13,7 +13,7 @@ class Test1 {
   get a {
     Expect.equals(1, counter);
     counter++;
-    return (c) { };
+    return (c) {};
   }
 
   b() {
@@ -27,7 +27,7 @@ class Test2 {
   static get a {
     Expect.equals(0, counter);
     counter++;
-    return (c) { };
+    return (c) {};
   }
 
   static b() {
@@ -40,7 +40,7 @@ class Test2 {
 get a {
   Expect.equals(0, counter);
   counter++;
-  return (c) { };
+  return (c) {};
 }
 
 b() {

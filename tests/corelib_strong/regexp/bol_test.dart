@@ -26,30 +26,29 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  'Test for beginning of line (BOL or ^) matching</a>'
-  );
+  description('Test for beginning of line (BOL or ^) matching</a>');
 
   var s = "abc123def456xyzabc789abc999";
   shouldBeNull(firstMatch(s, new RegExp(r"^notHere")));
   shouldBe(firstMatch(s, new RegExp(r"^abc")), ["abc"]);
-  shouldBe(firstMatch(s, new RegExp(r"(^|X)abc")), ["abc",""]);
+  shouldBe(firstMatch(s, new RegExp(r"(^|X)abc")), ["abc", ""]);
   shouldBe(firstMatch(s, new RegExp(r"^longer|123")), ["123"]);
-  shouldBe(firstMatch(s, new RegExp(r"(^abc|c)123")), ["abc123","abc"]);
-  shouldBe(firstMatch(s, new RegExp(r"(c|^abc)123")), ["abc123","abc"]);
-  shouldBe(firstMatch(s, new RegExp(r"(^ab|abc)123")), ["abc123","abc"]);
-  shouldBe(firstMatch(s, new RegExp(r"(bc|^abc)([0-9]*)a")), ["bc789a","bc","789"]);
+  shouldBe(firstMatch(s, new RegExp(r"(^abc|c)123")), ["abc123", "abc"]);
+  shouldBe(firstMatch(s, new RegExp(r"(c|^abc)123")), ["abc123", "abc"]);
+  shouldBe(firstMatch(s, new RegExp(r"(^ab|abc)123")), ["abc123", "abc"]);
+  shouldBe(firstMatch(s, new RegExp(r"(bc|^abc)([0-9]*)a")),
+      ["bc789a", "bc", "789"]);
   shouldBeNull(new RegExp(r"(?:(Y)X)|(X)").firstMatch("abc"));
   shouldBeNull(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abc"));
   shouldBeNull(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcd"));
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("Xabcd"), ["X",null]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("aXbcd"), ["X","X"]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abXcd"), ["X","X"]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcXd"), ["X","X"]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcdX"), ["X","X"]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("YXabcd"), ["YX",null]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("aYXbcd"), ["YX",null]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abYXcd"), ["YX",null]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcYXd"), ["YX",null]);
-  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcdYX"), ["YX",null]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("Xabcd"), ["X", null]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("aXbcd"), ["X", "X"]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abXcd"), ["X", "X"]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcXd"), ["X", "X"]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcdX"), ["X", "X"]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("YXabcd"), ["YX", null]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("aYXbcd"), ["YX", null]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abYXcd"), ["YX", null]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcYXd"), ["YX", null]);
+  shouldBe(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcdYX"), ["YX", null]);
 }

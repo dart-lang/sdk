@@ -133,6 +133,8 @@ namespace dart {
     0x5e83ecad)                                                                \
   V(::, _classRangeCheck, ClassRangeCheck, Bool, 0x16a2fc83)                   \
   V(::, _classRangeCheckNegative, ClassRangeCheckNegated, Bool, 0x46898c74)    \
+  V(::, _classRangeAssert, ClassRangeAssert, Dynamic, 0x3ccbdf6e)              \
+  V(::, _classIdEqualsAssert, ClassIdEqualsAssert, Dynamic, 0x4dc80932)        \
 
 
 // List of intrinsics:
@@ -421,6 +423,8 @@ namespace dart {
   V(::, pow, MathPow, 0x5f119fa5)                                              \
   V(::, _classRangeCheck, ClassRangeCheck, 0x16a2fc83)                         \
   V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x46898c74)          \
+  V(::, _classRangeAssert, ClassRangeAssert, 0x3ccbdf6e)                       \
+  V(::, _classIdEqualsAssert, ClassIdEqualsAssert, 0x4dc80932)                 \
   V(Lists, copy, ListsCopy, 0x714584f8)                                        \
   V(_Bigint, get:_neg, Bigint_getNeg, 0x356019c4)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 0x33ba5131)                            \

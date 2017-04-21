@@ -10,8 +10,6 @@ import '../source/stack_listener.dart' show StackListener;
 
 import '../builder/builder.dart';
 
-import '../builder/scope.dart' show Scope;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../source/diet_listener.dart' show DietListener;
@@ -24,7 +22,7 @@ class AnalyzerDietListener extends DietListener {
   final ElementStore elementStore;
 
   AnalyzerDietListener(SourceLibraryBuilder library, this.elementStore)
-      : super(library, null, null);
+      : super(library, null, null, null);
 
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,

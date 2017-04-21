@@ -1,0 +1,60 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic a;
+  field dynamic b;
+  field dynamic c;
+  field dynamic d;
+  final field dynamic f;
+  constructor •() → void
+    ;
+  get e() → dynamic
+    ;
+  set g(dynamic _) → dynamic
+    ;
+  get h() → dynamic
+    ;
+  set h(dynamic _) → dynamic
+    ;
+  get i() → dynamic
+    ;
+  operator [](dynamic _) → dynamic
+    ;
+  operator []=(dynamic a, dynamic b) → dynamic
+    ;
+  operator ~() → dynamic
+    ;
+  operator unary-() → dynamic
+    ;
+  operator ==(dynamic other) → dynamic
+    ;
+  method m() → void
+    ;
+  method n() → void
+    ;
+  set n(dynamic _) → dynamic
+    ;
+}
+class B extends self::A {
+  final field dynamic d;
+  constructor •() → void
+    ;
+  get b() → dynamic
+    ;
+  set c(dynamic x) → dynamic
+    ;
+  set i(dynamic x) → dynamic
+    ;
+}
+class C extends self::B {
+  constructor •() → void
+    ;
+  method test() → dynamic
+    ;
+}
+static method use(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;

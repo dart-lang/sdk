@@ -9,7 +9,9 @@ library map_literal11_test;
 import "package:expect/expect.dart";
 
 void foo(Map m) {
-  Expect.throws(() { m[23] = 23; }, (e) => e is TypeError);
+  Expect.throws(() {
+    m[23] = 23;
+  }, (e) => e is TypeError);
 }
 
 void main() {

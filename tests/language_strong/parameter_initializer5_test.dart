@@ -9,7 +9,7 @@
 
 class Foo {
   var x, y;
-  Foo(this.x): y = x { }
+  Foo(this.x) : y = x {}
 }
 
 main() {

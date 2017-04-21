@@ -9,9 +9,10 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
 #include "vm/exceptions.h"
+#include "vm/log.h"
 #include "vm/native_arguments.h"
+#include "vm/runtime_entry.h"
 #include "vm/verifier.h"
 
 #include "include/dart_api.h"
@@ -22,8 +23,30 @@ namespace dart {
 class Class;
 class String;
 
+// We have three variants of native functions:
+//  - bootstrap natives, which are called directly from stub code. The callee is
+//    responsible for safepoint transitions and setting up handle scopes as
+//    needed. Only VM-defined natives are bootstrap natives; they cannot be
+//    defined by embedders or native extensions.
+//  - no scope natives, which are called through a wrapper function. The wrapper
+//    function handles the safepoint transition. The callee is responsible for
+//    setting up API scopes as needed.
+//  - auto scope natives, which are called through a wrapper function. The
+//    wrapper function handles the safepoint transition and sets up an API
+//    scope.
+
 typedef void (*NativeFunction)(NativeArguments* arguments);
 
+#ifndef PRODUCT
+#define TRACE_NATIVE_CALL(format, name)                                        \
+  if (FLAG_trace_natives) {                                                    \
+    THR_Print("Calling native: " format "\n", name);                           \
+  }
+#else
+#define TRACE_NATIVE_CALL(format, name)                                        \
+  do {                                                                         \
+  } while (0)
+#endif
 
 #define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
 
@@ -107,9 +130,13 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
-  static uword NativeCallWrapperEntry();
-  static void NativeCallWrapper(Dart_NativeArguments args,
-                                Dart_NativeFunction func);
+  static uword NoScopeNativeCallWrapperEntry();
+  static void NoScopeNativeCallWrapper(Dart_NativeArguments args,
+                                       Dart_NativeFunction func);
+
+  static uword AutoScopeNativeCallWrapperEntry();
+  static void AutoScopeNativeCallWrapper(Dart_NativeArguments args,
+                                         Dart_NativeFunction func);
 
 // DBC does not support lazy native call linking.
 #if !defined(TARGET_ARCH_DBC)
@@ -118,8 +145,10 @@ class NativeEntry : public AllStatic {
 #endif
 
  private:
-  static void NativeCallWrapperNoStackCheck(Dart_NativeArguments args,
-                                            Dart_NativeFunction func);
+  static void NoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,
+                                                   Dart_NativeFunction func);
+  static void AutoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,
+                                                     Dart_NativeFunction func);
 
   static bool ReturnValueIsError(NativeArguments* arguments);
   static void PropagateErrors(NativeArguments* arguments);

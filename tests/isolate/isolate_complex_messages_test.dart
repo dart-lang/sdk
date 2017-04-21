@@ -6,6 +6,7 @@
 // complex messages.
 
 library IsolateComplexMessagesTest;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";
@@ -15,7 +16,7 @@ void main([args, port]) {
   test("complex messages are serialized correctly", () {
     ReceivePort local = new ReceivePort();
     Isolate.spawn(logMessages, local.sendPort);
-    var done = expectAsync((){});
+    var done = expectAsync(() {});
     local.listen(expectAsync((msg) {
       switch (msg[0]) {
         case "init":
@@ -37,7 +38,6 @@ void main([args, port]) {
     }, count: 2));
   });
 }
-
 
 void logMessages(mainPort) {
   int count = 0;

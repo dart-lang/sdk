@@ -59,6 +59,24 @@ abstract class DartType {
 
   /// Is `true` if this type is a malformed type.
   bool get isMalformed => false;
+
+  /// Whether this type contains a type variable.
+  bool get containsTypeVariables => false;
+
+  /// Applies [f] to each occurence of a [ResolutionTypeVariableType] within
+  /// this type.
+  void forEachTypeVariable(f(TypeVariableType variable)) {}
+
+  /// Performs the substitution `[arguments[i]/parameters[i]]this`.
+  ///
+  /// The notation is known from this lambda calculus rule:
+  ///
+  ///     (lambda x.e0)e1 -> [e1/x]e0.
+  ///
+  /// See [TypeVariableType] for a motivation for this method.
+  ///
+  /// Invariant: There must be the same number of [arguments] and [parameters].
+  DartType subst(List<DartType> arguments, List<DartType> parameters);
 }
 
 class InterfaceType extends DartType {
@@ -66,6 +84,32 @@ class InterfaceType extends DartType {
   final List<DartType> typeArguments;
 
   InterfaceType(this.element, this.typeArguments);
+
+  bool get containsTypeVariables =>
+      typeArguments.any((type) => type.containsTypeVariables);
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeArguments.forEach((type) => type.forEachTypeVariable(f));
+  }
+
+  InterfaceType subst(List<DartType> arguments, List<DartType> parameters) {
+    if (typeArguments.isEmpty) {
+      // Return fast on non-generic types.
+      return this;
+    }
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    List<DartType> newTypeArguments =
+        _substTypes(typeArguments, arguments, parameters);
+    if (!identical(typeArguments, newTypeArguments)) {
+      // Create a new type only if necessary.
+      return new InterfaceType(element, newTypeArguments);
+    }
+    return this;
+  }
 
   int get hashCode {
     int hash = element.hashCode;
@@ -108,6 +152,26 @@ class TypeVariableType extends DartType {
 
   bool get isTypeVariable => true;
 
+  bool get containsTypeVariables => true;
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    f(this);
+  }
+
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    assert(arguments.length == parameters.length);
+    if (parameters.isEmpty) {
+      // Return fast on empty substitutions.
+      return this;
+    }
+    int index = parameters.indexOf(this);
+    if (index != -1) {
+      return arguments[index];
+    }
+    // The type variable was not substituted.
+    return this;
+  }
+
   int get hashCode => 17 * element.hashCode;
 
   bool operator ==(other) {
@@ -123,6 +187,11 @@ class VoidType extends DartType {
 
   bool get isVoid => true;
 
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    // `void` cannot be substituted.
+    return this;
+  }
+
   int get hashCode => 6007;
 
   String toString() => 'void';
@@ -136,6 +205,11 @@ class DynamicType extends DartType {
 
   @override
   bool get treatAsDynamic => true;
+
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    // `dynamic` cannot be substituted.
+    return this;
+  }
 
   int get hashCode => 91;
 
@@ -161,7 +235,49 @@ class FunctionType extends DartType {
       this.namedParameters,
       this.namedParameterTypes);
 
+  bool get containsTypeVariables {
+    return returnType.containsTypeVariables ||
+        parameterTypes.any((type) => type.containsTypeVariables) ||
+        optionalParameterTypes.any((type) => type.containsTypeVariables) ||
+        namedParameterTypes.any((type) => type.containsTypeVariables);
+  }
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    returnType.forEachTypeVariable(f);
+    parameterTypes.forEach((type) => type.forEachTypeVariable(f));
+    optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
+    namedParameterTypes.forEach((type) => type.forEachTypeVariable(f));
+  }
+
   bool get isFunctionType => true;
+
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    DartType newReturnType = returnType.subst(arguments, parameters);
+    bool changed = !identical(newReturnType, returnType);
+    List<DartType> newParameterTypes =
+        _substTypes(parameterTypes, arguments, parameters);
+    List<DartType> newOptionalParameterTypes =
+        _substTypes(optionalParameterTypes, arguments, parameters);
+    List<DartType> newNamedParameterTypes =
+        _substTypes(namedParameterTypes, arguments, parameters);
+    if (!changed &&
+        (!identical(parameterTypes, newParameterTypes) ||
+            !identical(optionalParameterTypes, newOptionalParameterTypes) ||
+            !identical(namedParameterTypes, newNamedParameterTypes))) {
+      changed = true;
+    }
+    if (changed) {
+      // Create a new type only if necessary.
+      return new FunctionType(newReturnType, newParameterTypes,
+          newOptionalParameterTypes, namedParameters, newNamedParameterTypes);
+    }
+    return this;
+  }
 
   int get hashCode {
     int hash = 3 * returnType.hashCode;
@@ -236,4 +352,24 @@ class FunctionType extends DartType {
     }
     return sb.toString();
   }
+}
+
+/// Helper method for performing substitution of a list of types.
+///
+/// If no types are changed by the substitution, the [types] is returned
+/// instead of a newly created list.
+List<DartType> _substTypes(
+    List<DartType> types, List<DartType> arguments, List<DartType> parameters) {
+  bool changed = false;
+  List<DartType> result =
+      new List<DartType>.generate(types.length, (int index) {
+    DartType type = types[index];
+    DartType argument = type.subst(arguments, parameters);
+    if (!changed && !identical(argument, type)) {
+      changed = true;
+    }
+    return argument;
+  });
+  // Use the new List only if necessary.
+  return changed ? result : types;
 }

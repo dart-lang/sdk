@@ -8,8 +8,10 @@ import "package:meta/meta.dart" show virtual;
 
 class First {
   First() {}
-  @virtual var a;
-  @virtual var b;
+  @virtual
+  var a;
+  @virtual
+  var b;
 
   addFields() {
     return a + b;
@@ -26,8 +28,13 @@ class Second extends First {
   // TODO: consider removing once http://b/4254120 is fixed.
   Second() : super() {}
   var c;
-  get a { return -12; }
-  set b(a) { a.c = 12; }
+  get a {
+    return -12;
+  }
+
+  set b(a) {
+    a.c = 12;
+  }
 }
 
 class FieldTest {
@@ -67,7 +74,6 @@ class FieldTest {
     FieldTest.two();
   }
 }
-
 
 main() {
   FieldTest.testMain();

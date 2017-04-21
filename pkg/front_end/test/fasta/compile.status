@@ -6,12 +6,24 @@
 # testing generating Kernel ASTs directly, that is, code in
 # pkg/fasta/lib/src/kernel/.
 
+DeltaBlue: Fail # Missing types on constructor parameters.
+async_function: Fail # Async transformer should be optional.
 await: Fail
+call: Fail # Test can't run.
+covariant_generic: Fail # Missing types on constructor parameters.
 cycles: Fail # Compile-time error handling destroys program.
+external: Fail # External method marked abstract.
+fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
 invocations: Fail
+micro: Fail # External method marked abstract.
+named_parameters: Fail # Missing types and unnecessary default values.
+optional: Fail # Unnecessary default values.
+redirecting_factory: Fail # Missing types on constructor parameters.
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
+uninitialized_fields: Fail # Missing types and unnecessary default values.
+void-methods: Fail # Bad return from setters.
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -50,7 +62,6 @@ rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
 rasta/issue_000067: Fail
-rasta/issue_000069: Fail
 rasta/issue_000070: Fail
 rasta/issue_000081: Fail
 rasta/malformed_const_constructor: Fail

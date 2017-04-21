@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -62,8 +63,32 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
 
   @override
+  void set targetClassElement(ClassElement element) {
+    utils.targetClassElement = element;
+  }
+
+  @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
     return new DartLinkedEditBuilderImpl(this);
+  }
+
+  /**
+   * Returns the indentation with the given [level].
+   */
+  String getIndent(int level) => '  ' * level;
+
+//  /**
+//   * Arrange to have imports added for each of the given [libraries].
+//   */
+//  void importLibraries(Iterable<Source> libraries) {
+//    dartFileEditBuilder.importLibraries(libraries);
+//  }
+
+  /**
+   * Arrange to have an import added for the given [library].
+   */
+  void importLibrary(Source library) {
+    dartFileEditBuilder.librariesToImport.add(library);
   }
 
   @override
@@ -74,7 +99,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
-      String superclassGroupName: DartEditBuilder.SUPERCLASS_GROUP_ID}) {
+      String superclassGroupName}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
     // parameterWriter parameter.
     if (isAbstract) {
@@ -85,7 +110,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (nameGroupName == null) {
       write(name);
     } else {
-      addLinkedEdit(DartEditBuilder.NAME_GROUP_ID, (LinkedEditBuilder builder) {
+      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
         write(name);
       });
     }
@@ -106,43 +131,41 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write('}');
   }
 
-  //@override
-  void writeConstructorDeclaration(ClassElement classElement,
+  @override
+  void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
       SimpleIdentifier constructorName,
+      String constructorNameGroupName,
+      List<String> fieldNames,
       bool isConst: false}) {
-    // TODO(brianwilkerson) Clean up the API and add it to the public API.
-    //
-    // TODO(brianwilkerson) Support passing a list of final fields rather than
-    // an argument list.
     if (isConst) {
       write(Keyword.CONST.syntax);
       write(' ');
     }
-    write(classElement.name);
-    write('.');
+    write(className);
     if (constructorName != null) {
-      addLinkedEdit(DartEditBuilder.NAME_GROUP_ID, (LinkedEditBuilder builder) {
+      write('.');
+      if (constructorNameGroupName == null) {
         write(constructorName.name);
-      });
-      CompilationUnit unit = constructorName
-          .getAncestor((AstNode node) => node is CompilationUnit);
-      if (unit != null) {
-        CompilationUnitElement element = unit.element;
-        if (element != null) {
-          String referenceFile = element.source.fullName;
-          if (referenceFile == dartFileEditBuilder.fileEdit.file) {
-            dartFileEditBuilder.addLinkedPosition(constructorName.offset,
-                constructorName.length, DartEditBuilder.NAME_GROUP_ID);
-          }
-        }
+      } else {
+        addLinkedEdit(constructorNameGroupName, (LinkedEditBuilder builder) {
+          write(constructorName.name);
+        });
       }
     }
     write('(');
     if (argumentList != null) {
       writeParametersMatchingArguments(argumentList);
+    } else if (fieldNames != null) {
+      for (int i = 0; i < fieldNames.length; i++) {
+        if (i > 0) {
+          write(', ');
+        }
+        write('this.');
+        write(fieldNames[i]);
+      }
     }
-    writeln(');');
+    write(');');
   }
 
   @override
@@ -167,7 +190,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       typeRequired = false;
     }
     if (type != null) {
-      writeType(type, groupName: typeGroupName);
+      writeType(type, groupName: typeGroupName, required: true);
     } else if (typeRequired) {
       write(Keyword.VAR.syntax);
     }
@@ -237,7 +260,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.STATIC.syntax);
       write(' ');
     }
-    if (returnType != null) {
+    if (returnType != null && !returnType.isDynamic) {
       writeType(returnType, groupName: returnTypeGroupName);
       write(' ');
     }
@@ -299,11 +322,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeOverrideOfInheritedMember(ExecutableElement member) {
+  void writeOverrideOfInheritedMember(ExecutableElement member,
+      {String returnTypeGroupName}) {
     // prepare environment
-    String prefix = utils.getIndent(1);
+    String prefix = getIndent(1);
     // may be property
-    String prefix2 = utils.getIndent(2);
+    String prefix2 = getIndent(2);
     ElementKind elementKind = member.kind;
     bool isGetter = elementKind == ElementKind.GETTER;
     bool isSetter = elementKind == ElementKind.SETTER;
@@ -318,9 +342,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     writeln('@override');
     write(prefix);
     // return type
-    // REVIEW: Added groupId
-    bool shouldReturn = writeType(member.type.returnType,
-        groupName: DartEditBuilder.RETURN_TYPE_GROUP_ID);
+    bool shouldReturn =
+        writeType(member.type.returnType, groupName: returnTypeGroupName);
     write(' ');
     if (isGetter) {
       write(Keyword.GET.syntax);
@@ -484,6 +507,31 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return false;
   }
 
+  @override
+  void writeTypeParameter(TypeParameterElement typeParameter) {
+    write(typeParameter.name);
+    if (typeParameter.bound != null) {
+      write(' extends ');
+      writeType(typeParameter.bound);
+    }
+  }
+
+  @override
+  void writeTypeParameters(List<TypeParameterElement> typeParameters) {
+    if (typeParameters.isNotEmpty) {
+      write('<');
+      bool isFirst = true;
+      for (TypeParameterElement typeParameter in typeParameters) {
+        if (!isFirst) {
+          write(', ');
+        }
+        isFirst = false;
+        writeTypeParameter(typeParameter);
+      }
+      write('>');
+    }
+  }
+
   /**
    * Write the code for a comma-separated list of [types], optionally prefixed
    * by a [prefix]. If the list of [types] is `null` or does not return any
@@ -588,6 +636,17 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   DartEditBuilderImpl createEditBuilder(int offset, int length) {
     return new DartEditBuilderImpl(this, offset, length);
+  }
+
+  @override
+  void finalize() {
+    addLibraryImports(
+        changeBuilder.sourceChange, unit.element.library, librariesToImport);
+  }
+
+  @override
+  void importLibraries(Iterable<Source> libraries) {
+    librariesToImport.addAll(libraries);
   }
 
   @override

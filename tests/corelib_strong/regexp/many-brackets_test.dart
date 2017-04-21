@@ -27,21 +27,17 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test regular expression processing with many capturing brackets (200).'
-  );
+      'Test regular expression processing with many capturing brackets (200).');
 
   var count = 200;
 
   var regexp = "";
-  for (var i = 0; i < count; ++i)
-      regexp += "(";
+  for (var i = 0; i < count; ++i) regexp += "(";
   regexp += "hello";
-  for (var i = 0; i < count; ++i)
-      regexp += ")";
+  for (var i = 0; i < count; ++i) regexp += ")";
 
   var manyHellosArray = [];
-  for (var i = 0; i <= count; ++i)
-      manyHellosArray.add("hello");
+  for (var i = 0; i <= count; ++i) manyHellosArray.add("hello");
 
   var manyBracketsRegExp = new RegExp(regexp);
   shouldBe(firstMatch('hello', manyBracketsRegExp), manyHellosArray);

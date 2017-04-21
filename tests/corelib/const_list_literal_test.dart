@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Test that a final list literal is not expandable nor modifiable.
 
 class ConstListLiteralTest {
-
   static void testMain() {
     var list = const [4, 2, 3];
     Expect.equals(3, list.length);
@@ -69,7 +68,9 @@ class ConstListLiteralTest {
     // 'forEach' construct in Array. This test ensures that our strategy works
     // correctly.
     int x = 0;
-    list.forEach((e) { x += e; });
+    list.forEach((e) {
+      x += e;
+    });
     Expect.equals(9, x);
   }
 }

@@ -1056,7 +1056,9 @@ abstract class CompilationUnitElementForLink
               resolveRef(containingReference).getContainedName(name);
         }
       } else if (linkedReference.dependency == 0) {
-        if (name == 'void') {
+        if (linkedReference.kind == ReferenceKind.unresolved) {
+          _references[index] = UndefinedElementForLink.instance;
+        } else if (name == 'void') {
           _references[index] = enclosingElement._linker.voidElement;
         } else if (name == '*bottom*') {
           _references[index] = enclosingElement._linker.bottomElement;
@@ -1292,8 +1294,11 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    */
   void link() {
     if (library._linker.strongMode) {
-      new InstanceMemberInferrer(enclosingElement._linker.typeProvider,
-              enclosingElement.inheritanceManager, new Set<FieldElement>())
+      new InstanceMemberInferrer(
+              enclosingElement._linker.typeProvider,
+              (clazz) => (clazz.library as LibraryElementInBuildUnit)
+                  .inheritanceManager,
+              new Set<FieldElement>())
           .inferCompilationUnit(this);
       for (TopLevelVariableElementForLink variable in topLevelVariables) {
         variable.link(this);
@@ -3516,9 +3521,11 @@ abstract class LibraryElementForLink<
       ];
       int numParts = definingUnit.parts.length;
       for (int i = 0; i < numParts; i++) {
-        // TODO(paulberry): make sure we handle the case where
-        // resolveRelativeUri fails.
         String partRelativeUriStr = definingUnit.publicNamespace.parts[i];
+
+        if (partRelativeUriStr.isEmpty) {
+          continue;
+        }
 
         Uri partRelativeUri;
         try {
@@ -4884,9 +4891,12 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           refPtr++;
           break;
         case UnlinkedExprOperation.invokeMethodRef:
-          // TODO(paulberry): if this reference refers to a variable, should it
-          // be considered a type inference dependency?
-          refPtr++;
+          EntityRef ref = unlinkedConst.references[refPtr++];
+          TypeInferenceNode dependency =
+              compilationUnit.resolveRef(ref.reference).asTypeInferenceNode;
+          if (dependency != null) {
+            dependencies.add(dependency);
+          }
           intPtr += 2;
           int numTypeArguments = unlinkedConst.ints[intPtr++];
           refPtr += numTypeArguments;

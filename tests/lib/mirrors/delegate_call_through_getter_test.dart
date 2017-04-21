@@ -4,6 +4,7 @@
 
 library test.invoke_call_through_getter;
 
+@MirrorsUsed(targets: "test.invoke_call_through_getter")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -11,6 +12,7 @@ import 'package:expect/expect.dart';
 class FakeFunctionCall {
   call(x, y) => '1 $x $y';
 }
+
 class FakeFunctionNSM {
   noSuchMethod(msg) => msg.positionalArguments.join(', ');
 }

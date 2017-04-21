@@ -20,6 +20,5 @@ main() {
   print(field);
 }
 
-publicFields(ClassMirror mirror) =>
-    mirror.declarations.values.where(
-        (x) => x is VariableMirror && !(x.isPrivate || x.isStatic));
+publicFields(ClassMirror mirror) => mirror.declarations.values
+    .where((x) => x is VariableMirror && !(x.isPrivate || x.isStatic));

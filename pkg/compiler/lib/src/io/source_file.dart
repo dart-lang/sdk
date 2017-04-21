@@ -8,46 +8,47 @@ import 'dart:convert' show UTF8;
 import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
-import 'line_column_provider.dart';
+import 'package:kernel/ast.dart' as kernel show Location, Source;
 
-/**
- * Represents a file of source code. The content can be either a [String] or
- * a UTF-8 encoded [List<int>] of bytes.
- */
-abstract class SourceFile implements LineColumnProvider {
+import 'location_provider.dart' show LocationProvider;
+
+/// Represents a file of source code. The content can be either a [String] or
+/// a UTF-8 encoded [List<int>] of bytes.
+abstract class SourceFile implements LocationProvider {
   /// The absolute URI of the source file.
   Uri get uri;
+
+  kernel.Source cachedKernelSource;
+
+  kernel.Source get kernelSource {
+    return cachedKernelSource ??=
+        new kernel.Source(lineStarts, slowUtf8ZeroTerminatedBytes())
+          ..cachedText = slowText();
+  }
 
   /// The name of the file.
   ///
   /// This is [uri], maybe relativized to a more human-readable form.
   String get filename => uri.toString();
 
-  /** The text content of the file represented as a String. */
+  /// The text content of the file represented as a String
   String slowText();
 
-  /**
-   * The content of the file represented as a UTF-8 encoded [List<int>],
-   * terminated with a trailing 0 byte.
-   */
+  /// The content of the file represented as a UTF-8 encoded [List<int>],
+  /// terminated with a trailing 0 byte.
   List<int> slowUtf8ZeroTerminatedBytes();
 
-  /**
-   * The length of the string representation of this source file, i.e.,
-   * equivalent to [:slowText().length:], but faster.
-   */
+  /// The length of the string representation of this source file, i.e.,
+  /// equivalent to [:slowText().length:], but faster.
   int get length;
 
-  /**
-   * Sets the string length of this source file. For source files based on UTF-8
-   * byte arrays, the string length is computed and assigned by the scanner.
-   */
+  /// Sets the string length of this source file. For source files based on
+  /// UTF-8 byte arrays, the string length is computed and assigned by the
+  /// scanner.
   set length(int v);
 
-  /**
-   * A map from line numbers to offsets in the string text representation of
-   * this source file.
-   */
+  /// A map from line numbers to offsets in the string text representation of
+  /// this source file.
   List<int> get lineStarts {
     if (lineStartsCache == null) {
       // When reporting errors during scanning, the line numbers are not yet
@@ -57,14 +58,12 @@ abstract class SourceFile implements LineColumnProvider {
     return lineStartsCache;
   }
 
-  /**
-   * Sets the line numbers map for this source file. This map is computed and
-   * assigned by the scanner, avoiding a separate traversal of the source file.
-   *
-   * The map contains one additional entry at the end of the file, as if the
-   * source file had one more empty line at the end. This simplifies the binary
-   * search in [getLine].
-   */
+  /// Sets the line numbers map for this source file. This map is computed and
+  /// assigned by the scanner, avoiding a separate traversal of the source file.
+  ///
+  /// The map contains one additional entry at the end of the file, as if the
+  /// source file had one more empty line at the end. This simplifies the binary
+  /// search in [getLocation].
   set lineStarts(List<int> v) => lineStartsCache = v;
 
   List<int> lineStartsCache;
@@ -81,56 +80,21 @@ abstract class SourceFile implements LineColumnProvider {
     return starts;
   }
 
-  /**
-   * Returns the line number for the offset [position] in the string
-   * representation of this source file.
-   */
-  int getLine(int position) {
-    List<int> starts = lineStarts;
-    if (position < 0 || starts.last <= position) {
-      throw 'bad position #$position in file $filename with '
-          'length ${length}.';
-    }
-    int first = 0;
-    int count = starts.length;
-    while (count > 1) {
-      int step = count ~/ 2;
-      int middle = first + step;
-      int lineStart = starts[middle];
-      if (position < lineStart) {
-        count = step;
-      } else {
-        first = middle;
-        count -= step;
-      }
-    }
-    return first;
+  kernel.Location getLocation(int offset) {
+    return kernelSource.getLocation(null, offset);
   }
-
-  /**
-   * Returns the column number for the offset [position] in the string
-   * representation of this source file.
-   */
-  int getColumn(int line, int position) {
-    return position - lineStarts[line];
-  }
-
-  /// Returns the offset for 0-based [line] and [column] numbers.
-  int getOffset(int line, int column) => lineStarts[line] + column;
 
   String slowSubstring(int start, int end);
 
-  /**
-   * Create a pretty string representation for [message] from a character
-   * range `[start, end]` in this file.
-   *
-   * If [includeSourceLine] is `true` the first source line code line that
-   * contains the range will be included as well as marker characters ('^')
-   * underlining the range.
-   *
-   * Use [colorize] to wrap source code text and marker characters in color
-   * escape codes.
-   */
+  /// Create a pretty string representation for [message] from a character
+  /// range `[start, end]` in this file.
+  ///
+  /// If [includeSourceLine] is `true` the first source line code line that
+  /// contains the range will be included as well as marker characters ('^')
+  /// underlining the range.
+  ///
+  /// Use [colorize] to wrap source code text and marker characters in color
+  /// escape codes.
   String getLocationMessage(String message, int start, int end,
       {bool includeSourceLine: true, String colorize(String text)}) {
     if (colorize == null) {
@@ -141,10 +105,12 @@ abstract class SourceFile implements LineColumnProvider {
       end = length;
     }
 
-    int lineStart = getLine(start);
-    int columnStart = getColumn(lineStart, start);
-    int lineEnd = getLine(end);
-    int columnEnd = getColumn(lineEnd, end);
+    kernel.Location startLocation = kernelSource.getLocation(null, start);
+    kernel.Location endLocation = kernelSource.getLocation(null, end);
+    int lineStart = startLocation.line - 1;
+    int columnStart = startLocation.column - 1;
+    int lineEnd = endLocation.line - 1;
+    int columnEnd = endLocation.column - 1;
 
     StringBuffer buf = new StringBuffer('${filename}:');
     if (start != end || start != 0) {
@@ -155,12 +121,12 @@ abstract class SourceFile implements LineColumnProvider {
 
     if (start != end && includeSourceLine) {
       if (lineStart == lineEnd) {
-        String textLine = getLineText(lineStart);
+        String textLine = kernelSource.getTextLine(startLocation.line);
 
         int toColumn = min(columnStart + (end - start), textLine.length);
         buf.write(textLine.substring(0, columnStart));
         buf.write(colorize(textLine.substring(columnStart, toColumn)));
-        buf.write(textLine.substring(toColumn));
+        buf.writeln(textLine.substring(toColumn));
 
         int i = 0;
         for (; i < columnStart; i++) {
@@ -172,15 +138,15 @@ abstract class SourceFile implements LineColumnProvider {
         }
       } else {
         for (int line = lineStart; line <= lineEnd; line++) {
-          String textLine = getLineText(line);
+          String textLine = kernelSource.getTextLine(line + 1);
           if (line == lineStart) {
             buf.write(textLine.substring(0, columnStart));
-            buf.write(colorize(textLine.substring(columnStart)));
+            buf.writeln(colorize(textLine.substring(columnStart)));
           } else if (line == lineEnd) {
             buf.write(colorize(textLine.substring(0, columnEnd)));
-            buf.write(textLine.substring(columnEnd));
+            buf.writeln(textLine.substring(columnEnd));
           } else {
-            buf.write(colorize(textLine));
+            buf.writeln(colorize(textLine));
           }
         }
       }
@@ -190,18 +156,6 @@ abstract class SourceFile implements LineColumnProvider {
   }
 
   int get lines => lineStarts.length - 1;
-
-  /// Returns the text of line  at the 0-based [index] within this source file.
-  String getLineText(int index) {
-    // +1 for 0-indexing, +1 again to avoid the last line of the file
-    if ((index + 2) < lineStarts.length) {
-      return slowSubstring(lineStarts[index], lineStarts[index + 1]);
-    } else if ((index + 1) < lineStarts.length) {
-      return '${slowSubstring(lineStarts[index], length)}\n';
-    } else {
-      throw new ArgumentError("Line index $index is out of bounds.");
-    }
-  }
 }
 
 List<int> _zeroTerminateIfNecessary(List<int> bytes) {
@@ -215,15 +169,13 @@ List<int> _zeroTerminateIfNecessary(List<int> bytes) {
 class Utf8BytesSourceFile extends SourceFile {
   final Uri uri;
 
-  /** The UTF-8 encoded content of the source file. */
+  /// The UTF-8 encoded content of the source file.
   final List<int> zeroTerminatedContent;
 
-  /**
-   * Creates a Utf8BytesSourceFile.
-   *
-   * If possible, the given [content] should be zero-terminated. If it isn't,
-   * the constructor clones the content and adds a trailing 0.
-   */
+  /// Creates a Utf8BytesSourceFile.
+  ///
+  /// If possible, the given [content] should be zero-terminated. If it isn't,
+  /// the constructor clones the content and adds a trailing 0.
   Utf8BytesSourceFile(this.uri, List<int> content)
       : this.zeroTerminatedContent = _zeroTerminateIfNecessary(content);
 

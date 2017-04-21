@@ -22,8 +22,8 @@ class B {
 
 methodsOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
-    if(v is MethodMirror && v.isRegularMethod) result[k] = v;
+  cm.declarations.forEach((k, v) {
+    if (v is MethodMirror && v.isRegularMethod) result[k] = v;
   });
   return result;
 }
@@ -31,10 +31,12 @@ methodsOf(ClassMirror cm) {
 main() {
   var methods = methodsOf(reflectClass(B));
 
-  expect('{f: Method(s(f) in s(B)), '
-         'g: Method(s(g) in s(B)), '
-         'h: Method(s(h) in s(B)), '
-         'i: Method(s(i) in s(B))}', methods);
+  expect(
+      '{f: Method(s(f) in s(B)), '
+      'g: Method(s(g) in s(B)), '
+      'h: Method(s(h) in s(B)), '
+      'i: Method(s(i) in s(B))}',
+      methods);
 
   var f = methods[#f];
   var g = methods[#g];

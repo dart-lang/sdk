@@ -7,27 +7,28 @@ import "package:expect/expect.dart";
 var global = 0;
 
 bar() {
-    global += 1;
+  global += 1;
 }
+
 baz() {
-    global += 100;
+  global += 100;
 }
 
 foo(b) {
-    var old_backend_was_used;
-    if (b ? false : true) {
-        bar();
-        bar();
-    } else {
-        baz();
-        baz();
-    }
+  var old_backend_was_used;
+  if (b ? false : true) {
+    bar();
+    bar();
+  } else {
+    baz();
+    baz();
+  }
 }
 
 main() {
-    foo(true);
-    Expect.equals(200, global);
+  foo(true);
+  Expect.equals(200, global);
 
-    foo(false);
-    Expect.equals(202, global);
+  foo(false);
+  Expect.equals(202, global);
 }

@@ -13,21 +13,15 @@ main() {
 
   String longString = "str" * 1000;
   Expect.throws(() => new Duration(days: longString),
-                (e) => e is ArgumentError || e is TypeError ||
-                       e is NoSuchMethodError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
   Expect.throws(() => new Duration(hours: longString),
-                (e) => e is ArgumentError || e is TypeError ||
-                       e is NoSuchMethodError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
   Expect.throws(() => new Duration(minutes: longString),
-                (e) => e is ArgumentError || e is TypeError ||
-                       e is NoSuchMethodError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
   Expect.throws(() => new Duration(seconds: longString),
-                (e) => e is ArgumentError || e is TypeError ||
-                       e is NoSuchMethodError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
   Expect.throws(() => new Duration(milliseconds: longString),
-                (e) => e is ArgumentError || e is TypeError ||
-                       e is NoSuchMethodError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
   Expect.throws(() => new Duration(microseconds: longString),
-                (e) => e is ArgumentError || e is TypeError ||
-                       e is NoSuchMethodError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
 }

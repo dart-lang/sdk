@@ -16,8 +16,7 @@ void testParseHttpDate() {
 
   date = new DateTime.utc(1970, DateTime.JANUARY, 1, 0, 0, 0, 0);
   Expect.equals(date, HttpDate.parse("Thu, 1 Jan 1970 00:00:00 GMT"));
-  Expect.equals(date,
-                HttpDate.parse("Thursday, 1-Jan-1970 00:00:00 GMT"));
+  Expect.equals(date, HttpDate.parse("Thursday, 1-Jan-1970 00:00:00 GMT"));
   Expect.equals(date, HttpDate.parse("Thu Jan  1 00:00:00 1970"));
 
   date = new DateTime.utc(2012, DateTime.MARCH, 5, 23, 59, 59, 0);
@@ -27,13 +26,8 @@ void testParseHttpDate() {
 }
 
 void testFormatParseHttpDate() {
-  test(int year,
-       int month,
-       int day,
-       int hours,
-       int minutes,
-       int seconds,
-       String expectedFormatted) {
+  test(int year, int month, int day, int hours, int minutes, int seconds,
+      String expectedFormatted) {
     DateTime date;
     String formatted;
     date = new DateTime.utc(year, month, day, hours, minutes, seconds, 0);

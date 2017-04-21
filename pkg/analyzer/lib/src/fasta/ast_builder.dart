@@ -10,20 +10,22 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType;
+    show FormalParameterType, Parser;
+import 'package:front_end/src/fasta/scanner/precedence.dart';
+import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, Token;
+    show BeginGroupToken, CommentToken, Token;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show FastaMessage, codeExpectedExpression;
+    show FastaMessage, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show Builder, KernelLibraryBuilder, ProcedureBuilder;
+    show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
-    show JumpTargetKind, NullValue, Scope, ScopeListener;
+    show JumpTargetKind, NullValue, ScopeListener;
 import 'analyzer.dart' show toKernel;
 import 'element_store.dart'
     show
@@ -44,6 +46,14 @@ class AstBuilder extends ScopeListener {
 
   @override
   final Uri uri;
+
+  /**
+   * The [Parser] that uses this listener, used to parse optional parts, e.g.
+   * `native` support.
+   */
+  Parser parser;
+
+  bool parseGenericMethodComments = false;
 
   /// The name of the class currently being parsed, or `null` if no class is
   /// being parsed.
@@ -94,6 +104,11 @@ class AstBuilder extends ScopeListener {
   void endConstExpression(Token token) {
     debugEvent("ConstExpression");
     _handleInstanceCreation(token);
+  }
+
+  @override
+  void endConstLiteral(Token token) {
+    debugEvent("endConstLiteral");
   }
 
   void _handleInstanceCreation(Token token) {
@@ -406,12 +421,68 @@ class AstBuilder extends ScopeListener {
 
   void handleNoInitializers() {
     debugEvent("NoInitializers");
+    push(NullValue.ConstructorInitializerSeparator);
     push(NullValue.ConstructorInitializers);
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
-    push(popList(count));
+    List<Object> initializerObjects = popList(count) ?? const [];
+
+    push(beginToken);
+
+    var initializers = <ConstructorInitializer>[];
+    for (Object initializerObject in initializerObjects) {
+      if (initializerObject is FunctionExpressionInvocation) {
+        Expression function = initializerObject.function;
+        if (function is SuperExpression) {
+          initializers.add(ast.superConstructorInvocation(function.superKeyword,
+              null, null, initializerObject.argumentList));
+        } else {
+          initializers.add(ast.redirectingConstructorInvocation(
+              (function as ThisExpression).thisKeyword,
+              null,
+              null,
+              initializerObject.argumentList));
+        }
+      } else if (initializerObject is MethodInvocation) {
+        Expression target = initializerObject.target;
+        if (target is SuperExpression) {
+          initializers.add(ast.superConstructorInvocation(
+              target.superKeyword,
+              initializerObject.operator,
+              initializerObject.methodName,
+              initializerObject.argumentList));
+        } else {
+          initializers.add(ast.redirectingConstructorInvocation(
+              (target as ThisExpression).thisKeyword,
+              initializerObject.operator,
+              initializerObject.methodName,
+              initializerObject.argumentList));
+        }
+      } else if (initializerObject is AssignmentExpression) {
+        analyzer.Token thisKeyword;
+        analyzer.Token period;
+        SimpleIdentifier fieldName;
+        Expression left = initializerObject.leftHandSide;
+        if (left is PropertyAccess) {
+          var thisExpression = left.target as ThisExpression;
+          thisKeyword = thisExpression.thisKeyword;
+          period = left.operator;
+          fieldName = left.propertyName;
+        } else {
+          fieldName = left as SimpleIdentifier;
+        }
+        initializers.add(ast.constructorFieldInitializer(
+            thisKeyword,
+            period,
+            fieldName,
+            initializerObject.operator,
+            initializerObject.rightHandSide));
+      }
+    }
+
+    push(initializers);
   }
 
   void endVariableInitializer(Token assignmentOperator) {
@@ -477,9 +548,13 @@ class AstBuilder extends ScopeListener {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
-    pop(); // TODO(paulberry): Modifiers.
+    _Modifiers modifiers = pop();
+    Token keyword = modifiers?.finalConstOrVarKeyword;
+    List<Annotation> metadata = pop();
+    Comment comment = pop();
     push(ast.variableDeclarationStatement(
-        ast.variableDeclarationList(null, null, null, type, variables),
+        ast.variableDeclarationList(
+            comment, metadata, toAnalyzerToken(keyword), type, variables),
         toAnalyzerToken(endToken)));
   }
 
@@ -1047,8 +1122,25 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleInvalidFunctionBody(Token token) {
+    debugEvent("InvalidFunctionBody");
+  }
+
+  @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (message.code == codeExpectedExpression) {
+    if (message.code == codeExpectedFunctionBody) {
+      if (identical('native', token.stringValue) && parser != null) {
+        Token nativeKeyword = token;
+        Token semicolon = parser.parseLiteralString(token.next);
+        token = parser.expectSemicolon(semicolon);
+        StringLiteral name = pop();
+        pop(); // star
+        pop(); // async
+        push(ast.nativeFunctionBody(
+            toAnalyzerToken(nativeKeyword), name, toAnalyzerToken(semicolon)));
+        return token;
+      }
+    } else if (message.code == codeExpectedExpression) {
       String lexeme = token.lexeme;
       if (identical('async', lexeme) || identical('yield', lexeme)) {
         errorReporter?.reportErrorForOffset(
@@ -1483,15 +1575,31 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
+
+    // Decompose the preliminary ConstructorName into the type name and
+    // the actual constructor name.
+    SimpleIdentifier returnType;
+    analyzer.Token period;
+    SimpleIdentifier name;
+    Identifier typeName = constructorName.type.name;
+    if (typeName is SimpleIdentifier) {
+      returnType = typeName;
+    } else if (typeName is PrefixedIdentifier) {
+      returnType = typeName.prefix;
+      period = typeName.period;
+      name =
+          ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
+    }
+
     push(ast.constructorDeclaration(
         comment,
         metadata,
         toAnalyzerToken(modifiers?.externalKeyword),
         toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
         toAnalyzerToken(factoryKeyword),
-        constructorName.type.name,
-        constructorName.period,
-        constructorName.name,
+        ast.simpleIdentifier(returnType.token),
+        period,
+        name,
         parameters,
         toAnalyzerToken(separator),
         null,
@@ -1499,7 +1607,7 @@ class AstBuilder extends ScopeListener {
         body));
   }
 
-  void endFieldInitializer(Token assignment) {
+  void endFieldInitializer(Token assignment, Token token) {
     debugEvent("FieldInitializer");
     Expression initializer = pop();
     SimpleIdentifier name = pop();
@@ -1512,6 +1620,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Function");
     FunctionBody body = pop();
     pop(); // constructor initializers
+    pop(); // separator before constructor initializers
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     // TODO(scheglov) It is an error if "getOrSet" is not null.
@@ -1576,66 +1685,15 @@ class AstBuilder extends ScopeListener {
     debugEvent("Method");
     FunctionBody body = pop();
     ConstructorName redirectedConstructor = null; // TODO(paulberry)
-    List<Object> initializerObjects = pop() ?? const [];
-    Token separator = null; // TODO(paulberry)
+    List<ConstructorInitializer> initializers = pop() ?? const [];
+    Token separator = pop();
     FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop(); // TODO(paulberry)
+    TypeParameterList typeParameters = pop();
     var name = pop();
-    TypeAnnotation returnType = pop(); // TODO(paulberry)
+    TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-
-    var initializers = <ConstructorInitializer>[];
-    for (Object initializerObject in initializerObjects) {
-      if (initializerObject is FunctionExpressionInvocation) {
-        Expression function = initializerObject.function;
-        if (function is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(function.superKeyword,
-              null, null, initializerObject.argumentList));
-        } else {
-          initializers.add(ast.redirectingConstructorInvocation(
-              (function as ThisExpression).thisKeyword,
-              null,
-              null,
-              initializerObject.argumentList));
-        }
-      } else if (initializerObject is MethodInvocation) {
-        Expression target = initializerObject.target;
-        if (target is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(
-              target.superKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        } else {
-          initializers.add(ast.redirectingConstructorInvocation(
-              (target as ThisExpression).thisKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        }
-      } else if (initializerObject is AssignmentExpression) {
-        analyzer.Token thisKeyword;
-        analyzer.Token period;
-        SimpleIdentifier fieldName;
-        Expression left = initializerObject.leftHandSide;
-        if (left is PropertyAccess) {
-          var thisExpression = left.target as ThisExpression;
-          thisKeyword = thisExpression.thisKeyword;
-          period = left.operator;
-          fieldName = left.propertyName;
-        } else {
-          fieldName = left as SimpleIdentifier;
-        }
-        initializers.add(ast.constructorFieldInitializer(
-            thisKeyword,
-            period,
-            fieldName,
-            initializerObject.operator,
-            initializerObject.rightHandSide));
-      }
-    }
 
     void constructor(SimpleIdentifier returnType, analyzer.Token period,
         SimpleIdentifier name) {
@@ -1847,6 +1905,83 @@ class AstBuilder extends ScopeListener {
     var tokens = <analyzer.Token>[toAnalyzerCommentToken(comments)];
     var references = <CommentReference>[];
     return ast.documentationComment(tokens, references);
+  }
+
+  @override
+  void debugEvent(String name) {
+    // printEvent(name);
+  }
+
+  @override
+  Token injectGenericCommentTypeAssign(Token token) {
+    // TODO(paulberry,scheglov,ahe): figure out how to share these generic
+    // comment methods with BodyBuilder.
+    return _injectGenericComment(token, GENERIC_METHOD_TYPE_ASSIGN, 3);
+  }
+
+  @override
+  Token injectGenericCommentTypeList(Token token) {
+    return _injectGenericComment(token, GENERIC_METHOD_TYPE_LIST, 2);
+  }
+
+  @override
+  Token replaceTokenWithGenericCommentTypeAssign(
+      Token tokenToStartReplacing, Token tokenWithComment) {
+    Token injected = injectGenericCommentTypeAssign(tokenWithComment);
+    if (!identical(injected, tokenWithComment)) {
+      Token prev = tokenToStartReplacing.previous;
+      prev.setNextWithoutSettingPrevious(injected);
+      tokenToStartReplacing = injected;
+      tokenToStartReplacing.previous = prev;
+    }
+    return tokenToStartReplacing;
+  }
+
+  /// Check if the given [token] has a comment token with the given [info],
+  /// which should be either [GENERIC_METHOD_TYPE_ASSIGN] or
+  /// [GENERIC_METHOD_TYPE_LIST].  If found, parse the comment into tokens and
+  /// inject into the token stream before the [token].
+  Token _injectGenericComment(Token token, PrecedenceInfo info, int prefixLen) {
+    if (parseGenericMethodComments) {
+      CommentToken t = token.precedingCommentTokens;
+      for (; t != null; t = t.next) {
+        if (t.info == info) {
+          String code = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
+          Token tokens = _scanGenericMethodComment(code, t.offset + prefixLen);
+          if (tokens != null) {
+            // Remove the token from the comment stream.
+            t.remove();
+            // Insert the tokens into the stream.
+            _injectTokenList(token, tokens);
+            return tokens;
+          }
+        }
+      }
+    }
+    return token;
+  }
+
+  void _injectTokenList(Token beforeToken, Token firstToken) {
+    // Scanner creates a cyclic EOF token.
+    Token lastToken = firstToken;
+    while (lastToken.next.info != EOF_INFO) {
+      lastToken = lastToken.next;
+    }
+    // Inject these new tokens into the stream.
+    Token previous = beforeToken.previous;
+    lastToken.setNext(beforeToken);
+    previous.setNext(firstToken);
+    beforeToken = firstToken;
+  }
+
+  /// Scans the given [code], and returns the tokens, otherwise returns `null`.
+  Token _scanGenericMethodComment(String code, int offset) {
+    var scanner = new SubStringScanner(offset, code);
+    Token firstToken = scanner.tokenize();
+    if (scanner.hasErrors) {
+      return null;
+    }
+    return firstToken;
   }
 }
 

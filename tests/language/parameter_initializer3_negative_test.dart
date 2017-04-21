@@ -12,7 +12,6 @@ class Foo {
   Foo.named() {}
 }
 
-
 class ParameterInitializer3NegativeTest {
   static testMain() {
     new Foo(2);

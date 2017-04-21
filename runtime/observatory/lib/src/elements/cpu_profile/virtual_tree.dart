@@ -196,7 +196,8 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] = new FunctionRefElement(
-        _isolate, item.profileFunction.function, queue: _r.queue)
+        _isolate, item.profileFunction.function,
+        queue: _r.queue)
       ..classes = ['name'];
   }
 
@@ -219,7 +220,8 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] = new FunctionRefElement(
-        null, item.profileFunction.function, queue: _r.queue)
+        null, item.profileFunction.function,
+        queue: _r.queue)
       ..classes = ['name'];
   }
 
@@ -237,8 +239,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
-    element.children[5] = new CodeRefElement(_isolate, item.profileCode.code,
-        queue: _r.queue)..classes = ['name'];
+    element.children[5] =
+        new CodeRefElement(_isolate, item.profileCode.code, queue: _r.queue)
+          ..classes = ['name'];
   }
 
   void _updateMemoryCodeRow(
@@ -259,8 +262,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
-    element.children[5] = new CodeRefElement(null, item.profileCode.code,
-        queue: _r.queue)..classes = ['name'];
+    element.children[5] =
+        new CodeRefElement(null, item.profileCode.code, queue: _r.queue)
+          ..classes = ['name'];
   }
 
   static _updateLines(List<Element> lines, int n) {

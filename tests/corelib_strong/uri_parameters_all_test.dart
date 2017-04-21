@@ -9,18 +9,30 @@ main() {
   testAll(["a", "b", "c"]);
   testAll([""]);
   testAll(["a"]);
-  testAll(["",""]);
+  testAll(["", ""]);
   testAll(["baz"]);
 
-  testParse("z&y&w&z", {"z": ["", ""], "y": [""], "w": [""]});
-  testParse("x=42&y=42&x=37&y=37", {"x": ["42", "37"], "y": ["42", "37"]});
-  testParse("x&x&x&x&x", {"x": ["", "", "", "", ""]});
-  testParse("x=&&y", {"x": [""], "y": [""]});
+  testParse("z&y&w&z", {
+    "z": ["", ""],
+    "y": [""],
+    "w": [""]
+  });
+  testParse("x=42&y=42&x=37&y=37", {
+    "x": ["42", "37"],
+    "y": ["42", "37"]
+  });
+  testParse("x&x&x&x&x", {
+    "x": ["", "", "", "", ""]
+  });
+  testParse("x=&&y", {
+    "x": [""],
+    "y": [""]
+  });
 }
 
 testAll(List values) {
-  var uri = new Uri(scheme: "foo", path: "bar",
-                    queryParameters: {"baz": values});
+  var uri =
+      new Uri(scheme: "foo", path: "bar", queryParameters: {"baz": values});
   var list = uri.queryParametersAll["baz"];
   Expect.listEquals(values, list);
 }

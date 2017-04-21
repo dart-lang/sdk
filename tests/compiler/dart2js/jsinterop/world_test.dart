@@ -94,9 +94,9 @@ $mainSource
     ClassElement Object_ =
         registerClass(env.compiler.commonElements.objectClass);
     ClassElement Interceptor =
-        registerClass(backend.helpers.jsInterceptorClass);
+        registerClass(env.compiler.commonElements.jsInterceptorClass);
     ClassElement JavaScriptObject =
-        registerClass(backend.helpers.jsJavaScriptObjectClass);
+        registerClass(env.compiler.commonElements.jsJavaScriptObjectClass);
     ClassElement A = registerClass(env.getElement('A'));
     ClassElement B = registerClass(env.getElement('B'));
     ClassElement C = registerClass(env.getElement('C'));

@@ -4,6 +4,7 @@
 
 library test.to_string_test;
 
+@MirrorsUsed(targets: "test.to_string_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -20,13 +21,11 @@ main() {
   expect("TypeMirror on 'dynamic'", mirrors.dynamicType);
   expect("TypeMirror on 'void'", mirrors.voidType);
   expect("LibraryMirror on 'test.to_string_test'",
-         mirrors.findLibrary(#test.to_string_test));
+      mirrors.findLibrary(#test.to_string_test));
   expect("InstanceMirror on 1", reflect(1));
   expect("ClassMirror on 'Foo'", reflectClass(Foo));
-  expect("VariableMirror on 'field'",
-         reflectClass(Foo).declarations[#field]);
-  expect("MethodMirror on 'method'",
-         reflectClass(Foo).declarations[#method]);
+  expect("VariableMirror on 'field'", reflectClass(Foo).declarations[#field]);
+  expect("MethodMirror on 'method'", reflectClass(Foo).declarations[#method]);
   String s = reflect(main).toString();
   Expect.isTrue(s.startsWith("ClosureMirror on '"), s);
 }

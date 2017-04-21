@@ -366,6 +366,7 @@ class ConstantConstructorDeserializer {
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
   /// [ResolutionDartType], and [ConstantExpression] that the deserialized
   /// [ConstantConstructor] depends upon are available.
+  // ignore: MISSING_RETURN
   static ConstantConstructor deserialize(ObjectDecoder decoder) {
     ConstantConstructorKind kind =
         decoder.getEnum(Key.KIND, ConstantConstructorKind.values);

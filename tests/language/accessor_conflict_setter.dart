@@ -4,4 +4,6 @@
 
 var setValue;
 
-set x(value) { setValue = value; }
+set x(value) {
+  setValue = value;
+}

@@ -23,4 +23,3 @@ abstract class AbstractListMember2<E, M extends AbstractListMember2<E, M>>
     extends ComponentState2<M> {}
 
 abstract class ComponentState2<S extends ComponentState2<S>> {}
-

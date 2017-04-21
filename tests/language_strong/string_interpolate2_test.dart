@@ -5,15 +5,12 @@
 
 import "package:expect/expect.dart";
 
-
 class StringInterpolate2Test {
-
   static var F1;
 
   static void testMain() {
-  
     F1 = "1 + 5 = ${1+5}";
-    
+
     Expect.equals("1 + 5 = 6", F1);
 
     var fib = [1, 1, 2, 3, 5, 8, 13, 21];
@@ -33,10 +30,12 @@ class StringInterpolate2Test {
     // test single quote
     Expect.equals("8", '${fib.length}');
     // test multi-line
-    Expect.equals("8", '${fib.
+    Expect.equals(
+        "8",
+        '${fib.
     length}');
 
-    var map = { "red": 1, "green": 2, "blue": 3 };
+    var map = {"red": 1, "green": 2, "blue": 3};
     s = "green has value ${map["green"]}";
     Expect.equals("green has value 2", s);
 

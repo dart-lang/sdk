@@ -6,11 +6,13 @@
 class NoSuchMethodNegativeTest {
   NoSuchMethodNegativeTest() {}
 
-  foo() { return 1; }
+  foo() {
+    return 1;
+  }
 
   static testMain() {
     var obj = new NoSuchMethodNegativeTest();
-    return obj.moo();  // NoSuchMethodError thrown here
+    return obj.moo(); // NoSuchMethodError thrown here
   }
 }
 

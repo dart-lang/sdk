@@ -20,7 +20,6 @@ cmp(a, b, c) {
   return c + v + w + x + y + z;
 }
 
-
 main() {
   var big = 100000000000000000000000000000000000;
   var before = cmp(big, big, 0);
@@ -28,4 +27,3 @@ main() {
   for (var i = 0; i < 20; i++) cmp(big, big + 1, 0);
   Expect.equals(before, cmp(big, big, 0));
 }
-

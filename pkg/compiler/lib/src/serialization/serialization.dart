@@ -939,7 +939,7 @@ class DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {}
 
   /// Called to deserialize custom data from [decoder].
-  dynamic onData(ObjectDecoder decoder) {}
+  dynamic onData(ObjectDecoder decoder) => null;
 }
 
 /// Context for parallel deserialization.

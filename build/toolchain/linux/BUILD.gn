@@ -22,13 +22,18 @@ if (use_goma) {
 }
 
 gcc_toolchain("arm") {
-  cc = "${compiler_prefix}arm-linux-gnueabihf-gcc"
-  cxx = "${compiler_prefix}arm-linux-gnueabihf-g++"
+  prefix = "arm-linux-gnueabihf-"
+  if (toolchain_prefix != "") {
+    prefix = toolchain_prefix
+  }
 
-  ar = "arm-linux-gnueabihf-ar"
+  cc = "${compiler_prefix}${prefix}gcc"
+  cxx = "${compiler_prefix}${prefix}g++"
+
+  ar = "${prefix}ar"
   ld = cxx
-  readelf = "arm-linux-gnueabihf-readelf"
-  nm = "arm-linux-gnueabihf-nm"
+  readelf = "${prefix}readelf"
+  nm = "${prefix}nm"
 
   toolchain_cpu = "arm"
   toolchain_os = "linux"
@@ -36,13 +41,18 @@ gcc_toolchain("arm") {
 }
 
 gcc_toolchain("arm64") {
-  cc = "${compiler_prefix}aarch64-linux-gnu-gcc"
-  cxx = "${compiler_prefix}aarch64-linux-gnu-g++"
+  prefix = "aarch64-linux-gnu-"
+  if (toolchain_prefix != "") {
+    prefix = toolchain_prefix
+  }
 
-  ar = "aarch64-linux-gnu-ar"
+  cc = "${compiler_prefix}${prefix}gcc"
+  cxx = "${compiler_prefix}${prefix}g++"
+
+  ar = "${prefix}ar"
   ld = cxx
-  readelf = "aarch64-linux-gnu-readelf"
-  nm = "aarch64-linux-gnu-nm"
+  readelf = "${prefix}readelf"
+  nm = "${prefix}nm"
 
   toolchain_cpu = "arm64"
   toolchain_os = "linux"
@@ -109,8 +119,8 @@ gcc_toolchain("x64") {
 }
 
 gcc_toolchain("mipsel") {
-  cc = "${toolchain_prefix}gcc"
-  cxx = "${toolchain_prefix}g++"
+  cc = "${compiler_prefix}${toolchain_prefix}gcc"
+  cxx = "${compiler_prefix}${toolchain_prefix}g++"
   ar = "${toolchain_prefix}ar"
   ld = cxx
   readelf = "${toolchain_prefix}readelf"

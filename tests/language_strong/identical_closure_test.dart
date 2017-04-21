@@ -21,15 +21,15 @@ main() {
   Expect.isFalse(myIdentical(42.0, 41.0));
 
   // Mint (2^45).
-  Expect.isTrue(myIdentical(35184372088832,35184372088832));
-  Expect.isFalse(myIdentical(35184372088832,35184372088831));
+  Expect.isTrue(myIdentical(35184372088832, 35184372088832));
+  Expect.isFalse(myIdentical(35184372088832, 35184372088831));
 
   // Different types.
   Expect.isFalse(myIdentical("hello", 41));
 
   // Points.
-  var p = new Point(1,1);
-  var q = new Point(1,1);
+  var p = new Point(1, 1);
+  var q = new Point(1, 1);
   Expect.isFalse(myIdentical(p, q));
 
   // Strings.

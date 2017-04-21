@@ -7,16 +7,17 @@ import 'dart:io';
 
 Future downloadFile(Uri url, String destination) {
   var client = new HttpClient();
-  return client.getUrl(url)
-    .then((HttpClientRequest request) => request.close())
-    .then((HttpClientResponse response) {
-      if (response.statusCode != HttpStatus.OK) {
-        throw new Exception("Http status code (${response.statusCode}) "
-                            "was not 200. Aborting.");
-      }
-      var sink = new File(destination).openWrite();
-      return response.pipe(sink).then((_) {
-        client.close();
+  return client
+      .getUrl(url)
+      .then((HttpClientRequest request) => request.close())
+      .then((HttpClientResponse response) {
+    if (response.statusCode != HttpStatus.OK) {
+      throw new Exception("Http status code (${response.statusCode}) "
+          "was not 200. Aborting.");
+    }
+    var sink = new File(destination).openWrite();
+    return response.pipe(sink).then((_) {
+      client.close();
     });
   });
 }

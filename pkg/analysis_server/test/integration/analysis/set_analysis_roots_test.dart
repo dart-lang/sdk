@@ -31,7 +31,4 @@ class Foo {
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

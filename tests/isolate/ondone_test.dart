@@ -19,7 +19,6 @@ void isomain(SendPort replyPort) {
   replyPort.send(port.sendPort);
 }
 
-
 void main() {
   testExit();
   testCancelExit();
@@ -29,7 +28,7 @@ void main() {
 void testExit() {
   bool mayComplete = false;
   asyncStart();
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   RawReceivePort onExitPort;
   onExitPort = new RawReceivePort((v) {
@@ -55,11 +54,10 @@ void testExit() {
   });
 }
 
-
 void testCancelExit() {
   bool mayComplete = false;
   asyncStart();
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   RawReceivePort onExitPort2 = new RawReceivePort((_) {
     throw "RECEIVED EXIT MESSAGE";
@@ -98,7 +96,7 @@ void testCancelExit() {
 void testOverrideResponse() {
   bool mayComplete = false;
   asyncStart();
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   RawReceivePort onExitPort;
   onExitPort = new RawReceivePort((v) {

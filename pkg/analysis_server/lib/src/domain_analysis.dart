@@ -67,6 +67,16 @@ class AnalysisDomainHandler implements RequestHandler {
 
     if (server.options.enableNewAnalysisDriver) {
       var result = await server.getAnalysisResult(file);
+
+      if (server.onResultErrorSupplementor != null) {
+        if (result != null) {
+          await server.onResultErrorSupplementor(file, result.errors);
+        } else {
+          server.onNoAnalysisResult(file, send);
+          return;
+        }
+      }
+
       send(result?.driver?.analysisOptions, result?.lineInfo, result?.errors);
       return;
     }
@@ -136,6 +146,8 @@ class AnalysisDomainHandler implements RequestHandler {
       server.sendResponse(new AnalysisGetLibraryDependenciesResult(
               libraries.toList(growable: false), packageMap)
           .toResponse(request.id));
+    }).catchError((error, st) {
+      server.sendResponse(new Response.serverError(request, error, st));
     });
     // delay response
     return Response.DELAYED_RESPONSE;

@@ -367,16 +367,6 @@ source_set("gen_snapshot_dart_io") {
   ]
 }
 
-source_set("libdart_embedder_noio") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-  ]
-  deps = [
-    "..:libdart",
-  ]
-}
-
 # A source set for the implementation of 'dart:io' library.
 template("dart_io") {
   extra_sources = []
@@ -404,6 +394,9 @@ template("dart_io") {
     set_sources_assignment_filter(custom_sources_filter)
 
     defines = []
+    deps = [
+      "$dart_zlib_path",
+    ]
     if (is_mac || is_ios) {
       libs = [
         "CoreFoundation.framework",
@@ -414,9 +407,7 @@ template("dart_io") {
         libs += [ "CoreServices.framework" ]
       }
     } else {
-      deps = [
-        "//third_party/boringssl",
-      ]
+      deps += [ "//third_party/boringssl" ]
     }
 
     if (defined(is_fuchsia) && is_fuchsia) {
@@ -623,7 +614,7 @@ template("dart_executable") {
 
 dart_executable("dart") {
   extra_deps = [
-    "..:libdart",
+    "..:libdart_jit",
     ":dart_snapshot_cc",
     "../observatory:standalone_observatory_archive",
   ]
@@ -785,7 +776,7 @@ executable("run_vm_tests") {
     ":libdart_builtin",
     ":standalone_dart_io",
     "$dart_zlib_path",
-    "..:libdart",
+    "..:libdart_jit",
   ]
   include_dirs = [
     "..",

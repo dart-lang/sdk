@@ -22,9 +22,9 @@ main(List<String> args, message) {
     map2[9] = 'nine';
 
     var map = new Map<int, LinkedHashMap<int, String>>.from(
-        { 0:map0, 1:map1, 2:map2 });
+        {0: map0, 1: map1, 2: map2});
     sendPort.send(map);
-  } catch(error) {
+  } catch (error) {
     sendPort.send("Invalid Argument(s).");
   }
 }

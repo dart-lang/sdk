@@ -104,7 +104,7 @@ class CompileType : public ZoneAllocated {
   static CompileType Create(intptr_t cid, const AbstractType& type);
 
   CompileType CopyNonNullable() const {
-    return CompileType(kNonNullable, cid_, type_);
+    return CompileType(kNonNullable, kIllegalCid, type_);
   }
 
   static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
@@ -157,9 +157,10 @@ class CompileType : public ZoneAllocated {
   bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == NULL); }
 
   bool IsInt() {
-    return !is_nullable() && ((ToCid() == kSmiCid) || (ToCid() == kMintCid) ||
-                              ((type_ != NULL) &&
-                               (type_->Equals(Type::Handle(Type::IntType())))));
+    return !is_nullable() &&
+           ((ToCid() == kSmiCid) || (ToCid() == kMintCid) ||
+            ((type_ != NULL) &&
+             (type_->Equals(Type::Handle(Type::Int64Type())))));
   }
 
   void PrintTo(BufferFormatter* f) const;
@@ -567,7 +568,7 @@ class Instruction : public ZoneAllocated {
   virtual Tag tag() const = 0;
 
   intptr_t deopt_id() const {
-    ASSERT(CanDeoptimize() || CanBecomeDeoptimizationTarget());
+    ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget());
     return GetDeoptId();
   }
 
@@ -598,8 +599,14 @@ class Instruction : public ZoneAllocated {
   }
   inline Definition* ArgumentAt(intptr_t index) const;
 
-  // Returns true, if this instruction can deoptimize.
-  virtual bool CanDeoptimize() const = 0;
+  // Returns true, if this instruction can deoptimize with its current imputs.
+  // This property can change if we add or remove redefinitions that constrain
+  // the type or the range of input operands during compilation.
+  virtual bool ComputeCanDeoptimize() const = 0;
+
+  // Once we removed the deopt environment, we assume that this
+  // instruction can't deoptimize.
+  bool CanDeoptimize() const { return env() != NULL && ComputeCanDeoptimize(); }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -742,8 +749,6 @@ class Instruction : public ZoneAllocated {
   // instruction.
   Instruction* AppendInstruction(Instruction* tail);
 
-  virtual bool AllowsDCE() const { return false; }
-
   // Returns true if CSE and LICM are allowed for this instruction.
   virtual bool AllowsCSE() const { return false; }
 
@@ -791,7 +796,7 @@ class Instruction : public ZoneAllocated {
   virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
-    return CanDeoptimize() || CanBecomeDeoptimizationTarget();
+    return ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
@@ -972,7 +977,7 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const {
     UNREACHABLE();  // This instruction never visited by optimization passes.
@@ -1104,7 +1109,7 @@ class BlockEntryInstr : public Instruction {
     return true;
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -1837,7 +1842,7 @@ class PhiInstr : public Definition {
 
   Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -1932,7 +1937,7 @@ class ParameterInstr : public Definition {
     return NULL;
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -1969,7 +1974,7 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   Value* value() const { return InputAt(0); }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2008,7 +2013,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
     return true;
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2031,7 +2036,7 @@ class ThrowInstr : public TemplateInstruction<0, Throws> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2058,7 +2063,7 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t catch_try_index() const { return catch_try_index_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2082,7 +2087,7 @@ class StopInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2124,7 +2129,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
     return true;
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2200,7 +2205,7 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
     return successors_[index];
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -2333,7 +2338,9 @@ class BranchInstr : public Instruction {
 
   virtual TokenPosition token_pos() const { return comparison_->token_pos(); }
 
-  virtual bool CanDeoptimize() const { return comparison()->CanDeoptimize(); }
+  virtual bool ComputeCanDeoptimize() const {
+    return comparison()->ComputeCanDeoptimize();
+  }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     return comparison()->CanBecomeDeoptimizationTarget();
@@ -2394,7 +2401,7 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
   DeoptimizeInstr(ICData::DeoptReasonId deopt_reason, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), deopt_reason_(deopt_reason) {}
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -2425,7 +2432,7 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   void set_constrained_type(CompileType* type) { constrained_type_ = type; }
   CompileType* constrained_type() const { return constrained_type_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2446,7 +2453,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -2488,7 +2495,7 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   const Object& value() const { return value_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -2529,7 +2536,7 @@ class UnboxedConstantInstr : public ConstantInstr {
 };
 
 
-class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
+class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
@@ -2547,7 +2554,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(2, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -2556,6 +2563,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator_type_arguments() const { return inputs_[1]; }
+  Value* function_type_arguments() const { return inputs_[2]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
@@ -2565,7 +2573,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
   }
   const String& dst_name() const { return dst_name_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // AssertAssignable instructions that are specialized by the optimizer
@@ -2602,7 +2610,7 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -2627,7 +2635,7 @@ class CurrentContextInstr : public TemplateDefinition<0, NoThrow> {
   DECLARE_INSTRUCTION(CurrentContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -2674,7 +2682,7 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -2742,7 +2750,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -2828,7 +2836,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   const ICData& ic_data() const { return ic_data_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -2863,7 +2871,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -2908,7 +2916,7 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
@@ -2953,7 +2961,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool CanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;
   }
 
@@ -3000,7 +3008,7 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
 
@@ -3042,7 +3050,7 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
 
@@ -3089,7 +3097,9 @@ class IfThenElseInstr : public Definition {
 
   Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
 
-  virtual bool CanDeoptimize() const { return comparison()->CanDeoptimize(); }
+  virtual bool ComputeCanDeoptimize() const {
+    return comparison()->ComputeCanDeoptimize();
+  }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     return comparison()->CanBecomeDeoptimizationTarget();
@@ -3206,7 +3216,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
   }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Static calls that are specialized by the optimizer (e.g. sqrt) need a
@@ -3257,7 +3267,7 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
 
   const LocalVariable& local() const { return local_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
@@ -3303,7 +3313,7 @@ class DropTempsInstr : public Definition {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
@@ -3344,7 +3354,7 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   const LocalVariable& local() const { return local_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   void mark_dead() { is_dead_ = true; }
   bool is_dead() const { return is_dead_; }
@@ -3389,6 +3399,7 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
         function_(function),
         native_c_function_(NULL),
         is_bootstrap_native_(false),
+        is_auto_scope_(true),
         link_lazily_(link_lazily),
         token_pos_(position) {}
 
@@ -3398,10 +3409,11 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   const Function& function() const { return *function_; }
   NativeFunction native_c_function() const { return native_c_function_; }
   bool is_bootstrap_native() const { return is_bootstrap_native_; }
+  bool is_auto_scope() const { return is_auto_scope_; }
   bool link_lazily() const { return link_lazily_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -3415,11 +3427,13 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   }
 
   void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
+  void set_is_auto_scope(bool value) { is_auto_scope_ = value; }
 
   const String* native_name_;
   const Function* function_;
   NativeFunction native_c_function_;
   bool is_bootstrap_native_;
+  bool is_auto_scope_;
   bool link_lazily_;
   const TokenPosition token_pos_;
 
@@ -3435,7 +3449,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   DECLARE_INSTRUCTION(DebugStepCheck)
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -3501,7 +3515,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   // May require a deoptimization target for input conversions.
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -3552,7 +3566,7 @@ class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   const Field& field() const { return field_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Ensure that we record kDeopt PC descriptor in unoptimized code.
     return true;
@@ -3618,7 +3632,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   Value* field_value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AllowsCSE() const { return StaticField().is_final(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -3654,7 +3668,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   const Field& field() const { return field_; }
   Value* value() const { return inputs_[kValuePos]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   // Currently CSE/LICM don't operate on any instructions that can be affected
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
@@ -3716,7 +3730,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
-  virtual bool CanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;
   }
 
@@ -3787,7 +3801,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
     return element_count() <= kSmiBits / (index_scale() * kBitsPerByte);
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return representation_; }
   void set_representation(Representation repr) { representation_ = repr; }
@@ -3817,7 +3831,7 @@ class OneByteStringFromCharCodeInstr
 
   Value* char_code() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -3838,7 +3852,7 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* str() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsStringToCharCode()->cid_ == cid_;
@@ -3866,7 +3880,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   virtual CompileType ComputeType() const;
   // Issues a static call to Dart code which calls toString on objects.
   virtual EffectSet Effects() const { return EffectSet::All(); }
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   const Function& CallFunction() const;
 
@@ -3910,7 +3924,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
@@ -3947,7 +3961,7 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -3958,7 +3972,7 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
-class InstanceOfInstr : public TemplateDefinition<2, Throws> {
+class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  public:
   InstanceOfInstr(TokenPosition token_pos,
                   Value* value,
@@ -3970,7 +3984,7 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(2, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -3978,11 +3992,12 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator_type_arguments() const { return inputs_[1]; }
+  Value* function_type_arguments() const { return inputs_[2]; }
 
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4028,7 +4043,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
     closure_function_ ^= function.raw();
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4063,7 +4078,7 @@ class AllocateUninitializedContextInstr
   virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4150,7 +4165,7 @@ class MaterializeObjectInstr : public Definition {
     return kNoRepresentation;
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
   Location* locations() { return locations_; }
@@ -4207,7 +4222,7 @@ class CreateArrayInstr : public TemplateDefinition<2, Throws> {
 
   // Throw needs environment, which is created only if instruction can
   // deoptimize.
-  virtual bool CanDeoptimize() const { return MayThrow(); }
+  virtual bool ComputeCanDeoptimize() const { return MayThrow(); }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4246,7 +4261,7 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   Value* object() const { return inputs_[0]; }
   intptr_t offset() const { return offset_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
@@ -4268,7 +4283,7 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow> {
 
   Value* object() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const {
@@ -4352,7 +4367,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -4385,7 +4400,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
-class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
+class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
  public:
   InstantiateTypeInstr(TokenPosition token_pos,
                        const AbstractType& type,
@@ -4395,17 +4410,18 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
         token_pos_(token_pos),
         type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
     SetInputAt(0, instantiator_type_arguments);
+    SetInputAt(1, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateType)
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
+  Value* function_type_arguments() const { return inputs_[1]; }
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4419,7 +4435,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
 };
 
 
-class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
+class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
  public:
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
@@ -4431,18 +4447,19 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
     ASSERT(type_arguments.IsZoneHandle());
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
     SetInputAt(0, instantiator_type_arguments);
+    SetInputAt(1, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
+  Value* function_type_arguments() const { return inputs_[1]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4470,7 +4487,7 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4498,7 +4515,7 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
 
   DECLARE_INSTRUCTION(InitStaticField)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -4523,7 +4540,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -4547,7 +4564,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(CheckEitherNonSmi)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -4632,7 +4649,7 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(Box)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
   virtual intptr_t DeoptimizationTarget() const { return Thread::kNoDeoptId; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -4741,7 +4758,7 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const {
     const intptr_t value_cid = value()->Type()->ToCid();
 
     if (CanConvertSmi() && (value()->Type()->ToCid() == kSmiCid)) {
@@ -4843,7 +4860,7 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
     ASSERT(is_truncating());
   }
 
-  virtual bool CanDeoptimize() const;
+  virtual bool ComputeCanDeoptimize() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -4861,7 +4878,7 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
                   intptr_t deopt_id)
       : UnboxInteger32Instr(kUnboxedInt32, truncation_mode, value, deopt_id) {}
 
-  virtual bool CanDeoptimize() const;
+  virtual bool ComputeCanDeoptimize() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -4909,7 +4926,7 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
   MathUnaryKind kind() const { return kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -4977,7 +4994,7 @@ class CaseInsensitiveCompareUC16Instr
   intptr_t class_id() const { return cid_; }
   intptr_t index_scale() const { return Instance::ElementSizeFor(cid_); }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kTagged; }
 
@@ -5018,7 +5035,7 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   intptr_t result_cid() const { return result_cid_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     if (result_cid() == kSmiCid) {
@@ -5073,7 +5090,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -5121,7 +5138,7 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -5170,7 +5187,7 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5217,7 +5234,7 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   intptr_t mask() const { return mask_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     if ((op_kind_ == MethodRecognizer::kFloat32x4ShuffleX) ||
@@ -5289,7 +5306,7 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   intptr_t mask() const { return mask_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     if (op_kind() == MethodRecognizer::kInt32x4ShuffleMix) {
@@ -5351,7 +5368,7 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
   Value* value2() const { return inputs_[2]; }
   Value* value3() const { return inputs_[3]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5387,7 +5404,7 @@ class Float32x4SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5419,7 +5436,7 @@ class Float32x4ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   Float32x4ZeroInstr() {}
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5449,7 +5466,7 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32x4; }
 
@@ -5496,7 +5513,7 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5543,7 +5560,7 @@ class Float32x4ScaleInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5590,7 +5607,7 @@ class Float32x4SqrtInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5635,7 +5652,7 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5682,7 +5699,7 @@ class Float32x4ClampInstr : public TemplateDefinition<3, NoThrow, Pure> {
   Value* lower() const { return inputs_[1]; }
   Value* upper() const { return inputs_[2]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5725,7 +5742,7 @@ class Float32x4WithInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5775,7 +5792,7 @@ class Simd64x2ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   intptr_t mask() const { return mask_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     if ((op_kind_ == MethodRecognizer::kFloat64x2GetX) ||
@@ -5829,7 +5846,7 @@ class Float32x4ToInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* left() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32x4; }
 
@@ -5865,7 +5882,7 @@ class Float32x4ToFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* left() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat64x2; }
 
@@ -5901,7 +5918,7 @@ class Float64x2ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* left() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -5939,7 +5956,7 @@ class Float64x2ConstructorInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* value0() const { return inputs_[0]; }
   Value* value1() const { return inputs_[1]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat64x2; }
 
@@ -5975,7 +5992,7 @@ class Float64x2SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat64x2; }
 
@@ -6006,7 +6023,7 @@ class Float64x2ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   Float64x2ZeroInstr() {}
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat64x2; }
 
@@ -6034,7 +6051,7 @@ class Float64x2ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
@@ -6087,7 +6104,7 @@ class Float64x2OneArgInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat64x2; }
 
@@ -6145,7 +6162,7 @@ class Int32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
   Value* value2() const { return inputs_[2]; }
   Value* value3() const { return inputs_[3]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32x4; }
 
@@ -6192,7 +6209,7 @@ class Int32x4BoolConstructorInstr
   Value* value2() const { return inputs_[2]; }
   Value* value3() const { return inputs_[3]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32x4; }
 
@@ -6232,7 +6249,7 @@ class Int32x4GetFlagInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kTagged; }
 
@@ -6276,7 +6293,7 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kTagged; }
 
@@ -6327,7 +6344,7 @@ class Int32x4SelectInstr : public TemplateDefinition<3, NoThrow, Pure> {
   Value* trueValue() const { return inputs_[1]; }
   Value* falseValue() const { return inputs_[2]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -6373,7 +6390,7 @@ class Int32x4SetFlagInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32x4; }
 
@@ -6416,7 +6433,7 @@ class Int32x4ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* left() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat32x4; }
 
@@ -6459,7 +6476,7 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32x4; }
 
@@ -6506,7 +6523,7 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat64x2; }
 
@@ -6581,7 +6598,9 @@ class UnarySmiOpInstr : public UnaryIntegerOpInstr {
   UnarySmiOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : UnaryIntegerOpInstr(op_kind, value, deopt_id) {}
 
-  virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
+  virtual bool ComputeCanDeoptimize() const {
+    return op_kind() == Token::kNEGATE;
+  }
 
   virtual CompileType ComputeType() const;
 
@@ -6599,7 +6618,7 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
     ASSERT(op_kind == Token::kBIT_NOT);
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual CompileType ComputeType() const;
 
@@ -6624,7 +6643,7 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
     ASSERT(op_kind == Token::kBIT_NOT);
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual CompileType ComputeType() const;
 
@@ -6658,7 +6677,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -6690,7 +6709,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
 
   InstanceCallInstr* call() const { return call_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -6768,26 +6787,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AllowsDCE() const {
-    switch (op_kind()) {
-      case Token::kADD:
-      case Token::kSUB:
-      case Token::kMUL:
-      case Token::kBIT_AND:
-      case Token::kBIT_OR:
-      case Token::kBIT_XOR:
-        return true;
-
-      case Token::kSHR:
-      case Token::kSHL:
-        // These instructions throw on negative shifts.
-        return !CanDeoptimize();
-
-      default:
-        return false;
-    }
-  }
-
   virtual bool AttributesEqual(Instruction* other) const;
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -6820,7 +6819,7 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
                    intptr_t deopt_id)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {}
 
-  virtual bool CanDeoptimize() const;
+  virtual bool ComputeCanDeoptimize() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
@@ -6866,7 +6865,7 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
 #endif
   }
 
-  virtual bool CanDeoptimize() const;
+  virtual bool ComputeCanDeoptimize() const;
 
   virtual Representation representation() const { return kUnboxedInt32; }
 
@@ -6895,7 +6894,7 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
     mark_truncating();
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedUint32; }
 
@@ -6923,7 +6922,7 @@ class ShiftUint32OpInstr : public BinaryIntegerOpInstr {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
   }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Representation representation() const { return kUnboxedUint32; }
 
@@ -6949,7 +6948,7 @@ class BinaryMintOpInstr : public BinaryIntegerOpInstr {
                     intptr_t deopt_id)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {}
 
-  virtual bool CanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const {
     return (can_overflow() &&
             ((op_kind() == Token::kADD) || (op_kind() == Token::kSUB))) ||
            (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
@@ -6982,7 +6981,7 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
   }
 
-  virtual bool CanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const {
     return has_shift_count_check() ||
            (can_overflow() && (op_kind() == Token::kSHL));
   }
@@ -7021,7 +7020,7 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(UnaryDoubleOp)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
@@ -7060,7 +7059,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -7090,7 +7089,7 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -7117,7 +7116,7 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -7151,7 +7150,7 @@ class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return GetDeoptId();
   }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
@@ -7175,7 +7174,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -7200,7 +7199,7 @@ class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(DoubleToSmi)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -7232,7 +7231,7 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(DoubleToDouble)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -7267,7 +7266,7 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     // This works since double is the representation that the typed array
@@ -7306,7 +7305,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -7344,7 +7343,7 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   DECLARE_INSTRUCTION(InvokeMathCFunction)
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -7403,7 +7402,7 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(ExtractNthOutput)
 
   virtual CompileType ComputeType() const;
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   intptr_t index() const { return index_; }
 
@@ -7464,7 +7463,7 @@ class MergedMathInstr : public PureDefinition {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const {
     if (kind_ == kTruncDivMod) {
       return true;
     } else {
@@ -7530,7 +7529,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckClass)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -7587,7 +7586,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(CheckSmi)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -7616,7 +7615,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckClassId)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -7649,7 +7648,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
 
@@ -7693,7 +7692,7 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
 
   DECLARE_INSTRUCTION(GenericCheckBound)
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
@@ -7731,7 +7730,7 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool CanDeoptimize() const;
+  virtual bool ComputeCanDeoptimize() const;
 
   virtual Representation representation() const { return to(); }
 
@@ -7777,7 +7776,7 @@ class GrowRegExpStackInstr : public TemplateDefinition<1, Throws> {
 
   Value* typed_data_cell() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const { return MayThrow(); }
+  virtual bool ComputeCanDeoptimize() const { return MayThrow(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
   DECLARE_INSTRUCTION(GrowRegExpStack);
@@ -7983,6 +7982,7 @@ class Environment : public ZoneAllocated {
 
  private:
   friend class ShallowIterator;
+  friend class BlockBuilder;  // For Environment constructor.
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

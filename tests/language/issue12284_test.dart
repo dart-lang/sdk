@@ -11,7 +11,7 @@ class A {
   @DontInline()
   A(param) {
     // Currently defeat inlining by using a closure.
-    var bar = () => 42;     
+    var bar = () => 42;
     field = param + 42;
   }
   A.redirect() : this('foo');
@@ -19,6 +19,6 @@ class A {
 
 main() {
   Expect.equals(42 + 42, new A(42).field);
-  Expect.throws(() => new A.redirect(),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => new A.redirect(), (e) => e is ArgumentError || e is TypeError);
 }

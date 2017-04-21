@@ -57,18 +57,26 @@ void type() {
 
 main() {
   List<Function> errorFunctions = [
-      argument, noSuchMethod, nullThrown, range, fallThrough,
-      abstractClassInstantiation, unsupported, unimplemented, state,
-      type ];
+    argument,
+    noSuchMethod,
+    nullThrown,
+    range,
+    fallThrough,
+    abstractClassInstantiation,
+    unsupported,
+    unimplemented,
+    state,
+    type
+  ];
 
   for (var f in errorFunctions) {
     bool hasThrown = false;
     try {
       f();
-    } catch(e) {
+    } catch (e) {
       hasThrown = true;
-      Expect.isTrue(e.stackTrace is StackTrace,
-                    "$e doesn't have a non-null stack trace");
+      Expect.isTrue(
+          e.stackTrace is StackTrace, "$e doesn't have a non-null stack trace");
     }
     Expect.isTrue(hasThrown);
   }

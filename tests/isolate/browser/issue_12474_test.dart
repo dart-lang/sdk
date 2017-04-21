@@ -13,10 +13,8 @@ final SPAWN_PACKAGE_ROOT = Uri.parse(".");
 
 void main([args, port]) {
   var p = new ReceivePort();
-  Isolate.spawnUri(Uri.parse("issue_12474_child.dart"),
-                   [p.sendPort],
-                   {},
-                   packageRoot: SPAWN_PACKAGE_ROOT);
+  Isolate.spawnUri(Uri.parse("issue_12474_child.dart"), [p.sendPort], {},
+      packageRoot: SPAWN_PACKAGE_ROOT);
   p.listen((msg) {
     print("Received message");
     p.close();

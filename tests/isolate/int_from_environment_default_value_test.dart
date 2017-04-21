@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 
 void test(port) {
   Expect.isNull(const int.fromEnvironment('NOT_FOUND'));
-  Expect.equals(12345, const int.fromEnvironment('NOT_FOUND',
-                                                 defaultValue: 12345));
+  Expect.equals(
+      12345, const int.fromEnvironment('NOT_FOUND', defaultValue: 12345));
   if (port != null) port.send(null);
 }
 

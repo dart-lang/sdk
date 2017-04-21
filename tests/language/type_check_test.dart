@@ -7,11 +7,9 @@
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
-class B extends A {
-}
+class B extends A {}
 
 main() {
   var a = [new A(), new B()];

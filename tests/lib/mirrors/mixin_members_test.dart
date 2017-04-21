@@ -4,6 +4,7 @@
 
 library mixin_members_test;
 
+@MirrorsUsed(targets: "mixin_members_test")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -33,9 +34,9 @@ class C extends S with M1, M2 {}
 
 membersOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
-    if(v is MethodMirror && !v.isConstructor) result[k] = v;
-    if(v is VariableMirror) result[k] = v;
+  cm.declarations.forEach((k, v) {
+    if (v is MethodMirror && !v.isConstructor) result[k] = v;
+    if (v is VariableMirror) result[k] = v;
   });
   return result;
 }
@@ -46,20 +47,25 @@ main() {
   ClassMirror sM1 = sM1M2.superclass;
   ClassMirror s = sM1.superclass;
   expect('{}', membersOf(cm));
-  expect('[s(baz1), s(baz2)]',
-         // TODO(ahe): Shouldn't have to sort.
-         sort(membersOf(sM1M2).keys),
-         '(S with M1, M2).members');
+  expect(
+      '[s(baz1), s(baz2)]',
+      // TODO(ahe): Shouldn't have to sort.
+      sort(membersOf(sM1M2).keys),
+      '(S with M1, M2).members');
   expect('[s(M2)]', simpleNames(sM1M2.superinterfaces),
-         '(S with M1, M2).superinterfaces');
-  expect('[s(bar1), s(bar2)]',
-         // TODO(ahe): Shouldn't have to sort.
-         sort(membersOf(sM1).keys), '(S with M1).members');
+      '(S with M1, M2).superinterfaces');
+  expect(
+      '[s(bar1), s(bar2)]',
+      // TODO(ahe): Shouldn't have to sort.
+      sort(membersOf(sM1).keys),
+      '(S with M1).members');
   expect('[s(M1)]', simpleNames(sM1.superinterfaces),
-         '(S with M1).superinterfaces');
-  expect('[s(foo1), s(foo2)]',
-         // TODO(ahe): Shouldn't have to sort.
-         sort(membersOf(s).keys), 's.members');
+      '(S with M1).superinterfaces');
+  expect(
+      '[s(foo1), s(foo2)]',
+      // TODO(ahe): Shouldn't have to sort.
+      sort(membersOf(s).keys),
+      's.members');
   expect('[s(Fooer)]', simpleNames(s.superinterfaces), 's.superinterfaces');
   Expect.equals(s, reflectClass(S));
 }

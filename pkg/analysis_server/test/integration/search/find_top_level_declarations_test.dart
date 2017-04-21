@@ -49,7 +49,4 @@ class Foo {
     expect(result.kind.name, SearchResultKind.DECLARATION.name);
     expect(result.path.first.name, 'qux');
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -14,14 +14,14 @@ import 'dart:collection' deferred as lazycollection;
 test(MirrorSystem mirrors) {
   LibraryMirror thisLibrary =
       mirrors.findLibrary(#test.library_imports_deferred);
-  LibraryMirror collection  =
-      mirrors.findLibrary(#dart.collection);
+  LibraryMirror collection = mirrors.findLibrary(#dart.collection);
 
-  var importsOfCollection = thisLibrary.libraryDependencies.where(
-      (dep) => dep.targetLibrary == collection).toList();
+  var importsOfCollection = thisLibrary.libraryDependencies
+      .where((dep) => dep.targetLibrary == collection)
+      .toList();
   Expect.equals(2, importsOfCollection.length);
   Expect.notEquals(importsOfCollection[0].isDeferred,
-                   importsOfCollection[1].isDeferred);  // One deferred, one not.
+      importsOfCollection[1].isDeferred); // One deferred, one not.
 
   // Only collection is defer-imported.
   LibraryDependencyMirror dep =

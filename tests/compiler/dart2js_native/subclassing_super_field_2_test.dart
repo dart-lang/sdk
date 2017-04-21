@@ -31,10 +31,10 @@ class B extends A {
   toString() => '[N.foo = ${Nfoo()}, A.foo = ${Afoo()}, B.foo = ${Bfoo()}]';
 }
 
-B makeB() native ;
+B makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function B() { this.foo = 111; }  // N.foo

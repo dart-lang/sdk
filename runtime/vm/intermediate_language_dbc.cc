@@ -186,7 +186,7 @@ DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(CheckedSmiComparison)
 
 
 EMIT_NATIVE_CODE(InstanceOf,
-                 2,
+                 3,
                  Location::SameAsFirstInput(),
                  LocationSummary::kCall) {
   SubtypeTestCache& test_cache = SubtypeTestCache::Handle();
@@ -197,6 +197,7 @@ EMIT_NATIVE_CODE(InstanceOf,
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());  // Value.
     __ Push(locs()->in(1).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(2).reg());  // Function type arguments.
   }
 
   __ PushConstant(type());
@@ -212,7 +213,7 @@ EMIT_NATIVE_CODE(InstanceOf,
 
 
 DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable,
-                             2,
+                             3,
                              Location::SameAsFirstInput(),
                              LocationSummary::kCall);
 
@@ -969,8 +970,10 @@ EMIT_NATIVE_CODE(NativeCall,
   __ PushConstant(argc_tag_kidx);
   if (is_bootstrap_native()) {
     __ NativeBootstrapCall();
+  } else if (is_auto_scope()) {
+    __ NativeAutoScopeCall();
   } else {
-    __ NativeCall();
+    __ NativeNoScopeCall();
   }
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
@@ -1185,24 +1188,67 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
-  if (compiler->is_optimizing()) {
-    // In optimized code, variables at the catch block entry reside at the top
-    // of the allocatable register range.
-    const intptr_t num_non_copied_params =
-        compiler->flow_graph().num_non_copied_params();
-    const intptr_t exception_reg =
-        kNumberOfCpuRegisters -
-        (-exception_var().index() + num_non_copied_params);
-    const intptr_t stacktrace_reg =
-        kNumberOfCpuRegisters -
-        (-stacktrace_var().index() + num_non_copied_params);
-    __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
-    __ MoveSpecial(stacktrace_reg, Simulator::kStackTraceSpecialIndex);
+
+  Register context_reg = kNoRegister;
+
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+
+    const LocalVariable& current_context_var =
+        *parsed_function.current_context_var();
+
+    context_reg = compiler->is_optimizing()
+                      ? compiler->CatchEntryRegForVariable(current_context_var)
+                      : LocalVarIndex(0, current_context_var.index());
+
+    Register closure_reg;
+    if (closure_parameter->index() > 0) {
+      __ Move(context_reg, LocalVarIndex(0, closure_parameter->index()));
+      closure_reg = context_reg;
+    } else {
+      closure_reg = LocalVarIndex(0, closure_parameter->index());
+    }
+
+    __ LoadField(context_reg, closure_reg,
+                 Closure::context_offset() / kWordSize);
+  }
+
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    ASSERT(context_reg != kNoRegister);
+    // This will be SP[1] register so we are free to use it as a temporary.
+    const Register temp = compiler->StackSize();
+    __ MoveSpecial(temp, Simulator::kExceptionSpecialIndex);
+    __ StoreField(context_reg,
+                  Context::variable_offset(exception_var().index()) / kWordSize,
+                  temp);
+    __ MoveSpecial(temp, Simulator::kStackTraceSpecialIndex);
+    __ StoreField(
+        context_reg,
+        Context::variable_offset(stacktrace_var().index()) / kWordSize, temp);
   } else {
-    __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
-                   Simulator::kExceptionSpecialIndex);
-    __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
-                   Simulator::kStackTraceSpecialIndex);
+    if (compiler->is_optimizing()) {
+      const intptr_t exception_reg =
+          compiler->CatchEntryRegForVariable(exception_var());
+      const intptr_t stacktrace_reg =
+          compiler->CatchEntryRegForVariable(stacktrace_var());
+      __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
+      __ MoveSpecial(stacktrace_reg, Simulator::kStackTraceSpecialIndex);
+    } else {
+      __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
+                     Simulator::kExceptionSpecialIndex);
+      __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
+                     Simulator::kStackTraceSpecialIndex);
+    }
   }
   __ SetFrame(compiler->StackSize());
 }
@@ -1227,11 +1273,12 @@ EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
 }
 
 EMIT_NATIVE_CODE(InstantiateType,
-                 1,
+                 2,
                  Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
   }
   __ InstantiateType(__ AddConstant(type()));
   compiler->RecordSafepoint(locs());
@@ -1243,14 +1290,15 @@ EMIT_NATIVE_CODE(InstantiateType,
 }
 
 EMIT_NATIVE_CODE(InstantiateTypeArguments,
-                 1,
+                 2,
                  Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
   }
   __ InstantiateTypeArgumentsTOS(
-      type_arguments().IsRawInstantiatedRaw(type_arguments().Length()),
+      type_arguments().IsRawWhenInstantiatedFromRaw(type_arguments().Length()),
       __ AddConstant(type_arguments()));
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),

@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library map_test;
+
 import "package:expect/expect.dart";
 import 'dart:collection';
 import 'dart:convert' show JSON;
 
-Map newJsonMap()
-    => JSON.decode('{}');
-Map newJsonMapCustomReviver()
-    => JSON.decode('{}', reviver: (key, value) => value);
+Map newJsonMap() => JSON.decode('{}');
+Map newJsonMapCustomReviver() =>
+    JSON.decode('{}', reviver: (key, value) => value);
 
 void main() {
   test(new HashMap());
@@ -72,24 +72,27 @@ void main() {
   testIdentityMap(new Map.identity());
   testIdentityMap(new HashMap.identity());
   testIdentityMap(new LinkedHashMap.identity());
-  testIdentityMap(new HashMap(equals: identical,
-                              hashCode: identityHashCode));
-  testIdentityMap(new LinkedHashMap(equals: identical,
-                                    hashCode: identityHashCode));
-  testIdentityMap(new HashMap(equals: (x, y) => identical(x, y),
-                              hashCode: (x) => identityHashCode(x)));
-  testIdentityMap(new LinkedHashMap(equals: (x, y) => identical(x, y),
-                                    hashCode: (x) => identityHashCode(x)));
+  testIdentityMap(new HashMap(equals: identical, hashCode: identityHashCode));
+  testIdentityMap(
+      new LinkedHashMap(equals: identical, hashCode: identityHashCode));
+  testIdentityMap(new HashMap(
+      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
+  testIdentityMap(new LinkedHashMap(
+      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
 
-  testCustomMap(new HashMap(equals: myEquals, hashCode: myHashCode,
-                            isValidKey: (v) => v is Customer));
-  testCustomMap(new LinkedHashMap(equals: myEquals, hashCode: myHashCode,
-                                  isValidKey: (v) => v is Customer));
-  testCustomMap(new HashMap<Customer,dynamic>(equals: myEquals,
-                                              hashCode: myHashCode));
+  testCustomMap(new HashMap(
+      equals: myEquals,
+      hashCode: myHashCode,
+      isValidKey: (v) => v is Customer));
+  testCustomMap(new LinkedHashMap(
+      equals: myEquals,
+      hashCode: myHashCode,
+      isValidKey: (v) => v is Customer));
+  testCustomMap(
+      new HashMap<Customer, dynamic>(equals: myEquals, hashCode: myHashCode));
 
-  testCustomMap(new LinkedHashMap<Customer,dynamic>(equals: myEquals,
-                                                    hashCode: myHashCode));
+  testCustomMap(new LinkedHashMap<Customer, dynamic>(
+      equals: myEquals, hashCode: myHashCode));
 
   testIterationOrder(new LinkedHashMap());
   testIterationOrder(new LinkedHashMap.identity());
@@ -97,43 +100,43 @@ void main() {
   testIterationOrder(newJsonMapCustomReviver());
 
   testOtherKeys(new SplayTreeMap<int, int>());
-  testOtherKeys(new SplayTreeMap<int, int>((int a, int b) => a - b,
-                                           (v) => v is int));
-  testOtherKeys(new SplayTreeMap((int a, int b) => a - b,
-                                 (v) => v is int));
+  testOtherKeys(
+      new SplayTreeMap<int, int>((int a, int b) => a - b, (v) => v is int));
+  testOtherKeys(new SplayTreeMap((int a, int b) => a - b, (v) => v is int));
   testOtherKeys(new HashMap<int, int>());
   testOtherKeys(new HashMap<int, int>.identity());
-  testOtherKeys(new HashMap<int, int>(hashCode: (v) => v.hashCode,
-                                      isValidKey: (v) => v is int));
-  testOtherKeys(new HashMap(equals: (int x, int y) => x == y,
-                            hashCode: (int v) => v.hashCode,
-                            isValidKey: (v) => v is int));
+  testOtherKeys(new HashMap<int, int>(
+      hashCode: (v) => v.hashCode, isValidKey: (v) => v is int));
+  testOtherKeys(new HashMap(
+      equals: (int x, int y) => x == y,
+      hashCode: (int v) => v.hashCode,
+      isValidKey: (v) => v is int));
   testOtherKeys(new LinkedHashMap<int, int>());
   testOtherKeys(new LinkedHashMap<int, int>.identity());
-  testOtherKeys(new LinkedHashMap<int, int>(hashCode: (v) => v.hashCode,
-                                       isValidKey: (v) => v is int));
-  testOtherKeys(new LinkedHashMap(equals: (int x, int y) => x == y,
-                                  hashCode: (int v) => v.hashCode,
-                                  isValidKey: (v) => v is int));
+  testOtherKeys(new LinkedHashMap<int, int>(
+      hashCode: (v) => v.hashCode, isValidKey: (v) => v is int));
+  testOtherKeys(new LinkedHashMap(
+      equals: (int x, int y) => x == y,
+      hashCode: (int v) => v.hashCode,
+      isValidKey: (v) => v is int));
   testOtherKeys(new MapBaseMap<int, int>());
   testOtherKeys(new MapMixinMap<int, int>());
   testOtherKeys(newJsonMap());
   testOtherKeys(newJsonMapCustomReviver());
 
-  testUnmodifiableMap(const {1 : 37});
-  testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));
+  testUnmodifiableMap(const {1: 37});
+  testUnmodifiableMap(new UnmodifiableMapView({1: 37}));
   testUnmodifiableMap(new UnmodifiableMapBaseMap([1, 37]));
 
   testFrom();
 }
 
-
 void test(Map map) {
   testDeletedElement(map);
   testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
   map.clear();
-  testMap(map, "value1", "value2", "value3", "value4", "value5",
-          "value6", "value7", "value8");
+  testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
+      "value7", "value8");
 }
 
 void testLinkedHashMap() {
@@ -250,6 +253,7 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   void testForEachMap(key, value) {
     otherMap[key] = value;
   }
+
   map.forEach(testForEachMap);
   Expect.equals(true, otherMap.containsKey(key1));
   Expect.equals(true, otherMap.containsKey(key2));
@@ -264,6 +268,7 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   void testForEachCollection(value) {
     otherMap[value] = value;
   }
+
   Iterable keys = map.keys;
   keys.forEach(testForEachCollection);
   Expect.equals(true, otherMap.containsKey(key1));
@@ -299,8 +304,7 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   map.putIfAbsent(key1, () => 10);
   Expect.equals(true, map.containsKey(key1));
   Expect.equals(10, map[key1]);
-  Expect.equals(10,
-      map.putIfAbsent(key1, () => 11));
+  Expect.equals(10, map.putIfAbsent(key1, () => 11));
 
   // Test Map.addAll.
   map.clear();
@@ -350,7 +354,7 @@ void testDeletedElement(Map map) {
 }
 
 void testMapLiteral() {
-  Map m = {"a": 1, "b" : 2, "c": 3 };
+  Map m = {"a": 1, "b": 2, "c": 3};
   Expect.equals(3, m.length);
   int sum = 0;
   m.forEach((a, b) {
@@ -371,7 +375,7 @@ void testMapLiteral() {
 }
 
 void testNullValue() {
-  Map m = {"a": 1, "b" : null, "c": 3 };
+  Map m = {"a": 1, "b": null, "c": 3};
 
   Expect.equals(null, m["b"]);
   Expect.equals(true, m.containsKey("b"));
@@ -414,6 +418,7 @@ void testTypes() {
       Expect.isNull(map[object]);
     }
   }
+
   testMap(new HashMap<int, String>());
   testMap(new LinkedHashMap<int, String>());
   testMap(new SplayTreeMap<int, String>());
@@ -429,21 +434,22 @@ void testTypes() {
 void testWeirdStringKeys(Map map) {
   // Test weird keys.
   var weirdKeys = const [
-      'hasOwnProperty',
-      'constructor',
-      'toLocaleString',
-      'propertyIsEnumerable',
-      '__defineGetter__',
-      '__defineSetter__',
-      '__lookupGetter__',
-      '__lookupSetter__',
-      'isPrototypeOf',
-      'toString',
-      'valueOf',
-      '__proto__',
-      '__count__',
-      '__parent__',
-      ''];
+    'hasOwnProperty',
+    'constructor',
+    'toLocaleString',
+    'propertyIsEnumerable',
+    '__defineGetter__',
+    '__defineSetter__',
+    '__lookupGetter__',
+    '__lookupSetter__',
+    'isPrototypeOf',
+    'toString',
+    'valueOf',
+    '__proto__',
+    '__count__',
+    '__parent__',
+    ''
+  ];
   Expect.isTrue(map.isEmpty);
   for (var key in weirdKeys) {
     Expect.isFalse(map.containsKey(key));
@@ -457,16 +463,16 @@ void testWeirdStringKeys(Map map) {
     Expect.equals(null, map[key]);
   }
   Expect.isTrue(map.isEmpty);
-
 }
 
 void testNumericKeys(Map map) {
   var numericKeys = const [
-      double.INFINITY,
-      double.NEGATIVE_INFINITY,
-      0,
-      0.0,
-      -0.0 ];
+    double.INFINITY,
+    double.NEGATIVE_INFINITY,
+    0,
+    0.0,
+    -0.0
+  ];
 
   Expect.isTrue(map.isEmpty);
   for (var key in numericKeys) {
@@ -535,7 +541,6 @@ void testLength(int length, Map map) {
   }
 }
 
-
 testIdentityMap(Map map) {
   Expect.isTrue(map.isEmpty);
 
@@ -557,7 +562,7 @@ testIdentityMap(Map map) {
   Vampire v2 = const Vampire(2);
   Expect.isFalse(v1 == v1);
   Expect.isFalse(v2 == v2);
-  Expect.isTrue(v2 == v1);  // Snob!
+  Expect.isTrue(v2 == v1); // Snob!
 
   map[v1] = 1;
   map[v2] = 2;
@@ -670,7 +675,7 @@ class Equalizer {
   int id;
   Equalizer(this.id);
   int get hashCode => id;
-  bool operator==(Object other) =>
+  bool operator ==(Object other) =>
       other is Equalizer && id == (other as Equalizer).id;
 }
 
@@ -687,7 +692,7 @@ class Vampire {
 
   // The double-fang operator falsely claims that a vampire is equal to
   // any of its sire's generation.
-  bool operator==(Object other) =>
+  bool operator ==(Object other) =>
       other is Vampire && generation - 1 == (other as Vampire).generation;
 }
 
@@ -761,9 +766,15 @@ void testUnmodifiableMap(Map map) {
   Expect.equals(37, map.values.first);
 
   Expect.throws(map.clear);
-  Expect.throws(() { map.remove(1); });
-  Expect.throws(() { map[2] = 42; });
-  Expect.throws(() { map.addAll({2 : 42}); });
+  Expect.throws(() {
+    map.remove(1);
+  });
+  Expect.throws(() {
+    map[2] = 42;
+  });
+  Expect.throws(() {
+    map.addAll({2: 42});
+  });
 }
 
 class Customer {
@@ -771,7 +782,7 @@ class Customer {
   final int secondId;
   const Customer(this.id, this.secondId);
   int get hashCode => id;
-  bool operator==(Object other) {
+  bool operator ==(Object other) {
     if (other is! Customer) return false;
     Customer otherCustomer = other;
     return id == otherCustomer.id;
@@ -809,9 +820,8 @@ class Mutable {
   int id;
   Mutable(this.id);
   int get hashCode => id;
-  bool operator==(other) => other is Mutable && other.id == id;
+  bool operator ==(other) => other is Mutable && other.id == id;
 }
-
 
 // Slow implementation of Map based on MapBase.
 abstract class MapBaseOperations<K, V> {
@@ -819,7 +829,7 @@ abstract class MapBaseOperations<K, V> {
   final List _values = <V>[];
   int _modCount = 0;
 
-  V operator[](Object key) {
+  V operator [](Object key) {
     int index = _keys.indexOf(key);
     if (index < 0) return null;
     return _values[index];
@@ -827,7 +837,7 @@ abstract class MapBaseOperations<K, V> {
 
   Iterable<K> get keys => new TestKeyIterable<K>(this);
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     int index = _keys.indexOf(key);
     if (index >= 0) {
       _values[index] = value;
@@ -878,7 +888,9 @@ class TestKeyIterator<K> implements Iterator<K> {
   final int _modCount;
   int _index = 0;
   var _current;
-  TestKeyIterator(map) : _map = map, _modCount = map._modCount;
+  TestKeyIterator(map)
+      : _map = map,
+        _modCount = map._modCount;
   bool moveNext() {
     if (_modCount != _map._modCount) {
       throw new ConcurrentModificationError(_map);
@@ -890,6 +902,7 @@ class TestKeyIterator<K> implements Iterator<K> {
     _current = _map._keys[_index++];
     return true;
   }
+
   K get current => _current;
 }
 
@@ -906,7 +919,7 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
 
   int get _modCount => 0;
 
-  V operator[](K key) {
+  V operator [](K key) {
     int index = _keys.indexOf(key);
     if (index < 0) return null;
     return _values[index];
@@ -916,11 +929,13 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
 }
 
 abstract class Super implements Comparable {}
+
 abstract class Interface implements Comparable {}
+
 class Sub extends Super implements Interface, Comparable {
   int compareTo(Sub other) => 0;
   int get hashCode => 0;
-  bool operator==(other) => other is Sub;
+  bool operator ==(other) => other is Sub;
 }
 
 expectMap(Map expect, Map actual) {
@@ -933,15 +948,19 @@ expectMap(Map expect, Map actual) {
 
 void testFrom() {
   // Check contents.
-  for (var map in [{}, {1: 1}, {1: 2, 3: 4, 5: 6, 7: 8}]) {
+  for (var map in [
+    {},
+    {1: 1},
+    {1: 2, 3: 4, 5: 6, 7: 8}
+  ]) {
     expectMap(map, new Map.from(map));
     expectMap(map, new HashMap.from(map));
     expectMap(map, new LinkedHashMap.from(map));
     expectMap(map, new SplayTreeMap.from(map));
   }
   // Test type combinations allowed.
-  Map<int,int> intMap = <int, int>{1: 2, 3: 4};
-  Map<num,num> numMap = <num, num>{1: 2, 3: 4};
+  Map<int, int> intMap = <int, int>{1: 2, 3: 4};
+  Map<num, num> numMap = <num, num>{1: 2, 3: 4};
   expectMap(intMap, new Map<int, int>.from(numMap));
   expectMap(intMap, new Map<num, num>.from(intMap));
   expectMap(intMap, new HashMap<int, int>.from(numMap));

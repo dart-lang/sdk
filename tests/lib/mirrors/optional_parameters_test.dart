@@ -17,10 +17,10 @@ class A {
 }
 
 class B {
-  foo([int x]) => x+1;
+  foo([int x]) => x + 1;
 }
 
-main () {
+main() {
   var x = {};
   x["A"] = reflect(new A());
   x["B"] = reflect(new B());

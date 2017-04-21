@@ -19,4 +19,3 @@ main() {
   d = new Duration(microseconds: pow(2, 53) + 1) * 1.0;
   Expect.equals(0, d.inMicroseconds % 2);
 }
-

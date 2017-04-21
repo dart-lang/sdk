@@ -5,9 +5,8 @@
 
 import "package:expect/expect.dart";
 
-
 class WhatchamaCallIt {
-  WhatchamaCallIt() { }
+  WhatchamaCallIt() {}
 
   String foo() {
     // Test $this and Field name is defined in subclass.
@@ -16,7 +15,9 @@ class WhatchamaCallIt {
 }
 
 class ThingamaBob extends WhatchamaCallIt {
-  ThingamaBob(String s) : super(), name = s { }
+  ThingamaBob(String s)
+      : super(),
+        name = s {}
   String name;
   toString() => "Hansel";
 }
@@ -29,7 +30,7 @@ String AAR_Printers;
 
 main() {
   Printers = "Printers: $A and $B";
-  AAR_Printers  = "AAR has $N $Printers.";
+  AAR_Printers = "AAR has $N $Printers.";
 
   var x = 1;
   var s = "eins und \$x macht zwei.";
@@ -59,7 +60,6 @@ main() {
   testStringVariants();
 }
 
-
 class Stringable {
   final String value;
   Stringable(this.value);
@@ -75,140 +75,160 @@ void testStringVariants() {
 
   // ASCII.
   Expect.equals(latin * 3, "$latin$latin$latin");
-  Expect.equals(latin * 64, "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin"
-                            "$latin$latin$latin$latin$latin$latin$latin$latin");
-  Expect.equals(latin * 64, "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                            "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                            "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                            "${latin * 4}${latin * 4}${latin * 4}${latin * 4}");
+  Expect.equals(
+      latin * 64,
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin");
+  Expect.equals(
+      latin * 64,
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}");
   // Non-ASCII.
   Expect.equals(nonLatin * 3, "$nonLatin$nonLatin$nonLatin");
-  Expect.equals(nonLatin * 64, "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin"
-                               "$nonLatin$nonLatin$nonLatin$nonLatin");
-  Expect.equals(nonLatin * 64, "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}"
-                               "${nonLatin * 4}${nonLatin * 4}");
+  Expect.equals(
+      nonLatin * 64,
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin");
+  Expect.equals(
+      nonLatin * 64,
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}"
+      "${nonLatin * 4}${nonLatin * 4}");
   // Mixed.
   Expect.equals(latin * 3 + nonLatin, "$latin$latin$latin$nonLatin");
   Expect.equals(nonLatin + latin * 3, "$nonLatin$latin$latin$latin");
-  Expect.equals(latin * 60 + nonLatin * 4,
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin"
-                "$nonLatin$nonLatin$nonLatin$nonLatin");
-  Expect.equals(nonLatin * 4 + latin * 60,
-                "$nonLatin$nonLatin$nonLatin$nonLatin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin$latin$latin$latin$latin"
-                "$latin$latin$latin$latin");
-  Expect.equals(latin * 60 + nonLatin * 4,
-                "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                "${latin * 4}${latin * 4}${latin * 4}${nonLatin * 4}");
-  Expect.equals(nonLatin * 4 + latin * 60,
-                "${nonLatin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
-                "${latin * 4}${latin * 4}${latin * 4}${latin * 4}");
+  Expect.equals(
+      latin * 60 + nonLatin * 4,
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin"
+      "$nonLatin$nonLatin$nonLatin$nonLatin");
+  Expect.equals(
+      nonLatin * 4 + latin * 60,
+      "$nonLatin$nonLatin$nonLatin$nonLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin$latin$latin$latin$latin"
+      "$latin$latin$latin$latin");
+  Expect.equals(
+      latin * 60 + nonLatin * 4,
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${nonLatin * 4}");
+  Expect.equals(
+      nonLatin * 4 + latin * 60,
+      "${nonLatin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${latin * 4}");
   // With objects.
   Expect.equals(latin * 3, "$latin$oLatin$latin");
-  Expect.equals(latin * 64, "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                            "$latin$latin$latin$latin$latin$latin$latin$oLatin"
-                );
-  Expect.equals(latin * 64, "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
-                            "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
-                            "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
-                            "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
-                );
+  Expect.equals(
+      latin * 64,
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin"
+      "$latin$latin$latin$latin$latin$latin$latin$oLatin");
+  Expect.equals(
+      latin * 64,
+      "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}"
+      "${latin * 4}${latin * 4}${latin * 4}${oLatin * 4}");
   // Non-ASCII.
   Expect.equals(nonLatin * 3, "$nonLatin$oNonLatin$nonLatin");
-  Expect.equals(nonLatin * 64, "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin"
-                               "$nonLatin$nonLatin$nonLatin$oNonLatin");
-  Expect.equals(nonLatin * 64, "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}"
-                               "${nonLatin * 4}${oNonLatin * 4}");
+  Expect.equals(
+      nonLatin * 64,
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin"
+      "$nonLatin$nonLatin$nonLatin$oNonLatin");
+  Expect.equals(
+      nonLatin * 64,
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}"
+      "${nonLatin * 4}${oNonLatin * 4}");
   // Mixed.
   Expect.equals(latin * 2 + nonLatin * 2, "$latin$oLatin$nonLatin$oNonLatin");
   Expect.equals(nonLatin * 2 + latin * 2, "$nonLatin$oNonLatin$latin$oLatin");
-  Expect.equals((latin * 2 + nonLatin * 2) * 8,
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin"
-                "$latin$oLatin$nonLatin$oNonLatin");
-  Expect.equals((nonLatin * 2 + latin * 2) * 8,
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin"
-                "$nonLatin$oNonLatin$latin$oLatin");
+  Expect.equals(
+      (latin * 2 + nonLatin * 2) * 8,
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin"
+      "$latin$oLatin$nonLatin$oNonLatin");
+  Expect.equals(
+      (nonLatin * 2 + latin * 2) * 8,
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin"
+      "$nonLatin$oNonLatin$latin$oLatin");
 
   // All combinations
   var o1 = new Stringable("x");

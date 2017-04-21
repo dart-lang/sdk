@@ -2116,7 +2116,8 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
           ConstructorElement effectiveTarget = constructor.effectiveTarget;
           ResolutionInterfaceType effectiveTargetType =
               constructor.computeEffectiveTargetType(semantics.type);
-          if (callStructure.signatureApplies(effectiveTarget.type)) {
+          if (callStructure
+              .signatureApplies(effectiveTarget.parameterStructure)) {
             return visitor.visitRedirectingFactoryConstructorInvoke(
                 node,
                 semantics.element,
@@ -2136,7 +2137,7 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
                 arg);
           }
         }
-        if (callStructure.signatureApplies(constructor.type)) {
+        if (callStructure.signatureApplies(constructor.parameterStructure)) {
           return visitor.visitFactoryConstructorInvoke(node, constructor,
               semantics.type, node.send.argumentsNode, callStructure, arg);
         }
@@ -2203,6 +2204,7 @@ class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
   @override
   NewStructureKind get kind => NewStructureKind.CONST_INVOKE;
 
+  // ignore: MISSING_RETURN
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
     switch (constantInvokeKind) {
       case ConstantInvokeKind.CONSTRUCTED:
@@ -2401,6 +2403,7 @@ class NonConstantVariableStructure<R, A> extends VariableStructure<R, A> {
       VariableKind kind, Node node, VariableElement variable)
       : super(kind, node, variable);
 
+  // ignore: MISSING_RETURN
   R dispatch(SemanticDeclarationVisitor<R, A> visitor,
       VariableDefinitions definitions, A arg) {
     switch (kind) {

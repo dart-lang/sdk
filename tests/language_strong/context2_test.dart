@@ -8,15 +8,18 @@ import "package:expect/expect.dart";
 // Regression test for issue 5991015.
 
 class V {
+  notCalled(Function x) {
+    return x();
+  }
 
-  notCalled(Function x) { return x(); }
-
-  foofoo(x) { return x; }
+  foofoo(x) {
+    return x;
+  }
 
   hoop(input, n) {
     while (n-- > 0) {
       Expect.equals(5, input);
-      continue;  // This continue statement must properly unchain the context.
+      continue; // This continue statement must properly unchain the context.
       switch (input) {
         case 3:
           var values = foofoo;

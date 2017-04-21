@@ -95,14 +95,7 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
-  if (!func.HasCode()) {
-    const Error& error =
-        Error::Handle(zone, Compiler::CompileFunction(thread, func));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-  }
+  func.EnsureHasCode();
 }
 
 static RawInstance* CreateParameterMirrorList(const Function& func,
@@ -761,7 +754,13 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
+  // TODO(regis): Support uninstantiated type referring to function type params.
+  if (!type.IsInstantiated(kFunctions)) {
+    UNIMPLEMENTED();
+  }
+
   if (type.IsInstantiated() || instantiator.IsNull()) {
+    // TODO(regis): Shouldn't type parameters be replaced by dynamic?
     return type.Canonicalize();
   }
 
@@ -769,11 +768,12 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(instantiator.IsFinalized());
   PROPAGATE_IF_MALFORMED(instantiator);
 
-  const TypeArguments& type_args =
+  const TypeArguments& instantiator_type_args =
       TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
-  AbstractType& result = AbstractType::Handle(
-      type.InstantiateFrom(type_args, &bound_error, NULL, NULL, Heap::kOld));
+  AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
+      instantiator_type_args, Object::null_type_arguments(), &bound_error, NULL,
+      NULL, Heap::kOld));
   if (!bound_error.IsNull()) {
     Exceptions::PropagateError(bound_error);
     UNREACHABLE();
@@ -973,14 +973,13 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 2) {
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, instantiator,
-                               arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   ASSERT(!func.IsNull());
   AbstractType& type = AbstractType::Handle(func.result_type());
-  return InstantiateType(type, instantiator);
+  // Signatures of function types are instantiated, but not canonical.
+  return type.Canonicalize();
 }
 
 
@@ -1472,8 +1471,12 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
 
     Type& instantiator = Type::Handle();
     if (closure.IsClosure()) {
-      const TypeArguments& arguments =
-          TypeArguments::Handle(Closure::Cast(closure).instantiator());
+      const TypeArguments& arguments = TypeArguments::Handle(
+          Closure::Cast(closure).instantiator_type_arguments());
+      // TODO(regis): Mirrors need work to properly support generic functions.
+      // The 'instantiator' created below should not be a type, but two type
+      // argument vectors: instantiator_type_arguments and
+      // function_type_arguments.
       const Class& cls =
           Class::Handle(Isolate::Current()->object_store()->object_class());
       instantiator = Type::New(cls, arguments, TokenPosition::kNoSource);
@@ -1711,9 +1714,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type reflected by the class mirror.
+      ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, NULL, Heap::kOld);
+          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
+          NULL, Heap::kOld);
       if (!bound_error.IsNull()) {
         Exceptions::PropagateError(bound_error);
         UNREACHABLE();
@@ -1954,7 +1959,8 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
   // We handle constructors in Dart code.
   ASSERT(!func.IsGenerativeConstructor());
-  const AbstractType& type = AbstractType::Handle(func.result_type());
+  AbstractType& type = AbstractType::Handle(func.result_type());
+  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 
@@ -2078,8 +2084,9 @@ DEFINE_NATIVE_ENTRY(ParameterMirror_type, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, pos, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(2));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  const AbstractType& type = AbstractType::Handle(
+  AbstractType& type = AbstractType::Handle(
       func.ParameterTypeAt(func.NumImplicitParameters() + pos.Value()));
+  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 

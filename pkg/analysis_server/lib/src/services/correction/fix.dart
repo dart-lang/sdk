@@ -52,6 +52,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
     errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
+    errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED ||
     errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
     errorCode ==
         StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
@@ -108,7 +109,8 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.annotate_overrides ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp));
+            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.avoid_init_to_null));
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -177,9 +179,9 @@ class DartFixKind {
   static const IMPORT_LIBRARY_PROJECT3 =
       const FixKind('IMPORT_LIBRARY_PROJECT3', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
-      const FixKind('IMPORT_LIBRARY_SDK', 49, "Import library '{0}'");
+      const FixKind('IMPORT_LIBRARY_SDK', 46, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
-      const FixKind('IMPORT_LIBRARY_SHOW', 49, "Update library '{0}' import");
+      const FixKind('IMPORT_LIBRARY_SHOW', 45, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const LINT_ADD_OVERRIDE =
@@ -194,6 +196,8 @@ class DartFixKind {
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const REMOVE_INITIALIZER =
+      const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,

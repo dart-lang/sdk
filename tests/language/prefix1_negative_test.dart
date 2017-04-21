@@ -4,6 +4,7 @@
 //
 
 library Prefix1NegativeTest.dart;
+
 import "library1.dart";
 
 class Prefix1NegativeTest {

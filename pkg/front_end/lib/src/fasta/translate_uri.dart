@@ -6,9 +6,11 @@ library fasta.translate_uri;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
-
 import 'package:package_config/packages_file.dart' as packages_file show parse;
+
+import 'errors.dart' show inputError;
+
+import 'io.dart' show readBytesFromFile;
 
 class TranslateUri {
   final Map<String, Uri> packages;
@@ -74,9 +76,14 @@ class TranslateUri {
       };
     }
     uri ??= Uri.base.resolve(".packages");
-    File file = new File.fromUri(uri);
-    List<int> bytes = await file.readAsBytes();
-    Map<String, Uri> packages = packages_file.parse(bytes, uri);
+    List<int> bytes =
+        await readBytesFromFile(uri, ensureZeroTermination: false);
+    Map<String, Uri> packages = const <String, Uri>{};
+    try {
+      packages = packages_file.parse(bytes, uri);
+    } on FormatException catch (e) {
+      return inputError(uri, e.offset, e.message);
+    }
     return new TranslateUri(packages, dartLibraries);
   }
 }

@@ -7,6 +7,7 @@ import 'regress_27957_lib1.dart' as s1;
 import 'regress_27957_lib2.dart' as s2;
 
 class Mixin {}
+
 class C1 = s1.Superclass with Mixin;
 class C2 = s2.Superclass with Mixin;
 

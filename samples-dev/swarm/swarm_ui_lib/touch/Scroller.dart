@@ -44,13 +44,13 @@ void joinFutures(List<Future> futures, Callback callback) {
       callback();
     }
   }
+
   for (Future p in futures) {
     p.then(helper);
   }
 }
 
 class Scroller implements Draggable, MomentumDelegate {
-
   /** Pixels to move each time an arrow key is pressed. */
   static const ARROW_KEY_DELTA = 30;
   static const SCROLL_WHEEL_VELOCITY = 0.01;
@@ -141,18 +141,21 @@ class Scroller implements Draggable, MomentumDelegate {
   bool _activeGesture = false;
   ScrollWatcher _scrollWatcher;
 
-  Scroller(Element scrollableElem, [this.verticalEnabled = false,
-           this.horizontalEnabled = false,
-           momentumEnabled = true,
-           lookupContentSizeDelegate = null,
-           num defaultDecelerationFactor = 1,
-           int scrollTechnique = null, bool capture = false])
+  Scroller(Element scrollableElem,
+      [this.verticalEnabled = false,
+      this.horizontalEnabled = false,
+      momentumEnabled = true,
+      lookupContentSizeDelegate = null,
+      num defaultDecelerationFactor = 1,
+      int scrollTechnique = null,
+      bool capture = false])
       : _momentumEnabled = momentumEnabled,
         _lookupContentSizeDelegate = lookupContentSizeDelegate,
         _element = scrollableElem,
         _frame = scrollableElem.parent,
         _scrollTechnique = scrollTechnique != null
-            ? scrollTechnique : ScrollerScrollTechnique.TRANSFORM_3D,
+            ? scrollTechnique
+            : ScrollerScrollTechnique.TRANSFORM_3D,
         _minPoint = new Coordinate(0, 0),
         _maxPoint = new Coordinate(0, 0),
         _maxOffset = new Coordinate(0, 0),
@@ -178,33 +181,28 @@ class Scroller implements Draggable, MomentumDelegate {
     });
 
     _frame.onKeyDown.listen((KeyboardEvent e) {
-        bool handled = false;
-        // We ignore key events where further scrolling in that direction
-        // would have no impact which matches default browser behavior with
-        // nested scrollable areas.
+      bool handled = false;
+      // We ignore key events where further scrolling in that direction
+      // would have no impact which matches default browser behavior with
+      // nested scrollable areas.
 
-        switch(e.keyCode) {
-          case 33: // page-up
-            throwDelta(
-                0,
-                _scrollSize.height * PAGE_KEY_SCROLL_FRACTION);
-            handled = true;
-            break;
-          case 34: // page-down
-            throwDelta(
-                0, -_scrollSize.height * PAGE_KEY_SCROLL_FRACTION);
-            handled = true;
-            break;
-          case 35: // End
-             throwTo(_maxPoint.x, _minPoint.y,
-                FAST_SNAP_DECELERATION_FACTOR);
-            handled = true;
-            break;
-          case 36: // Home
-            throwTo(_maxPoint.x,_maxPoint.y,
-                FAST_SNAP_DECELERATION_FACTOR);
-            handled = true;
-            break;
+      switch (e.keyCode) {
+        case 33: // page-up
+          throwDelta(0, _scrollSize.height * PAGE_KEY_SCROLL_FRACTION);
+          handled = true;
+          break;
+        case 34: // page-down
+          throwDelta(0, -_scrollSize.height * PAGE_KEY_SCROLL_FRACTION);
+          handled = true;
+          break;
+        case 35: // End
+          throwTo(_maxPoint.x, _minPoint.y, FAST_SNAP_DECELERATION_FACTOR);
+          handled = true;
+          break;
+        case 36: // Home
+          throwTo(_maxPoint.x, _maxPoint.y, FAST_SNAP_DECELERATION_FACTOR);
+          handled = true;
+          break;
 /* TODO(jacobr): enable arrow keys when the don't conflict with other
    application keyboard shortcuts.
           case 38: // up
@@ -230,11 +228,11 @@ class Scroller implements Draggable, MomentumDelegate {
                 FAST_SNAP_DECELERATION_FACTOR);
             break;
             */
-        }
-        if (handled) {
-          e.preventDefault();
-        }
-      });
+      }
+      if (handled) {
+        e.preventDefault();
+      }
+    });
     // The scrollable element must be relatively positioned.
     // TODO(jacobr): this assert fires asynchronously which could be confusing.
     if (_scrollTechnique == ScrollerScrollTechnique.RELATIVE_POSITIONING) {
@@ -284,7 +282,6 @@ class Scroller implements Draggable, MomentumDelegate {
     return _onDecelStartStream;
   }
 
-
   /**
    * Add a scroll listener. This allows other classes to subscribe to scroll
    * notifications from this scroller.
@@ -301,8 +298,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * Adjust the new calculated scroll position based on the minimum allowed
    * position and returns the adjusted scroll value.
    */
-  num _adjustValue(num newPosition, num minPosition,
-                      num maxPosition) {
+  num _adjustValue(num newPosition, num minPosition, num maxPosition) {
     assert(minPosition <= maxPosition);
 
     if (newPosition < minPosition) {
@@ -347,9 +343,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
         _startDeceleration(
             _momentum.calculateVelocity(
-                _contentOffset,
-                snappedTarget,
-                decelerationFactor),
+                _contentOffset, snappedTarget, decelerationFactor),
             decelerationFactor);
         if (_onDecelStart != null) {
           _onDecelStart.add(new Event(ScrollerEventType.DECEL_START));
@@ -383,17 +377,18 @@ class Scroller implements Draggable, MomentumDelegate {
     _snapContentOffsetToBounds();
     _setContentOffset(_contentOffset.x, _contentOffset.y);
   }
+
   /**
    * Adjusted content size is a size with the combined largest height and width
    * of both the content and the frame.
    */
   Size _getAdjustedContentSize() {
     return new Size(Math.max(_scrollSize.width, _contentSize.width),
-                    Math.max(_scrollSize.height, _contentSize.height));
+        Math.max(_scrollSize.height, _contentSize.height));
   }
 
   // TODO(jmesserly): these should be properties instead of get* methods
-  num getDefaultVerticalOffset() =>  _maxPoint.y;
+  num getDefaultVerticalOffset() => _maxPoint.y;
   Element getElement() => _element;
   Element getFrame() => _frame;
   num getHorizontalOffset() => _contentOffset.x;
@@ -408,7 +403,7 @@ class Scroller implements Draggable, MomentumDelegate {
     return (x - _minPoint.x) / (_maxPoint.x - _minPoint.x);
   }
 
-  num getMaxPointY()=> _maxPoint.y;
+  num getMaxPointY() => _maxPoint.y;
   num getMinPointY() => _minPoint.y;
   Momentum get momentum => _momentum;
 
@@ -487,10 +482,12 @@ class Scroller implements Draggable, MomentumDelegate {
     Coordinate contentStart = _contentStartOffset;
     num newX = contentStart.x + _touchHandler.getDragDeltaX();
     num newY = contentStart.y + _touchHandler.getDragDeltaY();
-    newY = _shouldScrollVertically() ?
-        _adjustValue(newY, _minPoint.y, _maxPoint.y) : 0;
-    newX = _shouldScrollHorizontally() ?
-        _adjustValue(newX, _minPoint.x, _maxPoint.x) : 0;
+    newY = _shouldScrollVertically()
+        ? _adjustValue(newY, _minPoint.y, _maxPoint.y)
+        : 0;
+    newX = _shouldScrollHorizontally()
+        ? _adjustValue(newX, _minPoint.x, _maxPoint.x)
+        : 0;
     if (!_activeGesture) {
       _activeGesture = true;
       _dragInProgress = true;
@@ -515,8 +512,7 @@ class Scroller implements Draggable, MomentumDelegate {
     return !!(shouldVertical || shouldHorizontal && !verticalish);
   }
 
-  void onTouchEnd() {
-  }
+  void onTouchEnd() {}
 
   /**
    * Prepare the scrollable area for possible movement.
@@ -570,15 +566,14 @@ class Scroller implements Draggable, MomentumDelegate {
         _contentSize = new Size(_element.scrollWidth, _element.scrollHeight);
       }
 
-      _scrollSize = new Size(_frame.offset.width,
-                             _frame.offset.height);
+      _scrollSize = new Size(_frame.offset.width, _frame.offset.height);
       Size adjusted = _getAdjustedContentSize();
       _maxPoint = new Coordinate(-_maxOffset.x, -_maxOffset.y);
       _minPoint = new Coordinate(
           Math.min(
               _scrollSize.width - adjusted.width + _minOffset.x, _maxPoint.x),
-          Math.min(
-              _scrollSize.height - adjusted.height + _minOffset.y, _maxPoint.y));
+          Math.min(_scrollSize.height - adjusted.height + _minOffset.y,
+              _maxPoint.y));
       callback();
     });
   }
@@ -616,7 +611,7 @@ class Scroller implements Draggable, MomentumDelegate {
     _setContentOffset(_contentOffset.x, y);
   }
 
-   /**
+  /**
    * Whether the scrollable area should scroll horizontally. Only
    * returns true if the client has enabled horizontal scrolling, and the
    * content is wider than the frame.
@@ -642,10 +637,8 @@ class Scroller implements Draggable, MomentumDelegate {
    * the frame, snap it back in to place.
    */
   void _snapContentOffsetToBounds() {
-    num clampX =
-        GoogleMath.clamp(_minPoint.x, _contentOffset.x, _maxPoint.x);
-    num clampY =
-        GoogleMath.clamp(_minPoint.y, _contentOffset.y, _maxPoint.y);
+    num clampX = GoogleMath.clamp(_minPoint.x, _contentOffset.x, _maxPoint.x);
+    num clampY = GoogleMath.clamp(_minPoint.y, _contentOffset.y, _maxPoint.y);
     if (_contentOffset.x != clampX || _contentOffset.y != clampY) {
       _setContentOffset(clampX, clampY);
     }
@@ -656,7 +649,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * Returns true if deceleration has been initiated.
    */
   bool _startDeceleration(Coordinate velocity,
-                          [num decelerationFactor = null]) {
+      [num decelerationFactor = null]) {
     if (!_shouldScrollHorizontally()) {
       velocity.x = 0;
     }
@@ -665,8 +658,8 @@ class Scroller implements Draggable, MomentumDelegate {
     }
     assert(_minPoint != null); // Min point is not set
     assert(_maxPoint != null); // Max point is not set
-    return _momentum.start(velocity, _minPoint, _maxPoint, _contentOffset,
-                           decelerationFactor);
+    return _momentum.start(
+        velocity, _minPoint, _maxPoint, _contentOffset, decelerationFactor);
   }
 
   Coordinate stop() {
@@ -682,9 +675,13 @@ class Scroller implements Draggable, MomentumDelegate {
   }
 
   static Function _getOffsetFunction(int scrollTechnique) {
-    return scrollTechnique == ScrollerScrollTechnique.TRANSFORM_3D ?
-        (el, x, y) { FxUtil.setTranslate(el, x, y, 0); } :
-        (el, x, y) { FxUtil.setLeftAndTop(el, x, y); };
+    return scrollTechnique == ScrollerScrollTechnique.TRANSFORM_3D
+        ? (el, x, y) {
+            FxUtil.setTranslate(el, x, y, 0);
+          }
+        : (el, x, y) {
+            FxUtil.setLeftAndTop(el, x, y);
+          };
   }
 }
 

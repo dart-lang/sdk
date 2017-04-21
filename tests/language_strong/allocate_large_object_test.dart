@@ -26,7 +26,7 @@ class A {
     return s;
   }
 
-  A(this.a) { }
+  A(this.a) {}
 
   value() {
     return a + foo();
@@ -38,7 +38,7 @@ class AllocateLargeObject {
     var a = new A(1);
     A.s = 4;
     Expect.equals(5, a.value());
- }
+  }
 }
 
 main() {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ShadowRootTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -10,8 +11,7 @@ import 'dart:html';
 main() {
   useHtmlConfiguration();
 
-  var isShadowRoot =
-      predicate((x) => x is ShadowRoot, 'is a ShadowRoot');
+  var isShadowRoot = predicate((x) => x is ShadowRoot, 'is a ShadowRoot');
 
   test('ShadowRoot supported', () {
     var isSupported = ShadowRoot.supported;

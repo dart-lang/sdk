@@ -807,7 +807,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   final TypeInformation receiver;
 
   /// Cached targets of this call.
-  Iterable<Element> targets;
+  Iterable<MemberEntity> targets;
 
   DynamicCallSiteTypeInformation(
       MemberTypeInformation context,
@@ -828,7 +828,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
     }
-    for (Element element in targets) {
+    for (MemberElement element in targets) {
       MemberTypeInformation callee = inferrer.types.getInferredTypeOf(element);
       callee.addCall(caller, call);
       callee.addUser(this);
@@ -838,7 +838,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
-  Iterable<Element> get callees => targets.map((e) => e.implementation);
+  Iterable<Element> get callees =>
+      targets.map((MemberElement e) => e.implementation);
 
   TypeMask computeTypedSelector(InferrerEngine inferrer) {
     TypeMask receiverType = receiver.type;
@@ -853,8 +854,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return targets.any((Element e) {
-      return e is FunctionElement &&
+    return targets.any((MemberElement e) {
+      return e is MethodElement &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
           inferrer.backend.noSuchMethodRegistry.isComplex(e);
@@ -873,7 +874,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, InferrerEngine inferrer) {
     ClosedWorld closedWorld = inferrer.closedWorld;
-    ClassElement intClass = closedWorld.backendClasses.intClass;
+    ClassElement intClass = closedWorld.commonElements.jsIntClass;
     if (!intClass.isResolved) return null;
     if (mask == null) return null;
     if (!mask.containsOnlyInt(closedWorld)) {
@@ -883,7 +884,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassElement uint31Implementation = closedWorld.backendClasses.uint31Class;
+    ClassElement uint31Implementation =
+        closedWorld.commonElements.jsUInt31Class;
     bool isInt(info) => info.type.containsOnlyInt(closedWorld);
     bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
@@ -891,8 +893,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
 
     bool isPositiveInt(info) {
-      return info.type
-          .satisfies(closedWorld.backendClasses.positiveIntClass, closedWorld);
+      return info.type.satisfies(
+          closedWorld.commonElements.jsPositiveIntClass, closedWorld);
     }
 
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;
@@ -970,7 +972,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   TypeMask computeType(InferrerEngine inferrer) {
-    Iterable<Element> oldTargets = targets;
+    Iterable<MemberEntity> oldTargets = targets;
     TypeMask typeMask = computeTypedSelector(inferrer);
     inferrer.updateSelectorInTree(caller, call, selector, typeMask);
 
@@ -986,7 +988,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
     targets = inferrer.closedWorld.allFunctions.filter(selector, maskToUse);
-    Iterable<Element> typedTargets = canReachAll
+    Iterable<MemberEntity> typedTargets = canReachAll
         ? inferrer.closedWorld.allFunctions.filter(selector, typeMask)
         : targets;
 
@@ -995,7 +997,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       // Add calls to new targets to the graph.
       targets
           .where((target) => !oldTargets.contains(target))
-          .forEach((element) {
+          .forEach((MemberElement element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
         callee.addCall(caller, call);
@@ -1008,7 +1010,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
           .where((target) => !targets.contains(target))
-          .forEach((element) {
+          .forEach((MemberElement element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
         callee.removeCall(caller, call);
@@ -1021,7 +1023,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
-    TypeMask result = inferrer.types.joinTypeMasks(targets.map((element) {
+    TypeMask result =
+        inferrer.types.joinTypeMasks(targets.map((MemberElement element) {
       // If [canReachAll] is true, then we are iterating over all
       // targets that satisfy the untyped selector. We skip the return
       // type of the targets that can only be reached through
@@ -1081,9 +1084,9 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInTree(caller, call, selector, mask);
-      Iterable<Element> oldTargets = targets;
+      Iterable<MemberEntity> oldTargets = targets;
       targets = inferrer.closedWorld.allFunctions.filter(selector, mask);
-      for (Element element in targets) {
+      for (MemberElement element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOf(element);
@@ -1098,7 +1101,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   void removeAndClearReferences(InferrerEngine inferrer) {
-    for (Element element in targets) {
+    for (MemberElement element in targets) {
       ElementTypeInformation callee = inferrer.types.getInferredTypeOf(element);
       callee.removeUser(this);
     }
@@ -1116,8 +1119,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        targets.every(
-            (element) => inferrer.types.getInferredTypeOf(element).isStable) &&
+        targets.every((MemberElement element) =>
+            inferrer.types.getInferredTypeOf(element).isStable) &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
@@ -1708,6 +1711,21 @@ class AwaitTypeInformation extends TypeInformation {
   }
 }
 
+class YieldTypeInformation extends TypeInformation {
+  final ast.Node node;
+
+  YieldTypeInformation(MemberTypeInformation context, this.node)
+      : super(context);
+
+  TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
+
+  String toString() => 'Yield';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitYieldTypeInformation(this);
+  }
+}
+
 abstract class TypeInformationVisitor<T> {
   T visitNarrowTypeInformation(NarrowTypeInformation info);
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
@@ -1727,6 +1745,7 @@ abstract class TypeInformationVisitor<T> {
   T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
   T visitAwaitTypeInformation(AwaitTypeInformation info);
+  T visitYieldTypeInformation(YieldTypeInformation info);
 }
 
 TypeMask _narrowType(

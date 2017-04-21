@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/utilities/change_builder_core.dart';
+import 'package:meta/meta.dart';
 
 /**
  * A builder used to build a [SourceChange].
@@ -33,6 +34,11 @@ abstract class ChangeBuilder {
    */
   Future<Null> addFileEdit(
       String path, int timeStamp, void buildFileEdit(FileEditBuilder builder));
+
+  /**
+   * Set the selection for the change being built to the given [position].
+   */
+  void setSelection(Position position);
 }
 
 /**
@@ -49,6 +55,12 @@ abstract class EditBuilder {
    */
   void addLinkedEdit(
       String groupName, void buildLinkedEdit(LinkedEditBuilder builder));
+
+  /**
+   * Set the selection to the given location within the edit being built.
+   */
+  @experimental
+  void selectHere();
 
   /**
    * Add the given [string] to the content of the current edit.
@@ -68,6 +80,12 @@ abstract class EditBuilder {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class FileEditBuilder {
+  /**
+   * Add a deletion of text starting at the given [offset] and continuing for
+   * the given [length].
+   */
+  void addDeletion(int offset, int length);
+
   /**
    * Add an insertion of text at the given [offset]. The [offset] is relative to
    * the original source. The [buildEdit] function is used to write the text to

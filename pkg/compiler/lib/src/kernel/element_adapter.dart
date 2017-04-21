@@ -12,7 +12,7 @@ import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/backend_helpers.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -22,9 +22,6 @@ import 'kernel_debug.dart';
 abstract class KernelElementAdapter {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
-
-  // Access to backend helpers.
-  BackendHelpers get helpers;
 
   /// [ElementEnvironment] for library, class and member lookup.
   ElementEnvironment get elementEnvironment;
@@ -125,11 +122,6 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   DiagnosticReporter get reporter;
   FunctionType getFunctionType(ir.FunctionNode node);
   native.BehaviorBuilder get nativeBehaviorBuilder;
-  BackendHelpers _helpers;
-
-  @override
-  BackendHelpers get helpers =>
-      _helpers ??= new BackendHelpers(elementEnvironment, commonElements);
 
   @override
   Name getName(ir.Name name) {
@@ -219,7 +211,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     for (ir.Expression annotation in node.annotations) {
       if (annotation is ir.ConstructorInvocation) {
         FunctionEntity target = getConstructor(annotation.target);
-        if (target.enclosingClass == helpers.nativeAnnotationClass) {
+        if (target.enclosingClass == commonElements.nativeAnnotationClass) {
           return true;
         }
       }
@@ -231,13 +223,13 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (isForeignLibrary(node.target.enclosingLibrary)) {
       switch (node.target.name.name) {
-        case BackendHelpers.JS:
+        case JavaScriptBackend.JS:
           return ForeignKind.JS;
-        case BackendHelpers.JS_BUILTIN:
+        case JavaScriptBackend.JS_BUILTIN:
           return ForeignKind.JS_BUILTIN;
-        case BackendHelpers.JS_EMBEDDED_GLOBAL:
+        case JavaScriptBackend.JS_EMBEDDED_GLOBAL:
           return ForeignKind.JS_EMBEDDED_GLOBAL;
-        case BackendHelpers.JS_INTERCEPTOR_CONSTANT:
+        case JavaScriptBackend.JS_INTERCEPTOR_CONSTANT:
           return ForeignKind.JS_INTERCEPTOR_CONSTANT;
       }
     }
@@ -246,7 +238,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
 
   /// Return `true` if [node] is the `dart:_foreign_helper` library.
   bool isForeignLibrary(ir.Library node) {
-    return node.importUri == BackendHelpers.DART_FOREIGN_HELPER;
+    return node.importUri == Uris.dart__foreign_helper;
   }
 
   /// Looks up [typeName] for use in the spec-string of a `JS` called.
@@ -272,9 +264,9 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
       // TODO(johnniwinther): Narrow the set of lookups base on the depending
       // library.
       DartType type = findIn(Uris.dart_core);
-      type ??= findIn(BackendHelpers.DART_JS_HELPER);
-      type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
-      type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
+      type ??= findIn(Uris.dart__js_helper);
+      type ??= findIn(Uris.dart__interceptors);
+      type ??= findIn(Uris.dart__isolate_helper);
       type ??= findIn(Uris.dart__native_typed_data);
       type ??= findIn(Uris.dart_collection);
       type ??= findIn(Uris.dart_math);

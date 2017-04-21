@@ -10,7 +10,9 @@ int bar = 499;
 
 get foo => bar;
 
-void set foo(String str) { bar = str.length; }
+void set foo(String str) {
+  bar = str.length;
+}
 
 main() {
   int x = foo;

@@ -4,15 +4,13 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:front_end/dependency_grapher.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/uri_resolver.dart';
-import 'package:front_end/src/scanner/scanner.dart';
+import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/source/directive_listener.dart';
 
 /// Generates a representation of the dependency graph of a program.
 ///
@@ -39,17 +37,6 @@ Future<Graph> graphForProgram(List<Uri> sources, ProcessedOptions options,
 /// Type of the callback function used by [graphForProgram] to read file
 /// contents.
 typedef Future<String> FileReader(Uri originalUri, Uri resolvedUri);
-
-class _Scanner extends Scanner {
-  _Scanner(String contents) : super(new CharSequenceReader(contents)) {
-    preserveComments = false;
-  }
-
-  @override
-  void reportError(errorCode, int offset, List<Object> arguments) {
-    // TODO(paulberry): report errors.
-  }
-}
 
 class _StartingPoint extends _WalkerNode {
   final List<Uri> sources;
@@ -114,11 +101,10 @@ class _WalkerNode extends Node<_WalkerNode> {
       throw new StateError('Invalid URI: $uri');
     }
     var contents = await walker.fileReader(uri, resolvedUri);
-    var scanner = new _Scanner(contents);
-    var token = scanner.tokenize();
+    var scannerResults = scanString(contents);
     // TODO(paulberry): report errors.
-    var parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
-    var unit = parser.parseDirectives(token);
+    var listener = new DirectiveListener();
+    new TopLevelParser(listener).parseUnit(scannerResults.tokens);
     bool coreUriFound = false;
     void handleDependency(Uri referencedUri) {
       _WalkerNode dependencyNode = walker.nodeForUri(referencedUri);
@@ -131,18 +117,20 @@ class _WalkerNode extends Node<_WalkerNode> {
       }
     }
 
-    for (var directive in unit.directives) {
-      if (directive is UriBasedDirective) {
-        // TODO(paulberry): when we support SDK libraries, we'll need more
-        // complex logic here to find SDK parts correctly.
-        var referencedUri = uri.resolve(directive.uri.stringValue);
-        if (directive is PartDirective) {
-          library.parts.add(referencedUri);
-        } else {
-          handleDependency(referencedUri);
-        }
-      }
+    for (var part in listener.parts) {
+      // TODO(paulberry): when we support SDK libraries, we'll need more
+      // complex logic here to find SDK parts correctly.
+      library.parts.add(uri.resolve(part));
     }
+
+    for (var dep in listener.imports) {
+      handleDependency(uri.resolve(dep));
+    }
+
+    for (var dep in listener.exports) {
+      handleDependency(uri.resolve(dep));
+    }
+
     if (!coreUriFound) {
       handleDependency(dartCoreUri);
     }

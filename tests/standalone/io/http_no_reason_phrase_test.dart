@@ -16,23 +16,23 @@ import "dart:io";
 void missingReasonPhrase(int statusCode, bool includeSpace) {
   var client = new HttpClient();
   ServerSocket.bind("127.0.0.1", 0).then((server) {
-     server.listen((client) {
-        client.listen(null);
-        if (includeSpace) {
-          client.write("HTTP/1.1 $statusCode \r\n\r\n");
-        } else {
-          client.write("HTTP/1.1 $statusCode\r\n\r\n");
-        }
-        client.close();
-      });
-      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/"))
+    server.listen((client) {
+      client.listen(null);
+      if (includeSpace) {
+        client.write("HTTP/1.1 $statusCode \r\n\r\n");
+      } else {
+        client.write("HTTP/1.1 $statusCode\r\n\r\n");
+      }
+      client.close();
+    });
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/"))
         .then((request) => request.close())
         .then((response) {
-          Expect.equals(statusCode, response.statusCode);
-          Expect.equals("", response.reasonPhrase);
-          return response.drain();
-        })
-        .whenComplete(() => server.close());
+      Expect.equals(statusCode, response.statusCode);
+      Expect.equals("", response.reasonPhrase);
+      return response.drain();
+    }).whenComplete(() => server.close());
   });
 }
 

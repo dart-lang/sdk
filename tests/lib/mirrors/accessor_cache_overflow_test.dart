@@ -8,14 +8,31 @@
 
 library test.hot_get_field;
 
+@MirrorsUsed(targets: "test.hot_get_field")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 const int optimizationThreshold = 20;
 
 main() {
-  var digits =
-      ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+  var digits = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F'
+  ];
   var symbols = new List();
   for (var high in digits) {
     for (var low in digits) {

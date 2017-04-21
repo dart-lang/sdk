@@ -12,9 +12,8 @@ aa1() {
   try {
     bb1();
     fail();
-  } catch(exception, stacktrace) {
-    expectTrace(['gg1', 'ff1', 'ee1', 'dd1', 'cc1', 'bb1', 'aa1'],
-                stacktrace);
+  } catch (exception, stacktrace) {
+    expectTrace(['gg1', 'ff1', 'ee1', 'dd1', 'cc1', 'bb1', 'aa1'], stacktrace);
   }
 }
 
@@ -23,9 +22,9 @@ bb1() => cc1();
 cc1() {
   try {
     dd1();
-  } on String catch(e) {
+  } on String catch (e) {
     fail();
-  } on int catch(e) {
+  } on int catch (e) {
     fail();
   }
 }
@@ -35,7 +34,7 @@ dd1() => ee1();
 ee1() {
   try {
     ff1();
-  } catch(e) {
+  } catch (e) {
     rethrow;
   }
 }
@@ -50,9 +49,8 @@ aa2() {
   try {
     bb2();
     fail();
-  } catch(exception, stacktrace) {
-    expectTrace(['gg2', 'ff2', 'ee2', 'dd2', 'cc2', 'bb2', 'aa2'],
-                stacktrace);
+  } catch (exception, stacktrace) {
+    expectTrace(['gg2', 'ff2', 'ee2', 'dd2', 'cc2', 'bb2', 'aa2'], stacktrace);
   }
 }
 
@@ -61,9 +59,9 @@ bb2() => cc2();
 cc2() {
   try {
     dd2();
-  } on NotASubclassOfError catch(e) {
+  } on NotASubclassOfError catch (e) {
     rethrow;
-  } on int catch(e) {
+  } on int catch (e) {
     fail();
   }
 }
@@ -73,7 +71,7 @@ dd2() => ee2();
 ee2() {
   try {
     ff2();
-  } catch(e) {
+  } catch (e) {
     rethrow;
   }
 }
@@ -88,7 +86,7 @@ aa3() {
   try {
     bb3();
     fail();
-  } catch(exception, stacktrace) {
+  } catch (exception, stacktrace) {
     expectTrace(['cc3', 'bb3', 'aa3'], stacktrace);
   }
 }
@@ -98,7 +96,7 @@ bb3() => cc3();
 cc3() {
   try {
     dd3();
-  } catch(e) {
+  } catch (e) {
     throw e;
   }
 }
@@ -108,7 +106,7 @@ dd3() => ee3();
 ee3() {
   try {
     ff3();
-  } catch(e) {
+  } catch (e) {
     rethrow;
   }
 }

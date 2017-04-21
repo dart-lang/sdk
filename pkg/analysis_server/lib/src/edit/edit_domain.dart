@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library edit.domain;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -13,7 +11,11 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -36,6 +38,9 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 
 int test_resetCount = 0;
@@ -52,23 +57,21 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
  * that handles requests in the edit domain.
  */
-class EditDomainHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
-  final AnalysisServer server;
-
+class EditDomainHandler extends AbstractRequestHandler {
   /**
    * The [SearchEngine] for this server.
    */
   SearchEngine searchEngine;
 
+  /**
+   * The object used to manage uncompleted refactorings.
+   */
   _RefactoringManager refactoringManager;
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  EditDomainHandler(this.server) {
+  EditDomainHandler(AnalysisServer server) : super(server) {
     searchEngine = server.searchEngine;
     _newRefactoringManager();
   }
@@ -140,41 +143,76 @@ class EditDomainHandler implements RequestHandler {
 
   Future getAssists(Request request) async {
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
-    List<Assist> assists;
+    String file = params.file;
+    int offset = params.offset;
+    int length = params.length;
+
+    List<SourceChange> changes = <SourceChange>[];
     if (server.options.enableNewAnalysisDriver) {
-      AnalysisResult result = await server.getAnalysisResult(params.file);
+      //
+      // Allow plugins to start computing assists.
+      //
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      plugin.EditGetAssistsParams requestParams =
+          new plugin.EditGetAssistsParams(file, offset, length);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures =
+          server.pluginManager.broadcast(driver.contextRoot, requestParams);
+      //
+      // Compute fixes associated with server-generated errors.
+      //
+      AnalysisResult result = await server.getAnalysisResult(file);
       if (result != null) {
         CompilationUnit unit = result.unit;
         CompilationUnitElement compilationUnitElement =
             resolutionMap.elementDeclaredByCompilationUnit(unit);
         DartAssistContext dartAssistContext = new _DartAssistContextForValues(
             compilationUnitElement.source,
-            params.offset,
-            params.length,
+            offset,
+            length,
             compilationUnitElement.context,
             unit);
         try {
           AssistProcessor processor = new AssistProcessor(dartAssistContext);
-          assists = await processor.compute();
+          List<Assist> assists = await processor.compute();
+          for (Assist assist in assists) {
+            changes.add(assist.change);
+          }
         } catch (_) {}
       }
+      //
+      // Add the fixes produced by plugins to the server-generated fixes.
+      //
+      List<plugin.Response> responses = await waitForResponses(pluginFutures,
+          requestParameters: requestParams);
+      ResultConverter converter = new ResultConverter();
+      List<plugin.PrioritizedSourceChange> pluginChanges =
+          <plugin.PrioritizedSourceChange>[];
+      for (plugin.Response response in responses) {
+        plugin.EditGetAssistsResult result =
+            new plugin.EditGetAssistsResult.fromResponse(response);
+        pluginChanges.addAll(result.assists);
+      }
+      pluginChanges
+          .sort((first, second) => first.priority.compareTo(second.priority));
+      changes
+          .addAll(pluginChanges.map(converter.convertPrioritizedSourceChange));
     } else {
-      ContextSourcePair pair = server.getContextSourcePair(params.file);
+      ContextSourcePair pair = server.getContextSourcePair(file);
       engine.AnalysisContext context = pair.context;
       Source source = pair.source;
       if (context != null && source != null) {
-        assists = await computeAssists(
-            server.serverPlugin, context, source, params.offset, params.length);
+        List<Assist> assists = await computeAssists(
+            server.serverPlugin, context, source, offset, length);
+        for (Assist assist in assists) {
+          changes.add(assist.change);
+        }
       }
     }
-    // Send the assist changes.
-    List<SourceChange> changes = <SourceChange>[];
-    assists?.forEach((Assist assist) {
-      changes.add(assist.change);
-    });
-    Response response =
-        new EditGetAssistsResult(changes).toResponse(request.id);
-    server.sendResponse(response);
+    //
+    // Send the response.
+    //
+    server
+        .sendResponse(new EditGetAssistsResult(changes).toResponse(request.id));
   }
 
   Future getFixes(Request request) async {
@@ -184,6 +222,17 @@ class EditDomainHandler implements RequestHandler {
 
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     if (server.options.enableNewAnalysisDriver) {
+      //
+      // Allow plugins to start computing fixes.
+      //
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      plugin.EditGetFixesParams requestParams =
+          new plugin.EditGetFixesParams(file, offset);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures =
+          server.pluginManager.broadcast(driver.contextRoot, requestParams);
+      //
+      // Compute fixes associated with server-generated errors.
+      //
       AnalysisResult result = await server.getAnalysisResult(file);
       if (result != null) {
         CompilationUnit unit = result.unit;
@@ -215,6 +264,18 @@ class EditDomainHandler implements RequestHandler {
           }
         }
       }
+      //
+      // Add the fixes produced by plugins to the server-generated fixes.
+      //
+      List<plugin.Response> responses = await waitForResponses(pluginFutures,
+          requestParameters: requestParams);
+      ResultConverter converter = new ResultConverter();
+      for (plugin.Response response in responses) {
+        plugin.EditGetFixesResult result =
+            new plugin.EditGetFixesResult.fromResponse(response);
+        errorFixesList
+            .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
+      }
     } else {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
@@ -243,10 +304,43 @@ class EditDomainHandler implements RequestHandler {
         }
       }
     }
-
+    //
     // Send the response.
+    //
     server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
+  }
+
+  Future getStatementCompletion(Request request) async {
+    var params = new EditGetStatementCompletionParams.fromRequest(request);
+    SourceChange change;
+
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      CompilationUnitElement unitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      if (unitElement.context != null) {
+        StatementCompletionContext context = new StatementCompletionContext(
+            params.file,
+            result.lineInfo,
+            params.offset,
+            unit,
+            unitElement,
+            result.errors);
+        StatementCompletionProcessor processor =
+            new StatementCompletionProcessor(context);
+        StatementCompletion completion = await processor.compute();
+        change = completion.change;
+      }
+    }
+    if (change == null) {
+      change = new SourceChange("", edits: []);
+    }
+
+    Response response = new EditGetStatementCompletionResult(change, false)
+        .toResponse(request.id);
+    server.sendResponse(response);
   }
 
   @override
@@ -270,6 +364,9 @@ class EditDomainHandler implements RequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_SORT_MEMBERS) {
         sortMembers(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_GET_STATEMENT_COMPLETION) {
+        getStatementCompletion(request);
         return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {

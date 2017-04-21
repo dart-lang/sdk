@@ -9,19 +9,20 @@
 import "package:expect/expect.dart";
 import "dart:typed_data";
 
-confuse(x, [y=null]) => new DateTime.now().day == 42 ? y : x;
+confuse(x, [y = null]) => new DateTime.now().day == 42 ? y : x;
 
 boom() {
-    var x = confuse(new Uint8List(22), "");
-    Expect.isTrue(x is Uint8List);
-    x.startsWith("a");
-    x.endsWith("u");
+  var x = confuse(new Uint8List(22), "");
+  Expect.isTrue(x is Uint8List);
+  x.startsWith("a");
+  x.endsWith("u");
 }
 
 main() {
   try {
     var f;
-    if (confuse(true)) { // prevent inlining
+    if (confuse(true)) {
+      // prevent inlining
       f = boom;
     }
     f();

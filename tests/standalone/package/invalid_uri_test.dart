@@ -6,5 +6,4 @@ library invalid_uri_test;
 
 import 'package://lib1.dart'; // Should not contain "//".
 
-void main() {
-}
+void main() {}

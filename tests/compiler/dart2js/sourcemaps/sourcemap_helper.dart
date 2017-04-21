@@ -22,6 +22,7 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/source_file_provider.dart';
+import 'package:kernel/ast.dart' show Location;
 import '../memory_compiler.dart';
 import '../output_collector.dart';
 
@@ -337,7 +338,8 @@ class SourceMapProcessor {
     Map<Element, SourceMapInfo> elementSourceMapInfos =
         <Element, SourceMapInfo>{};
     if (perElement) {
-      backend.generatedCode.forEach((Element element, js.Expression node) {
+      backend.generatedCode
+          .forEach((MemberElement element, js.Expression node) {
         RecordedSourceInformationProcess subProcess =
             strategy.subProcessForNode(node);
         if (subProcess == null) {
@@ -500,9 +502,9 @@ class CodePointComputer extends TraceListener {
       if (sourceFile == null) {
         return sourceLocation.shortText;
       }
-      return sourceFile
-          .getLineText(sourceLocation.line)
-          .substring(sourceLocation.column)
+      return sourceFile.kernelSource
+          .getTextLine(sourceLocation.line)
+          .substring(sourceLocation.column - 1)
           .trim();
     }
 

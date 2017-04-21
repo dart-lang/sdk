@@ -7,6 +7,7 @@
 class A {}
 
 class S {}
+
 class M {}
 
 class C = S with M implements A;

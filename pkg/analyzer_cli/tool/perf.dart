@@ -187,7 +187,8 @@ Token tokenize(Source source) {
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
   var scanner = new Scanner(source, new CharSequenceReader(contents),
-      AnalysisErrorListener.NULL_LISTENER)..preserveComments = false;
+      AnalysisErrorListener.NULL_LISTENER)
+    ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();
   return token;

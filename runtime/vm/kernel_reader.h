@@ -66,6 +66,12 @@ class KernelReader {
 
   void ReadLibrary(Library* kernel_library);
 
+  const dart::String& DartSymbol(String* str) {
+    return translation_helper_.DartSymbol(str);
+  }
+
+  uint8_t CharacterAt(String* str, intptr_t index);
+
  private:
   friend class BuildingTranslationHelper;
 

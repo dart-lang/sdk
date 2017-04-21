@@ -9,6 +9,7 @@ main() {
   bar(a) {
     return a is String;
   }
+
   var bar_tearOff = bar.call;
 
   for (var i = 0; i < 20; i++) {
@@ -36,13 +37,15 @@ main() {
   for (var i = 0; i < 20; i++) {
     Expect.equals("1122", named_arg_tearOff());
     Expect.equals("1122", named_arg_tearOff.call());
-    Expect.equals("4455", named_arg_tearOff(y:55, x:44));
-    Expect.equals("4455", named_arg_tearOff.call(y:55, x:44));
-    Expect.equals("4455", named_arg_tearOff(x:44, y:55));
-    Expect.equals("4455", named_arg_tearOff.call(x:44, y:55));
+    Expect.equals("4455", named_arg_tearOff(y: 55, x: 44));
+    Expect.equals("4455", named_arg_tearOff.call(y: 55, x: 44));
+    Expect.equals("4455", named_arg_tearOff(x: 44, y: 55));
+    Expect.equals("4455", named_arg_tearOff.call(x: 44, y: 55));
   }
 
   Expect.throws(() => bar_tearOff.call(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => opt_arg_tearOff.call(x:"p"), (e) => e is NoSuchMethodError);
-  Expect.throws(() => named_arg_tearOff.call("p", "q"), (e) => e is NoSuchMethodError);
+  Expect.throws(
+      () => opt_arg_tearOff.call(x: "p"), (e) => e is NoSuchMethodError);
+  Expect.throws(
+      () => named_arg_tearOff.call("p", "q"), (e) => e is NoSuchMethodError);
 }

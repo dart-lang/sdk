@@ -11,7 +11,7 @@ main() {
 
   group('functional', () {
     var isXsltProcessor =
-      predicate((x) => x is XsltProcessor, 'is an XsltProcessor');
+        predicate((x) => x is XsltProcessor, 'is an XsltProcessor');
 
     var expectation = XsltProcessor.supported ? returnsNormally : throws;
 
@@ -23,5 +23,4 @@ main() {
       }, expectation);
     });
   });
-
 }

@@ -108,6 +108,10 @@ abstract class ChainContext {
   ExpectationSet get expectationSet => ExpectationSet.Default;
 
   Future<Null> run(Chain suite, Set<String> selectors) async {
+    List<String> partialSelectors = selectors
+        .where((s) => s.endsWith('...'))
+        .map((s) => s.substring(0, s.length - 3))
+        .toList();
     TestExpectations expectations = await ReadTestExpectations(
         <String>[suite.statusFile.toFilePath()], {}, expectationSet);
     Stream<TestDescription> stream = list(suite);
@@ -126,7 +130,8 @@ abstract class ChainContext {
       String selector = "${suite.name}/${description.shortName}";
       if (selectors.isNotEmpty &&
           !selectors.contains(selector) &&
-          !selectors.contains(suite.name)) {
+          !selectors.contains(suite.name) &&
+          !partialSelectors.any((s) => selector.startsWith(s))) {
         continue;
       }
       final Set<Expectation> expectedOutcomes =

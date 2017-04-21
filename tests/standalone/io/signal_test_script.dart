@@ -11,12 +11,24 @@ void main(args) {
   for (var arg in args) {
     var signal;
     switch (arg) {
-      case 'SIGHUP': signal = ProcessSignal.SIGHUP; break;
-      case 'SIGINT': signal = ProcessSignal.SIGINT; break;
-      case 'SIGTERM': signal = ProcessSignal.SIGTERM; break;
-      case 'SIGUSR1': signal = ProcessSignal.SIGUSR1; break;
-      case 'SIGUSR2': signal = ProcessSignal.SIGUSR2; break;
-      case 'SIGWINCH': signal = ProcessSignal.SIGWINCH; break;
+      case 'SIGHUP':
+        signal = ProcessSignal.SIGHUP;
+        break;
+      case 'SIGINT':
+        signal = ProcessSignal.SIGINT;
+        break;
+      case 'SIGTERM':
+        signal = ProcessSignal.SIGTERM;
+        break;
+      case 'SIGUSR1':
+        signal = ProcessSignal.SIGUSR1;
+        break;
+      case 'SIGUSR2':
+        signal = ProcessSignal.SIGUSR2;
+        break;
+      case 'SIGWINCH':
+        signal = ProcessSignal.SIGWINCH;
+        break;
     }
     signal.watch().first.then((s) {
       if (signal != s) exit(1);

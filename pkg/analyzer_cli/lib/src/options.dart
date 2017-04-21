@@ -36,6 +36,10 @@ typedef void ExitHandler(int code);
 class CommandLineOptions {
   final bool enableNewAnalysisDriver = true;
 
+  /// Return `true` if the parser is to parse asserts in the initializer list of
+  /// a constructor.
+  final bool enableAssertInitializer;
+
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -54,6 +58,10 @@ class CommandLineOptions {
   /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
+
+  /// Whether to only produce unlinked summaries instead of linked summaries.
+  /// Must be used in combination with `buildSummaryOnly`.
+  final bool buildSummaryOnlyUnlinked;
 
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
@@ -155,6 +163,7 @@ class CommandLineOptions {
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
+        buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
@@ -165,6 +174,7 @@ class CommandLineOptions {
         disableHints = args['no-hints'],
         displayVersion = args['version'],
         enableTypeChecks = args['enable_type_checks'],
+        enableAssertInitializer = args['enable-assert-initializers'],
         hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args[lintsFlag],
@@ -261,6 +271,20 @@ class CommandLineOptions {
       printAndFail('The option --build-summary-only-diet can be used only '
           'together with --build-summary-only.');
       return null; // Only reachable in testing.
+    }
+
+    if (options.buildSummaryOnlyUnlinked) {
+      if (!options.buildSummaryOnly) {
+        printAndFail(
+            'The option --build-summary-only-unlinked can be used only '
+            'together with --build-summary-only.');
+        return null; // Only reachable in testing.
+      }
+      if (options.buildSummaryInputs.isNotEmpty) {
+        printAndFail('No summaries should be provided in combination with '
+            '--build-summary-only-unlinked, they aren\'t needed.');
+        return null; // Only reachable in testing.
+      }
     }
 
     return options;
@@ -384,6 +408,11 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      ..addFlag('build-summary-only-unlinked',
+          help: 'Only output the unlinked summary.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
       ..addFlag('build-suppress-exit-code',
           help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
@@ -441,6 +470,11 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('enable_type_checks',
           help: 'Check types in constant evaluation.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('enable-assert-initializers',
+          help: 'Enable parsing of asserts in constructor initializers.',
           defaultsTo: false,
           negatable: false,
           hide: hide)

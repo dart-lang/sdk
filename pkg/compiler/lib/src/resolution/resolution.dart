@@ -270,10 +270,9 @@ class ResolverTask extends CompilerTask {
       ClassElement enclosingClass = element.enclosingClass;
       if (enclosingClass != null) {
         // TODO(johnniwinther): Find another way to obtain mixin uses.
-        Iterable<MixinApplicationElement> mixinUses =
-            world.allMixinUsesOf(enclosingClass);
         ClassElement mixin = enclosingClass;
-        for (MixinApplicationElement mixinApplication in mixinUses) {
+        for (MixinApplicationElement mixinApplication
+            in world.allMixinUsesOf(enclosingClass)) {
           checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
         }
       }
@@ -803,17 +802,19 @@ class ResolverTask extends CompilerTask {
     // well?
     List<Element> constConstructors = <Element>[];
     List<Element> nonFinalInstanceFields = <Element>[];
-    cls.forEachMember((holder, member) {
+    cls.forEachMember((holder, dynamic member) {
       reporter.withCurrentElement(member, () {
         // Perform various checks as side effect of "computing" the type.
         member.computeType(resolution);
 
         // Check modifiers.
+        // ignore: UNDEFINED_GETTER
         if (member.isFunction && member.modifiers.isFinal) {
           reporter.reportErrorMessage(
               member, MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER);
         }
         if (member.isConstructor) {
+          // ignore: UNDEFINED_GETTER
           final mismatchedFlagsBits = member.modifiers.flags &
               (Modifiers.FLAG_STATIC | Modifiers.FLAG_ABSTRACT);
           if (mismatchedFlagsBits != 0) {
@@ -824,15 +825,18 @@ class ResolverTask extends CompilerTask {
                 MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
                 {'modifiers': mismatchedFlags});
           }
+          // ignore: UNDEFINED_GETTER
           if (member.modifiers.isConst) {
             constConstructors.add(member);
           }
         }
         if (member.isField) {
+          // ignore: UNDEFINED_GETTER
           if (member.modifiers.isConst && !member.modifiers.isStatic) {
             reporter.reportErrorMessage(
                 member, MessageKind.ILLEGAL_CONST_FIELD_MODIFIER);
           }
+          // ignore: UNDEFINED_GETTER
           if (!member.modifiers.isStatic && !member.modifiers.isFinal) {
             nonFinalInstanceFields.add(member);
           }

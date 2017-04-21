@@ -91,9 +91,9 @@ class InferrerEngine {
    */
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
-    Iterable<Element> elements =
+    Iterable<MemberEntity> elements =
         closedWorld.allFunctions.filter(selector, mask);
-    for (Element e in elements) {
+    for (MemberElement e in elements) {
       if (!f(e.implementation)) return;
     }
   }
@@ -132,7 +132,8 @@ class InferrerEngine {
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
+      sideEffects.add(
+          closedWorldRefiner.getCurrentlyKnownSideEffects(callee.declaration));
     }
   }
 
@@ -442,8 +443,8 @@ class InferrerEngine {
           print('${types.getInferredSignatureOf(info.element)} for '
               '${info.element}');
         } else if (info is DynamicCallSiteTypeInformation) {
-          for (Element target in info.targets) {
-            if (target is FunctionElement) {
+          for (MemberElement target in info.targets) {
+            if (target is MethodElement) {
               print('${types.getInferredSignatureOf(target)} for ${target}');
             } else {
               print('${types.getInferredTypeOf(target).type} for ${target}');
@@ -474,11 +475,12 @@ class InferrerEngine {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    var visitor = compiler.options.kernelGlobalInference
+    dynamic visitor = compiler.options.kernelGlobalInference
         ? new KernelTypeGraphBuilder(element, resolvedAst, compiler, this)
         : new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
+      // ignore: UNDEFINED_METHOD
       type = visitor.run();
     });
     addedInGraph++;
@@ -556,13 +558,16 @@ class InferrerEngine {
     types.allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        closedWorldRefiner.addFunctionCalledInLoop(info.calledElement);
+        closedWorldRefiner
+            .addFunctionCalledInLoop(info.calledElement.declaration);
       } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach(closedWorldRefiner.addFunctionCalledInLoop);
+        info.targets.forEach((MemberElement element) {
+          closedWorldRefiner.addFunctionCalledInLoop(element);
+        });
       }
     });
   }
@@ -882,7 +887,9 @@ class InferrerEngine {
           arguments, sideEffects, inLoop);
     }
 
-    closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
+    closedWorld.allFunctions
+        .filter(selector, mask)
+        .forEach((MemberElement callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
@@ -908,6 +915,18 @@ class InferrerEngine {
   TypeInformation registerAwait(ast.Node node, TypeInformation argument) {
     AwaitTypeInformation info =
         new AwaitTypeInformation(types.currentMember, node);
+    info.addAssignment(argument);
+    types.allocatedTypes.add(info);
+    return info;
+  }
+
+  /**
+   * Registers a call to yield with an expression of type [argumentType] as
+   * argument.
+   */
+  TypeInformation registerYield(ast.Node node, TypeInformation argument) {
+    YieldTypeInformation info =
+        new YieldTypeInformation(types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
@@ -953,7 +972,7 @@ class InferrerEngine {
     int max = 0;
     Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
     compiler.enqueuer.resolution.processedEntities
-        .forEach((AstElement element) {
+        .forEach((MemberElement element) {
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;

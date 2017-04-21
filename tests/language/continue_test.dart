@@ -38,7 +38,8 @@ class ContinueTest {
 
     // Use a label to continue to the outer loop.
     i = 0;
-    L: while (i < 50) {
+    L:
+    while (i < 50) {
       i += 3;
       while (i < 30) {
         i += 2;

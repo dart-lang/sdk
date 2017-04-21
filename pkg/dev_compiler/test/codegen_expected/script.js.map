@@ -1,1 +1,0 @@
-{"version":3,"sourceRoot":"","sources":["../../gen/codegen_tests/script.dart"],"names":["args","name","print"],"mappings":";;;;;;;;AACA,gBAAS,SAAC,IAAiB,EAAE;AAC3B,eAAc,AAAAA,IAAI,aAAM,GAAG,CAAC;AAAC,AAC7B,QAAI,AAAAC,IAAI,IAAI,EAAE,AAAA,EAAE,AAAA,AAAAA,IAAI,GAAG,OAAO,AAAA;AAAC,AAAA,AAC/B,IAAA,AAAAC,UAAK,CAAC,iBAAO,IAAK,EAAC,CAAC;AAAC,GAEvB,AAAA;AAAA","file":"script.js"}

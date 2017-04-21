@@ -4,6 +4,7 @@
 //
 
 library Prefix11Test.dart;
+
 import "package:expect/expect.dart";
 import "library10.dart";
 import "library11.dart" as lib11;
@@ -21,6 +22,7 @@ class Prefix11Test {
     result += Library10.static_fld;
     Expect.equals(10, result);
   }
+
   static Test2() {
     var result = 0;
     var obj = new lib11.Library11(4);
@@ -33,10 +35,12 @@ class Prefix11Test {
     result += lib11.Library11.static_fld;
     Expect.equals(10, result);
   }
+
   static Test3() {
     Expect.equals(10, top_level10);
     Expect.equals(20, top_level_func10());
   }
+
   static Test4() {
     Expect.equals(100, lib11.top_level11);
     Expect.equals(200, lib11.top_level_func11());

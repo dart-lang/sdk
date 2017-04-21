@@ -21,8 +21,9 @@ main() {
   // Make sure that we need a type test against the runtime representation of
   // [Type].
   var a = (new DateTime.now().millisecondsSinceEpoch != 42)
-      ? new C<Type>() : new C<int>();
-  print (a is C<Type>);
+      ? new C<Type>()
+      : new C<int>();
+  print(a is C<Type>);
 
   var typeMirror = reflectType(X);
   var declarationMirror = typeMirror.declarations[#foo];

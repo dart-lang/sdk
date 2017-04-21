@@ -1656,7 +1656,7 @@ void main() {
   $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) async => x ? 2 : await new $upwards<int>.value(3));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
-    return await x ? 2 : new $upwards<int>.value(3);});
+    return /*info:DOWN_CAST_COMPOSITE*/await x ? 2 : new $upwards<int>.value(3);});
   $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
       (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
@@ -1694,7 +1694,7 @@ void main() {
   $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) async => x ? 2 : await new $upwards<int>.value(3));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
-    return await x ? 2 : new $upwards<int>.value(3);});
+    return /*info:DOWN_CAST_COMPOSITE*/await x ? 2 : new $upwards<int>.value(3);});
   $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/
@@ -1872,12 +1872,12 @@ class MyFuture<T> implements Future<T> {
 }
 
 $downwards<int> g1(bool x) async {
-  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
+  return /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
 $downwards<int> g2(bool x) async =>
-  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
   var y = x ? 42 : new $upwards.value(42);
-  return y;
+  return /*info:DOWN_CAST_COMPOSITE*/y;
 }
     ''';
     await checkFileElement(build(downwards: "Future", upwards: "Future"));
@@ -1897,12 +1897,12 @@ class MyFuture<T> implements Future<T> {
 }
 
 $downwards<int> g1(bool x) async {
-  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
+  return /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
 $downwards<int> g2(bool x) async =>
-  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
   var y = x ? 42 : new $upwards.value(42);
-  return y;
+  return /*info:DOWN_CAST_COMPOSITE*/y;
 }
     ''';
     await checkFileElement(build(downwards: "Future", upwards: "Future"));

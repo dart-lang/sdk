@@ -5,6 +5,6 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.isTrue(
-      const bool.fromEnvironment('dart.developer.causal_async_stacks'));
+  Expect
+      .isTrue(const bool.fromEnvironment('dart.developer.causal_async_stacks'));
 }

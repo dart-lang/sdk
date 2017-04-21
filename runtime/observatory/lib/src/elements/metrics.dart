@@ -155,8 +155,8 @@ class MetricsPageElement extends HtmlElement implements Renderable {
         ..value = _selected.name
         ..children = _available.map((metric) {
           return new OptionElement(
-              value: metric.name,
-              selected: _selected == metric)..text = metric.name;
+              value: metric.name, selected: _selected == metric)
+            ..text = metric.name;
         }).toList(growable: false)
         ..onChange.listen((_) {
           _selected = _available[s.selectedIndex];

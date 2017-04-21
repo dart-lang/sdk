@@ -18,17 +18,14 @@ import "dart:io";
 import "dart:isolate";
 part "testing_server.dart";
 
-
 String getDataFilename(String path) =>
     Platform.script.resolve(path).toFilePath();
-
 
 bool compareFileContent(String fileName1, String fileName2) {
   var contents1 = new File(fileName1).readAsStringSync();
   var contents2 = new File(fileName2).readAsStringSync();
   return contents1 == contents2;
 }
-
 
 // This test does:
 //  1. Opens a socket to the testing server.
@@ -37,19 +34,15 @@ bool compareFileContent(String fileName1, String fileName2) {
 //  4. Pipes the socket output stream to the temp file.
 //  5. Expects the original file and the temp file to be equal.
 class PipeServerGame {
-
   int count = 0;
 
-  PipeServerGame.start()
-      : _messages = 0 {
+  PipeServerGame.start() : _messages = 0 {
     initialize();
   }
 
   void runTest() {
-
     void connectHandler() {
-      String srcFileName =
-          getDataFilename("readline_test1.dat");
+      String srcFileName = getDataFilename("readline_test1.dat");
       Stream fileInput = new File(srcFileName).openRead();
       fileInput.pipe(_socket).then((_) {
         var tempDir = Directory.systemTemp.createTempSync('dart_pipe_server');
@@ -103,14 +96,12 @@ class PipeServerGame {
   int _messages;
 }
 
-
 void startPipeServer(SendPort replyPort) {
   var server = new PipeServer();
   server.init().then((port) {
     replyPort.send([port, server.closeSendPort]);
   });
 }
-
 
 // The testing server will simply pipe each connecting sockets input
 // stream to its output stream.
@@ -119,7 +110,6 @@ class PipeServer extends TestingServer {
     connection.pipe(connection);
   }
 }
-
 
 main() {
   asyncStart();

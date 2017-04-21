@@ -5,7 +5,7 @@
 import "dart:isolate";
 import "package:expect/expect.dart";
 
-func(){}
+func() {}
 
 main() {
   var r = new RawReceivePort();

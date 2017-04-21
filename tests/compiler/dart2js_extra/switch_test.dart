@@ -58,6 +58,21 @@ switcher2(val) {
   return x;
 }
 
+var x = 0;
+
+@NoInline()
+switcher3(val) {
+  switch (val) {
+    case 1:
+    default:
+      incrementX();
+  }
+}
+
+incrementX() {
+  x++;
+}
+
 badswitches(val) {
   // Test some badly formed switch bodies.
   // 01 - a label/statement without a following case/default.
@@ -80,6 +95,9 @@ main() {
   Expect.equals(200, switcher2(3));
   Expect.equals(200, switcher2(4));
   Expect.equals(200, switcher2(5));
+
+  switcher3(1);
+  Expect.equals(1, x);
 
   badswitches(42);
 }

@@ -4,6 +4,20 @@
 
 library fasta.kernel_field_builder;
 
+import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
+
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
+
+import 'package:front_end/src/fasta/parser/parser.dart' show Parser;
+
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+
+import 'package:front_end/src/fasta/builder/class_builder.dart'
+    show ClassBuilder;
+
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
+
 import 'package:kernel/ast.dart' show Expression, Field, Name;
 
 import 'kernel_builder.dart'
@@ -15,14 +29,25 @@ import 'kernel_builder.dart'
         MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
+  final AstFactory astFactory;
+  final TypeInferrer typeInferrer;
   final Field field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
+  final Token initializerToken;
 
-  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
-      Builder compilationUnit, int charOffset)
-      : field = new Field(null, fileUri: compilationUnit?.relativeFileUri)
-          ..fileOffset = charOffset,
+  KernelFieldBuilder(
+      this.astFactory,
+      this.typeInferrer,
+      this.metadata,
+      this.type,
+      String name,
+      int modifiers,
+      Builder compilationUnit,
+      int charOffset,
+      this.initializerToken)
+      : field = astFactory.field(null, charOffset,
+            fileUri: compilationUnit?.relativeFileUri),
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
@@ -35,13 +60,44 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       field.type = type.build(library);
     }
     bool isInstanceMember = !isStatic && !isTopLevel;
-    return field
+    field
       ..isFinal = isFinal
       ..isConst = isConst
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
+    if (initializerToken != null) {
+      typeInferrer.recordField(field);
+    }
+    return field;
   }
 
   Field get target => field;
+
+  @override
+  void prepareInitializerInference(TypeInferrer typeInferrer,
+      LibraryBuilder library, ClassBuilder currentClass) {
+    if (initializerToken != null) {
+      var memberScope =
+          currentClass == null ? library.scope : currentClass.scope;
+      var bodyBuilder = new BodyBuilder(
+          library,
+          this,
+          memberScope,
+          null,
+          typeInferrer.classHierarchy,
+          typeInferrer.coreTypes,
+          currentClass,
+          isInstanceMember,
+          library.uri,
+          typeInferrer,
+          astFactory,
+          fieldDependencies: typeInferrer.getFieldDependencies(field));
+      Parser parser = new Parser(bodyBuilder);
+      Token token = parser.parseExpression(initializerToken);
+      Expression expression = bodyBuilder.popForValue();
+      bodyBuilder.checkEmpty(token.charOffset);
+      initializer = expression;
+    }
+  }
 }

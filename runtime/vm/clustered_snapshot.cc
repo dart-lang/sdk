@@ -114,8 +114,7 @@ class ClassSerializationCluster : public SerializationCluster {
     }
     intptr_t class_id = cls->ptr()->id_;
     if (class_id == kIllegalCid) {
-      FATAL1("Attempting to serialize class with illegal cid: %s\n",
-             Class::Handle(cls).ToCString());
+      s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
@@ -1460,21 +1459,6 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->is_in_fullsnapshot_ = true;
     }
   }
-
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    // TODO(rmacnak): This is surprisingly slow, roughly 20% of deserialization
-    // time for the JIT. Maybe make the lookups happy with a null?
-
-    NOT_IN_PRODUCT(TimelineDurationScope tds(
-        Thread::Current(), Timeline::GetIsolateStream(), "PostLoadLibrary"));
-
-    Library& lib = Library::Handle(zone);
-    for (intptr_t i = start_index_; i < stop_index_; i++) {
-      lib ^= refs.At(i);
-      const intptr_t kInitialNameCacheSize = 64;
-      lib.InitResolvedNamesCache(kInitialNameCacheSize);
-    }
-  }
 };
 
 
@@ -1811,12 +1795,14 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
         switch (entry_type) {
           case ObjectPool::kTaggedObject: {
 #if !defined(TARGET_ARCH_DBC)
-            if (entry.raw_obj_ ==
-                StubCode::CallNativeCFunction_entry()->code()) {
+            if ((entry.raw_obj_ ==
+                 StubCode::CallNoScopeNative_entry()->code()) ||
+                (entry.raw_obj_ ==
+                 StubCode::CallAutoScopeNative_entry()->code())) {
               // Natives can run while precompiling, becoming linked and
               // switching their stub. Reset to the initial stub used for
               // lazy-linking.
-              s->WriteRef(StubCode::CallBootstrapCFunction_entry()->code());
+              s->WriteRef(StubCode::CallBootstrapNative_entry()->code());
               break;
             }
 #endif
@@ -2858,7 +2844,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
     objects_.Add(prefix);
 
     RawObject** from = prefix->from();
-    RawObject** to = prefix->to();
+    RawObject** to = prefix->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -2875,11 +2861,12 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
+    Snapshot::Kind kind = s->kind();
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawLibraryPrefix* prefix = objects_[i];
       RawObject** from = prefix->from();
-      RawObject** to = prefix->to();
+      RawObject** to = prefix->to_snapshot(kind);
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
@@ -2911,6 +2898,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
+    Snapshot::Kind kind = d->kind();
     bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -2920,10 +2908,15 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
                                      LibraryPrefix::InstanceSize(),
                                      is_vm_object);
       RawObject** from = prefix->from();
+      RawObject** to_snapshot = prefix->to_snapshot(kind);
       RawObject** to = prefix->to();
-      for (RawObject** p = from; p <= to; p++) {
+      for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();
       }
+      for (RawObject** p = to_snapshot + 1; p <= to; p++) {
+        *p = Object::null();
+      }
+
       prefix->ptr()->num_imports_ = d->Read<uint16_t>();
       prefix->ptr()->is_deferred_load_ = d->Read<bool>();
       prefix->ptr()->is_loaded_ = !prefix->ptr()->is_deferred_load_;
@@ -3187,7 +3180,6 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       s->Write<int32_t>(type->ptr()->parameterized_class_id_);
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int16_t>(type->ptr()->index_);
-      s->Write<uint8_t>(type->ptr()->parent_level_);
       s->Write<int8_t>(type->ptr()->type_state_);
     }
   }
@@ -3229,7 +3221,6 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->index_ = d->Read<int16_t>();
-      type->ptr()->parent_level_ = d->Read<uint8_t>();
       type->ptr()->type_state_ = d->Read<int8_t>();
     }
   }
@@ -4512,7 +4503,13 @@ Serializer::Serializer(Thread* thread,
       num_cids_(0),
       num_base_objects_(0),
       num_written_objects_(0),
-      next_ref_index_(1) {
+      next_ref_index_(1)
+#if defined(SNAPSHOT_BACKTRACE)
+      ,
+      current_parent_(Object::null()),
+      parent_pairs_()
+#endif
+{
   num_cids_ = thread->isolate()->class_table()->NumCids();
   clusters_by_cid_ = new SerializationCluster*[num_cids_];
   for (intptr_t i = 0; i < num_cids_; i++) {
@@ -4657,6 +4654,45 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 
+void Serializer::Push(RawObject* object) {
+  if (!object->IsHeapObject()) {
+    RawSmi* smi = Smi::RawCast(object);
+    if (smi_ids_.Lookup(smi) == NULL) {
+      SmiObjectIdPair pair;
+      pair.smi_ = smi;
+      pair.id_ = 1;
+      smi_ids_.Insert(pair);
+      stack_.Add(object);
+      num_written_objects_++;
+    }
+    return;
+  }
+
+  if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+    return;  // Do not trace, will write null.
+  }
+
+  if (object->IsSendPort()) {
+    // TODO(rmacnak): Do a better job of resetting fields in precompilation
+    // and assert this is unreachable.
+    return;  // Do not trace, will write null.
+  }
+
+  intptr_t id = heap_->GetObjectId(object);
+  if (id == 0) {
+    heap_->SetObjectId(object, 1);
+    ASSERT(heap_->GetObjectId(object) != 0);
+    stack_.Add(object);
+    num_written_objects_++;
+
+#if defined(SNAPSHOT_BACKTRACE)
+    parent_pairs_.Add(&Object::Handle(object));
+    parent_pairs_.Add(&Object::Handle(current_parent_));
+#endif
+  }
+}
+
+
 void Serializer::Trace(RawObject* object) {
   intptr_t cid;
   if (!object->IsHeapObject()) {
@@ -4673,8 +4709,42 @@ void Serializer::Trace(RawObject* object) {
     clusters_by_cid_[cid] = cluster;
   }
   ASSERT(cluster != NULL);
+
+#if defined(SNAPSHOT_BACKTRACE)
+  current_parent_ = object;
+#endif
+
   cluster->Trace(this, object);
+
+#if defined(SNAPSHOT_BACKTRACE)
+  current_parent_ = Object::null();
+#endif
 }
+
+
+void Serializer::UnexpectedObject(RawObject* raw_object, const char* message) {
+  Object& object = Object::Handle(raw_object);
+  OS::PrintErr("Unexpected object (%s): %s\n", message, object.ToCString());
+#if defined(SNAPSHOT_BACKTRACE)
+  while (!object.IsNull()) {
+    object = ParentOf(object);
+    OS::PrintErr("referenced by %s\n", object.ToCString());
+  }
+#endif
+  OS::Abort();
+}
+
+
+#if defined(SNAPSHOT_BACKTRACE)
+RawObject* Serializer::ParentOf(const Object& object) {
+  for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
+    if (parent_pairs_[i]->raw() == object.raw()) {
+      return parent_pairs_[i + 1]->raw();
+    }
+  }
+  return Object::null();
+}
+#endif  // SNAPSHOT_BACKTRACE
 
 
 void Serializer::WriteVersionAndFeatures() {
@@ -4717,6 +4787,7 @@ void Serializer::Serialize() {
   }
 #endif
 
+  Write<int32_t>(num_base_objects_);
   Write<int32_t>(num_objects);
   Write<int32_t>(num_clusters);
 
@@ -4752,6 +4823,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::null());
   AddBaseObject(Object::sentinel().raw());
   AddBaseObject(Object::transition_sentinel().raw());
+  AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Object::empty_array().raw());
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
@@ -4760,6 +4832,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Bool::False().raw());
   AddBaseObject(Object::extractor_parameter_types().raw());
   AddBaseObject(Object::extractor_parameter_names().raw());
+  AddBaseObject(Object::empty_context().raw());
   AddBaseObject(Object::empty_context_scope().raw());
   AddBaseObject(Object::empty_descriptors().raw());
   AddBaseObject(Object::empty_var_descriptors().raw());
@@ -5090,6 +5163,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
 
 
 void Deserializer::Prepare() {
+  num_base_objects_ = Read<int32_t>();
   num_objects_ = Read<int32_t>();
   num_clusters_ = Read<int32_t>();
 
@@ -5099,7 +5173,11 @@ void Deserializer::Prepare() {
 
 
 void Deserializer::Deserialize() {
-  // TODO(rmacnak): Verify num of base objects.
+  if (num_base_objects_ != (next_ref_index_ - 1)) {
+    FATAL2("Snapshot expects %" Pd
+           " base objects, but deserializer provided %" Pd,
+           num_base_objects_, next_ref_index_ - 1);
+  }
 
   {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
@@ -5150,6 +5228,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::null());
   AddBaseObject(Object::sentinel().raw());
   AddBaseObject(Object::transition_sentinel().raw());
+  AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Object::empty_array().raw());
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
@@ -5158,6 +5237,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Bool::False().raw());
   AddBaseObject(Object::extractor_parameter_types().raw());
   AddBaseObject(Object::extractor_parameter_names().raw());
+  AddBaseObject(Object::empty_context().raw());
   AddBaseObject(Object::empty_context_scope().raw());
   AddBaseObject(Object::empty_descriptors().raw());
   AddBaseObject(Object::empty_var_descriptors().raw());
@@ -5356,7 +5436,12 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   // Can't have any mutation happening while we're serializing.
   ASSERT(isolate()->background_compiler() == NULL);
 
-  if (vm_snapshot_data_buffer != NULL) {
+  // TODO(rmacnak): The special case for AOT causes us to always generate the
+  // same VM isolate snapshot for every app. AOT snapshots should be cleaned up
+  // so the VM isolate snapshot is generated separately and each app is
+  // generated from a VM that has loaded this snapshots, much like app-jit
+  // snapshots.
+  if ((vm_snapshot_data_buffer != NULL) && (kind != Snapshot::kAppAOT)) {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         thread(), Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
 
@@ -5386,6 +5471,8 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     Symbols::SetupSymbolTable(isolate());
   } else {
     // Reuse the current vm isolate.
+    saved_symbol_table_ = object_store->symbol_table();
+    new_vm_symbol_table_ = Dart::vm_isolate()->object_store()->symbol_table();
   }
 }
 

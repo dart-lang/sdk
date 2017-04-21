@@ -6,8 +6,9 @@ import "package:expect/expect.dart";
 import "package:meta/meta.dart" show virtual;
 
 class A {
-  @virtual int a;
-  A(): a = 42;
+  @virtual
+  int a;
+  A() : a = 42;
 }
 
 class B extends A {

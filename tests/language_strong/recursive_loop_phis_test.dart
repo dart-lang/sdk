@@ -20,4 +20,3 @@ foo(bool b) {
 main() {
   Expect.equals(499, foo(false));
 }
-

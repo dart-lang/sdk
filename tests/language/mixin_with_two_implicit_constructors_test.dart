@@ -10,11 +10,9 @@ class A {
   A() : field = 2;
 }
 
-class Mixin {
-}
+class Mixin {}
 
-class B extends A with Mixin {
-}
+class B extends A with Mixin {}
 
 main() {
   Expect.equals(2, new B().field);

@@ -8,14 +8,12 @@ library duplicateInterfaceTest;
 import 'package:expect/expect.dart';
 import "duplicate_interface_lib.dart" as alib;
 
-class InterfB { }
+class InterfB {}
 
 // Ok since InterfB and alib.InterfB are not the same interface
-class Foo implements InterfB , alib.InterfB { }
-
+class Foo implements InterfB, alib.InterfB {}
 
 main() {
   Expect.isTrue(new Foo() is InterfB);
   Expect.isTrue(new Foo() is alib.InterfB);
 }
-

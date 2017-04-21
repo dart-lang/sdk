@@ -8,23 +8,23 @@
 
 #include "platform/address_sanitizer.h"
 
-#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
-#include "vm/longjump.h"
 #include "vm/json_stream.h"
+#include "vm/longjump.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/port.h"
+#include "vm/runtime_entry.h"
+#include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
-#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/stack_trace.h"
 #include "vm/stub_code.h"
@@ -687,7 +687,7 @@ intptr_t ActivationFrame::ContextLevel() {
     }
     ASSERT(!pc_desc_.IsNull());
     TokenPosition innermost_begin_pos = TokenPosition::kMinSource;
-    TokenPosition activation_token_pos = TokenPos();
+    TokenPosition activation_token_pos = TokenPos().FromSynthetic();
     ASSERT(activation_token_pos.IsReal());
     GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
@@ -758,7 +758,10 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   ASSERT(!future_field.IsNull());
   Instance& future = Instance::Handle();
   future ^= Instance::Cast(completer).GetField(future_field);
-  ASSERT(!future.IsNull());
+  if (future.IsNull()) {
+    // The completer object may not be fully initialized yet.
+    return Object::null();
+  }
   const Class& future_cls = Class::Handle(future.clazz());
   ASSERT(!future_cls.IsNull());
   const Field& awaiter_field = Field::Handle(
@@ -841,7 +844,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         if (type.IsDynamicType()) {
           return true;
         }
-        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(), NULL)) {
+        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(),
+                                 Object::null_type_arguments(), NULL)) {
           return true;
         }
       }
@@ -926,6 +930,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
   if (!ctx_.IsNull()) return ctx_;
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
+  Object& obj = Object::Handle();
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
@@ -935,11 +940,21 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
       }
-      ctx_ ^= GetStackVar(var_info.index());
+      obj = GetStackVar(var_info.index());
+      if (obj.IsClosure()) {
+        ASSERT(function().name() == Symbols::Call().raw());
+        ASSERT(function().IsInvokeFieldDispatcher());
+        // Closure.call frames.
+        ctx_ ^= Closure::Cast(obj).context();
+      } else if (obj.IsContext()) {
+        ctx_ ^= Context::Cast(obj).raw();
+      } else {
+        ASSERT(obj.IsNull());
+      }
       return ctx_;
     }
   }
-  return Context::ZoneHandle(Context::null());
+  return ctx_;
 }
 
 
@@ -1446,8 +1461,7 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 
 
 void DebuggerStackTrace::AddMarker(ActivationFrame::Kind marker) {
-  ASSERT((marker >= ActivationFrame::kAsyncSuspensionMarker) &&
-         (marker <= ActivationFrame::kAsyncSuspensionMarker));
+  ASSERT(marker == ActivationFrame::kAsyncSuspensionMarker);
   trace_.Add(new ActivationFrame(marker));
 }
 
@@ -1972,7 +1986,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
-  if (!FLAG_causal_async_stacks) {
+  if (!FLAG_async_debugger) {
     return NULL;
   }
   // Causal async stacks are not supported in the AOT runtime.
@@ -1993,7 +2007,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Object& next_async_activation = Object::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
-
+  bool stack_has_async_function = false;
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
@@ -2022,6 +2036,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                 deopt_frame_offset, ActivationFrame::kAsyncActivation);
             ASSERT(activation != NULL);
             stack_trace->AddActivation(activation);
+            stack_has_async_function = true;
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
@@ -2044,8 +2059,10 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
               ActivationFrame::kAsyncActivation);
           ASSERT(activation != NULL);
           stack_trace->AddActivation(activation);
+          stack_has_async_function = true;
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
+          async_stack_trace ^= activation->GetCausalStack();
           break;
         } else {
           stack_trace->AddActivation(CollectDartFrame(
@@ -2055,9 +2072,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     }
   }
 
-  // Return NULL to indicate that there is no useful information in this stack
-  // trace because we never found an awaiter.
-  if (async_activation.IsNull()) {
+  // If the stack doesn't have any async functions on it, return NULL.
+  if (!stack_has_async_function) {
     return NULL;
   }
 

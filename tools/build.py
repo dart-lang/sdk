@@ -107,6 +107,10 @@ def ProcessOptions(options, args):
   options.mode = options.mode.split(',')
   options.arch = options.arch.split(',')
   options.os = options.os.split(',')
+  if not options.gyp and options.toolchain != None:
+    print "The --toolchain flag is only supported by the gyp build."
+    print "When using the GN build, set the toolchain and sysroot using gn.py."
+    return False
   for mode in options.mode:
     if not mode in ['debug', 'release', 'product']:
       print "Unknown mode %s" % mode

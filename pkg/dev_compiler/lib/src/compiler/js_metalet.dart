@@ -4,7 +4,6 @@
 
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
-import '../js_ast/precedence.dart';
 
 import 'js_names.dart' show TemporaryId;
 
@@ -143,7 +142,7 @@ class MetaLet extends Expression {
   }
 
   /// This generates as either a comma expression or a call.
-  int get precedenceLevel => variables.isEmpty ? EXPRESSION : CALL;
+  int get precedenceLevel => toExpression().precedenceLevel;
 
   /// Patch to pretend [Template] supports visitMetaLet.
   Instantiator _templateVisitMetaLet(InstantiatorGeneratorVisitor visitor) {

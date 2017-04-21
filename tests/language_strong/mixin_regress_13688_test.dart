@@ -10,7 +10,7 @@ class ComparableMixin<E> {
   }
 }
 
-class KUID extends Object with ComparableMixin<KUID> { }
+class KUID extends Object with ComparableMixin<KUID> {}
 
 main() {
   var kuid = new KUID();

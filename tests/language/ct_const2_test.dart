@@ -13,8 +13,8 @@ const i = 1;
 const d = 3.3;
 const h = 0xf;
 const n = null;
-const aList = const[1, 2, 3]; // array literal
-const aMap = const { "1": "one", "2": "banana" }; // map literal
+const aList = const [1, 2, 3]; // array literal
+const aMap = const {"1": "one", "2": "banana"}; // map literal
 
 const INT_LIT = 5;
 const INT_LIT_REF = INT_LIT;
@@ -75,9 +75,9 @@ const BOP11 = BOOL_LIT != true;
 const BOP20 = 1 * INT_LIT / 3 + INT_LIT + 9;
 
 // Parenthised expressions
-const BOP30 = ( 1 > 2 );
+const BOP30 = (1 > 2);
 const BOP31 = (1 * 2) + 3;
-const BOP32= 3 + (1 * 2);
+const BOP32 = 3 + (1 * 2);
 
 // Unary expressions
 const UOP1_0 = !BOOL_LIT;
@@ -102,5 +102,4 @@ class A {
   static const a = const A(); // Assignment from Constant constructor OK
 }
 
-main () {
-}
+main() {}

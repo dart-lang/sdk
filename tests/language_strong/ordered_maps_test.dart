@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 
 class OrderedMapsTest {
   static testMain() {
-    testMaps(const { "a": 1, "c": 2 }, const { "c": 2, "a": 1}, true);
-    testMaps({ "a": 1, "c": 2 }, { "c": 2, "a": 1 }, false);
+    testMaps(const {"a": 1, "c": 2}, const {"c": 2, "a": 1}, true);
+    testMaps({"a": 1, "c": 2}, {"c": 2, "a": 1}, false);
   }
 
   static void testMaps(map1, map2, bool isConst) {

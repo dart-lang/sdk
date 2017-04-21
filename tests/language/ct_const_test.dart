@@ -15,15 +15,18 @@ abstract class Roman {
   static const VivaItalia = const {"green": 1, "red": 3, "white": 2};
 }
 
-
 class Point {
   static const int zero = 0;
 
   static const origin = const Point(0, 0);
   static const origin2 = const Point(zero, Roman.IV - 4);
 
-  const Point(x, y) : x_= x, y_ = y;
-  const Point.X(x) : x_ = x, y_ = Roman.V - Roman.II - 3;
+  const Point(x, y)
+      : x_ = x,
+        y_ = y;
+  const Point.X(x)
+      : x_ = x,
+        y_ = Roman.V - Roman.II - 3;
 
   bool operator ==(final Point other) {
     return (this.x_ == other.x_) && (this.y_ == other.y_);
@@ -32,16 +35,19 @@ class Point {
   final int x_, y_;
 }
 
-
 class Line {
-  const Line(Point begin, Point end) : beg_ = begin, end_ = end;
+  const Line(Point begin, Point end)
+      : beg_ = begin,
+        end_ = end;
   final Point beg_;
   final Point end_;
 }
 
-
 class CTConstTest {
-  static int getZero() { return 0; }
+  static int getZero() {
+    return 0;
+  }
+
   static const naught = null;
 
   static testMain() {
@@ -55,7 +61,7 @@ class CTConstTest {
     Expect.equals(false, identical(Point.origin, const Point(1, 1)));
 
     var p2 = new Point(0, getZero());
-    Expect.equals(true, Point.origin == p2);  // Point.operator==
+    Expect.equals(true, Point.origin == p2); // Point.operator==
 
     Expect.equals(true, identical(const Point.X(5), const Point(5, 0)));
 
@@ -64,7 +70,7 @@ class CTConstTest {
     Line l3 = new Line(const Point(0, 0), const Point(1, 1));
     Expect.equals(true, identical(l1, l2));
 
-    final evenNumbers = const <int>[2, 2*2, 2*3, 2*4, 2*5];
+    final evenNumbers = const <int>[2, 2 * 2, 2 * 3, 2 * 4, 2 * 5];
     Expect.equals(true, !identical(evenNumbers, const [2, 4, 6, 8, 10]));
 
     final c11dGermany1 = const {"black": 1, "red": 2, "yellow": 3};
@@ -79,8 +85,8 @@ class CTConstTest {
     Expect.equals(false, identical(c11dGermany1, c11dBelgium));
 
     final c11dItaly = const {"green": 1, "red": 3, "white": 2};
-    Expect.equals(true,
-        identical(c11dItaly, const {"green": 1, "red": 3, "white": 2}));
+    Expect.equals(
+        true, identical(c11dItaly, const {"green": 1, "red": 3, "white": 2}));
     Expect.equals(true, identical(c11dItaly, Roman.VivaItalia));
 
     Expect.equals(3, c11dItaly.length);

@@ -809,6 +809,30 @@ final Matcher isEditGetRefactoringResult =
         }));
 
 /**
+ * edit.getStatementCompletion params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ */
+final Matcher isEditGetStatementCompletionParams = new LazyMatcher(() =>
+    new MatchesJsonObject("edit.getStatementCompletion params",
+        {"file": isFilePath, "offset": isInt}));
+
+/**
+ * edit.getStatementCompletion result
+ *
+ * {
+ *   "change": SourceChange
+ *   "whitespaceOnly": bool
+ * }
+ */
+final Matcher isEditGetStatementCompletionResult = new LazyMatcher(() =>
+    new MatchesJsonObject("edit.getStatementCompletion result",
+        {"change": isSourceChange, "whitespaceOnly": isBool}));
+
+/**
  * edit.sortMembers params
  *
  * {

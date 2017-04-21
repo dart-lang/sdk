@@ -16,7 +16,7 @@ const typeMapping = const {
   'FileMode': FileMode.READ,
   'num': 0.50,
   'List<int>': const [1, 2, 3],
-  'Map<String, int>': const { "a": 23 }
+  'Map<String, int>': const {"a": 23}
 };
 
 typePermutations(int argCount) {
@@ -42,7 +42,9 @@ typePermutations(int argCount) {
 
 // Perform sync operation and ignore all exceptions.
 doItSync(Function f) {
-  try { f(); } catch (e) {}
+  try {
+    f();
+  } catch (e) {}
 }
 
 // Perform async operation and transform the future for the operation
@@ -51,6 +53,6 @@ doItSync(Function f) {
 Future doItAsync(void f()) {
   // Ignore value and errors.
   return new Future.delayed(Duration.ZERO, f)
-    .catchError((_) {})
-    .then((_) => true);
+      .catchError((_) {})
+      .then((_) => true);
 }

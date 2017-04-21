@@ -44,8 +44,7 @@ verifyGraph(expected, actual) {
     aItems.add(actual);
 
     if (expected is Blob) {
-      expect(actual is Blob, isTrue,
-          reason: '$actual is Blob');
+      expect(actual is Blob, isTrue, reason: '$actual is Blob');
       expect(expected.type, equals(actual.type),
           reason: message(path, '.type'));
       expect(expected.size, equals(actual.size),
@@ -54,8 +53,7 @@ verifyGraph(expected, actual) {
     }
 
     if (expected is ByteBuffer) {
-      expect(actual is ByteBuffer, isTrue,
-          reason: '$actual is ByteBuffer');
+      expect(actual is ByteBuffer, isTrue, reason: '$actual is ByteBuffer');
       expect(expected.lengthInBytes, equals(actual.lengthInBytes),
           reason: message(path, '.lengthInBytes'));
       // TODO(antonm): one can create a view on top of those
@@ -64,8 +62,7 @@ verifyGraph(expected, actual) {
     }
 
     if (expected is DateTime) {
-      expect(actual is DateTime, isTrue,
-          reason: '$actual is DateTime');
+      expect(actual is DateTime, isTrue, reason: '$actual is DateTime');
       expect(expected.millisecondsSinceEpoch,
           equals(actual.millisecondsSinceEpoch),
           reason: message(path, '.millisecondsSinceEpoch'));
@@ -73,8 +70,7 @@ verifyGraph(expected, actual) {
     }
 
     if (expected is ImageData) {
-      expect(actual is ImageData, isTrue,
-          reason: '$actual is ImageData');
+      expect(actual is ImageData, isTrue, reason: '$actual is ImageData');
       expect(expected.width, equals(actual.width),
           reason: message(path, '.width'));
       expect(expected.height, equals(actual.height),
@@ -84,8 +80,7 @@ verifyGraph(expected, actual) {
     }
 
     if (expected is TypedData) {
-      expect(actual is TypedData, isTrue,
-          reason: '$actual is TypedData');
+      expect(actual is TypedData, isTrue, reason: '$actual is TypedData');
       walk('$path/.buffer', expected.buffer, actual.buffer);
       expect(expected.offsetInBytes, equals(actual.offsetInBytes),
           reason: message(path, '.offsetInBytes'));
@@ -110,7 +105,7 @@ verifyGraph(expected, actual) {
         if (!actual.containsKey(key)) {
           expect(false, isTrue, reason: message(path, 'missing key "$key"'));
         }
-        walk('$path["$key"]',  expected[key], actual[key]);
+        walk('$path["$key"]', expected[key], actual[key]);
       }
       for (var key in actual.keys) {
         if (!expected.containsKey(key)) {
@@ -126,14 +121,12 @@ verifyGraph(expected, actual) {
   walk('', expected, actual);
 }
 
-
 /**
  * Sanitizer which does nothing.
  */
 class NullTreeSanitizer implements NodeTreeSanitizer {
   void sanitizeTree(Node node) {}
 }
-
 
 /**
  * Validate that two DOM trees are equivalent.

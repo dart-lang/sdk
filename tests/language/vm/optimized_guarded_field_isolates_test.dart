@@ -17,7 +17,7 @@ class A {
 }
 
 class B extends A {
-  B(a, this.b) : super(a) { }
+  B(a, this.b) : super(a) {}
 
   var b;
 }
@@ -33,13 +33,15 @@ test_field_type() {
   asyncStart();
   Future<Isolate> isolate = Isolate.spawn(f1, receive_port.sendPort);
   B b = new B(1, 2);
-  for (var i = 0; i < 200; i++) { test_b(b); }
+  for (var i = 0; i < 200; i++) {
+    test_b(b);
+  }
   Expect.equals(3, test_b(b));
   Future<B> item = receive_port.first;
   item.then((B value) {
-      Expect.equals("foobar", test_b(value));
-      receive_port.close();
-      asyncEnd();
+    Expect.equals("foobar", test_b(value));
+    receive_port.close();
+    asyncEnd();
   });
 }
 
@@ -59,13 +61,15 @@ test_list_length() {
   asyncStart();
   Future<Isolate> isolate = Isolate.spawn(f2, receive_port.sendPort);
   C c = new C(new List(10000));
-  for (var i = 0; i < 200; i++) { test_c(c); }
+  for (var i = 0; i < 200; i++) {
+    test_c(c);
+  }
   Expect.equals(null, test_c(c));
   Future<C> item = receive_port.first;
   item.then((C value) {
-      Expect.throws(() => test_c(value), (e) => e is RangeError);
-      receive_port.close();
-      asyncEnd();
+    Expect.throws(() => test_c(value), (e) => e is RangeError);
+    receive_port.close();
+    asyncEnd();
   });
 }
 

@@ -108,8 +108,8 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
         ..value = _rateToString(current)
         ..children = M.MetricSamplingRate.values.map((rate) {
           return new OptionElement(
-              value: _rateToString(current),
-              selected: current == rate)..text = _rateToString(rate);
+              value: _rateToString(current), selected: current == rate)
+            ..text = _rateToString(rate);
         }).toList(growable: false)
         ..onChange.listen((_) {
           _metrics.setSamplingRate(
@@ -127,8 +127,8 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
         ..value = _sizeToString(current)
         ..children = M.MetricBufferSize.values.map((rate) {
           return new OptionElement(
-              value: _sizeToString(current),
-              selected: current == rate)..text = _sizeToString(rate);
+              value: _sizeToString(current), selected: current == rate)
+            ..text = _sizeToString(rate);
         }).toList(growable: false)
         ..onChange.listen((_) {
           _metrics.setBufferSize(

@@ -14,23 +14,23 @@ class C {
   bool noSuchMethod(Invocation im) {
     if (im.memberName == const Symbol('foo')) {
       return im.positionalArguments.isEmpty &&
-             im.namedArguments.isEmpty &&
-             reflect(e).delegate(im);
+          im.namedArguments.isEmpty &&
+          reflect(e).delegate(im);
     }
     if (im.memberName == const Symbol('bar')) {
       return im.positionalArguments.length == 1 &&
-             im.namedArguments.isEmpty &&
-             reflect(e).delegate(im);
+          im.namedArguments.isEmpty &&
+          reflect(e).delegate(im);
     }
     if (im.memberName == const Symbol('baz')) {
       return im.positionalArguments.isEmpty &&
-             im.namedArguments.length == 1 &&
-             reflect(e).delegate(im);
+          im.namedArguments.length == 1 &&
+          reflect(e).delegate(im);
     }
     if (im.memberName == const Symbol('boz')) {
       return im.positionalArguments.length == 1 &&
-             im.namedArguments.length == 1 &&
-             reflect(e).delegate(im);
+          im.namedArguments.length == 1 &&
+          reflect(e).delegate(im);
     }
     return false;
   }
@@ -40,15 +40,19 @@ class D extends C {
   bool noSuchMethod(Invocation im) {
     return false;
   }
+
   test1() {
     return super.foo();
   }
+
   test2() {
     return super.bar(1);
   }
+
   test3() {
     return super.baz(b: 2);
   }
+
   test4() {
     return super.boz(1, c: 2);
   }

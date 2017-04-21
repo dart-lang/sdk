@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library utf8_test;
+
 import "package:expect/expect.dart";
 import 'dart:convert';
 
@@ -82,7 +83,6 @@ List<int> encode7(String str) {
   stringConversionSink.close();
   return bytes;
 }
-
 
 int _nextPowerOf2(v) {
   assert(v > 0);
@@ -193,7 +193,7 @@ main() {
     codeUnits.length = i + 3;
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
-    codeUnits[i + 2] = CHAR_A;  // Add trailing 'a'.
+    codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 5, CHAR_A);
     bytes[i] = UTF8_ENCODING[0];
@@ -206,7 +206,7 @@ main() {
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
-    codeUnits[i + 2] = CHAR_A;  // Add trailing 'a'.
+    codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 7, CHAR_A);
     bytes[i] = UTF8_TRAILING[0];
@@ -219,7 +219,7 @@ main() {
 
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
-    codeUnits[i + 2] = CHAR_A;  // Add trailing 'a'.
+    codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 7, CHAR_A);
     bytes[i] = UTF8_LEADING[0];
@@ -232,7 +232,7 @@ main() {
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
-    codeUnits[i + 2] = CHAR_A;  // Add trailing 'a'.
+    codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 7, CHAR_A);
     bytes[i] = UTF8_TRAILING[0];

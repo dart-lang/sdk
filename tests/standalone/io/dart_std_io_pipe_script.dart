@@ -7,9 +7,9 @@
 import "dart:io";
 
 main(List<String> arguments) {
-  if (stdioType(stdin) is !StdioType) exit(1);
-  if (stdioType(stdout) is !StdioType) exit(1);
-  if (stdioType(stderr) is !StdioType) exit(1);
+  if (stdioType(stdin) is! StdioType) exit(1);
+  if (stdioType(stdout) is! StdioType) exit(1);
+  if (stdioType(stderr) is! StdioType) exit(1);
   if (stdioType(stdin).name != arguments[1]) {
     throw stdioType(stdin).name;
   }

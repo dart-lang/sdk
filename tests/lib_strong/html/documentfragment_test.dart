@@ -23,7 +23,9 @@ main() {
       }
     }
     return out;
-  };
+  }
+
+  ;
 
   assertConstError(void fn()) {
     try {
@@ -34,7 +36,9 @@ main() {
       }
     }
     expect(true, isFalse, reason: 'Expected immutability error');
-  };
+  }
+
+  ;
 
   void expectEmptyStyleDeclaration(CssStyleDeclaration style) {
     expect(style.cssText, equals(''));
@@ -85,11 +89,18 @@ main() {
     init() {
       fragment = new DocumentFragment();
       children = fragment.children;
-      fragment.nodes.addAll(
-        [new Text("1"), new Element.tag("A"), new Element.tag("B"),
-         new Text("2"), new Element.tag("I"), new Text("3"),
-         new Element.tag("U")]);
-    };
+      fragment.nodes.addAll([
+        new Text("1"),
+        new Element.tag("A"),
+        new Element.tag("B"),
+        new Text("2"),
+        new Element.tag("I"),
+        new Text("3"),
+        new Element.tag("U")
+      ]);
+    }
+
+    ;
 
     test('is initially empty', () {
       children = new DocumentFragment().children;
@@ -101,8 +112,7 @@ main() {
       init();
       expect(_nodeStrings(fragment.nodes),
           equals(["1", "A", "B", "2", "I", "3", "U"]));
-      expect(_nodeStrings(children),
-          equals(["A", "B", "I", "U"]));
+      expect(_nodeStrings(children), equals(["A", "B", "I", "U"]));
     });
 
     test('only indexes children, not other nodes', () {
@@ -110,8 +120,7 @@ main() {
       children[1] = new Element.tag("BR");
       expect(_nodeStrings(fragment.nodes),
           equals(["1", "A", "BR", "2", "I", "3", "U"]));
-      expect(_nodeStrings(children),
-          equals(["A", "BR", "I", "U"]));
+      expect(_nodeStrings(children), equals(["A", "BR", "I", "U"]));
     });
 
     test('adds to both children and nodes', () {
@@ -119,21 +128,18 @@ main() {
       children.add(new Element.tag("UL"));
       expect(_nodeStrings(fragment.nodes),
           equals(["1", "A", "B", "2", "I", "3", "U", "UL"]));
-      expect(_nodeStrings(children),
-          equals(["A", "B", "I", "U", "UL"]));
+      expect(_nodeStrings(children), equals(["A", "B", "I", "U", "UL"]));
     });
 
     test('removes only children, from both children and nodes', () {
       init();
       expect(children.removeLast().tagName, equals('U'));
-      expect(_nodeStrings(fragment.nodes),
-          equals(["1", "A", "B", "2", "I", "3"]));
-      expect(_nodeStrings(children),
-          equals(["A", "B", "I"]));
+      expect(
+          _nodeStrings(fragment.nodes), equals(["1", "A", "B", "2", "I", "3"]));
+      expect(_nodeStrings(children), equals(["A", "B", "I"]));
 
       expect(children.removeLast().tagName, "I");
-      expect(_nodeStrings(fragment.nodes),
-          equals(["1", "A", "B", "2", "3"]));
+      expect(_nodeStrings(fragment.nodes), equals(["1", "A", "B", "2", "3"]));
       expect(_nodeStrings(children), equals(["A", "B"]));
     });
 
@@ -171,9 +177,9 @@ main() {
 
   test('query searches the fragment', () {
     var fragment = new DocumentFragment.html(
-      "<div class='foo'><a>foo</a><b>bar</b></div>");
+        "<div class='foo'><a>foo</a><b>bar</b></div>");
     expect(fragment.query(".foo a").tagName, "A");
-    expect(_nodeStrings(fragment.queryAll<Element>(".foo *")),
-        equals(["A", "B"]));
+    expect(
+        _nodeStrings(fragment.queryAll<Element>(".foo *")), equals(["A", "B"]));
   });
 }

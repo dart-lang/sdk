@@ -10,7 +10,6 @@ part of html;
  * unicode mapping.
  */
 abstract class _KeyName {
-
   /** The Accept (Commit, OK) key */
   static const String ACCEPT = "Accept";
 
@@ -117,7 +116,7 @@ abstract class _KeyName {
   static const String ENTER = "Enter";
 
   /** The Erase EOF key */
-  static const String ERASE_EOF= "EraseEof";
+  static const String ERASE_EOF = "EraseEof";
 
   /** The Execute key */
   static const String EXECUTE = "Execute";
@@ -485,7 +484,7 @@ abstract class _KeyName {
    * The Combining Katakana-Hiragana Semi-Voiced Sound Mark (Dead Semivoiced
    * Sound) key
    */
-  static const String DEC_SEMIVOICED_SOUND= "DeadSemivoicedSound";
+  static const String DEC_SEMIVOICED_SOUND = "DeadSemivoicedSound";
 
   /**
    * Key value used when an implementation is unable to identify another key

@@ -4,11 +4,10 @@
 
 library fasta.constructor_reference_builder;
 
-import 'builder.dart' show PrefixBuilder, ClassBuilder, Builder, TypeBuilder;
+import 'builder.dart'
+    show Builder, ClassBuilder, PrefixBuilder, Scope, TypeBuilder;
 
 import '../messages.dart' show warning;
-
-import 'scope.dart' show Scope;
 
 class ConstructorReferenceBuilder extends Builder {
   final String name;
@@ -37,10 +36,10 @@ class ConstructorReferenceBuilder extends Builder {
       builder = scope.lookup(prefix, charOffset, fileUri);
       if (builder is PrefixBuilder) {
         PrefixBuilder prefix = builder;
-        builder = prefix.exports[middle];
+        builder = prefix.lookup(middle, charOffset, fileUri);
       } else if (builder is ClassBuilder) {
         ClassBuilder cls = builder;
-        builder = cls.constructors[middle];
+        builder = cls.findConstructorOrFactory(middle, charOffset, fileUri);
         if (suffix == null) {
           target = builder;
           return;
@@ -48,10 +47,12 @@ class ConstructorReferenceBuilder extends Builder {
       }
     }
     if (builder is ClassBuilder) {
-      target = builder.constructors[suffix ?? ""];
+      target =
+          builder.findConstructorOrFactory(suffix ?? "", charOffset, fileUri);
     }
     if (target == null) {
-      warning(null, -1, "Couldn't find constructor '$fullNameForErrors'.");
+      warning(fileUri, charOffset,
+          "Couldn't find constructor '$fullNameForErrors'.");
     }
   }
 }

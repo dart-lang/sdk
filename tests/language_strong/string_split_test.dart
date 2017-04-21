@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 class EvilMatch implements Match {
   int get start => 100000000;
   int get end => 3;
-  bool noSuchMethod(Invocation im) {}  // To appease dartanalyzer.
+  bool noSuchMethod(Invocation im) {} // To appease dartanalyzer.
 }
 
 class EvilIterator implements Iterator {
@@ -21,11 +21,11 @@ class EvilIterable extends Iterable {
 }
 
 class EvilPattern implements Pattern {
-  Iterable allMatches(String s, [int start=0]) => new EvilIterable();
-  bool noSuchMethod(Invocation im) {}  // To appease dartanalyzer.
+  Iterable allMatches(String s, [int start = 0]) => new EvilIterable();
+  bool noSuchMethod(Invocation im) {} // To appease dartanalyzer.
 }
 
 void main() {
-  Expect.throws(() => "foo".split(new EvilPattern())[0].length,
-      (e) => e is RangeError);
+  Expect.throws(
+      () => "foo".split(new EvilPattern())[0].length, (e) => e is RangeError);
 }

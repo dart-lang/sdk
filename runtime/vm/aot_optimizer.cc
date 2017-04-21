@@ -1448,15 +1448,18 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = NULL;
+  Definition* instantiator_type_args = NULL;
+  Definition* function_type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
   if (call->ArgumentCount() == 2) {
-    type_args = flow_graph()->constant_null();
+    instantiator_type_args = flow_graph()->constant_null();
+    function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
-    type_args = call->ArgumentAt(1);
-    type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
+    instantiator_type_args = call->ArgumentAt(1);
+    function_type_args = call->ArgumentAt(2);
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
 
   if (TypeCheckAsClassEquality(type)) {
@@ -1550,8 +1553,8 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
 
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type args.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
@@ -1561,10 +1564,127 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = call->ArgumentAt(1);
+  Definition* instantiator_type_args = call->ArgumentAt(1);
+  Definition* function_type_args = call->ArgumentAt(2);
   const AbstractType& type =
-      AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value());
+      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
   ASSERT(!type.IsMalformedOrMalbounded());
+
+  if (TypeCheckAsClassEquality(type)) {
+    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
+    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+    const intptr_t type_cid = Class::ZoneHandle(Z, type.type_class()).id();
+    ConstantInstr* cid =
+        flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(type_cid)));
+    ConstantInstr* pos = flow_graph()->GetConstant(
+        Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
+
+    ZoneGrowableArray<PushArgumentInstr*>* args =
+        new (Z) ZoneGrowableArray<PushArgumentInstr*>(5);
+    PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(left));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z)
+        PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+
+    const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
+    const String& target_name = Symbols::_classIdEqualsAssert();
+    const Function& target = Function::ZoneHandle(
+        Z, dart_internal.LookupFunctionAllowPrivate(target_name));
+    ASSERT(!target.IsNull());
+    ASSERT(target.IsRecognized());
+    ASSERT(target.always_inline());
+
+    StaticCallInstr* new_call =
+        new (Z) StaticCallInstr(call->token_pos(), target,
+                                Object::null_array(),  // argument_names
+                                args, call->deopt_id());
+    Environment* copy =
+        call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+    for (intptr_t i = 0; i < args->length(); ++i) {
+      copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+    }
+    call->RemoveEnvironment();
+    ReplaceCall(call, new_call);
+    copy->DeepCopyTo(Z, new_call);
+    return;
+  }
+
+  if (precompiler_ != NULL) {
+    TypeRangeCache* cache = precompiler_->type_range_cache();
+    intptr_t lower_limit, upper_limit;
+    if (cache != NULL &&
+        cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
+      // left.instanceof(type) =>
+      //     _classRangeCheck(left.cid, lower_limit, upper_limit)
+
+      LoadClassIdInstr* left_cid =
+          new (Z) LoadClassIdInstr(new (Z) Value(left));
+      InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+      ConstantInstr* lower_cid =
+          flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(lower_limit)));
+      ConstantInstr* upper_cid =
+          flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(upper_limit)));
+      ConstantInstr* pos = flow_graph()->GetConstant(
+          Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
+
+      ZoneGrowableArray<PushArgumentInstr*>* args =
+          new (Z) ZoneGrowableArray<PushArgumentInstr*>(6);
+      PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(left));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z)
+          PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(lower_cid));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(upper_cid));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+
+      const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
+      const String& target_name = Symbols::_classRangeAssert();
+      const Function& target = Function::ZoneHandle(
+          Z, dart_internal.LookupFunctionAllowPrivate(target_name));
+      ASSERT(!target.IsNull());
+      ASSERT(target.IsRecognized());
+      ASSERT(target.always_inline());
+
+      StaticCallInstr* new_call =
+          new (Z) StaticCallInstr(call->token_pos(), target,
+                                  Object::null_array(),  // argument_names
+                                  args, call->deopt_id());
+      Environment* copy = call->env()->DeepCopy(
+          Z, call->env()->Length() - call->ArgumentCount());
+      for (intptr_t i = 0; i < args->length(); ++i) {
+        copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+      }
+      call->RemoveEnvironment();
+      ReplaceCall(call, new_call);
+      copy->DeepCopyTo(Z, new_call);
+      return;
+    }
+  }
+
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
@@ -1593,8 +1713,8 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type arguments.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }

@@ -6,6 +6,6 @@ part of test.class_location;
 
 class ClassInOtherFile {}
 
-  class SpaceIndentedInOtherFile {}
+class SpaceIndentedInOtherFile {}
 
-	class TabIndentedInOtherFile {}
+class TabIndentedInOtherFile {}

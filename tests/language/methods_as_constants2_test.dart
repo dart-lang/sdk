@@ -12,6 +12,7 @@ class A {
   final Function f;
   const A(this.f);
 }
+
 main() {
   Expect.equals(42, const A(topLevelMethod).f());
 }

@@ -32,6 +32,7 @@ class C<T> {
       Expect.equals(expectedResult, baz is Boz<T>, 'baz is Boz<$nameOfT>');
       Expect.isFalse(baz is Biz<T>, 'bar is Biz<$nameOfT>');
     }
+
     localMethod();
   }
 }

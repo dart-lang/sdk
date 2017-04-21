@@ -115,6 +115,11 @@ abstract class AbstractAnalysisServerIntegrationTest
       new HashMap<String, List<AnalysisError>>();
 
   /**
+   * The last list of analyzed files received.
+   */
+  List<String> lastAnalyzedFiles;
+
+  /**
    * True if the teardown process should skip sending a "server.shutdown"
    * request (e.g. because the server is known to have already shutdown).
    */
@@ -138,7 +143,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * multiple times in one test; each time it is used it will wait afresh for
    * analysis to finish.
    */
-  Future get analysisFinished {
+  Future<ServerStatusParams> get analysisFinished {
     Completer completer = new Completer();
     StreamSubscription subscription;
     // This will only work if the caller has already subscribed to
@@ -152,11 +157,6 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
     return completer.future;
   }
-
-  /**
-   * Return `true` if the new analysis driver should be used by these tests.
-   */
-  bool get enableNewAnalysisDriver => false;
 
   /**
    * Print out any messages exchanged with the server.  If some messages have
@@ -191,6 +191,9 @@ abstract class AbstractAnalysisServerIntegrationTest
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
+    });
+    onAnalysisAnalyzedFiles.listen((AnalysisAnalyzedFilesParams params) {
+      lastAnalyzedFiles = params.directories;
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {
@@ -258,7 +261,6 @@ abstract class AbstractAnalysisServerIntegrationTest
       server.start(
           checked: checked,
           diagnosticPort: diagnosticPort,
-          enableNewAnalysisDriver: enableNewAnalysisDriver,
           servicesPort: servicesPort);
 
   /**
@@ -451,7 +453,7 @@ class Server {
   /**
    * Server process object, or null if server hasn't been started yet.
    */
-  Process _process = null;
+  Process _process;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and
@@ -646,14 +648,14 @@ class Server {
    * with "--observe" and "--pause-isolates-on-exit", allowing the observatory
    * to be used.
    */
-  Future start(
-      {bool checked: true,
-      int diagnosticPort,
-      bool enableNewAnalysisDriver: false,
-      bool profileServer: false,
-      String sdkPath,
-      int servicesPort,
-      bool useAnalysisHighlight2: false}) {
+  Future start({
+    bool checked: true,
+    int diagnosticPort,
+    bool profileServer: false,
+    String sdkPath,
+    int servicesPort,
+    bool useAnalysisHighlight2: false,
+  }) async {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -702,21 +704,16 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (!enableNewAnalysisDriver) {
-      arguments.add('--disable-new-analysis-driver');
-    }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');
     // TODO(devoncarew): We could experiment with instead launching the analysis
     // server in a separate isolate. This would make it easier to debug the
-    // integration tests, and would like speed the tests up as well.
-    return Process.start(dartBinary, arguments).then((Process process) {
-      _process = process;
-      process.exitCode.then((int code) {
-        if (code != 0) {
-          _badDataFromServer('server terminated with exit code $code');
-        }
-      });
+    // integration tests, and would likely speed the tests up as well.
+    _process = await Process.start(dartBinary, arguments);
+    _process.exitCode.then((int code) {
+      if (code != 0) {
+        _badDataFromServer('server terminated with exit code $code');
+      }
     });
   }
 

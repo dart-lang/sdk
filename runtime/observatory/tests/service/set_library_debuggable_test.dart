@@ -17,9 +17,9 @@ const LINE_C = 22;
 
 testMain() async {
   debugger();
-  print('hi');   // LINE_A.
-  print('yep');  // LINE_B.
-  print('zoo');  // LINE_C.
+  print('hi'); // LINE_A.
+  print('yep'); // LINE_B.
+  print('zoo'); // LINE_C.
 }
 
 var tests = [
@@ -27,40 +27,39 @@ var tests = [
   markDartColonLibrariesDebuggable,
   (Isolate isolate) async {
     await isolate.reload();
-    Library dartCore = isolate.libraries.firstWhere(
-      (Library library) => library.uri == 'dart:core');
+    Library dartCore = isolate.libraries
+        .firstWhere((Library library) => library.uri == 'dart:core');
     await dartCore.reload();
     expect(dartCore.debuggable, equals(true));
   },
-  stoppedInFunction('testMain', contains:true, includeOwner: true),
+  stoppedInFunction('testMain', contains: true, includeOwner: true),
   stoppedAtLine(LINE_A),
   stepInto,
   stoppedInFunction('print'),
   stepOut,
-  stoppedInFunction('testMain', contains:true, includeOwner: true),
+  stoppedInFunction('testMain', contains: true, includeOwner: true),
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
     // Mark 'dart:core' as not debuggable.
     await isolate.reload();
-    Library dartCore = isolate.libraries.firstWhere(
-      (Library library) => library.uri == 'dart:core');
+    Library dartCore = isolate.libraries
+        .firstWhere((Library library) => library.uri == 'dart:core');
     await dartCore.load();
     expect(dartCore.debuggable, equals(true));
     var setDebugParams = {
       'libraryId': dartCore.id,
       'isDebuggable': false,
     };
-    Map<String, dynamic> result =
-        await isolate.invokeRpcNoUpgrade('setLibraryDebuggable',
-                                         setDebugParams);
+    Map<String, dynamic> result = await isolate.invokeRpcNoUpgrade(
+        'setLibraryDebuggable', setDebugParams);
     expect(result['type'], equals('Success'));
     await dartCore.reload();
     expect(dartCore.debuggable, equals(false));
   },
-  stoppedInFunction('testMain', contains:true, includeOwner: true),
+  stoppedInFunction('testMain', contains: true, includeOwner: true),
   stoppedAtLine(LINE_B),
   stepInto,
-  stoppedInFunction('testMain', contains:true, includeOwner: true),
+  stoppedInFunction('testMain', contains: true, includeOwner: true),
   stoppedAtLine(LINE_C),
 ];
 

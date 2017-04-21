@@ -6,5 +6,4 @@
 
 library packages_file_only_noimports_test;
 
-main() {
-}
+main() {}

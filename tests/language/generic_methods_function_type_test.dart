@@ -20,4 +20,3 @@ main() {
   Expect.equals(new C<int>().m1<int>((x) => x, 10), 10);
   Expect.equals(new C<int>().m2<int>((x) => x, 20), 20);
 }
-

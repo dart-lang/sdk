@@ -10,7 +10,9 @@ int bar = 499;
 
 int get foo => bar;
 
-void set foo(str) { bar = str.length; }
+void set foo(str) {
+  bar = str.length;
+}
 
 main() {
   int x = foo;

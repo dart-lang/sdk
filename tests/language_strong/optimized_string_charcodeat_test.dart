@@ -7,7 +7,6 @@
 
 import "package:expect/expect.dart";
 
-
 String one_byte = "hest";
 String two_byte = "h\u{2029}ns";
 
@@ -15,37 +14,37 @@ int testOneByteCodeUnitAt(String x, int j) {
   int test() {
     return x.codeUnitAt(j);
   }
+
   for (int i = 0; i < 20; i++) test();
   return test();
 }
-
 
 int testTwoByteCodeUnitAt(String x, int j) {
   int test() {
     return x.codeUnitAt(j);
   }
+
   for (int i = 0; i < 20; i++) test();
   return test();
 }
-
 
 int testConstantStringCodeUnitAt(int j) {
   int test() {
     return "høns".codeUnitAt(j);
   }
+
   for (int i = 0; i < 20; i++) test();
   return test();
 }
-
 
 int testConstantIndexCodeUnitAt(String x) {
   int test() {
     return x.codeUnitAt(1);
   }
+
   for (int i = 0; i < 20; i++) test();
   return test();
 }
-
 
 int testOneByteCodeUnitAtInLoop(var x) {
   var result = 0;
@@ -55,7 +54,6 @@ int testOneByteCodeUnitAtInLoop(var x) {
   return result;
 }
 
-
 int testTwoByteCodeUnitAtInLoop(var x) {
   var result = 0;
   for (int i = 0; i < x.length; i++) {
@@ -63,7 +61,6 @@ int testTwoByteCodeUnitAtInLoop(var x) {
   }
   return result;
 }
-
 
 main() {
   for (int j = 0; j < 10; j++) {

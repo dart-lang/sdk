@@ -6,7 +6,7 @@ library fasta.analyzer.token_utils;
 
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 
-import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
+import 'package:front_end/src/scanner/token.dart' show Keyword;
 
 import 'package:front_end/src/fasta/scanner/precedence.dart';
 
@@ -154,7 +154,7 @@ class ToAnalyzerTokenStreamConverter {
       _beginTokenStack.removeLast();
       _endTokenStack.removeLast();
     }
-    // Synthetic end tokens use the same offset as the begin token.
+    // Synthetic end tokens have a length of zero.
     if (translatedToken is analyzer.BeginToken &&
         token is BeginGroupToken &&
         token.endGroup != null &&
@@ -167,11 +167,18 @@ class ToAnalyzerTokenStreamConverter {
 
 /// Converts a single Fasta comment token to an analyzer comment token.
 analyzer.CommentToken toAnalyzerCommentToken(Token token) {
-  // TODO(paulberry,ahe): It would be nice if the scanner gave us an
-  // easier way to distinguish between the two types of comment.
-  var type = token.lexeme.startsWith('/*')
-      ? TokenType.MULTI_LINE_COMMENT
-      : TokenType.SINGLE_LINE_COMMENT;
+  TokenType type;
+  if (token.type == GENERIC_METHOD_TYPE_ASSIGN) {
+    type = TokenType.GENERIC_METHOD_TYPE_ASSIGN;
+  } else if (token.type == GENERIC_METHOD_TYPE_LIST) {
+    type = TokenType.GENERIC_METHOD_TYPE_LIST;
+  } else {
+    // TODO(paulberry,ahe): It would be nice if the scanner gave us an
+    // easier way to distinguish between the two types of comment.
+    type = token.lexeme.startsWith('/*')
+        ? TokenType.MULTI_LINE_COMMENT
+        : TokenType.SINGLE_LINE_COMMENT;
+  }
   return new analyzer.CommentToken(type, token.lexeme, token.charOffset);
 }
 
@@ -236,7 +243,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token = token.next;
     while (token != null) {
       tail.next = fromAnalyzerToken(token);
-      tail.next.previousToken = tail;
+      tail.next.previousToken = tail; // ignore: deprecated_member_use
       tail = tail.next;
       token = token.next;
     }
@@ -248,7 +255,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token.precedingCommentTokens =
         translateComments(analyzerToken.precedingComments);
     tokenTail.next = token;
-    tokenTail.next.previousToken = tokenTail;
+    tokenTail.next.previousToken = tokenTail; // ignore: deprecated_member_use
     tokenTail = token;
     matchGroups(analyzerToken, token);
     return analyzerToken.next;
@@ -258,7 +265,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     // TODO(paulberry): join up begingroup/endgroup.
     if (analyzerToken.type == TokenType.EOF) {
       tokenTail.next = new SymbolToken.eof(analyzerToken.offset);
-      tokenTail.next.previousToken = tokenTail;
+      tokenTail.next.previousToken = tokenTail; // ignore: deprecated_member_use
       tokenTail.next.precedingCommentTokens =
           translateComments(analyzerToken.precedingComments);
       tokenTail.next.next = tokenTail.next;
@@ -488,15 +495,6 @@ analyzer.Token toAnalyzerToken(Token token,
     case KEYWORD_TOKEN:
       KeywordToken keywordToken = token;
       var syntax = keywordToken.keyword.syntax;
-      if (keywordToken.keyword.isPseudo) {
-        // TODO(paulberry,ahe): Fasta considers "deferred" be a "pseudo-keyword"
-        // (ordinary identifier which has special meaning under circumstances),
-        // but analyzer and the spec consider it to be a built-in identifier
-        // (identifier which can't be used in type names).
-        if (!identical(syntax, 'deferred')) {
-          return makeStringToken(TokenType.IDENTIFIER);
-        }
-      }
       // TODO(paulberry): if the map lookup proves to be too slow, consider
       // using a switch statement, or perhaps a string of
       // "if (identical(syntax, "foo"))" checks.  (Note that identical checks
@@ -568,10 +566,13 @@ final _keywordMap = {
   "void": analyzer.Keyword.VOID,
   "while": analyzer.Keyword.WHILE,
   "with": analyzer.Keyword.WITH,
+  //
   "is": analyzer.Keyword.IS,
+  //
   "abstract": analyzer.Keyword.ABSTRACT,
   "as": analyzer.Keyword.AS,
   "covariant": analyzer.Keyword.COVARIANT,
+  "deferred": analyzer.Keyword.DEFERRED,
   "dynamic": analyzer.Keyword.DYNAMIC,
   "export": analyzer.Keyword.EXPORT,
   "external": analyzer.Keyword.EXTERNAL,
@@ -585,7 +586,19 @@ final _keywordMap = {
   "set": analyzer.Keyword.SET,
   "static": analyzer.Keyword.STATIC,
   "typedef": analyzer.Keyword.TYPEDEF,
-  "deferred": analyzer.Keyword.DEFERRED,
+  //
+  "async": analyzer.Keyword.ASYNC,
+  "await": analyzer.Keyword.AWAIT,
+  "Function": analyzer.Keyword.FUNCTION,
+  "hide": analyzer.Keyword.HIDE,
+  "native": analyzer.Keyword.NATIVE,
+  "of": analyzer.Keyword.OF,
+  "on": analyzer.Keyword.ON,
+  "patch": analyzer.Keyword.PATCH,
+  "show": analyzer.Keyword.SHOW,
+  "source": analyzer.Keyword.SOURCE,
+  "sync": analyzer.Keyword.SYNC,
+  "yield": analyzer.Keyword.YIELD,
 };
 
 TokenType getTokenType(Token token) {
@@ -731,10 +744,10 @@ TokenType getTokenType(Token token) {
       return TokenType.BACKSLASH;
     case PERIOD_PERIOD_PERIOD_TOKEN:
       return TokenType.PERIOD_PERIOD_PERIOD;
-    // case GENERIC_METHOD_TYPE_LIST_TOKEN:
-    //   return TokenType.GENERIC_METHOD_TYPE_LIST;
-    // case GENERIC_METHOD_TYPE_ASSIGN_TOKEN:
-    //   return TokenType.GENERIC_METHOD_TYPE_ASSIGN;
+    case GENERIC_METHOD_TYPE_LIST_TOKEN:
+      return TokenType.GENERIC_METHOD_TYPE_LIST;
+    case GENERIC_METHOD_TYPE_ASSIGN_TOKEN:
+      return TokenType.GENERIC_METHOD_TYPE_ASSIGN;
     default:
       return internalError("Unhandled token ${token.info}");
   }

@@ -67,12 +67,18 @@ class Config {
   /// Defines the percent of classes that are dynamically instantiated.
   final int instantiateClassesPercent;
 
-  Config({this.nbClasses, this.nbMethodsPerClass,
-          this.shareCommonSuperclass, this.sameMethodNames,
-          this.shouldPrintInMethod, this.nbWhileLoopsInBody,
-          this.shouldWrapProgram, this.shouldEmitCallAllMethods,
-          this.shouldEmitInstantiatePreviousMethod,
-          this.fakeInstantiateClass, this.instantiateClassesPercent});
+  Config(
+      {this.nbClasses,
+      this.nbMethodsPerClass,
+      this.shareCommonSuperclass,
+      this.sameMethodNames,
+      this.shouldPrintInMethod,
+      this.nbWhileLoopsInBody,
+      this.shouldWrapProgram,
+      this.shouldEmitCallAllMethods,
+      this.shouldEmitInstantiatePreviousMethod,
+      this.fakeInstantiateClass,
+      this.instantiateClassesPercent});
 }
 
 String get d8Path {
@@ -180,12 +186,12 @@ abstract class ClassGenerator {
   String buildFileName(String filePrefix, String extension) {
     // TODO(floitsch): store other config info in the file name.
     return "$filePrefix.$nbClasses.$nbMethodsPerClass."
-           "$instantiateClassesPercent.$description.$extension";
+        "$instantiateClassesPercent.$description.$extension";
   }
 
   String writeFile(String filePrefix) {
     buffer.clear();
-    emitClasses();  // Output is stored in `buffer`.
+    emitClasses(); // Output is stored in `buffer`.
 
     String fileName = buildFileName(filePrefix, fileExtension);
     new File(fileName).writeAsStringSync(buffer.toString());
@@ -303,20 +309,15 @@ abstract class JavaScriptClassGenerator extends ClassGenerator {
   String get fileExtension => "js";
 }
 
-enum PrototypeApproach {
-  tmpFunction,
-  internalProto,
-  objectCreate
-}
+enum PrototypeApproach { tmpFunction, internalProto, objectCreate }
+
 class PlainJavaScriptClassGenerator extends JavaScriptClassGenerator {
   final PrototypeApproach prototypeApproach;
   final bool shouldInlineInherit;
   final bool useMethodsObject;
 
   PlainJavaScriptClassGenerator(Config config,
-                                {this.prototypeApproach,
-                                 this.shouldInlineInherit,
-                                 this.useMethodsObject})
+      {this.prototypeApproach, this.shouldInlineInherit, this.useMethodsObject})
       : super(config) {
     if (prototypeApproach == null) {
       throw "Must provide prototype approach";
@@ -383,7 +384,6 @@ class PlainJavaScriptClassGenerator extends JavaScriptClassGenerator {
               }
             }
             ''');
-
         } else {
           writeln('''
             function inherit(cls, sup) {
@@ -448,7 +448,7 @@ class PlainJavaScriptClassGenerator extends JavaScriptClassGenerator {
   }
 
   void emitMethod(int classId, String methodName, Function bodyEmitter,
-                  {bool emitArgument: true}) {
+      {bool emitArgument: true}) {
     String argumentString = emitArgument ? argumentName : "";
     if (useMethodsObject) {
       writeln("$methodName: function($argumentString)");
@@ -476,15 +476,13 @@ class PlainJavaScriptClassGenerator extends JavaScriptClassGenerator {
       methodIds.add(j);
     }
     if (shouldEmitCallAllMethods) {
-      emitMethod(classId,
-      callOtherMethodsName,
+      emitMethod(classId, callOtherMethodsName,
           () => emitCallOtherMethodsBody(methodIds, classId));
     }
     if (shouldEmitInstantiatePreviousMethod) {
-      emitMethod(classId,
-      instantiatePreviousMethodName,
+      emitMethod(classId, instantiatePreviousMethodName,
           () => emitInstantiatePrevious(classId),
-      emitArgument: false);
+          emitArgument: false);
     }
     if (useMethodsObject) {
       writeln("};");
@@ -639,9 +637,8 @@ class DartClassGenerator extends ClassGenerator {
     }
     print("compiling");
     print("dart2jsPath: $dart2jsPath");
-    ProcessResult result =
-        await Process.run(dart2jsPath, [dartFile, "--out=$outFile"],
-                          environment: env);
+    ProcessResult result = await Process
+        .run(dart2jsPath, [dartFile, "--out=$outFile"], environment: env);
     if (result.exitCode != 0) {
       print("compilation failed");
       print(result.stdout);
@@ -652,7 +649,7 @@ class DartClassGenerator extends ClassGenerator {
     return outFile;
   }
 
-  Future measureDart(String filePrefix, { bool useSnapshot: false }) async {
+  Future measureDart(String filePrefix, {bool useSnapshot: false}) async {
     String dartFile = writeFile(filePrefix);
     String command = Platform.executable;
     Stopwatch watch = new Stopwatch();
@@ -663,7 +660,7 @@ class DartClassGenerator extends ClassGenerator {
         print("creating snapshot");
         measuring = new File("${dir.path}/measuring.snapshot").path;
         ProcessResult result =
-        await Process.run(command, ["--snapshot=$measuring", dartFile]);
+            await Process.run(command, ["--snapshot=$measuring", dartFile]);
         if (result.exitCode != 0) {
           print("snapshot creation failed");
           print(result.stdout);
@@ -720,8 +717,7 @@ main(List<String> arguments) async {
       nbWhileLoopsInBody: 1,
       shouldWrapProgram: true,
       shouldEmitCallAllMethods: true,
-      shouldEmitInstantiatePreviousMethod: true
-  );
+      shouldEmitInstantiatePreviousMethod: true);
 
   var plain = new PlainJavaScriptClassGenerator(config,
       prototypeApproach: PrototypeApproach.tmpFunction,

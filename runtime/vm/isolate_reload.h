@@ -7,9 +7,9 @@
 
 #include "include/dart_tools_api.h"
 
-#include "vm/hash_map.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/log.h"
 #include "vm/object.h"
 

@@ -5,13 +5,13 @@
 import "package:expect/expect.dart";
 import 'dart:math' as math;
 
-class Random { }
+class Random {}
 
 typedef F(Random r);
 
 main() {
-  f(Random r) { }
-  g(math.Random r) { }
+  f(Random r) {}
+  g(math.Random r) {}
   Expect.isTrue(f is F);
   Expect.isFalse(g is F);
 }

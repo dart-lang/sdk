@@ -20,7 +20,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 class CustomException {}
 
@@ -28,10 +28,12 @@ main() async {
   var HOST = (await InternetAddress.lookup(HOST_NAME)).first;
   var server = await SecureServerSocket.bind(HOST_NAME, 0, serverContext);
   server.listen((SecureSocket socket) {
-      socket.listen((_) {}, onDone: () {
-        socket.close();
-      });
-    }, onError: (e) { if (e is! HandshakeException) throw e; });
+    socket.listen((_) {}, onDone: () {
+      socket.close();
+    });
+  }, onError: (e) {
+    if (e is! HandshakeException) throw e;
+  });
 
   SecurityContext goodContext = new SecurityContext()
     ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -53,11 +55,8 @@ main() async {
   server.close();
 }
 
-
-Future runClient(int port,
-                 SecurityContext context,
-                 callbackReturns,
-                 result) async {
+Future runClient(
+    int port, SecurityContext context, callbackReturns, result) async {
   badCertificateCallback(X509Certificate certificate) {
     Expect.isTrue(certificate.subject.contains('rootauthority'));
     Expect.isTrue(certificate.issuer.contains('rootauthority'));
@@ -67,14 +66,11 @@ Future runClient(int port,
   }
 
   try {
-    var socket = await SecureSocket.connect(
-        HOST_NAME,
-        port,
-        context: context,
-        onBadCertificate: badCertificateCallback);
-    Expect.equals('pass', result);  // Is rethrown below
+    var socket = await SecureSocket.connect(HOST_NAME, port,
+        context: context, onBadCertificate: badCertificateCallback);
+    Expect.equals('pass', result); // Is rethrown below
     await socket.close();
-  } catch (error)  {
+  } catch (error) {
     if (error is ExpectException) rethrow;
     Expect.notEquals(result, 'pass');
     if (result == 'fail') {

@@ -18,7 +18,7 @@ import '../ticker.dart' show Ticker;
 
 import '../translate_uri.dart' show TranslateUri;
 
-import '../kernel/kernel_builder.dart' show ClassBuilder, KernelClassBuilder;
+import '../kernel/kernel_builder.dart' show ClassBuilder;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -67,8 +67,5 @@ class DillTarget extends TargetImplementation {
 
   void breakCycle(ClassBuilder cls) {}
 
-  Class get objectClass {
-    KernelClassBuilder builder = loader.coreLibrary.exports["Object"];
-    return builder.cls;
-  }
+  Class get objectClass => loader.coreLibrary["Object"].target;
 }

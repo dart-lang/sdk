@@ -35,7 +35,7 @@ class Node {
   }
 }
 
-makeNode(parent) native ;
+makeNode(parent) native;
 
 class ModelSource {
   var name;

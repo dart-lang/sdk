@@ -126,7 +126,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   RAX : address of first argument in argument array.
 //   RBX : address of the native function to call.
 //   R10 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              Address wrapper_address) {
   const intptr_t native_args_struct_offset = 0;
   const intptr_t thread_offset =
       NativeArguments::thread_offset() + native_args_struct_offset;
@@ -178,7 +179,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Pass pointer to function entrypoint.
   __ movq(CallingConventions::kArg2Reg, RBX);
 
-  __ movq(RAX, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
+  __ movq(RAX, wrapper_address);
   __ CallCFunction(RAX);
 
   // Mark that the thread is executing Dart code.
@@ -192,13 +193,27 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::no_scope_native_wrapper_entry_point_offset()));
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::auto_scope_native_wrapper_entry_point_offset()));
+}
+
+
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.
 //   RAX : address of first argument in argument array.
 //   RBX : address of the native function to call.
 //   R10 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
   const intptr_t thread_offset =
       NativeArguments::thread_offset() + native_args_struct_offset;
@@ -1714,15 +1729,17 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments (can be NULL).
-// TOS + 2: instance.
-// TOS + 3: SubtypeTestCache.
+// TOS + 1: function type arguments (only if n == 4, can be raw_null).
+// TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in RCX: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((1 <= n) && (n <= 3));
-  const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
-  const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
-  const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
+  ASSERT((n == 1) || (n == 2) || (n == 4));
+  const intptr_t kFunctionTypeArgumentsInBytes = 1 * kWordSize;
+  const intptr_t kInstantiatorTypeArgumentsInBytes = 2 * kWordSize;
+  const intptr_t kInstanceOffsetInBytes = 3 * kWordSize;
+  const intptr_t kCacheOffsetInBytes = 4 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
   __ LoadObject(R9, Object::null_object());
   if (n > 1) {
@@ -1752,7 +1769,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(R10);
   __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movq(R13, FieldAddress(RAX, Closure::instantiator_offset()));
+  __ movq(R13, FieldAddress(RAX, Closure::function_type_arguments_offset()));
+  __ cmpq(R13, R9);  // Cache cannot be used for generic closures.
+  __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
+  __ movq(R13,
+          FieldAddress(RAX, Closure::instantiator_type_arguments_offset()));
   __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
   // R10: instance class id as Smi or function.
   __ Bind(&loop);
@@ -1776,6 +1797,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
               Address(RDX, kWordSize *
                                SubtypeTestCache::kInstantiatorTypeArguments));
       __ cmpq(RDI, Address(RSP, kInstantiatorTypeArgumentsInBytes));
+      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+      __ movq(RDI, Address(RDX, kWordSize *
+                                    SubtypeTestCache::kFunctionTypeArguments));
+      __ cmpq(RDI, Address(RSP, kFunctionTypeArgumentsInBytes));
       __ j(EQUAL, &found, Assembler::kNearJump);
     }
   }
@@ -1796,9 +1821,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments or NULL.
-// TOS + 2: instance.
-// TOS + 3: cache array.
+// TOS + 1: raw_null.
+// TOS + 2: raw_null.
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
@@ -1807,9 +1833,10 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments or NULL.
-// TOS + 2: instance.
-// TOS + 3: cache array.
+// TOS + 1: raw_null.
+// TOS + 2: raw_null.
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in RCX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
@@ -1818,12 +1845,13 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments.
-// TOS + 2: instance.
-// TOS + 3: cache array.
+// TOS + 1: function type arguments (can be raw_null).
+// TOS + 2: instantiator type arguments (can be raw_null).
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in RCX: null -> not found, otherwise result (true or false).
-void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
+void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
 

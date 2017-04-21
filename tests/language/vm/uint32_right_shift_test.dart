@@ -17,4 +17,3 @@ main() {
     Expect.equals(0x10000000, foo(trunc, 0x80000000000));
   }
 }
-

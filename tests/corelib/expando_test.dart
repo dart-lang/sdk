@@ -9,10 +9,17 @@ class ExpandoTest {
 
   static testMain() {
     visits = new Expando<int>('visits');
-    var legal = [ new Object(),
-                  new List(), [1,2,3], const [1,2,3],
-                  new Map(), {'x':1,'y':2}, const {'x':1,'y':2},
-                  new Expando(), new Expando('horse') ];
+    var legal = [
+      new Object(),
+      new List(),
+      [1, 2, 3],
+      const [1, 2, 3],
+      new Map(),
+      {'x': 1, 'y': 2},
+      const {'x': 1, 'y': 2},
+      new Expando(),
+      new Expando('horse')
+    ];
     for (var object in legal) {
       testNamedExpando(object);
       testUnnamedExpando(object);
@@ -64,20 +71,20 @@ class ExpandoTest {
 
   static testIllegal() {
     Expando<int> expando = new Expando<int>();
-    Expect.throws(() => expando[null], (exception)
-                  => exception is ArgumentError, "null");
-    Expect.throws(() => expando['string'], (exception)
-                  => exception is ArgumentError, "'string'");
-    Expect.throws(() => expando['string'], (exception)
-                  => exception is ArgumentError, "'string'");
-    Expect.throws(() => expando[42], (exception)
-                  => exception is ArgumentError, "42");
-    Expect.throws(() => expando[42.87], (exception)
-                  => exception is ArgumentError, "42.87");
-    Expect.throws(() => expando[true], (exception)
-                  => exception is ArgumentError, "true");
-    Expect.throws(() => expando[false], (exception)
-                  => exception is ArgumentError, "false");
+    Expect.throws(
+        () => expando[null], (exception) => exception is ArgumentError, "null");
+    Expect.throws(() => expando['string'],
+        (exception) => exception is ArgumentError, "'string'");
+    Expect.throws(() => expando['string'],
+        (exception) => exception is ArgumentError, "'string'");
+    Expect.throws(
+        () => expando[42], (exception) => exception is ArgumentError, "42");
+    Expect.throws(() => expando[42.87],
+        (exception) => exception is ArgumentError, "42.87");
+    Expect.throws(
+        () => expando[true], (exception) => exception is ArgumentError, "true");
+    Expect.throws(() => expando[false],
+        (exception) => exception is ArgumentError, "false");
   }
 
   static testIdentity() {
@@ -105,5 +112,5 @@ class Mutable {
   int id;
   Mutable(this.id);
   int get hashCode => id;
-  bool operator==(other) => other is Mutable && other.id == id;
+  bool operator ==(other) => other is Mutable && other.id == id;
 }

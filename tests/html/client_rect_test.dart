@@ -1,10 +1,10 @@
 library ClientRectTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 main() {
-
   var isRectList =
       predicate((x) => x is List<Rectangle>, 'is a List<Rectangle>');
 
@@ -21,7 +21,7 @@ main() {
 
   useHtmlConfiguration();
 
-   test("ClientRectList test", () {
+  test("ClientRectList test", () {
     insertTestDiv();
     var range = new Range();
     var rects = range.getClientRects();

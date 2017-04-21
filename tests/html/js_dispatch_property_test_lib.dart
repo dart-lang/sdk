@@ -10,7 +10,8 @@ import 'package:js/js.dart';
 @JS()
 external A create();
 
-@JS() @anonymous
+@JS()
+@anonymous
 class A {
   external String foo(String x);
 }

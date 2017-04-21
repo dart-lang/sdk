@@ -5,7 +5,9 @@
 import "package:expect/expect.dart";
 
 class A {
-  A() { NamingTest.count++; }
+  A() {
+    NamingTest.count++;
+  }
   foo(a, b) {
     Expect.equals(1, a);
     Expect.equals(2, b);
@@ -24,10 +26,10 @@ class debugger {
   factory debugger.F() {
     return new debugger(1);
   }
-  debugger(x) : this.x = x + 1 { }
-  debugger.C(x) : this.x = x + 2 { }
-  debugger.C$C(x) : this.x = x + 3 { }
-  debugger.C$I(x) : this.x = x + 4 { }
+  debugger(x) : this.x = x + 1 {}
+  debugger.C(x) : this.x = x + 2 {}
+  debugger.C$C(x) : this.x = x + 3 {}
+  debugger.C$I(x) : this.x = x + 4 {}
 }
 
 class debugger$C {
@@ -36,10 +38,10 @@ class debugger$C {
   factory debugger$C.F() {
     return new debugger$C(1);
   }
-  debugger$C(x) : this.x = x + 5 { }
-  debugger$C.C(x) : this.x = x + 6 { }
-  debugger$C.C$C(x) : this.x = x + 7 { }
-  debugger$C.C$I(x) : this.x = x + 8 { }
+  debugger$C(x) : this.x = x + 5 {}
+  debugger$C.C(x) : this.x = x + 6 {}
+  debugger$C.C$C(x) : this.x = x + 7 {}
+  debugger$C.C$I(x) : this.x = x + 8 {}
 }
 
 class debugger$C$C {
@@ -48,10 +50,10 @@ class debugger$C$C {
   factory debugger$C$C.F() {
     return new debugger$C$C(1);
   }
-  debugger$C$C(x) : this.x = x + 9 { }
-  debugger$C$C.C(x) : this.x = x + 10 { }
-  debugger$C$C.C$C(x) : this.x = x + 11 { }
-  debugger$C$C.C$I(x) : this.x = x + 12 { }
+  debugger$C$C(x) : this.x = x + 9 {}
+  debugger$C$C.C(x) : this.x = x + 10 {}
+  debugger$C$C.C$C(x) : this.x = x + 11 {}
+  debugger$C$C.C$I(x) : this.x = x + 12 {}
 }
 
 class with$I extends debugger$C {
@@ -60,16 +62,36 @@ class with$I extends debugger$C {
   factory with$I.F() {
     return new with$I(1, 2);
   }
-  with$I(x, y) : super(x), this.y = y + 11 { }
-  with$I.I(x, y) : super.C(x), this.y = y + 12 { }
-  with$I.C(x, y) : super.C$C(x), this.y = y + 13 { }
-  with$I.I$C(x, y) : super.C$I(x), this.y = y + 14 { }
-  with$I.C$C(x, y) : super(x), this.y = y + 15 { }
-  with$I.C$C$C(x, y) : super.C(x), this.y = y + 16 { }
-  with$I.$C$I(x, y) : super.C$C(x), this.y = y + 17 { }
-  with$I.$$I$C(x, y) : super.C$I(x), this.y = y + 18 { }
-  with$I.$(x, y) : super(x), this.y = y + 19 { }
-  with$I.$$(x, y) : super.C(x), this.y = y + 20 { }
+  with$I(x, y)
+      : super(x),
+        this.y = y + 11 {}
+  with$I.I(x, y)
+      : super.C(x),
+        this.y = y + 12 {}
+  with$I.C(x, y)
+      : super.C$C(x),
+        this.y = y + 13 {}
+  with$I.I$C(x, y)
+      : super.C$I(x),
+        this.y = y + 14 {}
+  with$I.C$C(x, y)
+      : super(x),
+        this.y = y + 15 {}
+  with$I.C$C$C(x, y)
+      : super.C(x),
+        this.y = y + 16 {}
+  with$I.$C$I(x, y)
+      : super.C$C(x),
+        this.y = y + 17 {}
+  with$I.$$I$C(x, y)
+      : super.C$I(x),
+        this.y = y + 18 {}
+  with$I.$(x, y)
+      : super(x),
+        this.y = y + 19 {}
+  with$I.$$(x, y)
+      : super.C(x),
+        this.y = y + 20 {}
 }
 
 class with$C extends debugger$C$C {
@@ -78,16 +100,36 @@ class with$C extends debugger$C$C {
   factory with$C.F() {
     return new with$C(1, 2);
   }
-  with$C(x, y) : super(x), this.y = y + 21 { }
-  with$C.I(x, y) : super.C(x), this.y = y + 22 { }
-  with$C.C(x, y) : super.C$C(x), this.y = y + 23 { }
-  with$C.I$C(x, y) : super.C$I(x), this.y = y + 24 { }
-  with$C.C$C(x, y) : super(x), this.y = y + 25 { }
-  with$C.C$C$C(x, y) : super.C(x), this.y = y + 26 { }
-  with$C.$C$I(x, y) : super.C$C(x), this.y = y + 27 { }
-  with$C.$$I$C(x, y) : super.C$I(x), this.y = y + 28 { }
-  with$C.$(x, y) : super(x), this.y = y + 29 { }
-  with$C.$$(x, y) : super.C(x), this.y = y + 30 { }
+  with$C(x, y)
+      : super(x),
+        this.y = y + 21 {}
+  with$C.I(x, y)
+      : super.C(x),
+        this.y = y + 22 {}
+  with$C.C(x, y)
+      : super.C$C(x),
+        this.y = y + 23 {}
+  with$C.I$C(x, y)
+      : super.C$I(x),
+        this.y = y + 24 {}
+  with$C.C$C(x, y)
+      : super(x),
+        this.y = y + 25 {}
+  with$C.C$C$C(x, y)
+      : super.C(x),
+        this.y = y + 26 {}
+  with$C.$C$I(x, y)
+      : super.C$C(x),
+        this.y = y + 27 {}
+  with$C.$$I$C(x, y)
+      : super.C$I(x),
+        this.y = y + 28 {}
+  with$C.$(x, y)
+      : super(x),
+        this.y = y + 29 {}
+  with$C.$$(x, y)
+      : super.C(x),
+        this.y = y + 30 {}
 }
 
 class with$I$C extends debugger$C$C {
@@ -96,16 +138,36 @@ class with$I$C extends debugger$C$C {
   factory with$I$C.F() {
     return new with$I$C(1, 2);
   }
-  with$I$C(x, y) : super(x), this.y = y + 31 { }
-  with$I$C.I(x, y) : super.C(x), this.y = y + 32 { }
-  with$I$C.C(x, y) : super.C$C(x), this.y = y + 33 { }
-  with$I$C.I$C(x, y) : super.C$I(x), this.y = y + 34 { }
-  with$I$C.C$C(x, y) : super(x), this.y = y + 35 { }
-  with$I$C.C$C$C(x, y) : super.C(x), this.y = y + 36 { }
-  with$I$C.$C$I(x, y) : super.C$C(x), this.y = y + 37 { }
-  with$I$C.$$I$C(x, y) : super.C$I(x), this.y = y + 38 { }
-  with$I$C.$(x, y) : super(x), this.y = y + 39 { }
-  with$I$C.$$(x, y) : super.C(x), this.y = y + 40 { }
+  with$I$C(x, y)
+      : super(x),
+        this.y = y + 31 {}
+  with$I$C.I(x, y)
+      : super.C(x),
+        this.y = y + 32 {}
+  with$I$C.C(x, y)
+      : super.C$C(x),
+        this.y = y + 33 {}
+  with$I$C.I$C(x, y)
+      : super.C$I(x),
+        this.y = y + 34 {}
+  with$I$C.C$C(x, y)
+      : super(x),
+        this.y = y + 35 {}
+  with$I$C.C$C$C(x, y)
+      : super.C(x),
+        this.y = y + 36 {}
+  with$I$C.$C$I(x, y)
+      : super.C$C(x),
+        this.y = y + 37 {}
+  with$I$C.$$I$C(x, y)
+      : super.C$I(x),
+        this.y = y + 38 {}
+  with$I$C.$(x, y)
+      : super(x),
+        this.y = y + 39 {}
+  with$I$C.$$(x, y)
+      : super.C(x),
+        this.y = y + 40 {}
 }
 
 class Tata {
@@ -113,15 +175,21 @@ class Tata {
 
   Tata() : this.prototype = 0 {}
 
-  __PROTO__$() { return 12; }
+  __PROTO__$() {
+    return 12;
+  }
 }
 
 class Toto extends Tata {
   var __PROTO__;
 
-  Toto() : super(), this.__PROTO__ = 0 { }
+  Toto()
+      : super(),
+        this.__PROTO__ = 0 {}
 
-  prototype$() { return 10; }
+  prototype$() {
+    return 10;
+  }
 
   titi() {
     Expect.equals(0, prototype);
@@ -142,10 +210,17 @@ class Bug4082360 {
   int x_;
   Bug4082360() {}
 
-  int get x { return x_; }
-  void set x(int value) { x_ = value; }
+  int get x {
+    return x_;
+  }
 
-  void indirectSet(int value) { x = value; }
+  void set x(int value) {
+    x_ = value;
+  }
+
+  void indirectSet(int value) {
+    x = value;
+  }
 
   static void test() {
     var bug = new Bug4082360();
@@ -158,16 +233,22 @@ class Bug4082360 {
 class Hoisting {
   var f_;
   Hoisting.negate(var x) {
-    f_ = () { return x; };
+    f_ = () {
+      return x;
+    };
   }
 
   operator -() {
     var x = 3;
-    return () { return x + 1; };
+    return () {
+      return x + 1;
+    };
   }
 
-  operator[] (x) {
-    return () { return x + 3; };
+  operator [](x) {
+    return () {
+      return x + 3;
+    };
   }
 
   static void test() {
@@ -426,12 +507,14 @@ class DartQuery {
 $add(Object first, Object second) => second;
 DartQuery $(Object obj) => new DartQuery(obj);
 
-
 // Ensure we don't have false positive.
 class Naming2Test {
-  Naming2Test() { }
-  int get foo { return 1; }
-  set foo(x) { }
+  Naming2Test() {}
+  int get foo {
+    return 1;
+  }
+
+  set foo(x) {}
 
   static void main(args) {
     var a = new Naming2Test();

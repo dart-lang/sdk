@@ -45,9 +45,13 @@ void main() {
 
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=476146
   shouldBe(new RegExp(r"^(b+|a){1,2}?bc").firstMatch("bbc"), ["bbc", "b"]);
-  shouldBe(new RegExp(r"((\3|b)\2(a)){2,}").firstMatch("bbaababbabaaaaabbaaaabba"),
+  shouldBe(
+      new RegExp(r"((\3|b)\2(a)){2,}").firstMatch("bbaababbabaaaaabbaaaabba"),
       ["bbaa", "a", "", "a"]);
 
   // From crbug.com/128821 - don't hang:
-  firstMatch("", new RegExp(r"((a|i|A|I|u|o|U|O)(s|c|b|c|d|f|g|h|j|k|l|m|n|p|q|r|s|t|v|w|x|y|z|B|C|D|F|G|H|J|K|L|M|N|P|Q|R|S|T|V|W|X|Y|Z)*) de\/da([.,!?\s]|$)"));
+  firstMatch(
+      "",
+      new RegExp(
+          r"((a|i|A|I|u|o|U|O)(s|c|b|c|d|f|g|h|j|k|l|m|n|p|q|r|s|t|v|w|x|y|z|B|C|D|F|G|H|J|K|L|M|N|P|Q|R|S|T|V|W|X|Y|Z)*) de\/da([.,!?\s]|$)"));
 }

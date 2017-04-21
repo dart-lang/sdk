@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart';
+import '../common.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 
@@ -22,14 +22,14 @@ class SsaBranch {
 
 class SsaBranchBuilder {
   final GraphBuilder builder;
-  final Compiler compiler;
   final ast.Node diagnosticNode;
 
-  SsaBranchBuilder(this.builder, this.compiler, [this.diagnosticNode]);
+  SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 
   void checkNotAborted() {
     if (builder.isAborted()) {
-      compiler.unimplemented(diagnosticNode, "aborted control flow");
+      throw new SpannableAssertionFailure(
+          diagnosticNode, "aborted control flow");
     }
   }
 

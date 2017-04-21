@@ -12,12 +12,13 @@ class M<T> {
       throw 0;
     } on T catch (e) {
       return true;
-    } catch (e) {
-    }
+    } catch (e) {}
     return false;
   }();
 }
+
 class A<U> {}
+
 class C1<V> = Object with M<V>;
 class C2 = Object with M<int>;
 class C3 = Object with M<String>;

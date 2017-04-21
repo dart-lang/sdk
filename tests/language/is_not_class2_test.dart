@@ -16,7 +16,8 @@ class IsNotClass2NegativeTest {
     var a = new A();
     var aa = new A();
 
-    if (a is aa) { // static warning
+    if (a is aa) {
+      // static warning
       return 0;
     }
     return 0;

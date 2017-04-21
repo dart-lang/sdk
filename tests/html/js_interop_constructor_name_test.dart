@@ -21,7 +21,8 @@ class HTMLDivElement {
   external String bar();
 }
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 main() {
@@ -42,7 +43,6 @@ main() {
       var e = confuse(makeDiv('hello'));
       expect(e is HTMLDivElement, isTrue);
     });
-
   });
 
   group('HTMLDivElement-types-erroneous1', () {
@@ -71,9 +71,7 @@ main() {
     });
   });
 
-
   group('HTMLDivElement-methods', () {
-
     test('js-call-js-method', () {
       var e = confuse(makeDiv('hello'));
       expect(e.bar(), equals('hello'));
@@ -93,6 +91,5 @@ main() {
       var e = confuse(new html.DivElement());
       expect(e.clone(false), new isInstanceOf<html.DivElement>());
     });
-
   });
 }

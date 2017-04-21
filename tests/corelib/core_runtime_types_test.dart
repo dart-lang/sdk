@@ -47,9 +47,12 @@ class CoreRuntimeTypesTest {
   }
 
   static assertTypeError(void f()) {
-    Expect.throws(f, (exception) => (exception is TypeError) ||
-                                    (exception is NoSuchMethodError) ||
-                                    (exception is ArgumentError));
+    Expect.throws(
+        f,
+        (exception) =>
+            (exception is TypeError) ||
+            (exception is NoSuchMethodError) ||
+            (exception is ArgumentError));
   }
 
   static testBooleanOperators() {
@@ -59,7 +62,6 @@ class CoreRuntimeTypesTest {
     assertEquals(x, !y);
     assertEquals(!x, y);
   }
-
 
   static testRationalOperators() {
     var x = 10, y = 20;
@@ -81,9 +83,16 @@ class CoreRuntimeTypesTest {
   }
 
   static testOperatorErrors() {
-    var objs = [1, '2', [3], null, true, new Map()];
-    for (var i=0; i < objs.length; i++) {
-      for (var j= i + 1; j < objs.length; j++) {
+    var objs = [
+      1,
+      '2',
+      [3],
+      null,
+      true,
+      new Map()
+    ];
+    for (var i = 0; i < objs.length; i++) {
+      for (var j = i + 1; j < objs.length; j++) {
         testBinaryOperatorErrors(objs[i], objs[j]);
         // Allow "String * int".
         if (j > 2) testBinaryOperatorErrors(objs[j], objs[i]);
@@ -95,16 +104,36 @@ class CoreRuntimeTypesTest {
   }
 
   static testBinaryOperatorErrors(x, y) {
-    assertTypeError(() { x - y;});
-    assertTypeError(() { x * y;});
-    assertTypeError(() { x / y;});
-    assertTypeError(() { x | y;});
-    assertTypeError(() { x ^ y;});
-    assertTypeError(() { x & y;});
-    assertTypeError(() { x << y;});
-    assertTypeError(() { x >> y;});
-    assertTypeError(() { x ~/ y;});
-    assertTypeError(() { x % y;});
+    assertTypeError(() {
+      x - y;
+    });
+    assertTypeError(() {
+      x * y;
+    });
+    assertTypeError(() {
+      x / y;
+    });
+    assertTypeError(() {
+      x | y;
+    });
+    assertTypeError(() {
+      x ^ y;
+    });
+    assertTypeError(() {
+      x & y;
+    });
+    assertTypeError(() {
+      x << y;
+    });
+    assertTypeError(() {
+      x >> y;
+    });
+    assertTypeError(() {
+      x ~/ y;
+    });
+    assertTypeError(() {
+      x % y;
+    });
 
     testComparisonOperatorErrors(x, y);
   }
@@ -112,16 +141,28 @@ class CoreRuntimeTypesTest {
   static testComparisonOperatorErrors(x, y) {
     assertEquals(x == y, false);
     assertEquals(x != y, true);
-    assertTypeError(() { x < y; });
-    assertTypeError(() { x <= y; });
-    assertTypeError(() { x > y; });
-    assertTypeError(() { x >= y; });
+    assertTypeError(() {
+      x < y;
+    });
+    assertTypeError(() {
+      x <= y;
+    });
+    assertTypeError(() {
+      x > y;
+    });
+    assertTypeError(() {
+      x >= y;
+    });
   }
 
   static testUnaryOperatorErrors(x) {
     // TODO(jimhug): Add guard for 'is num' when 'is' is working
-    assertTypeError(() { ~x;});
-    assertTypeError(() { -x;});
+    assertTypeError(() {
+      ~x;
+    });
+    assertTypeError(() {
+      -x;
+    });
     // TODO(jimhug): Add check for !x as an error when x is not a bool
   }
 
@@ -146,11 +187,11 @@ class CoreRuntimeTypesTest {
     try {
       y.toRadixString(0);
       Expect.fail("Illegal radix 0 accepted.");
-    } catch (e) { }
+    } catch (e) {}
     try {
       y.toRadixString(-1);
       Expect.fail("Illegal radix -1 accepted.");
-    } catch (e) { }
+    } catch (e) {}
   }
 
   static testStringOperators() {
@@ -159,9 +200,15 @@ class CoreRuntimeTypesTest {
     assertEquals(s.codeUnitAt(0), 97);
     assertEquals(s[0], 'a');
     assertEquals(s.length, 6);
-    assertTypeError(() { s[null]; });
-    assertTypeError(() { s['hello']; });
-    assertTypeError(() { s[0] = 'x'; });
+    assertTypeError(() {
+      s[null];
+    });
+    assertTypeError(() {
+      s['hello'];
+    });
+    assertTypeError(() {
+      s[0] = 'x';
+    });
   }
 
   // TODO(jimhug): Fill out full set of string methods.
@@ -179,23 +226,31 @@ class CoreRuntimeTypesTest {
     assertEquals(s.indexOf('cd', 2), 2);
     assertEquals(s.indexOf('cd', 3), -1);
 
-    assertTypeError(() { s.startsWith(1); });
-    assertTypeError(() { s.endsWith(1); });
+    assertTypeError(() {
+      s.startsWith(1);
+    });
+    assertTypeError(() {
+      s.endsWith(1);
+    });
   }
 
   static testListOperators() {
-    var a = [1,2,3,4];
+    var a = [1, 2, 3, 4];
     assertEquals(a[0], 1);
-    assertTypeError(() { a['0']; });
+    assertTypeError(() {
+      a['0'];
+    });
     a[0] = 42;
     assertEquals(a[0], 42);
-    assertTypeError(() { a['0'] = 99; });
+    assertTypeError(() {
+      a['0'] = 99;
+    });
     assertEquals(a.length, 4);
   }
 
   // TODO(jimhug): Fill out full set of list methods.
   static testListMethods() {
-    var a = [1,2,3,4];
+    var a = [1, 2, 3, 4];
     assertEquals(a.isEmpty, false);
     assertEquals(a.length, 4);
     var exception = null;
@@ -242,7 +297,7 @@ class CoreRuntimeTypesTest {
     });
     assertEquals(count, 3);
 
-    d = { 'a': 1, 'b': 2 };
+    d = {'a': 1, 'b': 2};
     assertEquals(d.containsValue(2), true);
     assertEquals(d.containsValue(3), false);
     assertEquals(d.containsKey('a'), true);

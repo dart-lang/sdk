@@ -1379,7 +1379,7 @@ testObjectWeaklyTyped(object) {
   if (object.yieldValue) throw 'incorrect value in "yieldValue"';
 }
 
-NativeClassWithOddNames makeNativeClassWithOddNames() native ;
+NativeClassWithOddNames makeNativeClassWithOddNames() native;
 
 setup() native """
 function NativeClassWithOddNames() {}

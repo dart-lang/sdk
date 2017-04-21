@@ -5,9 +5,9 @@
 
 import "package:expect/expect.dart";
 
-abstract class I { }
+abstract class I {}
 
-abstract class AI implements I { }
+abstract class AI implements I {}
 
 class A implements AI {
   const A();
@@ -33,12 +33,12 @@ class InstanceofTest {
     Expect.equals(true, c is C);
     Expect.equals(true, c is A);
 
-    Expect.equals(true,  a is AI);
-    Expect.equals(true,  a is I);
+    Expect.equals(true, a is AI);
+    Expect.equals(true, a is I);
     Expect.equals(false, b is AI);
-    Expect.equals(true,  b is I);
-    Expect.equals(true,  c is AI);
-    Expect.equals(true,  c is I);
+    Expect.equals(true, b is I);
+    Expect.equals(true, c is AI);
+    Expect.equals(true, c is I);
     Expect.equals(false, n is AI);
     Expect.equals(false, n is I);
 
@@ -104,4 +104,3 @@ main() {
     InstanceofTest.testMain();
   }
 }
-

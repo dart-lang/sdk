@@ -8,7 +8,6 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 
 abstract class QueueTest {
-
   Queue newQueue();
   Queue newQueueFrom(Iterable iterable);
 
@@ -70,6 +69,7 @@ abstract class QueueTest {
     bool is1(int value) {
       return (value == 1);
     }
+
     Expect.equals(false, queue.any(is1));
 
     queue.clear();
@@ -129,6 +129,7 @@ abstract class QueueTest {
     void sumElements(int value) {
       sum += value;
     }
+
     queue.forEach(sumElements);
     Expect.equals(expectedSum, sum);
   }
@@ -157,7 +158,11 @@ abstract class QueueTest {
     testLength(3, queue3);
 
     int sum = 0;
-    void f(e) { sum += e; };
+    void f(e) {
+      sum += e;
+    }
+
+    ;
 
     set.forEach(f);
     Expect.equals(7, sum);
@@ -262,8 +267,12 @@ abstract class QueueTest {
 
     Expect.equals(0, queue.elementAt(0));
     Expect.equals(N - 1, queue.elementAt(N - 1));
-    Expect.throws(() { queue.elementAt(-1); });
-    Expect.throws(() { queue.elementAt(N); });
+    Expect.throws(() {
+      queue.elementAt(-1);
+    });
+    Expect.throws(() {
+      queue.elementAt(N);
+    });
 
     Iterable skip1 = queue.skip(1);
     Iterable take1 = queue.take(1);
@@ -298,7 +307,9 @@ abstract class QueueTest {
       Expect.isTrue(set.contains(element));
     }
 
-    queue.forEach((element) { Expect.isTrue(set.contains(element)); });
+    queue.forEach((element) {
+      Expect.isTrue(set.contains(element));
+    });
 
     queue.addAll(set);
     Expect.equals(N * 2, queue.length);
@@ -469,7 +480,6 @@ void linkEntryTest() {
 
   Expect.equals(87, prev.remove());
 }
-
 
 main() {
   new DoubleLinkedQueueTest().testMain();

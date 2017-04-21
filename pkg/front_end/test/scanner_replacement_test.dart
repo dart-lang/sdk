@@ -47,13 +47,12 @@ class ScannerTest_Replacement extends ScannerTest {
     // so we can ignore the `lazyAssignmentOperators` flag.
     // TODO(danrubel): once lazyAssignmentOperators are fully supported by
     // Dart, remove this flag.
-    fasta.ScannerResult result = fasta.scanString(source,
-        includeComments: true,
+    fasta.ScannerResult result = fasta.scanString(source, includeComments: true,
         recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
-          // perform recovery as a separate step
-          // so that the token stream can be validated before and after recovery
-          return tokens;
-        }));
+      // perform recovery as a separate step
+      // so that the token stream can be validated before and after recovery
+      return tokens;
+    }));
     fasta.Token tokens = result.tokens;
     assertValidTokenStream(tokens);
     assertValidBeginTokens(tokens);

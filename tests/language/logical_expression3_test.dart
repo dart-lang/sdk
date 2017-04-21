@@ -17,13 +17,12 @@ int confuse(x) {
 }
 
 main() {
-  var o = [ "foo", 499 ][confuse(0)];
+  var o = ["foo", 499][confuse(0)];
 
   // When the lhs of a logical or fails, it must not assume that all negative is
   // checks in it, have failed.
   // Here, the `o is! num` check succeeds, but the length test failed.
-  if ((o is! num && o.length == 4) ||
-      (nonInlinedNumTypeCheck(o))) {
+  if ((o is! num && o.length == 4) || (nonInlinedNumTypeCheck(o))) {
     Expect.fail("Type-check failed");
   }
 }

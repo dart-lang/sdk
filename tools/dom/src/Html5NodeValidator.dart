@@ -17,7 +17,6 @@ part of dart.dom.html;
  * * <https://code.google.com/p/google-caja/wiki/CajaWhitelists>
  */
 class _Html5NodeValidator implements NodeValidator {
-
   static final Set<String> _allowedElements = new Set.from([
     'A',
     'ABBR',
@@ -410,8 +409,7 @@ class _Html5NodeValidator implements NodeValidator {
    * [uriPolicy] is null then a default UriPolicy will be used.
    */
   _Html5NodeValidator({UriPolicy uriPolicy})
-      :uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy() {
-
+      : uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy() {
     if (_attributeValidators.isEmpty) {
       for (var attr in _standardAttributes) {
         _attributeValidators[attr] = _standardAttributeValidator;

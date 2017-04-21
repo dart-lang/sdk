@@ -16,7 +16,7 @@ class ConstFoo {
 main() {
   const MIN = 2 - 1;
   const MAX = N * 2;
-  const MASK = (1 << (MAX - MIN + 1)) - 1;  // 65535.
+  const MASK = (1 << (MAX - MIN + 1)) - 1; // 65535.
   Expect.equals(1, MIN);
   Expect.equals(16, MAX);
   Expect.equals(65535, MASK);
@@ -29,6 +29,3 @@ main() {
   Expect.identical(cf2, cf3);
   Expect.isFalse(identical(cf2, cf1));
 }
-
-
-

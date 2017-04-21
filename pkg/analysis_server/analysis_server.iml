@@ -27,6 +27,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/search/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/completion/dart/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/completion/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/services/completion/statement/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/correction/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/dependencies/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/index/packages" />

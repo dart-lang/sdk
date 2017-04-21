@@ -9,6 +9,6 @@ var global = 0;
 class A {
   A() {
     global += 10;
-    try {} catch(e) {} // no inline
+    try {} catch (e) {} // no inline
   }
 }

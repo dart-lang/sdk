@@ -40,7 +40,6 @@ foo(n, w) {
   return x;
 }
 
-
 // Test detection of unsatisfiable constraints.
 f(a, b) {
   if (a < b) {
@@ -90,7 +89,6 @@ h(n) {
   return i;
 }
 
-
 test3() {
   test_fun(fun) {
     Expect.equals(2, fun(0, 1));
@@ -108,12 +106,10 @@ test3() {
   for (var i = 0; i < 20; i++) g();
   Expect.equals(10, g());
 
-
   Expect.equals(10, h(10));
   for (var i = 0; i < 20; i++) h(10);
   Expect.equals(10, h(10));
 }
-
 
 main() {
   test1();

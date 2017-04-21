@@ -12,6 +12,7 @@ import "package:expect/expect.dart";
 class A {
   const A();
 }
+
 class B extends A {
   final a;
   const B(this.a);
@@ -26,7 +27,7 @@ void main() {
     const B(0): 4,
   };
   Expect.isTrue(m1 is Map);
-  Expect.isTrue(m1 is Map<A,int>);
+  Expect.isTrue(m1 is Map<A, int>);
   Expect.isTrue(m1 is Map<int, dynamic>);
   Expect.isTrue(m1 is Map<dynamic, A>);
 

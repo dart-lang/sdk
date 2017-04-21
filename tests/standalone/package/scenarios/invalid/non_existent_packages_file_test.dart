@@ -6,5 +6,4 @@
 
 library non_existent_packages_file_test;
 
-main() {
-}
+main() {}

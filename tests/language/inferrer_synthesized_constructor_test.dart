@@ -22,6 +22,6 @@ main() {
   // used to only see this call and consider the [A.x] field to always
   // be int.
   Expect.equals(84, new A(42).x + 42);
-  Expect.throws(() => new B().x + 42,
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => new B().x + 42, (e) => e is ArgumentError || e is TypeError);
 }

@@ -5,7 +5,11 @@
 library lib;
 
 class _S {}
+
 class _M {}
+
 class _M2 {}
+
 class MA extends _S with _M {}
+
 class MA2 extends _S with _M, _M2 {}

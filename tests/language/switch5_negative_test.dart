@@ -4,16 +4,17 @@
 // Break' to case label is illegal.
 
 class Switch5NegativeTest {
-
   static testMain() {
     var a = 5;
     var x;
     switch (a) {
       L:
       case 1:
-        x = 1; break;
+        x = 1;
+        break;
       case 6:
-        x = 2; break L;  // illegal
+        x = 2;
+        break L; // illegal
       default:
         break;
     }

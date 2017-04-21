@@ -91,9 +91,8 @@ main(List<String> arguments) {
   if (args['help']) {
     print(parser.getUsage());
   } else {
-    var servers = new TestingServers(args['build-directory'],
-        args['csp'], args['runtime'], null, args['package-root'],
-        args['packages']);
+    var servers = new TestingServers(args['build-directory'], args['csp'],
+        args['runtime'], null, args['package-root'], args['packages']);
     var port = int.parse(args['port']);
     var crossOriginPort = int.parse(args['crossOriginPort']);
     servers
@@ -143,8 +142,8 @@ class TestingServers {
     } else {
       _dartDirectory = Uri.base.resolveUri(new Uri.directory(dartDirectory));
     }
-    if (packageRoot == null ) {
-      if (packages == null ) {
+    if (packageRoot == null) {
+      if (packages == null) {
         _packages = _dartDirectory.resolve('.packages');
       } else {
         _packages = new Uri.file(packages);
@@ -167,27 +166,31 @@ class TestingServers {
    *   "Access-Control-Allow-Credentials: true"
    */
   Future startServers(String host,
-                      {int port: 0,
-                       int crossOriginPort: 0}) async {
+      {int port: 0, int crossOriginPort: 0}) async {
     if (_packages != null) {
       _resolver = await SyncPackageResolver.loadConfig(_packages);
     } else {
       _resolver = new SyncPackageResolver.root(_packageRoot);
     }
     _server = await _startHttpServer(host, port: port);
-    await _startHttpServer(host, port: crossOriginPort,
-        allowedPort: _serverList[0].port);
+    await _startHttpServer(host,
+        port: crossOriginPort, allowedPort: _serverList[0].port);
   }
 
   String httpServerCommandline() {
     var dart = Platform.resolvedExecutable;
     var script = _dartDirectory.resolve('tools/testing/dart/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
-    var command = [dart, script.toFilePath(),
-      '-p', port,
-      '-c', crossOriginPort,
+    var command = [
+      dart,
+      script.toFilePath(),
+      '-p',
+      port,
+      '-c',
+      crossOriginPort,
       '--build-directory=$buildDirectory',
-      '--runtime=$runtime'];
+      '--runtime=$runtime'
+    ];
     if (useContentSecurityPolicy) {
       command.add('--csp');
     }
@@ -217,6 +220,7 @@ class TestingServers {
       fileHandler(request) {
         _handleFileOrDirectoryRequest(request, allowedPort);
       }
+
       server.addHandler('/$PREFIX_BUILDDIR', fileHandler);
       server.addHandler('/$PREFIX_DARTDIR', fileHandler);
       server.addHandler('/packages', fileHandler);
@@ -225,8 +229,7 @@ class TestingServers {
     });
   }
 
-  _handleFileOrDirectoryRequest(HttpRequest request,
-                                int allowedPort) async {
+  _handleFileOrDirectoryRequest(HttpRequest request, int allowedPort) async {
     // Enable browsers to cache file/directory responses.
     var response = request.response;
     response.headers
@@ -235,8 +238,8 @@ class TestingServers {
     if (path != null) {
       var file = new File.fromUri(path);
       var directory = new Directory.fromUri(path);
-      if (await file.exists()){
-          _sendFileContent(request, response, allowedPort, file);
+      if (await file.exists()) {
+        _sendFileContent(request, response, allowedPort, file);
       } else if (await directory.exists()) {
         _sendDirectoryListing(
             await _listDirectory(directory), request, response);
@@ -294,7 +297,8 @@ class TestingServers {
     if (pathSegments.length == 0) return null;
     int packagesIndex = pathSegments.indexOf('packages');
     if (packagesIndex != -1) {
-      var packageUri = new Uri(scheme: 'package',
+      var packageUri = new Uri(
+          scheme: 'package',
           pathSegments: pathSegments.skip(packagesIndex + 1));
       return _resolver.resolveUri(packageUri);
     }
@@ -348,8 +352,7 @@ class TestingServers {
     entries.sort();
     response.write(header);
     for (var entry in entries) {
-      response.write(
-          '<li><a href="${request.uri}/${entry.name}">'
+      response.write('<li><a href="${request.uri}/${entry.name}">'
           '${entry.displayName}</a></li>');
     }
     response.write(footer);
@@ -360,8 +363,8 @@ class TestingServers {
     });
   }
 
-  void _sendFileContent(HttpRequest request, HttpResponse response,
-      int allowedPort, File file) {
+  void _sendFileContent(
+      HttpRequest request, HttpResponse response, int allowedPort, File file) {
     if (allowedPort != -1) {
       var headerOrigin = request.headers.value('Origin');
       var allowedOrigin;
@@ -421,6 +424,7 @@ class TestingServers {
         return path.contains(pattern);
       });
     }
+
     if (!isHarmlessPath(request.uri.path)) {
       DebugLogger.warning('HttpServer: could not find file for request path: '
           '"${request.uri.path}"');

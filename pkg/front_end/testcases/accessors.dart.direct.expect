@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  set onlySetter(dynamic value) → void {
+    core::print("C.onlySetter called with ${value}.");
+  }
+  method testC() → dynamic {
+    try {
+      core::print(this.onlySetter);
+      throw "No error thrown";
+    }
+    on core::NoSuchMethodError catch(final dynamic e) {
+      core::print("Expected error: ${e}");
+    }
+    this.onlySetter = "hest";
+  }
+  method testD() → dynamic {
+    core::print(this.onlySetter);
+    this.onlySetter = "hest";
+  }
+}
+class D extends self::C {
+  constructor •() → void
+    : super self::C::•()
+    ;
+  get onlySetter() → core::String
+    return "D.onlySetter called.";
+  set onlySetter(dynamic value) → void {
+    core::print("D.onlySetter called with ${value}.");
+  }
+}
+static set onlySetter(dynamic value) → void {
+  core::print("onlySetter called with ${value}.");
+}
+static method main() → dynamic {
+  try {
+    core::print(throw new core::NoSuchMethodError::•(null, #onlySetter, <dynamic>[], <dynamic, dynamic>{}, null));
+    throw "No error thrown";
+  }
+  on core::NoSuchMethodError catch(final dynamic e) {
+    core::print("Expected error: ${e}");
+  }
+  self::onlySetter = "fisk";
+  new self::C::•().testC();
+  new self::D::•().testD();
+}

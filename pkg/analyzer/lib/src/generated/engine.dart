@@ -1650,9 +1650,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = new ApiSignature();
 
       // Append boolean flags.
+      buffer.addBool(enableAssertInitializer);
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableStrictCallChecks);
       buffer.addBool(enableSuperMixins);
+      buffer.addBool(enableUriInPartOf);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongMode);

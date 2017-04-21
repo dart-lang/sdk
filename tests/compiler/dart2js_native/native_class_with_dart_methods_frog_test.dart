@@ -18,7 +18,7 @@ class A {
   int method(int z) => _field + z;
 }
 
-A makeA() native ;
+A makeA() native;
 
 void setup() native """
 function A() {}

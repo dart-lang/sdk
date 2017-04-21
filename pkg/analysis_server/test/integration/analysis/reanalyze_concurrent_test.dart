@@ -17,11 +17,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
-    defineReflectiveTests(ReanalyzeTest_Driver);
   });
 }
 
-class AbstractReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''
@@ -46,13 +46,4 @@ main() {}''';
       });
     });
   }
-}
-
-@reflectiveTest
-class ReanalyzeTest extends AbstractReanalyzeTest {}
-
-@reflectiveTest
-class ReanalyzeTest_Driver extends AbstractReanalyzeTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

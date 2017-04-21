@@ -224,8 +224,9 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     }
     e.children[0].text = Utils.formatPercentNormalized(_getExclusiveT(item));
     e.children[1].text = Utils.formatPercentNormalized(_getInclusiveT(item));
-    e.children[2] = new FunctionRefElement(_isolate, item.function,
-        queue: _r.queue)..classes = ['name'];
+    e.children[2] =
+        new FunctionRefElement(_isolate, item.function, queue: _r.queue)
+          ..classes = ['name'];
   }
 
   Element _createFunctionHeader() => new DivElement()
@@ -278,8 +279,9 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
 
   void _updateCallee(Element e, item, int index) {
     e.children[0].text = Utils.formatPercentNormalized(_getCalleeT(item));
-    e.children[1] = new FunctionRefElement(_isolate, item.function,
-        queue: _r.queue)..classes = ['name'];
+    e.children[1] =
+        new FunctionRefElement(_isolate, item.function, queue: _r.queue)
+          ..classes = ['name'];
   }
 
   Element _createCalleeHeader() => new DivElement()
@@ -312,8 +314,9 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
 
   void _updateCaller(Element e, item, int index) {
     e.children[0].text = Utils.formatPercentNormalized(_getCallerT(item));
-    e.children[1] = new FunctionRefElement(_isolate, item.function,
-        queue: _r.queue)..classes = ['name'];
+    e.children[1] =
+        new FunctionRefElement(_isolate, item.function, queue: _r.queue)
+          ..classes = ['name'];
   }
 
   Element _createCallerHeader() => new DivElement()

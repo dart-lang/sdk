@@ -10,10 +10,23 @@ class A {
   final z;
   final t;
 
-  const A([this.z = 99, tt = 100]) : y = 499, t = tt, x = 3;
-  const A.n({this.z: 99, tt: 100}) : y = 499, t = tt, x = 3;
-  const A.named({z, this.t}) : y = 400 + z, this.z = z, x = 3;
-  const A.named2({t, z, y, x}) : x = t, y = z, z = y, t = x;
+  const A([this.z = 99, tt = 100])
+      : y = 499,
+        t = tt,
+        x = 3;
+  const A.n({this.z: 99, tt: 100})
+      : y = 499,
+        t = tt,
+        x = 3;
+  const A.named({z, this.t})
+      : y = 400 + z,
+        this.z = z,
+        x = 3;
+  const A.named2({t, z, y, x})
+      : x = t,
+        y = z,
+        z = y,
+        t = x;
 
   toString() => "A $x $y $z $t";
 }

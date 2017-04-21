@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 
 main() {
-
   Expect.equals("1.00000000000000000000e+0", (1.0).toStringAsExponential(20));
   Expect.equals("1.00000000000000005551e-1", (0.1).toStringAsExponential(20));
   Expect.equals(1.00000000000000005551e-1, 0.1);

@@ -163,7 +163,8 @@ void Disassembler::Disassemble(uword start,
 void Disassembler::DisassembleCodeHelper(const char* function_fullname,
                                          const Code& code,
                                          bool optimized) {
-  LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle();
+  Zone* zone = Thread::Current()->zone();
+  LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone);
   if (FLAG_print_variable_descriptors) {
     var_descriptors = code.GetLocalVarDescriptors();
   }
@@ -175,7 +176,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 #if defined(TARGET_ARCH_IA32)
   THR_Print("Pointer offsets for function: {\n");
   // Pointer offsets are stored in descending order.
-  Object& obj = Object::Handle();
+  Object& obj = Object::Handle(zone);
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
     obj = *reinterpret_cast<RawObject**>(addr);
@@ -187,23 +188,24 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
 
-  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
+  const ObjectPool& object_pool =
+      ObjectPool::Handle(zone, code.GetObjectPool());
   object_pool.DebugPrint();
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
   const PcDescriptors& descriptors =
-      PcDescriptors::Handle(code.pc_descriptors());
+      PcDescriptors::Handle(zone, code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  uword start = Instructions::Handle(code.instructions()).PayloadStart();
-  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  uword start = Instructions::Handle(zone, code.instructions()).PayloadStart();
+  const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {
     THR_Print("DeoptInfo: {\n");
-    Smi& offset = Smi::Handle();
-    TypedData& info = TypedData::Handle();
-    Smi& reason_and_flags = Smi::Handle();
+    Smi& offset = Smi::Handle(zone);
+    TypedData& info = TypedData::Handle(zone);
+    Smi& reason_and_flags = Smi::Handle(zone);
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
       DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
       const intptr_t reason =
@@ -219,8 +221,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   THR_Print("StackMaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
-    const Array& stackmap_table = Array::Handle(code.stackmaps());
-    StackMap& map = StackMap::Handle();
+    const Array& stackmap_table = Array::Handle(zone, code.stackmaps());
+    StackMap& map = StackMap::Handle(zone);
     for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
       map ^= stackmap_table.At(i);
       THR_Print("%s\n", map.ToCString());
@@ -232,7 +234,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("Variable Descriptors for function '%s' {\n", function_fullname);
     intptr_t var_desc_length =
         var_descriptors.IsNull() ? 0 : var_descriptors.Length();
-    String& var_name = String::Handle();
+    String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
       RawLocalVarDescriptors::VarInfo var_info;
@@ -261,26 +263,26 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
-      ExceptionHandlers::Handle(code.exception_handlers());
+      ExceptionHandlers::Handle(zone, code.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
 
   {
     THR_Print("Static call target functions {\n");
-    const Array& table = Array::Handle(code.static_calls_target_table());
-    Smi& offset = Smi::Handle();
-    Function& function = Function::Handle();
-    Code& code = Code::Handle();
+    const Array& table = Array::Handle(zone, code.static_calls_target_table());
+    Smi& offset = Smi::Handle(zone);
+    Function& function = Function::Handle(zone);
+    Code& code = Code::Handle(zone);
     for (intptr_t i = 0; i < table.Length();
          i += Code::kSCallTableEntryLength) {
       offset ^= table.At(i + Code::kSCallTableOffsetEntry);
       function ^= table.At(i + Code::kSCallTableFunctionEntry);
       code ^= table.At(i + Code::kSCallTableCodeEntry);
       if (function.IsNull()) {
-        Class& cls = Class::Handle();
+        Class& cls = Class::Handle(zone);
         cls ^= code.owner();
         if (cls.IsNull()) {
           THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
-                    code.Name(), code.raw());
+                    code.QualifiedName(), code.raw());
         } else {
           THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
                     start + offset.Value(), cls.ToCString(), code.raw());
@@ -301,17 +303,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 }
 
 
-void Disassembler::DisassembleCode(const Function& function, bool optimized) {
+void Disassembler::DisassembleCode(const Function& function,
+                                   const Code& code,
+                                   bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
-  const Code& code = Code::Handle(function.CurrentCode());
-  DisassembleCodeHelper(function_fullname, code, optimized);
-}
-
-
-void Disassembler::DisassembleCodeUnoptimized(const Function& function,
-                                              bool optimized) {
-  const char* function_fullname = function.ToFullyQualifiedCString();
-  const Code& code = Code::Handle(function.unoptimized_code());
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 

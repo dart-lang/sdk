@@ -11,7 +11,7 @@ import "dart:async";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-main(){
+main() {
   asyncStart();
   // Setup the port for communication with the newly spawned isolate.
   RawReceivePort reply = new RawReceivePort(null);
@@ -50,7 +50,7 @@ main(){
         throw "Bad state for error: $state: $error";
     }
   };
-  
+
   // Get exit notifications from other isolate as raw messages.
   RawReceivePort exitPort = new RawReceivePort();
   exitPort.handler = (message) {
@@ -62,11 +62,11 @@ main(){
     exitPort.close();
     asyncEnd();
   };
-  
-  Isolate.spawnUri(Uri.parse("error_exit_at_spawnuri_iso.dart"), [],
-                   reply.sendPort,
-                   // Setup handlers as part of spawn.
-                   errorsAreFatal: false,
-                   onError: errorPort.sendPort,
-                   onExit: exitPort.sendPort);
+
+  Isolate.spawnUri(
+      Uri.parse("error_exit_at_spawnuri_iso.dart"), [], reply.sendPort,
+      // Setup handlers as part of spawn.
+      errorsAreFatal: false,
+      onError: errorPort.sendPort,
+      onExit: exitPort.sendPort);
 }

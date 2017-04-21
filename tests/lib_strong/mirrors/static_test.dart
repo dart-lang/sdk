@@ -17,13 +17,12 @@ class Foo {
 
 void main() {
   expect('Variable(s(aux) in s(Foo))',
-         reflectClass(Foo).declarations[new Symbol('aux')]);
+      reflectClass(Foo).declarations[new Symbol('aux')]);
   expect('Method(s(baz) in s(Foo))',
-         reflectClass(Foo).declarations[new Symbol('baz')]);
-  expect('<null>',
-         reflectClass(Foo).declarations[new Symbol('aux=')]);
+      reflectClass(Foo).declarations[new Symbol('baz')]);
+  expect('<null>', reflectClass(Foo).declarations[new Symbol('aux=')]);
   expect('Method(s(foo) in s(Foo), static)',
-         reflectClass(Foo).declarations[new Symbol('foo')]);
+      reflectClass(Foo).declarations[new Symbol('foo')]);
   expect('Variable(s(bar) in s(Foo), static)',
-         reflectClass(Foo).declarations[new Symbol('bar')]);
+      reflectClass(Foo).declarations[new Symbol('bar')]);
 }

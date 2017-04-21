@@ -26,8 +26,8 @@ class M2 {
   var buz;
 }
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {this.foo='A-foo';}
@@ -38,7 +38,6 @@ makeB = function(){return new B;};
 self.nativeConstructor(A);
 self.nativeConstructor(B);
 """;
-
 
 main() {
   nativeTesting();

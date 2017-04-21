@@ -28,15 +28,16 @@ abstract class DelegateMixin {
 
 abstract class HasValueMixin implements Delegate {
   String _value;
-  set value(String value) { _value = invoke(value); }
+  set value(String value) {
+    _value = invoke(value);
+  }
+
   String get value => _value;
 }
 
-class HasValueA extends Object with HasValueMixin, DelegateMixin {
-}
+class HasValueA extends Object with HasValueMixin, DelegateMixin {}
 
-class HasValueB extends Object with DelegateMixin, HasValueMixin {
-}
+class HasValueB extends Object with DelegateMixin, HasValueMixin {}
 
 class HasValueC extends Object with HasValueMixin {
   String invoke(String value) => value;

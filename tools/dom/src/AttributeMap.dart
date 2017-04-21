@@ -10,7 +10,9 @@ abstract class _AttributeMap implements Map<String, String> {
   _AttributeMap(this._element);
 
   void addAll(Map<String, String> other) {
-    other.forEach((k, v) { this[k] = v; });
+    other.forEach((k, v) {
+      this[k] = v;
+    });
   }
 
   bool containsValue(Object value) {
@@ -90,8 +92,7 @@ abstract class _AttributeMap implements Map<String, String> {
  * Wrapper to expose [Element.attributes] as a typed map.
  */
 class _ElementAttributeMap extends _AttributeMap {
-
-  _ElementAttributeMap(Element element): super(element);
+  _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object key) {
     return _element._hasAttribute(key);
@@ -125,10 +126,9 @@ class _ElementAttributeMap extends _AttributeMap {
  * Wrapper to expose namespaced attributes as a typed map.
  */
 class _NamespacedAttributeMap extends _AttributeMap {
-
   final String _namespace;
 
-  _NamespacedAttributeMap(Element element, this._namespace): super(element);
+  _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object key) {
     return _element._hasAttributeNS(_namespace, key);
@@ -158,13 +158,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   bool _matches(Node node) => node._namespaceUri == _namespace;
 }
 
-
 /**
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
 class _DataAttributeMap implements Map<String, String> {
-
   final Map<String, String> _attributes;
 
   _DataAttributeMap(this._attributes);
@@ -172,7 +170,9 @@ class _DataAttributeMap implements Map<String, String> {
   // interface Map
 
   void addAll(Map<String, String> other) {
-    other.forEach((k, v) { this[k] = v; });
+    other.forEach((k, v) {
+      this[k] = v;
+    });
   }
 
   // TODO: Use lazy iterator when it is available on Map.
@@ -187,7 +187,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   String putIfAbsent(String key, String ifAbsent()) =>
-    _attributes.putIfAbsent(_attr(key), ifAbsent);
+      _attributes.putIfAbsent(_attr(key), ifAbsent);
 
   String remove(Object key) => _attributes.remove(_attr(key));
 

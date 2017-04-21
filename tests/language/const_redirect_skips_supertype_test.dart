@@ -10,10 +10,12 @@ class B {
   const B() : x = y;
   const B.named() : x = null;
 }
+
 class C extends B {
   const C() : this.named();
   const C.named() : super.named();
 }
+
 const y = const C();
 
 main() {

@@ -5,6 +5,7 @@
 // Tests of hash set type checking.
 
 library hash_set_type_check_test;
+
 import "package:expect/expect.dart";
 import 'dart:collection';
 
@@ -14,13 +15,11 @@ testSet(Set<String> newSet()) {
   Expect.isNull(s.lookup(1));
 }
 
-
 void testIdentitySet(Set create()) {
   Set<String> s = create();
   Expect.throws(() => s.add(1), (e) => e is Error);
   Expect.isNull(s.lookup(1));
 }
-
 
 bool get inCheckedMode {
   try {
@@ -32,7 +31,6 @@ bool get inCheckedMode {
   return false;
 }
 
-
 void main() {
   if (!inCheckedMode) return;
 
@@ -42,9 +40,8 @@ void main() {
   testIdentitySet(() => new Set<String>.identity());
   testIdentitySet(() => new HashSet<String>.identity());
   testIdentitySet(() => new LinkedHashSet<String>.identity());
-  testIdentitySet(() => new HashSet<String>(equals: (x, y) => identical(x, y),
-                                    hashCode: (x) => identityHashCode(x)));
-  testIdentitySet(
-      () => new LinkedHashSet<String>(equals: (x, y) => identical(x, y),
-                              hashCode: (x) => identityHashCode(x)));
+  testIdentitySet(() => new HashSet<String>(
+      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
+  testIdentitySet(() => new LinkedHashSet<String>(
+      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
 }

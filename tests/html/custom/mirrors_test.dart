@@ -20,12 +20,12 @@ main() {
 
   var registered = false;
   setUp(() => customElementsReady.then((_) {
-    if (!registered) {
-      registered = true;
-      document.registerElement(A.tag, A);
-      document.registerElement(B.tag, B);
-    }
-  }));
+        if (!registered) {
+          registered = true;
+          document.registerElement(A.tag, A);
+          document.registerElement(B.tag, B);
+        }
+      }));
 
   test('dynamic dispatch', () {
     var a = new A();

@@ -1,4 +1,5 @@
 library CssTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -14,12 +15,11 @@ main() {
 
   group('functional', () {
     test('DomPoint', () {
-      var expectation = Window.supportsPointConversions ?
-          returnsNormally : throws;
+      var expectation =
+          Window.supportsPointConversions ? returnsNormally : throws;
       expect(() {
         Element element = new Element.tag('div');
-        element.attributes['style'] =
-          '''
+        element.attributes['style'] = '''
           position: absolute;
           width: 60px;
           height: 100px;

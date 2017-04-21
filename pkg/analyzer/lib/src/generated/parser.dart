@@ -158,23 +158,19 @@ class Modifiers {
  * A parser used to parse tokens into an AST structure.
  */
 class Parser {
-  static String ASYNC = "async";
+  static String ASYNC = Keyword.ASYNC.syntax;
 
-  static String _AWAIT = "await";
+  static String _AWAIT = Keyword.AWAIT.syntax;
 
-  static String _HIDE = "hide";
+  static String _HIDE = Keyword.HIDE.syntax;
 
-  static String _OF = "of";
+  static String _SHOW = Keyword.SHOW.syntax;
 
-  static String _ON = "on";
+  static String SYNC = Keyword.SYNC.syntax;
 
-  static String _NATIVE = "native";
+  static String _YIELD = Keyword.YIELD.syntax;
 
-  static String _SHOW = "show";
-
-  static String SYNC = "sync";
-
-  static String _YIELD = "yield";
+  static const int _MAX_TREE_DEPTH = 300;
 
   /**
    * The source being parsed.
@@ -219,6 +215,12 @@ class Parser {
    * The next token to be parsed.
    */
   Token _currentToken;
+
+  /**
+   * The depth of the current AST. When this depth is too high, so we're at the
+   * risk of overflowing the stack, we stop parsing and report an error.
+   */
+  int _treeDepth = 0;
 
   /**
    * A flag indicating whether the parser is currently in a function body marked
@@ -431,7 +433,7 @@ class Parser {
     }
     Token afterReturnType = skipTypeName(_currentToken);
     if (afterReturnType != null &&
-        _tokenMatchesString(afterReturnType, 'Function')) {
+        _tokenMatchesKeyword(afterReturnType, Keyword.FUNCTION)) {
       afterReturnType = skipGenericFunctionTypeAfterReturnType(afterReturnType);
     }
     if (afterReturnType == null) {
@@ -1200,7 +1202,8 @@ class Parser {
     // Look for and skip over the extra-lingual 'native' specification.
     //
     NativeClause nativeClause = null;
-    if (_matchesString(_NATIVE) && _tokenMatches(_peek(), TokenType.STRING)) {
+    if (_matchesKeyword(Keyword.NATIVE) &&
+        _tokenMatches(_peek(), TokenType.STRING)) {
       nativeClause = _parseNativeClause();
     }
     //
@@ -1583,7 +1586,7 @@ class Parser {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_GET);
       _currentToken = _injectToken(
-          new Parser_SyntheticKeywordToken(Keyword.GET, _currentToken.offset));
+          new SyntheticKeywordToken(Keyword.GET, _currentToken.offset));
       return parseGetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, type);
     }
@@ -1604,9 +1607,9 @@ class Parser {
    *       | 'hide' identifier (',' identifier)*
    */
   Combinator parseCombinator() {
-    if (_matchesString(_SHOW)) {
+    if (_matchesKeyword(Keyword.SHOW)) {
       return astFactory.showCombinator(getAndAdvance(), parseIdentifierList());
-    } else if (_matchesString(_HIDE)) {
+    } else if (_matchesKeyword(Keyword.HIDE)) {
       return astFactory.hideCombinator(getAndAdvance(), parseIdentifierList());
     }
     return null;
@@ -1935,7 +1938,7 @@ class Parser {
             }
             return parseLibraryDirective(commentAndMetadata);
           } else if (keyword == Keyword.PART) {
-            if (_tokenMatchesString(_peek(), _OF)) {
+            if (_tokenMatchesKeyword(_peek(), Keyword.OF)) {
               partOfDirectiveFound = true;
               return _parsePartOfDirective(commentAndMetadata);
             } else {
@@ -1965,8 +1968,16 @@ class Parser {
             [_currentToken.lexeme]);
         _advance();
       } else {
-        CompilationUnitMember member =
-            parseCompilationUnitMember(commentAndMetadata);
+        CompilationUnitMember member;
+        try {
+          member = parseCompilationUnitMember(commentAndMetadata);
+        } on _TooDeepTreeError {
+          _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
+          Token eof = new Token(TokenType.EOF, 0);
+          eof.previous = eof;
+          eof.setNext(eof);
+          return astFactory.compilationUnit(eof, null, null, null, eof);
+        }
         if (member != null) {
           declarations.add(member);
         }
@@ -2717,37 +2728,45 @@ class Parser {
    *       | throwExpression
    */
   Expression parseExpression2() {
-    Keyword keyword = _currentToken.keyword;
-    if (keyword == Keyword.THROW) {
-      return parseThrowExpression();
-    } else if (keyword == Keyword.RETHROW) {
-      // TODO(brianwilkerson) Rethrow is a statement again.
-      return parseRethrowExpression();
+    if (_treeDepth > _MAX_TREE_DEPTH) {
+      throw new _TooDeepTreeError();
     }
-    //
-    // assignableExpression is a subset of conditionalExpression, so we can
-    // parse a conditional expression and then determine whether it is followed
-    // by an assignmentOperator, checking for conformance to the restricted
-    // grammar after making that determination.
-    //
-    Expression expression = parseConditionalExpression();
-    TokenType type = _currentToken.type;
-    if (type == TokenType.PERIOD_PERIOD) {
-      List<Expression> cascadeSections = <Expression>[];
-      do {
-        Expression section = parseCascadeSection();
-        if (section != null) {
-          cascadeSections.add(section);
-        }
-      } while (_currentToken.type == TokenType.PERIOD_PERIOD);
-      return astFactory.cascadeExpression(expression, cascadeSections);
-    } else if (type.isAssignmentOperator) {
-      Token operator = getAndAdvance();
-      _ensureAssignable(expression);
-      return astFactory.assignmentExpression(
-          expression, operator, parseExpression2());
+    _treeDepth++;
+    try {
+      Keyword keyword = _currentToken.keyword;
+      if (keyword == Keyword.THROW) {
+        return parseThrowExpression();
+      } else if (keyword == Keyword.RETHROW) {
+        // TODO(brianwilkerson) Rethrow is a statement again.
+        return parseRethrowExpression();
+      }
+      //
+      // assignableExpression is a subset of conditionalExpression, so we can
+      // parse a conditional expression and then determine whether it is followed
+      // by an assignmentOperator, checking for conformance to the restricted
+      // grammar after making that determination.
+      //
+      Expression expression = parseConditionalExpression();
+      TokenType type = _currentToken.type;
+      if (type == TokenType.PERIOD_PERIOD) {
+        List<Expression> cascadeSections = <Expression>[];
+        do {
+          Expression section = parseCascadeSection();
+          if (section != null) {
+            cascadeSections.add(section);
+          }
+        } while (_currentToken.type == TokenType.PERIOD_PERIOD);
+        return astFactory.cascadeExpression(expression, cascadeSections);
+      } else if (type.isAssignmentOperator) {
+        Token operator = getAndAdvance();
+        _ensureAssignable(expression);
+        return astFactory.assignmentExpression(
+            expression, operator, parseExpression2());
+      }
+      return expression;
+    } finally {
+      _treeDepth--;
     }
-    return expression;
   }
 
   /**
@@ -2985,7 +3004,7 @@ class Parser {
     _inLoop = true;
     try {
       Token awaitKeyword = null;
-      if (_matchesString(_AWAIT)) {
+      if (_matchesKeyword(Keyword.AWAIT)) {
         awaitKeyword = getAndAdvance();
       }
       Token forKeyword = _expectKeyword(Keyword.FOR);
@@ -3148,7 +3167,7 @@ class Parser {
       Token star = null;
       bool foundAsync = false;
       bool foundSync = false;
-      if (type == TokenType.IDENTIFIER) {
+      if (type == TokenType.KEYWORD) {
         String lexeme = _currentToken.lexeme;
         if (lexeme == ASYNC) {
           foundAsync = true;
@@ -3209,7 +3228,7 @@ class Parser {
               .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON));
         }
         return astFactory.blockFunctionBody(keyword, star, parseBlock());
-      } else if (_matchesString(_NATIVE)) {
+      } else if (_matchesKeyword(Keyword.NATIVE)) {
         Token nativeToken = getAndAdvance();
         StringLiteral stringLiteral = null;
         if (_matches(TokenType.STRING)) {
@@ -3363,7 +3382,7 @@ class Parser {
   GenericFunctionType parseGenericFunctionTypeAfterReturnType(
       TypeAnnotation returnType) {
     Token functionKeyword = null;
-    if (_matchesString('Function')) {
+    if (_matchesKeyword(Keyword.FUNCTION)) {
       functionKeyword = getAndAdvance();
     } else if (_matchesIdentifier()) {
       _reportErrorForCurrentToken(ParserErrorCode.NAMED_FUNCTION_TYPE);
@@ -3572,12 +3591,12 @@ class Parser {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
     } else if (!_matches(TokenType.SEMICOLON) &&
-        !_matchesString(_SHOW) &&
-        !_matchesString(_HIDE)) {
+        !_matchesKeyword(Keyword.SHOW) &&
+        !_matchesKeyword(Keyword.HIDE)) {
       Token nextToken = _peek();
       if (_tokenMatchesKeyword(nextToken, Keyword.AS) ||
-          _tokenMatchesString(nextToken, _SHOW) ||
-          _tokenMatchesString(nextToken, _HIDE)) {
+          _tokenMatchesKeyword(nextToken, Keyword.SHOW) ||
+          _tokenMatchesKeyword(nextToken, Keyword.HIDE)) {
         _reportErrorForCurrentToken(
             ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken]);
         _advance();
@@ -4015,7 +4034,7 @@ class Parser {
       }
       return parseBlock();
     } else if (type == TokenType.KEYWORD &&
-        !_currentToken.keyword.isPseudoKeyword) {
+        !_currentToken.keyword.isBuiltInOrPseudo) {
       Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
@@ -4174,15 +4193,15 @@ class Parser {
         return astFactory
             .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (_inGenerator && _matchesString(_YIELD)) {
+    } else if (_inGenerator && _matchesKeyword(Keyword.YIELD)) {
       return parseYieldStatement();
-    } else if (_inAsync && _matchesString(_AWAIT)) {
+    } else if (_inAsync && _matchesKeyword(Keyword.AWAIT)) {
       if (_tokenMatchesKeyword(_peek(), Keyword.FOR)) {
         return parseForStatement();
       }
       return astFactory.expressionStatement(
           parseExpression2(), _expect(TokenType.SEMICOLON));
-    } else if (_matchesString(_AWAIT) &&
+    } else if (_matchesKeyword(Keyword.AWAIT) &&
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
@@ -4375,7 +4394,7 @@ class Parser {
    *         metadata 'part' 'of' identifier ';'
    */
   Directive parsePartOrPartOfDirective(CommentAndMetadata commentAndMetadata) {
-    if (_tokenMatchesString(_peek(), _OF)) {
+    if (_tokenMatchesKeyword(_peek(), Keyword.OF)) {
       return _parsePartOfDirective(commentAndMetadata);
     }
     return _parsePartDirective(commentAndMetadata);
@@ -4800,20 +4819,29 @@ class Parser {
    *         label* nonLabeledStatement
    */
   Statement parseStatement2() {
-    List<Label> labels = null;
-    while (_matchesIdentifier() && _currentToken.next.type == TokenType.COLON) {
-      Label label = parseLabel(isDeclaration: true);
-      if (labels == null) {
-        labels = <Label>[label];
-      } else {
-        labels.add(label);
+    if (_treeDepth > _MAX_TREE_DEPTH) {
+      throw new _TooDeepTreeError();
+    }
+    _treeDepth++;
+    try {
+      List<Label> labels = null;
+      while (
+          _matchesIdentifier() && _currentToken.next.type == TokenType.COLON) {
+        Label label = parseLabel(isDeclaration: true);
+        if (labels == null) {
+          labels = <Label>[label];
+        } else {
+          labels.add(label);
+        }
       }
+      Statement statement = parseNonLabeledStatement();
+      if (labels == null) {
+        return statement;
+      }
+      return astFactory.labeledStatement(labels, statement);
+    } finally {
+      _treeDepth--;
     }
-    Statement statement = parseNonLabeledStatement();
-    if (labels == null) {
-      return statement;
-    }
-    return astFactory.labeledStatement(labels, statement);
   }
 
   /**
@@ -5051,10 +5079,10 @@ class Parser {
     Block body = _parseBlockChecked();
     List<CatchClause> catchClauses = <CatchClause>[];
     Block finallyClause = null;
-    while (_matchesString(_ON) || _matchesKeyword(Keyword.CATCH)) {
+    while (_matchesKeyword(Keyword.ON) || _matchesKeyword(Keyword.CATCH)) {
       Token onKeyword = null;
       TypeName exceptionType = null;
-      if (_matchesString(_ON)) {
+      if (_matchesKeyword(Keyword.ON)) {
         onKeyword = getAndAdvance();
         exceptionType = parseTypeAnnotation(false);
       }
@@ -5314,7 +5342,7 @@ class Parser {
     } else if (type == TokenType.PLUS) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
-    } else if (_inAsync && _matchesString(_AWAIT)) {
+    } else if (_inAsync && _matchesKeyword(Keyword.AWAIT)) {
       return parseAwaitExpression();
     }
     return parsePostfixExpression();
@@ -5770,7 +5798,7 @@ class Parser {
    * function type alias.
    */
   bool _atGenericFunctionTypeAfterReturnType(Token startToken) {
-    if (_tokenMatchesString(startToken, 'Function')) {
+    if (_tokenMatchesKeyword(startToken, Keyword.FUNCTION)) {
       Token next = startToken.next;
       if (next != null &&
           (_tokenMatches(next, TokenType.OPEN_PAREN) ||
@@ -5876,8 +5904,8 @@ class Parser {
   /**
    * Return a synthetic token representing the given [keyword].
    */
-  Token _createSyntheticKeyword(Keyword keyword) => _injectToken(
-      new Parser_SyntheticKeywordToken(keyword, _currentToken.offset));
+  Token _createSyntheticKeyword(Keyword keyword) =>
+      _injectToken(new SyntheticKeywordToken(keyword, _currentToken.offset));
 
   /**
    * Return a synthetic token with the given [type].
@@ -6336,13 +6364,6 @@ class Parser {
    */
   bool _matchesKeyword(Keyword keyword) =>
       _tokenMatchesKeyword(_currentToken, keyword);
-
-  /**
-   * Return `true` if the current token matches the given [identifier].
-   */
-  bool _matchesString(String identifier) =>
-      _currentToken.type == TokenType.IDENTIFIER &&
-      _currentToken.lexeme == identifier;
 
   /**
    * Report an error with the given [errorCode] if the given [typeName] has been
@@ -8074,13 +8095,7 @@ class Parser {
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
-      token.keyword?.isPseudoKeyword ?? false;
-
-  /**
-   * Return `true` if the given [token] matches the given [identifier].
-   */
-  bool _tokenMatchesString(Token token, String identifier) =>
-      token.type == TokenType.IDENTIFIER && token.lexeme == identifier;
+      token.keyword?.isBuiltInOrPseudo ?? false;
 
   /**
    * Translate the characters at the given [index] in the given [lexeme],
@@ -8587,19 +8602,8 @@ class Parser {
 }
 
 /**
- * A synthetic keyword token.
+ * Instances of this class are thrown when the parser detects that AST has
+ * too many nested expressions to be parsed safely and avoid possibility of
+ * [StackOverflowError] in the parser or during later analysis.
  */
-class Parser_SyntheticKeywordToken extends KeywordToken {
-  /**
-   * Initialize a newly created token to represent the given [keyword] at the
-   * given [offset].
-   */
-  Parser_SyntheticKeywordToken(Keyword keyword, int offset)
-      : super(keyword, offset);
-
-  @override
-  int get length => 0;
-
-  @override
-  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
-}
+class _TooDeepTreeError {}

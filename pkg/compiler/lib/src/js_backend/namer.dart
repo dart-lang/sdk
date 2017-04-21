@@ -27,7 +27,6 @@ import 'package:front_end/src/fasta/scanner/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'backend.dart';
-import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
 import 'native_data.dart';
 
@@ -443,20 +442,22 @@ class Namer {
   final String superPrefix = r'super$';
   final String metadataField = '@';
   final String callPrefix = 'call';
-  final String callCatchAllName = r'call*';
+  // Note: We can't shorten 'call*' in the minified namers because the catch-all
+  // formula `name + "*"` is used by mirrors.
+  String get callCatchAllName => r'call*';
   final String callNameField = r'$callName';
   final String stubNameField = r'$stubName';
   final String reflectableField = r'$reflectable';
   final String reflectionInfoField = r'$reflectionInfo';
   final String reflectionNameField = r'$reflectionName';
   final String metadataIndexField = r'$metadataIndex';
-  final String defaultValuesField = r'$defaultValues';
+  String get requiredParameterField => r'$requiredArgCount';
+  String get defaultValuesField => r'$defaultValues';
   final String methodsWithOptionalArgumentsField =
       r'$methodsWithOptionalArguments';
   final String deferredAction = r'$deferredAction';
 
   final String classDescriptorProperty = r'^';
-  final String requiredParameterField = r'$requiredArgCount';
 
   /// The non-minifying namer's [callPrefix] with a dollar after it.
   static const String _callPrefixDollar = r'call$';
@@ -488,7 +489,6 @@ class Namer {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
-  final BackendHelpers _helpers;
   final NativeData _nativeData;
   final ClosedWorld _closedWorld;
   final CodegenWorldBuilder _codegenWorldBuilder;
@@ -561,8 +561,7 @@ class Namer {
   final Map<LibraryElement, String> _libraryKeys =
       new HashMap<LibraryElement, String>();
 
-  Namer(this._helpers, this._nativeData, this._closedWorld,
-      this._codegenWorldBuilder) {
+  Namer(this._nativeData, this._closedWorld, this._codegenWorldBuilder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
@@ -646,7 +645,7 @@ class Namer {
       case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
         return asName(functionTypeNamedParametersTag);
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
-        return operatorIs(_helpers.jsIndexingBehaviorInterface);
+        return operatorIs(_commonElements.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
         ClassElement nullClass = _commonElements.nullClass;
         return runtimeTypeName(nullClass);
@@ -1318,14 +1317,14 @@ class Namer {
   String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
     String abbreviate(ClassElement cls) {
       if (cls == _commonElements.objectClass) return "o";
-      if (cls == _helpers.jsStringClass) return "s";
-      if (cls == _helpers.jsArrayClass) return "a";
-      if (cls == _helpers.jsDoubleClass) return "d";
-      if (cls == _helpers.jsIntClass) return "i";
-      if (cls == _helpers.jsNumberClass) return "n";
-      if (cls == _helpers.jsNullClass) return "u";
-      if (cls == _helpers.jsBoolClass) return "b";
-      if (cls == _helpers.jsInterceptorClass) return "I";
+      if (cls == _commonElements.jsStringClass) return "s";
+      if (cls == _commonElements.jsArrayClass) return "a";
+      if (cls == _commonElements.jsDoubleClass) return "d";
+      if (cls == _commonElements.jsIntClass) return "i";
+      if (cls == _commonElements.jsNumberClass) return "n";
+      if (cls == _commonElements.jsNullClass) return "u";
+      if (cls == _commonElements.jsBoolClass) return "b";
+      if (cls == _commonElements.jsInterceptorClass) return "I";
       return cls.name;
     }
 
@@ -1345,8 +1344,8 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    MethodElement getInterceptor = _helpers.getInterceptorMethod;
-    if (classes.contains(_helpers.jsInterceptorClass)) {
+    MethodElement getInterceptor = _commonElements.getInterceptorMethod;
+    if (classes.contains(_commonElements.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
       // of the base Interceptor could match.
@@ -1368,7 +1367,7 @@ class Namer {
     // other global names.
     jsAst.Name root = invocationName(selector);
 
-    if (classes.contains(_helpers.jsInterceptorClass)) {
+    if (classes.contains(_commonElements.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes,
       // this is the most general specialization which uses the generic
       // getInterceptor method.
@@ -1488,7 +1487,7 @@ class Namer {
 
   /// Returns the [reservedGlobalObjectNames] for [library].
   String globalObjectForLibrary(LibraryElement library) {
-    if (library == _helpers.interceptorsLibrary) return 'J';
+    if (library == _commonElements.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {
       if ('${library.canonicalUri}' == 'dart:html') return 'W';

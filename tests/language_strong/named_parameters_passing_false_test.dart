@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Dart test program for testing named parameters with 'false' passed as an
 // argument.
 
-
 class TestClass {
   TestClass();
 
@@ -20,7 +19,6 @@ class TestClass {
 
 bool globalMethod([bool value]) => value;
 bool globalMethod2({bool value}) => value;
-
 
 main() {
   var obj = new TestClass();

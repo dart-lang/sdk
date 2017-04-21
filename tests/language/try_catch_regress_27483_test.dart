@@ -16,12 +16,10 @@ m1(int b) {
   if (b == 1) throw 123;
 }
 
-
 @noInline
 m2(int b) {
   if (b == 2) throw 456;
 }
-
 
 @noInline
 test(b) {
@@ -37,12 +35,12 @@ test(b) {
     if (b == 2 && state != 2) throw "fail2";
     if (b == 3 && state != 3) throw "fail3";
     return e;
-  } 
+  }
   return "no throw";
 }
 
 main() {
-  for (var i=0; i<300; i++) {
+  for (var i = 0; i < 300; i++) {
     Expect.equals("no throw", test(0));
   }
   Expect.equals("no throw", test(0));

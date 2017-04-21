@@ -14,6 +14,7 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart' show ClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
@@ -147,28 +148,64 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.templateForBuiltin(builtin);
   }
 
-  Set<ClassEntity> _finalizeRti() {
+  void _finalizeRti() {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    typeTestRegistry.computeRequiredTypeChecks();
+    typeTestRegistry.computeRequiredTypeChecks(backend.rtiChecksBuilder);
     // Compute the classes needed by RTI.
-    return typeTestRegistry.computeRtiNeededClasses();
+    typeTestRegistry.computeRtiNeededClasses(backend.rtiSubstitutions,
+        backend.mirrorsData, backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, ClosedWorld closedWorld) {
+  void createEmitter(Namer namer, ClosedWorld closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder) {
     measure(() {
       _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
-      metadataCollector = new MetadataCollector(compiler, _emitter);
-      typeTestRegistry = new TypeTestRegistry(compiler, closedWorld);
+      metadataCollector = new MetadataCollector(
+          compiler.options,
+          compiler.reporter,
+          compiler.deferredLoadTask,
+          _emitter,
+          backend.constants,
+          backend.typeVariableCodegenAnalysis,
+          backend.mirrorsData,
+          backend.rtiEncoder);
+      typeTestRegistry = new TypeTestRegistry(codegenWorldBuilder, closedWorld);
     });
   }
 
   int assembleProgram(Namer namer, ClosedWorld closedWorld) {
     return measure(() {
-      Set<ClassEntity> rtiNeededClasses = _finalizeRti();
+      _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
-          compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
+          compiler.options,
+          compiler.commonElements,
+          compiler.types,
+          compiler.deferredLoadTask,
+          compiler.closureToClassMapper,
+          compiler.codegenWorldBuilder,
+          backend.nativeCodegenEnqueuer,
+          backend.backendUsage,
+          backend.constants,
+          backend.nativeData,
+          backend.rtiNeed,
+          backend.mirrorsData,
+          backend.interceptorData,
+          backend.superMemberData,
+          typeTestRegistry.rtiChecks,
+          backend.rtiEncoder,
+          backend.rtiSubstitutions,
+          backend.jsInteropAnalysis,
+          backend.oneShotInterceptorData,
+          backend.customElementsCodegenAnalysis,
+          backend.generatedCode,
+          namer,
+          this,
+          closedWorld,
+          typeTestRegistry.rtiNeededClasses,
+          compiler.mainFunction,
+          isMockCompilation: compiler.isMockCompilation);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;

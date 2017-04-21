@@ -20,7 +20,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 class CustomException {}
 
@@ -28,8 +28,7 @@ main() async {
   var HOST = (await InternetAddress.lookup(HOST_NAME)).first;
   var server = await HttpServer.bindSecure(HOST, 0, serverContext, backlog: 5);
   server.listen((request) {
-    request.listen((_) {
-    }, onDone: () {
+    request.listen((_) {}, onDone: () {
       request.response.close();
     });
   });
@@ -54,11 +53,8 @@ main() async {
   server.close();
 }
 
-
-Future runClient(int port,
-                 SecurityContext context,
-                 callbackReturns,
-                 result) async {
+Future runClient(
+    int port, SecurityContext context, callbackReturns, result) async {
   HttpClient client = new HttpClient(context: context);
   client.badCertificateCallback = (X509Certificate certificate, host, port) {
     Expect.isTrue(certificate.subject.contains('rootauthority'));

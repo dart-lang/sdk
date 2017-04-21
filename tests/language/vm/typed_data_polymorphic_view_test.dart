@@ -39,7 +39,6 @@ void testShort() {
   verifyShort(int16);
 }
 
-
 void runXor(view) {
   var mask = new Int32x4(0x1, 0x1, 0x1, 0x1);
   for (var i = 0; i < view.length; i++) {

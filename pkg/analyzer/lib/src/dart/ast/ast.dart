@@ -8458,6 +8458,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(partKeyword)
     ..add(ofKeyword)
+    ..add(_uri)
     ..add(_libraryName)
     ..add(semicolon);
 

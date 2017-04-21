@@ -11,22 +11,27 @@ class MySink extends ChunkedConversionSink<String> {
 
   MySink(this._add, this._close);
 
-  void add(x) { _add(x); }
-  void close() { _close(); }
+  void add(x) {
+    _add(x);
+  }
+
+  void close() {
+    _close();
+  }
 }
 
 main() {
   // Make sure the UTF-8 decoder works eagerly.
   String lastString;
   bool isClosed = false;
-  ChunkedConversionSink sink = new MySink((x) => lastString = x,
-                                          () => isClosed = true);
+  ChunkedConversionSink sink =
+      new MySink((x) => lastString = x, () => isClosed = true);
   var byteSink = new Utf8Decoder().startChunkedConversion(sink);
   byteSink.add("abc".codeUnits);
   Expect.equals("abc", lastString);
-  byteSink.add([0x61, 0xc3]);  // 'a' followed by first part of Î.
+  byteSink.add([0x61, 0xc3]); // 'a' followed by first part of Î.
   Expect.equals("a", lastString);
-  byteSink.add([0x8e]);  // second part of Î.
+  byteSink.add([0x8e]); // second part of Î.
   Expect.equals("Î", lastString);
   Expect.isFalse(isClosed);
   byteSink.close();

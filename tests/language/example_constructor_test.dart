@@ -14,7 +14,7 @@ int rec(int i) {
 
 class A {
   A(int x) : x = rec(2) {
-    Expect.equals(1, x);  // Parameter x
+    Expect.equals(1, x); // Parameter x
     Expect.equals(2, this.x);
     rec(5);
   }
@@ -23,7 +23,9 @@ class A {
 
 class B extends A {
   B(this.a, int y, int z)
-      : super(rec(1)), z = rec(3), y = rec(4) {
+      : super(rec(1)),
+        z = rec(3),
+        y = rec(4) {
     rec(6);
   }
   int a;
@@ -39,4 +41,3 @@ main() {
   Expect.equals(3, test.z);
   Expect.equals("0 1 2 3 4 5 6 ", trace);
 }
-

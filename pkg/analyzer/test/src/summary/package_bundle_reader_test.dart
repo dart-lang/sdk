@@ -148,8 +148,8 @@ class ResynthesizerResultProviderTest {
 
 @reflectiveTest
 class SummaryDataStoreTest {
-  SummaryDataStore dataStore =
-      new SummaryDataStore(<String>[], recordDependencyInfo: true);
+  SummaryDataStore dataStore = new SummaryDataStore(<String>[],
+      recordDependencyInfo: true, disallowOverlappingSummaries: true);
 
   PackageBundle bundle1 = new _PackageBundleMock();
   PackageBundle bundle2 = new _PackageBundleMock();
@@ -159,7 +159,7 @@ class SummaryDataStoreTest {
   LinkedLibrary linkedLibrary1 = new _LinkedLibraryMock();
   LinkedLibrary linkedLibrary2 = new _LinkedLibraryMock();
 
-  void setUp() {
+  void _setupDataStore(SummaryDataStore store) {
     // bundle1
     when(unlinkedUnit11.publicNamespace)
         .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
@@ -171,7 +171,7 @@ class SummaryDataStoreTest {
     when(bundle1.linkedLibraryUris).thenReturn(<String>['package:p1/u1.dart']);
     when(bundle1.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
     when(bundle1.apiSignature).thenReturn('signature1');
-    dataStore.addBundle('/p1.ds', bundle1);
+    store.addBundle('/p1.ds', bundle1);
     // bundle2
     when(unlinkedUnit21.publicNamespace).thenReturn(_namespaceWithParts([]));
     when(bundle2.unlinkedUnitUris).thenReturn(<String>['package:p2/u1.dart']);
@@ -179,7 +179,11 @@ class SummaryDataStoreTest {
     when(bundle2.linkedLibraryUris).thenReturn(<String>['package:p2/u1.dart']);
     when(bundle2.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary2]);
     when(bundle2.apiSignature).thenReturn('signature2');
-    dataStore.addBundle('/p2.ds', bundle2);
+    store.addBundle('/p2.ds', bundle2);
+  }
+
+  void setUp() {
+    _setupDataStore(dataStore);
   }
 
   test_addBundle() {
@@ -249,8 +253,30 @@ class SummaryDataStoreTest {
     when(bundle.linkedLibraries)
         .thenReturn(<LinkedLibrary>[linkedLibrary2, linkedLibrary1]);
     when(bundle.apiSignature).thenReturn('signature');
-    dataStore.addBundle('/p3.ds', bundle);
+    // p3 conflicts (overlaps) with existing summaries.
+    expect(() => dataStore.addBundle('/p3.ds', bundle),
+        throwsA(isConflictingSummaryException));
     expect(dataStore.dependencies.last.includedPackageNames, ['p1', 'p2']);
+  }
+
+  test_addBundle_multiProjectOverlap() {
+    SummaryDataStore dataStore2 = new SummaryDataStore(<String>[],
+        recordDependencyInfo: true, disallowOverlappingSummaries: false);
+    _setupDataStore(dataStore2);
+
+    PackageBundle bundle = new _PackageBundleMock();
+    when(bundle.unlinkedUnitUris)
+        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
+    when(bundle.unlinkedUnits)
+        .thenReturn(<UnlinkedUnit>[unlinkedUnit21, unlinkedUnit11]);
+    when(bundle.linkedLibraryUris)
+        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
+    when(bundle.linkedLibraries)
+        .thenReturn(<LinkedLibrary>[linkedLibrary2, linkedLibrary1]);
+    when(bundle.apiSignature).thenReturn('signature');
+    // p3 conflicts (overlaps) with existing summaries, but now allowed.
+    dataStore2.addBundle('/p3.ds', bundle);
+    expect(dataStore2.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
   test_getContainingLibraryUris_libraryUri() {
@@ -316,3 +342,12 @@ class _UnlinkedPublicNamespaceMock extends TypedMock
     implements UnlinkedPublicNamespace {}
 
 class _UnlinkedUnitMock extends TypedMock implements UnlinkedUnit {}
+
+/// A matcher for ConflictingSummaryException.
+const Matcher isConflictingSummaryException =
+    const _ConflictingSummaryException();
+
+class _ConflictingSummaryException extends TypeMatcher {
+  const _ConflictingSummaryException() : super("ConflictingSummaryException");
+  bool matches(item, Map matchState) => item is ConflictingSummaryException;
+}

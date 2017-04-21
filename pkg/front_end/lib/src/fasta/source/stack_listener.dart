@@ -28,6 +28,7 @@ enum NullValue {
   Combinators,
   Comments,
   ConditionalUris,
+  ConstructorInitializerSeparator,
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,

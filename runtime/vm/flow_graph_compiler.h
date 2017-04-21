@@ -8,8 +8,8 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
 #include "vm/intermediate_language.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 
@@ -540,6 +540,11 @@ class FlowGraphCompiler : public ValueObject {
 
   // If the cid does not fit in 16 bits, then this will cause a bailout.
   uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
+
+  // In optimized code, variables at the catch block entry reside at the top
+  // of the allocatable register range.
+  // Must be in sync with FlowGraphAllocator::ProcessInitialDefinition.
+  intptr_t CatchEntryRegForVariable(const LocalVariable& var);
 #endif  // defined(TARGET_ARCH_DBC)
 
   CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
@@ -705,15 +710,17 @@ class FlowGraphCompiler : public ValueObject {
   enum TypeTestStubKind {
     kTestTypeOneArg,
     kTestTypeTwoArgs,
-    kTestTypeThreeArgs,
+    kTestTypeFourArgs,
   };
 
-  RawSubtypeTestCache* GenerateCallSubtypeTestStub(TypeTestStubKind test_kind,
-                                                   Register instance_reg,
-                                                   Register type_arguments_reg,
-                                                   Register temp_reg,
-                                                   Label* is_instance_lbl,
-                                                   Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateCallSubtypeTestStub(
+      TypeTestStubKind test_kind,
+      Register instance_reg,
+      Register instantiator_type_arguments_reg,
+      Register function_type_arguments_reg,
+      Register temp_reg,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 

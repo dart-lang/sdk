@@ -22,7 +22,8 @@ void testSimpleDeadline(int connections) {
     var futures = [];
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
-      futures.add(client.get('localhost', server.port, '/')
+      futures.add(client
+          .get('localhost', server.port, '/')
           .then((request) => request.close())
           .then((response) => response.drain()));
     }
@@ -41,14 +42,15 @@ void testExceedDeadline(int connections) {
     var futures = [];
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
-      futures.add(client.get('localhost', server.port, '/')
+      futures.add(client
+          .get('localhost', server.port, '/')
           .then((request) => request.close())
           .then((response) => response.drain())
           .then((_) {
-            Expect.fail("Expected error");
-          }, onError: (e) {
-            // Expect error.
-          }));
+        Expect.fail("Expected error");
+      }, onError: (e) {
+        // Expect error.
+      }));
     }
     Future.wait(futures).then((_) => server.close());
   });
@@ -72,15 +74,16 @@ void testDeadlineAndDetach(int connections) {
     var futures = [];
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
-      futures.add(client.get('localhost', server.port, '/')
+      futures.add(client
+          .get('localhost', server.port, '/')
           .then((request) => request.close())
           .then((response) {
-            return response.fold(new BytesBuilder(), (b, d) => b..add(d))
-                .then((builder) {
-                  Expect.equals('stuff',
-                                new String.fromCharCodes(builder.takeBytes()));
-                });
-          }));
+        return response
+            .fold(new BytesBuilder(), (b, d) => b..add(d))
+            .then((builder) {
+          Expect.equals('stuff', new String.fromCharCodes(builder.takeBytes()));
+        });
+      }));
     }
     Future.wait(futures).then((_) => server.close());
   });
@@ -91,4 +94,3 @@ void main() {
   testExceedDeadline(10);
   testDeadlineAndDetach(10);
 }
-

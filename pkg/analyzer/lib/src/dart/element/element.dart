@@ -4237,7 +4237,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isEnumConstant =>
-      enclosingElement != null ? enclosingElement.isEnum : false;
+      enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
 
   @override
   bool get isStatic {
@@ -5900,16 +5900,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         for (int i = 0; i < length; i++) {
           UnlinkedExportPublic serializedExportPublic =
               unlinkedPublicExports[i];
-          LibraryElement exportedLibrary = resynthesizerContext
-              .buildExportedLibrary(serializedExportPublic.uri);
-          if (exportedLibrary != null) {
-            UnlinkedExportNonPublic serializedExportNonPublic =
-                unlinkedNonPublicExports[i];
-            ExportElementImpl exportElement =
-                new ExportElementImpl.forSerialized(
-                    serializedExportPublic, serializedExportNonPublic, library);
-            exports.add(exportElement);
-          }
+          UnlinkedExportNonPublic serializedExportNonPublic =
+              unlinkedNonPublicExports[i];
+          ExportElementImpl exportElement = new ExportElementImpl.forSerialized(
+              serializedExportPublic, serializedExportNonPublic, library);
+          exports.add(exportElement);
         }
         _exports = exports;
       } else {
@@ -5990,14 +5985,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
         for (int i = 0; i < length; i++) {
           int dependency = linkedLibrary.importDependencies[i];
-          LibraryElement importedLibrary =
-              resynthesizerContext.buildImportedLibrary(dependency);
-          if (importedLibrary != null) {
-            ImportElementImpl importElement =
-                new ImportElementImpl.forSerialized(
-                    unlinkedImports[i], dependency, library);
-            imports.add(importElement);
-          }
+          ImportElementImpl importElement = new ImportElementImpl.forSerialized(
+              unlinkedImports[i], dependency, library);
+          imports.add(importElement);
         }
         _imports = imports;
       } else {
@@ -6671,23 +6661,22 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   FunctionType getReifiedType(DartType objectType) {
-    // Collect the covariant parameters. Do this first so we don't allocate
-    // anything in the common case where there are none.
-    Set<String> covariantNames;
+    // Check whether we have any covariant parameters.
+    // Usually we don't, so we can use the same type.
+    bool hasCovariant = false;
     for (ParameterElement parameter in parameters) {
       if (parameter.isCovariant) {
-        covariantNames ??= new Set();
-        covariantNames.add(parameter.name);
+        hasCovariant = true;
+        break;
       }
     }
 
-    if (covariantNames == null) return type;
+    if (!hasCovariant) {
+      return type;
+    }
 
     List<ParameterElement> covariantParameters = parameters.map((parameter) {
-      if (!covariantNames.contains(parameter.name)) {
-        return parameter;
-      }
-
+      DartType type = parameter.isCovariant ? objectType : parameter.type;
       return new ParameterElementImpl.synthetic(
           parameter.name, objectType, parameter.parameterKind);
     }).toList();

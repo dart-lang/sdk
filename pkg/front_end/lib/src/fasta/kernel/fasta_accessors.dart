@@ -4,18 +4,17 @@
 
 library fasta.fasta_accessors;
 
-export 'package:kernel/frontend/accessors.dart' show wrapInvalid;
+export 'frontend_accessors.dart' show wrapInvalid;
 
-import 'package:kernel/frontend/accessors.dart'
-    show Accessor, buildIsNull, makeLet;
+import 'frontend_accessors.dart' show Accessor, buildIsNull, makeLet;
 
 import 'package:kernel/ast.dart';
 
 import '../errors.dart' show internalError;
 
-import '../builder/scope.dart' show AccessErrorBuilder, ProblemBuilder;
+import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
-import 'package:kernel/frontend/accessors.dart' as kernel
+import 'frontend_accessors.dart' as kernel
     show
         IndexAccessor,
         NullAwarePropertyAccessor,
@@ -44,13 +43,22 @@ abstract class BuilderHelper {
 
   Member lookupSuperMember(Name name, {bool isSetter: false});
 
-  builderToFirstExpression(Builder builder, String name, int offset);
+  scopeLookup(Scope scope, String name, int offset,
+      {bool isQualified: false, PrefixBuilder prefix});
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
   Expression buildCompileTimeError(error, [int offset]);
 
-  Initializer buildCompileTimeErrorIntializer(error, [int offset]);
+  Initializer buildInvalidIntializer(Expression expression, [int offset]);
+
+  Initializer buildSuperInitializer(
+      Constructor constructor, Arguments arguments,
+      [int offset]);
+
+  Initializer buildRedirectingInitializer(
+      Constructor constructor, Arguments arguments,
+      [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments);
 
@@ -59,6 +67,11 @@ abstract class BuilderHelper {
   Expression throwNoSuchMethodError(
       String name, Arguments arguments, int offset,
       {bool isSuper: false, isGetter: false, isSetter: false});
+
+  bool checkArguments(FunctionNode function, Arguments arguments,
+      List<TypeParameter> typeParameters);
+
+  StaticGet makeStaticGet(Member readTarget, int offset);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -70,13 +83,18 @@ abstract class FastaAccessor implements Accessor {
 
   String get plainNameForWrite => plainNameForRead;
 
+  bool get isInitializer => false;
+
   Expression buildForEffect() => buildSimpleRead();
 
   Initializer buildFieldInitializer(
       Map<String, FieldInitializer> initializers) {
-    // TODO(ahe): This error message is really bad.
-    return helper.buildCompileTimeErrorIntializer(
-        "Can't use $plainNameForRead here.", offset);
+    return helper.buildInvalidIntializer(
+        helper.buildCompileTimeError(
+            // TODO(ahe): This error message is really bad.
+            "Can't use $plainNameForRead here.",
+            offset),
+        offset);
   }
 
   Expression makeInvalidRead() {
@@ -88,7 +106,7 @@ abstract class FastaAccessor implements Accessor {
         isSetter: true);
   }
 
-  /* Expression | FastaAccessor */ doInvocation(
+  /* Expression | FastaAccessor | Initializer */ doInvocation(
       int offset, Arguments arguments);
 
   /* Expression | FastaAccessor */ buildPropertyAccess(
@@ -106,8 +124,8 @@ abstract class FastaAccessor implements Accessor {
   /* Expression | FastaAccessor */ buildThrowNoSuchMethodError(
       Arguments arguments,
       {bool isSuper: false,
-      isGetter: false,
-      isSetter: false,
+      bool isGetter: false,
+      bool isSetter: false,
       String name,
       int offset}) {
     return helper.throwNoSuchMethodError(
@@ -118,7 +136,7 @@ abstract class FastaAccessor implements Accessor {
   bool get isThisPropertyAccessor => false;
 }
 
-abstract class CompileTimeErrorAccessor implements FastaAccessor {
+abstract class ErrorAccessor implements FastaAccessor {
   @override
   Expression get builtBinary => internalError("Unsupported operation.");
 
@@ -135,23 +153,35 @@ abstract class CompileTimeErrorAccessor implements FastaAccessor {
     internalError("Unsupported operation.");
   }
 
-  Expression buildError();
+  /// Pass [arguments] that must be evaluated before throwing an error.  At
+  /// most one of [isGetter] and [isSetter] should be true and they're passed
+  /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset});
 
   Name get name => internalError("Unsupported operation.");
 
+  @override
   String get plainNameForRead => name.name;
 
   withReceiver(Object receiver, {bool isNullAware}) => this;
 
+  @override
   Initializer buildFieldInitializer(
       Map<String, FieldInitializer> initializers) {
-    return new LocalInitializer(new VariableDeclaration.forValue(buildError()));
+    return helper.buildInvalidIntializer(
+        buildError(new Arguments.empty(), isSetter: true));
   }
 
-  doInvocation(int offset, Arguments arguments) => this;
+  @override
+  doInvocation(int offset, Arguments arguments) {
+    return buildError(arguments, offset: offset);
+  }
 
+  @override
   buildPropertyAccess(IncompleteSend send, bool isNullAware) => this;
 
+  @override
   buildThrowNoSuchMethodError(Arguments arguments,
       {bool isSuper: false,
       isGetter: false,
@@ -161,41 +191,55 @@ abstract class CompileTimeErrorAccessor implements FastaAccessor {
     return this;
   }
 
+  @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError();
+    return buildError(new Arguments(<Expression>[value]), isSetter: true);
   }
 
+  @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError();
+    return buildError(new Arguments(<Expression>[value]), isGetter: true);
   }
 
+  @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError();
+    return buildError(new Arguments(<Expression>[new IntLiteral(1)]),
+        isGetter: true);
   }
 
+  @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError();
+    return buildError(new Arguments(<Expression>[new IntLiteral(1)]),
+        isGetter: true);
   }
 
+  @override
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return buildError();
+    return buildError(new Arguments(<Expression>[value]), isSetter: true);
   }
 
-  Expression buildSimpleRead() => buildError();
+  @override
+  Expression buildSimpleRead() =>
+      buildError(new Arguments.empty(), isGetter: true);
 
-  Expression makeInvalidRead() => buildError();
+  @override
+  Expression makeInvalidRead() =>
+      buildError(new Arguments.empty(), isGetter: true);
 
-  Expression makeInvalidWrite(Expression value) => buildError();
+  @override
+  Expression makeInvalidWrite(Expression value) {
+    return buildError(new Arguments(<Expression>[value]), isSetter: true);
+  }
 }
 
 class ThisAccessor extends FastaAccessor {
@@ -240,8 +284,10 @@ class ThisAccessor extends FastaAccessor {
   Initializer buildFieldInitializer(
       Map<String, FieldInitializer> initializers) {
     String keyword = isSuper ? "super" : "this";
-    return helper.buildCompileTimeErrorIntializer(
-        "Can't use '$keyword' here, did you mean '$keyword()'?", offset);
+    return helper.buildInvalidIntializer(
+        helper.buildCompileTimeError(
+            "Can't use '$keyword' here, did you mean '$keyword()'?", offset),
+        offset);
   }
 
   buildPropertyAccess(IncompleteSend send, bool isNullAware) {
@@ -280,17 +326,18 @@ class ThisAccessor extends FastaAccessor {
   Initializer buildConstructorInitializer(
       int offset, Name name, Arguments arguments) {
     Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
-    Initializer result;
-    if (constructor == null) {
-      result = new LocalInitializer(new VariableDeclaration.forValue(
+    if (constructor == null ||
+        !helper.checkArguments(
+            constructor.function, arguments, <TypeParameter>[])) {
+      return helper.buildInvalidIntializer(
           buildThrowNoSuchMethodError(arguments,
-              isSuper: isSuper, name: name.name, offset: offset)));
+              isSuper: isSuper, name: name.name, offset: offset),
+          offset);
     } else if (isSuper) {
-      result = new SuperInitializer(constructor, arguments);
+      return helper.buildSuperInitializer(constructor, arguments, offset);
     } else {
-      result = new RedirectingInitializer(constructor, arguments);
+      return helper.buildRedirectingInitializer(constructor, arguments, offset);
     }
-    return result..fileOffset = offset;
   }
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
@@ -361,15 +408,20 @@ abstract class IncompleteSend extends FastaAccessor {
   withReceiver(Object receiver, {bool isNullAware});
 }
 
-class IncompleteError extends IncompleteSend with CompileTimeErrorAccessor {
+class IncompleteError extends IncompleteSend with ErrorAccessor {
   final Object error;
 
   IncompleteError(BuilderHelper helper, int offset, this.error)
       : super(helper, offset, null);
 
-  Expression buildError() {
-    return helper.buildCompileTimeError(error, offset);
+  @override
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    return helper.buildCompileTimeError(error, offset ?? this.offset);
   }
+
+  @override
+  doInvocation(int offset, Arguments arguments) => this;
 }
 
 class SendAccessor extends IncompleteSend {
@@ -401,14 +453,14 @@ class SendAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
-      receiver = helper.builderToFirstExpression(
-          prefix.exports[name.name], "${prefix.name}.${name.name}", offset);
+      receiver = helper.scopeLookup(prefix.exports, name.name, offset,
+          isQualified: true, prefix: prefix);
       return helper.finishSend(receiver, arguments, offset);
     }
     Expression result;
     if (receiver is KernelClassBuilder) {
       Builder builder = receiver.findStaticBuilder(name.name, offset, uri);
-      if (builder == null) {
+      if (builder == null || builder is AccessErrorBuilder) {
         return buildThrowNoSuchMethodError(arguments);
       }
       if (builder.hasProblem) {
@@ -487,8 +539,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
-      return helper.builderToFirstExpression(
-          prefix.exports[name.name], name.name, offset);
+      return helper.scopeLookup(prefix.exports, name.name, offset,
+          isQualified: true, prefix: prefix);
     }
     if (receiver is KernelClassBuilder) {
       Builder builder = receiver.findStaticBuilder(name.name, offset, uri);
@@ -611,10 +663,9 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 }
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
-  final BuilderHelper helper;
-
-  StaticAccessor(this.helper, int offset, Member readTarget, Member writeTarget)
-      : super(readTarget, writeTarget, offset) {
+  StaticAccessor(
+      BuilderHelper helper, int offset, Member readTarget, Member writeTarget)
+      : super(helper, readTarget, writeTarget, offset) {
     assert(readTarget != null || writeTarget != null);
   }
 
@@ -799,6 +850,31 @@ class ParenthesizedExpression extends ReadOnlyAccessor {
   Expression makeInvalidWrite(Expression value) {
     return helper.buildCompileTimeError(
         "Can't assign to a parenthesized expression.", offset);
+  }
+}
+
+class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
+  @override
+  final int offset;
+
+  @override
+  final BuilderHelper helper;
+
+  @override
+  final Name name;
+
+  UnresolvedAccessor(this.helper, this.name, this.offset);
+
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    return helper.throwNoSuchMethodError(
+        plainNameForRead, arguments, offset ?? this.offset,
+        isGetter: isGetter, isSetter: isSetter);
   }
 }
 

@@ -286,8 +286,7 @@ Future testConfigurations(List<Map> configurations) async {
   // make a pool of all available adb devices.
   AdbDevicePool adbDevicePool;
   bool needsAdbDevicePool = configurations.any((Map conf) {
-    return conf['runtime'] == 'dart_precompiled' &&
-           conf['system'] == 'android';
+    return conf['runtime'] == 'dart_precompiled' && conf['system'] == 'android';
   });
   if (needsAdbDevicePool) {
     adbDevicePool = await AdbDevicePool.create();
@@ -305,10 +304,10 @@ Future testConfigurations(List<Map> configurations) async {
       var text =
           await new File(VS_TOOLCHAIN_FILE.toNativePath()).readAsString();
       firstConf['win_sdk_path'] = JSON.decode(text)['win_sdk'];
-      } on dynamic {
-        // Ignore errors here. If win_sdk is not found, stack trace dumping
-        // for timeouts won't work.
-      }
+    } on dynamic {
+      // Ignore errors here. If win_sdk is not found, stack trace dumping
+      // for timeouts won't work.
+    }
   }
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the

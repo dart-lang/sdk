@@ -12,8 +12,8 @@ class B {
   int get hashCode => 1234567;
 }
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
 function A() {}

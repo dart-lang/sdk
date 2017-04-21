@@ -5,7 +5,6 @@
 library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
-import '../elements/elements.dart' show MemberElement;
 import '../elements/entities.dart';
 import '../types/types.dart';
 import '../util/util.dart' show Hashing, Setlet;
@@ -18,7 +17,7 @@ class FunctionSetBuilder {
 
   FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 
-  void add(MemberElement element) {
+  void add(MemberEntity element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
@@ -26,7 +25,7 @@ class FunctionSetBuilder {
     node.add(element);
   }
 
-  void remove(MemberElement element) {
+  void remove(MemberEntity element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
@@ -50,7 +49,7 @@ class FunctionSet {
 
   FunctionSet(this.closedWorld, this.nodes);
 
-  bool contains(MemberElement element) {
+  bool contains(MemberEntity element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
@@ -62,7 +61,7 @@ class FunctionSet {
   /// receiver with the given [constraint]. The returned elements may include
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
-  Iterable<MemberElement> filter(
+  Iterable<MemberEntity> filter(
       Selector selector, ReceiverConstraint constraint) {
     return query(selector, constraint).functions;
   }
@@ -162,12 +161,12 @@ class FunctionSetNode {
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
   static const int MAX_ELEMENTS_IN_LIST = 8;
-  var elements = <MemberElement>[];
+  var elements = <MemberEntity>[];
   bool isList = true;
 
   FunctionSetNode(this.name);
 
-  void add(MemberElement element) {
+  void add(MemberEntity element) {
     assert(element.name == name);
     // We try to avoid clearing the cache unless we have to. For that
     // reason we keep the explicit contains check even though the add
@@ -182,13 +181,13 @@ class FunctionSetNode {
     }
   }
 
-  void remove(MemberElement element) {
+  void remove(MemberEntity element) {
     assert(element.name == name);
     if (isList) {
       List list = elements;
       int index = list.indexOf(element);
       if (index < 0) return;
-      MemberElement last = list.removeLast();
+      MemberEntity last = list.removeLast();
       if (index != list.length) {
         list[index] = last;
       }
@@ -204,7 +203,7 @@ class FunctionSetNode {
     }
   }
 
-  bool contains(MemberElement element) {
+  bool contains(MemberEntity element) {
     assert(element.name == name);
     return elements.contains(element);
   }
@@ -221,14 +220,14 @@ class FunctionSetNode {
     FunctionSetQuery result = cache[selectorMask];
     if (result != null) return result;
 
-    Setlet<MemberElement> functions;
-    for (MemberElement element in elements) {
+    Setlet<MemberEntity> functions;
+    for (MemberEntity element in elements) {
       if (selectorMask.applies(element, closedWorld)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
           // lists when the filtering produced no results.
-          functions = new Setlet<MemberElement>();
+          functions = new Setlet<MemberEntity>();
         }
         functions.add(element);
       }
@@ -244,7 +243,7 @@ class FunctionSetNode {
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
           functions =
-              new Setlet<MemberElement>.from(noSuchMethodQuery.functions);
+              new Setlet<MemberEntity>.from(noSuchMethodQuery.functions);
         } else {
           functions.addAll(noSuchMethodQuery.functions);
         }
@@ -266,7 +265,7 @@ abstract class FunctionSetQuery {
   TypeMask computeMask(ClosedWorld closedWorld);
 
   /// Returns all potential targets of this function set.
-  Iterable<MemberElement> get functions;
+  Iterable<MemberEntity> get functions;
 }
 
 class EmptyFunctionSetQuery implements FunctionSetQuery {
@@ -277,12 +276,12 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
       const TypeMask.nonNullEmpty();
 
   @override
-  Iterable<MemberElement> get functions => const <MemberElement>[];
+  Iterable<MemberEntity> get functions => const <MemberEntity>[];
 }
 
 class FullFunctionSetQuery implements FunctionSetQuery {
   @override
-  final Iterable<MemberElement> functions;
+  final Iterable<MemberEntity> functions;
 
   TypeMask _mask;
 
@@ -294,11 +293,11 @@ class FullFunctionSetQuery implements FunctionSetQuery {
         .hasAnyStrictSubclass(closedWorld.commonElements.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(
-        functions.expand((MemberElement element) {
+        functions.expand((MemberEntity element) {
           ClassEntity cls = element.enclosingClass;
           return [cls]..addAll(closedWorld.mixinUsesOf(cls));
         }).map((cls) {
-          if (closedWorld.backendClasses.nullClass == cls) {
+          if (closedWorld.commonElements.jsNullClass == cls) {
             return const TypeMask.empty();
           } else if (closedWorld.isInstantiated(cls)) {
             return new TypeMask.nonNullSubclass(cls, closedWorld);

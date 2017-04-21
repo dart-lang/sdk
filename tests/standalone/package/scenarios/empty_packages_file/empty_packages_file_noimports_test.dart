@@ -8,5 +8,4 @@
 // you should only run into problems if you try to resolve a package import.
 library empty_packages_file_noimports_test;
 
-main() {
-}
+main() {}

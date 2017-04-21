@@ -7,12 +7,12 @@ import "package:expect/expect.dart";
 // Dart test program for testing class 'Strings'.
 
 class StringsTest {
-
   StringsTest() {}
 
   toString() {
     return "Strings Tester";
   }
+
   static testCreation() {
     String s = "Hello";
     List<int> l = new List(s.length);
@@ -27,7 +27,6 @@ class StringsTest {
     testCreation();
   }
 }
-
 
 main() {
   StringsTest.testMain();

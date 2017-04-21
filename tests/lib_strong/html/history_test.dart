@@ -1,4 +1,5 @@
 library HistoryTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -30,18 +31,16 @@ main() {
         window.history.pushState(null, document.title, '?foo=bar');
 
         expect(window.location.href.endsWith('foo=bar'), isTrue);
-
       }, expectation);
     });
 
     test('pushState with data', () {
       expect(() {
-        window.history.pushState({'one' : 1}, document.title, '?dummy');
-        expect(window.history.state, equals({'one' : 1}));
+        window.history.pushState({'one': 1}, document.title, '?dummy');
+        expect(window.history.state, equals({'one': 1}));
         window.history.pushState(null, document.title, '?foo=bar');
 
         expect(window.location.href.endsWith('foo=bar'), isTrue);
-
       }, expectation);
     });
 
@@ -55,7 +54,7 @@ main() {
 
         // Need to wait a frame or two to let the pushState events occur.
         new Timer(const Duration(milliseconds: 100), expectAsync(() {
-          window.onPopState.first.then(expectAsync((_){
+          window.onPopState.first.then(expectAsync((_) {
             expect(window.history.length, length);
             expect(window.location.href.endsWith('dummy1'), isTrue);
           }));
@@ -85,7 +84,7 @@ main() {
     test('hashchangeevent', () {
       var expectation = HashChangeEvent.supported ? returnsNormally : throws;
       expect(() {
-        var event = new HashChangeEvent('change', oldUrl:'old', newUrl: 'new');
+        var event = new HashChangeEvent('change', oldUrl: 'old', newUrl: 'new');
         expect(event is HashChangeEvent, true);
         expect(event.oldUrl, 'old');
         expect(event.newUrl, 'new');

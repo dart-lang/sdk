@@ -8,15 +8,17 @@
 import 'package:expect/expect.dart';
 
 class A {}
+
 class B extends A {}
+
 class C extends A {}
 
-class Class<K,V> {
+class Class<K, V> {
   void forEach(void f(K k, V v)) {}
 }
 
 main() {
-  Class<B,C> c = new Class<B,C>();
+  Class<B, C> c = new Class<B, C>();
   c.forEach((A a, A b) {});
   c.forEach((B a, C b) {});
   try {
@@ -26,7 +28,6 @@ main() {
     Expect.isTrue(isCheckedMode());
   }
 }
-
 
 isCheckedMode() {
   try {

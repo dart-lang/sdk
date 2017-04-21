@@ -51,6 +51,9 @@ Future compilePlatform(List<String> arguments) async {
 
 Future compilePlatformInternal(
     CompilerContext c, Ticker ticker, Uri patchedSdk, Uri output) async {
+  if (c.options.strongMode) {
+    print("Note: strong mode support is preliminary and may not work.");
+  }
   ticker.isVerbose = c.options.verbose;
   Uri deps = Uri.base.resolveUri(new Uri.file("${output.toFilePath()}.d"));
   ticker.logMs("Parsed arguments");
@@ -63,8 +66,8 @@ Future compilePlatformInternal(
   ticker.logMs("Read packages file");
 
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-  KernelTarget kernelTarget =
-      new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
+  KernelTarget kernelTarget = new KernelTarget(
+      dillTarget, uriTranslator, c.options.strongMode, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.writeOutline(null);

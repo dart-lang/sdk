@@ -20,6 +20,10 @@
 #include "vm/version.h"
 #include "vm/visitor.h"
 
+#if defined(DEBUG)
+#define SNAPSHOT_BACKTRACE
+#endif
+
 namespace dart {
 
 // Forward declarations.
@@ -154,42 +158,16 @@ class Serializer : public StackResource {
     next_ref_index_++;
   }
 
-  void Push(RawObject* object) {
-    if (!object->IsHeapObject()) {
-      RawSmi* smi = Smi::RawCast(object);
-      if (smi_ids_.Lookup(smi) == NULL) {
-        SmiObjectIdPair pair;
-        pair.smi_ = smi;
-        pair.id_ = 1;
-        smi_ids_.Insert(pair);
-        stack_.Add(object);
-        num_written_objects_++;
-      }
-      return;
-    }
-
-    if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-      return;  // Do not trace, will write null.
-    }
-
-    if (object->IsSendPort()) {
-      // TODO(rmacnak): Do a better job of resetting fields in precompilation
-      // and assert this is unreachable.
-      return;  // Do not trace, will write null.
-    }
-
-    intptr_t id = heap_->GetObjectId(object);
-    if (id == 0) {
-      heap_->SetObjectId(object, 1);
-      ASSERT(heap_->GetObjectId(object) != 0);
-      stack_.Add(object);
-      num_written_objects_++;
-    }
-  }
+  void Push(RawObject* object);
 
   void AddUntracedRef() { num_written_objects_++; }
 
   void Trace(RawObject* object);
+
+  void UnexpectedObject(RawObject* object, const char* message);
+#if defined(SNAPSHOT_BACKTRACE)
+  RawObject* ParentOf(const Object& object);
+#endif
 
   SerializationCluster* NewClusterForClass(intptr_t cid);
 
@@ -281,6 +259,11 @@ class Serializer : public StackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   SmiObjectIdMap smi_ids_;
+
+#if defined(SNAPSHOT_BACKTRACE)
+  RawObject* current_parent_;
+  GrowableArray<Object*> parent_pairs_;
+#endif
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
@@ -377,6 +360,7 @@ class Deserializer : public StackResource {
   Snapshot::Kind kind_;
   ReadStream stream_;
   InstructionsReader* instructions_reader_;
+  intptr_t num_base_objects_;
   intptr_t num_objects_;
   intptr_t num_clusters_;
   RawArray* refs_;

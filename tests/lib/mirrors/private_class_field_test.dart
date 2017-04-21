@@ -5,6 +5,9 @@
 // Test a private field name doesn't match the equivalent private name from
 // another library.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -14,7 +17,7 @@ void main() {
   var classMirror = reflectClass(C);
   // The symbol is private w/r/t the wrong library.
   Expect.throws(() => classMirror.getField(#_privateField),
-                (e) => e is NoSuchMethodError);
+      (e) => e is NoSuchMethodError);
 
   Expect.equals(42, classMirror.getField(privateFieldSymbolInOther).reflectee);
 }

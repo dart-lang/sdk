@@ -15,9 +15,8 @@ class C {
   const C(this.x);
 }
 
-@C(const {'foo': 'bar' })
+@C(const {'foo': 'bar'})
 class A {}
-
 
 main() {
   print(reflectClass(A).metadata);

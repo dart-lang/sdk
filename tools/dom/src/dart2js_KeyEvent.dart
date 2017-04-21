@@ -76,7 +76,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent): super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent) : super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -86,9 +86,16 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
   factory KeyEvent(String type,
-      {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
-      int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false,
+      {Window view,
+      bool canBubble: true,
+      bool cancelable: true,
+      int keyCode: 0,
+      int charCode: 0,
+      int keyLocation: 1,
+      bool ctrlKey: false,
+      bool altKey: false,
+      bool shiftKey: false,
+      bool metaKey: false,
       EventTarget currentTarget}) {
     if (view == null) {
       view = window;
@@ -128,12 +135,21 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
           canBubble: canBubble, cancelable: cancelable);
 
       // Chromium Hack
-      JS('void', "Object.defineProperty(#, 'keyCode', {"
-          "  get : function() { return this.keyCodeVal; } })",  eventObj);
-      JS('void', "Object.defineProperty(#, 'which', {"
-          "  get : function() { return this.keyCodeVal; } })",  eventObj);
-      JS('void', "Object.defineProperty(#, 'charCode', {"
-          "  get : function() { return this.charCodeVal; } })",  eventObj);
+      JS(
+          'void',
+          "Object.defineProperty(#, 'keyCode', {"
+          "  get : function() { return this.keyCodeVal; } })",
+          eventObj);
+      JS(
+          'void',
+          "Object.defineProperty(#, 'which', {"
+          "  get : function() { return this.keyCodeVal; } })",
+          eventObj);
+      JS(
+          'void',
+          "Object.defineProperty(#, 'charCode', {"
+          "  get : function() { return this.charCodeVal; } })",
+          eventObj);
 
       var keyIdentifier = _convertToHexString(charCode, keyCode);
       eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
@@ -152,10 +168,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   // Currently known to work on all browsers but IE.
-  static bool get canUseDispatchEvent =>
-      JS('bool',
-         '(typeof document.body.dispatchEvent == "function")'
-         '&& document.body.dispatchEvent.length > 0');
+  static bool get canUseDispatchEvent => JS(
+      'bool',
+      '(typeof document.body.dispatchEvent == "function")'
+      '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
@@ -202,10 +218,11 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get shiftKey => _parent.shiftKey;
   InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
-  void _initUIEvent(String type, bool canBubble, bool cancelable,
-      Window view, int detail) {
+  void _initUIEvent(
+      String type, bool canBubble, bool cancelable, Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
+
   String get _shadowKeyIdentifier => JS('String', '#.keyIdentifier', _parent);
 
   int get _charCode => charCode;
@@ -215,12 +232,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
-  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey) {
+
+  void _initKeyboardEvent(
+      String type,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      String keyIdentifier,
+      int keyLocation,
+      bool ctrlKey,
+      bool altKey,
+      bool shiftKey,
+      bool metaKey) {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
+
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged

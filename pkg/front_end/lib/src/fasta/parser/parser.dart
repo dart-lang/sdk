@@ -58,7 +58,7 @@ import '../scanner.dart' show ErrorToken;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
-import '../scanner/keyword.dart' show Keyword;
+import '../../scanner/token.dart' show Keyword;
 
 import '../scanner/precedence.dart'
     show
@@ -177,6 +177,90 @@ class FormalParameterType {
 ///
 /// Historically, we over-used identical, and when identical is used on other
 /// objects than strings, it can often be replaced by `==`.
+///
+/// ## Flexibility, Extensibility, and Specification
+///
+/// The parser is designed to be flexible and extensible. Its methods are
+/// designed to be overridden in subclasses, so it can be extended to handle
+/// unspecified language extension or experiments while everything in this file
+/// attempts to follow the specification (unless when it interferes with error
+/// recovery).
+///
+/// We achieve flexibily, extensible, and specification compliance by following
+/// a few rules-of-thumb:
+///
+/// 1. All methods in the parser should be public.
+///
+/// 2. The methods follow the specified grammar, and do not implement custom
+/// extensions, for example, `native`.
+///
+/// 3. The parser doesn't rewrite the token stream (when dealing with `>>`).
+///
+/// ### Implementing Extensions
+///
+/// For various reasons, some Dart language implementations have used
+/// custom/unspecified extensions to the Dart grammar. Examples of this
+/// includes diet parsing, patch files, `native` keyword, and generic
+/// comments. This class isn't supposed to implement any of these
+/// features. Instead it provides hooks for those extensions to be implemented
+/// in subclasses or listeners. Let's examine how diet parsing and `native`
+/// keyword is currently supported by Fasta.
+///
+/// #### Implementation of `native` Keyword
+///
+/// Both dart2js and the Dart VM have used the `native` keyword to mark methods
+/// that couldn't be implemented in the Dart language and needed to be
+/// implemented in JavaScript or C++, respectively. An example of the syntax
+/// extension used by the Dart VM is:
+///
+///     nativeFunction() native "NativeFunction";
+///
+/// When attempting to parse this function, the parser eventually calls
+/// [parseFunctionBody]. This method will report an unrecoverable error to the
+/// listener with the code [codeExpectedFunctionBody]. The listener can then
+/// look at the error code and the token and use the methods in
+/// [dart_vm_native.dart](dart_vm_native.dart) to parse the native syntax.
+///
+/// #### Implementation of Diet Parsing
+///
+/// We call it _diet_ _parsing_ when the parser skips parts of a file. Both
+/// dart2js and the Dart VM have been relying on this from early on as it allows
+/// them to more quickly compile small programs that use small parts of big
+/// libraries. It's also become an integrated part of how Fasta builds up
+/// outlines before starting to parse method bodies.
+///
+/// When looking through this parser, you'll find a number of unused methods
+/// starting with `skip`. These methods are only used by subclasses, such as
+/// [ClassMemberParser](class_member_parser.dart) and
+/// [TopLevelParser](top_level_parser.dart). These methods violate the
+/// principle above about following the specified grammar, and originally lived
+/// in subclasses. However, we realized that these methods were so widely used
+/// and hard to maintain in subclasses, that it made sense to move them here.
+///
+/// ### Specification and Error Recovery
+///
+/// To improve error recovery, the parser will inform the listener of
+/// recoverable errors and continue to parse.  An example of a recoverable
+/// error is:
+///
+///     Error: Asynchronous for-loop can only be used in 'async' or 'async*'...
+///     main() { await for (var x in []) {} }
+///              ^^^^^
+///
+/// For unrecoverable errors, the parser will ask the listener for help to
+/// recover from the error. We haven't made much progress on these kinds of
+/// errors, so in most cases, the parser aborts by skipping to the end of file.
+///
+/// Historically, this parser has been rather lax in what it allows, and
+/// deferred the enforcement of some syntactical rules to subsequent phases. It
+/// doesn't matter how we got there, only that we've identified that it's
+/// easier if the parser reports as many errors it can, but informs the
+/// listener if the error is recoverable or not.
+///
+/// Currently, the parser is particularly lax when it comes to the order of
+/// modifiers such as `abstract`, `final`, `static`, etc. Historically, dart2js
+/// would handle such errors in later phases. We hope that these cases will go
+/// away as Fasta matures.
 class Parser {
   final Listener listener;
 
@@ -633,6 +717,7 @@ class Parser {
       }
     }
 
+    token = listener.injectGenericCommentTypeList(token);
     if (optional('(', token)) {
       Token inlineFunctionTypeStart = token;
       listener.beginFunctionTypedFormalParameter(token);
@@ -718,6 +803,7 @@ class Parser {
       // Function type without return type.
       return parseType(token);
     }
+    token = listener.injectGenericCommentTypeAssign(token);
     Token peek = peekAfterIfType(token);
     if (peek != null && (peek.isIdentifier() || optional('this', peek))) {
       return parseType(token);
@@ -1017,9 +1103,9 @@ class Parser {
   /// [value2], or [value3].
   bool isOneOf3(Token token, String value1, String value2, String value3) {
     String stringValue = token.stringValue;
-    return value1 == stringValue ||
-        value2 == stringValue ||
-        value3 == stringValue;
+    return identical(value1, stringValue) ||
+        identical(value2, stringValue) ||
+        identical(value3, stringValue);
   }
 
   /// Returns true if the stringValue of the [token] is either [value1],
@@ -1027,10 +1113,10 @@ class Parser {
   bool isOneOf4(
       Token token, String value1, String value2, String value3, String value4) {
     String stringValue = token.stringValue;
-    return value1 == stringValue ||
-        value2 == stringValue ||
-        value3 == stringValue ||
-        value4 == stringValue;
+    return identical(value1, stringValue) ||
+        identical(value2, stringValue) ||
+        identical(value3, stringValue) ||
+        identical(value4, stringValue);
   }
 
   bool notEofOrValue(String value, Token token) {
@@ -1107,9 +1193,10 @@ class Parser {
         (t) => listener.handleNoTypeVariables(t));
   }
 
-  // TODO(ahe): Clean this up.
+  /// TODO(ahe): Clean this up.
   Token parseStuff(Token token, Function beginStuff, Function stuffParser,
       Function endStuff, Function handleNoStuff) {
+    token = listener.injectGenericCommentTypeList(token);
     if (optional('<', token)) {
       Token begin = token;
       beginStuff(begin);
@@ -1532,7 +1619,7 @@ class Parser {
       Token assignment = token;
       listener.beginFieldInitializer(token);
       token = parseExpression(token.next);
-      listener.endFieldInitializer(assignment);
+      listener.endFieldInitializer(assignment, token);
     } else {
       listener.handleNoFieldInitializer(token);
     }
@@ -2396,6 +2483,13 @@ class Parser {
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
       assert(identifier.isIdentifier());
+
+      // If the identifier token has a type substitution comment /*=T*/,
+      // then the set of tokens type tokens should be replaced with the
+      // tokens parsed from the comment.
+      token =
+          listener.replaceTokenWithGenericCommentTypeAssign(token, identifier);
+
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (identical(afterIdKind, EQ_TOKEN) ||
@@ -2480,6 +2574,7 @@ class Parser {
     if (isModifier(token.next)) {
       return parseVariablesDeclaration(token);
     }
+    listener.injectGenericCommentTypeAssign(token.next);
     Token identifier = peekIdentifierAfterOptionalType(token.next);
     if (identifier != null) {
       assert(identifier.isIdentifier());
@@ -2788,6 +2883,7 @@ class Parser {
   }
 
   Token parsePrimary(Token token, IdentifierContext context) {
+    token = listener.injectGenericCommentTypeList(token);
     final kind = token.kind;
     if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token, context);
@@ -3080,17 +3176,27 @@ class Parser {
   Token parseConstExpression(Token token) {
     Token constKeyword = token;
     token = expect('const', token);
+    token = listener.injectGenericCommentTypeList(token);
     final String value = token.stringValue;
     if ((identical(value, '[')) || (identical(value, '[]'))) {
+      listener.beginConstLiteral(token);
       listener.handleNoTypeArguments(token);
-      return parseLiteralListSuffix(token, constKeyword);
+      token = parseLiteralListSuffix(token, constKeyword);
+      listener.endConstLiteral(token);
+      return token;
     }
     if (identical(value, '{')) {
+      listener.beginConstLiteral(token);
       listener.handleNoTypeArguments(token);
-      return parseLiteralMapSuffix(token, constKeyword);
+      token = parseLiteralMapSuffix(token, constKeyword);
+      listener.endConstLiteral(token);
+      return token;
     }
     if (identical(value, '<')) {
-      return parseLiteralListOrMapOrFunction(token, constKeyword);
+      listener.beginConstLiteral(token);
+      token = parseLiteralListOrMapOrFunction(token, constKeyword);
+      listener.endConstLiteral(token);
+      return token;
     }
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token);
@@ -3193,6 +3299,7 @@ class Parser {
     Token beginToken = token;
     listener.beginSend(token);
     token = parseIdentifier(token, context);
+    token = listener.injectGenericCommentTypeList(token);
     if (isValidMethodTypeArguments(token)) {
       token = parseTypeArgumentsOpt(token);
     } else {
@@ -3297,6 +3404,15 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     int count = 1;
+    token = parseMetadataStar(token);
+
+    // If the next token has a type substitution comment /*=T*/, then
+    // the current 'var' token should be repealed and replaced.
+    if (identical('var', token.stringValue)) {
+      token =
+          listener.replaceTokenWithGenericCommentTypeAssign(token, token.next);
+    }
+
     token = parseModifiers(token);
     token = parseTypeOpt(token);
     listener.beginVariablesDeclaration(token);
@@ -3366,7 +3482,7 @@ class Parser {
     if (identical(value, ';')) {
       listener.handleNoExpression(token);
       return token;
-    } else if (isOneOf3(token, 'var', 'final', 'const')) {
+    } else if (isOneOf4(token, '@', 'var', 'final', 'const')) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
     Token identifier = peekIdentifierAfterType(token);

@@ -10,6 +10,7 @@ library subLib;
 import 'library_metatarget_test_annotations_lib.dart';
 
 class A {
-  @reflectable var reflectableField = 1;
+  @reflectable
+  var reflectableField = 1;
   var nonreflectableField = 2;
 }

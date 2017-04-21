@@ -16,8 +16,7 @@ class StringScanner {
 
   int nextByte() => charAt(++byteOffset);
 
-  int charAt(index)
-      => (string.length > index) ? string.codeUnitAt(index) : -1;
+  int charAt(index) => (string.length > index) ? string.codeUnitAt(index) : -1;
 }
 
 void main() {

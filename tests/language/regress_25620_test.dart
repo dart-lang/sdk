@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+
 typedef Future<T> SyncedExecutionFn<T>(Future<T> fn());
 main() {}
-

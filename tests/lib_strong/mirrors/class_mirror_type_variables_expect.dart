@@ -10,7 +10,6 @@ import "dart:mirrors";
 
 import "package:expect/expect.dart";
 
-
 /// The interface of [Env] is shared between the runtime and the source mirrors
 /// test.
 abstract class Env {
@@ -113,8 +112,8 @@ void testE(Env env) {
 
   Expect.isFalse(mapRAndHelperOfString.isOriginalDeclaration);
   Expect.equals(eR, mapRAndHelperOfString.typeArguments.first);
-  Expect.equals(env.getHelperOfString(),
-      mapRAndHelperOfString.typeArguments.last);
+  Expect.equals(
+      env.getHelperOfString(), mapRAndHelperOfString.typeArguments.last);
 }
 
 void testF(Env env) {

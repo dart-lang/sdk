@@ -4,7 +4,7 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
@@ -328,6 +328,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernel, passThrough),
+    new OptionHandler(Flags.loadFromDill, passThrough),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),

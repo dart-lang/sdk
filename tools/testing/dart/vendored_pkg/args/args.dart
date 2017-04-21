@@ -255,8 +255,12 @@ class ArgParser {
    * * There is already an option named [name].
    * * There is already an option using abbreviation [abbr].
    */
-  void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
-      bool negatable: true, void callback(bool value)}) {
+  void addFlag(String name,
+      {String abbr,
+      String help,
+      bool defaultsTo: false,
+      bool negatable: true,
+      void callback(bool value)}) {
     _addOption(name, abbr, help, null, null, defaultsTo, callback,
         isFlag: true, negatable: negatable);
   }
@@ -267,17 +271,21 @@ class ArgParser {
    * * There is already an option with name [name].
    * * There is already an option using abbreviation [abbr].
    */
-  void addOption(String name, {String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, String defaultsTo,
-      void callback(value), bool allowMultiple: false}) {
-    _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
-        callback, isFlag: false, allowMultiple: allowMultiple);
+  void addOption(String name,
+      {String abbr,
+      String help,
+      List<String> allowed,
+      Map<String, String> allowedHelp,
+      String defaultsTo,
+      void callback(value),
+      bool allowMultiple: false}) {
+    _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo, callback,
+        isFlag: false, allowMultiple: allowMultiple);
   }
 
   void _addOption(String name, String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, defaultsTo,
-      void callback(value), {bool isFlag, bool negatable: false,
-      bool allowMultiple: false}) {
+      Map<String, String> allowedHelp, defaultsTo, void callback(value),
+      {bool isFlag, bool negatable: false, bool allowMultiple: false}) {
     // Make sure the name isn't in use.
     if (options.containsKey(name)) {
       throw new ArgumentError('Duplicate option "$name".');
@@ -297,9 +305,9 @@ class ArgParser {
       }
     }
 
-    options[name] = new Option(name, abbr, help, allowed, allowedHelp,
-        defaultsTo, callback, isFlag: isFlag, negatable: negatable,
-        allowMultiple: allowMultiple);
+    options[name] = new Option(
+        name, abbr, help, allowed, allowedHelp, defaultsTo, callback,
+        isFlag: isFlag, negatable: negatable, allowMultiple: allowMultiple);
   }
 
   /**
@@ -352,8 +360,8 @@ class Option {
   final bool allowMultiple;
 
   Option(this.name, this.abbreviation, this.help, this.allowed,
-      this.allowedHelp, this.defaultValue, this.callback, {this.isFlag,
-      this.negatable, this.allowMultiple: false});
+      this.allowedHelp, this.defaultValue, this.callback,
+      {this.isFlag, this.negatable, this.allowMultiple: false});
 }
 
 /**
@@ -389,8 +397,7 @@ class ArgResults {
   /** Gets the parsed command-line option named [name]. */
   operator [](String name) {
     if (!_options.containsKey(name)) {
-      throw new ArgumentError(
-          'Could not find an option named "$name".');
+      throw new ArgumentError('Could not find an option named "$name".');
     }
 
     return _options[name];
@@ -399,4 +406,3 @@ class ArgResults {
   /** Get the names of the options as a [Collection]. */
   List<String> get options => _options.keys.toList();
 }
-

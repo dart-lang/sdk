@@ -12,7 +12,7 @@ void main([args, message]) {
 
   bool isChecked = false;
   assert((isChecked = true));
-  if (isChecked) return;  // Skip this test in checked mode.
+  if (isChecked) return; // Skip this test in checked mode.
 
   var responses = {};
   var port = new RawReceivePort();
@@ -26,15 +26,15 @@ void main([args, message]) {
     }
   };
   test(checked) {
-    Isolate.spawnUri(Uri.parse("checked_test.dart"), [],
-                     [checked, isChecked, port.sendPort],
-                     checked: checked);
+    Isolate.spawnUri(
+        Uri.parse("checked_test.dart"), [], [checked, isChecked, port.sendPort],
+        checked: checked);
   }
+
   test(true);
   test(false);
   test(null);
 }
-
 
 void isolateMain(args) {
   var checkedFlag = args[0];

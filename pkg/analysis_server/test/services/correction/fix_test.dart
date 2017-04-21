@@ -3380,6 +3380,34 @@ main() {
 ''');
   }
 
+  test_importLibraryProject_BAD_notInLib_BUILD() async {
+    testFile = '/aaa/bin/test.dart';
+    provider.newFile('/aaa/BUILD', '');
+    provider.newFile('/bbb/BUILD', '');
+    addSource('/bbb/test/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
+  }
+
+  test_importLibraryProject_BAD_notInLib_pubspec() async {
+    testFile = '/aaa/bin/test.dart';
+    provider.newFile('/aaa/pubspec.yaml', 'name: aaa');
+    provider.newFile('/bbb/pubspec.yaml', 'name: bbb');
+    addSource('/bbb/test/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
+  }
+
   test_importLibraryProject_withClass_annotation() async {
     addSource(
         '/lib.dart',
@@ -5912,6 +5940,49 @@ main() {
   var v = 42;
   print('v: $v');
 }
+''');
+  }
+
+  test_removeInitializer_field() async {
+    String src = '''
+class Test {
+  int /*LINT*/x = null;
+}
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+class Test {
+  int x;
+}
+''');
+  }
+
+  test_removeInitializer_listOfVariableDeclarations() async {
+    String src = '''
+String a = 'a', /*LINT*/b = null, c = 'c';
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+String a = 'a', b, c = 'c';
+''');
+  }
+
+  test_removeInitializer_topLevel() async {
+    String src = '''
+var /*LINT*/x = null;
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+var x;
 ''');
   }
 

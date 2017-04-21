@@ -27,7 +27,13 @@ bool assertionsEnabled() {
 final bool typeChecksOn = typeChecksEnabled();
 final bool assertionsOn = assertionsEnabled();
 
-ifExpr(e) { if (e) return true; else return false; }
+ifExpr(e) {
+  if (e)
+    return true;
+  else
+    return false;
+}
+
 bool ifNull() => ifExpr(null);
 bool ifString() => ifExpr("true");
 

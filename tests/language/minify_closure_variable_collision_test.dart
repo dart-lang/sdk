@@ -8,7 +8,7 @@
 var array = [new A()];
 
 class A {
-  operator==(other) {
+  operator ==(other) {
     return true;
   }
 }

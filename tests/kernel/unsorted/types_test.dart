@@ -32,10 +32,14 @@ class Sub2<C, D> extends Base<D, C> {
   const factory Sub2.fac(C a, D b) = Sub2<C, D>;
 }
 
-class G<T> { }
-class I { }
-class A implements I { }
-class B extends A { }
+class G<T> {}
+
+class I {}
+
+class A implements I {}
+
+class B extends A {}
+
 class C {}
 
 testConstantLiteralTypes() {
@@ -101,8 +105,8 @@ testClosureTypeTester() {
   Expect.isTrue(!new ClosureTypeTester<int>().isCorrectType("abc"));
   Expect.isTrue(new ClosureTypeTester<List<int>>().isCorrectType([1]));
   Expect.isTrue(new ClosureTypeTester<List<int>>().isCorrectType(<int>[1]));
-  Expect.isTrue(!new ClosureTypeTester<List<int>>()
-      .isCorrectType(<String>["1"]));
+  Expect
+      .isTrue(!new ClosureTypeTester<List<int>>().isCorrectType(<String>["1"]));
   Expect.isTrue(new ClosureTypeTester<Base<String, int>>()
       .isCorrectType(new Sub2<int, String>(1, "1")));
   Expect.isTrue(new ClosureTypeTester<Sub2<int, String>>()
@@ -117,16 +121,17 @@ testConstTypeArguments() {
 
   Expect.isTrue(const ClosureTypeTester<List<Base<int, String>>>()
       .isCorrectType(
-       const <Base<int, String>>[const Base<int, String>(1, "2")]));
+          const <Base<int, String>>[const Base<int, String>(1, "2")]));
   Expect.isTrue(const ClosureTypeTester<List<Base<int, String>>>()
       .isCorrectType(
-       const <Base<int, String>>[const Base<int, String>.fac(1, "2")]));
+          const <Base<int, String>>[const Base<int, String>.fac(1, "2")]));
   Expect.isTrue(!const ClosureTypeTester<List<Base<int, String>>>()
       .isCorrectType(
-       const <Base<String, String>>[const Base<String, String>("1", "2")]));
+          const <Base<String, String>>[const Base<String, String>("1", "2")]));
   Expect.isTrue(!const ClosureTypeTester<List<Base<int, String>>>()
-      .isCorrectType(
-       const <Base<String, String>>[const Base<String, String>.fac("1", "2")]));
+      .isCorrectType(const <Base<String, String>>[
+    const Base<String, String>.fac("1", "2")
+  ]));
 
   Expect.isTrue(const TypeTester<Sub2<int, String>>()
       .isCorrectType(const Sub2<int, String>(1, "1")));
@@ -167,7 +172,6 @@ num nan(double d, Pattern p) => double.NAN;
 
 typedef int FunctionType(num _, Pattern __);
 
-
 testLiteralTypeArguments() {
   Expect.isTrue(new Foo<String, int>().foo() is List<String>);
   Expect.isTrue(new Foo<int, String>().bar() is Map<int, String>);
@@ -199,4 +203,3 @@ main() {
   testLiteralTypeArguments();
   regressionTest1();
 }
-

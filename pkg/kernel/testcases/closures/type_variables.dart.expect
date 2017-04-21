@@ -9,69 +9,17 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
   method foo(self::C::S s) → dynamic {
     final Vector #context = MakeVector(2);
     #context[1] = this;
-    return new self::Closure#C#foo#function::•<self::C::T, self::C::S>(#context);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#C#foo#function, #context);
   }
   method bar() → dynamic {
     self::C<self::C::T, self::C::S> self = this;
   }
   method baz() → dynamic {
-    return new self::Closure#C#baz#function::•<self::C::T, self::C::S>(null);
+    return MakeClosure<() → dynamic>(self::closure#C#baz#function, null);
   }
-  static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
-    final () → dynamic local = new self::Closure#C#function#local::•<self::C::•::T, self::C::•::S>(null);
+  static factory •<T extends core::Object, S extends core::Object>() → dynamic {
+    final dynamic local = MakeClosure<() → dynamic>(self::closure#C#function#local, null);
     return local.call();
-  }
-}
-class Closure#C#foo#function<T extends core::Object, S extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#foo#function::context = context
-    ;
-  method call(self::Closure#C#foo#function::T x) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#foo#function::context};
-    self::Closure#C#foo#function::T y = x;
-    core::Object z = y;
-    self::C<self::Closure#C#foo#function::T, self::Closure#C#foo#function::S> self = #contextParameter[1];
-    return z as self::Closure#C#foo#function::T;
-  }
-}
-class Closure#C#baz#function#function<T extends core::Object, S extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#baz#function#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#baz#function#function::context};
-    return self::C::•<self::Closure#C#baz#function#function::T, self::Closure#C#baz#function#function::S>();
-  }
-}
-class Closure#C#baz#function<T extends core::Object, S extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#baz#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#baz#function::context};
-    return new self::Closure#C#baz#function#function::•<self::Closure#C#baz#function::T, self::Closure#C#baz#function::S>(#contextParameter);
-  }
-}
-class Closure#C#function#local<T extends core::Object, S extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#function#local::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#function#local::context};
-    self::C<self::Closure#C#function#local::T, self::Closure#C#function#local::S> self = new self::C::internal<self::Closure#C#function#local::T, self::Closure#C#function#local::S>();
-    return self;
   }
 }
 static method main(dynamic arguments) → dynamic {
@@ -83,4 +31,20 @@ static method main(dynamic arguments) → dynamic {
     throw "${c} passes type test 'is C<String, String>'";
   }
   core::print(c);
+}
+static method closure#C#foo#function(Vector #contextParameter, dynamic x) → dynamic {
+  dynamic y = x;
+  core::Object z = y;
+  self::C<dynamic, dynamic> self = #contextParameter[1];
+  return z as dynamic;
+}
+static method closure#C#baz#function#function(Vector #contextParameter) → dynamic {
+  return self::C::•<dynamic, dynamic>();
+}
+static method closure#C#baz#function(Vector #contextParameter) → dynamic {
+  return MakeClosure<() → dynamic>(self::closure#C#baz#function#function, #contextParameter);
+}
+static method closure#C#function#local(Vector #contextParameter) → dynamic {
+  self::C<dynamic, dynamic> self = new self::C::internal<dynamic, dynamic>();
+  return self;
 }

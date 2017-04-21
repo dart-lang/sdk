@@ -5,6 +5,7 @@
 // Regression test for dart2js issue 6639.
 
 library inline_super_test;
+
 import "package:expect/expect.dart";
 
 part 'inline_super_part.dart';
@@ -29,7 +30,7 @@ class LivingActor extends Actor {
   // [Actor]'s constructor.  When this inlining is being initiated
   // from [Player], we must take care to ensure that we know that we
   // are inlining from this location, and not [Player].
-  LivingActor () : super(new Percept());
+  LivingActor() : super(new Percept());
 }
 
 main() {

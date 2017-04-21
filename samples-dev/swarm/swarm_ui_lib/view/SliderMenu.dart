@@ -138,7 +138,7 @@ class SliderMenu extends View {
   }
 
   void selectNext(bool animate) {
-    final result =  node.querySelector('.sm-item.sel').nextElementSibling;
+    final result = node.querySelector('.sm-item.sel').nextElementSibling;
     if (result != null) {
       selectItem(result, animate);
     }
@@ -159,7 +159,8 @@ class SliderMenu extends View {
       // calculate where we want to put the triangle
       scheduleMicrotask(() {
         num x = selectedItem.offset.left +
-            selectedItem.offset.width / 2 - TRIANGLE_WIDTH / 2;
+            selectedItem.offset.width / 2 -
+            TRIANGLE_WIDTH / 2;
         _moveIndicator(x, animate);
       });
     } else {

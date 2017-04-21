@@ -15,9 +15,10 @@ import '../dill/dill_target.dart' show DillTarget;
 import 'analyzer_loader.dart' show AnalyzerLoader;
 
 class AnalyzerTarget extends KernelTarget {
-  AnalyzerTarget(DillTarget dillTarget, TranslateUri uriTranslator,
+  AnalyzerTarget(
+      DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode,
       [Map<String, Source> uriToSource])
-      : super(dillTarget, uriTranslator, uriToSource);
+      : super(dillTarget, uriTranslator, strongMode, uriToSource);
 
   @override
   AnalyzerLoader<Library> createLoader() => new AnalyzerLoader<Library>(this);

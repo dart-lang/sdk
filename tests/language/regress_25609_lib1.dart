@@ -7,4 +7,3 @@ library regress_25609_lib1;
 import 'regress_25609_lib2.dart';
 
 typedef Bar Foo(int y);
-

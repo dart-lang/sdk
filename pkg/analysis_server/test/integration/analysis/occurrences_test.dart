@@ -11,11 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
-    defineReflectiveTests(OccurrencesTest_Driver);
   });
 }
 
-class AbstractOccurrencesTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class OccurrencesTest extends AbstractAnalysisServerIntegrationTest {
   test_occurrences() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -64,13 +64,4 @@ main() {
       check('sum', ['sum = 0', 'sum +=', 'sum)']);
     });
   }
-}
-
-@reflectiveTest
-class OccurrencesTest extends AbstractOccurrencesTest {}
-
-@reflectiveTest
-class OccurrencesTest_Driver extends AbstractOccurrencesTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

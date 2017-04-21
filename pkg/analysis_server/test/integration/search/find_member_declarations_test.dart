@@ -48,7 +48,4 @@ class Foo {
     expect(result.kind.name, SearchResultKind.DECLARATION.name);
     expect(result.path.first.name, 'bar');
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

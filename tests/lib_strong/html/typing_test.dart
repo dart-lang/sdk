@@ -15,7 +15,9 @@ main() {
     }
     expect(counter, 1);
     counter = 0;
-    window.document.queryAll('body').forEach((e) { counter++; });
+    window.document.queryAll('body').forEach((e) {
+      counter++;
+    });
     expect(counter, 1);
   });
 

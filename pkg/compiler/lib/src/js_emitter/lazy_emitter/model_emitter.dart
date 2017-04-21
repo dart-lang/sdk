@@ -151,7 +151,10 @@ class ModelEmitter {
 
     // TODO(johnnniwinther): Support source maps in this emitter.
     for (int i = 0; i < fragmentsCode.length; ++i) {
-      String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
+      String code = js
+          .createCodeBuffer(fragmentsCode[i], compiler.options,
+              backend.sourceInformationStrategy)
+          .getText();
       totalSize += code.length;
       compiler.outputProvider(
           fragments[i + 1].outputFileName, deferredExtension, OutputType.jsPart)
@@ -159,7 +162,10 @@ class ModelEmitter {
         ..close();
     }
 
-    String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
+    String mainCode = js
+        .createCodeBuffer(
+            mainAst, compiler.options, backend.sourceInformationStrategy)
+        .getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js', OutputType.js)
       ..add(buildGeneratedBy(compiler))
       ..add(mainCode)
@@ -179,7 +185,7 @@ class ModelEmitter {
   /// See [_UnparsedNode] for details.
   js.Literal unparse(Compiler compiler, js.Node value,
       {bool protectForEval: true}) {
-    return new js.UnparsedNode(value, compiler, protectForEval);
+    return new js.UnparsedNode(value, compiler.options, protectForEval);
   }
 
   String buildGeneratedBy(compiler) {
@@ -202,7 +208,8 @@ class ModelEmitter {
     Map<String, dynamic> holes = {
       'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
       'holders': emitHolders(program.holders),
-      'tearOff': buildTearOffCode(backend),
+      'tearOff': buildTearOffCode(compiler.options, backend.emitter.emitter,
+          backend.namer, compiler.commonElements),
       'parseFunctionDescriptor':
           js.js.statement(parseFunctionDescriptorBoilerplate, {
         'argumentCount': js.string(namer.requiredParameterField),
@@ -210,7 +217,7 @@ class ModelEmitter {
         'callName': js.string(namer.callNameField)
       }),
       'cyclicThrow': backend.emitter
-          .staticFunctionAccess(backend.helpers.cyclicThrowHelper),
+          .staticFunctionAccess(backend.commonElements.cyclicThrowHelper),
       'outputContainsConstantList': program.outputContainsConstantList,
       'embeddedGlobals': emitEmbeddedGlobals(program),
       'readMetadataTypeFunction': readMetadataTypeFunction,
@@ -1025,7 +1032,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
       };
     } else {
       // Parse the tear off information and generate compile handlers.
-      // TODO(herhut): Share parser with instance methods.      
+      // TODO(herhut): Share parser with instance methods.
       function compileAllStubs(typesOffset) {
         var funs;
         var fun = compile(name, descriptor[0]);
@@ -1048,7 +1055,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
           if (typeof reflectionInfo == "number") {
             reflectionInfo = reflectionInfo + typesOffset;
           }
-          holder[descriptor[2]] = 
+          holder[descriptor[2]] =
               tearOff(funs, reflectionInfo, true, name, false);
         }
         if (pos < descriptor.length) {

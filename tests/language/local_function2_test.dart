@@ -8,10 +8,15 @@ import "package:expect/expect.dart";
 typedef T F<T>(T t);
 
 class Parameterized<T> {
-  Parameterized() { }
-  T mul3(F f, T t) { return 3*f(t); }
+  Parameterized() {}
+  T mul3(F f, T t) {
+    return 3 * f(t);
+  }
+
   T test(T t) {
-    return mul3((T t) { return 3*t; }, t);
+    return mul3((T t) {
+      return 3 * t;
+    }, t);
   }
 }
 
@@ -23,7 +28,7 @@ class LocalFunction2Test {
       return a;
     };
     var h = (int n) {
-      a += 10*n;
+      a += 10 * n;
       return a;
     };
     return g(n) + h(n);

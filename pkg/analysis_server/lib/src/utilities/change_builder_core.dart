@@ -46,11 +46,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
   Future<Null> addFileEdit(String path, int fileStamp,
       void buildFileEdit(FileEditBuilder builder)) async {
     FileEditBuilderImpl builder = await createFileEditBuilder(path, fileStamp);
-    try {
-      buildFileEdit(builder);
-    } finally {
-      _change.addFileEdit(builder.fileEdit);
-    }
+    buildFileEdit(builder);
+    _change.addFileEdit(builder.fileEdit);
+    builder.finalize();
   }
 
   /**
@@ -74,6 +72,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     return group;
   }
+
+  @override
+  void setSelection(Position position) {
+    _change.selection = position;
+  }
 }
 
 /**
@@ -95,6 +98,12 @@ class EditBuilderImpl implements EditBuilder {
    * The length of the region being replaced.
    */
   final int length;
+
+  /**
+   * The offset of the selection for the change being built, or `-1` if the
+   * selection is not inside the change being built.
+   */
+  int _selectionOffset = -1;
 
   /**
    * The end-of-line marker used in the file being edited, or `null` if the
@@ -146,6 +155,11 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
+  void selectHere() {
+    _selectionOffset = offset + _buffer.length;
+  }
+
+  @override
   void write(String string) {
     _buffer.write(string);
   }
@@ -187,19 +201,27 @@ class FileEditBuilderImpl implements FileEditBuilder {
       : fileEdit = new SourceFileEdit(path, timeStamp);
 
   @override
+  void addDeletion(int offset, int length) {
+    EditBuilderImpl builder = createEditBuilder(offset, length);
+    fileEdit.add(builder.sourceEdit);
+  }
+
+  @override
   void addInsertion(int offset, void buildEdit(EditBuilder builder)) {
     EditBuilderImpl builder = createEditBuilder(offset, 0);
     try {
       buildEdit(builder);
     } finally {
       fileEdit.add(builder.sourceEdit);
+      _captureSelection(builder);
     }
   }
 
   @override
   void addLinkedPosition(int offset, int length, String groupName) {
     LinkedEditGroup group = changeBuilder.getLinkedEditGroup(groupName);
-    Position position = new Position(fileEdit.file, offset);
+    Position position =
+        new Position(fileEdit.file, offset + _deltaToOffset(offset));
     group.addPosition(position, length);
   }
 
@@ -211,6 +233,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
       buildEdit(builder);
     } finally {
       fileEdit.add(builder.sourceEdit);
+      _captureSelection(builder);
     }
   }
 
@@ -221,6 +244,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
       builder.write(text);
     } finally {
       fileEdit.add(builder.sourceEdit);
+      _captureSelection(builder);
     }
   }
 
@@ -231,11 +255,47 @@ class FileEditBuilderImpl implements FileEditBuilder {
       builder.write(text);
     } finally {
       fileEdit.add(builder.sourceEdit);
+      _captureSelection(builder);
     }
   }
 
   EditBuilderImpl createEditBuilder(int offset, int length) {
     return new EditBuilderImpl(this, offset, length);
+  }
+
+  /**
+   * Finalize the source file edit that is being built.
+   */
+  void finalize() {
+    // Nothing to do.
+  }
+
+  /**
+   * Capture the selection offset if one was set.
+   */
+  void _captureSelection(EditBuilderImpl builder) {
+    int offset = builder._selectionOffset;
+    if (offset >= 0) {
+      Position position =
+          new Position(fileEdit.file, offset + _deltaToOffset(offset));
+      changeBuilder.setSelection(position);
+    }
+  }
+
+  /**
+   * Return the current delta caused by edits that will be applied before the
+   * given [offset]. In other words, if all of the edits that have so far been
+   * added were to be applied, then the text at the given `offset` before the
+   * edits will be at `offset + deltaToOffset(offset)` after the edits.
+   */
+  int _deltaToOffset(int targetOffset) {
+    int offset = 0;
+    for (var edit in fileEdit.edits) {
+      if (edit.offset <= targetOffset) {
+        offset += edit.replacement.length - edit.length;
+      }
+    }
+    return offset;
   }
 }
 

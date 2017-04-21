@@ -15,7 +15,6 @@ test(arr) {
   return r;
 }
 
-
 main() {
   var a = new List<int>(1);
   a[0] = 0;

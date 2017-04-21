@@ -4,7 +4,7 @@
 
 library dart2js.compiler_base;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 
 import '../compiler_new.dart' as api;
 import 'closure.dart' as closureMapping show ClosureTask;
@@ -22,8 +22,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'common_elements.dart'
-    show CommonElements, CommonElementsImpl, ElementEnvironment;
+import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -37,10 +36,10 @@ import 'elements/resolution_types.dart'
     show
         ResolutionDartType,
         ResolutionDynamicType,
+        ResolutionFunctionType,
         ResolutionInterfaceType,
         Types;
-import 'enqueue.dart'
-    show DeferredAction, Enqueuer, EnqueueTask, ResolutionEnqueuer;
+import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
@@ -88,7 +87,7 @@ abstract class Compiler {
 
   final IdGenerator idGenerator = new IdGenerator();
   Types types;
-  CommonElementsImpl _commonElements;
+  CommonElements _commonElements;
   _CompilerElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
@@ -197,7 +196,7 @@ abstract class Compiler {
     }
     _resolution = createResolution();
     _elementEnvironment = new _CompilerElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements = new CommonElements(_elementEnvironment);
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -213,6 +212,7 @@ abstract class Compiler {
       serialization = new SerializationTask(this),
       patchParser = new PatchParserTask(this),
       libraryLoader = new LibraryLoaderTask(
+          options.loadFromDill,
           resolvedUriTranslator,
           options.compileOnly
               ? new _NoScriptLoader(this)
@@ -294,12 +294,6 @@ abstract class Compiler {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
-  // TODO(het): remove this from here. Either inline at all use sites or add it
-  // to Reporter.
-  void unimplemented(Spannable spannable, String methodName) {
-    reporter.internalError(spannable, "$methodName not implemented.");
-  }
-
   // Compiles the dart script at [uri].
   //
   // The resulting future will complete with true if the compilation
@@ -349,8 +343,8 @@ abstract class Compiler {
         }
       }
       String importChain = compactImportChain.map((CodeLocation codeLocation) {
-        return codeLocation
-            .relativize(loadedLibraries.rootLibrary.canonicalUri);
+        return codeLocation.relativize(
+            (loadedLibraries.rootLibrary as LibraryElement).canonicalUri);
       }).join(' => ');
 
       if (!importChains.contains(importChain)) {
@@ -382,41 +376,49 @@ abstract class Compiler {
   /// The method returns a [Future] allowing for the loading of additional
   /// libraries.
   LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
-    loadedLibraries.forEachLibrary((LibraryElement library) {
+    loadedLibraries.forEachLibrary((LibraryEntity library) {
       backend.setAnnotations(library);
     });
 
-    for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
-      if (loadedLibraries.containsLibrary(uri)) {
-        Set<String> importChains = computeImportChainsFor(loadedLibraries, uri);
-        reporter.reportInfo(
-            NO_LOCATION_SPANNABLE, MessageKind.DISALLOWED_LIBRARY_IMPORT, {
-          'uri': uri,
-          'importChain': importChains
-              .join(MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)
-        });
+    // TODO(efortuna, sigmund): These validation steps should be done in the
+    // front end for the Kernel path since Kernel doesn't have the notion of
+    // imports (everything has already been resolved). (See
+    // https://github.com/dart-lang/sdk/issues/29368)
+    if (!options.useKernel && !options.loadFromDill) {
+      for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
+        if (loadedLibraries.containsLibrary(uri)) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, uri);
+          reporter.reportInfo(
+              NO_LOCATION_SPANNABLE, MessageKind.DISALLOWED_LIBRARY_IMPORT, {
+            'uri': uri,
+            'importChain': importChains
+                .join(MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)
+          });
+        }
       }
-    }
 
-    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-      bool importsMirrorsLibrary =
-          loadedLibraries.containsLibrary(Uris.dart_mirrors);
-      if (importsMirrorsLibrary && !backend.supportsReflection) {
-        Set<String> importChains =
-            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-        reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
-            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND, {
-          'importChain': importChains
-              .join(MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)
-        });
-      } else if (importsMirrorsLibrary && !options.enableExperimentalMirrors) {
-        Set<String> importChains =
-            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-        reporter.reportWarningMessage(
-            NO_LOCATION_SPANNABLE, MessageKind.IMPORT_EXPERIMENTAL_MIRRORS, {
-          'importChain': importChains
-              .join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)
-        });
+      if (loadedLibraries.containsLibrary(Uris.dart_core)) {
+        bool importsMirrorsLibrary =
+            loadedLibraries.containsLibrary(Uris.dart_mirrors);
+        if (importsMirrorsLibrary && !backend.supportsReflection) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
+          reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
+              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND, {
+            'importChain': importChains
+                .join(MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)
+          });
+        } else if (importsMirrorsLibrary &&
+            !options.enableExperimentalMirrors) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
+          reporter.reportWarningMessage(
+              NO_LOCATION_SPANNABLE, MessageKind.IMPORT_EXPERIMENTAL_MIRRORS, {
+            'importChain': importChains
+                .join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)
+          });
+        }
       }
     }
     backend.onLibrariesLoaded(loadedLibraries);
@@ -598,14 +600,14 @@ abstract class Compiler {
         phase = PHASE_RESOLVING;
         resolutionEnqueuer.applyImpact(mainImpact);
         if (options.resolveOnly) {
-          libraryLoader.libraries.where((LibraryElement library) {
+          libraryLoader.libraries.where((LibraryEntity library) {
             return !serialization.isDeserialized(library);
-          }).forEach((LibraryElement library) {
+          }).forEach((LibraryEntity library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (analyzeAll) {
-          libraryLoader.libraries.forEach((LibraryElement library) {
+          libraryLoader.libraries.forEach((LibraryEntity library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
@@ -619,10 +621,6 @@ abstract class Compiler {
                   libraryLoader.lookupLibrary(libraryUri)));
             }
           }
-        }
-        if (deferredLoadTask.isProgramSplit) {
-          resolutionEnqueuer
-              .applyImpact(backend.computeDeferredLoadingImpact());
         }
         resolveLibraryMetadata();
         reporter.log('Resolving...');
@@ -651,22 +649,11 @@ abstract class Compiler {
           serialization.serializeToSink(
               userOutputProvider.createOutputSink(
                   '', 'data', api.OutputType.serializationData),
-              libraryLoader.libraries.where((LibraryElement library) {
+              libraryLoader.libraries.where((LibraryEntity library) {
             return !serialization.isDeserialized(library);
           }));
         }
-        if (options.analyzeOnly) {
-          if (!analyzeAll && !compilationFailed) {
-            // No point in reporting unused code when [analyzeAll] is true: all
-            // code is artificially used.
-            // If compilation failed, it is possible that the error prevents the
-            // compiler from analyzing all the code.
-            // TODO(johnniwinther): Reenable this when the reporting is more
-            // precise.
-            //reportUnusedCode();
-          }
-          return;
-        }
+        if (options.analyzeOnly) return;
         assert(mainFunction != null);
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution();
@@ -688,7 +675,7 @@ abstract class Compiler {
         codegenEnqueuer.applyImpact(
             backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
         if (compileAll) {
-          libraryLoader.libraries.forEach((LibraryElement library) {
+          libraryLoader.libraries.forEach((LibraryEntity library) {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         }
@@ -844,18 +831,14 @@ abstract class Compiler {
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(resolutionEnqueuer.processedEntities);
-    for (Element e in codegenEnqueuer.processedEntities) {
+    for (MemberEntity e in codegenEnqueuer.processedEntities) {
       resolved.remove(e);
     }
-    for (Element e in new Set.from(resolved)) {
-      if (e.isClass ||
-          e.isField ||
-          e.isTypeVariable ||
-          e.isTypedef ||
-          identical(e.kind, ElementKind.ABSTRACT_FIELD)) {
+    for (MemberEntity e in new Set.from(resolved)) {
+      if (e.isField) {
         resolved.remove(e);
       }
-      if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
+      if (e.isConstructor && (e as ConstructorEntity).isGenerativeConstructor) {
         resolved.remove(e);
       }
       if (backend.isTargetSpecificLibrary(e.library)) {
@@ -863,7 +846,7 @@ abstract class Compiler {
       }
     }
     reporter.log('Excess resolution work: ${resolved.length}.');
-    for (Element e in resolved) {
+    for (MemberEntity e in resolved) {
       reporter.reportWarningMessage(e, MessageKind.GENERIC,
           {'text': 'Warning: $e resolved but not compiled.'});
     }
@@ -928,8 +911,8 @@ abstract class Compiler {
    * See [LibraryLoader] for terminology on URIs.
    */
   Future<Script> readScript(Uri readableUri, [Spannable node]) {
-    unimplemented(node, 'Compiler.readScript');
-    return null;
+    throw new SpannableAssertionFailure(
+        node, 'Compiler.readScript not implemented.');
   }
 
   Element lookupElementIn(ScopeContainerElement container, String name) {
@@ -941,40 +924,6 @@ abstract class Compiler {
   }
 
   bool get isMockCompilation => false;
-
-  void reportUnusedCode() {
-    void checkLive(member) {
-      if (member.isMalformed) return;
-      if (member.isFunction) {
-        if (!resolutionWorldBuilder.isMemberUsed(member)) {
-          reporter.reportHintMessage(
-              member, MessageKind.UNUSED_METHOD, {'name': member.name});
-        }
-      } else if (member.isClass) {
-        if (!member.isResolved) {
-          reporter.reportHintMessage(
-              member, MessageKind.UNUSED_CLASS, {'name': member.name});
-        } else {
-          member.forEachLocalMember(checkLive);
-        }
-      } else if (member.isTypedef) {
-        if (!member.isResolved) {
-          reporter.reportHintMessage(
-              member, MessageKind.UNUSED_TYPEDEF, {'name': member.name});
-        }
-      }
-    }
-
-    libraryLoader.libraries.forEach((LibraryElement library) {
-      // TODO(ahe): Implement better heuristics to discover entry points of
-      // packages and use that to discover unused implementation details in
-      // packages.
-      if (library.isPlatformLibrary || library.isPackageLibrary) return;
-      library.compilationUnits.forEach((unit) {
-        unit.forEachLocalMember(checkLive);
-      });
-    });
-  }
 
   /// Helper for determining whether the current element is declared within
   /// 'user code'.
@@ -1716,7 +1665,7 @@ class CompilerResolution implements Resolution {
   WorldImpact transformResolutionImpact(
       Element element, ResolutionImpact resolutionImpact) {
     WorldImpact worldImpact = _compiler.backend.impactTransformer
-        .transformResolutionImpact(enqueuer, resolutionImpact);
+        .transformResolutionImpact(resolutionImpact);
     _worldImpactCache[element] = worldImpact;
     return worldImpact;
   }
@@ -1786,7 +1735,7 @@ class _NoScriptLoader implements ScriptLoader {
   _NoScriptLoader(this.compiler);
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) {
-    compiler.reporter
+    throw compiler.reporter
         .internalError(spannable, "Script loading of '$uri' is not enabled.");
   }
 }
@@ -1822,6 +1771,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   FunctionEntity get mainFunction => _compiler.mainFunction;
 
   @override
+  Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;
+
+  @override
   ResolutionInterfaceType getThisType(ClassElement cls) {
     cls.ensureResolved(_resolution);
     return cls.thisType;
@@ -1834,10 +1786,20 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  ResolutionDartType getTypeVariableBound(TypeVariableElement typeVariable) {
+    return typeVariable.bound;
+  }
+
+  @override
   ResolutionInterfaceType createInterfaceType(
       ClassElement cls, List<ResolutionDartType> typeArguments) {
     cls.ensureResolved(_resolution);
     return cls.thisType.createInstantiation(typeArguments);
+  }
+
+  @override
+  bool isSubtype(ResolutionDartType a, ResolutionDartType b) {
+    return _compiler.types.isSubtype(a, b);
   }
 
   @override
@@ -1888,17 +1850,19 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     cls.ensureResolved(_resolution);
     cls.forEachMember((ClassElement declarer, MemberElement member) {
       if (member.isSynthesized) return;
+      if (member.isMalformed) return;
       f(declarer, member);
     }, includeSuperAndInjectedMembers: true);
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls) {
-    cls = cls.superclass;
-    while (cls != null && cls.isUnnamedMixinApplication) {
-      cls = cls.superclass;
-    }
-    return cls;
+  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
+
+  @override
+  void forEachSupertype(
+      ClassElement cls, void f(ResolutionInterfaceType supertype)) {
+    cls.allSupertypes
+        .forEach((ResolutionInterfaceType supertype) => f(supertype));
   }
 
   @override
@@ -1967,5 +1931,37 @@ class _CompilerElementEnvironment implements ElementEnvironment {
           library, "The library '${uri}' was not found.");
     }
     return library;
+  }
+
+  @override
+  CallStructure getCallStructure(MethodElement method) {
+    ResolutionFunctionType type = method.computeType(_resolution);
+    return new CallStructure(
+        type.parameterTypes.length +
+            type.optionalParameterTypes.length +
+            type.namedParameterTypes.length,
+        type.namedParameters);
+  }
+
+  @override
+  bool isDeferredLoadLibraryGetter(MemberElement member) {
+    return member.isDeferredLoaderGetter;
+  }
+
+  @override
+  ResolutionFunctionType getFunctionType(MethodElement method) {
+    method.computeType(_resolution);
+    return method.type;
+  }
+
+  @override
+  ResolutionFunctionType getLocalFunctionType(LocalFunctionElement function) {
+    return function.type;
+  }
+
+  @override
+  ResolutionDartType getUnaliasedType(ResolutionDartType type) {
+    type.computeUnaliased(_resolution);
+    return type.unaliased;
   }
 }

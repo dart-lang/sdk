@@ -340,7 +340,6 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_token_pos(
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
-  type_parameter.set_parent_level(reader->Read<uint8_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -375,7 +374,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
-  writer->Write<uint8_t>(ptr()->parent_level_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -1155,14 +1153,11 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
       library.StorePointer((library.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
     }
-    // Initialize cache of resolved names.
-    const intptr_t kInitialNameCacheSize = 64;
-    // The cache of resolved names in library scope is not serialized.
-    library.InitResolvedNamesCache(kInitialNameCacheSize);
-    library.Register(reader->thread());
+    // Initialize caches that are not serialized.
+    library.StorePointer(&library.raw_ptr()->resolved_names_, Array::null());
     library.StorePointer(&library.raw_ptr()->exported_names_, Array::null());
-    // Initialize cache of loaded scripts.
     library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
+    library.Register(reader->thread());
   }
   return library.raw();
 }
@@ -1462,7 +1457,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   Context& context = Context::ZoneHandle(reader->zone());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
   if (num_vars == 0) {
-    context ^= reader->object_store()->empty_context();
+    context ^= Object::empty_context().raw();
   } else {
     context ^= Context::New(num_vars);
 

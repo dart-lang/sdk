@@ -5,6 +5,7 @@
 // Dart test program for testing stopwatch support.
 
 library stopwatch_test;
+
 import "package:expect/expect.dart";
 
 class StopwatchTest {
@@ -25,8 +26,8 @@ class StopwatchTest {
     sw.stop();
     Expect.isFalse(sw.isRunning);
     int v1 = sw.elapsedTicks;
-    Expect.isTrue(v1 > 0);  // Expect a non-zero elapsed time.
-    Stopwatch sw2 = new Stopwatch();  // Used for verification.
+    Expect.isTrue(v1 > 0); // Expect a non-zero elapsed time.
+    Stopwatch sw2 = new Stopwatch(); // Used for verification.
     sw2.start();
     Expect.isTrue(sw2.isRunning);
     int sw2LastElapsed = 0;

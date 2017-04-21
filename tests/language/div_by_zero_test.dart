@@ -6,16 +6,15 @@
 import "package:expect/expect.dart";
 
 class DivByZeroTest {
-
   static double divBy(int a, int b) {
-    var result = a/b;
+    var result = a / b;
     return 1.0 * result;
   }
 
   static bool moustacheDivBy(int a, int b) {
     var val = null;
     try {
-      val = a~/b;
+      val = a ~/ b;
     } catch (e) {
       return true;
     }

@@ -54,15 +54,15 @@ testObservableList() {
     called = false;
     expect(arr, orderedEquals([1, 2, 3, 1, 3, 4]));
     EventBatch.wrap((e) {
-      arr.add(5);                                  // 1 2 3 1 3 4(5)
-      arr.add(6);                                  // 1 2 3 1 3 4 5(6)
-      arr[1] = arr[arr.length - 1];                // 1(6)3 1 3 4 5 6
-      arr.add(7);                                  // 1 6 3 1 3 4 5 6(7)
-      arr[5] = arr[8];                             // 1 6 3 1 3(7)5 6 7
-      arr.add(42);                                 // 1 6 3 1 3 7 5 6 7(42)
-      expect(arr.removeAt(3), equals(1));          // 1 6 3( )3 7 5 6 7 42
-      expect(arr.removeFirstElement(3), isTrue);   // 1 6( )  3 7 5 6 7 42
-      expect(arr.removeLast(), equals(42));        // 1 6     3 7 5 6 7(  )
+      arr.add(5); // 1 2 3 1 3 4(5)
+      arr.add(6); // 1 2 3 1 3 4 5(6)
+      arr[1] = arr[arr.length - 1]; // 1(6)3 1 3 4 5 6
+      arr.add(7); // 1 6 3 1 3 4 5 6(7)
+      arr[5] = arr[8]; // 1 6 3 1 3(7)5 6 7
+      arr.add(42); // 1 6 3 1 3 7 5 6 7(42)
+      expect(arr.removeAt(3), equals(1)); // 1 6 3( )3 7 5 6 7 42
+      expect(arr.removeFirstElement(3), isTrue); // 1 6( )  3 7 5 6 7 42
+      expect(arr.removeLast(), equals(42)); // 1 6     3 7 5 6 7(  )
       expect(arr.removeAllElements(6), equals(2)); // 1( )    3 7 5( )7
       called = true;
     })(null);
@@ -91,7 +91,9 @@ testObservableList() {
       arr.add(4);
       arr.add(10);
       arr.add(9);
-      arr.sort((int a, int b) { return a - b; });
+      arr.sort((int a, int b) {
+        return a - b;
+      });
       called = true;
     })(null);
     expect(called, isTrue);

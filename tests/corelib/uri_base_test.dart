@@ -9,7 +9,6 @@ main() {
     Uri base = Uri.base;
     Expect.isTrue(Uri.base.scheme == "file" || Uri.base.scheme == "http");
   } on UnsupportedError catch (e) {
-    Expect.isTrue(
-        e.toString().contains("'Uri.base' is not supported"));
+    Expect.isTrue(e.toString().contains("'Uri.base' is not supported"));
   }
 }

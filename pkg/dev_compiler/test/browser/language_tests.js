@@ -117,6 +117,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'covariant_subtyping_tearoff3_test': fail,
       'covariant_subtyping_unsafe_call2_test': fail,
       'covariant_subtyping_unsafe_call3_test': fail,
+      'custom_await_stack_trace_test': fail,
       'cyclic_type2_test': fail,
       'cyclic_type_test_00_multi': fail,
       'cyclic_type_test_01_multi': fail,
@@ -207,6 +208,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'instanceof_optimized_test': fail,
       'integer_division_by_zero_test': fail,
       'issue_22780_test_01_multi': fail,
+      'issue23244_test': fail,
       'lazy_static3_test': fail,
       'least_upper_bound_expansive_test_none_multi': fail,
       'left_shift_test': fail,
@@ -234,6 +236,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'reg_exp_test': whitelist,
       'regress_16640_test': fail,
       'regress_18535_test': fail,
+      'regress_22445_test': fail,
       'regress_22666_test': fail,
       'regress_22777_test': flaky,
       'setter_no_getter_test_01_multi': fail,
@@ -265,9 +268,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'multiline_newline_test_06_multi': fail,
       'multiline_newline_test_none_multi': fail,
       'no_main_test_01_multi': fail,
-
-      // https://github.com/dart-lang/sdk/issues/26123
-      'bad_raw_string_negative_test': fail,
 
       // https://github.com/dart-lang/sdk/issues/26124
       'prefix10_negative_test': fail,
@@ -363,6 +363,56 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'UC16_test': firefox_fail,
     },
 
+    'lib/async': {
+      'first_regression_test': async_unittest,
+      'future_or_bad_type_test_implements_multi': fail,
+      'future_or_bad_type_test_none_multi': fail,
+      'future_or_non_strong_test': fail,
+      'future_or_strong_test': fail,  // Strong-mode is-check fail
+      'future_timeout_test': async_unittest,
+      'multiple_timer_test': async_unittest,
+      'futures_test': fail,
+      'run_zoned6_test_01_multi': fail,
+      'run_zoned9_test_01_multi': fail,
+      'schedule_microtask2_test': async_unittest,
+      'schedule_microtask3_test': async_unittest,
+      'schedule_microtask5_test': async_unittest,
+      'stream_controller_async_test': async_unittest,
+      'stream_first_where_test': async_unittest,
+      'stream_from_iterable_test': async_unittest,
+      'stream_iterator_test': async_unittest,
+      'stream_join_test': async_unittest,
+      'stream_last_where_test': async_unittest,
+      'stream_periodic2_test': async_unittest,
+      'stream_periodic3_test': async_unittest,
+      'stream_periodic4_test': async_unittest,
+      'stream_periodic5_test': async_unittest,
+      'stream_periodic6_test': async_unittest,
+      'stream_periodic_test': async_unittest,
+      'stream_single_test': async_unittest,
+      'stream_single_to_multi_subscriber_test': async_unittest,
+      'stream_state_helper': async_unittest,
+      'stream_state_nonzero_timer_test': async_unittest,
+      'stream_state_test': async_unittest,
+      'stream_subscription_as_future_test': async_unittest,
+      'stream_subscription_cancel_test': async_unittest,
+      'stream_timeout_test': async_unittest,
+      'stream_transform_test': async_unittest,
+      'stream_transformation_broadcast_test': async_unittest,
+      'stream_transformer_from_handlers_test': fail,
+      'timer_cancel1_test': async_unittest,
+      'timer_cancel2_test': async_unittest,
+      'timer_cancel_test': async_unittest,
+      'timer_isActive_test': async_unittest,
+      'timer_not_available_test': fail,
+      'timer_repeat_test': async_unittest,
+      'timer_test': async_unittest,
+      'zone_bind_callback_test': fail,
+      'zone_error_callback_test': fail,
+      'zone_register_callback_test': fail,
+      'zone_run_unary_test': fail,
+    },
+
     'lib/collection': {
       'linked_list_test': whitelist,
     },
@@ -414,9 +464,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
 
-      // TODO(jmesserly): investigate the change here; it is likely due to
-      // different reified types affecting the (gigantic) HTML literal
-      'debugger_test': fail, // firefox_fail
+      // Please do not mark this test as fail. If your change breaks this test,
+      // please look at the test for instructions on how to generate a new
+      // golden file.
+      'debugger_test': firefox_fail,
       'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
@@ -828,7 +879,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         var result;
         try {
           var result = mainLibrary.main();
-          if (result && !(result instanceof dart_sdk.async.Future)) {
+          if (result && !(dart_sdk.async.Future.is(result))) {
             result = null;
           }
         } catch (e) {
@@ -845,7 +896,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
           if (!result) {
             finish();
           } else {
-            result.then(dart_sdk.dart.dynamic)(() => finish());
+            result.then(dart_sdk.dart.dynamic)(() => finish(),
+              { onError: (e) => finish(e) });
           }
         }
       });
@@ -860,7 +912,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   test('run all dart unittests', function(done) { // 'function' to allow `this.timeout`
     // Use the whitelist for all unittests - there may be an error in the framework
     // itself.
-    dart_sdk.dart.ignoreWhitelistedErrors(whitelist);
+    dart_sdk.dart.ignoreWhitelistedErrors(true);
     if (unittest_tests.length == 0) return done();
 
     // TODO(vsm): We're using an old deprecated version of unittest.
@@ -889,6 +941,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         // Restore the Mocha onerror handler in case future tests need to run.
         window.onerror = mochaOnError;
         this.enableTimeouts(true);
+        dart_sdk.dart.ignoreWhitelistedErrors(false);
 
         let numErrors = countMatches(output, /\d\s+ERROR/g);
         let numFails = countMatches(output, /\d\s+FAIL/g);

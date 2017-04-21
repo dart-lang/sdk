@@ -14,12 +14,13 @@ import "dart:isolate";
 
 main() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen(
-      (request) {
-        String name = Platform.script.toFilePath();
-        new File(name).openRead().pipe(request.response)
-            .catchError((e) { /* ignore */ });
-      });
+    server.listen((request) {
+      String name = Platform.script.toFilePath();
+      new File(name)
+          .openRead()
+          .pipe(request.response)
+          .catchError((e) {/* ignore */});
+    });
 
     var count = 0;
     makeRequest() {
@@ -37,6 +38,7 @@ main() {
         });
       });
     }
+
     makeRequest();
   });
 }

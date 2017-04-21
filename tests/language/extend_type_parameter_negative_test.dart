@@ -4,7 +4,7 @@
 
 // Extending a type parameter is not allowed.
 
-class A<T> extends T { }
+class A<T> extends T {}
 
 main() {
   A a = new A();

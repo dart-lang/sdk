@@ -12,18 +12,27 @@ var x5 = foo5();
 final x6 = foo6();
 int x7 = x7 + 1;
 
-foo() { throw "interrupt initialization"; }
-foo2() { x2 = 499; throw "interrupt initialization"; }
+foo() {
+  throw "interrupt initialization";
+}
+
+foo2() {
+  x2 = 499;
+  throw "interrupt initialization";
+}
+
 foo3() => x3 + 1;
 foo4() {
   x4 = 498;
   x4 = x4 + 1;
   return x4;
 }
+
 foo5() {
   x5 = 498;
   x5 = x5 + 1;
 }
+
 foo6() {
   try {
     return x5 + 1;

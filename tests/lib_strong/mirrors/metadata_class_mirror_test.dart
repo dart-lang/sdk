@@ -7,7 +7,7 @@
 import 'dart:mirrors';
 
 class A {
-    const A();
+  const A();
 }
 
 @deprecated

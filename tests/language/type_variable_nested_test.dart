@@ -7,8 +7,7 @@
 
 import 'package:expect/expect.dart';
 
-class A<T> {
-}
+class A<T> {}
 
 class B<T> {
   var _copy;

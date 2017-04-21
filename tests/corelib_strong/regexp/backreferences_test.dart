@@ -26,7 +26,8 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description("Test to ensure correct behaviour when using backreferences in a RegExp");
+  description(
+      "Test to ensure correct behaviour when using backreferences in a RegExp");
 
   shouldBeTrue(new RegExp(r"(...)\1$").hasMatch('abcabc'));
   shouldBeFalse(new RegExp(r"(...)\1$").hasMatch('abcdef'));

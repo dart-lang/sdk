@@ -10,6 +10,7 @@ dart_package("front_end") {
   source_dir = "lib"
 
   deps = [
+    "//dart/pkg/kernel",
     "//third_party/dart-pkg/pub/path",
     "//third_party/dart-pkg/pub/source_span",
   ]

@@ -284,7 +284,7 @@ abstract class StreamController<T> implements StreamSink<T> {
  * accidentally break other code.
  *
  * Adding events to a synchronous controller should only happen as the
- * very last part of a the handling of the original event.
+ * very last part of the handling of the original event.
  * At that point, adding an event to the stream is equivalent to
  * returning to the event loop and adding the event in the next microtask.
  *

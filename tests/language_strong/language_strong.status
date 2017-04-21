@@ -704,7 +704,6 @@ generic_methods_shadowing_test: CompileTimeError # Issue 29070
 generic_methods_closure_test: CompileTimeError # Issue 29070
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
-# inferrer_constructor3_test: CompileTimeError
 interface_inherit_field_test: StaticWarning # Issue 28823
 internal_library_test/02: MissingStaticWarning # Issue 28823
 main_not_a_function_test/01: MissingStaticWarning # Issue 28823

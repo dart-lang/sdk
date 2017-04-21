@@ -126,18 +126,21 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'needsNativeSupport': program.needsNativeSupport,
     'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
-    'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
+    'isInterceptorClass':
+        namer.operatorIs(compiler.commonElements.jsInterceptorClass),
     'isObject': namer.operatorIs(compiler.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
     'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
     'types': typesAccess,
-    'objectClassName': js.quoteName(
-        namer.runtimeTypeName(compiler.commonElements.objectClass as Entity)),
+    'objectClassName': js.quoteName(namer.runtimeTypeName(
+        // ignore: UNNECESSARY_CAST
+        compiler.commonElements.objectClass as Entity)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
     'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
         backend.backendUsage.isFunctionApplyUsed,
-    'tearOffCode': buildTearOffCode(backend),
+    'tearOffCode': buildTearOffCode(compiler.options, backend.emitter.emitter,
+        backend.namer, compiler.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
     'deferredActionString': js.string(namer.deferredAction)
@@ -440,7 +443,7 @@ function $setupProgramName(programData, typesOffset) {
       for (var i = 0; i < properties.length; i++) finishClass(properties[i]);
     }
 
-    // Generic handler for deferred class setup. The handler updates the 
+    // Generic handler for deferred class setup. The handler updates the
     // prototype that it is installed on (it traverses the prototype chain
     // of [this] to find itself) and then removes itself. It recurses by
     // calling deferred handling again, which terminates on Object due to
@@ -733,7 +736,7 @@ function $setupProgramName(programData, typesOffset) {
           if (isSetter) {
             reflectionName += "=";
           } else if (!isGetter) {
-            reflectionName += ":" + 
+            reflectionName += ":" +
                 (requiredParameterCount + optionalParameterCount);
           }
           mangledNames[name] = reflectionName;

@@ -1,10 +1,10 @@
 library WebSocketTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-
   useHtmlIndividualConfiguration();
 
   group('supported', () {
@@ -22,7 +22,7 @@ main() {
         var socket = new WebSocket('ws://localhost/ws', 'chat');
         expect(socket, isNotNull);
         expect(socket, isWebSocket);
-        }, expectation);
+      }, expectation);
     });
 
     if (WebSocket.supported) {

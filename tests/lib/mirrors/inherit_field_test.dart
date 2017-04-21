@@ -6,6 +6,7 @@
 
 library test.inherit_field_test;
 
+@MirrorsUsed(targets: "test.inherit_field_test")
 import 'dart:mirrors';
 
 import 'stringify.dart';
@@ -14,12 +15,10 @@ class Foo {
   var field;
 }
 
-class Bar extends Foo {
-}
+class Bar extends Foo {}
 
 void main() {
-  expect('Variable(s(field) in s(Foo))',
-         reflectClass(Foo).declarations[#field]);
-  expect('<null>',
-         reflectClass(Bar).declarations[#field]);
+  expect(
+      'Variable(s(field) in s(Foo))', reflectClass(Foo).declarations[#field]);
+  expect('<null>', reflectClass(Bar).declarations[#field]);
 }

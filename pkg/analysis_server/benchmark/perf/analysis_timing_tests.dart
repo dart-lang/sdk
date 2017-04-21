@@ -61,7 +61,7 @@ ArgParser _createArgParser() => new ArgParser()
       help: '(optional) full path to a priority file');
 
 /**
- * AnalysisTimingTest measures the time taken by the analsyis server to fully analyze
+ * AnalysisTimingTest measures the time taken by the analysis server to fully analyze
  * the given directory. Measurement is started after setting the analysis root, and
  * analysis is considered complete on receiving the `"isAnalyzing": false` message
  * from the analysis server.

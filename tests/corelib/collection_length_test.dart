@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library map_test;
+
 import 'dart:collection';
 
 // Test that length/isEmpty opertions are constant time on
@@ -48,9 +49,8 @@ void testList(List list, n) {
   testLength(list, n);
 }
 
-
 void testLength(var lengthable, int size) {
-  print(lengthable.runtimeType);  // Show what hangs the test.
+  print(lengthable.runtimeType); // Show what hangs the test.
   int length = 0;
   // If length, isEmpty or isNotEmpty is not a constant-time (or very fast)
   // operation, this will timeout.
@@ -60,7 +60,6 @@ void testLength(var lengthable, int size) {
   }
   if (length != size * 200000) throw "Bad length: $length / size: $size";
 }
-
 
 main() {
   const int N = 100000;

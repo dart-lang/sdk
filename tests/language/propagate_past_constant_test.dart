@@ -14,7 +14,8 @@ main() {
   var x = foo('foo');
   var y = foo(x);
   x = 'constant';
-  check(y); // 'y' should not propagate here unless reference to 'x' is rewritten
+  check(
+      y); // 'y' should not propagate here unless reference to 'x' is rewritten
   foo(x);
   foo(x);
 }

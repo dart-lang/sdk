@@ -2620,7 +2620,8 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(
-      Closure::New(Object::null_type_arguments(), function, context));
+      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
+                   function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());
@@ -3098,17 +3099,20 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class.id()));
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, Bool::True());
+  const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
+  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
+  TypeArguments& test_targ_2 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_result);
+                 &test_targ_2, &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
+  EXPECT_EQ(targ_2.raw(), test_targ_2.raw());
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 

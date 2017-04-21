@@ -4,6 +4,7 @@
 
 library test.invoke_call_through_implicit_getter;
 
+@MirrorsUsed(targets: "test.invoke_call_through_implicit_getter")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

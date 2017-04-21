@@ -29,7 +29,6 @@ void runTest(List<int> bytes, expected) {
   controller.close();
 }
 
-
 main() {
   for (var test in UNICODE_TESTS) {
     var bytes = test[0];

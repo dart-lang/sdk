@@ -7,11 +7,13 @@ library deferred_load_constants;
 
 // Constant declaration.
 const c = const C();
+
 // Class declaration (`C` is a constant expression).
 class C {
   const C();
   static int staticfun(int x) => x;
 }
+
 // Function type definition.
 typedef int funtype(int x);
 // Top-level function.

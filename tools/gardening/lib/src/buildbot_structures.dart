@@ -31,12 +31,28 @@ class BuildUri {
   BuildUri.internal(this.scheme, this.host, this.prefix, this.botName,
       this.buildNumber, this.stepName, this.suffix);
 
+  BuildUri withBuildNumber(int buildNumber) {
+    return new BuildUri.fromData(botName, buildNumber, stepName);
+  }
+
   String get shortBuildName => '$botName/$stepName';
 
   String get buildName =>
       '/builders/$botName/builds/$buildNumber/steps/$stepName';
 
   String get path => '$prefix$buildName/logs/$suffix';
+
+  /// Returns the path used in logdog for this build uri.
+  ///
+  /// Since logdog only supports absolute build numbers, [buildNumber] must be
+  /// non-negative. A [StateError] is thrown, otherwise.
+  String get logdogPath {
+    if (buildNumber < 0)
+      throw new StateError('BuildUri $buildName must have a non-negative build '
+          'number to a valid logdog path.');
+    return 'chromium/bb/client.dart/$botName/$buildNumber/+/recipes/steps/'
+        '${stepName.replaceAll(' ', '_')}/0/stdout';
+  }
 
   /// Creates the [Uri] for this build step stdio log.
   Uri toUri() {
@@ -79,4 +95,134 @@ class TestConfiguration {
         archName == other.archName &&
         testName == other.testName;
   }
+}
+
+/// The results of a build step.
+class BuildResult {
+  final BuildUri _buildUri;
+
+  /// The absolute build number, if found.
+  ///
+  /// The [buildUri] can be created with a relative build number, such as `-2`
+  /// which means the second-to-last build. The absolute build number, a
+  /// positive number, is read from the build results.
+  final int buildNumber;
+
+  final List<TestStatus> _results;
+  final List<TestFailure> _failures;
+  final List<Timing> _timings;
+
+  BuildResult(this._buildUri, this.buildNumber, this._results, this._failures,
+      this._timings);
+
+  BuildUri get buildUri =>
+      buildNumber != null ? _buildUri.withBuildNumber(buildNumber) : _buildUri;
+
+  /// `true` of the build result has test failures.
+  bool get hasFailures => _failures.isNotEmpty;
+
+  /// Returns the top-20 timings found in the build log.
+  Iterable<Timing> get timings => _timings;
+
+  /// Returns the [TestStatus] for all tests.
+  Iterable<TestStatus> get results => _results;
+
+  /// Returns the [TestFailure]s for tests that timed out.
+  Iterable<TestFailure> get timeouts {
+    return _failures
+        .where((TestFailure failure) => failure.actual == 'Timeout');
+  }
+
+  /// Returns the [TestFailure]s for failing tests that did not time out.
+  Iterable<TestFailure> get errors {
+    return _failures
+        .where((TestFailure failure) => failure.actual != 'Timeout');
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('$buildUri\n');
+    sb.write('Failures:\n${_failures.join('\n-----\n')}\n');
+    sb.write('\nTimings:\n${_timings.join('\n')}');
+    return sb.toString();
+  }
+}
+
+/// Test failure data derived from the test failure summary in the build step
+/// stdio log.
+class TestFailure {
+  final BuildUri uri;
+  final TestConfiguration id;
+  final String expected;
+  final String actual;
+  final String text;
+
+  factory TestFailure(BuildUri uri, List<String> lines) {
+    List<String> parts = split(lines.first, ['FAILED: ', ' ', ' ']);
+    String configName = parts[1];
+    String archName = parts[2];
+    String testName = parts[3];
+    TestConfiguration id =
+        new TestConfiguration(configName, archName, testName);
+    String expected = split(lines[1], ['Expected: '])[1];
+    String actual = split(lines[2], ['Actual: '])[1];
+    return new TestFailure.internal(
+        uri, id, expected, actual, lines.skip(3).join('\n'));
+  }
+
+  TestFailure.internal(
+      this.uri, this.id, this.expected, this.actual, this.text);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('FAILED: $id\n');
+    sb.write('Expected: $expected\n');
+    sb.write('Actual: $actual\n');
+    sb.write(text);
+    return sb.toString();
+  }
+}
+
+/// Id for a single test step, for instance the compilation and run steps of
+/// a test.
+class TestStep {
+  final String stepName;
+  final TestConfiguration id;
+
+  TestStep(this.stepName, this.id);
+
+  String toString() {
+    return '$stepName - $id';
+  }
+
+  int get hashCode => stepName.hashCode * 13 + id.hashCode * 17;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! TestStep) return false;
+    return stepName == other.stepName && id == other.id;
+  }
+}
+
+/// The timing result for a single test step.
+class Timing {
+  final BuildUri uri;
+  final String time;
+  final TestStep step;
+
+  Timing(this.uri, this.time, this.step);
+
+  String toString() {
+    return '$time - $step';
+  }
+}
+
+/// The result of a single test for a single test step.
+class TestStatus {
+  final TestConfiguration config;
+  final String status;
+
+  TestStatus(this.config, this.status);
+
+  String toString() => '$config: $status';
 }

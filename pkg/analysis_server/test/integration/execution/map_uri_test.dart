@@ -11,12 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapUriTest);
-    defineReflectiveTests(MapUriTest_Driver);
   });
 }
 
-abstract class AbstractMapUriTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class MapUriTest extends AbstractAnalysisServerIntegrationTest {
   test_mapUri() async {
     String pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');
@@ -38,13 +37,4 @@ abstract class AbstractMapUriTest
       expect(result.uri, 'package:foo/main.dart');
     }
   }
-}
-
-@reflectiveTest
-class MapUriTest extends AbstractMapUriTest {}
-
-@reflectiveTest
-class MapUriTest_Driver extends AbstractMapUriTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

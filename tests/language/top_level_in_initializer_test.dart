@@ -8,7 +8,9 @@ import "package:expect/expect.dart";
 
 const topLevelField = 1;
 topLevelMethod() => 1;
-get topLevelGetter { return 1; }
+get topLevelGetter {
+  return 1;
+}
 
 class Foo {
   Foo.one() : x = topLevelField;

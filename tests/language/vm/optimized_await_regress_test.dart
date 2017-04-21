@@ -14,8 +14,7 @@ import 'package:expect/expect.dart';
 import 'dart:async';
 
 check(value) {
-  try {
-  } finally {
+  try {} finally {
     return value;
   }
 }
@@ -23,7 +22,7 @@ check(value) {
 fail() {
   try {
     Expect.isTrue(false);
-  } finally { }
+  } finally {}
 }
 
 foo(i) async {
@@ -32,7 +31,6 @@ foo(i) async {
   if (a != "abc77") fail();
   return k;
 }
-
 
 main() {
   for (int i = 0; i < 20; i++) {

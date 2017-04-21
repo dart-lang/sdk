@@ -29,10 +29,10 @@ class B extends A with M {
   // [miz] is introduced only on the mixin-application A+M.
 }
 
-B makeB() native ;
+B makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function B() {}

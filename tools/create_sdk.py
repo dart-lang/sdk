@@ -94,26 +94,7 @@ def GetOptions():
       help='Where to output the sdk')
   options.add_option("--snapshot_location",
       help='Location of the snapshots.')
-  options.add_option("--copy_libs",
-      action="store_true", default=False,
-      help='Copy dynamically linked libraries to the SDK bin directory.')
-  options.add_option("--disable_stripping",
-      action="store_true", default=False,
-      help='Do not try to strip binaries. Use when they are already stripped')
   return options.parse_args()
-
-
-def ReplaceInFiles(paths, subs):
-  """Reads a series of files, applies a series of substitutions to each, and
-     saves them back out. subs should by a list of (pattern, replace) tuples."""
-  for path in paths:
-    contents = open(path).read()
-    for pattern, replace in subs:
-      contents = re.sub(pattern, replace, contents)
-
-    dest = open(path, 'w')
-    dest.write(contents)
-    dest.close()
 
 
 def Copy(src, dest):
@@ -136,20 +117,6 @@ def CopyShellScript(src_file, dest_dir):
   src = src_file + file_extension
   dest = join(dest_dir, dest_file + file_extension)
   Copy(src, dest)
-
-
-def CopyLibs(out_dir, bin_dir):
-  for library in ['libcrypto', 'libssl']:
-    ext = '.so'
-    if HOST_OS == 'macos':
-      ext = '.dylib'
-    elif HOST_OS == 'win32':
-      ext = '.dll'
-    src = os.path.join(out_dir, library + ext)
-    dst = os.path.join(bin_dir, library + ext)
-    if os.path.isfile(src):
-      copyfile(src, dst)
-      copymode(src, dst)
 
 
 def CopyDartScripts(home, sdk_root):
@@ -243,9 +210,9 @@ def Main():
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
   # Strip the binaries on platforms where that is supported.
-  if HOST_OS == 'linux' and not options.disable_stripping:
+  if HOST_OS == 'linux':
     subprocess.call(['strip', dart_dest_binary])
-  elif HOST_OS == 'macos' and not options.disable_stripping:
+  elif HOST_OS == 'macos':
     subprocess.call(['strip', '-x', dart_dest_binary])
 
   #
@@ -335,9 +302,6 @@ def Main():
   CopyAnalyzerSources(HOME, LIB)
   CopyAnalysisSummaries(SNAPSHOT, LIB)
   CopyDevCompilerSdk(HOME, LIB)
-
-  if options.copy_libs:
-    CopyLibs(build_dir, BIN)
 
   # Write the 'version' file
   version = utils.GetVersion()

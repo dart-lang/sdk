@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 
-
 void testUriCombi() {
   var schemes = ["", "file", "ws", "ftp"];
   var fragments = ["", "#", "#f", "#fragment", "#l:?/"];
@@ -14,13 +13,13 @@ void testUriCombi() {
   var hosts = ["", "h", "hhh", "h:4", "hhh:444", "[::1.2.3.4]"];
 
   void check(uriString, scheme, fragment, query, path, user, host) {
-    for (var uri in [Uri.parse(uriString),
-                     Uri.parse(">\u{10000}>$uriString<\u{10000}<",
-                               4, uriString.length + 4),
-                     Uri.parse("http://example.com/$uriString#?:/[]\"",
-                               19, uriString.length + 19),
-                     Uri.parse(uriString * 3,
-                               uriString.length, uriString.length * 2)]) {
+    for (var uri in [
+      Uri.parse(uriString),
+      Uri.parse(">\u{10000}>$uriString<\u{10000}<", 4, uriString.length + 4),
+      Uri.parse(
+          "http://example.com/$uriString#?:/[]\"", 19, uriString.length + 19),
+      Uri.parse(uriString * 3, uriString.length, uriString.length * 2)
+    ]) {
       String name = "$uriString -> $uri";
       Expect.equals(scheme, uri.scheme, name);
       var uriFragment = uri.fragment;
@@ -51,14 +50,15 @@ void testUriCombi() {
               if (user.isNotEmpty) auth = "$user@$auth";
               if (auth.isNotEmpty) auth = "//$auth";
               if (auth.isNotEmpty && !path.startsWith('/')) continue;
-              check("$scheme${scheme.isEmpty ? "" : ":"}"
-                        "$auth$path$query$fragment",
-                    scheme,
-                    fragment,
-                    query,
-                    path,
-                    user,
-                    host);
+              check(
+                  "$scheme${scheme.isEmpty ? "" : ":"}"
+                  "$auth$path$query$fragment",
+                  scheme,
+                  fragment,
+                  query,
+                  path,
+                  user,
+                  host);
             }
           }
         }

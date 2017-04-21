@@ -63,7 +63,4 @@ class Bar {
         await sendAnalysisGetNavigation(pathname, 0, 0);
     expect(result.targets, isEmpty);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -4,6 +4,7 @@
 
 library test.invoke_named_test;
 
+@MirrorsUsed(targets: "test.invoke_named_test")
 import 'dart:mirrors';
 
 import 'dart:async' show Future;

@@ -22,8 +22,8 @@ class M {
   bar() => "M-bar";
 }
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {}

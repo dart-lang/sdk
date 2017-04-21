@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class BootstrapTest {
-
   static testMain() {
     var obj = new Object();
 
     return obj;
   }
-
 }
 
 main() {

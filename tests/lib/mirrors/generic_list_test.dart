@@ -4,6 +4,7 @@
 
 library test.superclass;
 
+@MirrorsUsed(targets: const ["test.superclass", "dart.core"])
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

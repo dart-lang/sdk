@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Regression test for http://dartbug.com/23127
 // Tests super calls to a custom element upgrade constructor with various
 // combinations of parameters and type arguments.
 
 library custom_elements_23127_test;
+
 import 'dart:async';
 import 'dart:html';
 import 'package:unittest/html_individual_config.dart';
@@ -35,7 +35,7 @@ abstract class B2 extends HtmlElement {
   void action();
   var qq;
   B2.created([a = 1, b = 2, c = 3])
-      : qq = callTwice(() => ++a * ++b),  // [a] and [b] are boxed.
+      : qq = callTwice(() => ++a * ++b), // [a] and [b] are boxed.
         super.created() {
     action();
     qq = [qq, a, b, c];
@@ -77,8 +77,6 @@ class C2T extends B2T {
   action() => z = 3;
 }
 
-
-
 var callTwice;
 
 main() {
@@ -86,7 +84,10 @@ main() {
 
   setUp(() => customElementsReady);
 
-  callTwice = (f) { f(); return f(); };
+  callTwice = (f) {
+    f();
+    return f();
+  };
 
   group('baseline', () {
     test('C1', () {
@@ -122,5 +123,4 @@ main() {
       expect(e.qq, [true, 88, 22, 4, 3]);
     });
   });
-
 }

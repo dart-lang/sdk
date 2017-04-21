@@ -22,7 +22,6 @@ import "package:path/path.dart";
 
 part "../../../sdk/lib/io/crypto.dart";
 
-
 const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String CERT_NAME = 'localhost_cert';
 const String HOST_NAME = 'localhost';
@@ -32,7 +31,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -45,19 +44,13 @@ class SecurityConfiguration {
 
   SecurityConfiguration({bool this.secure});
 
-  Future<HttpServer> createServer({int backlog: 0}) =>
-      secure ? HttpServer.bindSecure(HOST_NAME,
-                                     0,
-                                     serverContext,
-                                     backlog: backlog)
-             : HttpServer.bind(HOST_NAME,
-                               0,
-                               backlog: backlog);
+  Future<HttpServer> createServer({int backlog: 0}) => secure
+      ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
+      : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
   Future<WebSocket> createClient(int port) =>
-    // TODO(whesse): Add a client context argument to WebSocket.connect.
-    WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
-
+      // TODO(whesse): Add a client context argument to WebSocket.connect.
+      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
 
   void testForceCloseServerEnd(int totalConnections) {
     createServer().then((server) {
@@ -81,17 +74,15 @@ class SecurityConfiguration {
       for (int i = 0; i < totalConnections; i++) {
         createClient(server.port).then((webSocket) {
           webSocket.add("Hello, world!");
-          webSocket.listen(
-              (message) {
-                Expect.fail("unexpected message");
-              },
-              onDone: () {
-                closeCount++;
-                if (closeCount == totalConnections) {
-                  server.close();
-                }
-              });
+          webSocket.listen((message) {
+            Expect.fail("unexpected message");
+          }, onDone: () {
+            closeCount++;
+            if (closeCount == totalConnections) {
+              server.close();
+            }
           });
+        });
       }
     });
   }
@@ -101,7 +92,6 @@ class SecurityConfiguration {
   }
 }
 
-
 main() {
   asyncStart();
   new SecurityConfiguration(secure: false).runTests();
@@ -109,4 +99,3 @@ main() {
   // new SecurityConfiguration(secure: true).runTests();
   asyncEnd();
 }
-

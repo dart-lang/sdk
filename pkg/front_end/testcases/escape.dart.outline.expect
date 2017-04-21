@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic field;
+  constructor •() → void
+    ;
+}
+class B extends core::Object {
+  field dynamic field;
+  constructor •() → void
+    ;
+}
+class C extends core::Object {
+  constructor •() → void
+    ;
+  operator ==(dynamic x) → dynamic
+    ;
+}
+class X extends core::Object implements self::A, self::B {
+  field dynamic field;
+  constructor •() → void
+    ;
+}
+static method useAsA(self::A object) → void
+  ;
+static method useAsB(self::B object) → void
+  ;
+static method escape(dynamic x) → void
+  ;
+static method main() → dynamic
+  ;

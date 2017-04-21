@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library top_level_entry_test.dart;
+
 part 'top_level_entry.dart';

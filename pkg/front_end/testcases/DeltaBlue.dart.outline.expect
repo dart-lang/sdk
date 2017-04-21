@@ -1,0 +1,202 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class DeltaBlue extends core::Object {
+  constructor •() → void
+    ;
+  method run() → void
+    ;
+}
+class Strength extends core::Object {
+  final field core::int value;
+  final field core::String name;
+  const constructor •(dynamic value, dynamic name) → void
+    ;
+  method nextWeaker() → self::Strength
+    ;
+  static method stronger(self::Strength s1, self::Strength s2) → core::bool
+    ;
+  static method weaker(self::Strength s1, self::Strength s2) → core::bool
+    ;
+  static method weakest(self::Strength s1, self::Strength s2) → self::Strength
+    ;
+  static method strongest(self::Strength s1, self::Strength s2) → self::Strength
+    ;
+}
+abstract class Constraint extends core::Object {
+  final field self::Strength strength;
+  const constructor •(dynamic strength) → void
+    ;
+  abstract method isSatisfied() → core::bool;
+  abstract method markUnsatisfied() → void;
+  abstract method addToGraph() → void;
+  abstract method removeFromGraph() → void;
+  abstract method chooseMethod(core::int mark) → void;
+  abstract method markInputs(core::int mark) → void;
+  abstract method inputsKnown(core::int mark) → core::bool;
+  abstract method output() → self::Variable;
+  abstract method execute() → void;
+  abstract method recalculate() → void;
+  method addConstraint() → void
+    ;
+  method satisfy(dynamic mark) → self::Constraint
+    ;
+  method destroyConstraint() → void
+    ;
+  method isInput() → core::bool
+    ;
+}
+abstract class UnaryConstraint extends self::Constraint {
+  final field self::Variable myOutput;
+  field core::bool satisfied;
+  constructor •(dynamic myOutput, self::Strength strength) → void
+    ;
+  method addToGraph() → void
+    ;
+  method chooseMethod(core::int mark) → void
+    ;
+  method isSatisfied() → core::bool
+    ;
+  method markInputs(core::int mark) → void
+    ;
+  method output() → self::Variable
+    ;
+  method recalculate() → void
+    ;
+  method markUnsatisfied() → void
+    ;
+  method inputsKnown(core::int mark) → core::bool
+    ;
+  method removeFromGraph() → void
+    ;
+}
+class StayConstraint extends self::UnaryConstraint {
+  constructor •(self::Variable v, self::Strength str) → void
+    ;
+  method execute() → void
+    ;
+}
+class EditConstraint extends self::UnaryConstraint {
+  constructor •(self::Variable v, self::Strength str) → void
+    ;
+  method isInput() → core::bool
+    ;
+  method execute() → void
+    ;
+}
+abstract class BinaryConstraint extends self::Constraint {
+  field self::Variable v1;
+  field self::Variable v2;
+  field core::int direction;
+  constructor •(dynamic v1, dynamic v2, self::Strength strength) → void
+    ;
+  method chooseMethod(core::int mark) → void
+    ;
+  method addToGraph() → void
+    ;
+  method isSatisfied() → core::bool
+    ;
+  method markInputs(core::int mark) → void
+    ;
+  method input() → self::Variable
+    ;
+  method output() → self::Variable
+    ;
+  method recalculate() → void
+    ;
+  method markUnsatisfied() → void
+    ;
+  method inputsKnown(core::int mark) → core::bool
+    ;
+  method removeFromGraph() → void
+    ;
+}
+class ScaleConstraint extends self::BinaryConstraint {
+  final field self::Variable scale;
+  final field self::Variable offset;
+  constructor •(self::Variable src, dynamic scale, dynamic offset, self::Variable dest, self::Strength strength) → void
+    ;
+  method addToGraph() → void
+    ;
+  method removeFromGraph() → void
+    ;
+  method markInputs(core::int mark) → void
+    ;
+  method execute() → void
+    ;
+  method recalculate() → void
+    ;
+}
+class EqualityConstraint extends self::BinaryConstraint {
+  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → void
+    ;
+  method execute() → void
+    ;
+}
+class Variable extends core::Object {
+  field core::List<self::Constraint> constraints;
+  field self::Constraint determinedBy;
+  field core::int mark;
+  field self::Strength walkStrength;
+  field core::bool stay;
+  field core::int value;
+  final field core::String name;
+  constructor •(dynamic name, dynamic value) → void
+    ;
+  method addConstraint(self::Constraint c) → void
+    ;
+  method removeConstraint(self::Constraint c) → void
+    ;
+}
+class Planner extends core::Object {
+  field core::int currentMark;
+  constructor •() → void
+    ;
+  method incrementalAdd(self::Constraint c) → void
+    ;
+  method incrementalRemove(self::Constraint c) → void
+    ;
+  method newMark() → core::int
+    ;
+  method makePlan(core::List<self::Constraint> sources) → self::Plan
+    ;
+  method extractPlanFromConstraints(core::List<self::Constraint> constraints) → self::Plan
+    ;
+  method addPropagate(self::Constraint c, core::int mark) → core::bool
+    ;
+  method removePropagateFrom(self::Variable out) → core::List<self::Constraint>
+    ;
+  method addConstraintsConsumingTo(self::Variable v, core::List<self::Constraint> coll) → void
+    ;
+}
+class Plan extends core::Object {
+  field core::List<self::Constraint> list;
+  constructor •() → void
+    ;
+  method addConstraint(self::Constraint c) → void
+    ;
+  method size() → core::int
+    ;
+  method execute() → void
+    ;
+}
+static const field dynamic REQUIRED;
+static const field dynamic STRONG_PREFERRED;
+static const field dynamic PREFERRED;
+static const field dynamic STRONG_DEFAULT;
+static const field dynamic NORMAL;
+static const field dynamic WEAK_DEFAULT;
+static const field dynamic WEAKEST;
+static const field core::int NONE;
+static const field core::int FORWARD;
+static const field core::int BACKWARD;
+static field self::Planner planner;
+static method main() → dynamic
+  ;
+static method chainTest(core::int n) → void
+  ;
+static method projectionTest(core::int n) → void
+  ;
+static method change(self::Variable v, core::int newValue) → void
+  ;

@@ -82,10 +82,12 @@ class IntBoolConverter1Sink extends MyChunkedIntSink {
   add(int i) {
     outSink.specialB(i > 0);
   }
+
   specialI(int i) {
     specialICounter++;
     add(i);
   }
+
   close() => outSink.close();
 }
 
@@ -101,6 +103,7 @@ class BoolIntConverter1Sink extends MyChunkedBoolSink {
     specialBCounter++;
     add(b);
   }
+
   close() => outSink.close();
 }
 

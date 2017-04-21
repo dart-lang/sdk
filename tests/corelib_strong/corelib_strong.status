@@ -54,6 +54,3 @@ symbol_reserved_word_test: Skip
 symbol_test: Skip
 uri_path_test: Skip
 uri_query_test: Skip
-
-[ $compiler == dart2analyzer && $strong ]
-# error_stack_trace2_test: CompileTimeError

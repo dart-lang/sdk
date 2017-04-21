@@ -4,6 +4,7 @@
 
 library test.static_members;
 
+@MirrorsUsed(targets: "test.static_members")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -18,17 +19,14 @@ main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
   LibraryMirror lm = cm.owner;
 
-  Expect.setEquals(
-    [#staticVariable,
-     const Symbol('staticVariable='),
-     #staticGetter,
-     const Symbol('staticSetter='),
-     #staticMethod,
-     ],
-    selectKeys(cm.staticMembers, (dm) => true));
+  Expect.setEquals([
+    #staticVariable,
+    const Symbol('staticVariable='),
+    #staticGetter,
+    const Symbol('staticSetter='),
+    #staticMethod,
+  ], selectKeys(cm.staticMembers, (dm) => true));
 
-  Expect.setEquals(
-    [#staticVariable,
-     const Symbol('staticVariable=')],
-    selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
+  Expect.setEquals([#staticVariable, const Symbol('staticVariable=')],
+      selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
 }

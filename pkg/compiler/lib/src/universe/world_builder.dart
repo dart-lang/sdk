@@ -35,6 +35,7 @@ import 'use.dart'
         StaticUseKind;
 
 part 'codegen_world_builder.dart';
+part 'element_world_builder.dart';
 part 'member_usage.dart';
 part 'resolution_world_builder.dart';
 

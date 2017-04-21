@@ -15,7 +15,9 @@ class Bar {
 class A {
   var _bar = new Bar();
   A() : this._();
-  A._() {() => 42;}
+  A._() {
+    () => 42;
+  }
 }
 
 main() {

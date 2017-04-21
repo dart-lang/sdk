@@ -15,30 +15,29 @@ void test(String expected, Map headers) {
   HttpServer.bind("localhost", 0).then((server) {
     expected = expected.replaceAll('%PORT', server.port.toString());
     server.listen((request) {
-      Expect.equals("$expected$expectedPath",
-                    request.requestedUri.toString());
+      Expect.equals("$expected$expectedPath", request.requestedUri.toString());
       request.response.close();
     });
     HttpClient client = new HttpClient();
-    client.get("localhost", server.port, sendPath)
-      .then((request) {
-        for (var v in headers.keys) {
-          if (headers[v] != null) {
-            request.headers.set(v, headers[v]);
-          } else {
-            request.headers.removeAll(v);
+    client
+        .get("localhost", server.port, sendPath)
+        .then((request) {
+          for (var v in headers.keys) {
+            if (headers[v] != null) {
+              request.headers.set(v, headers[v]);
+            } else {
+              request.headers.removeAll(v);
+            }
           }
-        }
-        return request.close();
-      })
-      .then((response) => response.drain())
-      .then((_) {
-        server.close();
-        asyncEnd();
-      });
+          return request.close();
+        })
+        .then((response) => response.drain())
+        .then((_) {
+          server.close();
+          asyncEnd();
+        });
   });
 }
-
 
 void main() {
   test('http://localhost:%PORT', {});
@@ -47,4 +46,3 @@ void main() {
   test('http://my-host:321', {'x-forwarded-host': 'my-host:321'});
   test('http://localhost:%PORT', {'host': null});
 }
-

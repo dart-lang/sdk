@@ -8,10 +8,9 @@
 // Tests proper object recognition in disassembler.
 
 f(x) {
- return "foo";
+  return "foo";
 }
 
 main() {
- print(f(0));
+  print(f(0));
 }
-

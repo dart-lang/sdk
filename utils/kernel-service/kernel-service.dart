@@ -29,6 +29,8 @@ import 'package:front_end/src/fasta/vm.dart'
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 
+const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
+
 Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
   Uri scriptUri = Uri.parse(inputFilePathOrUri);
 
@@ -47,7 +49,7 @@ Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
         "Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"));
   }
 
-  return parseScript(scriptUri, verbose: verbose);
+  return parseScript(scriptUri, verbose: verbose, strongMode: strongMode);
 }
 
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in

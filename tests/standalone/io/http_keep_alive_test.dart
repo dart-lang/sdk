@@ -12,14 +12,14 @@ import "dart:async";
 import "dart:io";
 
 Future getData(HttpClient client, int port, bool chunked, int length) {
-  return client.get("127.0.0.1", port, "/?chunked=$chunked&length=$length")
+  return client
+      .get("127.0.0.1", port, "/?chunked=$chunked&length=$length")
       .then((request) => request.close())
       .then((response) {
-        return response.fold(0, (bytes, data) => bytes + data.length)
-            .then((bytes) {
-              Expect.equals(length, bytes);
-            });
-      });
+    return response.fold(0, (bytes, data) => bytes + data.length).then((bytes) {
+      Expect.equals(length, bytes);
+    });
+  });
 }
 
 Future<HttpServer> startServer() {
@@ -46,10 +46,9 @@ testKeepAliveNonChunked() {
         .then((_) => getData(client, server.port, false, 100))
         .then((_) => getData(client, server.port, false, 100))
         .then((_) {
-          server.close();
-          client.close();
-        });
-
+      server.close();
+      client.close();
+    });
   });
 }
 
@@ -63,10 +62,9 @@ testKeepAliveChunked() {
         .then((_) => getData(client, server.port, true, 100))
         .then((_) => getData(client, server.port, true, 100))
         .then((_) {
-          server.close();
-          client.close();
-        });
-
+      server.close();
+      client.close();
+    });
   });
 }
 
@@ -83,10 +81,9 @@ testKeepAliveMixed() {
         .then((_) => getData(client, server.port, true, 100))
         .then((_) => getData(client, server.port, false, 100))
         .then((_) {
-          server.close();
-          client.close();
-        });
-
+      server.close();
+      client.close();
+    });
   });
 }
 

@@ -27,7 +27,7 @@ class Holder {
 
 var list = [];
 
-main () {
+main() {
   var holder = new Holder();
   var hide = ((X) => X)(holder.tearMe);
   hide(new A());

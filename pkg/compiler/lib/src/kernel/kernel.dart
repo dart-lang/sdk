@@ -35,6 +35,7 @@ import '../elements/elements.dart'
         MetadataAnnotation,
         MixinApplicationElement,
         TypeVariableElement;
+import '../elements/entities.dart' show LibraryEntity;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
 import '../tree/tree.dart' show FunctionExpression, Node;
 import 'constant_visitor.dart';
@@ -351,6 +352,7 @@ class Kernel {
     return result;
   }
 
+  // ignore: MISSING_RETURN
   ir.DartType typeToIr(ResolutionDartType type) {
     switch (type.kind) {
       case ResolutionTypeKind.FUNCTION:
@@ -608,7 +610,7 @@ class Kernel {
     throw message;
   }
 
-  forEachLibraryElement(f(LibraryElement library)) {
+  forEachLibraryElement(f(LibraryEntity library)) {
     return compiler.libraryLoader.libraries.forEach(f);
   }
 

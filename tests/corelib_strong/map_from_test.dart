@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library map.from.test;
+
 import "package:expect/expect.dart";
 import 'dart:collection';
 
@@ -14,7 +15,7 @@ main() {
 }
 
 testWithConstMap() {
-  var map = const { 'b': 42, 'a': 43 };
+  var map = const {'b': 42, 'a': 43};
   var otherMap = new Map.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
@@ -26,7 +27,9 @@ testWithConstMap() {
 
   var count = (map) {
     int cnt = 0;
-    map.forEach((a, b) { cnt += b; });
+    map.forEach((a, b) {
+      cnt += b;
+    });
     return cnt;
   };
 
@@ -35,7 +38,7 @@ testWithConstMap() {
 }
 
 testWithNonConstMap() {
-  var map = { 'b': 42, 'a': 43 };
+  var map = {'b': 42, 'a': 43};
   var otherMap = new Map.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
@@ -47,9 +50,13 @@ testWithNonConstMap() {
 
   int count(map) {
     int count = 0;
-    map.forEach((a, b) { count += b; });
+    map.forEach((a, b) {
+      count += b;
+    });
     return count;
-  };
+  }
+
+  ;
 
   Expect.equals(42 + 43, count(map));
   Expect.equals(count(map), count(otherMap));
@@ -70,11 +77,11 @@ testWithNonConstMap() {
 }
 
 testWithHashMap() {
-  var map = const { 'b': 1, 'a': 2, 'c': 3 };
+  var map = const {'b': 1, 'a': 2, 'c': 3};
   var otherMap = new HashMap.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);
-  Expect.isTrue(otherMap is !LinkedHashMap);
+  Expect.isTrue(otherMap is! LinkedHashMap);
   var i = 1;
   for (var val in map.values) {
     Expect.equals(i++, val);
@@ -82,7 +89,7 @@ testWithHashMap() {
 }
 
 testWithLinkedMap() {
-  var map = const { 'b': 1, 'a': 2, 'c': 3 };
+  var map = const {'b': 1, 'a': 2, 'c': 3};
   var otherMap = new LinkedHashMap.from(map);
   Expect.isTrue(otherMap is Map);
   Expect.isTrue(otherMap is HashMap);

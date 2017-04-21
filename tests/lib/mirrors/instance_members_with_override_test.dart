@@ -4,6 +4,7 @@
 
 library test.instance_members_with_override;
 
+@MirrorsUsed(targets: "test.instance_members_with_override")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -15,6 +16,7 @@ class S {
   set setter(x) {}
   notOverridden() {}
 }
+
 abstract class C extends S {
   var field;
   final finalField = 0;
@@ -32,20 +34,20 @@ main() {
   ClassMirror sMirror = reflectClass(S);
   ClassMirror cMirror = reflectClass(C);
 
-  Expect.setEquals(
-    [#field,
-     const Symbol('field='),
-     #finalField,
-     #method,
-     #getter,
-     const Symbol('setter='),
-     #notOverridden,
-     #hashCode,
-     #runtimeType,
-     #==,
-     #noSuchMethod,
-     #toString],
-    selectKeys(sMirror.instanceMembers, (dm) => !dm.isPrivate));
+  Expect.setEquals([
+    #field,
+    const Symbol('field='),
+    #finalField,
+    #method,
+    #getter,
+    const Symbol('setter='),
+    #notOverridden,
+    #hashCode,
+    #runtimeType,
+    #==,
+    #noSuchMethod,
+    #toString
+  ], selectKeys(sMirror.instanceMembers, (dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
   Expect.equals(sMirror, sMirror.instanceMembers[#field].owner);
@@ -53,30 +55,32 @@ main() {
   Expect.equals(sMirror, sMirror.instanceMembers[#finalField].owner);
   Expect.equals(sMirror, sMirror.instanceMembers[#method].owner);
   Expect.equals(sMirror, sMirror.instanceMembers[#getter].owner);
-  Expect.equals(sMirror,sMirror.instanceMembers[const Symbol('setter=')].owner);
+  Expect.equals(
+      sMirror, sMirror.instanceMembers[const Symbol('setter=')].owner);
 
-  Expect.setEquals(
-    [#field,
-     const Symbol('field='),
-     #finalField,
-     #method,
-     #getter,
-     const Symbol('setter='),
-     #notOverridden,
-     #hashCode,
-     #runtimeType,
-     #==,
-     #noSuchMethod,
-     #toString],
-    selectKeys(cMirror.instanceMembers, (dm) => !dm.isPrivate));
+  Expect.setEquals([
+    #field,
+    const Symbol('field='),
+    #finalField,
+    #method,
+    #getter,
+    const Symbol('setter='),
+    #notOverridden,
+    #hashCode,
+    #runtimeType,
+    #==,
+    #noSuchMethod,
+    #toString
+  ], selectKeys(cMirror.instanceMembers, (dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
-  
+
   Expect.equals(cMirror, cMirror.instanceMembers[#field].owner);
   Expect.equals(cMirror, cMirror.instanceMembers[const Symbol('field=')].owner);
   Expect.equals(cMirror, cMirror.instanceMembers[#finalField].owner);
   Expect.equals(cMirror, cMirror.instanceMembers[#method].owner);
   Expect.equals(cMirror, cMirror.instanceMembers[#getter].owner);
-  Expect.equals(cMirror,cMirror.instanceMembers[const Symbol('setter=')].owner);
+  Expect.equals(
+      cMirror, cMirror.instanceMembers[const Symbol('setter=')].owner);
 
   Expect.equals(sMirror, sMirror.instanceMembers[#notOverridden].owner);
   Expect.equals(sMirror, cMirror.instanceMembers[#notOverridden].owner);

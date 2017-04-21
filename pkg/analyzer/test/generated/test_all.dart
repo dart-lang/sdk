@@ -15,7 +15,7 @@ import 'checked_mode_compile_time_error_code_test.dart'
 import 'compile_time_error_code_driver_test.dart'
     as compile_time_error_code_driver_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
-import 'constant_test.dart' as constant_test;
+import 'constant_test.dart' as constant_test; // ignore: deprecated_member_use
 import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'element_resolver_test.dart' as element_resolver_test;
 import 'engine_test.dart' as engine_test;

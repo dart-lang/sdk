@@ -96,8 +96,8 @@ main() {
     });
 
     test('telephone', () {
-      check(new TelephoneInputElement(), 'tel',
-          TelephoneInputElement.supported);
+      check(
+          new TelephoneInputElement(), 'tel', TelephoneInputElement.supported);
     });
 
     test('email', () {
@@ -189,4 +189,4 @@ main() {
   });
 }
 
-var _undefined = (() => new List(5)[0])();
+dynamic _undefined = (() => new List(5)[0])();

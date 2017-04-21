@@ -239,7 +239,7 @@ abstract class Visitor1<R, A> {
   R visitNewExpression(NewExpression node, A arg) => visitExpression(node, arg);
   R visitNodeList(NodeList node, A arg) => visitNode(node, arg);
   R visitNominalTypeAnnotation(NominalTypeAnnotation node, A arg) {
-    visitTypeAnnotation(node, arg);
+    return visitTypeAnnotation(node, arg);
   }
 
   R visitOperator(Operator node, A arg) => visitIdentifier(node, arg);
@@ -1218,7 +1218,7 @@ class LiteralInt extends Literal<int> {
       }
       return int.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
-      (this.handler)(token, ex);
+      throw handler(token, ex);
     }
   }
 
@@ -1241,7 +1241,7 @@ class LiteralDouble extends Literal<double> {
       }
       return double.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
-      (this.handler)(token, ex);
+      throw handler(token, ex);
     }
   }
 

@@ -180,8 +180,8 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
         ..value = modeToString(_mode)
         ..children = ProfileTreeMode.values.map((mode) {
           return new OptionElement(
-              value: modeToString(mode),
-              selected: _mode == mode)..text = modeToString(mode);
+              value: modeToString(mode), selected: _mode == mode)
+            ..text = modeToString(mode);
         }).toList(growable: false)
         ..onChange.listen((_) {
           _mode = ProfileTreeMode.values[s.selectedIndex];

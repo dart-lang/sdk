@@ -5,7 +5,6 @@
 library source_file_provider;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -24,10 +23,6 @@ abstract class SourceFileProvider implements CompilerInput {
   Uri cwd = currentDirectory;
   Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
   int dartCharactersRead = 0;
-
-  Future<String> readStringFromUri(Uri resourceUri) {
-    return readUtf8BytesFromUri(resourceUri).then(UTF8.decode);
-  }
 
   Future<List<int>> readUtf8BytesFromUri(Uri resourceUri) {
     if (resourceUri.scheme == 'file') {
@@ -416,7 +411,7 @@ class BazelInputProvider extends SourceFileProvider {
         }
       }
     }
-    var result = await readUtf8BytesFromUri(resolvedUri);
+    List<int> result = await readUtf8BytesFromUri(resolvedUri);
     sourceFiles[uri] = sourceFiles[resolvedUri];
     return result;
   }

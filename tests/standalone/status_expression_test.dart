@@ -7,7 +7,6 @@ library StatusExpressionTest;
 import "package:expect/expect.dart";
 import "../../tools/testing/dart/status_expression.dart";
 
-
 class StatusExpressionTest {
   static void testMain() {
     test1();
@@ -23,9 +22,24 @@ class StatusExpressionTest {
     Tokenizer tokenizer = new Tokenizer(
         r" $mode == debug && ($arch == chromium || $arch == dartc) ");
     tokenizer.tokenize();
-    Expect.listEquals(tokenizer.tokens,
-        ["\$", "mode", "==", "debug", "&&", "(", "\$", "arch", "==",
-         "chromium", "||", "\$", "arch", "==", "dartc", ")"]);
+    Expect.listEquals(tokenizer.tokens, [
+      "\$",
+      "mode",
+      "==",
+      "debug",
+      "&&",
+      "(",
+      "\$",
+      "arch",
+      "==",
+      "chromium",
+      "||",
+      "\$",
+      "arch",
+      "==",
+      "dartc",
+      ")"
+    ]);
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
     BooleanExpression ast = parser.parseBooleanExpression();
@@ -51,10 +65,24 @@ class StatusExpressionTest {
     Tokenizer tokenizer = new Tokenizer(
         r"($arch == dartc || $arch == chromium) && $mode == release");
     tokenizer.tokenize();
-    Expect.listEquals(
-        tokenizer.tokens,
-        ["(", "\$", "arch", "==", "dartc", "||", "\$", "arch", "==",
-        "chromium", ")", "&&", "\$", "mode", "==", "release"]);
+    Expect.listEquals(tokenizer.tokens, [
+      "(",
+      "\$",
+      "arch",
+      "==",
+      "dartc",
+      "||",
+      "\$",
+      "arch",
+      "==",
+      "chromium",
+      ")",
+      "&&",
+      "\$",
+      "mode",
+      "==",
+      "release"
+    ]);
   }
 
   static void test3() {
@@ -66,8 +94,8 @@ class StatusExpressionTest {
     } on Exception catch (e) {
       thrown = e;
     }
-    Expect.equals("FormatException: Syntax error in '$input'",
-                  thrown.toString());
+    Expect.equals(
+        "FormatException: Syntax error in '$input'", thrown.toString());
   }
 
   static void test4() {
@@ -80,14 +108,14 @@ class StatusExpressionTest {
     } on Exception catch (e) {
       thrown = e;
     }
-    Expect.equals("FormatException: Syntax error in '$input'",
-                  thrown.toString());
+    Expect.equals(
+        "FormatException: Syntax error in '$input'", thrown.toString());
   }
 
   static void test5() {
-    Tokenizer tokenizer = new Tokenizer(
-        r"Skip , Pass if $arch == dartc, Fail || Timeout if "
-        r"$arch == chromium && $mode == release");
+    Tokenizer tokenizer =
+        new Tokenizer(r"Skip , Pass if $arch == dartc, Fail || Timeout if "
+            r"$arch == chromium && $mode == release");
     tokenizer.tokenize();
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
@@ -119,8 +147,8 @@ class StatusExpressionTest {
   }
 
   static void test6() {
-    Tokenizer tokenizer = new Tokenizer(
-      r"  $arch == ia32 && $checked || $mode == release    ");
+    Tokenizer tokenizer =
+        new Tokenizer(r"  $arch == ia32 && $checked || $mode == release    ");
     tokenizer.tokenize();
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
@@ -155,8 +183,8 @@ class StatusExpressionTest {
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
     BooleanExpression ast = parser.parseBooleanExpression();
-    Expect.equals(r"(($compiler == dart2js) && ($runtime != ie9))",
-                  ast.toString());
+    Expect.equals(
+        r"(($compiler == dart2js) && ($runtime != ie9))", ast.toString());
 
     // Test BooleanExpression.evaluate().
     Map environment = new Map();

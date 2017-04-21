@@ -4,6 +4,7 @@
 // Dart test program for testing the instanceof operation.
 
 library intrinsified_methods_test;
+
 import "package:expect/expect.dart";
 import 'dart:math';
 
@@ -22,7 +23,6 @@ testIsNaN() {
   Expect.isTrue((double.NAN).isNaN);
 }
 
-
 testTrigonometric() {
   Expect.approxEquals(1.0, sin(PI / 2.0), 0.0001);
   Expect.approxEquals(1.0, cos(0), 0.0001);
@@ -31,7 +31,7 @@ testTrigonometric() {
 
 num foo(int n) {
   var x;
-  for(var i = 0; i <= n; ++i) {
+  for (var i = 0; i <= n; ++i) {
     Expect.equals(2.0, sqrt(4.0));
     testIsNegative();
     testIsNaN();

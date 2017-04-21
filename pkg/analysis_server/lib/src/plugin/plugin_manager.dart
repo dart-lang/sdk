@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:io' show Platform;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/bazel.dart';
@@ -24,7 +25,6 @@ import 'package:path/path.dart' as path;
 /**
  * Information about a single plugin.
  */
-@visibleForTesting
 class PluginInfo {
   /**
    * The path to the root directory of the definition of the plugin on disk (the
@@ -57,7 +57,7 @@ class PluginInfo {
    * The context roots that are currently using the results produced by the
    * plugin.
    */
-  Set<ContextRoot> contextRoots = new HashSet<ContextRoot>();
+  Set<analyzer.ContextRoot> contextRoots = new HashSet<analyzer.ContextRoot>();
 
   /**
    * The current execution of the plugin, or `null` if the plugin is not
@@ -72,10 +72,16 @@ class PluginInfo {
       this.notificationManager, this.instrumentationService);
 
   /**
+   * Return the data known about this plugin.
+   */
+  PluginData get data =>
+      new PluginData(path, currentSession?.name, currentSession?.version);
+
+  /**
    * Add the given [contextRoot] to the set of context roots being analyzed by
    * this plugin.
    */
-  void addContextRoot(ContextRoot contextRoot) {
+  void addContextRoot(analyzer.ContextRoot contextRoot) {
     if (contextRoots.add(contextRoot)) {
       _updatePluginRoots();
     }
@@ -85,7 +91,7 @@ class PluginInfo {
    * Remove the given [contextRoot] from the set of context roots being analyzed
    * by this plugin.
    */
-  void removeContextRoot(ContextRoot contextRoot) {
+  void removeContextRoot(analyzer.ContextRoot contextRoot) {
     if (contextRoots.remove(contextRoot)) {
       _updatePluginRoots();
     }
@@ -121,8 +127,11 @@ class PluginInfo {
    */
   void _updatePluginRoots() {
     if (currentSession != null) {
-      AnalysisSetContextRootsParams params =
-          new AnalysisSetContextRootsParams(contextRoots.toList());
+      AnalysisSetContextRootsParams params = new AnalysisSetContextRootsParams(
+          contextRoots
+              .map((analyzer.ContextRoot contextRoot) =>
+                  new ContextRoot(contextRoot.root, contextRoot.exclude))
+              .toList());
       currentSession.sendRequest(params);
     }
   }
@@ -171,7 +180,7 @@ class PluginManager {
    * yet been started, then it will be started by this method.
    */
   Future<Null> addPluginToContextRoot(
-      ContextRoot contextRoot, String path) async {
+      analyzer.ContextRoot contextRoot, String path) async {
     PluginInfo plugin = _pluginMap[path];
     if (plugin == null) {
       List<String> pluginPaths = _pathsFor(path);
@@ -194,12 +203,15 @@ class PluginManager {
    * containing futures that will complete when each of the plugins have sent a
    * response.
    */
-  List<Future<Response>> broadcast(
-      ContextRoot contextRoot, RequestParams params) {
+  Map<PluginInfo, Future<Response>> broadcast(
+      analyzer.ContextRoot contextRoot, RequestParams params) {
     List<PluginInfo> plugins = pluginsForContextRoot(contextRoot);
-    return plugins
-        .map((PluginInfo plugin) => plugin.currentSession?.sendRequest(params))
-        .toList();
+    Map<PluginInfo, Future<Response>> responseMap =
+        <PluginInfo, Future<Response>>{};
+    for (PluginInfo plugin in plugins) {
+      responseMap[plugin] = plugin.currentSession?.sendRequest(params);
+    }
+    return responseMap;
   }
 
   /**
@@ -207,7 +219,7 @@ class PluginManager {
    * given [contextRoot].
    */
   @visibleForTesting
-  List<PluginInfo> pluginsForContextRoot(ContextRoot contextRoot) {
+  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
     List<PluginInfo> plugins = <PluginInfo>[];
     for (PluginInfo plugin in _pluginMap.values) {
       if (plugin.contextRoots.contains(contextRoot)) {
@@ -220,7 +232,7 @@ class PluginManager {
   /**
    * The given [contextRoot] is no longer being analyzed.
    */
-  void removedContextRoot(ContextRoot contextRoot) {
+  void removedContextRoot(analyzer.ContextRoot contextRoot) {
     List<PluginInfo> plugins = _pluginMap.values.toList();
     for (PluginInfo plugin in plugins) {
       plugin.removeContextRoot(contextRoot);

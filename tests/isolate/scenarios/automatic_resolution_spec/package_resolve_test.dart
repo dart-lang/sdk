@@ -14,10 +14,8 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script,
-                   [],
-                   p.sendPort,
-                   automaticPackageResolution: true);
+  Isolate.spawnUri(Platform.script, [], p.sendPort,
+      automaticPackageResolution: true);
   p.handler = (msg) {
     p.close();
     if (msg is! List) {
@@ -27,7 +25,7 @@ main([args, port]) async {
     var child_pkg_config = Platform.script.resolve(".packages");
     if (msg[0] != child_pkg_config.toString()) {
       throw "Bad package config in child isolate: ${msg[0]}\n"
-            "Expected: $child_pkg_config";
+          "Expected: $child_pkg_config";
     }
     if (msg[1] != PACKAGE_PATH) {
       throw "Package path not matching: ${msg[1]}";

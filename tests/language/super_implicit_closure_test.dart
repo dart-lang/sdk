@@ -7,14 +7,23 @@ import "package:expect/expect.dart";
 
 class BaseClass {
   BaseClass(this._i) {}
-  int foo() { return _i; }
+  int foo() {
+    return _i;
+  }
+
   int _i;
 }
 
 class DerivedClass extends BaseClass {
   DerivedClass(this._y, int j) : super(j) {}
-  int foo() { return _y; }
-  getSuper() { return super.foo; }
+  int foo() {
+    return _y;
+  }
+
+  getSuper() {
+    return super.foo;
+  }
+
   int _y;
 }
 
@@ -29,7 +38,6 @@ class SuperImplicitClosureTest {
     Expect.equals(obj._i, ib());
   }
 }
-
 
 main() {
   SuperImplicitClosureTest.testMain();

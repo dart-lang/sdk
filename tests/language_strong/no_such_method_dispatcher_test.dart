@@ -11,10 +11,11 @@ class A {
   noSuchMethod(m) {
     return 123;
   }
+
   bar(x) => x + 1;
 }
 
-class B extends A { }
+class B extends A {}
 
 class C {
   C(this.pos, this.named, this.posArgs, this.namedArgs);
@@ -30,6 +31,7 @@ class C {
     }
     return 123;
   }
+
   List posArgs;
   Map namedArgs;
 }
@@ -48,15 +50,14 @@ main() {
   }
 
   for (var i = 0; i < 20; ++i) {
-    Expect.equals(123, b.bar(1,2,3));
-    Expect.equals(123, b.bar(1,2,foo:3));
+    Expect.equals(123, b.bar(1, 2, 3));
+    Expect.equals(123, b.bar(1, 2, foo: 3));
   }
 
   // Test named and positional arguments.
-  var c = new C(1, 2, [100], {"n1":101, "n2":102});
+  var c = new C(1, 2, [100], {"n1": 101, "n2": 102});
   for (var i = 0; i < 20; ++i) {
-    Expect.equals(123, c.bar(100, n1:101, n2:102));
-    Expect.equals(123, c.bar(100, n2:102, n1:101));
+    Expect.equals(123, c.bar(100, n1: 101, n2: 102));
+    Expect.equals(123, c.bar(100, n2: 102, n1: 101));
   }
 }
-

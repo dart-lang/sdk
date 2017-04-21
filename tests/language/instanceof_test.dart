@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 
 class InstanceofTest {
-
   InstanceofTest() {}
 
   static void testBasicTypes() {
@@ -55,7 +54,7 @@ class InstanceofTest {
     Expect.equals(true, d is K);
 
     Expect.equals(true, [] is List);
-    Expect.equals(true, [1,2,3] is List);
+    Expect.equals(true, [1, 2, 3] is List);
     Expect.equals(false, (d is List));
     Expect.equals(false, (null is List));
     Expect.equals(false, (null is D));
@@ -72,7 +71,6 @@ class InstanceofTest {
     var a = new A();
     Expect.equals(false, (a is num));
   }
-
 
   static void testTypeOfInstanceOf() {
     var a = new A();
@@ -171,15 +169,26 @@ class InstanceofTest {
 }
 
 abstract class I {}
-class A implements I {A() {}}
-class B {B() {}}
+
+class A implements I {
+  A() {}
+}
+
+class B {
+  B() {}
+}
 
 abstract class J {}
 
 abstract class K implements J {}
-class C implements I, K {C() {}}
 
-class D extends C {D() : super() {}}
+class C implements I, K {
+  C() {}
+}
+
+class D extends C {
+  D() : super() {}
+}
 
 main() {
   // Repeat type checks so that inlined tests can be tested as well.
@@ -187,4 +196,3 @@ main() {
     InstanceofTest.testMain();
   }
 }
-

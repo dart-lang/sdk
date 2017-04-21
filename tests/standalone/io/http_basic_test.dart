@@ -43,7 +43,6 @@ class TestServerMain {
         _startedCallback(status.port);
       }
     });
-
   }
 
   void close() {
@@ -52,11 +51,10 @@ class TestServerMain {
     _statusPort.close();
   }
 
-  ReceivePort _statusPort;  // Port for receiving messages from the server.
-  SendPort _serverPort;  // Port for sending messages to the server.
+  ReceivePort _statusPort; // Port for receiving messages from the server.
+  SendPort _serverPort; // Port for sending messages to the server.
   var _startedCallback;
 }
-
 
 class TestServerCommand {
   static const START = 0;
@@ -73,7 +71,6 @@ class TestServerCommand {
 
   int _command;
 }
-
 
 class TestServerStatus {
   static const STARTED = 0;
@@ -94,13 +91,11 @@ class TestServerStatus {
   int _port;
 }
 
-
 void startTestServer(SendPort replyTo) {
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
 }
-
 
 class TestServer {
   // Echo the request content back to the response.
@@ -116,9 +111,9 @@ class TestServer {
     var response = request.response;
     Expect.equals("GET", request.method);
     request.listen((_) {}, onDone: () {
-        response.write("01234567890");
-        response.close();
-      });
+      response.write("01234567890");
+      response.close();
+    });
   }
 
   // Return a 404.
@@ -185,7 +180,7 @@ class TestServer {
   }
 
   void _requestReceivedHandler(HttpRequest request) {
-    var requestHandler =_requestHandlers[request.uri.path];
+    var requestHandler = _requestHandlers[request.uri.path];
     if (requestHandler != null) {
       requestHandler(request);
     } else {
@@ -193,7 +188,7 @@ class TestServer {
     }
   }
 
-  HttpServer _server;  // HTTP server instance.
+  HttpServer _server; // HTTP server instance.
   ReceivePort _dispatchPort;
   Map _requestHandlers;
   bool _chunkedEncoding = false;
@@ -211,19 +206,19 @@ void testGET() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    httpClient.get("127.0.0.1", port, "/0123456789")
+    httpClient
+        .get("127.0.0.1", port, "/0123456789")
         .then((request) => request.close())
         .then((response) {
-          Expect.equals(HttpStatus.OK, response.statusCode);
-          StringBuffer body = new StringBuffer();
-          response.listen(
-            (data) => body.write(new String.fromCharCodes(data)),
-            onDone: () {
-              Expect.equals("01234567890", body.toString());
-              httpClient.close();
-              testServerMain.close();
-            });
-        });
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      StringBuffer body = new StringBuffer();
+      response.listen((data) => body.write(new String.fromCharCodes(data)),
+          onDone: () {
+        Expect.equals("01234567890", body.toString());
+        httpClient.close();
+        testServerMain.close();
+      });
+    });
   });
   testServerMain.start();
 }
@@ -238,33 +233,30 @@ void testPOST(bool chunkedEncoding) {
     int count = 0;
     HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      httpClient.post("127.0.0.1", port, "/echo")
-          .then((request) {
-            if (chunkedEncoding) {
-              request.write(data.substring(0, 10));
-              request.write(data.substring(10, data.length));
-            } else {
-              request.contentLength = data.length;
-              request.write(data);
-            }
-            return request.close();
-          })
-          .then((response) {
-            Expect.equals(HttpStatus.OK, response.statusCode);
-            StringBuffer body = new StringBuffer();
-            response.listen(
-              (data) => body.write(new String.fromCharCodes(data)),
-              onDone: () {
-                Expect.equals(data, body.toString());
-                count++;
-                if (count < kMessageCount) {
-                  sendRequest();
-                } else {
-                  httpClient.close();
-                  testServerMain.close();
-                }
-              });
-          });
+      httpClient.post("127.0.0.1", port, "/echo").then((request) {
+        if (chunkedEncoding) {
+          request.write(data.substring(0, 10));
+          request.write(data.substring(10, data.length));
+        } else {
+          request.contentLength = data.length;
+          request.write(data);
+        }
+        return request.close();
+      }).then((response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        StringBuffer body = new StringBuffer();
+        response.listen((data) => body.write(new String.fromCharCodes(data)),
+            onDone: () {
+          Expect.equals(data, body.toString());
+          count++;
+          if (count < kMessageCount) {
+            sendRequest();
+          } else {
+            httpClient.close();
+            testServerMain.close();
+          }
+        });
+      });
     }
 
     sendRequest();
@@ -278,19 +270,19 @@ void test404() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    httpClient.get("127.0.0.1", port, "/thisisnotfound")
+    httpClient
+        .get("127.0.0.1", port, "/thisisnotfound")
         .then((request) => request.close())
         .then((response) {
-          Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
-          var body = new StringBuffer();
-          response.listen(
-              (data) => body.write(new String.fromCharCodes(data)),
-              onDone: () {
-                Expect.equals("Page not found", body.toString());
-                httpClient.close();
-                testServerMain.close();
-              });
-        });
+      Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
+      var body = new StringBuffer();
+      response.listen((data) => body.write(new String.fromCharCodes(data)),
+          onDone: () {
+        Expect.equals("Page not found", body.toString());
+        httpClient.close();
+        testServerMain.close();
+      });
+    });
   });
   testServerMain.start();
 }
@@ -299,22 +291,17 @@ void testReasonPhrase() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    httpClient.get("127.0.0.1", port, "/reasonformoving")
-        .then((request) {
-          request.followRedirects = false;
-          return request.close();
-        })
-        .then((response) {
-          Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
-          Expect.equals("Don't come looking here any more",
-                        response.reasonPhrase);
-          response.listen(
-              (data) => Expect.fail("No data expected"),
-              onDone: () {
-                httpClient.close();
-                testServerMain.close();
-              });
-        });
+    httpClient.get("127.0.0.1", port, "/reasonformoving").then((request) {
+      request.followRedirects = false;
+      return request.close();
+    }).then((response) {
+      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+      Expect.equals("Don't come looking here any more", response.reasonPhrase);
+      response.listen((data) => Expect.fail("No data expected"), onDone: () {
+        httpClient.close();
+        testServerMain.close();
+      });
+    });
   });
   testServerMain.start();
 }

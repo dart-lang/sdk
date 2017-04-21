@@ -15,7 +15,6 @@ import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/element_adapter.dart';
 import '../kernel/kernel.dart';
-import '../kernel/kernel_debug.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
 import '../universe/feature.dart';

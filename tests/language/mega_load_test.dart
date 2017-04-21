@@ -11,107 +11,159 @@ class Base {
 }
 
 class A extends Base {
-  A() { this.f = 0; }
+  A() {
+    this.f = 0;
+  }
 }
 
 class B extends Base {
-  B() { this.f = 1; }
+  B() {
+    this.f = 1;
+  }
 }
 
 class C extends Base {
-  C() { this.f = 2; }
+  C() {
+    this.f = 2;
+  }
 }
 
 class D extends Base {
-  D() { this.f = 3; }
+  D() {
+    this.f = 3;
+  }
 }
 
 class E extends Base {
-  E() { this.f = 4; }
+  E() {
+    this.f = 4;
+  }
 }
 
 class F extends Base {
-  F() { this.f = 5; }
+  F() {
+    this.f = 5;
+  }
 }
 
 class G extends Base {
-  G() { this.f = 6; }
+  G() {
+    this.f = 6;
+  }
 }
 
 class H extends Base {
-  H() { this.f = 7; }
+  H() {
+    this.f = 7;
+  }
 }
 
 class I extends Base {
-  I() { this.f = 8; }
+  I() {
+    this.f = 8;
+  }
 }
 
 class J extends Base {
-  J() { this.f = 9; }
+  J() {
+    this.f = 9;
+  }
 }
 
 class K extends Base {
-  K() { this.f = 10; }
+  K() {
+    this.f = 10;
+  }
 }
 
 class L extends Base {
-  L() { this.f = 11; }
+  L() {
+    this.f = 11;
+  }
 }
 
 class M extends Base {
-  M() { this.f = 12; }
+  M() {
+    this.f = 12;
+  }
 }
 
 class N extends Base {
-  N() { this.f = 13; }
+  N() {
+    this.f = 13;
+  }
 }
 
 class O extends Base {
-  O() { this.f = 14; }
+  O() {
+    this.f = 14;
+  }
 }
 
 class P extends Base {
-  P() { this.f = 15; }
+  P() {
+    this.f = 15;
+  }
 }
 
 class Q extends Base {
-  Q() { this.f = 16; }
+  Q() {
+    this.f = 16;
+  }
 }
 
 class R extends Base {
-  R() { this.f = 17; }
+  R() {
+    this.f = 17;
+  }
 }
 
 class S extends Base {
-  S() { this.f = 18; }
+  S() {
+    this.f = 18;
+  }
 }
 
 class T extends Base {
-  T() { this.f = 19; }
+  T() {
+    this.f = 19;
+  }
 }
 
 class U extends Base {
-  U() { this.f = 20; }
+  U() {
+    this.f = 20;
+  }
 }
 
 class V extends Base {
-  V() { this.f = 21; }
+  V() {
+    this.f = 21;
+  }
 }
 
 class W extends Base {
-  V() { this.f = 22; }
+  V() {
+    this.f = 22;
+  }
 }
 
 class X extends Base {
-  V() { this.f = 21; }
+  V() {
+    this.f = 21;
+  }
 }
 
 class Y extends Base {
-  V() { this.f = 24; }
+  V() {
+    this.f = 24;
+  }
 }
 
 class Z extends Base {
-  V() { this.f = 21; }
+  V() {
+    this.f = 21;
+  }
 }
 
 allocateObjects() {

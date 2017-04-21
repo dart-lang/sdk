@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/scanner.dart'
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 
 import '../common.dart';
+import '../common_elements.dart' show CommonElements;
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../compiler.dart' show Compiler;
@@ -23,12 +24,79 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX, MetadataAnnotationX;
 import '../elements/resolution_types.dart' show ResolutionDartType;
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
 import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';
+
+/// Class that performs the mechanics to investigate annotations in the code.
+abstract class AnnotationProcessor {
+  factory AnnotationProcessor(Compiler compiler) =>
+      compiler.options.loadFromDill
+          ? new _KernelAnnotationProcessor()
+          : new _ElementAnnotationProcessor(compiler);
+
+  void extractNativeAnnotations(
+      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
+
+  void extractJsInteropAnnotations(
+      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
+}
+
+class _KernelAnnotationProcessor implements AnnotationProcessor {
+  void extractNativeAnnotations(
+      LibraryEntity entity, NativeBasicDataBuilder nativeBasicDataBuilder) {
+    throw new UnimplementedError(
+        '_KernelAnnotationProcessor.extractNativeAnnotations');
+  }
+
+  void extractJsInteropAnnotations(
+      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder) {
+    throw new UnimplementedError(
+        '_KernelAnnotationProcessor.extractJsInteropAnnotations');
+  }
+}
+
+/// Original logic for annotation processing, which involves in some cases
+/// triggering pre-parsing and validation of the annotations.
+class _ElementAnnotationProcessor implements AnnotationProcessor {
+  Compiler _compiler;
+
+  _ElementAnnotationProcessor(this._compiler);
+
+  /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
+  /// native name from the annotation.
+  void extractNativeAnnotations(
+      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
+    library.forEachLocalMember((Element element) {
+      if (element.isClass) {
+        EagerAnnotationHandler.checkAnnotation(_compiler, element,
+            new NativeAnnotationHandler(nativeBasicDataBuilder));
+      }
+    });
+  }
+
+  void extractJsInteropAnnotations(
+      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
+    bool checkJsInteropAnnotation(Element element) {
+      return EagerAnnotationHandler.checkAnnotation(
+          _compiler, element, const JsInteropAnnotationHandler());
+    }
+
+    if (checkJsInteropAnnotation(library)) {
+      nativeBasicDataBuilder.markAsJsInteropLibrary(library);
+    }
+    library.forEachLocalMember((Element element) {
+      if (element.isClass) {
+        ClassElement cls = element;
+        if (checkJsInteropAnnotation(element)) {
+          nativeBasicDataBuilder.markAsJsInteropClass(cls);
+        }
+      }
+    });
+  }
+}
 
 /// Interface for computing native members and [NativeBehavior]s in member code
 /// based on the AST.
@@ -227,7 +295,8 @@ class NativeDataResolverImpl implements NativeDataResolver {
   /// present.
   String _findJsNameFromAnnotation(Element element) {
     String name = null;
-    ClassElement annotationClass = _backend.helpers.annotationJSNameClass;
+    ClassElement annotationClass =
+        _compiler.commonElements.annotationJSNameClass;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(_compiler.resolution);
       ConstantValue value =
@@ -319,31 +388,11 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
     ResolutionDartType annotationType =
         constant.getType(compiler.commonElements);
     if (annotationType.element !=
-        compiler.backend.helpers.nativeAnnotationClass) {
+        compiler.commonElements.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
     }
   }
-}
-
-void checkJsInteropClassAnnotations(Compiler compiler, LibraryElement library,
-    NativeBasicDataBuilder nativeBasicDataBuilder) {
-  bool checkJsInteropAnnotation(Element element) {
-    return EagerAnnotationHandler.checkAnnotation(
-        compiler, element, const JsInteropAnnotationHandler());
-  }
-
-  if (checkJsInteropAnnotation(library)) {
-    nativeBasicDataBuilder.markAsJsInteropLibrary(library);
-  }
-  library.forEachLocalMember((Element element) {
-    if (element.isClass) {
-      ClassElement cls = element;
-      if (checkJsInteropAnnotation(element)) {
-        nativeBasicDataBuilder.markAsJsInteropClass(cls);
-      }
-    }
-  });
 }
 
 bool checkJsInteropMemberAnnotations(Compiler compiler, MemberElement element,
@@ -373,9 +422,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   @override
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    JavaScriptBackend backend = compiler.backend;
     ResolutionDartType type = constant.getType(compiler.commonElements);
-    if (type.element != backend.helpers.jsAnnotationClass) {
+    if (type.element != compiler.commonElements.jsAnnotationClass) {
       compiler.reporter
           .internalError(annotation, 'Invalid @JS(...) annotation.');
     }
@@ -392,21 +440,21 @@ abstract class NativeClassResolver {
 class NativeClassResolverImpl implements NativeClassResolver {
   final DiagnosticReporter _reporter;
   final Resolution _resolution;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final NativeBasicData _nativeBasicData;
 
   Map<String, ClassElement> _tagOwner = new Map<String, ClassElement>();
 
-  NativeClassResolverImpl(
-      this._resolution, this._reporter, this._helpers, this._nativeBasicData);
+  NativeClassResolverImpl(this._resolution, this._reporter,
+      this._commonElements, this._nativeBasicData);
 
   Iterable<ClassElement> computeNativeClasses(
       Iterable<LibraryElement> libraries) {
     Set<ClassElement> nativeClasses = new Set<ClassElement>();
     libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
-    if (_helpers.isolateHelperLibrary != null) {
+    if (_commonElements.isolateHelperLibrary != null) {
       _processNativeClassesInLibrary(
-          _helpers.isolateHelperLibrary, nativeClasses);
+          _commonElements.isolateHelperLibrary, nativeClasses);
     }
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;

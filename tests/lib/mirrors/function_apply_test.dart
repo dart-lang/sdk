@@ -37,5 +37,4 @@ main() {
   // Instance implementing Function via call method.
   ClosureMirror f5 = reflect(new A());
   Expect.equals(1123, f5.apply([1000]).reflectee);
-
 }

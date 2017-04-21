@@ -26,9 +26,7 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  "This page tests handling of malformed escape sequences."
-  );
+  description("This page tests handling of malformed escape sequences.");
 
   var regexp;
 

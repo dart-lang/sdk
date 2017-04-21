@@ -20,4 +20,3 @@ main() {
   }
   Expect.approxEquals(0.01, foo(a, b));
 }
-

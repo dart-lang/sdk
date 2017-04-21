@@ -10,48 +10,12 @@ class C extends core::Object {
   method m() → dynamic {
     final Vector #context = MakeVector(2);
     #context[1] = this;
-    return new self::Closure#C#m#function::•(#context);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#C#m#function, #context);
   }
   method f() → dynamic {
     final Vector #context = MakeVector(2);
     #context[1] = this;
-    return new self::Closure#C#f#function::•(#context);
-  }
-}
-class Closure#C#m#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#m#function::context = context
-    ;
-  method call(dynamic v) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#m#function::context};
-    return (#contextParameter[1]).x = v;
-  }
-}
-class Closure#C#f#function#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#f#function#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#f#function#function::context};
-    return (#contextParameter[1]).x;
-  }
-}
-class Closure#C#f#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#f#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#f#function::context};
-    return new self::Closure#C#f#function#function::•(#contextParameter);
+    return MakeClosure<() → dynamic>(self::closure#C#f#function, #context);
   }
 }
 static method main() → dynamic {
@@ -63,4 +27,13 @@ static method main() → dynamic {
   dynamic result = c.f().call().call();
   if(!42.==(result))
     throw "Unexpected value from c.f()()(): ${result}";
+}
+static method closure#C#m#function(Vector #contextParameter, dynamic v) → dynamic {
+  return (#contextParameter[1]).x = v;
+}
+static method closure#C#f#function#function(Vector #contextParameter) → dynamic {
+  return (#contextParameter[1]).x;
+}
+static method closure#C#f#function(Vector #contextParameter) → dynamic {
+  return MakeClosure<() → dynamic>(self::closure#C#f#function#function, #contextParameter);
 }

@@ -5,7 +5,6 @@
 part of test.method_location;
 
 class ClassInOtherFile {
-
   ClassInOtherFile();
 
   method() {}

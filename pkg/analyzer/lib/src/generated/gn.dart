@@ -8,136 +8,15 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
+import 'package:package_config/packages.dart';
+import 'package:package_config/packages_file.dart';
+import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart';
-
-/**
- * Similar to Map#putIfAbsent, except that a value is stored only if it is not
- * null.
- */
-V _putIfNotNull<K, V>(Map<K, V> map, K key, V ifAbsent()) {
-  if (map.containsKey(key)) {
-    return map[key];
-  }
-  V computed = ifAbsent();
-  if (computed != null) {
-    map[key] = computed;
-  }
-  return computed;
-}
-
-/**
- * The [UriResolver] used to resolve `file` URIs in a [GnWorkspace].
- */
-class GnFileUriResolver extends ResourceUriResolver {
-  /**
-   * The workspace associated with this resolver.
-   */
-  final GnWorkspace workspace;
-
-  /**
-   * Initialize a newly created resolver to be associated with the given
-   * [workspace].
-   */
-  GnFileUriResolver(GnWorkspace workspace)
-      : workspace = workspace,
-        super(workspace.provider);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (!ResourceUriResolver.isFileUri(uri)) {
-      return null;
-    }
-    String path = provider.pathContext.fromUri(uri);
-    File file = workspace.findFile(path);
-    if (file != null) {
-      return file.createSource(actualUri ?? uri);
-    }
-    return null;
-  }
-}
-
-/**
- * The [UriResolver] used to resolve `package` URIs in a [GnWorkspace].
- */
-class GnPackageUriResolver extends UriResolver {
-  /**
-   * The workspace associated with this resolver.
-   */
-  final GnWorkspace workspace;
-
-  /**
-   * The path context that should be used to manipulate file system paths.
-   */
-  final Context pathContext;
-
-  /**
-   * The cache of absolute [Uri]s to [Source]s mappings.
-   */
-  final Map<Uri, Source> _sourceCache = new HashMap<Uri, Source>();
-
-  /**
-   * Initialize a newly created resolver to be associated with the given
-   * [workspace].
-   */
-  GnPackageUriResolver(GnWorkspace workspace)
-      : workspace = workspace,
-        pathContext = workspace.provider.pathContext;
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return _putIfNotNull(_sourceCache, uri, () {
-      if (uri.scheme != 'package') {
-        return null;
-      }
-
-      String uriPath = uri.path;
-      int slash = uriPath.indexOf('/');
-
-      // If the path either starts with a slash or has no slash, it is invalid.
-      if (slash < 1) {
-        return null;
-      }
-
-      String packageName = uriPath.substring(0, slash);
-      String fileUriPart = uriPath.substring(slash + 1);
-      String filePath = fileUriPart.replaceAll('/', pathContext.separator);
-
-      String packageBase = workspace.getPackageSource(packageName);
-      if (packageBase == null) {
-        return null;
-      }
-      String path = pathContext.join(packageBase, filePath);
-      File file = workspace.findFile(path);
-      return file?.createSource(uri);
-    });
-  }
-
-  @override
-  Uri restoreAbsolute(Source source) {
-    Context context = workspace.provider.pathContext;
-    String path = source.fullName;
-
-    if (!context.isWithin(workspace.root, path)) {
-      return null;
-    }
-
-    String package = workspace.packages.keys.firstWhere(
-        (key) => context.isWithin(workspace.packages[key], path),
-        orElse: () => null);
-    if (package == null) {
-      return null;
-    }
-
-    String sourcePath =
-        context.relative(path, from: workspace.packages[package]);
-
-    return Uri.parse('package:$package/$sourcePath');
-  }
-}
 
 /**
  * Information about a Gn workspace.
@@ -160,50 +39,92 @@ class GnWorkspace extends Workspace {
   final String root;
 
   /**
-   * The path to the directory with source locations.
-   *
-   * Each file in this directory is named after a Dart package and contains the
-   * path to the package's sources.
+   * The paths to the .packages files.
    */
-  final String _packagesDirectoryPath;
+  final List<String> _packagesFilePaths;
 
   /**
-   * The cache of package locations indexed by package name.
+   * The map of package locations indexed by package name.
+   *
+   * This is a cached field.
    */
-  final Map<String, String> _packageCache = new HashMap<String, String>();
+  Map<String, List<Folder>> _packageMap;
 
-  GnWorkspace._internal(this.provider, this.root, this._packagesDirectoryPath);
+  /**
+   * The package location strategy.
+   *
+   * This is a cached field.
+   */
+  Packages _packages;
 
-  factory GnWorkspace._(
-      ResourceProvider provider, String root, String packagesDirectoryPath) {
-    GnWorkspace workspace =
-        new GnWorkspace._internal(provider, root, packagesDirectoryPath);
-    // Preload known packages.
-    provider
-        .getFolder(packagesDirectoryPath)
-        .getChildren()
-        .where((resource) => resource is File)
-        .map((resource) => resource as File)
-        .forEach((file) {
-      String packageName = basename(file.path);
-      workspace.getPackageSource(packageName);
-    });
-    return workspace;
-  }
-
-  Map<String, String> get packages => _packageCache;
+  GnWorkspace._(this.provider, this.root, this._packagesFilePaths);
 
   @override
-  Map<String, List<Folder>> get packageMap {
-    Map<String, List<Folder>> result = new HashMap<String, List<Folder>>();
-    _packageCache.forEach((package, sourceDir) {
-      result[package] = [provider.getFolder(sourceDir)];
+  Map<String, List<Folder>> get packageMap =>
+      _packageMap ??= _convertPackagesToMap(packages);
+
+  Packages get packages => _packages ??= _createPackages();
+
+  /**
+   * Creates an alternate representation for available packages.
+   */
+  Map<String, List<Folder>> _convertPackagesToMap(Packages packages) {
+    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
+    if (packages != null && packages != Packages.noPackages) {
+      packages.asMap().forEach((String packageName, Uri uri) {
+        String path = provider.pathContext.fromUri(uri);
+        folderMap[packageName] = [provider.getFolder(path)];
+      });
+    }
+    return folderMap;
+  }
+
+  /**
+   * Loads the packages from the .packages file.
+   */
+  Packages _createPackages() {
+    Map<String, Uri> map = _packagesFilePaths.map((String path) {
+      File configFile = provider.getFile(path);
+      List<int> bytes = configFile.readAsBytesSync();
+      return parse(bytes, configFile.toUri());
+    }).reduce((mapOne, mapTwo) {
+      mapOne.addAll(mapTwo);
+      return mapOne;
     });
-    return result;
+    _resolveSymbolicLinks(map);
+    return new MapPackages(map);
+  }
+
+  /**
+   * Resolve any symbolic links encoded in the path to the given [folder].
+   */
+  String _resolveSymbolicLink(Folder folder) {
+    try {
+      return folder.resolveSymbolicLinksSync().path;
+    } on FileSystemException {
+      return folder.path;
+    }
+  }
+
+  /**
+   * Resolve any symbolic links encoded in the URI's in the given [map] by
+   * replacing the values in the map.
+   */
+  void _resolveSymbolicLinks(Map<String, Uri> map) {
+    Context pathContext = provider.pathContext;
+    for (String packageName in map.keys) {
+      Folder folder = provider.getFolder(pathContext.fromUri(map[packageName]));
+      String folderPath = _resolveSymbolicLink(folder);
+      // Add a '.' so that the URI is suitable for resolving relative URI's
+      // against it.
+      String uriPath = pathContext.join(folderPath, '.');
+      map[packageName] = pathContext.toUri(uriPath);
+    }
   }
 
   @override
-  UriResolver get packageUriResolver => new GnPackageUriResolver(this);
+  UriResolver get packageUriResolver =>
+      new PackageMapUriResolver(provider, packageMap);
 
   @override
   SourceFactory createSourceFactory(DartSdk sdk) {
@@ -212,20 +133,8 @@ class GnWorkspace extends Workspace {
       resolvers.add(new DartUriResolver(sdk));
     }
     resolvers.add(packageUriResolver);
-    resolvers.add(new GnFileUriResolver(this));
-    return new SourceFactory(resolvers, null, provider);
-  }
-
-  /**
-   * Return the source directory for the given package, or null if it could not
-   * be found.
-   */
-  String getPackageSource(String packageName) {
-    return _putIfNotNull(_packageCache, packageName, () {
-      String path =
-          provider.pathContext.join(_packagesDirectoryPath, packageName);
-      return findFile(path)?.readAsStringSync();
-    });
+    resolvers.add(new ResourceUriResolver(provider));
+    return new SourceFactory(resolvers, packages, provider);
   }
 
   /**
@@ -244,39 +153,72 @@ class GnWorkspace extends Workspace {
   }
 
   /**
-   * Locate the Dart sources directory.
+   * For a source at `$root/foo/bar`, the packages files are generated in
+   * `$root/out/<debug|release>-XYZ/[hostABC/]gen/foo/bar`.
    *
-   * Return `null` if it could not be found.
+   * Note that in some cases multiple .packages files can be found at that
+   * location, for example if the package contains both a library and a binary
+   * target.
    */
-  static String _getPackagesDirectory(ResourceProvider provider, String root) {
+  static List<String> _findPackagesFile(
+      ResourceProvider provider, String root, String path,
+      {forHost: false}) {
     Context pathContext = provider.pathContext;
-    String outDirectory = provider
-        .getFolder(pathContext.join(root, 'out'))
+    String sourceDirectory = pathContext.relative(path, from: root);
+    Folder outDirectory = provider.getFolder(pathContext.join(root, 'out'));
+    if (!outDirectory.exists) {
+      return const <String>[];
+    }
+    outDirectory = outDirectory
         .getChildren()
         .where((resource) => resource is Folder)
         .map((resource) => resource as Folder)
         .firstWhere((Folder folder) {
-      String baseName = basename(folder.path);
+      String baseName = pathContext.basename(folder.path);
       // TODO(pylaligand): find a better way to locate the proper directory.
       return baseName.startsWith('debug') || baseName.startsWith('release');
-    }, orElse: () => null)?.path;
-    return outDirectory == null
-        ? null
-        : provider.pathContext.join(outDirectory, 'gen', 'dart.sources');
+    }, orElse: () => null);
+    if (outDirectory == null) {
+      return const <String>[];
+    }
+    if (forHost) {
+      outDirectory = outDirectory
+          .getChildren()
+          .where((resource) => resource is Folder)
+          .map((resource) => resource as Folder)
+          .firstWhere(
+              (Folder folder) =>
+                  pathContext.basename(folder.path).startsWith('host'),
+              orElse: () => null);
+    }
+    if (outDirectory == null) {
+      return const <String>[];
+    }
+    Folder genDir = outDirectory
+        .getChildAssumingFolder(pathContext.join('gen', sourceDirectory));
+    if (!genDir.exists) {
+      return const <String>[];
+    }
+    return genDir
+        .getChildren()
+        .where((resource) => resource is File)
+        .map((resource) => resource as File)
+        .where((File file) => pathContext.extension(file.path) == '.packages')
+        .map((File file) => file.path)
+        .toList();
   }
 
   /**
-   * Find the Gn workspace that contains the given [path].
+   * Find the GN workspace that contains the given [path].
    *
-   * Return `null` if a workspace markers, such as the `.jiri_root` directory
-   * cannot be found.
+   * Return `null` if a workspace could not be found.
    */
   static GnWorkspace find(ResourceProvider provider, String path) {
     Context context = provider.pathContext;
 
     // Ensure that the path is absolute and normalized.
     if (!context.isAbsolute(path)) {
-      throw new ArgumentError('not absolute: $path');
+      throw new ArgumentError('Not an absolute path: $path');
     }
     path = context.normalize(path);
 
@@ -290,8 +232,16 @@ class GnWorkspace extends Workspace {
       // Found the .jiri_root file, must be a non-git workspace.
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         String root = folder.path;
-        String packagesDirectory = _getPackagesDirectory(provider, root);
-        return new GnWorkspace._(provider, root, packagesDirectory);
+        List<String> packagesFiles =
+            _findPackagesFile(provider, root, path, forHost: false);
+        if (packagesFiles.isEmpty) {
+          packagesFiles =
+              _findPackagesFile(provider, root, path, forHost: true);
+        }
+        if (packagesFiles.isEmpty) {
+          return null;
+        }
+        return new GnWorkspace._(provider, path, packagesFiles);
       }
 
       // Go up the folder.

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test check that we catch label errors.
 
-
 class Label5NegativeTest {
   static testMain() {
     var L = 33;
@@ -12,7 +11,6 @@ class Label5NegativeTest {
     }
   }
 }
-
 
 main() {
   Label5NegativeTest.testMain();

@@ -4,6 +4,7 @@
 // VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 
 library math_test;
+
 import "package:expect/expect.dart";
 import 'dart:math';
 
@@ -40,17 +41,17 @@ const Infinity = double.INFINITY;
 var samples = [
   NaN,
   -Infinity,
-  -3.0,  // Odd integer
-  -2.0,  // Even integer
-  -1.5,  // Non-integer, magnitude > 1
-  -1.0,  // Unit
-  -0.5,  // Non-integer, magnitude < 1.
+  -3.0, // Odd integer
+  -2.0, // Even integer
+  -1.5, // Non-integer, magnitude > 1
+  -1.0, // Unit
+  -0.5, // Non-integer, magnitude < 1.
   -0.0,
-  0.5,  // Non-integer, magnitude < 1.
-  1.0,  // Unit
-  1.5,  // Non-integer, magnitude > 1
-  2.0,  // Even integer
-  3.0,  // Odd integer
+  0.5, // Non-integer, magnitude < 1.
+  1.0, // Unit
+  1.5, // Non-integer, magnitude > 1
+  2.0, // Even integer
+  3.0, // Odd integer
   Infinity
 ];
 
@@ -129,7 +130,6 @@ test() {
   }
 
   for (var d in samples) {
-
     if (d.abs() < 1) {
       // if `y` is Infinity and the absolute value of `x` is less than 1, the
       // result is 0.0.
@@ -144,10 +144,10 @@ test() {
     }
     // if `y` is -Infinity, the result is `1/pow(x, Infinity)`.
     if (d.isNaN) {
-      Expect.isTrue((1/pow(d, Infinity)).isNaN);
+      Expect.isTrue((1 / pow(d, Infinity)).isNaN);
       Expect.isTrue(pow(d, -Infinity).isNaN);
     } else {
-      Expect.identical(1/pow(d, Infinity), pow(d, -Infinity));
+      Expect.identical(1 / pow(d, Infinity), pow(d, -Infinity));
     }
   }
 

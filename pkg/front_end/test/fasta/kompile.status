@@ -7,12 +7,23 @@
 # pkg/fasta/lib/src/analyzer/. Currently, this is behind direct-to-kernel, so
 # there are many crashes.
 
+DeltaBlue: Crash
 accessors: Crash
+argument: Crash
+arithmetic: Crash
+async_function: Crash
 await: Fail
+bad_store: Crash
+call: Crash
 classes: Crash
+closure: Crash
+covariant_generic: Crash
 cycles: Fail
 default_values: Crash
+escape: Crash
 expressions: Crash
+external: Crash
+fallthrough: Crash
 fibonacci: Crash
 for_in_scope: Crash
 function_in_field: Crash
@@ -21,14 +32,28 @@ functions: Crash
 implicit_this: Crash
 invocations: Fail
 map: Fail
+micro: Crash
 mixin: Crash
+named_parameters: Crash
+null_aware: Crash
 operators: Crash
+optional: Crash
+override: Crash
+prefer_baseclass: Crash
 redirecting_constructor: Fail
+redirecting_factory: Crash
 statements: Fail
+static_setter: Crash
+store_load: Crash
+stringliteral: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
+inference/toplevel_inference_toplevel_var: Crash
 type_variable_as_super: Fail
 typedef: Crash
+uninitialized_fields: Crash
+unused_methods: Crash
+void-methods: Crash
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Crash

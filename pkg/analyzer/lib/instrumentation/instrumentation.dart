@@ -75,9 +75,12 @@ class InstrumentationService {
   static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_PERFORMANCE = 'Perf';
+  static const String TAG_PLUGIN_ERROR = 'PluginErr';
+  static const String TAG_PLUGIN_EXCEPTION = 'PluginEx';
   static const String TAG_PLUGIN_NOTIFICATION = 'PluginNoti';
   static const String TAG_PLUGIN_REQUEST = 'PluginReq';
   static const String TAG_PLUGIN_RESPONSE = 'PluginRes';
+  static const String TAG_PLUGIN_TIMEOUT = 'PluginTo';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_SUBPROCESS_START = 'SPStart';
@@ -204,6 +207,34 @@ class InstrumentationService {
     }
   }
 
+  /**
+   * Log the fact that an error, described by the given [message], was reported
+   * by the given [plugin].
+   */
+  void logPluginError(
+      PluginData plugin, String code, String message, String stackTrace) {
+    List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
+    plugin.addToFields(fields);
+    _instrumentationServer.log(_join(fields));
+  }
+
+  /**
+   * Log that the given non-priority [exception] was thrown, with the given
+   * [stackTrace] by the given [plugin].
+   */
+  void logPluginException(
+      PluginData plugin, dynamic exception, StackTrace stackTrace) {
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[
+        TAG_PLUGIN_EXCEPTION,
+        _toString(exception),
+        _toString(stackTrace)
+      ];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
+    }
+  }
+
   void logPluginNotification(Uri pluginUri, String notification) {
     if (_instrumentationServer != null) {
       _instrumentationServer.log(
@@ -222,6 +253,17 @@ class InstrumentationService {
     if (_instrumentationServer != null) {
       _instrumentationServer
           .log(_join([TAG_PLUGIN_RESPONSE, _toString(pluginUri), response]));
+    }
+  }
+
+  /**
+   * Log that the given [plugin] took too long to execute the given [request].
+   */
+  void logPluginTimeout(PluginData plugin, String request) {
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[TAG_PLUGIN_TIMEOUT, request];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
     }
   }
 
@@ -364,7 +406,7 @@ class InstrumentationService {
     int length = fields.length;
     for (int i = 0; i < length; i++) {
       buffer.write(':');
-      _escape(buffer, fields[i]);
+      _escape(buffer, fields[i] ?? 'null');
     }
     return buffer.toString();
   }
@@ -425,6 +467,45 @@ class MulticastInstrumentationServer implements InstrumentationServer {
   Future shutdown() async {
     for (InstrumentationServer server in _servers) {
       await server.shutdown();
+    }
+  }
+}
+
+/**
+ * Information about a plugin.
+ */
+class PluginData {
+  /**
+   * The path to the plugin.
+   */
+  final String path;
+
+  /**
+   * The name of the plugin.
+   */
+  final String name;
+
+  /**
+   * The version of the plugin.
+   */
+  final String version;
+
+  /**
+   * Initialize a newly created set of data about a plugin.
+   */
+  PluginData(this.path, this.name, this.version);
+
+  /**
+   * Add the information about the plugin to the list of [fields] to be sent to
+   * the instrumentation server.
+   */
+  void addToFields(List<String> fields) {
+    fields.add(path);
+    if (name != null) {
+      fields.add(name);
+    }
+    if (version != null) {
+      fields.add(version);
     }
   }
 }

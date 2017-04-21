@@ -12,7 +12,7 @@ class A<T> {
 const a = const A<int>();
 const b = const A<double>();
 
-const list1 = const<int> [1, 2];
+const list1 = const <int>[1, 2];
 const list2 = const [1, 2];
 main() {
   Expect.isFalse(identical(a, b));

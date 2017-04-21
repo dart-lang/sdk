@@ -42,13 +42,14 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     compiler.dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
       var size = compiler.dumpInfoTask._nodeToSize[node];
-      var code = jsAst.prettyPrint(node, compiler);
+      var code = jsAst.prettyPrint(node, compiler.options);
       var info = new ConstantInfo(
           size: size, code: code, outputUnit: _unitInfoForConstant(constant));
       _constantToInfo[constant] = info;
       result.constants.add(info);
     });
-    compiler.libraryLoader.libraries.forEach(visit);
+    (compiler.libraryLoader.libraries as Iterable<LibraryElement>)
+        .forEach(visit);
   }
 
   Info visit(Element e, [_]) => e.accept(this, null);
@@ -118,10 +119,18 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     return info;
   }
 
-  _resultOf(e) => compiler.globalInference.results.resultOf(e);
+  _resultOfMember(MemberElement e) =>
+      compiler.globalInference.results.resultOfMember(e);
+
+  _resultOfParameter(ParameterElement e) =>
+      compiler.globalInference.results.resultOfParameter(e);
+
+  @deprecated
+  _resultOfElement(AstElement e) =>
+      compiler.globalInference.results.resultOfElement(e);
 
   FieldInfo visitFieldElement(FieldElement element, _) {
-    TypeMask inferredType = _resultOf(element).type;
+    TypeMask inferredType = _resultOfMember(element).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
 
@@ -258,7 +267,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       FunctionSignature signature = element.functionSignature;
       signature.forEachParameter((parameter) {
         parameters.add(new ParameterInfo(parameter.name,
-            '${_resultOf(parameter).type}', '${parameter.node.type}'));
+            '${_resultOfParameter(parameter).type}', '${parameter.node.type}'));
       });
     }
 
@@ -269,7 +278,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         closedWorld.allFunctions.contains(element as MemberElement)) {
       returnType = '${element.type.returnType}';
     }
-    String inferredReturnType = '${_resultOf(element).returnType}';
+    String inferredReturnType = '${_resultOfElement(element).returnType}';
     String sideEffects = '${closedWorld.getSideEffectsOfElement(element)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
@@ -454,7 +463,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
           selections.addAll(closedWorld.allFunctions
               .filter(dynamicUse.selector, dynamicUse.mask)
-              .map((e) => new Selection(e, dynamicUse.mask)));
+              .map((MemberElement e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),
@@ -524,7 +533,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     // Concatenate rendered ASTs.
     StringBuffer sb = new StringBuffer();
     for (jsAst.Node ast in code) {
-      sb.writeln(jsAst.prettyPrint(ast, compiler));
+      sb.writeln(jsAst.prettyPrint(ast, compiler.options));
     }
     return sb.toString();
   }

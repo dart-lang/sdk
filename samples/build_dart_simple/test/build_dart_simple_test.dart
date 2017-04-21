@@ -11,6 +11,4 @@ import '../test.dart' as test1;
  * This test exists to ensure that the build_dart_simple sample compiles
  * without errors.
  */
-void main() {
-
-}
+void main() {}

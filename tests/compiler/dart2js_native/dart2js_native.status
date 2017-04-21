@@ -122,6 +122,9 @@ super_call_test: RuntimeError # Issue 27394
 super_property_test: RuntimeError # Issue 27394
 uninstantiated_type_parameter_test: RuntimeError # Issue 27394
 
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+static_methods_test: Crash # Issue 27394
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 bound_closure_super_test: Crash # Issue 27394
 bound_closure_test: Crash # Issue 27394

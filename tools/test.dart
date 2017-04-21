@@ -42,13 +42,13 @@ Future _deleteTemporaryDartDirectories() {
   if (environment['DART_TESTING_DELETE_TEMPORARY_DIRECTORIES'] == '1') {
     LeftOverTempDirPrinter.getLeftOverTemporaryDirectories().listen(
         (FileSystemEntity tempEntity) {
-          Directory tempDirectory = tempEntity as Directory;
-          try {
-            tempDirectory.deleteSync(recursive: true);
-          } catch (error) {
-            DebugLogger.error(error);
-          }
-        }, onDone: completer.complete);
+      Directory tempDirectory = tempEntity as Directory;
+      try {
+        tempDirectory.deleteSync(recursive: true);
+      } catch (error) {
+        DebugLogger.error(error);
+      }
+    }, onDone: completer.complete);
   } else {
     completer.complete();
   }

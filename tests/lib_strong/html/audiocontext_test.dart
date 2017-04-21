@@ -39,8 +39,8 @@ main() {
         expect(context.createChannelSplitter() is AudioNode, isTrue);
         expect(context.createOscillator() is OscillatorNode, isTrue);
         expect(context.createPanner() is PannerNode, isTrue);
-        expect(context.createScriptProcessor(4096) is ScriptProcessorNode,
-            isTrue);
+        expect(
+            context.createScriptProcessor(4096) is ScriptProcessorNode, isTrue);
       }
     });
 
@@ -65,7 +65,7 @@ main() {
     */
 
     test('oscillatorTypes', () {
-      if(AudioContext.supported) {
+      if (AudioContext.supported) {
         OscillatorNode oscillator = context.createOscillator();
         oscillator.connectNode(context.destination);
 

@@ -19,7 +19,9 @@ main() {
     list.add("*2");
     yield 2;
     list.add("*3");
-  };
+  }
+
+  ;
   var stream = f();
   var sub = stream.listen(list.add);
 

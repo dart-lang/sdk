@@ -114,8 +114,6 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-element_types_test/supported_object: RuntimeError # Issue 25155
-element_types_test/supported_embed: RuntimeError # Issue 25155
 svgelement_test/PathElement: RuntimeError # Issue 25665
 element_animate_test/timing_dict: RuntimeError # Issue 26730
 

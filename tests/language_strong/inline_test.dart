@@ -7,15 +7,15 @@
 
 class X {
   void x(a, b) {
-   do {
-     if (identical(a, b)) {
-       break;
-     }
-   } while (p(a, b));
+    do {
+      if (identical(a, b)) {
+        break;
+      }
+    } while (p(a, b));
   }
 
   bool p(a, b) {
-   return identical(a, b);
+    return identical(a, b);
   }
 }
 

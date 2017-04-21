@@ -5,6 +5,7 @@
 // Symbols in libraries imported by the prefixed library should not be visible
 
 library Prefix12NegativeTest.dart;
+
 import "library12.dart" as lib12;
 
 main() {

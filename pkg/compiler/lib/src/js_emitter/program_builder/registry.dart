@@ -51,7 +51,7 @@ class LibrariesMap {
 ///
 /// Registered holders are assigned a name.
 class Registry {
-  final Compiler _compiler;
+  final DeferredLoadTask _deferredLoadTask;
   final Map<String, Holder> _holdersMap = <String, Holder>{};
   final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap =
       <OutputUnit, LibrariesMap>{};
@@ -60,7 +60,6 @@ class Registry {
   OutputUnit _lastOutputUnit;
   LibrariesMap _lastLibrariesMap;
 
-  DeferredLoadTask get _deferredLoadTask => _compiler.deferredLoadTask;
   Iterable<Holder> get holders => _holdersMap.values;
   Iterable<LibrariesMap> get deferredLibrariesMap =>
       _deferredLibrariesMap.values;
@@ -70,7 +69,7 @@ class Registry {
 
   LibrariesMap mainLibrariesMap;
 
-  Registry(this._compiler);
+  Registry(this._deferredLoadTask);
 
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
 

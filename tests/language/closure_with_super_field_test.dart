@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class A {
   int a;
-  A(): a = 42;
+  A() : a = 42;
 }
 
 class B extends A {

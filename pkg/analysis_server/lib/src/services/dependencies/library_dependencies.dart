@@ -14,7 +14,7 @@ class LibraryDependencyCollector {
   final Set<LibraryElement> _visitedLibraries = new Set<LibraryElement>();
   final Set<String> _dependencies = new Set<String>();
 
-  final List<AnalysisContext> _contexts;
+  final Iterable<AnalysisContext> _contexts;
 
   LibraryDependencyCollector(this._contexts);
 

@@ -13,8 +13,7 @@ foo() {
   var b = a == 8; // This should not be GVN'ed.
   while (!b) {
     try {
-      try {
-      } finally {
+      try {} finally {
         a = 8;
         break;
       }

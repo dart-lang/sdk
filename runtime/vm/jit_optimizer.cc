@@ -62,6 +62,7 @@ void JitOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
+    thread()->CheckForSafepoint();
     ForwardInstructionIterator it(block_it.Current());
     current_iterator_ = &it;
     for (; !it.Done(); it.Advance()) {
@@ -140,10 +141,10 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
         Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
                                                   call->argument_names()));
     ArgumentsDescriptor args_desc(args_desc_array);
-    const Function& function =
-        Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                receiver_class, call->function_name(),
-                                args_desc, false /* allow add */));
+    bool allow_add = false;
+    const Function& function = Function::Handle(
+        Z, Resolver::ResolveDynamicForReceiverClass(
+               receiver_class, call->function_name(), args_desc, allow_add));
     if (function.IsNull()) {
       return false;
     }
@@ -174,10 +175,10 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
           Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
                                                     call->argument_names()));
       ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function =
-          Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                  owner_class, call->function_name(), args_desc,
-                                  false /* allow_add */));
+      bool allow_add = false;
+      const Function& function = Function::Handle(
+          Z, Resolver::ResolveDynamicForReceiverClass(
+                 owner_class, call->function_name(), args_desc, allow_add));
       if (!function.IsNull()) {
         const ICData& ic_data = ICData::ZoneHandle(
             Z, ICData::NewFrom(*call->ic_data(), class_ids.length()));
@@ -1334,15 +1335,18 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = NULL;
+  Definition* instantiator_type_args = NULL;
+  Definition* function_type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
   if (call->ArgumentCount() == 2) {
-    type_args = flow_graph()->constant_null();
+    instantiator_type_args = flow_graph()->constant_null();
+    function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
-    type_args = call->ArgumentAt(1);
-    type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
+    instantiator_type_args = call->ArgumentAt(1);
+    function_type_args = call->ArgumentAt(2);
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
@@ -1396,8 +1400,8 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
 
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type args.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
@@ -1407,9 +1411,10 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = call->ArgumentAt(1);
+  Definition* instantiator_type_args = call->ArgumentAt(1);
+  Definition* function_type_args = call->ArgumentAt(2);
   const AbstractType& type =
-      AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value());
+      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
   ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
@@ -1436,8 +1441,8 @@ void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type arguments.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
@@ -1457,8 +1462,10 @@ bool JitOptimizer::LookupMethodFor(int class_id,
   if (!cls.is_finalized()) return false;
   if (Array::Handle(cls.functions()).IsNull()) return false;
 
-  Function& target_function = Function::Handle(
-      Z, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
+  bool allow_add = false;
+  Function& target_function =
+      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
+                              cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
   *fn_return ^= target_function.raw();
   return true;
@@ -1542,17 +1549,6 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
 
-  const bool is_dense = CheckClassInstr::IsDenseCidRange(unary_checks);
-  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (op_kind == Token::kEQ &&
-      number_of_checks > FLAG_max_equality_polymorphic_checks && !is_dense &&
-      flow_graph()->InstanceCallNeedsClassCheck(
-          instr, RawFunction::kRegularFunction)) {
-    // Too many checks, it will be megamorphic which needs unary checks.
-    instr->set_ic_data(&unary_checks);
-    return;
-  }
-
   if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
     return;
   }
@@ -1621,8 +1617,20 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
+  // If there is only one target we can make this into a deopting class check,
+  // followed by a call instruction that does not check the class of the
+  // receiver.  This enables a lot of optimizations because after the class
+  // check we can probably inline the call and not worry about side effects.
+  // However, this can fall down if new receiver classes arrive at this call
+  // site after we generated optimized code.  This causes a deopt, and after a
+  // few deopts we won't optimize this function any more at all.  Therefore for
+  // very polymorphic sites we don't make this optimization, keeping it as a
+  // regular checked PolymorphicInstanceCall, which falls back to the slow but
+  // non-deopting megamorphic call stub when it sees new receiver classes.
   bool call_with_checks;
-  if (has_one_target && FLAG_polymorphic_with_deopt) {
+  if (has_one_target && FLAG_polymorphic_with_deopt &&
+      (!instr->ic_data()->HasDeoptReason(ICData::kDeoptCheckClass) ||
+       unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     // Type propagation has not run yet, we cannot eliminate the check.
     AddReceiverCheck(instr);
     // Call can still deoptimize, do not detach environment from instr.

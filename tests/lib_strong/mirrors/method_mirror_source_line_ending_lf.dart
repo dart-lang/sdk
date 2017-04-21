@@ -10,6 +10,5 @@ oneLineLF(x) => x;
 multiLineLF(y) {
   return y + 1;
 }
-a
-(){
-}
+
+a() {}

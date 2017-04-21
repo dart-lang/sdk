@@ -9,9 +9,7 @@ main() {
   List<int> list2 = const <int>[4, 5];
   List<String> list3 = <String>[];
   Set<int> set1 = new Set<int>();
-  set1..add(11)
-      ..add(12)
-      ..add(13);
+  set1..add(11)..add(12)..add(13);
   Set set2 = new Set();
 
   Iterable<int> skip0 = list1.skip(0);

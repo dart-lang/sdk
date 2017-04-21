@@ -4,14 +4,17 @@
 
 library field_test;
 
+@MirrorsUsed(targets: "field_test")
 import 'dart:mirrors';
 import "package:expect/expect.dart";
 
 String toplevelVariable;
+
 class C {
   final int i;
   const C(this.i);
 }
+
 class A<T> {
   static int staticField;
   @C(42)

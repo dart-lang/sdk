@@ -2,18 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Closure#main#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#function::context};
-    return #contextParameter[1];
-  }
-}
 static const field dynamic numbers = const <core::int>[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 static method main() → dynamic {
   dynamic closures = <dynamic>[];
@@ -21,7 +9,7 @@ static method main() → dynamic {
     final Vector #context = MakeVector(2);
     #context[1] = i;
     {
-      closures.add(new self::Closure#main#function::•(#context));
+      closures.add(MakeClosure<() → dynamic>(self::closure#main#function, #context));
     }
   }
   core::int sum = 0;
@@ -32,4 +20,7 @@ static method main() → dynamic {
   if(!expectedSum.==(sum)) {
     throw core::Exception::•("Unexpected sum = ${sum} != ${expectedSum}");
   }
+}
+static method closure#main#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[1];
 }

@@ -63,6 +63,8 @@ class BaseAnalysisDriverTest {
   String testFile;
   String testCode;
 
+  bool get disableChangesAndCacheAllResults => false;
+
   void addTestFile(String content, {bool priority: false}) {
     testCode = content;
     provider.newFile(testFile, content);
@@ -113,7 +115,7 @@ class BaseAnalysisDriverTest {
         provider,
         byteStore,
         contentOverlay,
-        'test',
+        null,
         new SourceFactory([
           new DartUriResolver(sdk),
           generatedUriResolver,
@@ -124,7 +126,8 @@ class BaseAnalysisDriverTest {
         ], null, provider),
         new AnalysisOptionsImpl()
           ..strongMode = true
-          ..enableUriInPartOf = true);
+          ..enableUriInPartOf = true,
+        disableChangesAndCacheAllResults: disableChangesAndCacheAllResults);
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);

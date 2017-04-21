@@ -4,7 +4,6 @@
 
 part of dart.dom.html;
 
-
 /**
  * Interface used to validate that only accepted elements and attributes are
  * allowed while parsing HTML strings into DOM nodes.
@@ -14,7 +13,6 @@ part of dart.dom.html;
  * implementing validation rules.
  */
 abstract class NodeValidator {
-
   /**
    * Construct a default NodeValidator which only accepts whitelisted HTML5
    * elements and attributes.
@@ -52,7 +50,6 @@ abstract class NodeValidator {
  * tree sanitization.
  */
 abstract class NodeTreeSanitizer {
-
   /**
    * Constructs a default tree sanitizer which will remove all elements and
    * attributes which are not allowed by the provided validator.
@@ -125,14 +122,13 @@ class _SameOriginUriPolicy implements UriPolicy {
     _hiddenAnchor.href = uri;
     // IE leaves an empty hostname for same-origin URIs.
     return (_hiddenAnchor.hostname == _loc.hostname &&
-        _hiddenAnchor.port == _loc.port &&
-        _hiddenAnchor.protocol == _loc.protocol) ||
+            _hiddenAnchor.port == _loc.port &&
+            _hiddenAnchor.protocol == _loc.protocol) ||
         (_hiddenAnchor.hostname == '' &&
-        _hiddenAnchor.port == '' &&
-        (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
+            _hiddenAnchor.port == '' &&
+            (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
   }
 }
-
 
 class _ThrowsNodeValidator implements NodeValidator {
   final NodeValidator validator;
@@ -148,11 +144,11 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${Element._safeTagName(element)}[$attributeName="$value"]');
+      throw new ArgumentError(
+          '${Element._safeTagName(element)}[$attributeName="$value"]');
     }
   }
 }
-
 
 /**
  * Standard tree sanitizer which validates a node tree against the provided
@@ -185,6 +181,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
         child = nextChild;
       }
     }
+
     walk(node, null);
   }
 
@@ -225,19 +222,23 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // On IE, erratically, the hasCorruptedAttributes test can return false,
       // even though it clearly is corrupted. A separate copy of the test
       // inlining just the basic check seems to help.
-      corrupted = corruptedTest1 ? true : Element._hasCorruptedAttributesAdditionalCheck(element);
-    } catch(e) {}
+      corrupted = corruptedTest1
+          ? true
+          : Element._hasCorruptedAttributesAdditionalCheck(element);
+    } catch (e) {}
     var elementText = 'element unprintable';
     try {
       elementText = element.toString();
-    } catch(e) {}
+    } catch (e) {}
     try {
       var elementTagName = Element._safeTagName(element);
       _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
           attrs, isAttr);
-    } on ArgumentError { // Thrown by _ThrowsNodeValidator
+    } on ArgumentError {
+      // Thrown by _ThrowsNodeValidator
       rethrow;
-    } catch(e) {  // Unexpected exception sanitizing -> remove
+    } catch (e) {
+      // Unexpected exception sanitizing -> remove
       _removeNode(element, parent);
       window.console.warn('Removing corrupted element $elementText');
     }
@@ -249,15 +250,14 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   void _sanitizeElement(Element element, Node parent, bool corrupted,
       String text, String tag, Map attrs, String isAttr) {
     if (false != corrupted) {
-       _removeNode(element, parent);
-      window.console.warn(
-          'Removing element due to corrupted attributes on <$text>');
-       return;
+      _removeNode(element, parent);
+      window.console
+          .warn('Removing element due to corrupted attributes on <$text>');
+      return;
     }
     if (!validator.allowsElement(element)) {
       _removeNode(element, parent);
-      window.console.warn(
-          'Removing disallowed element <$tag> from $parent');
+      window.console.warn('Removing disallowed element <$tag> from $parent');
       return;
     }
 
@@ -275,8 +275,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     var keys = attrs.keys.toList();
     for (var i = attrs.length - 1; i >= 0; --i) {
       var name = keys[i];
-      if (!validator.allowsAttribute(element, name.toLowerCase(),
-          attrs[name])) {
+      if (!validator.allowsAttribute(
+          element, name.toLowerCase(), attrs[name])) {
         window.console.warn('Removing disallowed attribute '
             '<$tag $name="${attrs[name]}">');
         attrs.remove(name);
@@ -286,7 +286,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     if (element is TemplateElement) {
       TemplateElement template = element;
       sanitizeTree(template.content);
-     }
+    }
   }
 
   /// Sanitize the node and its children recursively.

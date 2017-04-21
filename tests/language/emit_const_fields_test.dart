@@ -10,7 +10,7 @@ class Guide {
   static const TITLE = "Life, the Universe and Everything";
   static const EARTH = const {
     "Sector": "ZZ9 Plural Z Alpha",
-    "Status": const [ "Scheduled for demolition", "1978-03-08" ],
+    "Status": const ["Scheduled for demolition", "1978-03-08"],
     "Description": "Mostly harmless"
   };
 }
@@ -19,4 +19,3 @@ main() {
   Expect.isTrue(42 == Guide.LTUAE);
   Expect.isTrue("1978-03-08" == Guide.EARTH["Status"][1]);
 }
-

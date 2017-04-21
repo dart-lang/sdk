@@ -65,6 +65,26 @@ spillingMethod(what, obfuscate) {
   }
 
   // Keep all variables alive.
-  return a + b + c + d + e + f + g + h + i + j + k + l + m + n + o
-       + p + q + r + s + t + u + v;
+  return a +
+      b +
+      c +
+      d +
+      e +
+      f +
+      g +
+      h +
+      i +
+      j +
+      k +
+      l +
+      m +
+      n +
+      o +
+      p +
+      q +
+      r +
+      s +
+      t +
+      u +
+      v;
 }

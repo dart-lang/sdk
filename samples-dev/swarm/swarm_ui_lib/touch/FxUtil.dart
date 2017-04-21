@@ -37,10 +37,12 @@ class FxUtil {
   }
 
   /** Apply a -webkit-transform using translate3d to an HTML element. */
-  static void setWebkitTransform(
-      Element el, num x, num y, [num z = 0,
-      num rotation = null, num scale = null,
-      num originX = null, num originY = null]) {
+  static void setWebkitTransform(Element el, num x, num y,
+      [num z = 0,
+      num rotation = null,
+      num scale = null,
+      num originX = null,
+      num originY = null]) {
     final style = el.style;
     // TODO(jacobr): create a helper class that simplifies building
     // transformation matricies that will be set as CSS styles. We should

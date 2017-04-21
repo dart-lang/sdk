@@ -115,6 +115,7 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
       addString("$obj", indentation: indentation, newLine: newLine);
     }
   }
+
   prettifyJsonInternal(json);
   return buffer.toString();
 }

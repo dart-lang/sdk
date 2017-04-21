@@ -46,7 +46,6 @@ class FlutterTarget extends Target {
 
         // Required for flutter.
         'dart:ui',
-        'dart:jni',
         'dart:vmservice_sky',
       ];
 

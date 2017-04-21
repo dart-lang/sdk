@@ -4,4 +4,4 @@
 
 library GetterSetterInLib2;
 
-set bar(a) { }
+set bar(a) {}

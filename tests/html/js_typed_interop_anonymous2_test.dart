@@ -12,27 +12,31 @@ import 'package:js/js.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-@JS() @anonymous
+@JS()
+@anonymous
 class A {
   external factory A({B b});
 
   external B get b;
 }
 
-@JS() @anonymous
+@JS()
+@anonymous
 class B {
   external factory B({C c});
 
   external C get c;
 }
 
-@JS() @anonymous
+@JS()
+@anonymous
 class C {
   external factory C();
 }
 
 // D is unreachable, and that is OK
-@JS() @anonymous
+@JS()
+@anonymous
 class D {
   external factory D();
 }

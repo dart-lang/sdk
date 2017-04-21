@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 class C {
-  final a;  // illegal field declaration - must be initialized
+  final a; // illegal field declaration - must be initialized
 }
 
 main() {

@@ -4,6 +4,8 @@
 
 library fasta.kernel_library_builder;
 
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
@@ -44,14 +46,16 @@ import 'kernel_builder.dart'
         KernelProcedureBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
+        LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        MixedAccessor,
         NamedMixinApplicationBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        Scope,
         TypeBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        compareProcedures;
 
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
@@ -100,6 +104,19 @@ class KernelLibraryBuilder
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
+    assert(currentDeclaration.parent == libraryDeclaration);
+    Map<String, MemberBuilder> members = currentDeclaration.members;
+    Map<String, MemberBuilder> constructors = currentDeclaration.constructors;
+    Map<String, MemberBuilder> setters = currentDeclaration.setters;
+
+    Scope classScope = new Scope(
+        members, setters, scope.withTypeVariables(typeVariables),
+        isModifiable: false);
+
+    // When looking up a constructor, we don't consider type variables or the
+    // library scope.
+    Scope constructorScope =
+        new Scope(constructors, null, null, isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
@@ -107,17 +124,22 @@ class KernelLibraryBuilder
         typeVariables,
         supertype,
         interfaces,
-        classMembers,
+        classScope,
+        constructorScope,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         charOffset);
     constructorReferences.clear();
-    classMembers.forEach((String name, MemberBuilder builder) {
-      while (builder != null) {
-        builder.parent = cls;
-        builder = builder.next;
+    void setParent(String name, MemberBuilder member) {
+      while (member != null) {
+        member.parent = cls;
+        member = member.next;
       }
-    });
+    }
+
+    members.forEach(setParent);
+    constructors.forEach(setParent);
+    setters.forEach(setParent);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(className, cls, charOffset);
@@ -140,18 +162,36 @@ class KernelLibraryBuilder
   }
 
   void addField(List<MetadataBuilder> metadata, int modifiers,
-      KernelTypeBuilder type, String name, int charOffset) {
+      KernelTypeBuilder type, String name, int charOffset, Token initializer) {
     addBuilder(
         name,
-        new KernelFieldBuilder(
-            metadata, type, name, modifiers, this, charOffset),
+        new KernelFieldBuilder(loader.astFactory, loader.topLevelTypeInferrer,
+            metadata, type, name, modifiers, this, charOffset, initializer),
         charOffset);
   }
 
-  String computeConstructorName(String name) {
-    assert(isConstructorName(name, currentDeclaration.name));
+  String computeAndValidateConstructorName(String name, int charOffset) {
+    String className = currentDeclaration.name;
+    bool startsWithClassName = name.startsWith(className);
+    if (startsWithClassName && name.length == className.length) {
+      // Unnamed constructor or factory.
+      return "";
+    }
     int index = name.indexOf(".");
-    return index == -1 ? "" : name.substring(index + 1);
+    if (startsWithClassName && index == className.length) {
+      // Named constructor or factory.
+      return name.substring(index + 1);
+    }
+    if (index == -1) {
+      // A legal name for a regular method, but not for a constructor.
+      return null;
+    }
+    String suffix = name.substring(index + 1);
+    addCompileTimeError(
+        charOffset,
+        "'$name' isn't a legal method name.\n"
+        "Did you mean '$className.$suffix'?");
+    return suffix;
   }
 
   void addProcedure(
@@ -172,8 +212,10 @@ class KernelLibraryBuilder
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
-    if (!isTopLevel && isConstructorName(name, currentDeclaration.name)) {
-      name = computeConstructorName(name);
+    String constructorName =
+        isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
+    if (constructorName != null) {
+      name = constructorName;
       procedure = new KernelConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -211,7 +253,7 @@ class KernelLibraryBuilder
   void addFactoryMethod(
       List<MetadataBuilder> metadata,
       int modifiers,
-      ConstructorReferenceBuilder constructorName,
+      ConstructorReferenceBuilder constructorNameReference,
       List<FormalParameterBuilder> formals,
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
@@ -222,11 +264,13 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration();
-    String name = constructorName.name;
-    if (isConstructorName(name, currentDeclaration.name)) {
-      name = computeConstructorName(name);
+    String name = constructorNameReference.name;
+    String constructorName =
+        computeAndValidateConstructorName(name, charOffset);
+    if (constructorName != null) {
+      name = constructorName;
     }
-    assert(constructorName.suffix == null);
+    assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,
         staticMask | modifiers,
@@ -253,8 +297,8 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
-            charOffset, charEndOffset),
+        new KernelEnumBuilder(loader.astFactory, metadata, name,
+            constantNamesAndOffsets, this, charOffset, charEndOffset),
         charOffset);
   }
 
@@ -299,9 +343,10 @@ class KernelLibraryBuilder
     return builder;
   }
 
-  void buildBuilder(Builder builder) {
+  @override
+  void buildBuilder(Builder builder, LibraryBuilder coreLibrary) {
     if (builder is SourceClassBuilder) {
-      Class cls = builder.build(this);
+      Class cls = builder.build(this, coreLibrary);
       library.addClass(cls);
     } else if (builder is KernelFieldBuilder) {
       library.addMember(builder.build(this)..isStatic = true);
@@ -311,7 +356,7 @@ class KernelLibraryBuilder
       // Kernel discard typedefs and use their corresponding function types
       // directly.
     } else if (builder is KernelEnumBuilder) {
-      library.addClass(builder.build(this));
+      library.addClass(builder.build(this, coreLibrary));
     } else if (builder is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
     } else if (builder is BuiltinTypeBuilder) {
@@ -321,9 +366,11 @@ class KernelLibraryBuilder
     }
   }
 
-  Library build() {
-    super.build();
+  @override
+  Library build(LibraryBuilder coreLibrary) {
+    super.build(coreLibrary);
     library.name = name;
+    library.procedures.sort(compareProcedures);
     return library;
   }
 
@@ -331,6 +378,7 @@ class KernelLibraryBuilder
   Builder buildAmbiguousBuilder(
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
+    // TODO(ahe): Can I move this to Scope or Prefix?
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
     if (other is InvalidTypeBuilder) return other;
@@ -348,7 +396,7 @@ class KernelLibraryBuilder
     Uri otherUri;
     Uri preferredUri;
     Uri hiddenUri;
-    if (members[name] == builder) {
+    if (scope.local[name] == builder) {
       isLocal = true;
       preferred = builder;
       hiddenUri = other.computeLibraryUri();
@@ -390,26 +438,15 @@ class KernelLibraryBuilder
       return preferred;
     }
     if (builder.next == null && other.next == null) {
-      if (builder.isGetter && other.isSetter) {
-        return new MixedAccessor(builder, other, this);
-      } else if (builder.isSetter && other.isGetter) {
-        return new MixedAccessor(other, builder, this);
-      }
       if (isImport && builder is PrefixBuilder && other is PrefixBuilder) {
         // Handles the case where the same prefix is used for different
         // imports.
-        PrefixBuilder prefix = builder;
-        other.exports.forEach((String name, Builder member) {
-          Builder existing = exports[name];
-          if (existing != null) {
-            if (existing != member) {
-              member = buildAmbiguousBuilder(name, existing, member, charOffset,
-                  isExport: isExport, isImport: isImport);
-            }
-          }
-          prefix.exports[name] = member;
-        });
-        return builder;
+        return builder
+          ..exports.merge(other.exports,
+              (String name, Builder existing, Builder member) {
+            return buildAmbiguousBuilder(name, existing, member, charOffset,
+                isExport: isExport, isImport: isImport);
+          });
       }
     }
     if (isExport) {
@@ -510,12 +547,4 @@ class KernelLibraryBuilder
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
     assert(mixinApplicationClasses.isEmpty);
   }
-}
-
-bool isConstructorName(String name, String className) {
-  if (name.startsWith(className)) {
-    if (name.length == className.length) return true;
-    if (name.startsWith(".", className.length)) return true;
-  }
-  return false;
 }

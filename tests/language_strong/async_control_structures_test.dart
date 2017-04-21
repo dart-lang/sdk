@@ -16,7 +16,7 @@ expectThenValue(future, value) {
 }
 
 asyncIf(condition) async {
-  if(condition) {
+  if (condition) {
     return 1;
   } else {
     return 2;
@@ -53,7 +53,9 @@ asyncTryCatchLoop() async {
     try {
       throw throws;
     } catch (e) {
-      if (i == throws) { return e; }
+      if (i == throws) {
+        return e;
+      }
     } finally {
       i++;
     }
@@ -61,9 +63,7 @@ asyncTryCatchLoop() async {
 }
 
 asyncImplicitReturn() async {
-  try {}
-  catch (e) {}
-  finally {}
+  try {} catch (e) {} finally {}
 }
 
 main() {

@@ -14,7 +14,8 @@ main() {
   });
 }
 
-class AbstractGetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   String path;
   String content;
   int completionOffset;
@@ -120,6 +121,3 @@ main() {
     });
   }
 }
-
-@reflectiveTest
-class GetSuggestionsTest extends AbstractGetSuggestionsTest {}

@@ -11,12 +11,21 @@ part of dart2js.js_emitter.program_builder;
  * The code for the containing (used) methods must exist in the `universe`.
  */
 class Collector {
+  final CompilerOptions _options;
+  final CommonElements _commonElements;
+  final DeferredLoadTask _deferredLoadTask;
+  final CodegenWorldBuilder _worldBuilder;
   // TODO(floitsch): the code-emitter task should not need a namer.
-  final Namer namer;
-  final Compiler compiler;
-  final ClosedWorld closedWorld;
-  final Set<ClassElement> rtiNeededClasses;
-  final Emitter emitter;
+  final Namer _namer;
+  final Emitter _emitter;
+  final JavaScriptConstantCompiler _constantHandler;
+  final NativeData _nativeData;
+  final InterceptorData _interceptorData;
+  final OneShotInterceptorData _oneShotInterceptorData;
+  final MirrorsData _mirrorsData;
+  final ClosedWorld _closedWorld;
+  final Set<ClassElement> _rtiNeededClasses;
+  final Map<MemberElement, js.Expression> _generatedCode;
 
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
   // This field is set in [computeNeededDeclarations].
@@ -41,18 +50,25 @@ class Collector {
 
   List<TypedefElement> typedefsNeededForReflection;
 
-  JavaScriptBackend get backend => compiler.backend;
-
-  BackendHelpers get helpers => backend.helpers;
-
-  CommonElements get commonElements => compiler.commonElements;
-
-  Collector(this.compiler, this.namer, this.closedWorld, this.rtiNeededClasses,
-      this.emitter);
+  Collector(
+      this._options,
+      this._commonElements,
+      this._deferredLoadTask,
+      this._worldBuilder,
+      this._namer,
+      this._emitter,
+      this._constantHandler,
+      this._nativeData,
+      this._interceptorData,
+      this._oneShotInterceptorData,
+      this._mirrorsData,
+      this._closedWorld,
+      this._rtiNeededClasses,
+      this._generatedCode);
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
-    JavaScriptConstantCompiler handler = backend.constants;
+    JavaScriptConstantCompiler handler = _constantHandler;
     List<ConstantValue> constants = handler.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
@@ -68,43 +84,42 @@ class Collector {
    * that needs to be emitted.
    */
   Function computeClassFilter() {
-    if (backend.mirrorsData.isTreeShakingDisabled) {
+    if (_mirrorsData.isTreeShakingDisabled) {
       return (ClassElement cls) => true;
     }
 
     Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
-    unneededClasses.add(commonElements.boolClass);
+    unneededClasses.add(_commonElements.boolClass);
 
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassEntity> needed = new Set<ClassEntity>();
     for (js.Name name
-        in backend.oneShotInterceptorData.specializedGetInterceptorNames) {
-      needed.addAll(backend.oneShotInterceptorData
-          .getSpecializedGetInterceptorsFor(name));
+        in _oneShotInterceptorData.specializedGetInterceptorNames) {
+      needed.addAll(
+          _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name));
     }
 
     // Add interceptors referenced by constants.
     needed.addAll(computeInterceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
-    for (ClassEntity interceptor
-        in backend.interceptorData.interceptedClasses) {
+    for (ClassEntity interceptor in _interceptorData.interceptedClasses) {
       if (!needed.contains(interceptor) &&
-          interceptor != commonElements.objectClass) {
+          interceptor != _commonElements.objectClass) {
         unneededClasses.add(interceptor);
       }
     }
 
     // These classes are just helpers for the backend's type system.
-    unneededClasses.add(helpers.jsMutableArrayClass);
-    unneededClasses.add(helpers.jsFixedArrayClass);
-    unneededClasses.add(helpers.jsExtendableArrayClass);
-    unneededClasses.add(helpers.jsUInt32Class);
-    unneededClasses.add(helpers.jsUInt31Class);
-    unneededClasses.add(helpers.jsPositiveIntClass);
+    unneededClasses.add(_commonElements.jsMutableArrayClass);
+    unneededClasses.add(_commonElements.jsFixedArrayClass);
+    unneededClasses.add(_commonElements.jsExtendableArrayClass);
+    unneededClasses.add(_commonElements.jsUInt32Class);
+    unneededClasses.add(_commonElements.jsUInt31Class);
+    unneededClasses.add(_commonElements.jsPositiveIntClass);
 
     return (ClassEntity cls) => !unneededClasses.contains(cls);
   }
@@ -115,56 +130,61 @@ class Collector {
   void computeNeededConstants() {
     // Make sure we retain all metadata of all elements. This could add new
     // constants to the handler.
-    if (backend.mirrorsData.mustRetainMetadata) {
+    if (_mirrorsData.mustRetainMetadata) {
       // TODO(floitsch): verify that we don't run through the same elements
       // multiple times.
-      for (Element element in backend.generatedCode.keys) {
-        if (backend.mirrorsData.isAccessibleByReflection(element)) {
+      for (MemberElement element in _generatedCode.keys) {
+        if (_mirrorsData.isMemberAccessibleByReflection(element)) {
           bool shouldRetainMetadata =
-              backend.mirrorsData.retainMetadataOf(element);
+              _mirrorsData.retainMetadataOfMember(element);
           if (shouldRetainMetadata &&
               (element.isFunction ||
                   element.isConstructor ||
                   element.isSetter)) {
-            FunctionElement function = element;
+            MethodElement function = element;
             function.functionSignature
-                .forEachParameter(backend.mirrorsData.retainMetadataOf);
+                .forEachParameter(_mirrorsData.retainMetadataOfParameter);
           }
         }
       }
       for (ClassElement cls in neededClasses) {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
-          backend.mirrorsData.retainMetadataOf(cls);
-          new FieldVisitor(compiler, namer, closedWorld).visitFields(cls, false,
-              (Element member, js.Name name, js.Name accessorName,
-                  bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
+          _mirrorsData.retainMetadataOfClass(cls);
+          new FieldVisitor(_options, _worldBuilder, _nativeData, _mirrorsData,
+                  _namer, _closedWorld)
+              .visitFields(cls, false, (FieldElement member,
+                  js.Name name,
+                  js.Name accessorName,
+                  bool needsGetter,
+                  bool needsSetter,
+                  bool needsCheckedSetter) {
             bool needsAccessor = needsGetter || needsSetter;
             if (needsAccessor &&
-                backend.mirrorsData.isAccessibleByReflection(member)) {
-              backend.mirrorsData.retainMetadataOf(member);
+                _mirrorsData.isMemberAccessibleByReflection(member)) {
+              _mirrorsData.retainMetadataOfMember(member);
             }
           });
         }
       }
-      typedefsNeededForReflection.forEach(backend.mirrorsData.retainMetadataOf);
+      typedefsNeededForReflection.forEach(_mirrorsData.retainMetadataOfTypedef);
     }
 
-    JavaScriptConstantCompiler handler = backend.constants;
+    JavaScriptConstantCompiler handler = _constantHandler;
     List<ConstantValue> constants =
-        handler.getConstantsForEmission(emitter.compareConstants);
+        handler.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
-      if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
+      if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
       if (constant.isList) outputContainsConstantList = true;
 
       OutputUnit constantUnit =
-          compiler.deferredLoadTask.outputUnitForConstant(constant);
+          _deferredLoadTask.outputUnitForConstant(constant);
       if (constantUnit == null) {
         // The back-end introduces some constants, like "InterceptorConstant" or
         // some list constants. They are emitted in the main output-unit.
         // TODO(sigurdm): We should track those constants.
-        constantUnit = compiler.deferredLoadTask.mainOutputUnit;
+        constantUnit = _deferredLoadTask.mainOutputUnit;
       }
       outputConstantLists
           .putIfAbsent(constantUnit, () => new List<ConstantValue>())
@@ -175,19 +195,18 @@ class Collector {
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(closedWorld
+    typedefsNeededForReflection = Elements.sortedByPosition(_closedWorld
         .allTypedefs
-        .where(backend.mirrorsData.isAccessibleByReflection)
+        .where(_mirrorsData.isTypedefAccessibleByReflection)
         .toList());
 
     // Compute needed classes.
-    Set<ClassElement> instantiatedClasses = compiler
+    Set<ClassElement> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        .codegenWorldBuilder
-        .directlyInstantiatedClasses
-        .where(computeClassFilter())
-        .toSet();
+        _worldBuilder.directlyInstantiatedClasses
+            .where(computeClassFilter())
+            .toSet();
 
     void addClassWithSuperclasses(ClassElement cls) {
       neededClasses.add(cls);
@@ -221,48 +240,46 @@ class Collector {
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-    classesOnlyNeededForRti = rtiNeededClasses.difference(neededClasses);
+    classesOnlyNeededForRti = _rtiNeededClasses.difference(neededClasses);
 
     neededClasses.addAll(classesOnlyNeededForRti);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
-    if (neededClasses.contains(helpers.jsIntClass)) {
-      neededClasses.add(commonElements.intClass);
+    if (neededClasses.contains(_commonElements.jsIntClass)) {
+      neededClasses.add(_commonElements.intClass);
     }
-    if (neededClasses.contains(helpers.jsDoubleClass)) {
-      neededClasses.add(commonElements.doubleClass);
+    if (neededClasses.contains(_commonElements.jsDoubleClass)) {
+      neededClasses.add(_commonElements.doubleClass);
     }
-    if (neededClasses.contains(helpers.jsNumberClass)) {
-      neededClasses.add(commonElements.numClass);
+    if (neededClasses.contains(_commonElements.jsNumberClass)) {
+      neededClasses.add(_commonElements.numClass);
     }
-    if (neededClasses.contains(helpers.jsStringClass)) {
-      neededClasses.add(commonElements.stringClass);
+    if (neededClasses.contains(_commonElements.jsStringClass)) {
+      neededClasses.add(_commonElements.stringClass);
     }
-    if (neededClasses.contains(helpers.jsBoolClass)) {
-      neededClasses.add(commonElements.boolClass);
+    if (neededClasses.contains(_commonElements.jsBoolClass)) {
+      neededClasses.add(_commonElements.boolClass);
     }
-    if (neededClasses.contains(helpers.jsArrayClass)) {
-      neededClasses.add(commonElements.listClass);
+    if (neededClasses.contains(_commonElements.jsArrayClass)) {
+      neededClasses.add(_commonElements.listClass);
     }
 
     // 4. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {
-      if (backend.nativeData.isNativeOrExtendsNative(element) &&
+      if (_nativeData.isNativeOrExtendsNative(element) &&
           !classesOnlyNeededForRti.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(element);
-        assert(
-            invariant(element, !compiler.deferredLoadTask.isDeferred(element)));
+        assert(invariant(element, !_deferredLoadTask.isDeferred(element)));
         outputClassLists
-            .putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+            .putIfAbsent(_deferredLoadTask.mainOutputUnit,
                 () => new List<ClassElement>())
             .add(element);
       } else {
         outputClassLists
-            .putIfAbsent(
-                compiler.deferredLoadTask.outputUnitForElement(element),
+            .putIfAbsent(_deferredLoadTask.outputUnitForElement(element),
                 () => new List<ClassElement>())
             .add(element);
       }
@@ -270,15 +287,15 @@ class Collector {
   }
 
   void computeNeededStatics() {
-    bool isStaticFunction(Element element) =>
+    bool isStaticFunction(MemberElement element) =>
         !element.isInstanceMember && !element.isField;
 
-    Iterable<Element> elements =
-        backend.generatedCode.keys.where(isStaticFunction);
+    Iterable<MemberElement> elements =
+        _generatedCode.keys.where(isStaticFunction);
 
     for (Element element in Elements.sortedByPosition(elements)) {
       List<Element> list = outputStaticLists.putIfAbsent(
-          compiler.deferredLoadTask.outputUnitForElement(element),
+          _deferredLoadTask.outputUnitForElement(element),
           () => new List<Element>());
       list.add(element);
     }
@@ -287,17 +304,15 @@ class Collector {
   void computeNeededStaticNonFinalFields() {
     addToOutputUnit(Element element) {
       List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
-          compiler.deferredLoadTask.outputUnitForElement(element),
+          _deferredLoadTask.outputUnitForElement(element),
           () => new List<VariableElement>());
       list.add(element);
     }
 
-    Iterable<Element> fields = compiler
+    Iterable<FieldElement> fields =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        .codegenWorldBuilder
-        .allReferencedStaticFields
-        .where((FieldElement field) {
+        _worldBuilder.allReferencedStaticFields.where((FieldElement field) {
       if (!field.isConst) {
         return field.isField &&
             !field.isInstanceMember &&
@@ -306,7 +321,7 @@ class Collector {
       } else {
         // We also need to emit static const fields if they are available for
         // reflection.
-        return backend.mirrorsData.isAccessibleByReflection(field);
+        return _mirrorsData.isMemberAccessibleByReflection(field);
       }
     });
 
@@ -315,14 +330,14 @@ class Collector {
 
   void computeNeededLibraries() {
     void addSurroundingLibraryToSet(Element element) {
-      OutputUnit unit = compiler.deferredLoadTask.outputUnitForElement(element);
+      OutputUnit unit = _deferredLoadTask.outputUnitForElement(element);
       LibraryElement library = element.library;
       outputLibraryLists
           .putIfAbsent(unit, () => new Set<LibraryElement>())
           .add(library);
     }
 
-    backend.generatedCode.keys.forEach(addSurroundingLibraryToSet);
+    _generatedCode.keys.forEach(addSurroundingLibraryToSet);
     neededClasses.forEach(addSurroundingLibraryToSet);
   }
 

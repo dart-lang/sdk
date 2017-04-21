@@ -61,7 +61,6 @@ void main() {
   assertFalse(new RegExp(r"bxr$", multiLine: true).hasMatch("bar\nfoo"));
   assertFalse(new RegExp(r"bxr$", multiLine: true).hasMatch("foo\nbar"));
 
-
   assertTrue(new RegExp(r"^.*$").hasMatch(""));
   assertTrue(new RegExp(r"^.*$").hasMatch("foo"));
   assertFalse(new RegExp(r"^.*$").hasMatch("\n"));
@@ -82,7 +81,6 @@ void main() {
   assertTrue(new RegExp(r"^[()]*$", multiLine: true).hasMatch("()\n."));
 
   assertTrue(new RegExp(r"^[\].]*$").hasMatch("...]..."));
-
 
   dynamic check_case(lc, uc) {
     var a = new RegExp("^" + lc + r"$");
@@ -106,13 +104,11 @@ void main() {
     assertTrue(A.hasMatch(lc));
   }
 
-
   check_case("a", "A");
   // Aring
   check_case(new String.fromCharCode(229), new String.fromCharCode(197));
   // Russian G
   check_case(new String.fromCharCode(0x413), new String.fromCharCode(0x433));
-
 
   assertThrows(() => new RegExp('[z-a]'));
 }

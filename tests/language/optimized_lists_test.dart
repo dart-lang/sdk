@@ -13,7 +13,6 @@ main() {
   }
 }
 
-
 test(n) {
   var a = new List(); //    Growable list.
   var b = new List(10); //  Fixed size list.

@@ -7,15 +7,17 @@ import "package:expect/expect.dart";
 
 // Test correct dead phi elimination with try catch.
 
-List<Object> a = [1,2,3,4,5];
+List<Object> a = [1, 2, 3, 4, 5];
 
-class MyError { }
+class MyError {}
 
 class M {
   maythrow(i) {
     try {
       if (i <= 5) throw new MyError();
-    } catch(e) { throw e; }
+    } catch (e) {
+      throw e;
+    }
   }
 }
 
@@ -26,7 +28,7 @@ loop_test() {
     try {
       String res = m.maythrow(i);
       failed = true;
-    } on MyError catch(e) { }
+    } on MyError catch (e) {}
     if (!identical(failed, false)) {
       Expect.fail("");
     }
@@ -36,6 +38,3 @@ loop_test() {
 main() {
   for (var i = 0; i < 20; i++) loop_test();
 }
-
-
-

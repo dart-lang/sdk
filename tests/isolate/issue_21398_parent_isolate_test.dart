@@ -31,46 +31,34 @@ main() {
   // First spawn an isolate using spawnURI and have it
   // send back a "non-literal" like object.
   asyncStart();
-  Isolate.spawnUri(Uri.parse('issue_21398_child_isolate.dart'),
-                   [],
-                   [new FromMainIsolate(), receive1.sendPort]).catchError(
-    (error) {
-      Expect.isTrue(error is ArgumentError);
-      asyncEnd();
-    }
-  );
+  Isolate.spawnUri(Uri.parse('issue_21398_child_isolate.dart'), [],
+      [new FromMainIsolate(), receive1.sendPort]).catchError((error) {
+    Expect.isTrue(error is ArgumentError);
+    asyncEnd();
+  });
   asyncStart();
-  Isolate.spawnUri(Uri.parse('issue_21398_child_isolate.dart'),
-                   [],
-                   receive1.sendPort).then(
-    (isolate) {
-      receive1.listen(
-        (msg) {
-          Expect.stringEquals(msg, "Invalid Argument(s).");
-          receive1.close();
-          asyncEnd();
-        },
-        onError: (e) => print('$e')
-      );
-    }
-  );
+  Isolate
+      .spawnUri(
+          Uri.parse('issue_21398_child_isolate.dart'), [], receive1.sendPort)
+      .then((isolate) {
+    receive1.listen((msg) {
+      Expect.stringEquals(msg, "Invalid Argument(s).");
+      receive1.close();
+      asyncEnd();
+    }, onError: (e) => print('$e'));
+  });
 
   // Now spawn an isolate using spawnFunction and send it a "non-literal"
   // like object and also have the child isolate send back a "non-literal"
   // like object.
   asyncStart();
-  Isolate.spawn(funcChild,
-                [new FromMainIsolate(), receive2.sendPort]).then(
-    (isolate) {
-      receive2.listen(
-        (msg) {
-          Expect.isTrue(msg is FromMainIsolate);
-          Expect.equals(10, msg.fld);
-          receive2.close();
-          asyncEnd();
-        },
-        onError: (e) => print('$e')
-      );
-    }
-  );
+  Isolate.spawn(funcChild, [new FromMainIsolate(), receive2.sendPort]).then(
+      (isolate) {
+    receive2.listen((msg) {
+      Expect.isTrue(msg is FromMainIsolate);
+      Expect.equals(10, msg.fld);
+      receive2.close();
+      asyncEnd();
+    }, onError: (e) => print('$e'));
+  });
 }

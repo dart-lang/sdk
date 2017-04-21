@@ -5,6 +5,7 @@
 // Use qualified symbols at various places.
 
 library Prefix14Test.dart;
+
 import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 
@@ -16,9 +17,9 @@ class myInterface implements lib12.Library12Interface {
     myfld.fld = (value1.fld + value2.fld + myfld.fld);
     return myfld;
   }
+
   lib12.Library12 myfld;
 }
-
 
 class myClass extends lib12.Library12 {
   myClass(int value) : super(value);
@@ -26,6 +27,7 @@ class myClass extends lib12.Library12 {
     var i = new lib12.Library12(10);
     return i;
   }
+
   static lib12.Library12 func2(lib12.Library12 param) {
     return param;
   }

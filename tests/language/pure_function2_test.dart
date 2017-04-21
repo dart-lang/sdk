@@ -6,14 +6,15 @@ import "package:expect/expect.dart";
 
 // Regression test for issue 17483.
 
-
-@AssumeDynamic() @NoInline()
+@AssumeDynamic()
+@NoInline()
 confuse(x) => x;
 
 foo(trace) {
   trace.add("foo");
   return "foo";
 }
+
 bar(trace) {
   trace.add("bar");
   return "bar";

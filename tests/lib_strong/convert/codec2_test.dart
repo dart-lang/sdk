@@ -8,8 +8,27 @@ import 'package:expect/expect.dart';
 
 main() {
   final RAW = '["122ç",50,50,231]';
-  final ENCODED = const [91, 34, 49, 50, 50, 195, 167, 34, 44,
-                         53, 48, 44, 53, 48, 44, 50, 51, 49, 93];
+  final ENCODED = const [
+    91,
+    34,
+    49,
+    50,
+    50,
+    195,
+    167,
+    34,
+    44,
+    53,
+    48,
+    44,
+    53,
+    48,
+    44,
+    50,
+    51,
+    49,
+    93
+  ];
   Expect.listEquals(ENCODED, UTF8.encode(RAW));
   Expect.equals(RAW, UTF8.decode(ENCODED));
 

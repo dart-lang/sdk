@@ -5,12 +5,15 @@
 // Regression test for http://dartbug.com/11637
 
 class _C {}
+
 class _E {
   throwIt() => throw "it";
 }
+
 class _F {
   throwIt() => throw "IT";
 }
+
 class _D extends _C with _E, _F {}
 
 main() {

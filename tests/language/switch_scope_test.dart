@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class SwitchScopeTest {
   static testMain() {
-    switch(1) {
+    switch (1) {
       case 1:
         final v = 1;
         break;

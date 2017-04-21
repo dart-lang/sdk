@@ -30,8 +30,8 @@ class BinaryBuilder {
   final String filename;
   final List<int> _bytes;
   int _byteIndex = 0;
-  List<String> _stringTable;
-  List<String> _sourceUriTable;
+  final List<String> _stringTable = <String>[];
+  final List<String> _sourceUriTable = <String>[];
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
   Library _currentLibrary;
@@ -82,8 +82,7 @@ class BinaryBuilder {
     return bytes;
   }
 
-  String readStringEntry() {
-    int numBytes = readUInt();
+  String readStringEntry(int numBytes) {
     // Utf8Decoder will skip leading BOM characters, but we must preserve them.
     // Collect leading BOMs before passing the bytes onto Utf8Decoder.
     int numByteOrderMarks = 0;
@@ -104,24 +103,24 @@ class BinaryBuilder {
     return string;
   }
 
-  void readStringTable() {
+  void readStringTable(List<String> table) {
+    // Read the table of end offsets.
     int length = readUInt();
-    _stringTable = new List<String>(length);
+    List<int> endOffsets = new List<int>(length);
     for (int i = 0; i < length; ++i) {
-      _stringTable[i] = readStringEntry();
+      endOffsets[i] = readUInt();
+    }
+    // Read the UTF-8 encoded strings.
+    table.length = length;
+    int startOffset = 0;
+    for (int i = 0; i < length; ++i) {
+      table[i] = readStringEntry(endOffsets[i] - startOffset);
+      startOffset = endOffsets[i];
     }
   }
 
   String readUriReference() {
     return _sourceUriTable[readUInt()];
-  }
-
-  void readSourceUriTable() {
-    int length = readUInt();
-    _sourceUriTable = new List<String>(length);
-    for (int i = 0; i < length; ++i) {
-      _sourceUriTable[i] = readStringEntry();
-    }
   }
 
   String readStringReference() {
@@ -250,7 +249,7 @@ class BinaryBuilder {
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
     }
-    readStringTable();
+    readStringTable(_stringTable);
     Map<String, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
     readLinkTable(program.root);
@@ -264,7 +263,7 @@ class BinaryBuilder {
   }
 
   Map<String, Source> readUriToSource() {
-    readSourceUriTable();
+    readStringTable(_sourceUriTable);
     int length = _sourceUriTable.length;
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
@@ -369,7 +368,8 @@ class BinaryBuilder {
     library.deferredImports.length = length;
     for (int i = 0; i < length; ++i) {
       library.deferredImports[i] = new DeferredImport.byReference(
-          readLibraryReference(), readStringReference())..parent = library;
+          readLibraryReference(), readStringReference())
+        ..parent = library;
     }
   }
 
@@ -659,11 +659,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
-        return new PropertySet.byReference(
-            readExpression(),
-            readName(),
-            readExpression(),
-            readMemberReference(allowNull: true))..fileOffset = offset;
+        return new PropertySet.byReference(readExpression(), readName(),
+            readExpression(), readMemberReference(allowNull: true))
+          ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperPropertyGet.byReference(
@@ -675,7 +673,8 @@ class BinaryBuilder {
       case Tag.DirectPropertyGet:
         int offset = readOffset();
         return new DirectPropertyGet.byReference(
-            readExpression(), readMemberReference())..fileOffset = offset;
+            readExpression(), readMemberReference())
+          ..fileOffset = offset;
       case Tag.DirectPropertySet:
         int offset = readOffset();
         return new DirectPropertySet.byReference(
@@ -688,14 +687,13 @@ class BinaryBuilder {
       case Tag.StaticSet:
         int offset = readOffset();
         return new StaticSet.byReference(
-            readMemberReference(), readExpression())..fileOffset = offset;
+            readMemberReference(), readExpression())
+          ..fileOffset = offset;
       case Tag.MethodInvocation:
         int offset = readOffset();
-        return new MethodInvocation.byReference(
-            readExpression(),
-            readName(),
-            readArguments(),
-            readMemberReference(allowNull: true))..fileOffset = offset;
+        return new MethodInvocation.byReference(readExpression(), readName(),
+            readArguments(), readMemberReference(allowNull: true))
+          ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -708,22 +706,26 @@ class BinaryBuilder {
       case Tag.StaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: false)
+            readMemberReference(), readArguments(),
+            isConst: false)
           ..fileOffset = offset;
       case Tag.ConstStaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: true)
+            readMemberReference(), readArguments(),
+            isConst: true)
           ..fileOffset = offset;
       case Tag.ConstructorInvocation:
         int offset = readOffset();
         return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: false)
+            readMemberReference(), readArguments(),
+            isConst: false)
           ..fileOffset = offset;
       case Tag.ConstConstructorInvocation:
         int offset = readOffset();
         return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: true)
+            readMemberReference(), readArguments(),
+            isConst: true)
           ..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
@@ -780,28 +782,28 @@ class BinaryBuilder {
         int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false)..fileOffset = offset;
+            typeArgument: typeArgument, isConst: false)
+          ..fileOffset = offset;
       case Tag.ConstListLiteral:
         int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true)..fileOffset = offset;
+            typeArgument: typeArgument, isConst: true)
+          ..fileOffset = offset;
       case Tag.MapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
         var valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
-            keyType: keyType,
-            valueType: valueType,
-            isConst: false)..fileOffset = offset;
+            keyType: keyType, valueType: valueType, isConst: false)
+          ..fileOffset = offset;
       case Tag.ConstMapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
         var valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
-            keyType: keyType,
-            valueType: valueType,
-            isConst: true)..fileOffset = offset;
+            keyType: keyType, valueType: valueType, isConst: true)
+          ..fileOffset = offset;
       case Tag.AwaitExpression:
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
@@ -828,6 +830,12 @@ class BinaryBuilder {
       case Tag.VectorCopy:
         var vectorExpression = readExpression();
         return new VectorCopy(vectorExpression);
+      case Tag.ClosureCreation:
+        var topLevelFunctionReference = readMemberReference();
+        var contextVector = readExpression();
+        var functionType = readDartType();
+        return new ClosureCreation.byReference(
+            topLevelFunctionReference, contextVector, functionType);
       default:
         throw fail('Invalid expression tag: $tag');
     }

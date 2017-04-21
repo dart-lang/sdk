@@ -14,11 +14,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
-    defineReflectiveTests(AnalysisGetHoverIntegrationTest_Driver);
   });
 }
 
-class AbstractAnalysisGetHoverIntegrationTest
+@reflectiveTest
+class AnalysisGetHoverIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the file containing Dart code.
@@ -186,15 +186,4 @@ main() {
       return Future.wait(tests);
     });
   }
-}
-
-@reflectiveTest
-class AnalysisGetHoverIntegrationTest
-    extends AbstractAnalysisGetHoverIntegrationTest {}
-
-@reflectiveTest
-class AnalysisGetHoverIntegrationTest_Driver
-    extends AbstractAnalysisGetHoverIntegrationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

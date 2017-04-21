@@ -4,7 +4,6 @@
 
 library dart2js.constant_system.js;
 
-import '../common/backend_api.dart' show BackendClasses;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
@@ -318,9 +317,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
   }
 
   @override
-  ConstantValue createType(CommonElements commonElements,
-      BackendClasses backendClasses, DartType type) {
-    InterfaceType instanceType = backendClasses.typeType;
+  ConstantValue createType(CommonElements commonElements, DartType type) {
+    InterfaceType instanceType = commonElements.typeLiteralType;
     return new TypeConstantValue(type, instanceType);
   }
 
@@ -357,7 +355,6 @@ class JavaScriptConstantSystem extends ConstantSystem {
 
   MapConstantValue createMap(
       CommonElements commonElements,
-      BackendClasses backendClasses,
       InterfaceType sourceType,
       List<ConstantValue> keys,
       List<ConstantValue> values) {
@@ -385,17 +382,16 @@ class JavaScriptConstantSystem extends ConstantSystem {
       keysType = commonElements.listType(sourceType.typeArguments.first);
     }
     ListConstantValue keysList = new ListConstantValue(keysType, keys);
-    InterfaceType type = backendClasses.getConstantMapTypeFor(sourceType,
+    InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
         hasProtoKey: hasProtoKey, onlyStringKeys: onlyStringKeys);
     return new JavaScriptMapConstant(
         type, keysList, values, protoValue, onlyStringKeys);
   }
 
   @override
-  ConstantValue createSymbol(CommonElements commonElements,
-      BackendClasses backendClasses, String text) {
-    InterfaceType type = backendClasses.symbolType;
-    FieldEntity field = backendClasses.symbolField;
+  ConstantValue createSymbol(CommonElements commonElements, String text) {
+    InterfaceType type = commonElements.symbolImplementationType;
+    FieldEntity field = commonElements.symbolField;
     ConstantValue argument = createString(new DartString.literal(text));
     // TODO(johnniwinther): Use type arguments when all uses no longer expect
     // a [FieldElement].

@@ -8,7 +8,7 @@ class B {
   var _c$ = 10; // With library prefix: _a$_b$_c$
 
   getValueA() {
-    try {} catch(e) {} // no inline
+    try {} catch (e) {} // no inline
     return this._c$;
   }
 }

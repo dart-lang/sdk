@@ -31,9 +31,9 @@ void serverListen(RawSocket serverSide) {
       server.close();
     }
   }
+
   serverSide.listen(serveData);
 }
-
 
 void clientListen(RawSocketEvent event) {
   if (event == RawSocketEvent.READ) {
@@ -50,10 +50,9 @@ void clientListen(RawSocketEvent event) {
       data = client.read(100);
       Expect.isNotNull(data);
       client.close();
-    });      
+    });
   }
 }
-
 
 test() async {
   server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
@@ -61,7 +60,6 @@ test() async {
   client = await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, server.port);
   client.listen(clientListen);
 }
-
 
 void main() {
   test();

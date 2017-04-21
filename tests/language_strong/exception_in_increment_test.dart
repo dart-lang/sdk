@@ -20,6 +20,6 @@ main() {
 class A {
   var field;
   foo(i) {
-    field++;  // throw exception
+    field++; // throw exception
   }
 }

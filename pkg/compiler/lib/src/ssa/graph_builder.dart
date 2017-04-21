@@ -2,14 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../closure.dart';
+import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
+import '../common_elements.dart';
 import '../compiler.dart';
+import '../deferred_load.dart';
+import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
+import '../js_backend/backend_usage.dart';
+import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/js_interop_analysis.dart';
+import '../js_backend/interceptor_data.dart';
+import '../js_backend/mirrors_data.dart';
+import '../js_emitter/code_emitter_task.dart';
+import '../options.dart';
 import '../resolution/tree_elements.dart';
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';
@@ -27,7 +39,7 @@ abstract class GraphBuilder {
 
   // TODO(het): remove this
   /// A reference to the compiler.
-  Compiler compiler;
+  Compiler get compiler;
 
   /// True if the builder is processing nodes inside a try statement. This is
   /// important for generating control flow out of a try block like returns or
@@ -46,8 +58,44 @@ abstract class GraphBuilder {
 
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
+  DiagnosticReporter get reporter => backend.reporter;
+
+  CompilerOptions get options => compiler.options;
+
+  CommonElements get commonElements => closedWorld.commonElements;
+
+  CodeEmitterTask get emitter => backend.emitter;
+
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;
+
+  ClosureTask get closureToClassMapper => compiler.closureToClassMapper;
+
+  NativeData get nativeData => backend.nativeData;
+
+  InterceptorData get interceptorData => backend.interceptorData;
+
+  BackendUsage get backendUsage => backend.backendUsage;
+
+  Namer get namer => backend.namer;
+
+  RuntimeTypesNeed get rtiNeed => backend.rtiNeed;
+
+  JavaScriptConstantCompiler get constants => backend.constants;
+
+  ConstantSystem get constantSystem => constants.constantSystem;
+
+  RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
+
+  FunctionInlineCache get inlineCache => backend.inlineCache;
+
+  MirrorsData get mirrorsData => backend.mirrorsData;
+
+  JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
+
+  DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
+
+  Types get types => compiler.types;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
@@ -204,7 +252,7 @@ abstract class GraphBuilder {
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(ResolutionDartType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.rtiNeed.classNeedsRti(type.element)) {
+    if (!rtiNeed.classNeedsRti(type.element)) {
       return newObject;
     }
 

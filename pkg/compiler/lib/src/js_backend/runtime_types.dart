@@ -29,7 +29,7 @@ abstract class RuntimeTypesNeed {
 /// Interface for computing classes and methods that need runtime types.
 abstract class RuntimeTypesNeedBuilder {
   /// Registers that [cls] contains a type variable literal.
-  void registerClassUsingTypeVariableExpression(ClassElement cls);
+  void registerClassUsingTypeVariableExpression(ClassEntity cls);
 
   /// Registers that if [element] needs reified runtime type information then so
   /// does [dependency].
@@ -44,7 +44,7 @@ abstract class RuntimeTypesNeedBuilder {
   ///
   /// Here `A` need reified runtime type information because `B` needs it in
   /// order to generate the check against `B<int>`.
-  void registerRtiDependency(ClassElement element, ClassElement dependency);
+  void registerRtiDependency(ClassEntity element, ClassEntity dependency);
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -52,7 +52,6 @@ abstract class RuntimeTypesNeedBuilder {
       ClosedWorld closedWorld,
       DartTypes types,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions});
 }
@@ -112,13 +111,12 @@ abstract class RuntimeTypesEncoder {
   bool isSimpleFunctionType(ResolutionFunctionType type);
 
   jsAst.Expression getSignatureEncoding(
-      ResolutionDartType type, jsAst.Expression this_);
+      Emitter emitter, ResolutionDartType type, jsAst.Expression this_);
 
-  jsAst.Expression getSubstitutionRepresentation(
+  jsAst.Expression getSubstitutionRepresentation(Emitter emitter,
       List<ResolutionDartType> types, OnVariableCallback onVariable);
-  jsAst.Expression getSubstitutionCode(Substitution substitution);
-  jsAst.Expression getSubstitutionCodeForVariable(
-      Substitution substitution, int index);
+  jsAst.Expression getSubstitutionCode(
+      Emitter emitter, Substitution substitution);
 
   /// Returns the JavaScript template to determine at runtime if a type object
   /// is a function type.
@@ -132,7 +130,7 @@ abstract class RuntimeTypesEncoder {
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
   /// are replaced by the [jsAst.Expression] returned by [onVariable].
   jsAst.Expression getTypeRepresentation(
-      ResolutionDartType type, OnVariableCallback onVariable,
+      Emitter emitter, ResolutionDartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]);
 
   String getTypeRepresentationForTypeConstant(ResolutionDartType type);
@@ -266,7 +264,6 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
       ClosedWorld closedWorld,
       DartTypes types,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
     Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
@@ -319,9 +316,9 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
     // the calls of the list constructor whenever we determine that
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
-    if (helpers.jsArrayClass != null) {
+    if (commonElements.jsArrayClass != null) {
       ClassElement listClass = commonElements.listClass;
-      registerRtiDependency(helpers.jsArrayClass, listClass);
+      registerRtiDependency(commonElements.jsArrayClass, listClass);
     }
 
     // Check local functions and closurized members.
@@ -438,6 +435,8 @@ class _RuntimeTypes extends _RuntimeTypesBase
 
   JavaScriptBackend get backend => compiler.backend;
 
+  bool rtiChecksBuilderClosed = false;
+
   _RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
         checkedTypeArguments = new Set<ResolutionDartType>(),
@@ -469,7 +468,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
       // and precompute the substitutions for them.
       assert(invariant(element, element.allSupertypes != null,
           message: 'Supertypes have not been computed for $element.'));
-      for (ResolutionDartType supertype in element.allSupertypes) {
+      for (ResolutionInterfaceType supertype in element.allSupertypes) {
         ClassElement superelement = supertype.element;
         if (checked.contains(superelement)) {
           Substitution substitution =
@@ -490,6 +489,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
+    rtiChecksBuilderClosed = true;
     return new _RuntimeTypesChecks(this, cachedRequiredChecks,
         directlyInstantiatedArguments, checkedArguments);
   }
@@ -550,7 +550,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
         directCollector.collect(type, isTypeArgument: isTypeArgument);
         if (type.isInterfaceType) {
           ClassElement cls = type.element;
-          for (ResolutionDartType supertype in cls.allSupertypes) {
+          for (ResolutionInterfaceType supertype in cls.allSupertypes) {
             superCollector.collect(supertype, isTypeArgument: isTypeArgument);
           }
         }
@@ -561,7 +561,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     collectTypeArguments(checkedTypeArguments, isTypeArgument: true);
 
     for (ClassElement cls in superCollector.classes.toList()) {
-      for (ResolutionDartType supertype in cls.allSupertypes) {
+      for (ResolutionInterfaceType supertype in cls.allSupertypes) {
         superCollector.collect(supertype);
       }
     }
@@ -693,13 +693,11 @@ class _RuntimeTypes extends _RuntimeTypesBase
 
 class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   final Namer namer;
-  final CodeEmitterTask emitter;
-  final BackendHelpers helpers;
-  final TypeRepresentationGenerator representationGenerator;
+  final CommonElements commonElements;
+  final TypeRepresentationGenerator _representationGenerator;
 
-  _RuntimeTypesEncoder(this.namer, this.emitter, this.helpers)
-      : representationGenerator =
-            new TypeRepresentationGenerator(namer, emitter);
+  _RuntimeTypesEncoder(this.namer, this.commonElements)
+      : _representationGenerator = new TypeRepresentationGenerator(namer);
 
   @override
   bool isSimpleFunctionType(ResolutionFunctionType type) {
@@ -716,44 +714,45 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   /// is a function type.
   @override
   jsAst.Template get templateForIsFunctionType {
-    return representationGenerator.templateForIsFunctionType;
+    return _representationGenerator.templateForIsFunctionType;
   }
 
   /// Returns the JavaScript template that creates at runtime a new function
   /// type object.
   @override
   jsAst.Template get templateForCreateFunctionType {
-    return representationGenerator.templateForCreateFunctionType;
+    return _representationGenerator.templateForCreateFunctionType;
   }
 
   @override
   jsAst.Expression getTypeRepresentation(
-      ResolutionDartType type, OnVariableCallback onVariable,
+      Emitter emitter, ResolutionDartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
     // GENERIC_METHODS: When generic method support is complete enough to
     // include a runtime value for method type variables this must be updated.
-    return representationGenerator.getTypeRepresentation(
+    return _representationGenerator.getTypeRepresentation(emitter,
         type.dynamifyMethodTypeVariableType, onVariable, shouldEncodeTypedef);
   }
 
   @override
-  jsAst.Expression getSubstitutionRepresentation(
+  jsAst.Expression getSubstitutionRepresentation(Emitter emitter,
       List<ResolutionDartType> types, OnVariableCallback onVariable) {
     List<jsAst.Expression> elements = types
         .map((ResolutionDartType type) =>
-            getTypeRepresentation(type, onVariable))
+            getTypeRepresentation(emitter, type, onVariable))
         .toList(growable: false);
     return new jsAst.ArrayInitializer(elements);
   }
 
-  jsAst.Expression getTypeEncoding(ResolutionDartType type,
+  jsAst.Expression getTypeEncoding(Emitter emitter, ResolutionDartType type,
       {bool alwaysGenerateFunction: false}) {
     ClassElement contextClass = Types.getClassContext(type);
     jsAst.Expression onVariable(ResolutionTypeVariableType v) {
       return new jsAst.VariableUse(v.name);
     }
 
-    jsAst.Expression encoding = getTypeRepresentation(type, onVariable);
+    jsAst.Expression encoding =
+        getTypeRepresentation(emitter, type, onVariable);
     if (contextClass == null && !alwaysGenerateFunction) {
       return encoding;
     } else {
@@ -769,14 +768,14 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
 
   @override
   jsAst.Expression getSignatureEncoding(
-      ResolutionDartType type, jsAst.Expression this_) {
+      Emitter emitter, ResolutionDartType type, jsAst.Expression this_) {
     ClassElement contextClass = Types.getClassContext(type);
     jsAst.Expression encoding =
-        getTypeEncoding(type, alwaysGenerateFunction: true);
+        getTypeEncoding(emitter, type, alwaysGenerateFunction: true);
     if (contextClass != null) {
       jsAst.Name contextName = namer.className(contextClass);
       return js('function () { return #(#, #, #); }', [
-        emitter.staticFunctionAccess(helpers.computeSignature),
+        emitter.staticFunctionAccess(commonElements.computeSignature),
         encoding,
         this_,
         js.quoteName(contextName)
@@ -801,7 +800,8 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
    *     a list expression.
    */
   @override
-  jsAst.Expression getSubstitutionCode(Substitution substitution) {
+  jsAst.Expression getSubstitutionCode(
+      Emitter emitter, Substitution substitution) {
     jsAst.Expression declaration(ResolutionTypeVariableType variable) {
       return new jsAst.Parameter(getVariableName(variable.name));
     }
@@ -812,10 +812,10 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
 
     if (substitution.arguments
         .every((ResolutionDartType type) => type.isDynamic)) {
-      return emitter.emitter.generateFunctionThatReturnsNull();
+      return emitter.generateFunctionThatReturnsNull();
     } else {
       jsAst.Expression value =
-          getSubstitutionRepresentation(substitution.arguments, use);
+          getSubstitutionRepresentation(emitter, substitution.arguments, use);
       if (substitution.isFunction) {
         Iterable<jsAst.Expression> formals =
             substitution.parameters.map(declaration);
@@ -823,28 +823,6 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
       } else {
         return js('function() { return # }', value);
       }
-    }
-  }
-
-  @override
-  jsAst.Expression getSubstitutionCodeForVariable(
-      Substitution substitution, int index) {
-    jsAst.Expression declaration(ResolutionTypeVariableType variable) {
-      return new jsAst.Parameter(getVariableName(variable.name));
-    }
-
-    jsAst.Expression use(ResolutionTypeVariableType variable) {
-      return new jsAst.VariableUse(getVariableName(variable.name));
-    }
-
-    if (substitution.arguments[index].isDynamic) {
-      return emitter.emitter.generateFunctionThatReturnsNull();
-    } else {
-      jsAst.Expression value =
-          getTypeRepresentation(substitution.arguments[index], use);
-      Iterable<jsAst.Expression> formals =
-          substitution.parameters.map(declaration);
-      return js('function(#) { return # }', [formals, value]);
     }
   }
 
@@ -876,58 +854,66 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
 
 class TypeRepresentationGenerator implements DartTypeVisitor {
   final Namer namer;
-  final CodeEmitterTask emitter;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
+  Map<ResolutionTypeVariableType, jsAst.Expression> typedefBindings;
 
-  TypeRepresentationGenerator(this.namer, this.emitter);
+  TypeRepresentationGenerator(this.namer);
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide
    * the type representation for type variables.
    */
   jsAst.Expression getTypeRepresentation(
+      Emitter emitter,
       ResolutionDartType type,
       OnVariableCallback onVariable,
       ShouldEncodeTypedefCallback encodeTypedef) {
+    assert(typedefBindings == null);
     this.onVariable = onVariable;
     this.shouldEncodeTypedef = (encodeTypedef != null)
         ? encodeTypedef
         : (ResolutionTypedefType type) => false;
-    jsAst.Expression representation = visit(type);
+    jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
     this.shouldEncodeTypedef = null;
     return representation;
   }
 
-  jsAst.Expression getJavaScriptClassName(Element element) {
+  jsAst.Expression getJavaScriptClassName(Element element, Emitter emitter) {
     return emitter.typeAccess(element);
   }
 
   @override
-  visit(ResolutionDartType type, [_]) => type.accept(this, null);
+  visit(ResolutionDartType type, Emitter emitter) => type.accept(this, emitter);
 
-  visitTypeVariableType(ResolutionTypeVariableType type, _) {
+  visitTypeVariableType(ResolutionTypeVariableType type, Emitter emitter) {
+    if (typedefBindings != null) {
+      assert(typedefBindings[type] != null);
+      return typedefBindings[type];
+    }
     return onVariable(type);
   }
 
-  visitDynamicType(ResolutionDynamicType type, _) {
+  visitDynamicType(ResolutionDynamicType type, Emitter emitter) {
     return js('null');
   }
 
-  visitInterfaceType(ResolutionInterfaceType type, _) {
-    jsAst.Expression name = getJavaScriptClassName(type.element);
-    return type.treatAsRaw ? name : visitList(type.typeArguments, head: name);
+  visitInterfaceType(ResolutionInterfaceType type, Emitter emitter) {
+    jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
+    return type.treatAsRaw
+        ? name
+        : visitList(type.typeArguments, emitter, head: name);
   }
 
-  jsAst.Expression visitList(List<ResolutionDartType> types,
+  jsAst.Expression visitList(List<ResolutionDartType> types, Emitter emitter,
       {jsAst.Expression head}) {
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     if (head != null) {
       elements.add(head);
     }
     for (ResolutionDartType type in types) {
-      jsAst.Expression element = visit(type);
+      jsAst.Expression element = visit(type, emitter);
       if (element is jsAst.LiteralNull) {
         elements.add(new jsAst.ArrayHole());
       } else {
@@ -952,7 +938,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
         .expressionTemplateFor('{ ${namer.functionTypeTag}: "dynafunc" }');
   }
 
-  visitFunctionType(ResolutionFunctionType type, _) {
+  visitFunctionType(ResolutionFunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
     void addProperty(String name, jsAst.Expression value) {
@@ -965,15 +951,16 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
-      addProperty(namer.functionTypeReturnTypeTag, visit(type.returnType));
+      addProperty(
+          namer.functionTypeReturnTypeTag, visit(type.returnType, emitter));
     }
     if (!type.parameterTypes.isEmpty) {
       addProperty(namer.functionTypeRequiredParametersTag,
-          visitList(type.parameterTypes));
+          visitList(type.parameterTypes, emitter));
     }
     if (!type.optionalParameterTypes.isEmpty) {
       addProperty(namer.functionTypeOptionalParametersTag,
-          visitList(type.optionalParameterTypes));
+          visitList(type.optionalParameterTypes, emitter));
     }
     if (!type.namedParameterTypes.isEmpty) {
       List<jsAst.Property> namedArguments = <jsAst.Property>[];
@@ -982,7 +969,8 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
       assert(types.length == names.length);
       for (int index = 0; index < types.length; index++) {
         jsAst.Expression name = js.string(names[index]);
-        namedArguments.add(new jsAst.Property(name, visit(types[index])));
+        namedArguments
+            .add(new jsAst.Property(name, visit(types[index], emitter)));
       }
       addProperty(namer.functionTypeNamedParametersTag,
           new jsAst.ObjectInitializer(namedArguments));
@@ -990,32 +978,69 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
     return new jsAst.ObjectInitializer(properties);
   }
 
-  visitMalformedType(MalformedType type, _) {
+  visitMalformedType(MalformedType type, Emitter emitter) {
     // Treat malformed types as dynamic at runtime.
     return js('null');
   }
 
-  visitVoidType(ResolutionVoidType type, _) {
+  visitVoidType(ResolutionVoidType type, Emitter emitter) {
     // TODO(ahe): Reify void type ("null" means "dynamic").
     return js('null');
   }
 
-  visitTypedefType(ResolutionTypedefType type, _) {
+  visitTypedefType(ResolutionTypedefType type, Emitter emitter) {
     bool shouldEncode = shouldEncodeTypedef(type);
     ResolutionDartType unaliasedType = type.unaliased;
+
+    var oldBindings = typedefBindings;
+    if (typedefBindings == null) {
+      // First level typedef - capture arguments for re-use within typedef body.
+      //
+      // The type `Map<T, Foo<Set<T>>>` contains one type variable referenced
+      // twice, so there are two inputs into the HTypeInfoExpression
+      // instruction.
+      //
+      // If Foo is a typedef, T can be reused, e.g.
+      //
+      //     typedef E Foo<E>(E a, E b);
+      //
+      // As the typedef is expanded (to (Set<T>, Set<T>) => Set<T>) it should
+      // not consume additional types from the to-level input.  We prevent this
+      // by capturing the types and using the captured type expressions inside
+      // the typedef expansion.
+      //
+      // TODO(sra): We should make the type subexpression Foo<...> be a second
+      // HTypeInfoExpression, with Set<T> as its input (a third
+      // HTypeInfoExpression). This would share all the Set<T> subexpressions
+      // instead of duplicating them. This would require HTypeInfoExpression
+      // inputs to correspond to type variables AND typedefs.
+      typedefBindings = <ResolutionTypeVariableType, jsAst.Expression>{};
+      type.forEachTypeVariable((variable) {
+        if (variable is! MethodTypeVariableType) {
+          typedefBindings[variable] = onVariable(variable);
+        }
+      });
+    }
+
+    jsAst.Expression finish(jsAst.Expression result) {
+      typedefBindings = oldBindings;
+      return result;
+    }
+
     if (shouldEncode) {
-      jsAst.ObjectInitializer initializer = unaliasedType.accept(this, null);
+      jsAst.ObjectInitializer initializer = visit(unaliasedType, emitter);
       // We have to encode the aliased type.
-      jsAst.Expression name = getJavaScriptClassName(type.element);
-      jsAst.Expression encodedTypedef =
-          type.treatAsRaw ? name : visitList(type.typeArguments, head: name);
+      jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
+      jsAst.Expression encodedTypedef = type.treatAsRaw
+          ? name
+          : visitList(type.typeArguments, emitter, head: name);
 
       // Add it to the function-type object.
       jsAst.LiteralString tag = js.string(namer.typedefTag);
       initializer.properties.add(new jsAst.Property(tag, encodedTypedef));
-      return initializer;
+      return finish(initializer);
     } else {
-      return unaliasedType.accept(this, null);
+      return finish(visit(unaliasedType, emitter));
     }
   }
 }

@@ -28,7 +28,9 @@ foo(x) {
   }
 }
 
-class Y { var f = null; }
+class Y {
+  var f = null;
+}
 
 bar(y) {
   var x = y.f;
@@ -39,8 +41,7 @@ bar(y) {
   }
 }
 
-
-main () {
+main() {
   var o = new Y();
   o.f = new C();
   bar(o);

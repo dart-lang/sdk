@@ -30,7 +30,10 @@ class A implements Switzerland {
   static const artist2 = Switzerland.AG;
   static const architect1 = Spain.AG;
   static const array1 = const <int>[1, 2];
-  static const map1 = const {"Monday": 1, "Tuesday": 2, };
+  static const map1 = const {
+    "Monday": 1,
+    "Tuesday": 2,
+  };
 }
 
 class StaticFinalFieldTest {

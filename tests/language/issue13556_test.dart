@@ -15,5 +15,4 @@ class B extends A {
 }
 
 @B()
-main() {
-}
+main() {}

@@ -118,6 +118,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         toHtmlVisitor.write('{@code ${request.longMethod }}');
         toHtmlVisitor.translateHtml(request.html);
         toHtmlVisitor.javadocParams(request.params);
+        if (request.deprecated) {
+          toHtmlVisitor.p(() => toHtmlVisitor.write('@deprecated'));
+        }
       }));
       write('public void $methodName(');
       List<String> arguments = [];

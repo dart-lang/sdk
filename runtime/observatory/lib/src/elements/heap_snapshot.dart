@@ -462,8 +462,9 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       element.children[0].text = Utils.formatSize(item.shallowSize);
       element.children[2].text = _tree.isExpanded(item) ? '▼' : '►';
       element.children[3].text = '${item.instances} instances of ';
-      element.children[4] = new ClassRefElement(_isolate, item.clazz,
-          queue: _r.queue)..classes = ['name'];
+      element.children[4] =
+          new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+            ..classes = ['name'];
     } else if (item is Iterable) {
       element.children[0].text = '';
       if (item.isNotEmpty) {
@@ -533,8 +534,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         ..value = rootsToString(_roots)
         ..children = M.HeapSnapshotRoots.values.map((roots) {
           return new OptionElement(
-              value: rootsToString(roots),
-              selected: _roots == roots)..text = rootsToString(roots);
+              value: rootsToString(roots), selected: _roots == roots)
+            ..text = rootsToString(roots);
         }).toList(growable: false)
         ..onChange.listen((_) {
           _roots = M.HeapSnapshotRoots.values[s.selectedIndex];
@@ -563,8 +564,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         ..value = modeToString(_mode)
         ..children = HeapSnapshotTreeMode.values.map((mode) {
           return new OptionElement(
-              value: modeToString(mode),
-              selected: _mode == mode)..text = modeToString(mode);
+              value: modeToString(mode), selected: _mode == mode)
+            ..text = modeToString(mode);
         }).toList(growable: false)
         ..onChange.listen((_) {
           _mode = HeapSnapshotTreeMode.values[s.selectedIndex];

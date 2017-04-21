@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 
 // Test for named parameter called 'count'.
 
-
 class TestClass {
   TestClass();
 
@@ -16,7 +15,6 @@ class TestClass {
 }
 
 globalMethod([count]) => count;
-
 
 main() {
   var obj = new TestClass();

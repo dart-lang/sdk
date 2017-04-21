@@ -5,7 +5,6 @@
 part of LibraryPrefixes.lib;
 
 class LibraryPrefixes {
-
   static void main(var expectEquals) {
     var a = Constants.PI;
     var b = other.Constants.PI;

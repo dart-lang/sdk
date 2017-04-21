@@ -19,7 +19,7 @@ void main() {
   exp = new RegExp("a?");
   str = "babba";
   Expect.listEquals(["", "a", "", "", "a", ""],
-                    exp.allMatches(str).map((x)=>x[0]).toList());
+      exp.allMatches(str).map((x) => x[0]).toList());
 
   // Check that allMatches works with optional start index.
   exp = new RegExp("as{2}");
@@ -42,7 +42,7 @@ void main() {
   Expect.equals(0, exp.allMatches(str, 3).length);
 
   // Regression test for http://dartbug.com/2980
-  exp = new RegExp("^", multiLine: true);  // Any zero-length match will work.
+  exp = new RegExp("^", multiLine: true); // Any zero-length match will work.
   str = "foo\nbar\nbaz";
   Expect.equals(" foo\n bar\n baz", str.replaceAll(exp, " "));
 

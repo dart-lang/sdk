@@ -6,9 +6,23 @@ library fasta.source_loader;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show FileSystemException;
-
 import 'dart:typed_data' show Uint8List;
+
+import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
+
+import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
+
+import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
+    show KernelAstFactory;
+
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show KernelTypeInferrer;
+
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
+
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
 
 import 'package:kernel/ast.dart' show Program;
 
@@ -30,9 +44,7 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
-import '../scanner/io.dart' show readBytesFromFile;
-
-import '../target_implementation.dart' show TargetImplementation;
+import '../io.dart' show readBytesFromFile;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -52,7 +64,13 @@ class SourceLoader<L> extends Loader<L> {
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
 
-  SourceLoader(TargetImplementation target) : super(target);
+  final AstFactory astFactory = new KernelAstFactory();
+
+  TypeInferrer topLevelTypeInferrer;
+
+  Instrumentation instrumentation;
+
+  SourceLoader(KernelTarget target) : super(target);
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
@@ -60,35 +78,26 @@ class SourceLoader<L> extends Loader<L> {
     if (uri == null || uri.scheme != "file") {
       return inputError(library.uri, -1, "Not found: ${library.uri}.");
     }
-    try {
-      List<int> bytes = sourceBytes[uri];
-      if (bytes == null) {
-        bytes = sourceBytes[uri] = await readBytesFromFile(uri);
-      }
-      byteCount += bytes.length - 1;
-      ScannerResult result = scan(bytes);
-      Token token = result.tokens;
-      if (!suppressLexicalErrors) {
-        List<int> source = getSource(bytes);
-        target.addSourceInformation(library.fileUri, result.lineStarts, source);
-      }
-      while (token is ErrorToken) {
-        if (!suppressLexicalErrors) {
-          ErrorToken error = token;
-          library.addCompileTimeError(token.charOffset, error.assertionMessage,
-              fileUri: uri);
-        }
-        token = token.next;
-      }
-      return token;
-    } on FileSystemException catch (e) {
-      String message = e.message;
-      String osMessage = e.osError?.message;
-      if (osMessage != null && osMessage.isNotEmpty) {
-        message = osMessage;
-      }
-      return inputError(uri, -1, message);
+    List<int> bytes = sourceBytes[uri];
+    if (bytes == null) {
+      bytes = sourceBytes[uri] = await readBytesFromFile(uri);
     }
+    byteCount += bytes.length - 1;
+    ScannerResult result = scan(bytes);
+    Token token = result.tokens;
+    if (!suppressLexicalErrors) {
+      List<int> source = getSource(bytes);
+      target.addSourceInformation(library.fileUri, result.lineStarts, source);
+    }
+    while (token is ErrorToken) {
+      if (!suppressLexicalErrors) {
+        ErrorToken error = token;
+        library.addCompileTimeError(token.charOffset, error.assertionMessage,
+            fileUri: uri);
+      }
+      token = token.next;
+    }
+    return token;
   }
 
   List<int> getSource(List<int> bytes) {
@@ -129,8 +138,11 @@ class SourceLoader<L> extends Loader<L> {
     }
   }
 
+  KernelTarget get target => super.target;
+
   DietListener createDietListener(LibraryBuilder library) {
-    return new DietListener(library, hierarchy, coreTypes);
+    return new DietListener(
+        library, hierarchy, coreTypes, createLocalTypeInferrer());
   }
 
   void resolveParts() {
@@ -200,7 +212,7 @@ class SourceLoader<L> extends Loader<L> {
     builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      library.members.forEach((String name, Builder member) {
+      library.forEach((String name, Builder member) {
         while (member != null) {
           members.add(member);
           member = member.next;
@@ -346,7 +358,7 @@ class SourceLoader<L> extends Loader<L> {
   void buildProgram() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        libraries.add(library.build());
+        libraries.add(library.build(coreLibrary));
       }
     });
     ticker.logMs("Built program");
@@ -365,6 +377,41 @@ class SourceLoader<L> extends Loader<L> {
       builder.checkOverrides(hierarchy);
     }
     ticker.logMs("Checked overrides");
+  }
+
+  void createTopLevelTypeInferrer() {
+    topLevelTypeInferrer =
+        new KernelTypeInferrer(instrumentation, target.strongMode);
+  }
+
+  /// Performs the first phase of top level initializer inference, which
+  /// consists of creating kernel objects for all fields and top level variables
+  /// that might be subject to type inference, and records dependencies between
+  /// them.
+  void prepareInitializerInference() {
+    topLevelTypeInferrer.coreTypes = coreTypes;
+    topLevelTypeInferrer.classHierarchy = hierarchy;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        library.prepareInitializerInference(
+            topLevelTypeInferrer, library, null);
+      }
+    });
+    ticker.logMs("Prepared initializer inference");
+  }
+
+  /// Performs the second phase of top level initializer inference, which is to
+  /// visit fields and top level variables in topologically-sorted order and
+  /// assign their types.
+  void performInitializerInference() {
+    topLevelTypeInferrer.performInitializerInference();
+    ticker.logMs("Performed initializer inference");
+  }
+
+  /// Creates the type inferrer that should be used inside of method bodies.
+  TypeInferrer createLocalTypeInferrer() {
+    // For kernel, the top level and local type inferrers are the same.
+    return topLevelTypeInferrer;
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();

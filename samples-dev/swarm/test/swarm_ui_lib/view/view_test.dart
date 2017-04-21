@@ -34,8 +34,9 @@ void main() {
         return new Element.html('<div class="test"></div>');
       };
 
-      view.afterRenderFn = (node) { result = '${result}after'; };
-
+      view.afterRenderFn = (node) {
+        result = '${result}after';
+      };
 
       view.addToDocument(document.body);
       expect(result, equals('renderafter'));
@@ -44,7 +45,9 @@ void main() {
     test('calls enterDocument()', () {
       final view = new TestView();
       bool entered = false;
-      view.enterDocumentFn = () { entered = true; };
+      view.enterDocumentFn = () {
+        entered = true;
+      };
 
       view.addToDocument(document.body);
       expect(entered, isTrue);
@@ -56,7 +59,9 @@ void main() {
       final rendered = new Element.html('<div class="node"></div>');
       final view = new TestView();
       view.renderFn = () => rendered;
-      view.afterRenderFn = (node) { expect(node, equals(rendered)); };
+      view.afterRenderFn = (node) {
+        expect(node, equals(rendered));
+      };
 
       view.addToDocument(document.body);
     });
@@ -69,7 +74,9 @@ void main() {
 
       bool entered = false;
       final child = new TestView();
-      child.enterDocumentFn = () { entered = true; };
+      child.enterDocumentFn = () {
+        entered = true;
+      };
 
       // Add the child.
       parent.childViews = [child];
@@ -83,7 +90,9 @@ void main() {
 
       bool entered = false;
       final child = new TestView();
-      child.enterDocumentFn = () { entered = true; };
+      child.enterDocumentFn = () {
+        entered = true;
+      };
 
       // Add the child.
       parent.childViews = [child];
@@ -98,7 +107,9 @@ void main() {
 
       var entered = 0;
       final child = new TestView();
-      child.enterDocumentFn = () { entered++; };
+      child.enterDocumentFn = () {
+        entered++;
+      };
 
       // Add the child.
       parent.childViews = [child];
@@ -120,7 +131,9 @@ void main() {
 
       bool exited = false;
       final child = new TestView();
-      child.exitDocumentFn = () { exited = true; };
+      child.exitDocumentFn = () {
+        exited = true;
+      };
 
       // Remove the child.
       parent.childViews = [];
@@ -134,7 +147,9 @@ void main() {
 
       bool exited = false;
       final child = new TestView();
-      child.exitDocumentFn = () { exited = true; };
+      child.exitDocumentFn = () {
+        exited = true;
+      };
 
       // Remove the child.
       parent.childViews = [];
@@ -149,7 +164,9 @@ void main() {
 
       var exited = 0;
       final child = new TestView();
-      child.exitDocumentFn = () { exited++; };
+      child.exitDocumentFn = () {
+        exited++;
+      };
 
       // Add the child.
       parent.childViews = [child];
@@ -169,10 +186,14 @@ void main() {
       var result = '';
 
       final parent = new TestView();
-      parent.enterDocumentFn = () { result = '${result}parent'; };
+      parent.enterDocumentFn = () {
+        result = '${result}parent';
+      };
 
       final child = new TestView();
-      child.enterDocumentFn = () { result = '${result}child'; };
+      child.enterDocumentFn = () {
+        result = '${result}child';
+      };
 
       parent.childViews = [child];
 
@@ -189,7 +210,9 @@ class TestView extends View {
   Function exitDocumentFn;
   List<View> childViews;
 
-  TestView() : super(), childViews = [] {
+  TestView()
+      : super(),
+        childViews = [] {
     // Default behavior.
     renderFn = () => new Element.html('<div class="test"></div>');
     afterRenderFn = (node) {};
@@ -198,7 +221,15 @@ class TestView extends View {
   }
 
   Element render() => renderFn();
-  void afterRender(Element node) { afterRenderFn(node); }
-  void enterDocument() { enterDocumentFn(); }
-  void exitDocument() { exitDocumentFn(); }
+  void afterRender(Element node) {
+    afterRenderFn(node);
+  }
+
+  void enterDocument() {
+    enterDocumentFn();
+  }
+
+  void exitDocument() {
+    exitDocumentFn();
+  }
 }

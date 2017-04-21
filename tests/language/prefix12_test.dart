@@ -4,6 +4,7 @@
 //
 
 library Prefix12Test.dart;
+
 import "package:expect/expect.dart";
 import "library11.dart" as lib11;
 
@@ -14,6 +15,7 @@ class Prefix12Test {
     result = obj.fld;
     Expect.equals(10, result);
   }
+
   static Test2() {
     int result = 0;
     var obj = new lib11.Library111<int>.namedConstructor(10);

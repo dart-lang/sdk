@@ -18,8 +18,8 @@ void test() {
   asyncStart();
   var script =
       Platform.script.resolve('process_detached_script.dart').toFilePath();
-  var future = Process.start(
-      Platform.executable, [script], mode: ProcessStartMode.DETACHED);
+  var future = Process.start(Platform.executable, [script],
+      mode: ProcessStartMode.DETACHED);
   future.then((process) {
     Expect.isNotNull(process.pid);
     Expect.isTrue(process.pid is int);
@@ -37,9 +37,7 @@ void testWithStdio() {
   asyncStart();
   var script =
       Platform.script.resolve('process_detached_script.dart').toFilePath();
-  var future = Process.start(
-      Platform.executable,
-      [script, 'echo'],
+  var future = Process.start(Platform.executable, [script, 'echo'],
       mode: ProcessStartMode.DETACHED_WITH_STDIO);
   future.then((process) {
     Expect.isNotNull(process.pid);
@@ -50,14 +48,12 @@ void testWithStdio() {
     process.stdin.flush().then((_) => process.stdin.close());
     var f1 = process.stdout.fold([], (p, e) => p..addAll(e));
     var f2 = process.stderr.fold([], (p, e) => p..addAll(e));
-    Future.wait([f1, f2])
-        .then((values) {
-          Expect.listEquals(values[0], message);
-          Expect.listEquals(values[1], message);
-        })
-        .whenComplete(() {
-          Expect.isTrue(process.kill());
-        });
+    Future.wait([f1, f2]).then((values) {
+      Expect.listEquals(values[0], message);
+      Expect.listEquals(values[1], message);
+    }).whenComplete(() {
+      Expect.isTrue(process.kill());
+    });
   }).whenComplete(() {
     asyncEnd();
   });
@@ -66,8 +62,8 @@ void testWithStdio() {
 void testFailure() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_detached_process').then((temp) {
-    var future = Process.start(
-        temp.path, ['a', 'b'], mode: ProcessStartMode.DETACHED);
+    var future =
+        Process.start(temp.path, ['a', 'b'], mode: ProcessStartMode.DETACHED);
     future.then((process) {
       Expect.fail('Starting process from invalid executable succeeded');
     }, onError: (e) {

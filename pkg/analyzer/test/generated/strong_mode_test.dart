@@ -1105,7 +1105,7 @@ void test() {
     Element elementA = AstFinder.getClass(unit, "A").element;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
-    DartType check(int i) {
+    void check(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
       Expression init = decl.initializer;
@@ -3152,6 +3152,30 @@ void test() {
     expectIdentifierType('aa', "A<dynamic>");
     expectIdentifierType('bb', "B<num>");
     expectIdentifierType('cc', "C<int, B<int>, A<dynamic>>");
+  }
+
+  test_inferClosureType_parameters() async {
+    Source source = addSource(r'''
+typedef F({bool p});
+foo(callback(F f)) {}
+main() {
+  foo((f) {
+    f(p: false);
+  });
+}
+''');
+    var result = await computeAnalysisResult(source);
+    var main = result.unit.declarations[2] as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
+    var closure = invocation.argumentList.arguments[0] as FunctionExpression;
+    var closureType = closure.staticType as FunctionType;
+    var fType = closureType.parameters[0].type as FunctionType;
+    // The inferred type of "f" in "foo()" invocation must own its parameters.
+    ParameterElement p = fType.parameters[0];
+    expect(p.name, 'p');
+    expect(p.enclosingElement, same(fType.element));
   }
 
   @failingTest

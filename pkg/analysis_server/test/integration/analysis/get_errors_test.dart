@@ -14,17 +14,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
-    defineReflectiveTests(GetErrorsTest_Driver);
   });
 }
 
-/**
- * Base class for testing the "analysis.getErrors" request.
- */
-class AnalysisDomainGetErrorsTest
-    extends AbstractAnalysisServerIntegrationTest {
-  AnalysisDomainGetErrorsTest();
-
+@reflectiveTest
+class GetErrorsTest extends AbstractAnalysisServerIntegrationTest {
   test_getErrors() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -41,13 +35,4 @@ main() {
 
     return analysisFinished.then((_) => finishTest());
   }
-}
-
-@reflectiveTest
-class GetErrorsTest extends AnalysisDomainGetErrorsTest {}
-
-@reflectiveTest
-class GetErrorsTest_Driver extends AnalysisDomainGetErrorsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

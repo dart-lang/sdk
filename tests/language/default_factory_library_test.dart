@@ -5,17 +5,25 @@
 // Dart test program for testing factories defined across libraries
 
 library test;
+
 import "package:expect/expect.dart";
 import "default_factory_library.dart" as lib;
 
 class B implements lib.A, C {
-  int methodA() { return 1; }
-  int methodB() { return 2; }
+  int methodA() {
+    return 1;
+  }
+
+  int methodB() {
+    return 2;
+  }
 }
 
 abstract class C implements lib.A {
   // Referenced from an abstract class in another library
-  factory C.A () { return new B(); }
+  factory C.A() {
+    return new B();
+  }
 }
 
 main() {

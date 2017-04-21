@@ -394,7 +394,10 @@ Request requestFromHtml(dom.Element html, String context) {
   checkName(html, 'request', context);
   String method = html.attributes['method'];
   context = '$context.${method != null ? method : 'method'}';
-  checkAttributes(html, ['method'], context);
+  checkAttributes(html, ['method'], context,
+      optionalAttributes: ['experimental', 'deprecated']);
+  bool experimental = html.attributes['experimental'] == 'true';
+  bool deprecated = html.attributes['deprecated'] == 'true';
   TypeDecl params;
   TypeDecl result;
   recurse(html, context, {
@@ -405,7 +408,8 @@ Request requestFromHtml(dom.Element html, String context) {
       result = typeObjectFromHtml(child, '$context.result');
     }
   });
-  return new Request(domainName, method, params, result, html);
+  return new Request(domainName, method, params, result, html,
+      experimental: experimental, deprecated: deprecated);
 }
 
 /**
@@ -424,10 +428,12 @@ TypeDefinition typeDefinitionFromHtml(dom.Element html) {
   String name = html.attributes['name'];
   String context = name != null ? name : 'type';
   checkAttributes(html, ['name'], context,
-      optionalAttributes: ['experimental']);
+      optionalAttributes: ['experimental', 'deprecated']);
   TypeDecl type = processContentsAsType(html, context);
   bool experimental = html.attributes['experimental'] == 'true';
-  return new TypeDefinition(name, type, html, experimental: experimental);
+  bool deprecated = html.attributes['deprecated'] == 'true';
+  return new TypeDefinition(name, type, html,
+      experimental: experimental, deprecated: deprecated);
 }
 
 /**
@@ -458,7 +464,8 @@ TypeEnum typeEnumFromHtml(dom.Element html, String context) {
  */
 TypeEnumValue typeEnumValueFromHtml(dom.Element html, String context) {
   checkName(html, 'value', context);
-  checkAttributes(html, [], context);
+  checkAttributes(html, [], context, optionalAttributes: ['deprecated']);
+  bool deprecated = html.attributes['deprecated'] == 'true';
   List<String> values = <String>[];
   recurse(html, context, {
     'code': (dom.Element child) {
@@ -469,7 +476,7 @@ TypeEnumValue typeEnumValueFromHtml(dom.Element html, String context) {
   if (values.length != 1) {
     throw new Exception('$context: Exactly one value must be specified');
   }
-  return new TypeEnumValue(values[0], html);
+  return new TypeEnumValue(values[0], html, deprecated: deprecated);
 }
 
 /**
@@ -492,7 +499,8 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
   String name = html.attributes['name'];
   context = '$context.${name != null ? name : 'field'}';
   checkAttributes(html, ['name'], context,
-      optionalAttributes: ['optional', 'value']);
+      optionalAttributes: ['optional', 'value', 'deprecated']);
+  bool deprecated = html.attributes['deprecated'] == 'true';
   bool optional = false;
   String optionalString = html.attributes['optional'];
   if (optionalString != null) {
@@ -511,7 +519,7 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
   String value = html.attributes['value'];
   TypeDecl type = processContentsAsType(html, context);
   return new TypeObjectField(name, type, html,
-      optional: optional, value: value);
+      optional: optional, value: value, deprecated: deprecated);
 }
 
 /**

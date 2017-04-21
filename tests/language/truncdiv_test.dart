@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   for (int i = -30; i < 30; i++) {
     Expect.equals(i % 9, foo(i, 9));

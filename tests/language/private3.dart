@@ -20,14 +20,18 @@ class AImported extends AExposed {
 
 class C2 extends C1 {
   int _field1;
-  C2() : super(), _field1 = 99;
+  C2()
+      : super(),
+        _field1 = 99;
 
   field1b() => _field1;
 }
 
 class C4 extends C3 {
   int _field2;
-  C4() : super(), _field2 = 1024;
+  C4()
+      : super(),
+        _field2 = 1024;
 
   field2b() => _field2;
   field1d() => _field1;

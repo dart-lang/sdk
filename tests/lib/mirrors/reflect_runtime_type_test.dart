@@ -5,6 +5,9 @@
 // A simple test that ensure that reflection works on runtime types of
 // instantiated classes.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 class Foo {
@@ -20,6 +23,5 @@ main() {
   print(field);
 }
 
-publicFields(ClassMirror mirror) =>
-    mirror.declarations.values.where(
-        (x) => x is VariableMirror && !(x.isPrivate || x.isStatic));
+publicFields(ClassMirror mirror) => mirror.declarations.values
+    .where((x) => x is VariableMirror && !(x.isPrivate || x.isStatic));

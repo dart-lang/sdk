@@ -65,41 +65,41 @@ main() {
     test('member function', () {
       expect(foo.bar.instanceMember(), equals(0));
       expect(foo.bar.instanceMember(0), equals(1));
-      expect(foo.bar.instanceMember(0,0), equals(2));
-      expect(foo.bar.instanceMember(0,0,0,0,0,0), equals(6));
+      expect(foo.bar.instanceMember(0, 0), equals(2));
+      expect(foo.bar.instanceMember(0, 0, 0, 0, 0, 0), equals(6));
       var instanceMember = foo.bar.instanceMember;
       expect(() => instanceMember(), throws);
       expect(() => instanceMember(0), throws);
-      expect(() => instanceMember(0,0), throws);
-      expect(() => instanceMember(0,0,0,0,0,0), throws);
+      expect(() => instanceMember(0, 0), throws);
+      expect(() => instanceMember(0, 0, 0, 0, 0, 0), throws);
     });
 
     test('static function', () {
       expect(foo.bar.staticMember(), equals(0));
       expect(foo.bar.staticMember(0), equals(2));
-      expect(foo.bar.staticMember(0,0), equals(4));
-      expect(foo.bar.staticMember(0,0,0,0,0,0), equals(12));
+      expect(foo.bar.staticMember(0, 0), equals(4));
+      expect(foo.bar.staticMember(0, 0, 0, 0, 0, 0), equals(12));
       var staticMember = foo.bar.staticMember;
       expect(staticMember(), equals(0));
       expect(staticMember(0), equals(2));
-      expect(staticMember(0,0), equals(4));
-      expect(staticMember(0,0,0,0,0,0), equals(12));
+      expect(staticMember(0, 0), equals(4));
+      expect(staticMember(0, 0, 0, 0, 0, 0), equals(12));
     });
 
     test('static dynamicStatic', () {
       expect(foo.bar.dynamicStatic(), equals(0));
       expect(foo.bar.dynamicStatic(0), equals(1));
-      expect(foo.bar.dynamicStatic(0,0), equals(2));
-      expect(foo.bar.dynamicStatic(0,0,0,0,0,0), equals(6));
+      expect(foo.bar.dynamicStatic(0, 0), equals(2));
+      expect(foo.bar.dynamicStatic(0, 0, 0, 0, 0, 0), equals(6));
       var dynamicStatic = foo.bar.dynamicStatic;
       expect(dynamicStatic(), equals(0));
       expect(dynamicStatic(0), equals(1));
-      expect(dynamicStatic(0,0), equals(2));
-      expect(dynamicStatic(0,0,0,0,0,0), equals(6));
+      expect(dynamicStatic(0, 0), equals(2));
+      expect(dynamicStatic(0, 0, 0, 0, 0, 0), equals(6));
     });
 
     test('typedef function', () {
-      expect(foo.bar.add(4,5), equals(9));
+      expect(foo.bar.add(4, 5), equals(9));
     });
   });
 }

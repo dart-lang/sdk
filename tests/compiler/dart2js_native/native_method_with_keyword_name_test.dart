@@ -8,10 +8,10 @@ import 'native_testing.dart';
 
 @Native("A")
 class A {
-  int delete() native ;
+  int delete() native;
 }
 
-A makeA() native ;
+A makeA() native;
 
 void setup() native """
 function A() {}

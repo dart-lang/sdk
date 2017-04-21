@@ -12,8 +12,8 @@ import "package:expect/expect.dart";
 
 class Thing {}
 
-make1() native ;
-make2() native ;
+make1() native;
+make2() native;
 
 void setup() native r"""
 function A() {}

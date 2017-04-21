@@ -34,8 +34,7 @@ void test1() {
   // isolate sends a message.
   asyncStart();
   RawReceivePort p1 = new RawReceivePort(notyet);
-  Isolate.spawn(isomain, p1.sendPort, paused: true)
-         .then((isolate) {
+  Isolate.spawn(isomain, p1.sendPort, paused: true).then((isolate) {
     RawReceivePort p2;
     p2 = new RawReceivePort((x) {
       Expect.equals("DONE", x);
@@ -59,8 +58,7 @@ void test2() {
   // a message before the second pause is resumed as well.
   asyncStart();
   RawReceivePort p1 = new RawReceivePort(notyet);
-  Isolate.spawn(isomain, p1.sendPort, paused: true)
-         .then((isolate) {
+  Isolate.spawn(isomain, p1.sendPort, paused: true).then((isolate) {
     RawReceivePort p2;
     Capability c2 = new Capability();
     // Switch to another pause capability.

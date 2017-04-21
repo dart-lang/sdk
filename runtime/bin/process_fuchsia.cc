@@ -431,6 +431,27 @@ intptr_t Process::CurrentProcessId() {
 }
 
 
+int64_t Process::CurrentRSS() {
+  mx_info_task_stats_t task_stats;
+  mx_handle_t process = mx_process_self();
+  mx_status_t status = mx_object_get_info(
+      process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
+  if (status != NO_ERROR) {
+    // TODO(zra): Translate this to a Unix errno.
+    errno = status;
+    return -1;
+  }
+  return task_stats.mem_committed_bytes;
+}
+
+
+int64_t Process::MaxRSS() {
+  // There is currently no way to get the high watermark value on Fuchsia, so
+  // just return the current RSS value.
+  return CurrentRSS();
+}
+
+
 static bool ProcessWaitCleanup(intptr_t out,
                                intptr_t err,
                                intptr_t exit_event,
@@ -808,13 +829,12 @@ int Process::Start(const char* path,
 
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
 
 void Process::ClearSignalHandler(intptr_t signal) {
-  UNIMPLEMENTED();
 }
 
 }  // namespace bin

@@ -11,6 +11,7 @@ import 'package:expect/expect.dart';
 class FakeFunctionCall {
   call(x, y) => '1 $x $y';
 }
+
 class FakeFunctionNSM {
   noSuchMethod(msg) => msg.positionalArguments.join(', ');
 }

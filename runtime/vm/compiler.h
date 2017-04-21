@@ -97,10 +97,13 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileClass(const Class& cls);
 
-  // Generates code for given function and sets its code field.
+  // Generates code for given function without optimization and sets its code
+  // field.
   //
+  // Returns the raw code object if compilation succeeds.  Otherwise returns a
+  // RawError.  Also installs the generated code on the function.
+  static RawObject* CompileFunction(Thread* thread, const Function& function);
   // Returns Error::null() if there is no compilation error.
-  static RawError* CompileFunction(Thread* thread, const Function& function);
   static RawError* ParseFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
@@ -109,12 +112,13 @@ class Compiler : public AllStatic {
 
   // Generates optimized code for function.
   //
-  // Returns Error::null() if there is no compilation error.
-  // If 'result_code' is not NULL, then the generated code is returned but
-  // not installed.
-  static RawError* CompileOptimizedFunction(Thread* thread,
-                                            const Function& function,
-                                            intptr_t osr_id = kNoOSRDeoptId);
+  // Returns the code object if compilation succeeds.  Returns an Error if
+  // there is a compilation error.  If optimization fails, but there is no
+  // error, returns null.  Any generated code is installed unless we are in
+  // OSR mode.
+  static RawObject* CompileOptimizedFunction(Thread* thread,
+                                             const Function& function,
+                                             intptr_t osr_id = kNoOSRDeoptId);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.

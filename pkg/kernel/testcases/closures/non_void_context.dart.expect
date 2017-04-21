@@ -1,38 +1,11 @@
 library;
 import self as self;
-import "dart:core" as core;
 
-class Closure#main#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#function::context = context
-    ;
-  method call(dynamic x) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#function::context};
-    return self::v = #contextParameter[1] = x;
-  }
-}
-class Closure#main#function#1 extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#function#1::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#function#1::context};
-    for (; #contextParameter[1] = self::v; ) {
-      self::v = false;
-    }
-  }
-}
-static field dynamic v = null;
+static field dynamic v;
 static method main(dynamic arguments) → dynamic {
   final Vector #context = MakeVector(2);
   #context[1] = null;
-  new self::Closure#main#function::•(#context).call(87);
+  (MakeClosure<(dynamic) → dynamic>(self::closure#main#function, #context)).call(87);
   if(!self::v.==(87)) {
     throw "Unexpected value in v: ${self::v}";
   }
@@ -40,11 +13,19 @@ static method main(dynamic arguments) → dynamic {
     throw "Unexpected value in w: ${#context[1]}";
   }
   self::v = true;
-  new self::Closure#main#function#1::•(#context).call();
+  (MakeClosure<() → dynamic>(self::closure#main#function#1, #context)).call();
   if(!self::v.==(false)) {
     throw "Unexpected value in v: ${self::v}";
   }
   if(!(#context[1]).==(false)) {
     throw "Unexpected value in w: ${#context[1]}";
+  }
+}
+static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
+  return self::v = #contextParameter[1] = x;
+}
+static method closure#main#function#1(Vector #contextParameter) → dynamic {
+  for (; #contextParameter[1] = self::v; ) {
+    self::v = false;
   }
 }

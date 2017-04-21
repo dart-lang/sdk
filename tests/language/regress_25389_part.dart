@@ -12,4 +12,3 @@ abstract class AbstractListEditorState<D,
 class IssueListEditorState
     extends AbstractListEditorState<String, IssueListEditorState>
     implements ComponentState<IssueListEditorState> {}
-

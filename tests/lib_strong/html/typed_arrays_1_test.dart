@@ -32,7 +32,7 @@ main() {
 
     test('aliasTest', () {
       expect(() {
-        var a1 = new Uint8List.fromList([0,0,1,0x45]);
+        var a1 = new Uint8List.fromList([0, 0, 1, 0x45]);
         var a2 = new Float32List.view(a1.buffer);
 
         expect(a1.lengthInBytes, a2.lengthInBytes);

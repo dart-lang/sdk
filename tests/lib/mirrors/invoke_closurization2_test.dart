@@ -4,6 +4,7 @@
 
 library test.invoke_closurization_test;
 
+@MirrorsUsed(targets: "test.invoke_closurization_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -89,11 +90,11 @@ main() {
   f = getAMirror().getField(#indexOf);
   Expect.equals("indexOf-499", f.invoke(#call, [499], {}).reflectee);
   f = getAMirror().getField(#lastIndexOf);
-  Expect.equals("lastIndexOf-FOO,BAR",
-                f.invoke(#call, ["FOO", "BAR"]).reflectee);
+  Expect.equals(
+      "lastIndexOf-FOO,BAR", f.invoke(#call, ["FOO", "BAR"]).reflectee);
   f = getAMirror().getField(#splitMapJoin);
   Expect.equals("splitMapJoin-1,2,3",
-                f.invoke(#call, [1], {#onMatch: 2, #onNonMatch: 3}).reflectee);
+      f.invoke(#call, [1], {#onMatch: 2, #onNonMatch: 3}).reflectee);
   f = getAMirror().getField(#trim);
   Expect.equals("trim-true", f.invoke(#call, [], {#named: true}).reflectee);
 
@@ -120,11 +121,10 @@ main() {
   f = getAMirror().getField(#indexOf);
   Expect.equals("indexOf-499", f.invoke(#call, [499], {}).reflectee);
   f = getAMirror().getField(#matchAsPrefix);
-  Expect.equals("matchAsPrefix-FOO,BAR",
-                f.invoke(#call, ["FOO", "BAR"]).reflectee);
+  Expect.equals(
+      "matchAsPrefix-FOO,BAR", f.invoke(#call, ["FOO", "BAR"]).reflectee);
   f = getAMirror().getField(#toList);
-  Expect.equals("toList-1",
-                f.invoke(#call, [], {#growable: 1}).reflectee);
+  Expect.equals("toList-1", f.invoke(#call, [], {#growable: 1}).reflectee);
   f = getAMirror().getField(#toSet);
   Expect.equals("toSet-true", f.invoke(#call, [], {#named: true}).reflectee);
 }

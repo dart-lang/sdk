@@ -110,8 +110,8 @@ runTest(test, expectedTrace, expectedError, shouldCancel) {
     Expect.equals(expectedError, error);
     tracer.trace("X");
   }, onDone: () {
-      tracer.done();
-      done.complete(null);
+    tracer.done();
+    done.complete(null);
   });
   return done.future.then((_) => tracer.done());
 }
@@ -124,7 +124,6 @@ test() async {
   await runTest(foo3, "abcYX", "Error", false);
   await runTest(foo4, "abcdYeYfX", "Error2", false);
 }
-
 
 void main() {
   asyncTest(test);

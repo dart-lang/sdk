@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library CountTest;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";
@@ -31,7 +32,7 @@ void main([args, port]) {
     Isolate.spawn(countMessages, local.sendPort);
     SendPort remote;
     int count = 0;
-    var done = expectAsync((){});
+    var done = expectAsync(() {});
     local.listen((msg) {
       switch (msg[0]) {
         case "init":

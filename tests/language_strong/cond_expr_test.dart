@@ -5,7 +5,6 @@
 
 import "package:expect/expect.dart";
 
-
 var e1, e2;
 
 f(a) => a < 0 ? e1 = -1 : e2 = 1;

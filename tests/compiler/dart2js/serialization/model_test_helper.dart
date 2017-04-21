@@ -121,8 +121,9 @@ void checkResolutionEnqueuers(
     bool elementFilter(Element element),
     bool verbose: false}) {
   checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
-      "Processed element mismatch", areElementsEquivalent,
-      elementFilter: elementFilter, verbose: verbose);
+      "Processed element mismatch", areElementsEquivalent, elementFilter: (e) {
+    return elementFilter != null ? elementFilter(e) : true;
+  }, verbose: verbose);
 
   ElementResolutionWorldBuilder worldBuilder1 = enqueuer1.worldBuilder;
   ElementResolutionWorldBuilder worldBuilder2 = enqueuer2.worldBuilder;
@@ -318,13 +319,15 @@ void checkClassHierarchyNodes(
   if (verbose) {
     print('Checking $node1 vs $node2');
   }
-  Expect.isTrue(areElementsEquivalent(node1.cls, node2.cls),
-      "Element identity mismatch for ${node1.cls} vs ${node2.cls}.");
+  ClassElement cls1 = node1.cls;
+  ClassElement cls2 = node2.cls;
+  Expect.isTrue(areElementsEquivalent(cls1, cls2),
+      "Element identity mismatch for ${cls1} vs ${cls2}.");
   Expect.equals(
       node1.isDirectlyInstantiated,
       node2.isDirectlyInstantiated,
       "Value mismatch for 'isDirectlyInstantiated' "
-      "for ${node1.cls} vs ${node2.cls}.");
+      "for ${cls1} vs ${cls2}.");
   Expect.equals(
       node1.isIndirectlyInstantiated,
       node2.isIndirectlyInstantiated,
@@ -335,7 +338,9 @@ void checkClassHierarchyNodes(
   for (ClassHierarchyNode child in node1.directSubclasses) {
     bool found = false;
     for (ClassHierarchyNode other in node2.directSubclasses) {
-      if (areElementsEquivalent(child.cls, other.cls)) {
+      ClassElement child1 = child.cls;
+      ClassElement child2 = other.cls;
+      if (areElementsEquivalent(child1, child2)) {
         checkClassHierarchyNodes(closedWorld1, closedWorld2, child, other,
             verbose: verbose);
         found = true;
@@ -451,7 +456,9 @@ bool areInstantiationInfosEquivalent(
 
 bool areInstancesEquivalent(Instance instance1, Instance instance2,
     bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
-  return typeEquivalence(instance1.type, instance2.type) &&
+  ResolutionInterfaceType type1 = instance1.type;
+  ResolutionInterfaceType type2 = instance2.type;
+  return typeEquivalence(type1, type2) &&
       instance1.kind == instance2.kind &&
       instance1.isRedirection == instance2.isRedirection;
 }

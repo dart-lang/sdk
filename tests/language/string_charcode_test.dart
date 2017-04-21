@@ -57,4 +57,3 @@ gooRev(a, j) {
 hooRev(a) {
   return ("Hello")[0] == a[1];
 }
-

@@ -14,6 +14,7 @@
 #endif
 #include <errno.h>   // NOLINT
 #include <fcntl.h>   // NOLINT
+#include <mach/mach.h>  // NOLINT
 #include <poll.h>    // NOLINT
 #include <signal.h>  // NOLINT
 #include <stdio.h>   // NOLINT
@@ -965,6 +966,30 @@ void Process::TerminateExitCodeHandler() {
 
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
+}
+
+
+int64_t Process::CurrentRSS() {
+  struct mach_task_basic_info info;
+  mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+  kern_return_t result =
+      task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                reinterpret_cast<task_info_t>(&info), &infoCount);
+  if (result != KERN_SUCCESS) {
+    return -1;
+  }
+  return info.resident_size;
+}
+
+
+int64_t Process::MaxRSS() {
+  struct rusage usage;
+  usage.ru_maxrss = 0;
+  int r = getrusage(RUSAGE_SELF, &usage);
+  if (r < 0) {
+    return -1;
+  }
+  return usage.ru_maxrss;
 }
 
 

@@ -14,10 +14,6 @@
   -webkit-font-smoothing: auto;
 }
 
-h1 {
-  text-align: center;
-}
-
 h2, h3, h4, h5 {
   margin-bottom: 0;
 }
@@ -93,6 +89,10 @@ a:focus, a:hover {
   text-decoration: underline;
 }
 
+.deprecated {
+  text-decoration: line-through;
+}
+
 /* Styles for index */
 
 .subindex ul {
@@ -108,7 +108,7 @@ a:focus, a:hover {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.18.0</h1>
+    <h1 style="color:#999999">Version 1.18.1</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -220,30 +220,68 @@ a:focus, a:hover {
     </p>
     <h3>Eventual Consistency</h3>
     <p>
-      TODO: TBD
+      The analysis server satisfies requests under the principle of
+      <a href="https://en.wikipedia.org/wiki/Eventual_consistency">eventual consistency</a>.
+      That is, in some cases it may return responses with the currently available
+      results while it's catching up with unprocessed changes.
     </p>
     <h3>Domains</h3>
     <p>
-      For convenience, the API is divided into domains. Each domain is
-      specified in a separate section below:
-    </p>
-    <ul>
-      <li><a href="#domain_server">Server</a></li>
-      <li><a href="#domain_analysis">Analysis</a></li>
-      <li><a href="#domain_completion">Completion</a></li>
-      <li><a href="#domain_search">Search</a></li>
-      <li><a href="#domain_edit">Edit</a></li>
-      <li><a href="#domain_execution">Execution</a></li>
-      <li><a href="#domain_diagnostic">Diagnostic</a></li>
-</ul>
-    <p>
-      The specifications of the API’s refer to data structures beyond
-      the standard JSON primitives. These data structures are
+      For convenience, the API is divided into domains. Each domain is specified
+      in a separate section below. The specifications of the API’s refer to data
+      structures beyond the standard JSON primitives. These data structures are
       documented in the section titled <a href="#types">Types</a>.
     </p>
-    <p>
-      To get an overview of the API, you can consult the <a href="#index">index</a>.
-    </p>
+    
+<p><a href="#domain_server">Server</a></p><ul><li><a href="#request_server.getVersion">server.getVersion</a></li>
+<li><a href="#request_server.shutdown">server.shutdown</a></li>
+<li><a href="#request_server.setSubscriptions">server.setSubscriptions</a></li>
+</ul>
+
+<p><a href="#domain_analysis">Analysis</a></p><ul><li><a href="#request_analysis.getErrors">analysis.getErrors</a></li>
+<li><a href="#request_analysis.getHover">analysis.getHover</a></li>
+<li><a href="#request_analysis.getReachableSources">analysis.getReachableSources</a></li>
+<li><a href="#request_analysis.getLibraryDependencies">analysis.getLibraryDependencies</a></li>
+<li><a href="#request_analysis.getNavigation">analysis.getNavigation</a></li>
+<li><a href="#request_analysis.reanalyze">analysis.reanalyze</a></li>
+<li><a href="#request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></li>
+<li><a href="#request_analysis.setGeneralSubscriptions">analysis.setGeneralSubscriptions</a></li>
+<li><a href="#request_analysis.setPriorityFiles">analysis.setPriorityFiles</a></li>
+<li><a href="#request_analysis.setSubscriptions">analysis.setSubscriptions</a></li>
+<li><a href="#request_analysis.updateContent">analysis.updateContent</a></li>
+<li><a class="deprecated" href="#request_analysis.updateOptions">analysis.updateOptions</a></li>
+</ul>
+
+<p><a href="#domain_completion">Completion</a></p><ul><li><a href="#request_completion.getSuggestions">completion.getSuggestions</a></li>
+</ul>
+
+<p><a href="#domain_search">Search</a></p><ul><li><a href="#request_search.findElementReferences">search.findElementReferences</a></li>
+<li><a href="#request_search.findMemberDeclarations">search.findMemberDeclarations</a></li>
+<li><a href="#request_search.findMemberReferences">search.findMemberReferences</a></li>
+<li><a href="#request_search.findTopLevelDeclarations">search.findTopLevelDeclarations</a></li>
+<li><a href="#request_search.getTypeHierarchy">search.getTypeHierarchy</a></li>
+</ul>
+
+<p><a href="#domain_edit">Edit</a></p><ul><li><a href="#request_edit.format">edit.format</a></li>
+<li><a href="#request_edit.getAssists">edit.getAssists</a></li>
+<li><a href="#request_edit.getAvailableRefactorings">edit.getAvailableRefactorings</a></li>
+<li><a href="#request_edit.getFixes">edit.getFixes</a></li>
+<li><a href="#request_edit.getRefactoring">edit.getRefactoring</a></li>
+<li><a href="#request_edit.getStatementCompletion">edit.getStatementCompletion</a></li>
+<li><a href="#request_edit.sortMembers">edit.sortMembers</a></li>
+<li><a href="#request_edit.organizeDirectives">edit.organizeDirectives</a></li>
+</ul>
+
+<p><a href="#domain_execution">Execution</a></p><ul><li><a href="#request_execution.createContext">execution.createContext</a></li>
+<li><a href="#request_execution.deleteContext">execution.deleteContext</a></li>
+<li><a href="#request_execution.mapUri">execution.mapUri</a></li>
+<li><a class="deprecated" href="#request_execution.setSubscriptions">execution.setSubscriptions</a></li>
+</ul>
+
+<p><a href="#domain_diagnostic">Diagnostic</a></p><ul><li><a href="#request_diagnostic.getDiagnostics">diagnostic.getDiagnostics</a></li>
+<li><a href="#request_diagnostic.getServerPort">diagnostic.getServerPort</a></li>
+</ul>
+
     <h3>Command-line Arguments</h3>
     <p>
       The command-line arguments that can be passed to the server.
@@ -279,9 +317,9 @@ a:focus, a:hover {
       </dd>
     </dl>
     <dl>
-      <dt>--no-error-notification</dt>
+      <dt class="deprecated">--no-error-notification</dt>
       <dd>
-        <p><b>Deprecated</b></p>
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
         Disable notifications about errors (see analysis.error). If this
         flag is not specified then notifications will be sent for all
         errors produced for all files in the actual analysis roots.
@@ -298,9 +336,9 @@ a:focus, a:hover {
       </dd>
     </dl>
     <dl>
-      <dt>--file-read-mode</dt>
+      <dt class="deprecated">--file-read-mode</dt>
       <dd>
-        <p><b>Deprecated</b></p>
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
         An enumeration of the ways files can be read from disk. Some clients
         normalize end of line characters which would make the file offset and
         range information incorrect. The default option is <tt>as-is</tt>, but
@@ -315,6 +353,7 @@ a:focus, a:hover {
       </dd>
     </dl>
     </blockquote>
+    <h1>Domains</h1>
     <h2 class="domain"><a name="domain_server">server domain</a></h2>
       <p>
         The server domain contains API’s related to the execution of
@@ -326,7 +365,7 @@ a:focus, a:hover {
       
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_server.getVersion">server.getVersion</a> (<a href="#request_server.getVersion">#</a>)</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_server.getVersion">server.getVersion</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.getVersion"
 }</pre><br><pre>response: {
@@ -338,10 +377,10 @@ a:focus, a:hover {
 }</pre></div>
         <p>Return the version number of the analysis server.</p>
         
-      <h4>returns:</h4><dl><dt class="field"><b>version (String)</b></dt><dd>
+      <h4>returns:</h4><dl><dt class="field"><b>version: String</b></dt><dd>
             
             <p>The version number of the analysis server.</p>
-          </dd></dl></dd><dt class="request"><a name="request_server.shutdown">server.shutdown</a> (<a href="#request_server.shutdown">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_server.shutdown">server.shutdown</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.shutdown"
 }</pre><br><pre>response: {
@@ -356,7 +395,7 @@ a:focus, a:hover {
           further responses or notifications will be sent after the
           response to this request has been sent.
         </p>
-      </dd><dt class="request"><a name="request_server.setSubscriptions">server.setSubscriptions</a> (<a href="#request_server.setSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
+      </dd><dt class="request"><a name="request_server.setSubscriptions">server.setSubscriptions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.setSubscriptions"
   "params": {
@@ -376,10 +415,10 @@ a:focus, a:hover {
           subscriptions will remain unchanged.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions (List&lt;<a href="#type_ServerService">ServerService</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: List&lt;<a href="#type_ServerService">ServerService</a>&gt;</b></dt><dd>
             
             <p>A list of the services being subscribed to.</p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_server.connected">server.connected</a> (<a href="#notification_server.connected">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_server.connected">server.connected</a></dt><dd><div class="box"><pre>notification: {
   "event": "server.connected"
   "params": {
     "<b>version</b>": String
@@ -398,16 +437,16 @@ a:focus, a:hover {
           notification.
         </p>
        
-      <h4>parameters:</h4><dl><dt class="field"><b>version (String)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>version: String</b></dt><dd>
             
             <p>The version number of the analysis server.</p>
-          </dd><dt class="field"><b>pid (int)</b></dt><dd>
+          </dd><dt class="field"><b>pid: int</b></dt><dd>
            
            <p>The process id of the analysis server process.</p>
-         </dd><dt class="field"><b>sessionId (<span style="color:#999999">optional</span> String)</b></dt><dd>
+         </dd><dt class="field"><b>sessionId: String<span style="color:#999999"> (optional)</span></b></dt><dd>
            
            <p>The session id for this session.</p>
-         </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a> (<a href="#notification_server.error">#</a>)</dt><dd><div class="box"><pre>notification: {
+         </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a></dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {
     "<b>isFatal</b>": bool
@@ -428,26 +467,26 @@ a:focus, a:hover {
           notification.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>isFatal (bool)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>isFatal: bool</b></dt><dd>
             
             <p>
               True if the error is a fatal error, meaning that the
               server will shutdown automatically after sending this
               notification.
             </p>
-          </dd><dt class="field"><b>message (String)</b></dt><dd>
+          </dd><dt class="field"><b>message: String</b></dt><dd>
             
             <p>
               The error message indicating what kind of error was
               encountered.
             </p>
-          </dd><dt class="field"><b>stackTrace (String)</b></dt><dd>
+          </dd><dt class="field"><b>stackTrace: String</b></dt><dd>
             
             <p>
               The stack trace associated with the generation of the
               error, used for debugging the server.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_server.status">server.status</a> (<a href="#notification_server.status">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_server.status">server.status</a></dt><dd><div class="box"><pre>notification: {
   "event": "server.status"
   "params": {
     "<b>analysis</b>": <span style="color:#999999">optional</span> <a href="#type_AnalysisStatus">AnalysisStatus</a>
@@ -466,14 +505,14 @@ a:focus, a:hover {
           request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>analysis (<span style="color:#999999">optional</span> <a href="#type_AnalysisStatus">AnalysisStatus</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>analysis: <a href="#type_AnalysisStatus">AnalysisStatus</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The current status of analysis, including whether
               analysis is being performed and if so what is being
               analyzed.
             </p>
-          </dd><dt class="field"><b>pub (<span style="color:#999999">optional</span> <a href="#type_PubStatus">PubStatus</a>)</b></dt><dd>
+          </dd><dt class="field"><b>pub: <a href="#type_PubStatus">PubStatus</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The current status of pub execution, indicating whether we are
@@ -508,7 +547,7 @@ a:focus, a:hover {
       
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_analysis.getErrors">analysis.getErrors</a> (<a href="#request_analysis.getErrors">#</a>)</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_analysis.getErrors">analysis.getErrors</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getErrors"
   "params": {
@@ -550,17 +589,17 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file for which errors are being requested.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>errors (List&lt;<a href="#type_AnalysisError">AnalysisError</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>errors: List&lt;<a href="#type_AnalysisError">AnalysisError</a>&gt;</b></dt><dd>
             
             <p>
               The errors associated with the file.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.getHover">analysis.getHover</a> (<a href="#request_analysis.getHover">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.getHover">analysis.getHover</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getHover"
   "params": {
@@ -582,17 +621,17 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file in which hover information is being requested.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset for which hover information is being requested.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>hovers (List&lt;<a href="#type_HoverInformation">HoverInformation</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>hovers: List&lt;<a href="#type_HoverInformation">HoverInformation</a>&gt;</b></dt><dd>
             
             <p>
               The hover information associated with the
@@ -602,7 +641,7 @@ a:focus, a:hover {
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.getReachableSources">analysis.getReachableSources</a> (<a href="#request_analysis.getReachableSources">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.getReachableSources">analysis.getReachableSources</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getReachableSources"
   "params": {
@@ -627,12 +666,12 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file for which reachable source information is being requested.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>sources (Map&lt;String, List&lt;String&gt;&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>sources: Map&lt;String, List&lt;String&gt;&gt;</b></dt><dd>
             
             <p>
               A mapping from source URIs to directly reachable source URIs. For example,
@@ -642,7 +681,7 @@ a:focus, a:hover {
               To check if a specific URI is reachable from a given file, clients can check
               for its presence in the resulting key set.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.getLibraryDependencies">analysis.getLibraryDependencies</a> (<a href="#request_analysis.getLibraryDependencies">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.getLibraryDependencies">analysis.getLibraryDependencies</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getLibraryDependencies"
 }</pre><br><pre>response: {
@@ -662,20 +701,20 @@ a:focus, a:hover {
         analyzedFiles notification instead.
         </p>
         
-      <h4>returns:</h4><dl><dt class="field"><b>libraries (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+      <h4>returns:</h4><dl><dt class="field"><b>libraries: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
               <p>
                 A list of the paths of library elements referenced by
                 files in existing analysis roots.
               </p>
-            </dd><dt class="field"><b>packageMap (Map&lt;String, Map&lt;String, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;&gt;)</b></dt><dd>
+            </dd><dt class="field"><b>packageMap: Map&lt;String, Map&lt;String, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;&gt;</b></dt><dd>
               
               <p>
                 A mapping from context source roots to package maps which map
                 package names to source directories for use in client-side
                 package URI resolution.
               </p>
-            </dd></dl></dd><dt class="request"><a name="request_analysis.getNavigation">analysis.getNavigation</a> (<a href="#request_analysis.getNavigation">#</a>)</dt><dd><div class="box"><pre>request: {
+            </dd></dl></dd><dt class="request"><a name="request_analysis.getNavigation">analysis.getNavigation</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getNavigation"
   "params": {
@@ -719,42 +758,42 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file in which navigation information is being requested.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region for which navigation information is being
               requested.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region for which navigation information is being
               requested.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>files (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>files: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
             <p>
               A list of the paths of files that are referenced by the navigation
               targets.
             </p>
-          </dd><dt class="field"><b>targets (List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>targets: List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt;</b></dt><dd>
             
             <p>
               A list of the navigation targets that are referenced by the
               navigation regions.
             </p>
-          </dd><dt class="field"><b>regions (List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>regions: List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt;</b></dt><dd>
             
             <p>
               A list of the navigation regions within the requested region of
               the file.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.reanalyze">analysis.reanalyze</a> (<a href="#request_analysis.reanalyze">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.reanalyze">analysis.reanalyze</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.reanalyze"
   "params": {
@@ -778,12 +817,12 @@ a:focus, a:hover {
           <tt>INVALID_ANALYSIS_ROOT</tt> will be generated.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>roots (<span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>roots: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A list of the analysis roots that are to be re-analyzed.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a> (<a href="#request_analysis.setAnalysisRoots">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setAnalysisRoots"
   "params": {
@@ -828,19 +867,19 @@ a:focus, a:hover {
           be used to resolve package: URI’s within the file.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>included (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>included: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
             <p>
               A list of the files and directories that should be
               analyzed.
             </p>
-          </dd><dt class="field"><b>excluded (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>excluded: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
             <p>
               A list of the files and directories within the
               included directories that should not be analyzed.
             </p>
-          </dd><dt class="field"><b>packageRoots (<span style="color:#999999">optional</span> Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>packageRoots: Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A mapping from source directories to package roots
@@ -871,7 +910,7 @@ a:focus, a:hover {
               or the empty map is specified, that indicates that the
               normal pubspec.yaml mechanism should always be used.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.setGeneralSubscriptions">analysis.setGeneralSubscriptions</a> (<a href="#request_analysis.setGeneralSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setGeneralSubscriptions">analysis.setGeneralSubscriptions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setGeneralSubscriptions"
   "params": {
@@ -892,10 +931,10 @@ a:focus, a:hover {
           remain unchanged.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions (List&lt;<a href="#type_GeneralAnalysisService">GeneralAnalysisService</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: List&lt;<a href="#type_GeneralAnalysisService">GeneralAnalysisService</a>&gt;</b></dt><dd>
             
             <p>A list of the services being subscribed to.</p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.setPriorityFiles">analysis.setPriorityFiles</a> (<a href="#request_analysis.setPriorityFiles">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setPriorityFiles">analysis.setPriorityFiles</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setPriorityFiles"
   "params": {
@@ -931,12 +970,12 @@ a:focus, a:hover {
           actual priority files.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>files (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>files: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
             <p>
               The files that are to be a priority for analysis.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.setSubscriptions">analysis.setSubscriptions</a> (<a href="#request_analysis.setSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setSubscriptions">analysis.setSubscriptions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setSubscriptions"
   "params": {
@@ -980,13 +1019,13 @@ a:focus, a:hover {
           subscriptions will remain unchanged.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions (Map&lt;<a href="#type_AnalysisService">AnalysisService</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: Map&lt;<a href="#type_AnalysisService">AnalysisService</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;</b></dt><dd>
             
             <p>
               A table mapping services to a list of the files being
               subscribed to the service.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_analysis.updateContent">analysis.updateContent</a> (<a href="#request_analysis.updateContent">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_analysis.updateContent">analysis.updateContent</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.updateContent"
   "params": {
@@ -1010,13 +1049,13 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>files (Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>files: Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt;</b></dt><dd>
             
             <p>
               A table mapping the files whose content has changed to a
               description of the content change.
             </p>
-          </dd></dl><h4>returns:</h4><dl></dl></dd><dt class="request"><a name="request_analysis.updateOptions">analysis.updateOptions</a> (<a href="#request_analysis.updateOptions">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl><h4>returns:</h4><dl></dl></dd><dt class="request deprecated"><a name="request_analysis.updateOptions">analysis.updateOptions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.updateOptions"
   "params": {
@@ -1026,7 +1065,7 @@ a:focus, a:hover {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
-        <p><b><i>Deprecated</i></b>: all of the options can be set by users in
+        <p><b>Deprecated:</b> all of the options can be set by users in
           an analysis options file.</p>
         <p>
           Update the options controlling analysis based on the given
@@ -1036,12 +1075,12 @@ a:focus, a:hover {
           silently ignored.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>options (<a href="#type_AnalysisOptions">AnalysisOptions</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>options: <a href="#type_AnalysisOptions">AnalysisOptions</a></b></dt><dd>
             
             <p>
               The options that are to be used to control analysis.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_analysis.analyzedFiles">analysis.analyzedFiles</a> (<a href="#notification_analysis.analyzedFiles">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_analysis.analyzedFiles">analysis.analyzedFiles</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.analyzedFiles"
   "params": {
     "<b>directories</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
@@ -1056,12 +1095,12 @@ a:focus, a:hover {
           of services passed in an analysis.setGeneralSubscriptions request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>directories (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>directories: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
               <p>
                 A list of the paths of the files that are being analyzed.
               </p>
-            </dd></dl></dd><dt class="notification"><a name="notification_analysis.errors">analysis.errors</a> (<a href="#notification_analysis.errors">#</a>)</dt><dd><div class="box"><pre>notification: {
+            </dd></dl></dd><dt class="notification"><a name="notification_analysis.errors">analysis.errors</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.errors"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1074,17 +1113,17 @@ a:focus, a:hover {
           list that supersedes any previously reported errors.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the errors.
             </p>
-          </dd><dt class="field"><b>errors (List&lt;<a href="#type_AnalysisError">AnalysisError</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>errors: List&lt;<a href="#type_AnalysisError">AnalysisError</a>&gt;</b></dt><dd>
             
             <p>
               The errors contained in the file.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.flushResults">analysis.flushResults</a> (<a href="#notification_analysis.flushResults">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.flushResults">analysis.flushResults</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.flushResults"
   "params": {
     "<b>files</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
@@ -1108,12 +1147,12 @@ a:focus, a:hover {
           notification.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>files (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>files: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
             <p>
               The files that are no longer being analyzed.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.folding">analysis.folding</a> (<a href="#notification_analysis.folding">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.folding">analysis.folding</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.folding"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1134,17 +1173,17 @@ a:focus, a:hover {
           request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the folding regions.
             </p>
-          </dd><dt class="field"><b>regions (List&lt;<a href="#type_FoldingRegion">FoldingRegion</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>regions: List&lt;<a href="#type_FoldingRegion">FoldingRegion</a>&gt;</b></dt><dd>
             
             <p>
               The folding regions contained in the file.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.highlights">analysis.highlights</a> (<a href="#notification_analysis.highlights">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.highlights">analysis.highlights</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.highlights"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1161,12 +1200,12 @@ a:focus, a:hover {
           analysis.setSubscriptions request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the highlight regions.
             </p>
-          </dd><dt class="field"><b>regions (List&lt;<a href="#type_HighlightRegion">HighlightRegion</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>regions: List&lt;<a href="#type_HighlightRegion">HighlightRegion</a>&gt;</b></dt><dd>
             
             <p>
               The highlight regions contained in the file. Each
@@ -1176,7 +1215,7 @@ a:focus, a:hover {
               other highlight regions if there is more than one
               meaning associated with a particular region.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.implemented">analysis.implemented</a> (<a href="#notification_analysis.implemented">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.implemented">analysis.implemented</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.implemented"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1195,22 +1234,22 @@ a:focus, a:hover {
           request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file with which the implementations are associated.
             </p>
-          </dd><dt class="field"><b>classes (List&lt;<a href="#type_ImplementedClass">ImplementedClass</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>classes: List&lt;<a href="#type_ImplementedClass">ImplementedClass</a>&gt;</b></dt><dd>
             
             <p>
               The classes defined in the file that are implemented or extended.
             </p>
-          </dd><dt class="field"><b>members (List&lt;<a href="#type_ImplementedMember">ImplementedMember</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>members: List&lt;<a href="#type_ImplementedMember">ImplementedMember</a>&gt;</b></dt><dd>
             
             <p>
               The member defined in the file that are implemented or overridden.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.invalidate">analysis.invalidate</a> (<a href="#notification_analysis.invalidate">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.invalidate">analysis.invalidate</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.invalidate"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1229,29 +1268,29 @@ a:focus, a:hover {
           services passed in an analysis.setSubscriptions request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file whose information has been invalidated.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the invalidated region.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the invalidated region.
             </p>
-          </dd><dt class="field"><b>delta (int)</b></dt><dd>
+          </dd><dt class="field"><b>delta: int</b></dt><dd>
             
             <p>
               The delta to be applied to the offsets in information that follows
               the invalidated region in order to update it so that it doesn't
               need to be re-requested.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.navigation">analysis.navigation</a> (<a href="#notification_analysis.navigation">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.navigation">analysis.navigation</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.navigation"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1270,12 +1309,12 @@ a:focus, a:hover {
           analysis.setSubscriptions request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the navigation regions.
             </p>
-          </dd><dt class="field"><b>regions (List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>regions: List&lt;<a href="#type_NavigationRegion">NavigationRegion</a>&gt;</b></dt><dd>
             
             <p>
               The navigation regions contained in the file.
@@ -1289,21 +1328,21 @@ a:focus, a:hover {
               regions that are returned do not overlap other
               navigation regions.
             </p>
-          </dd><dt class="field"><b>targets (List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>targets: List&lt;<a href="#type_NavigationTarget">NavigationTarget</a>&gt;</b></dt><dd>
             
             <p>
               The navigation targets referenced in the file.
               They are referenced by <tt>NavigationRegion</tt>s by their
               index in this array.
             </p>
-          </dd><dt class="field"><b>files (List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>files: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
             
             <p>
               The files containing navigation targets referenced in the file.
               They are referenced by <tt>NavigationTarget</tt>s by their
               index in this array.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.occurrences">analysis.occurrences</a> (<a href="#notification_analysis.occurrences">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.occurrences">analysis.occurrences</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.occurrences"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1321,18 +1360,18 @@ a:focus, a:hover {
           analysis.setSubscriptions request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file in which the references occur.
             </p>
-          </dd><dt class="field"><b>occurrences (List&lt;<a href="#type_Occurrences">Occurrences</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>occurrences: List&lt;<a href="#type_Occurrences">Occurrences</a>&gt;</b></dt><dd>
             
             <p>
               The occurrences of references to elements within the
               file.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.outline">analysis.outline</a> (<a href="#notification_analysis.outline">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.outline">analysis.outline</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.outline"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1351,17 +1390,17 @@ a:focus, a:hover {
           request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file with which the outline is associated.
             </p>
-          </dd><dt class="field"><b>kind (<a href="#type_FileKind">FileKind</a>)</b></dt><dd>
+          </dd><dt class="field"><b>kind: <a href="#type_FileKind">FileKind</a></b></dt><dd>
             
             <p>
               The kind of the file.
             </p>
-          </dd><dt class="field"><b>libraryName (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>libraryName: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the library defined by the file using a "library"
@@ -1371,12 +1410,12 @@ a:focus, a:hover {
               This field will be omitted if the file has neither "library"
               nor "part of" directives.
             </p>
-          </dd><dt class="field"><b>outline (<a href="#type_Outline">Outline</a>)</b></dt><dd>
+          </dd><dt class="field"><b>outline: <a href="#type_Outline">Outline</a></b></dt><dd>
             
             <p>
               The outline associated with the file.
             </p>
-          </dd></dl></dd><dt class="notification"><a name="notification_analysis.overrides">analysis.overrides</a> (<a href="#notification_analysis.overrides">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd><dt class="notification"><a name="notification_analysis.overrides">analysis.overrides</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.overrides"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1393,12 +1432,12 @@ a:focus, a:hover {
           request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file with which the overrides are associated.
             </p>
-          </dd><dt class="field"><b>overrides (List&lt;<a href="#type_Override">Override</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>overrides: List&lt;<a href="#type_Override">Override</a>&gt;</b></dt><dd>
             
             <p>
               The overrides associated with the file.
@@ -1411,7 +1450,7 @@ a:focus, a:hover {
       </p>
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_completion.getSuggestions">completion.getSuggestions</a> (<a href="#request_completion.getSuggestions">#</a>)</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_completion.getSuggestions">completion.getSuggestions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "completion.getSuggestions"
   "params": {
@@ -1431,25 +1470,25 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the point at which suggestions are
               to be made.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset within the file at which suggestions are to
               be made.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id (<a href="#type_CompletionId">CompletionId</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id: <a href="#type_CompletionId">CompletionId</a></b></dt><dd>
             
             <p>
               The identifier used to associate results with this
               completion request.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_completion.results">completion.results</a> (<a href="#notification_completion.results">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_completion.results">completion.results</a></dt><dd><div class="box"><pre>notification: {
   "event": "completion.results"
   "params": {
     "<b>id</b>": <a href="#type_CompletionId">CompletionId</a>
@@ -1466,12 +1505,12 @@ a:focus, a:hover {
           previously reported suggestions.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>id (<a href="#type_CompletionId">CompletionId</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>id: <a href="#type_CompletionId">CompletionId</a></b></dt><dd>
             
             <p>
               The id associated with the completion.
             </p>
-          </dd><dt class="field"><b>replacementOffset (int)</b></dt><dd>
+          </dd><dt class="field"><b>replacementOffset: int</b></dt><dd>
             
             <p>
               The offset of the start of the text to be
@@ -1481,7 +1520,7 @@ a:focus, a:hover {
               offset. In particular, the replacementOffset will be
               the offset of the beginning of said identifier.
             </p>
-          </dd><dt class="field"><b>replacementLength (int)</b></dt><dd>
+          </dd><dt class="field"><b>replacementLength: int</b></dt><dd>
             
             <p>
               The length of the text to be replaced if the remainder
@@ -1489,7 +1528,7 @@ a:focus, a:hover {
               replaced when the suggestion is applied (that is, the
               number of characters in the existing identifier).
             </p>
-          </dd><dt class="field"><b>results (List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>results: List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;</b></dt><dd>
             
             <p>
               The completion suggestions being reported.  The
@@ -1499,7 +1538,7 @@ a:focus, a:hover {
               the client to respond to further keystrokes from the
               user without having to make additional requests.
             </p>
-          </dd><dt class="field"><b>isLast (bool)</b></dt><dd>
+          </dd><dt class="field"><b>isLast: bool</b></dt><dd>
             
             <p>
               True if this is that last set of results that will be
@@ -1517,7 +1556,7 @@ a:focus, a:hover {
       
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_search.findElementReferences">search.findElementReferences</a> (<a href="#request_search.findElementReferences">#</a>)</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_search.findElementReferences">search.findElementReferences</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findElementReferences"
   "params": {
@@ -1544,25 +1583,25 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the declaration of or reference to
               the element used to define the search.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset within the file of the declaration of or
               reference to the element.
             </p>
-          </dd><dt class="field"><b>includePotential (bool)</b></dt><dd>
+          </dd><dt class="field"><b>includePotential: bool</b></dt><dd>
             
             <p>
               True if potential matches are to be included in the
               results.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id (<span style="color:#999999">optional</span> <a href="#type_SearchId">SearchId</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id: <a href="#type_SearchId">SearchId</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The identifier used to associate results with this
@@ -1573,7 +1612,7 @@ a:focus, a:hover {
               field will be absent, and no results will be reported
               via the search.results notification.
             </p>
-          </dd><dt class="field"><b>element (<span style="color:#999999">optional</span> <a href="#type_Element">Element</a>)</b></dt><dd>
+          </dd><dt class="field"><b>element: <a href="#type_Element">Element</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The element referenced or defined at the given offset
@@ -1584,7 +1623,7 @@ a:focus, a:hover {
               If no element was found at the given location, this
               field will be absent.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_search.findMemberDeclarations">search.findMemberDeclarations</a> (<a href="#request_search.findMemberDeclarations">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.findMemberDeclarations">search.findMemberDeclarations</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findMemberDeclarations"
   "params": {
@@ -1608,18 +1647,18 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>name (String)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name of the declarations to be found.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id (<a href="#type_SearchId">SearchId</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id: <a href="#type_SearchId">SearchId</a></b></dt><dd>
             
             <p>
               The identifier used to associate results with this
               search request.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_search.findMemberReferences">search.findMemberReferences</a> (<a href="#request_search.findMemberReferences">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.findMemberReferences">search.findMemberReferences</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findMemberReferences"
   "params": {
@@ -1645,18 +1684,18 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>name (String)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name of the references to be found.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id (<a href="#type_SearchId">SearchId</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id: <a href="#type_SearchId">SearchId</a></b></dt><dd>
             
             <p>
               The identifier used to associate results with this
               search request.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_search.findTopLevelDeclarations">search.findTopLevelDeclarations</a> (<a href="#request_search.findTopLevelDeclarations">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.findTopLevelDeclarations">search.findTopLevelDeclarations</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.findTopLevelDeclarations"
   "params": {
@@ -1681,19 +1720,19 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>pattern (String)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>pattern: String</b></dt><dd>
             
             <p>
               The regular expression used to match the names of the
               declarations to be found.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id (<a href="#type_SearchId">SearchId</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id: <a href="#type_SearchId">SearchId</a></b></dt><dd>
             
             <p>
               The identifier used to associate results with this
               search request.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_search.getTypeHierarchy">search.getTypeHierarchy</a> (<a href="#request_search.getTypeHierarchy">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_search.getTypeHierarchy">search.getTypeHierarchy</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "search.getTypeHierarchy"
   "params": {
@@ -1714,24 +1753,24 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the declaration or reference to the
               type for which a hierarchy is being requested.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the name of the type within the file.
             </p>
-          </dd><dt class="field"><b>superOnly (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>superOnly: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if the client is only requesting superclasses and
               interfaces hierarchy.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>hierarchyItems (<span style="color:#999999">optional</span> List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>hierarchyItems: List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A list of the types in the requested hierarchy. The
@@ -1747,7 +1786,7 @@ a:focus, a:hover {
               not been sufficiently analyzed to allow a type hierarchy
               to be produced.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_search.results">search.results</a> (<a href="#notification_search.results">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_search.results">search.results</a></dt><dd><div class="box"><pre>notification: {
   "event": "search.results"
   "params": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
@@ -1763,17 +1802,17 @@ a:focus, a:hover {
           search id.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>id (<a href="#type_SearchId">SearchId</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>id: <a href="#type_SearchId">SearchId</a></b></dt><dd>
             
             <p>
               The id associated with the search.
             </p>
-          </dd><dt class="field"><b>results (List&lt;<a href="#type_SearchResult">SearchResult</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>results: List&lt;<a href="#type_SearchResult">SearchResult</a>&gt;</b></dt><dd>
             
             <p>
               The search results being reported.
             </p>
-          </dd><dt class="field"><b>isLast (bool)</b></dt><dd>
+          </dd><dt class="field"><b>isLast: bool</b></dt><dd>
             
             <p>
               True if this is that last set of results that will be
@@ -1792,7 +1831,8 @@ a:focus, a:hover {
       
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_edit.format">edit.format</a> (<a href="#request_edit.format">#</a>)</dt><dd><div class="box"><pre>request: {
+      
+    <h3>Requests</h3><dl><dt class="request"><a name="request_edit.format">edit.format</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.format"
   "params": {
@@ -1829,44 +1869,44 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the code to be formatted.
             </p>
-          </dd><dt class="field"><b>selectionOffset (int)</b></dt><dd>
+          </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
             
             <p>
               The offset of the current selection in the file.
             </p>
-          </dd><dt class="field"><b>selectionLength (int)</b></dt><dd>
+          </dd><dt class="field"><b>selectionLength: int</b></dt><dd>
             
             <p>
               The length of the current selection in the file.
             </p>
-          </dd><dt class="field"><b>lineLength (<span style="color:#999999">optional</span> int)</b></dt><dd>
+          </dd><dt class="field"><b>lineLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The line length to be used by the formatter.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edits (List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edits: List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;</b></dt><dd>
             
             <p>
               The edit(s) to be applied in order to format the code. The list
               will be empty if the code was already formatted (there are no
               changes).
             </p>
-          </dd><dt class="field"><b>selectionOffset (int)</b></dt><dd>
+          </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
             
             <p>
               The offset of the selection after formatting the code.
             </p>
-          </dd><dt class="field"><b>selectionLength (int)</b></dt><dd>
+          </dd><dt class="field"><b>selectionLength: int</b></dt><dd>
             
             <p>
               The length of the selection after formatting the code.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_edit.getAssists">edit.getAssists</a> (<a href="#request_edit.getAssists">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getAssists">edit.getAssists</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getAssists"
   "params": {
@@ -1889,30 +1929,30 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the code for which assists are being
               requested.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the code for which assists are being
               requested.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the code for which assists are being
               requested.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>assists (List&lt;<a href="#type_SourceChange">SourceChange</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>assists: List&lt;<a href="#type_SourceChange">SourceChange</a>&gt;</b></dt><dd>
             
             <p>
               The assists that are available at the given location.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_edit.getAvailableRefactorings">edit.getAvailableRefactorings</a> (<a href="#request_edit.getAvailableRefactorings">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getAvailableRefactorings">edit.getAvailableRefactorings</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getAvailableRefactorings"
   "params": {
@@ -1933,31 +1973,31 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the code on which the refactoring
               would be based.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the code on which the refactoring would be
               based.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the code on which the refactoring would be
               based.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>kinds (List&lt;<a href="#type_RefactoringKind">RefactoringKind</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>kinds: List&lt;<a href="#type_RefactoringKind">RefactoringKind</a>&gt;</b></dt><dd>
             
             <p>
               The kinds of refactorings that are valid for the given
               selection.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_edit.getFixes">edit.getFixes</a> (<a href="#request_edit.getFixes">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getFixes">edit.getFixes</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getFixes"
   "params": {
@@ -1977,24 +2017,24 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the errors for which fixes are being
               requested.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset used to select the errors for which fixes
               will be returned.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>fixes (List&lt;<a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>fixes: List&lt;<a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a>&gt;</b></dt><dd>
             
             <p>
               The fixes that are available for the errors at the given offset.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_edit.getRefactoring">edit.getRefactoring</a> (<a href="#request_edit.getRefactoring">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.getRefactoring">edit.getRefactoring</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getRefactoring"
   "params": {
@@ -2027,34 +2067,34 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>kind (<a href="#type_RefactoringKind">RefactoringKind</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>kind: <a href="#type_RefactoringKind">RefactoringKind</a></b></dt><dd>
             
             <p>
               The kind of refactoring to be performed.
             </p>
-          </dd><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+          </dd><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the code involved in the
               refactoring.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region involved in the refactoring.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region involved in the refactoring.
             </p>
-          </dd><dt class="field"><b>validateOnly (bool)</b></dt><dd>
+          </dd><dt class="field"><b>validateOnly: bool</b></dt><dd>
             
             <p>
               True if the client is only requesting that the values of
               the options be validated and no change be generated.
             </p>
-          </dd><dt class="field"><b>options (<span style="color:#999999">optional</span> <a href="#type_RefactoringOptions">RefactoringOptions</a>)</b></dt><dd>
+          </dd><dt class="field"><b>options: <a href="#type_RefactoringOptions">RefactoringOptions</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               Data used to provide values provided by the user. The
@@ -2065,14 +2105,14 @@ a:focus, a:hover {
               does not require any options or if the values of those
               options are not known.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>initialProblems (List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>initialProblems: List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;</b></dt><dd>
             
             <p>
               The initial status of the refactoring, i.e. problems related to
               the context in which the refactoring is requested.
               The array will be empty if there are no known problems.
             </p>
-          </dd><dt class="field"><b>optionsProblems (List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>optionsProblems: List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;</b></dt><dd>
             
             <p>
               The options validation status, i.e. problems in the given options,
@@ -2080,7 +2120,7 @@ a:focus, a:hover {
               compatibility, etc.
               The array will be empty if there are no known problems.
             </p>
-          </dd><dt class="field"><b>finalProblems (List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>finalProblems: List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;</b></dt><dd>
             
             <p>
               The final status of the refactoring, i.e. problems identified in
@@ -2088,7 +2128,7 @@ a:focus, a:hover {
               change creation.
               The array will be empty if there are no known problems.
             </p>
-          </dd><dt class="field"><b>feedback (<span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a>)</b></dt><dd>
+          </dd><dt class="field"><b>feedback: <a href="#type_RefactoringFeedback">RefactoringFeedback</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               Data used to provide feedback to the user. The structure
@@ -2097,7 +2137,7 @@ a:focus, a:hover {
               in the section titled <a href="#refactorings">Refactorings</a>, labeled as
               "Feedback".
             </p>
-          </dd><dt class="field"><b>change (<span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>)</b></dt><dd>
+          </dd><dt class="field"><b>change: <a href="#type_SourceChange">SourceChange</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The changes that are to be applied to affect the
@@ -2107,7 +2147,7 @@ a:focus, a:hover {
               refactoring that requires them, or if only validation
               was requested.
             </p>
-          </dd><dt class="field"><b>potentialEdits (<span style="color:#999999">optional</span> List&lt;String&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>potentialEdits: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The ids of source edits that are not known to be valid. An edit is
@@ -2118,7 +2158,7 @@ a:focus, a:hover {
               will be omitted if the change field is omitted or if there are no
               potential edits for the refactoring.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_edit.sortMembers">edit.sortMembers</a> (<a href="#request_edit.sortMembers">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.sortMembers">edit.sortMembers</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.sortMembers"
   "params": {
@@ -2146,18 +2186,18 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The Dart file to sort.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edit (<a href="#type_SourceFileEdit">SourceFileEdit</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edit: <a href="#type_SourceFileEdit">SourceFileEdit</a></b></dt><dd>
             
             <p>
               The file edit that is to be applied to the given file to effect
               the sorting.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_edit.organizeDirectives">edit.organizeDirectives</a> (<a href="#request_edit.organizeDirectives">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_edit.organizeDirectives">edit.organizeDirectives</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.organizeDirectives"
   "params": {
@@ -2188,12 +2228,12 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The Dart file to organize directives in.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edit (<a href="#type_SourceFileEdit">SourceFileEdit</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edit: <a href="#type_SourceFileEdit">SourceFileEdit</a></b></dt><dd>
             
             <p>
               The file edit that is to be applied to the given file to effect
@@ -2210,7 +2250,7 @@ a:focus, a:hover {
       
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_execution.createContext">execution.createContext</a> (<a href="#request_execution.createContext">#</a>)</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_execution.createContext">execution.createContext</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "execution.createContext"
   "params": {
@@ -2231,19 +2271,19 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>contextRoot (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>contextRoot: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The path of the Dart or HTML file that will be launched, or the
               path of the directory containing the file.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id (<a href="#type_ExecutionContextId">ExecutionContextId</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>id: <a href="#type_ExecutionContextId">ExecutionContextId</a></b></dt><dd>
             
             <p>
               The identifier used to refer to the execution context that was
               created.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_execution.deleteContext">execution.deleteContext</a> (<a href="#request_execution.deleteContext">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_execution.deleteContext">execution.deleteContext</a></dt><dd><div class="box"><pre>request: {
   "<b>id</b>": String
   "method": "execution.deleteContext"
   "params": {
@@ -2259,12 +2299,12 @@ a:focus, a:hover {
           ids when they are no longer valid.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>id (<a href="#type_ExecutionContextId">ExecutionContextId</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>id: <a href="#type_ExecutionContextId">ExecutionContextId</a></b></dt><dd>
             
             <p>
               The identifier of the execution context that is to be deleted.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_execution.mapUri">execution.mapUri</a> (<a href="#request_execution.mapUri">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_execution.mapUri">execution.mapUri</a></dt><dd><div class="box"><pre>request: {
   "<b>id</b>": String
   "method": "execution.mapUri"
   "params": {
@@ -2310,35 +2350,35 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>parameters:</h4><dl><dt class="field"><b>id (<a href="#type_ExecutionContextId">ExecutionContextId</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>id: <a href="#type_ExecutionContextId">ExecutionContextId</a></b></dt><dd>
             
             <p>
               The identifier of the execution context in which the URI is to be
               mapped.
             </p>
-          </dd><dt class="field"><b>file (<span style="color:#999999">optional</span> <a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+          </dd><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The path of the file to be mapped into a URI.
             </p>
-          </dd><dt class="field"><b>uri (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>uri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The URI to be mapped into a file path.
             </p>
-          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>file (<span style="color:#999999">optional</span> <a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+          </dd></dl><h4>returns:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The file to which the URI was mapped. This field is omitted if the
               uri field was not given in the request.
             </p>
-          </dd><dt class="field"><b>uri (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>uri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The URI to which the file path was mapped. This field is omitted
               if the file field was not given in the request.
             </p>
-          </dd></dl></dd><dt class="request"><a name="request_execution.setSubscriptions">execution.setSubscriptions</a> (<a href="#request_execution.setSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request deprecated"><a name="request_execution.setSubscriptions">execution.setSubscriptions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "execution.setSubscriptions"
   "params": {
@@ -2349,7 +2389,7 @@ a:focus, a:hover {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
-          <b><i>Deprecated</i></b>: the analysis server no longer fires
+          <b>Deprecated:</b> the analysis server no longer fires
           <tt>LAUNCH_DATA</tt> events.
         </p>
         <p>
@@ -2362,12 +2402,12 @@ a:focus, a:hover {
           remain unchanged.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions (List&lt;<a href="#type_ExecutionService">ExecutionService</a>&gt;)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: List&lt;<a href="#type_ExecutionService">ExecutionService</a>&gt;</b></dt><dd>
             
             <p>
               A list of the services being subscribed to.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_execution.launchData">execution.launchData</a> (<a href="#notification_execution.launchData">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_execution.launchData">execution.launchData</a></dt><dd><div class="box"><pre>notification: {
   "event": "execution.launchData"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -2384,19 +2424,19 @@ a:focus, a:hover {
           passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         
-      <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file for which launch data is being provided. This will either
               be a Dart library or an HTML file.
             </p>
-          </dd><dt class="field"><b>kind (<span style="color:#999999">optional</span> <a href="#type_ExecutableKind">ExecutableKind</a>)</b></dt><dd>
+          </dd><dt class="field"><b>kind: <a href="#type_ExecutableKind">ExecutableKind</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The kind of the executable file. This field is omitted if the file
               is not a Dart file.
             </p>
-          </dd><dt class="field"><b>referencedFiles (<span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>referencedFiles: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A list of the Dart files that are referenced by the file. This
@@ -2409,7 +2449,7 @@ a:focus, a:hover {
       </p>
       
       
-    <h3>Requests</h3><dl><dt class="request"><a name="request_diagnostic.getDiagnostics">diagnostic.getDiagnostics</a> (<a href="#request_diagnostic.getDiagnostics">#</a>)</dt><dd><div class="box"><pre>request: {
+    <h3>Requests</h3><dl><dt class="request"><a name="request_diagnostic.getDiagnostics">diagnostic.getDiagnostics</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "diagnostic.getDiagnostics"
 }</pre><br><pre>response: {
@@ -2421,10 +2461,10 @@ a:focus, a:hover {
 }</pre></div>
         <p>Return server diagnostics.</p>
         
-      <h4>returns:</h4><dl><dt class="field"><b>contexts (List&lt;<a href="#type_ContextData">ContextData</a>&gt;)</b></dt><dd>
+      <h4>returns:</h4><dl><dt class="field"><b>contexts: List&lt;<a href="#type_ContextData">ContextData</a>&gt;</b></dt><dd>
             
             <p>The list of analysis contexts.</p>
-          </dd></dl></dd><dt class="request"><a name="request_diagnostic.getServerPort">diagnostic.getServerPort</a> (<a href="#request_diagnostic.getServerPort">#</a>)</dt><dd><div class="box"><pre>request: {
+          </dd></dl></dd><dt class="request"><a name="request_diagnostic.getServerPort">diagnostic.getServerPort</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "diagnostic.getServerPort"
 }</pre><br><pre>response: {
@@ -2440,7 +2480,7 @@ a:focus, a:hover {
           this call will return an error of <tt>DEBUG_PORT_COULD_NOT_BE_OPENED</tt>.
         </p>
         
-      <h4>returns:</h4><dl><dt class="field"><b>port (int)</b></dt><dd>
+      <h4>returns:</h4><dl><dt class="field"><b>port: int</b></dt><dd>
             
             <p>The diagnostic server port.</p>
           </dd></dl></dd></dl>
@@ -2521,7 +2561,7 @@ a:focus, a:hover {
           with the new one.
         </p>
         
-      <dl><dt class="field"><b>type = "add"</b></dt><dd></dd><dt class="field"><b>content (String)</b></dt><dd>
+      <dl><dt class="field"><b>type = "add"</b></dt><dd></dd><dt class="field"><b>content: String</b></dt><dd>
             
             <p>
               The new content of the file.
@@ -2532,29 +2572,29 @@ a:focus, a:hover {
           by the analysis.
         </p>
         
-      <dl><dt class="field"><b>severity (<a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a>)</b></dt><dd>
+      <dl><dt class="field"><b>severity: <a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></b></dt><dd>
             
             <p>
               The severity of the error.
             </p>
-          </dd><dt class="field"><b>type (<a href="#type_AnalysisErrorType">AnalysisErrorType</a>)</b></dt><dd>
+          </dd><dt class="field"><b>type: <a href="#type_AnalysisErrorType">AnalysisErrorType</a></b></dt><dd>
             
             <p>
               The type of the error.
             </p>
-          </dd><dt class="field"><b>location (<a href="#type_Location">Location</a>)</b></dt><dd>
+          </dd><dt class="field"><b>location: <a href="#type_Location">Location</a></b></dt><dd>
             
             <p>
               The location associated with the error.
             </p>
-          </dd><dt class="field"><b>message (String)</b></dt><dd>
+          </dd><dt class="field"><b>message: String</b></dt><dd>
             
             <p>
               The message to be displayed for this error. The message
               should indicate what is wrong with the code and why it is
               wrong.
             </p>
-          </dd><dt class="field"><b>correction (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>correction: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The correction message to be displayed for this error. The
@@ -2562,12 +2602,12 @@ a:focus, a:hover {
               the error. The field is omitted if there is no correction
               message associated with the error code.
             </p>
-          </dd><dt class="field"><b>code (String)</b></dt><dd>
+          </dd><dt class="field"><b>code: String</b></dt><dd>
             
             <p>
               The name, as a string, of the error code associated with this error.
             </p>
-          </dd><dt class="field"><b>hasFix (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>hasFix: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A hint to indicate to interested clients that this error has
@@ -2586,12 +2626,12 @@ a:focus, a:hover {
           A list of fixes associated with a specific error
         </p>
         
-      <dl><dt class="field"><b>error (<a href="#type_AnalysisError">AnalysisError</a>)</b></dt><dd>
+      <dl><dt class="field"><b>error: <a href="#type_AnalysisError">AnalysisError</a></b></dt><dd>
             
             <p>
               The error with which the fixes are associated.
             </p>
-          </dd><dt class="field"><b>fixes (List&lt;<a href="#type_SourceChange">SourceChange</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>fixes: List&lt;<a href="#type_SourceChange">SourceChange</a>&gt;</b></dt><dd>
             
             <p>
               The fixes associated with the error.
@@ -2607,8 +2647,8 @@ a:focus, a:hover {
           An enumeration of the possible types of analysis errors.
         </p>
         
-      <dl><dt class="value">CHECKED_MODE_COMPILE_TIME_ERROR</dt><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">LINT</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
-        <p><b><i>Deprecated</i></b>: the only reference to this type has been
+      <dl><dt class="value">CHECKED_MODE_COMPILE_TIME_ERROR</dt><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">LINT</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition deprecated"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
+        <p><b>Deprecated:</b> the only reference to this type has been
           deprecated.</p>
         <p>
           A set of options controlling what kind of analysis is to be
@@ -2616,53 +2656,53 @@ a:focus, a:hover {
           option will not be changed.
         </p>
         
-      <dl><dt class="field"><b>enableAsync (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+      <dl><dt class="field"><b><span class="deprecated">enableAsync</span>: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
             </p>
-          </dd><dt class="field"><b>enableDeferredLoading (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b><span class="deprecated">enableDeferredLoading</span>: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
             </p>
-          </dd><dt class="field"><b>enableEnums (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b><span class="deprecated">enableEnums</span>: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
             </p>
-          </dd><dt class="field"><b>enableNullAwareOperators (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b><span class="deprecated">enableNullAwareOperators</span>: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed "null aware operators" feature.
             </p>
-          </dd><dt class="field"><b>enableSuperMixins (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>enableSuperMixins: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if the client wants to enable support for the
               proposed "less restricted mixins" proposal (DEP 34).
             </p>
-          </dd><dt class="field"><b>generateDart2jsHints (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>generateDart2jsHints: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if hints that are specific to dart2js should be
               generated. This option is ignored if generateHints is false.
             </p>
-          </dd><dt class="field"><b>generateHints (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>generateHints: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if hints should be generated as part of generating
               errors and warnings.
             </p>
-          </dd><dt class="field"><b>generateLints (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>generateLints: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if lints should be generated as part of generating
@@ -2685,10 +2725,10 @@ a:focus, a:hover {
           An indication of the current state of analysis.
         </p>
         
-      <dl><dt class="field"><b>isAnalyzing (bool)</b></dt><dd>
+      <dl><dt class="field"><b>isAnalyzing: bool</b></dt><dd>
             
             <p>True if analysis is currently being performed.</p>
-          </dd><dt class="field"><b>analysisTarget (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>analysisTarget: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the current target of analysis. This field is
@@ -2716,7 +2756,7 @@ a:focus, a:hover {
           will be reported.
         </p>
         
-      <dl><dt class="field"><b>type = "change"</b></dt><dd></dd><dt class="field"><b>edits (List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;)</b></dt><dd>
+      <dl><dt class="field"><b>type = "change"</b></dt><dd></dd><dt class="field"><b>edits: List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;</b></dt><dd>
             
             <p>
               The edits to be applied to the file.
@@ -2734,18 +2774,18 @@ a:focus, a:hover {
           being suggested.
         </p>
         
-      <dl><dt class="field"><b>kind (<a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a>)</b></dt><dd>
+      <dl><dt class="field"><b>kind: <a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></b></dt><dd>
             
             <p>
               The kind of element being suggested.
             </p>
-          </dd><dt class="field"><b>relevance (int)</b></dt><dd>
+          </dd><dt class="field"><b>relevance: int</b></dt><dd>
             
             <p>
               The relevance of this completion suggestion
               where a higher number indicates a higher relevance.
             </p>
-          </dd><dt class="field"><b>completion (String)</b></dt><dd>
+          </dd><dt class="field"><b>completion: String</b></dt><dd>
             
             <p>
               The identifier to be inserted if the suggestion is
@@ -2754,57 +2794,57 @@ a:focus, a:hover {
               for the parameters. The information required in order to
               do so is contained in other fields.
             </p>
-          </dd><dt class="field"><b>selectionOffset (int)</b></dt><dd>
+          </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
             
             <p>
               The offset, relative to the beginning of the completion,
               of where the selection should be placed after insertion.
             </p>
-          </dd><dt class="field"><b>selectionLength (int)</b></dt><dd>
+          </dd><dt class="field"><b>selectionLength: int</b></dt><dd>
             
             <p>
               The number of characters that should be selected after
               insertion.
             </p>
-          </dd><dt class="field"><b>isDeprecated (bool)</b></dt><dd>
+          </dd><dt class="field"><b>isDeprecated: bool</b></dt><dd>
             
             <p>
               True if the suggested element is deprecated.
             </p>
-          </dd><dt class="field"><b>isPotential (bool)</b></dt><dd>
+          </dd><dt class="field"><b>isPotential: bool</b></dt><dd>
             
             <p>
               True if the element is not known to be valid for the
               target. This happens if the type of the target is dynamic.
             </p>
-          </dd><dt class="field"><b>docSummary (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>docSummary: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               An abbreviated version of the Dartdoc associated with the
               element being suggested, This field is omitted if there is
               no Dartdoc associated with the element.
             </p>
-          </dd><dt class="field"><b>docComplete (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>docComplete: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The Dartdoc associated with the element being suggested,
               This field is omitted if there is no Dartdoc associated
               with the element.
             </p>
-          </dd><dt class="field"><b>declaringType (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>declaringType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The class that declares the element being suggested. This
               field is omitted if the suggested element is not a member
               of a class.
             </p>
-          </dd><dt class="field"><b>defaultArgumentListString (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>defaultArgumentListString: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A default String for use in generating argument list
               source contents on the client side.
             </p>
-          </dd><dt class="field"><b>defaultArgumentListTextRanges (<span style="color:#999999">optional</span> List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>defaultArgumentListTextRanges: List&lt;int&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               Pairs of offsets and lengths describing 'defaultArgumentListString'
@@ -2815,12 +2855,12 @@ a:focus, a:hover {
               Clients can use these ranges to treat the 'x' and 'y' values
               specially for linked edits.
             </p>
-          </dd><dt class="field"><b>element (<span style="color:#999999">optional</span> <a href="#type_Element">Element</a>)</b></dt><dd>
+          </dd><dt class="field"><b>element: <a href="#type_Element">Element</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               Information about the element reference being suggested.
             </p>
-          </dd><dt class="field"><b>returnType (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>returnType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The return type of the getter, function or method
@@ -2828,48 +2868,48 @@ a:focus, a:hover {
               This field is omitted if the suggested element
               is not a getter, function or method.
             </p>
-          </dd><dt class="field"><b>parameterNames (<span style="color:#999999">optional</span> List&lt;String&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>parameterNames: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The names of the parameters of the function or method
               being suggested. This field is omitted if the suggested
               element is not a setter, function or method.
             </p>
-          </dd><dt class="field"><b>parameterTypes (<span style="color:#999999">optional</span> List&lt;String&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>parameterTypes: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The types of the parameters of the function or method
               being suggested. This field is omitted if the
               parameterNames field is omitted.
             </p>
-          </dd><dt class="field"><b>requiredParameterCount (<span style="color:#999999">optional</span> int)</b></dt><dd>
+          </dd><dt class="field"><b>requiredParameterCount: int<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The number of required parameters for the function or
               method being suggested. This field is omitted if the
               parameterNames field is omitted.
             </p>
-          </dd><dt class="field"><b>hasNamedParameters (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>hasNamedParameters: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if the function or method being suggested has at
               least one named parameter. This field is omitted if the
               parameterNames field is omitted.
             </p>
-          </dd><dt class="field"><b>parameterName (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>parameterName: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the optional parameter being suggested. This
               field is omitted if the suggestion is not the addition of
               an optional argument within an argument list.
             </p>
-          </dd><dt class="field"><b>parameterType (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>parameterType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The type of the options parameter being suggested. This
               field is omitted if the parameterName field is omitted.
             </p>
-          </dd><dt class="field"><b>importUri (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>importUri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The import to be added if the suggestion is out of scope
@@ -2923,27 +2963,27 @@ a:focus, a:hover {
           Information about an analysis context.
         </p>
         
-      <dl><dt class="field"><b>name (String)</b></dt><dd>
+      <dl><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name of the context.
             </p>
-          </dd><dt class="field"><b>explicitFileCount (int)</b></dt><dd>
+          </dd><dt class="field"><b>explicitFileCount: int</b></dt><dd>
             
             <p>
               Explicitly analyzed files.
             </p>
-          </dd><dt class="field"><b>implicitFileCount (int)</b></dt><dd>
+          </dd><dt class="field"><b>implicitFileCount: int</b></dt><dd>
             
             <p>
               Implicitly analyzed files.
             </p>
-          </dd><dt class="field"><b>workItemQueueLength (int)</b></dt><dd>
+          </dd><dt class="field"><b>workItemQueueLength: int</b></dt><dd>
             
             <p>
               The number of work items in the queue.
             </p>
-          </dd><dt class="field"><b>cacheEntryExceptions (List&lt;String&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>cacheEntryExceptions: List&lt;String&gt;</b></dt><dd>
             
             <p>
               Exceptions associated with cache entries.
@@ -2954,24 +2994,24 @@ a:focus, a:hover {
           in code).
         </p>
         
-      <dl><dt class="field"><b>kind (<a href="#type_ElementKind">ElementKind</a>)</b></dt><dd>
+      <dl><dt class="field"><b>kind: <a href="#type_ElementKind">ElementKind</a></b></dt><dd>
             
             <p>
               The kind of the element.
             </p>
-          </dd><dt class="field"><b>name (String)</b></dt><dd>
+          </dd><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name of the element. This is typically used as the
               label in the outline.
             </p>
-          </dd><dt class="field"><b>location (<span style="color:#999999">optional</span> <a href="#type_Location">Location</a>)</b></dt><dd>
+          </dd><dt class="field"><b>location: <a href="#type_Location">Location</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The location of the name in the declaration of the
               element.
             </p>
-          </dd><dt class="field"><b>flags (int)</b></dt><dd>
+          </dd><dt class="field"><b>flags: int</b></dt><dd>
             
             <p>
               A bit-map containing the following flags:
@@ -2984,7 +3024,7 @@ a:focus, a:hover {
               <li>0x10 - set if the element is private</li>
               <li>0x20 - set if the element is deprecated</li>
             </ul>
-          </dd><dt class="field"><b>parameters (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>parameters: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The parameter list for the element. If the element is not
@@ -2993,7 +3033,7 @@ a:focus, a:hover {
               will not be defined. If the element has zero parameters, this
               field will have a value of "()".
             </p>
-          </dd><dt class="field"><b>returnType (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>returnType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The return type of the element. If the element is not a
@@ -3001,7 +3041,7 @@ a:focus, a:hover {
               element does not have a declared return type, this field
               will contain an empty string.
             </p>
-          </dd><dt class="field"><b>typeParameters (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>typeParameters: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The type parameter list for the element. If the element doesn't
@@ -3012,23 +3052,23 @@ a:focus, a:hover {
           An enumeration of the kinds of elements.
         </p>
         
-      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dd>
+      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value deprecated">UNIT_TEST_GROUP</dt><dd>
             
-            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
-          </dd><dt class="value">UNIT_TEST_TEST</dt><dd>
+            <p><b>Deprecated:</b> support for tests was removed.</p>
+          </dd><dt class="value deprecated">UNIT_TEST_TEST</dt><dd>
             
-            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+            <p><b>Deprecated:</b> support for tests was removed.</p>
           </dd><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
         <p>
           A description of an executable file.
         </p>
         
-      <dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The path of the executable file.
             </p>
-          </dd><dt class="field"><b>kind (<a href="#type_ExecutableKind">ExecutableKind</a>)</b></dt><dd>
+          </dd><dt class="field"><b>kind: <a href="#type_ExecutableKind">ExecutableKind</a></b></dt><dd>
             
             <p>
               The kind of the executable file.
@@ -3074,17 +3114,17 @@ a:focus, a:hover {
           A description of a region that can be folded.
         </p>
         
-      <dl><dt class="field"><b>kind (<a href="#type_FoldingKind">FoldingKind</a>)</b></dt><dd>
+      <dl><dt class="field"><b>kind: <a href="#type_FoldingKind">FoldingKind</a></b></dt><dd>
             
             <p>
               The kind of the region.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region to be folded.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region to be folded.
@@ -3101,17 +3141,17 @@ a:focus, a:hover {
           associated with it.
         </p>
         
-      <dl><dt class="field"><b>type (<a href="#type_HighlightRegionType">HighlightRegionType</a>)</b></dt><dd>
+      <dl><dt class="field"><b>type: <a href="#type_HighlightRegionType">HighlightRegionType</a></b></dt><dd>
             
             <p>
               The type of highlight associated with the region.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region to be highlighted.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region to be highlighted.
@@ -3274,21 +3314,21 @@ a:focus, a:hover {
           The hover information associated with a specific location.
         </p>
         
-      <dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the range of characters that encompasses the
               cursor position and has the same hover information as the
               cursor position.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the range of characters that encompasses the
               cursor position and has the same hover information as the
               cursor position.
             </p>
-          </dd><dt class="field"><b>containingLibraryPath (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>containingLibraryPath: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The path to the defining compilation unit of the library
@@ -3296,7 +3336,7 @@ a:focus, a:hover {
               omitted if there is no referenced element, or if the
               element is declared inside an HTML file.
             </p>
-          </dd><dt class="field"><b>containingLibraryName (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>containingLibraryName: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the library in which the referenced element is
@@ -3304,14 +3344,14 @@ a:focus, a:hover {
               element, or if the element is declared inside an HTML
               file.
             </p>
-          </dd><dt class="field"><b>containingClassDescription (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>containingClassDescription: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A human-readable description of the class declaring the element
               being referenced. This data is omitted if there is no referenced
               element, or if the element is not a class member.
             </p>
-          </dd><dt class="field"><b>dartdoc (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>dartdoc: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The dartdoc associated with the referenced element. Other
@@ -3321,14 +3361,14 @@ a:focus, a:hover {
               there is no referenced element, or if the element has no
               dartdoc.
             </p>
-          </dd><dt class="field"><b>elementDescription (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>elementDescription: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A human-readable description of the element being
               referenced. This data is omitted if there is no referenced
               element.
             </p>
-          </dd><dt class="field"><b>elementKind (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>elementKind: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A human-readable description of the kind of element being
@@ -3336,12 +3376,12 @@ a:focus, a:hover {
               alias"). This data is omitted if there is no referenced
               element.
             </p>
-          </dd><dt class="field"><b>isDeprecated (<span style="color:#999999">optional</span> bool)</b></dt><dd>
+          </dd><dt class="field"><b>isDeprecated: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               True if the referenced element is deprecated.
             </p>
-          </dd><dt class="field"><b>parameter (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>parameter: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               A human-readable description of the parameter
@@ -3349,14 +3389,14 @@ a:focus, a:hover {
               data is omitted if the location is not in an argument to a
               function.
             </p>
-          </dd><dt class="field"><b>propagatedType (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>propagatedType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the propagated type of the expression. This
               data is omitted if the location does not correspond to an
               expression or if there is no propagated type information.
             </p>
-          </dd><dt class="field"><b>staticType (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>staticType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the static type of the expression. This data
@@ -3368,12 +3408,12 @@ a:focus, a:hover {
           A description of a class that is implemented or extended.
         </p>
         
-      <dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the name of the implemented class.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the name of the implemented class.
@@ -3383,12 +3423,12 @@ a:focus, a:hover {
           A description of a class member that is implemented or overridden.
         </p>
         
-      <dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the name of the implemented member.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the name of the implemented member.
@@ -3404,19 +3444,19 @@ a:focus, a:hover {
           all occurrences of the name could be edited simultaneously.
         </p>
         
-      <dl><dt class="field"><b>positions (List&lt;<a href="#type_Position">Position</a>&gt;)</b></dt><dd>
+      <dl><dt class="field"><b>positions: List&lt;<a href="#type_Position">Position</a>&gt;</b></dt><dd>
             
             <p>
               The positions of the regions that should be edited
               simultaneously.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the regions that should be edited
               simultaneously.
             </p>
-          </dd><dt class="field"><b>suggestions (List&lt;<a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>suggestions: List&lt;<a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a>&gt;</b></dt><dd>
             
             <p>
               Pre-computed suggestions for what every region might
@@ -3428,13 +3468,13 @@ a:focus, a:hover {
           the linked edit regions in a LinkedEditGroup.
         </p>
         
-      <dl><dt class="field"><b>value (String)</b></dt><dd>
+      <dl><dt class="field"><b>value: String</b></dt><dd>
             
             <p>
               The value that could be used to replace all of the linked
               edit regions.
             </p>
-          </dd><dt class="field"><b>kind (<a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a>)</b></dt><dd>
+          </dd><dt class="field"><b>kind: <a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></b></dt><dd>
             
             <p>
               The kind of value being proposed.
@@ -3450,28 +3490,28 @@ a:focus, a:hover {
           A location (character range) within a file.
         </p>
         
-      <dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the range.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the range.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the range.
             </p>
-          </dd><dt class="field"><b>startLine (int)</b></dt><dd>
+          </dd><dt class="field"><b>startLine: int</b></dt><dd>
             
             <p>
               The one-based index of the line containing the first
               character of the range.
             </p>
-          </dd><dt class="field"><b>startColumn (int)</b></dt><dd>
+          </dd><dt class="field"><b>startColumn: int</b></dt><dd>
             
             <p>
               The one-based index of the column containing the first
@@ -3483,17 +3523,17 @@ a:focus, a:hover {
           the declaration of an element.
         </p>
         
-      <dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region from which the user can navigate.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region from which the user can navigate.
             </p>
-          </dd><dt class="field"><b>targets (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>targets: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The indexes of the targets (in the enclosing navigation response)
@@ -3505,34 +3545,34 @@ a:focus, a:hover {
           A description of a target to which the user can navigate.
         </p>
         
-      <dl><dt class="field"><b>kind (<a href="#type_ElementKind">ElementKind</a>)</b></dt><dd>
+      <dl><dt class="field"><b>kind: <a href="#type_ElementKind">ElementKind</a></b></dt><dd>
             
             <p>
               The kind of the element.
             </p>
-          </dd><dt class="field"><b>fileIndex (int)</b></dt><dd>
+          </dd><dt class="field"><b>fileIndex: int</b></dt><dd>
             
             <p>
               The index of the file (in the enclosing navigation response) to
               navigate to.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region to which the user can navigate.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region to which the user can navigate.
             </p>
-          </dd><dt class="field"><b>startLine (int)</b></dt><dd>
+          </dd><dt class="field"><b>startLine: int</b></dt><dd>
             
             <p>
               The one-based index of the line containing the first
               character of the region.
             </p>
-          </dd><dt class="field"><b>startColumn (int)</b></dt><dd>
+          </dd><dt class="field"><b>startColumn: int</b></dt><dd>
             
             <p>
               The one-based index of the column containing the first
@@ -3544,18 +3584,18 @@ a:focus, a:hover {
           single file.
         </p>
         
-      <dl><dt class="field"><b>element (<a href="#type_Element">Element</a>)</b></dt><dd>
+      <dl><dt class="field"><b>element: <a href="#type_Element">Element</a></b></dt><dd>
             
             <p>
               The element that was referenced.
             </p>
-          </dd><dt class="field"><b>offsets (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>offsets: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The offsets of the name of the referenced element within
               the file.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the name of the referenced element.
@@ -3565,12 +3605,12 @@ a:focus, a:hover {
           An node in the outline structure of a file.
         </p>
         
-      <dl><dt class="field"><b>element (<a href="#type_Element">Element</a>)</b></dt><dd>
+      <dl><dt class="field"><b>element: <a href="#type_Element">Element</a></b></dt><dd>
             
             <p>
               A description of the element represented by this node.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the first character of the element. This is
@@ -3578,12 +3618,12 @@ a:focus, a:hover {
               offset of the name of the element. It can be used, for
               example, to map locations in the file back to an outline.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the element.
             </p>
-          </dd><dt class="field"><b>children (<span style="color:#999999">optional</span> List&lt;<a href="#type_Outline">Outline</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>children: List&lt;<a href="#type_Outline">Outline</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The children of the node. The field will be omitted if the
@@ -3594,17 +3634,17 @@ a:focus, a:hover {
           A description of a member that overrides an inherited member.
         </p>
         
-      <dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the name of the overriding member.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the name of the overriding member.
             </p>
-          </dd><dt class="field"><b>superclassMember (<span style="color:#999999">optional</span> <a href="#type_OverriddenMember">OverriddenMember</a>)</b></dt><dd>
+          </dd><dt class="field"><b>superclassMember: <a href="#type_OverriddenMember">OverriddenMember</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The member inherited from a superclass that is overridden
@@ -3612,7 +3652,7 @@ a:focus, a:hover {
               no superclass member, in which case there must be at least
               one interface member.
             </p>
-          </dd><dt class="field"><b>interfaceMembers (<span style="color:#999999">optional</span> List&lt;<a href="#type_OverriddenMember">OverriddenMember</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>interfaceMembers: List&lt;<a href="#type_OverriddenMember">OverriddenMember</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The members inherited from interfaces that are overridden
@@ -3625,12 +3665,12 @@ a:focus, a:hover {
           A description of a member that is being overridden.
         </p>
         
-      <dl><dt class="field"><b>element (<a href="#type_Element">Element</a>)</b></dt><dd>
+      <dl><dt class="field"><b>element: <a href="#type_Element">Element</a></b></dt><dd>
             
             <p>
               The element that is being overridden.
             </p>
-          </dd><dt class="field"><b>className (String)</b></dt><dd>
+          </dd><dt class="field"><b>className: String</b></dt><dd>
             
             <p>
               The name of the class in which the member is defined.
@@ -3640,12 +3680,12 @@ a:focus, a:hover {
           A position within a file.
         </p>
         
-      <dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the position.
             </p>
-          </dd><dt class="field"><b>offset (int)</b></dt><dd>
+          </dd><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the position.
@@ -3655,7 +3695,7 @@ a:focus, a:hover {
           An indication of the current state of pub execution.
         </p>
         
-      <dl><dt class="field"><b>isListingPackageDirs (bool)</b></dt><dd>
+      <dl><dt class="field"><b>isListingPackageDirs: bool</b></dt><dd>
             
             <p>
               True if the server is currently running pub to produce a list of
@@ -3672,29 +3712,29 @@ a:focus, a:hover {
           A description of a parameter in a method refactoring.
         </p>
         
-      <dl><dt class="field"><b>id (<span style="color:#999999">optional</span> String)</b></dt><dd>
+      <dl><dt class="field"><b>id: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The unique identifier of the parameter.
               Clients may omit this field for the parameters they want to add.
             </p>
-          </dd><dt class="field"><b>kind (<a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a>)</b></dt><dd>
+          </dd><dt class="field"><b>kind: <a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></b></dt><dd>
             
             <p>
               The kind of the parameter.
             </p>
-          </dd><dt class="field"><b>type (String)</b></dt><dd>
+          </dd><dt class="field"><b>type: String</b></dt><dd>
             
             <p>
               The type that should be given to the parameter, or the return type
               of the parameter's function type.
             </p>
-          </dd><dt class="field"><b>name (String)</b></dt><dd>
+          </dd><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name that should be given to the parameter.
             </p>
-          </dd><dt class="field"><b>parameters (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>parameters: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The parameter list of the parameter's function type.
@@ -3722,18 +3762,18 @@ a:focus, a:hover {
           A description of a problem related to a refactoring.
         </p>
         
-      <dl><dt class="field"><b>severity (<a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a>)</b></dt><dd>
+      <dl><dt class="field"><b>severity: <a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></b></dt><dd>
             
             <p>
               The severity of the problem being represented.
             </p>
-          </dd><dt class="field"><b>message (String)</b></dt><dd>
+          </dd><dt class="field"><b>message: String</b></dt><dd>
             
             <p>
               A human-readable description of the problem being
               represented.
             </p>
-          </dd><dt class="field"><b>location (<span style="color:#999999">optional</span> <a href="#type_Location">Location</a>)</b></dt><dd>
+          </dd><dt class="field"><b>location: <a href="#type_Location">Location</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The location of the problem being represented.
@@ -3794,17 +3834,17 @@ a:focus, a:hover {
           typically in response to a request.
         </p>
         
-      <dl><dt class="field"><b>code (<a href="#type_RequestErrorCode">RequestErrorCode</a>)</b></dt><dd>
+      <dl><dt class="field"><b>code: <a href="#type_RequestErrorCode">RequestErrorCode</a></b></dt><dd>
             
             <p>
               A code that uniquely identifies the error that occurred.
             </p>
-          </dd><dt class="field"><b>message (String)</b></dt><dd>
+          </dd><dt class="field"><b>message: String</b></dt><dd>
             
             <p>
               A short description of the error.
             </p>
-          </dd><dt class="field"><b>stackTrace (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>stackTrace: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The stack trace associated with processing the request,
@@ -3997,18 +4037,18 @@ a:focus, a:hover {
           A single result from a search request.
         </p>
         
-      <dl><dt class="field"><b>location (<a href="#type_Location">Location</a>)</b></dt><dd>
+      <dl><dt class="field"><b>location: <a href="#type_Location">Location</a></b></dt><dd>
             
             <p>
               The location of the code that matched the search criteria.
             </p>
-          </dd><dt class="field"><b>kind (<a href="#type_SearchResultKind">SearchResultKind</a>)</b></dt><dd>
+          </dd><dt class="field"><b>kind: <a href="#type_SearchResultKind">SearchResultKind</a></b></dt><dd>
             
             <p>
               The kind of element that was found or the kind of
               reference that was found.
             </p>
-          </dd><dt class="field"><b>isPotential (bool)</b></dt><dd>
+          </dd><dt class="field"><b>isPotential: bool</b></dt><dd>
             
             <p>
               True if the result is a potential match but cannot be
@@ -4017,7 +4057,7 @@ a:focus, a:hover {
               reference to a method m from an unknown class were found,
               it would be marked as being a potential match.
             </p>
-          </dd><dt class="field"><b>path (List&lt;<a href="#type_Element">Element</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>path: List&lt;<a href="#type_Element">Element</a>&gt;</b></dt><dd>
             
             <p>
               The elements that contain the result, starting with the
@@ -4076,24 +4116,24 @@ a:focus, a:hover {
           conceptual change.
         </p>
         
-      <dl><dt class="field"><b>message (String)</b></dt><dd>
+      <dl><dt class="field"><b>message: String</b></dt><dd>
             
             <p>
               A human-readable description of the change to be applied.
             </p>
-          </dd><dt class="field"><b>edits (List&lt;<a href="#type_SourceFileEdit">SourceFileEdit</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>edits: List&lt;<a href="#type_SourceFileEdit">SourceFileEdit</a>&gt;</b></dt><dd>
             
             <p>
               A list of the edits used to effect the change, grouped by
               file.
             </p>
-          </dd><dt class="field"><b>linkedEditGroups (List&lt;<a href="#type_LinkedEditGroup">LinkedEditGroup</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>linkedEditGroups: List&lt;<a href="#type_LinkedEditGroup">LinkedEditGroup</a>&gt;</b></dt><dd>
             
             <p>
               A list of the linked editing groups used to customize
               the changes that were made.
             </p>
-          </dd><dt class="field"><b>selection (<span style="color:#999999">optional</span> <a href="#type_Position">Position</a>)</b></dt><dd>
+          </dd><dt class="field"><b>selection: <a href="#type_Position">Position</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The position that should be selected after the edits
@@ -4104,23 +4144,23 @@ a:focus, a:hover {
           A description of a single change to a single file.
         </p>
         
-      <dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset of the region to be modified.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the region to be modified.
             </p>
-          </dd><dt class="field"><b>replacement (String)</b></dt><dd>
+          </dd><dt class="field"><b>replacement: String</b></dt><dd>
             
             <p>
               The code that is to replace the specified region in the
               original code.
             </p>
-          </dd><dt class="field"><b>id (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>id: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               An identifier that uniquely identifies this source edit from other
@@ -4140,12 +4180,12 @@ a:focus, a:hover {
           A description of a set of changes to a single file.
         </p>
         
-      <dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The file containing the code to be modified.
             </p>
-          </dd><dt class="field"><b>fileStamp (long)</b></dt><dd>
+          </dd><dt class="field"><b>fileStamp: long</b></dt><dd>
             
             <p>
               The modification stamp of the file at the moment when the change
@@ -4154,7 +4194,7 @@ a:focus, a:hover {
               this field to make sure that the file was not changed since then,
               so it is safe to apply the change.
             </p>
-          </dd><dt class="field"><b>edits (List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>edits: List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;</b></dt><dd>
             
             <p>
               A list of the edits used to effect the change.
@@ -4164,12 +4204,12 @@ a:focus, a:hover {
           A representation of a class in a type hierarchy.
         </p>
         
-      <dl><dt class="field"><b>classElement (<a href="#type_Element">Element</a>)</b></dt><dd>
+      <dl><dt class="field"><b>classElement: <a href="#type_Element">Element</a></b></dt><dd>
             
             <p>
               The class element represented by this item.
             </p>
-          </dd><dt class="field"><b>displayName (<span style="color:#999999">optional</span> String)</b></dt><dd>
+          </dd><dt class="field"><b>displayName: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name to be displayed for the class. This field will be
@@ -4178,7 +4218,7 @@ a:focus, a:hover {
               additional type information to be displayed, such as type
               arguments.
             </p>
-          </dd><dt class="field"><b>memberElement (<span style="color:#999999">optional</span> <a href="#type_Element">Element</a>)</b></dt><dd>
+          </dd><dt class="field"><b>memberElement: <a href="#type_Element">Element</a><span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The member in the class corresponding to the member on
@@ -4186,28 +4226,28 @@ a:focus, a:hover {
               omitted if the hierarchy was not requested for a member or
               if the class does not have a corresponding member.
             </p>
-          </dd><dt class="field"><b>superclass (<span style="color:#999999">optional</span> int)</b></dt><dd>
+          </dd><dt class="field"><b>superclass: int<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The index of the item representing the superclass of
               this class. This field will be omitted if this item
               represents the class Object.
             </p>
-          </dd><dt class="field"><b>interfaces (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>interfaces: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The indexes of the items representing the interfaces
               implemented by this class. The list will be empty if
               there are no implemented interfaces.
             </p>
-          </dd><dt class="field"><b>mixins (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>mixins: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The indexes of the items representing the mixins
               referenced by this class. The list will be empty if
               there are no classes mixed in to this class.
             </p>
-          </dd><dt class="field"><b>subclasses (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>subclasses: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The indexes of the items representing the subtypes of
@@ -4264,30 +4304,30 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>Feedback:</h4><dl><dt class="field"><b>coveringExpressionOffsets (<span style="color:#999999">optional</span> List&lt;int&gt;)</b></dt><dd>
+      <h4>Feedback:</h4><dl><dt class="field"><b>coveringExpressionOffsets: List&lt;int&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The offsets of the expressions that cover the specified
               selection, from the down most to the up most.
             </p>
-          </dd><dt class="field"><b>coveringExpressionLengths (<span style="color:#999999">optional</span> List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>coveringExpressionLengths: List&lt;int&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The lengths of the expressions that cover the specified
               selection, from the down most to the up most.
             </p>
-          </dd><dt class="field"><b>names (List&lt;String&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>names: List&lt;String&gt;</b></dt><dd>
             
             <p>
               The proposed names for the local variable.
             </p>
-          </dd><dt class="field"><b>offsets (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>offsets: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The offsets of the expressions that would be replaced by
               a reference to the variable.
             </p>
-          </dd><dt class="field"><b>lengths (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>lengths: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The lengths of the expressions that would be replaced by
@@ -4296,12 +4336,12 @@ a:focus, a:hover {
               the offset of that expression is offsets[i], then the
               length of that expression is lengths[i].
             </p>
-          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>name (String)</b></dt><dd>
+          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name that the local variable should be given.
             </p>
-          </dd><dt class="field"><b>extractAll (bool)</b></dt><dd>
+          </dd><dt class="field"><b>extractAll: bool</b></dt><dd>
             
             <p>
               True if all occurrences of the expression within the
@@ -4323,47 +4363,47 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>Feedback:</h4><dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <h4>Feedback:</h4><dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset to the beginning of the expression or
               statements that will be extracted.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the expression or statements that will be
               extracted.
             </p>
-          </dd><dt class="field"><b>returnType (String)</b></dt><dd>
+          </dd><dt class="field"><b>returnType: String</b></dt><dd>
             
             <p>
               The proposed return type for the method.
               If the returned element does not have a declared return type,
               this field will contain an empty string.
             </p>
-          </dd><dt class="field"><b>names (List&lt;String&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>names: List&lt;String&gt;</b></dt><dd>
             
             <p>
               The proposed names for the method.
             </p>
-          </dd><dt class="field"><b>canCreateGetter (bool)</b></dt><dd>
+          </dd><dt class="field"><b>canCreateGetter: bool</b></dt><dd>
             
             <p>
               True if a getter could be created rather than a method.
             </p>
-          </dd><dt class="field"><b>parameters (List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>parameters: List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt;</b></dt><dd>
             
             <p>
               The proposed parameters for the method.
             </p>
-          </dd><dt class="field"><b>offsets (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>offsets: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The offsets of the expressions or statements that would
               be replaced by an invocation of the method.
             </p>
-          </dd><dt class="field"><b>lengths (List&lt;int&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>lengths: List&lt;int&gt;</b></dt><dd>
             
             <p>
               The lengths of the expressions or statements that would
@@ -4373,24 +4413,24 @@ a:focus, a:hover {
               that expression is offsets[i], then the length of that
               expression is lengths[i].
             </p>
-          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>returnType (String)</b></dt><dd>
+          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>returnType: String</b></dt><dd>
             
             <p>
               The return type that should be defined for the method.
             </p>
-          </dd><dt class="field"><b>createGetter (bool)</b></dt><dd>
+          </dd><dt class="field"><b>createGetter: bool</b></dt><dd>
             
             <p>
               True if a getter should be created rather than a
               method. It is an error if this field is true and the
               list of parameters is non-empty.
             </p>
-          </dd><dt class="field"><b>name (String)</b></dt><dd>
+          </dd><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name that the method should be given.
             </p>
-          </dd><dt class="field"><b>parameters (List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt;)</b></dt><dd>
+          </dd><dt class="field"><b>parameters: List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt;</b></dt><dd>
             
             <p>
               The parameters that should be defined for the method.
@@ -4409,7 +4449,7 @@ a:focus, a:hover {
               <li>To add new parameters, omit their identifier.</li>
               <li>To remove some parameters, omit them in this list.</li>
             </ul>
-          </dd><dt class="field"><b>extractAll (bool)</b></dt><dd>
+          </dd><dt class="field"><b>extractAll: bool</b></dt><dd>
             
             <p>
               True if all occurrences of the expression or statements
@@ -4427,12 +4467,12 @@ a:focus, a:hover {
           or part of the name of a single local variable.
         </p>
         
-      <h4>Feedback:</h4><dl><dt class="field"><b>name (String)</b></dt><dd>
+      <h4>Feedback:</h4><dl><dt class="field"><b>name: String</b></dt><dd>
             
             <p>
               The name of the variable being inlined.
             </p>
-          </dd><dt class="field"><b>occurrences (int)</b></dt><dd>
+          </dd><dt class="field"><b>occurrences: int</b></dt><dd>
             
             <p>
               The number of times the variable occurs.
@@ -4448,30 +4488,30 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>Feedback:</h4><dl><dt class="field"><b>className (<span style="color:#999999">optional</span> String)</b></dt><dd>
+      <h4>Feedback:</h4><dl><dt class="field"><b>className: String<span style="color:#999999"> (optional)</span></b></dt><dd>
             
             <p>
               The name of the class enclosing the method being inlined.
               If not a class member is being inlined, this field will be absent.
             </p>
-          </dd><dt class="field"><b>methodName (String)</b></dt><dd>
+          </dd><dt class="field"><b>methodName: String</b></dt><dd>
             
             <p>
               The name of the method (or function) being inlined.
             </p>
-          </dd><dt class="field"><b>isDeclaration (bool)</b></dt><dd>
+          </dd><dt class="field"><b>isDeclaration: bool</b></dt><dd>
             
             <p>
               True if the declaration of the method is selected.
               So all references should be inlined.
             </p>
-          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>deleteSource (bool)</b></dt><dd>
+          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>deleteSource: bool</b></dt><dd>
             
             <p>
               True if the method being inlined should be removed.
               It is an error if this field is true and inlineAll is false.
             </p>
-          </dd><dt class="field"><b>inlineAll (bool)</b></dt><dd>
+          </dd><dt class="field"><b>inlineAll: bool</b></dt><dd>
             
             <p>
               True if all invocations of the method should be inlined,
@@ -4494,7 +4534,7 @@ a:focus, a:hover {
           file specified in the request specifies the file to be moved.
         </p>
         
-      <h4>Feedback:</h4><p>none</p><h4>Options:</h4><dl><dt class="field"><b>newFile (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
+      <h4>Feedback:</h4><p>none</p><h4>Options:</h4><dl><dt class="field"><b>newFile: <a href="#type_FilePath">FilePath</a></b></dt><dd>
             
             <p>
               The new file path to which the given file is being moved.
@@ -4512,30 +4552,30 @@ a:focus, a:hover {
         </p>
         
         
-      <h4>Feedback:</h4><dl><dt class="field"><b>offset (int)</b></dt><dd>
+      <h4>Feedback:</h4><dl><dt class="field"><b>offset: int</b></dt><dd>
             
             <p>
               The offset to the beginning of the name selected to be
               renamed.
             </p>
-          </dd><dt class="field"><b>length (int)</b></dt><dd>
+          </dd><dt class="field"><b>length: int</b></dt><dd>
             
             <p>
               The length of the name selected to be renamed.
             </p>
-          </dd><dt class="field"><b>elementKindName (String)</b></dt><dd>
+          </dd><dt class="field"><b>elementKindName: String</b></dt><dd>
             
             <p>
               The human-readable description of the kind of element being
               renamed (such as "class" or "function type
               alias").
             </p>
-          </dd><dt class="field"><b>oldName (String)</b></dt><dd>
+          </dd><dt class="field"><b>oldName: String</b></dt><dd>
             
             <p>
               The old name of the element before the refactoring.
             </p>
-          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>newName (String)</b></dt><dd>
+          </dd></dl><h4>Options:</h4><dl><dt class="field"><b>newName: String</b></dt><dd>
             
             <p>
               The name that the element should have after the

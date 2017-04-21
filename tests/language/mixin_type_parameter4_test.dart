@@ -9,6 +9,7 @@ class R<E, F> {}
 class M<J> implements R<bool, J> {}
 
 class B1 {}
+
 class B2 {}
 
 class A1<T> extends B1 with M<T> {}

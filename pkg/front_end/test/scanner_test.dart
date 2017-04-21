@@ -180,7 +180,7 @@ abstract class ScannerTestBase {
 
   void test_async_star() {
     Token token = _scan("async*");
-    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.type, TokenType.KEYWORD);
     expect(token.lexeme, 'async');
     expect(token.next.type, TokenType.STAR);
     expect(token.next.next.type, TokenType.EOF);
@@ -471,11 +471,11 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_async() {
-    _assertIdentifierToken("async");
+    _assertKeywordToken("async");
   }
 
   void test_keyword_await() {
-    _assertIdentifierToken("await");
+    _assertKeywordToken("await");
   }
 
   void test_keyword_break() {
@@ -559,7 +559,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_hide() {
-    _assertIdentifierToken("hide");
+    _assertKeywordToken("hide");
   }
 
   void test_keyword_if() {
@@ -587,7 +587,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_native() {
-    _assertIdentifierToken("native");
+    _assertKeywordToken("native");
   }
 
   void test_keyword_new() {
@@ -599,11 +599,11 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_of() {
-    _assertIdentifierToken("of");
+    _assertKeywordToken("of");
   }
 
   void test_keyword_on() {
-    _assertIdentifierToken("on");
+    _assertKeywordToken("on");
   }
 
   void test_keyword_operator() {
@@ -615,7 +615,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_patch() {
-    _assertIdentifierToken("patch");
+    _assertKeywordToken("patch");
   }
 
   void test_keyword_rethrow() {
@@ -631,11 +631,11 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_show() {
-    _assertIdentifierToken("show");
+    _assertKeywordToken("show");
   }
 
   void test_keyword_source() {
-    _assertIdentifierToken("source");
+    _assertKeywordToken("source");
   }
 
   void test_keyword_static() {
@@ -651,7 +651,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_sync() {
-    _assertIdentifierToken("sync");
+    _assertKeywordToken("sync");
   }
 
   void test_keyword_this() {
@@ -691,7 +691,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_yield() {
-    _assertIdentifierToken("yield");
+    _assertKeywordToken("yield");
   }
 
   void test_lt() {
@@ -1168,7 +1168,7 @@ abstract class ScannerTestBase {
 
   void test_sync_star() {
     Token token = _scan("sync*");
-    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.type, TokenType.KEYWORD);
     expect(token.lexeme, 'sync');
     expect(token.next.type, TokenType.STAR);
     expect(token.next.next.type, TokenType.EOF);
@@ -1261,26 +1261,6 @@ abstract class ScannerTestBase {
     Token token = scanWithListener(source, listener);
     listener.assertErrors([new TestError(expectedOffset, expectedError, null)]);
     _checkTokens(token, expectedTokens);
-  }
-
-  /**
-   * Assert that when scanned the given [source] contains a single identifier
-   * token with the same lexeme as the original source.
-   */
-  void _assertIdentifierToken(String source) {
-    void check(String s, int expectedOffset) {
-      Token token = _scan(s);
-      expect(token, isNotNull);
-      expect(token.type, TokenType.IDENTIFIER);
-      expect(token.offset, expectedOffset);
-      expect(token.length, source.length);
-      expect(token.lexeme, source);
-      expect(token.value(), source);
-      expect(token.next.type, TokenType.EOF);
-    }
-
-    check(source, 0);
-    check(' $source ', 1);
   }
 
   /**
@@ -1516,7 +1496,7 @@ class TokenTypeTest {
 class _TestScanner extends Scanner {
   final ErrorListener listener;
 
-  _TestScanner(CharacterReader reader, [this.listener]) : super(reader);
+  _TestScanner(CharacterReader reader, [this.listener]) : super.create(reader);
 
   @override
   void reportError(

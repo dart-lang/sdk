@@ -14,7 +14,7 @@ class A {
   A(this.field);
 }
 
-var c = () => new List(42)[0];
+dynamic c = () => new List(42)[0];
 
 main() {
   bar();

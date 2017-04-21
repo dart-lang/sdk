@@ -8,10 +8,10 @@ class A {
   int a() {
     return 1;
   }
+
   void set a(var val) {
     int i = val;
   }
 }
 
-main() {
-}
+main() {}

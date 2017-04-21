@@ -18,15 +18,15 @@ class RegExp2Test {
     }
   }
 
-
   static testMain() {
-    String text = '''<img src="http://cdn.archinect.net/images/514x/c0/c0p3qo202oxp0e6z.jpg" width="514" height="616" border="0" title="" alt=""><em><p>My last entry was in December of 2009. I suppose I never was particularly good about updating this thing, but it seems a bit ridiculous that I couldn't be bothered to post once about the many, many things that have gone on since then. My apologies. I guess I could start by saying that the world looks like a very different place than it did back in second year.</p></em>
+    String text =
+        '''<img src="http://cdn.archinect.net/images/514x/c0/c0p3qo202oxp0e6z.jpg" width="514" height="616" border="0" title="" alt=""><em><p>My last entry was in December of 2009. I suppose I never was particularly good about updating this thing, but it seems a bit ridiculous that I couldn't be bothered to post once about the many, many things that have gone on since then. My apologies. I guess I could start by saying that the world looks like a very different place than it did back in second year.</p></em>
 
 ''';
-   String extensions = 'jpg|jpeg|png';
-   String tag = findImageTag_(text, extensions);
-   Expect.isNotNull(tag);
- }
+    String extensions = 'jpg|jpeg|png';
+    String tag = findImageTag_(text, extensions);
+    Expect.isNotNull(tag);
+  }
 }
 
 main() {

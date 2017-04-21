@@ -12,6 +12,6 @@ foo(x) {
 }
 
 main() {
-  Expect.equals(3, "x﻿x".length);  // BOM character between the xs.
-  Expect.equals(3, foo("x﻿x").length);  // BOM character between the xs.
+  Expect.equals(3, "x﻿x".length); // BOM character between the xs.
+  Expect.equals(3, foo("x﻿x").length); // BOM character between the xs.
 }

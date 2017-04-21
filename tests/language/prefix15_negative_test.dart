@@ -5,6 +5,7 @@
 // Unresolved symbols should be reported as an error.
 
 library Prefix15NegativeTest.dart;
+
 import "library12.dart" as lib12;
 
 class myClass implements lib12.Library13 {

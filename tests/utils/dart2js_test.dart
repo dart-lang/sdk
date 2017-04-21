@@ -4,8 +4,7 @@
 
 // Test to ensure that dart2js is free of warnings.
 
-import 'package:compiler/src/dart2js.dart'
-    as dart2js;
+import 'package:compiler/src/dart2js.dart' as dart2js;
 
 void main() {
   // Do nothing.

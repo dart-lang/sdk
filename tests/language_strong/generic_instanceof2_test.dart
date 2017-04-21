@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 // Test factory case.
 class Foo<K, V> {
-  Foo() { }
+  Foo() {}
 
   factory Foo.fac() {
     return new Foo<K, V>();
@@ -22,43 +22,42 @@ class Foo<K, V> {
 
 // Test constructor case.
 class Moo<K, V> {
-  Moo() { }
+  Moo() {}
 
   MooString() {
     return new Moo<K, String>();
   }
 }
 
-testAll () {
+testAll() {
   var foo_int_num = new Foo<int, num>();
   Expect.isTrue(foo_int_num is Foo<int, num>);
-  Expect.isTrue(foo_int_num is !Foo<int, String>);
+  Expect.isTrue(foo_int_num is! Foo<int, String>);
   // foo_int_num.FooString() returns a Foo<int, String>
-  Expect.isTrue(foo_int_num.FooString() is !Foo<int, num>);
+  Expect.isTrue(foo_int_num.FooString() is! Foo<int, num>);
   Expect.isTrue(foo_int_num.FooString() is Foo<int, String>);
 
   var foo_raw = new Foo();
   Expect.isTrue(foo_raw is Foo<int, num>);
   Expect.isTrue(foo_raw is Foo<int, String>);
   // foo_raw.FooString() returns a Foo<dynamic, String>
-  Expect.isTrue(foo_raw.FooString() is !Foo<int, num>);
+  Expect.isTrue(foo_raw.FooString() is! Foo<int, num>);
   Expect.isTrue(foo_raw.FooString() is Foo<int, String>);
 
   var moo_int_num = new Moo<int, num>();
   Expect.isTrue(moo_int_num is Moo<int, num>);
-  Expect.isTrue(moo_int_num is !Moo<int, String>);
+  Expect.isTrue(moo_int_num is! Moo<int, String>);
   // moo_int_num.MooString() returns a Moo<int, String>
-  Expect.isTrue(moo_int_num.MooString() is !Moo<int, num>);
+  Expect.isTrue(moo_int_num.MooString() is! Moo<int, num>);
   Expect.isTrue(moo_int_num.MooString() is Moo<int, String>);
 
   var moo_raw = new Moo();
   Expect.isTrue(moo_raw is Moo<int, num>);
   Expect.isTrue(moo_raw is Moo<int, String>);
   // moo_raw.MooString() returns a Moo<dynamic, String>
-  Expect.isTrue(moo_raw.MooString() is !Moo<int, num>);
+  Expect.isTrue(moo_raw.MooString() is! Moo<int, num>);
   Expect.isTrue(moo_raw.MooString() is Moo<int, String>);
 }
-
 
 main() {
   // Repeat type checks so that inlined tests can be tested as well.

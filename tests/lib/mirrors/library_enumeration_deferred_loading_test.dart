@@ -12,8 +12,8 @@ import 'other_library.dart' deferred as other;
 
 main() {
   var ms = currentMirrorSystem();
-  Expect.throws(() => ms.findLibrary(#test.other_library),
-                (e) => true, "should not be loaded yet");
+  Expect.throws(() => ms.findLibrary(#test.other_library), (e) => true,
+      "should not be loaded yet");
 
   asyncStart();
   other.loadLibrary().then((_) {

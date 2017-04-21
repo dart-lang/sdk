@@ -68,6 +68,7 @@ class TypeDeserializer {
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
   /// other [ResolutionDartType] that the deserialized [ResolutionDartType]
   /// depends upon are available.
+  // ignore: MISSING_RETURN
   static ResolutionDartType deserialize(ObjectDecoder decoder) {
     ResolutionTypeKind typeKind =
         decoder.getEnum(Key.KIND, ResolutionTypeKind.values);

@@ -1,34 +1,15 @@
 library;
 import self as self;
-import "dart:core" as core;
 
-class Closure#main#f extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#f::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#f::context};
-    return null;
-  }
-}
-class Closure#main#g extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#g::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#g::context};
-    return (#contextParameter[1]).call();
-  }
-}
 static method main(dynamic arguments) → dynamic {
   final Vector #context = MakeVector(2);
-  #context[1] = new self::Closure#main#f::•(#context);
-  final () → dynamic g = new self::Closure#main#g::•(#context);
+  #context[1] = MakeClosure<() → dynamic>(self::closure#main#f, #context);
+  final dynamic g = MakeClosure<() → dynamic>(self::closure#main#g, #context);
   g.call();
+}
+static method closure#main#f(Vector #contextParameter) → dynamic {
+  return null;
+}
+static method closure#main#g(Vector #contextParameter) → dynamic {
+  return (#contextParameter[1]).call();
 }

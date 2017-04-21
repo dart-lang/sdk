@@ -11,13 +11,20 @@
 import 'dart:math';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:gardening/src/buildbot_data.dart';
+import 'package:gardening/src/buildbot_loading.dart';
 import 'package:gardening/src/buildbot_structures.dart';
 import 'package:gardening/src/util.dart';
 
 main(List<String> args) async {
-  if (args.length == 0) {
-    print('Usage: current_summary <test-name1> [<test-name2> ...]');
+  ArgParser argParser = createArgParser();
+  ArgResults argResults = argParser.parse(args);
+  processArgResults(argResults);
+  if (argResults.rest.length == 0) {
+    print('Usage: current_summary [options] <test-name1> [<test-name2> ...]');
+    print('where options are:');
+    print(argParser.usage);
     exit(1);
   }
   int maxStatusWidth = 0;
@@ -31,22 +38,15 @@ main(List<String> args) async {
     // use build number `-1`.
     for (BuildUri buildUri in group.createUris(-2)) {
       print('Reading $buildUri');
-      String text = await readUriAsText(client, buildUri.toUri());
-      for (String line in text.split('\n')) {
-        if (line.startsWith('Done ')) {
-          List<String> parts = split(line, ['Done ', ' ', ' ', ': ']);
-          String testName = parts[3];
-          String configName = parts[1];
-          String archName = parts[2];
-          String status = parts[4];
-          TestStatus testStatus = new TestStatus(
-              new TestConfiguration(configName, archName, testName), status);
-          for (String arg in args) {
-            if (testName.contains(arg) || arg.contains(testName)) {
-              resultMap.putIfAbsent(testName, () => {})[buildUri] = testStatus;
-              maxStatusWidth = max(maxStatusWidth, status.length);
-              maxConfigWidth = max(maxConfigWidth, configName.length);
-            }
+      BuildResult buildResult = await readBuildResult(client, buildUri);
+      for (TestStatus testStatus in buildResult.results) {
+        String testName = testStatus.config.testName;
+        for (String arg in argResults.rest) {
+          if (testName.contains(arg) || arg.contains(testName)) {
+            resultMap.putIfAbsent(testName, () => {})[buildUri] = testStatus;
+            maxStatusWidth = max(maxStatusWidth, testStatus.status.length);
+            maxConfigWidth =
+                max(maxConfigWidth, testStatus.config.configName.length);
           }
         }
       }
@@ -62,14 +62,4 @@ main(List<String> args) async {
     });
   });
   client.close();
-}
-
-/// The result of a single test for a single test step.
-class TestStatus {
-  final TestConfiguration config;
-  final String status;
-
-  TestStatus(this.config, this.status);
-
-  String toString() => '$config: $status';
 }

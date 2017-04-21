@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.domain.analysis.abstract;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
@@ -11,15 +9,20 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -51,6 +54,7 @@ class AbstractAnalysisTest {
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
   MockPackageMapProvider packageMapProvider;
+  TestPluginManager pluginManager;
   AnalysisServer server;
   RequestHandler handler;
 
@@ -224,8 +228,10 @@ class AbstractAnalysisTest {
     testFolder = resourceProvider.convertPath('/project/bin');
     testFile = resourceProvider.convertPath('/project/bin/test.dart');
     packageMapProvider = new MockPackageMapProvider();
+    pluginManager = new TestPluginManager();
     Index index = createIndex();
     server = createAnalysisServer(index);
+    server.pluginManager = pluginManager;
     handler = analysisHandler;
     // listen for notifications
     Stream<Notification> notificationStream =
@@ -256,5 +262,67 @@ class AbstractAnalysisTest {
    */
   Future<Response> waitResponse(Request request) async {
     return serverChannel.sendRequest(request);
+  }
+}
+
+/**
+ * A plugin manager that simulates broadcasting requests to plugins by
+ * hard-coding the responses.
+ */
+class TestPluginManager implements PluginManager {
+  Map<PluginInfo, Future<plugin.Response>> broadcastResults;
+
+  @override
+  String get byteStorePath {
+    fail('Unexpected invocation of byteStorePath');
+    return null;
+  }
+
+  @override
+  InstrumentationService get instrumentationService {
+    fail('Unexpected invocation of instrumentationService');
+    return null;
+  }
+
+  @override
+  NotificationManager get notificationManager {
+    fail('Unexpected invocation of notificationManager');
+    return null;
+  }
+
+  @override
+  ResourceProvider get resourceProvider {
+    fail('Unexpected invocation of resourceProvider');
+    return null;
+  }
+
+  @override
+  Future<Null> addPluginToContextRoot(
+      analyzer.ContextRoot contextRoot, String path) async {
+    fail('Unexpected invocation of addPluginToContextRoot');
+    return null;
+  }
+
+  @override
+  Map<PluginInfo, Future<plugin.Response>> broadcast(
+      analyzer.ContextRoot contextRoot, plugin.RequestParams params) {
+    return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
+  }
+
+  @override
+  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
+    fail('Unexpected invocation of pluginsForContextRoot');
+    return null;
+  }
+
+  @override
+  void removedContextRoot(analyzer.ContextRoot contextRoot) {
+    fail('Unexpected invocation of removedContextRoot');
+  }
+
+  @override
+  Future<List<Null>> stopAll() async {
+    fail('Unexpected invocation of stopAll');
+    return null;
   }
 }

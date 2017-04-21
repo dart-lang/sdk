@@ -20,9 +20,9 @@ import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart'
     as rf;
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -103,8 +103,8 @@ class FixProcessor {
   CompilationUnitElement unitElement;
   Source unitSource;
   LibraryElement unitLibraryElement;
-  String unitLibraryFile;
-  String unitLibraryFolder;
+  File unitLibraryFile;
+  Folder unitLibraryFolder;
 
   final List<Fix> fixes = <Fix>[];
 
@@ -136,8 +136,9 @@ class FixProcessor {
     fileStamp = context.getModificationStamp(unitSource);
     // library
     unitLibraryElement = unitElement.library;
-    unitLibraryFile = unitLibraryElement.source.fullName;
-    unitLibraryFolder = dirname(unitLibraryFile);
+    String unitLibraryPath = unitLibraryElement.source.fullName;
+    unitLibraryFile = resourceProvider.getFile(unitLibraryPath);
+    unitLibraryFolder = unitLibraryFile.parent;
     // error
     error = dartContext.error;
   }
@@ -264,7 +265,9 @@ class FixProcessor {
     if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
       _addFix_makeEnclosingClassAbstract();
     }
-    if (errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS) {
+    if (errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
+        errorCode ==
+            StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
       _addFix_createConstructor_insteadOfSyntheticDefault();
       await _addFix_addMissingParameter();
     }
@@ -381,6 +384,9 @@ class FixProcessor {
       }
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
+      }
+      if (errorCode.name == LintNames.avoid_init_to_null) {
+        _addFix_removeInitializer();
       }
     }
     // done
@@ -1629,6 +1635,9 @@ class FixProcessor {
         if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
+        if (!_isSourceVisibleToLibrary(librarySource)) {
+          continue;
+        }
         // Compute the fix kind.
         FixKind fixKind;
         if (librarySource.isInSystemLibrary) {
@@ -1791,6 +1800,20 @@ class FixProcessor {
       _addRemoveEdit(rangeToRemove);
       _addFix(DartFixKind.REMOVE_DEAD_CODE, []);
     }
+  }
+
+  void _addFix_removeInitializer() {
+    // Retrieve the linted node.
+    VariableDeclaration ancestor =
+        node.getAncestor((a) => a is VariableDeclaration);
+    if (ancestor == null) {
+      return;
+    }
+
+    final start = ancestor.name.end;
+    final end = ancestor.initializer.end;
+    _addRemoveEdit(rf.rangeStartLength(start, end - start));
+    _addFix(DartFixKind.REMOVE_INITIALIZER, []);
   }
 
   void _addFix_removeParameters_inGetterDeclaration() {
@@ -2881,6 +2904,36 @@ class FixProcessor {
   }
 
   /**
+   * Return `true` if the [source] can be imported into [unitLibraryFile].
+   */
+  bool _isSourceVisibleToLibrary(Source source) {
+    if (!source.uri.isScheme('file')) {
+      return true;
+    }
+
+    // Prepare the root of our package.
+    Folder packageRoot;
+    for (Folder folder = unitLibraryFolder;
+        folder != null;
+        folder = folder.parent) {
+      if (folder.getChildAssumingFile('pubspec.yaml').exists ||
+          folder.getChildAssumingFile('BUILD').exists) {
+        packageRoot = folder;
+        break;
+      }
+    }
+
+    // This should be rare / never situation.
+    if (packageRoot == null) {
+      return true;
+    }
+
+    // We cannot use relative URIs to reference files outside of our package.
+    return resourceProvider.pathContext
+        .isWithin(packageRoot.path, source.fullName);
+  }
+
+  /**
    * Removes any [ParenthesizedExpression] enclosing [expr].
    *
    * [exprPrecedence] - the effective precedence of [expr].
@@ -2996,6 +3049,7 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
 }

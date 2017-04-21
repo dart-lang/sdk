@@ -31,7 +31,7 @@ testBadCreate() async {
   try {
     await badFile.create();
     Expect.fail('Should be unreachable');
-  } catch(e) {
+  } catch (e) {
     Expect.isTrue(e is FileSystemException);
     Expect.isNotNull(e.osError);
   }

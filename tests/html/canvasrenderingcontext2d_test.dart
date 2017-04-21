@@ -61,7 +61,7 @@ List<int> readPixel(int x, int y) {
 }
 
 /// Returns true if the pixel has some data in it, false otherwise.
-bool isPixelFilled(int x, int y) => readPixel(x,y).any((p) => p != 0);
+bool isPixelFilled(int x, int y) => readPixel(x, y).any((p) => p != 0);
 
 String pixelDataToString(List<int> data, int x, int y) {
   return '[${data.join(", ")}]';
@@ -70,10 +70,10 @@ String pixelDataToString(List<int> data, int x, int y) {
 String _filled(bool v) => v ? "filled" : "unfilled";
 
 void expectPixelFilled(int x, int y, [bool filled = true]) {
-  expect(isPixelFilled(x, y), filled, reason:
-      'Pixel at ($x, $y) was expected to'
-      ' be: <${_filled(filled)}> but was: <${_filled(!filled)}> with data: '
-      '${pixelDataToString(readPixel(x, y), x, y)}');
+  expect(isPixelFilled(x, y), filled,
+      reason: 'Pixel at ($x, $y) was expected to'
+          ' be: <${_filled(filled)}> but was: <${_filled(!filled)}> with data: '
+          '${pixelDataToString(readPixel(x, y), x, y)}');
 }
 
 void expectPixelUnfilled(int x, int y) {
@@ -153,9 +153,9 @@ main() {
     });
 
     test('fillStyle linearGradient', () {
-      var gradient = context.createLinearGradient(0,0,20,20);
-      gradient.addColorStop(0,'red');
-      gradient.addColorStop(1,'blue');
+      var gradient = context.createLinearGradient(0, 0, 20, 20);
+      gradient.addColorStop(0, 'red');
+      gradient.addColorStop(1, 'blue');
       context.fillStyle = gradient;
       context.fillRect(0, 0, canvas.width, canvas.height);
       expect(context.fillStyle is CanvasGradient, isTrue);
@@ -209,16 +209,16 @@ main() {
       for (int i = 0; i < expectedData.data.length; i++) {
         switch (i % 4) {
           case 0:
-            expectedData.data[i] =  0;
+            expectedData.data[i] = 0;
             break;
           case 1:
-            expectedData.data[i] =  128;
+            expectedData.data[i] = 128;
             break;
           case 2:
-            expectedData.data[i] =  0;
+            expectedData.data[i] = 0;
             break;
           case 3:
-            expectedData.data[i] =  255;
+            expectedData.data[i] = 255;
             break;
         }
       }
@@ -237,12 +237,9 @@ main() {
       ImageData expectedData = context.getImageData(0, 0, 10, 10);
 
       // TODO(antonm): in Dartium ArgumentError should be thrown too.
-      expect(() => context.putImageData(expectedData, 0, 0, 1),
-        throws);
-      expect(() => context.putImageData(expectedData, 0, 0, 1, 1),
-        throws);
-      expect(() => context.putImageData(expectedData, 0, 0, 1, 1, 5),
-        throws);
+      expect(() => context.putImageData(expectedData, 0, 0, 1), throws);
+      expect(() => context.putImageData(expectedData, 0, 0, 1, 1), throws);
+      expect(() => context.putImageData(expectedData, 0, 0, 1, 1, 5), throws);
     });
   });
 
@@ -259,7 +256,7 @@ main() {
       final cy = 20;
       // Arc centered at (20, 20) with radius 10 will go clockwise
       // from (20 + r, 20) to (20, 20 + r), which is 1/4 of a circle.
-      context.arc(cx, cy, r, 0, PI/2);
+      context.arc(cx, cy, r, 0, PI / 2);
 
       context.strokeStyle = 'green';
       context.lineWidth = 2;
@@ -278,16 +275,20 @@ main() {
       expectPixelFilled(cx, cy - r, false);
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be filled.
-      expectPixelFilled((cx + r/SQRT2).toInt(), (cy + r/SQRT2).toInt(), true);
+      expectPixelFilled(
+          (cx + r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), true);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be empty.
-      expectPixelFilled((cx - r/SQRT2).toInt(), (cy + r/SQRT2).toInt(), false);
+      expectPixelFilled(
+          (cx - r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), false);
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be empty.
-      expectPixelFilled((cx - r/SQRT2).toInt(), (cy - r/SQRT2).toInt(), false);
+      expectPixelFilled(
+          (cx - r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), false);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be empty.
-      expectPixelFilled((cx + r/SQRT2).toInt(), (cy - r/SQRT2).toInt(), false);
+      expectPixelFilled(
+          (cx + r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), false);
     });
 
     test('arc anticlockwise', () {
@@ -302,7 +303,7 @@ main() {
       // Because of the way arc work, when going anti-clockwise, the end points
       // are not included, so small values are added to radius to make a little
       // more than a 3/4 circle.
-      context.arc(cx, cy, r, .1, PI/2 - .1, true);
+      context.arc(cx, cy, r, .1, PI / 2 - .1, true);
 
       context.strokeStyle = 'green';
       context.lineWidth = 2;
@@ -321,16 +322,20 @@ main() {
       expectPixelFilled(cx, cy - r, true);
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be empty.
-      expectPixelFilled((cx + r/SQRT2).toInt(), (cy + r/SQRT2).toInt(), false);
+      expectPixelFilled(
+          (cx + r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), false);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be filled.
-      expectPixelFilled((cx - r/SQRT2).toInt(), (cy + r/SQRT2).toInt(), true);
+      expectPixelFilled(
+          (cx - r / SQRT2).toInt(), (cy + r / SQRT2).toInt(), true);
 
       // (cx + r/SQRT2, cy + r/SQRT2) should be filled.
-      expectPixelFilled((cx - r/SQRT2).toInt(), (cy - r/SQRT2).toInt(), true);
+      expectPixelFilled(
+          (cx - r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), true);
 
       // (cx - r/SQRT2, cy - r/SQRT2) should be filled.
-      expectPixelFilled((cx + r/SQRT2).toInt(), (cy - r/SQRT2).toInt(), true);
+      expectPixelFilled(
+          (cx + r / SQRT2).toInt(), (cy - r / SQRT2).toInt(), true);
     });
   });
 
@@ -393,7 +398,7 @@ main() {
         // and then scale it to a 20x20 square and place it to the second
         // canvas at 50,50.
         context.drawImageToRect(img, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+            sourceRect: new Rectangle(2, 2, 6, 6));
 
         checkPixel(readPixel(50, 50), [255, 0, 0, 255]);
         checkPixel(readPixel(55, 55), [255, 0, 0, 255]);
@@ -494,10 +499,11 @@ main() {
         fail('URL failed to load.');
       });
 
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+      if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
         video.src = webmVideoUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
+      } else if (video.canPlayType(
+              'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+          '') {
         video.src = mp4VideoUrl;
       } else {
         window.console.log('Video is not supported on this system.');
@@ -521,10 +527,11 @@ main() {
         fail('URL failed to load.');
       });
 
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+      if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
         video.src = webmVideoUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
+      } else if (video.canPlayType(
+              'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+          '') {
         video.src = mp4VideoUrl;
       } else {
         // TODO(amouravski): Better fallback?
@@ -535,7 +542,7 @@ main() {
     test('with 9 params', () {
       video.onCanPlay.listen(expectAsync((_) {
         context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+            sourceRect: new Rectangle(2, 2, 6, 6));
 
         expectPixelFilled(50, 50);
         expectPixelFilled(55, 55);
@@ -550,10 +557,11 @@ main() {
         fail('URL failed to load.');
       });
 
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+      if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
         video.src = webmVideoUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
+      } else if (video.canPlayType(
+              'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+          '') {
         video.src = mp4VideoUrl;
       } else {
         // TODO(amouravski): Better fallback?
@@ -571,7 +579,7 @@ main() {
       canvas = new CanvasElement();
       video.onCanPlay.listen(expectAsync((_) {
         context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
-          sourceRect: new Rectangle(2, 2, 6, 6));
+            sourceRect: new Rectangle(2, 2, 6, 6));
 
         expectPixelFilled(50, 50);
         expectPixelFilled(55, 55);
@@ -586,10 +594,11 @@ main() {
         fail('URL failed to load.');
       });
 
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+      if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
         video.src = webmVideoDataUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
+      } else if (video.canPlayType(
+              'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+          '') {
         video.src = mp4VideoDataUrl;
       } else {
         // TODO(amouravski): Better fallback?

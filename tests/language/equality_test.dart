@@ -5,18 +5,20 @@
 
 import "package:expect/expect.dart";
 
-
 class A {
   bool _result;
   A(this._result);
-  operator ==(x) { return _result; }
+  operator ==(x) {
+    return _result;
+  }
 }
 
-
-opaque(x) => [x,1,'y'][0];  // confuse the optimizers.
+opaque(x) => [x, 1, 'y'][0]; // confuse the optimizers.
 
 class Death {
-  operator ==(x) { throw 'Dead!'; }
+  operator ==(x) {
+    throw 'Dead!';
+  }
 }
 
 death() => opaque(new Death());
@@ -47,8 +49,7 @@ tests() {
   if (death() == nullFn()) {
     throw "failed";
   }
-  if (death() != nullFn()) {
-  } else {
+  if (death() != nullFn()) {} else {
     throw "failed";
   }
 }

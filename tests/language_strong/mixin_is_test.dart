@@ -4,19 +4,23 @@
 
 import "package:expect/expect.dart";
 
-class S { }
-class M1 { }
-class M2 { }
+class S {}
+
+class M1 {}
+
+class M2 {}
 
 class C = S with M1;
 class D = S with M1, M2;
 class E = S with M2, M1;
-class F extends E { }
+
+class F extends E {}
 
 class C_ = S with M1;
 class D_ = S with M1, M2;
 class E_ = S with M2, M1;
-class F_ extends E_ { }
+
+class F_ extends E_ {}
 
 main() {
   var c = new C();

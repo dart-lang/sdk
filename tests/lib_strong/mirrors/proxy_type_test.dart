@@ -19,12 +19,14 @@ class Alice {
   sayFooUnattenuated() {
     bob.foo(carol);
   }
+
   sayFooAttenuated() {
     bool enabled = true;
     bool gate() => enabled;
     bob.foo(new CarolCaretaker(carol, gate));
-    enabled = false;  // Attenuate a capability
+    enabled = false; // Attenuate a capability
   }
+
   sayBar() {
     bob.bar();
   }
@@ -33,9 +35,10 @@ class Alice {
 class Bob {
   Carol savedCarol;
   foo(Carol carol) {
-    savedCarol = carol;  // Store a capability
+    savedCarol = carol; // Store a capability
     carol.foo();
   }
+
   bar() {
     savedCarol.foo();
   }
@@ -63,20 +66,18 @@ class CarolCaretaker implements Carol {
 main() {
   Alice alice1 = new Alice();
   alice1.sayFooUnattenuated();
-  alice1.sayBar();  // Bob still has authority to use Carol
+  alice1.sayBar(); // Bob still has authority to use Carol
 
   Alice alice2 = new Alice();
   alice2.sayFooAttenuated();
-  Expect.throws(() => alice2.sayBar(),
-                (e) => e is NoSuchMethodError,
-                'Authority should have been attenuated');
+  Expect.throws(() => alice2.sayBar(), (e) => e is NoSuchMethodError,
+      'Authority should have been attenuated');
 
   // At the base level, a caretaker for a Carol masquerades as a Carol.
-  CarolCaretaker caretaker = new CarolCaretaker(new Carol(), ()=>true);
+  CarolCaretaker caretaker = new CarolCaretaker(new Carol(), () => true);
   Expect.isTrue(caretaker is Carol);
   Expect.equals(Carol, caretaker.runtimeType);
 
   // At the reflective level, the caretaker is distinguishable.
-  Expect.equals(reflectClass(CarolCaretaker),
-                reflect(caretaker).type);
+  Expect.equals(reflectClass(CarolCaretaker), reflect(caretaker).type);
 }

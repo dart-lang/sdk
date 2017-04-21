@@ -7,12 +7,14 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart'
+    hide ContextRoot;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -138,7 +140,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
-                List<Future<Response>> responses = manager.broadcast(
+                Map<PluginInfo, Future<Response>> responses = manager.broadcast(
                     contextRoot,
                     new CompletionGetSuggestionsParams(
                         '/pkg1/lib/pkg1.dart', 100));
@@ -224,7 +226,7 @@ class PluginManagerTest {
 
   void test_broadcast_none() {
     ContextRoot contextRoot = new ContextRoot('/pkg1', []);
-    List<Future<Response>> responses = manager.broadcast(contextRoot,
+    Map<PluginInfo, Future<Response>> responses = manager.broadcast(contextRoot,
         new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100));
     expect(responses, hasLength(0));
   }

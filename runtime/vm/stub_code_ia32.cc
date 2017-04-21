@@ -120,7 +120,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   EAX : address of first argument in argument array.
 //   ECX : address of the native function to call.
 //   EDX : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              ExternalLabel* wrapper) {
   const intptr_t native_args_struct_offset =
       NativeEntry::kNumCallWrapperArguments * kWordSize;
   const intptr_t thread_offset =
@@ -172,8 +173,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
 
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
-  ExternalLabel label(NativeEntry::NativeCallWrapperEntry());
-  __ call(&label);
+  __ call(wrapper);
 
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
@@ -185,13 +185,25 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  ExternalLabel wrapper(NativeEntry::NoScopeNativeCallWrapperEntry());
+  GenerateCallNativeWithWrapperStub(assembler, &wrapper);
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  ExternalLabel wrapper(NativeEntry::AutoScopeNativeCallWrapperEntry());
+  GenerateCallNativeWithWrapperStub(assembler, &wrapper);
+}
+
+
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of return value.
 //   EAX : address of first argument in argument array.
 //   ECX : address of the native function to call.
 //   EDX : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
   const intptr_t thread_offset =
       NativeArguments::thread_offset() + native_args_struct_offset;
@@ -1668,20 +1680,21 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments (can be NULL).
-// TOS + 2: instance.
-// TOS + 3: SubtypeTestCache.
+// TOS + 1: function type arguments (only if n == 4, can be raw_null).
+// TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in ECX: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((1 <= n) && (n <= 3));
-  const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
-  const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
-  const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
+  ASSERT((n == 1) || (n == 2) || (n == 4));
+  const intptr_t kFunctionTypeArgumentsInBytes = 1 * kWordSize;
+  const intptr_t kInstantiatorTypeArgumentsInBytes = 2 * kWordSize;
+  const intptr_t kInstanceOffsetInBytes = 3 * kWordSize;
+  const intptr_t kCacheOffsetInBytes = 4 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
   if (n > 1) {
-    // Get instance type arguments.
     __ LoadClass(ECX, EAX, EBX);
     // Compute instance type arguments into EBX.
     Label has_no_type_arguments;
@@ -1709,7 +1722,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(ECX);
   __ cmpl(ECX, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movl(EBX, FieldAddress(EAX, Closure::instantiator_offset()));
+  __ movl(EBX, FieldAddress(EAX, Closure::function_type_arguments_offset()));
+  __ cmpl(EBX, raw_null);  // Cache cannot be used for generic closures.
+  __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
+  __ movl(EBX,
+          FieldAddress(EAX, Closure::instantiator_type_arguments_offset()));
   __ movl(ECX, FieldAddress(EAX, Closure::function_offset()));
   // ECX: instance class id as Smi or function.
   __ Bind(&loop);
@@ -1733,6 +1750,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
               Address(EDX, kWordSize *
                                SubtypeTestCache::kInstantiatorTypeArguments));
       __ cmpl(EDI, Address(ESP, kInstantiatorTypeArgumentsInBytes));
+      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+      __ movl(EDI, Address(EDX, kWordSize *
+                                    SubtypeTestCache::kFunctionTypeArguments));
+      __ cmpl(EDI, Address(ESP, kFunctionTypeArgumentsInBytes));
       __ j(EQUAL, &found, Assembler::kNearJump);
     }
   }
@@ -1752,9 +1773,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments or NULL.
-// TOS + 2: instance.
-// TOS + 3: cache array.
+// TOS + 1: raw_null.
+// TOS + 2: raw_null.
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in ECX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
@@ -1763,9 +1785,10 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments or NULL.
-// TOS + 2: instance.
-// TOS + 3: cache array.
+// TOS + 1: raw_null.
+// TOS + 2: raw_null.
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in ECX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
@@ -1774,12 +1797,13 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: instantiator type arguments.
-// TOS + 2: instance.
-// TOS + 3: cache array.
+// TOS + 1: function type arguments (can be raw_null).
+// TOS + 2: instantiator type arguments (can be raw_null).
+// TOS + 3: instance.
+// TOS + 4: SubtypeTestCache.
 // Result in ECX: null -> not found, otherwise result (true or false).
-void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
+void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
 

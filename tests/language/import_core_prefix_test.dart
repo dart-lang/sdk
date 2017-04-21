@@ -4,11 +4,11 @@
 // Test explicit import of dart:core in the source code..
 
 library ImportCorePrefixTest.dart;
+
 import "package:expect/expect.dart";
 import "dart:core" as mycore;
 
-class Object {
-}
+class Object {}
 
 class Map {
   Map(this._lat, this._long);
@@ -19,9 +19,8 @@ class Map {
   var _long;
 }
 
-
 void main() {
-  var test = new mycore.Map<mycore.int,mycore.String>();
+  var test = new mycore.Map<mycore.int, mycore.String>();
   mycore.bool boolval = false;
   mycore.int variable = 10;
   mycore.num value = 10;

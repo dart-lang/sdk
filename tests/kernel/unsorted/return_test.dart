@@ -8,9 +8,13 @@ import 'package:expect/expect.dart';
 
 test0() {}
 
-test1() { return; }
+test1() {
+  return;
+}
 
-test3() { return 3; }
+test3() {
+  return 3;
+}
 
 test4() => 4;
 

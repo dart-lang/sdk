@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/backend_api.dart' show BackendClasses, ForeignResolver;
+import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
 import '../compile_time_constants.dart' show ConstantEnvironment;
@@ -15,8 +15,7 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
-import '../js_backend/backend_helpers.dart';
+import '../js_backend/native_data.dart' show NativeData;
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -777,7 +776,8 @@ class NativeBehavior {
       metadata.add(annotation.constant);
     }
 
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
+    BehaviorBuilder builder =
+        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeData);
     return builder.buildMethodBehavior(
         type, metadata, lookupFromElement(compiler.resolution, element),
         isJsInterop: isJsInterop);
@@ -794,7 +794,8 @@ class NativeBehavior {
       metadata.add(annotation.constant);
     }
 
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
+    BehaviorBuilder builder =
+        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeData);
     return builder.buildFieldLoadBehavior(
         type, metadata, lookupFromElement(resolution, element),
         isJsInterop: isJsInterop);
@@ -802,7 +803,8 @@ class NativeBehavior {
 
   static NativeBehavior ofFieldElementStore(
       MemberElement field, Compiler compiler) {
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
+    BehaviorBuilder builder =
+        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeData);
     ResolutionDartType type = field.computeType(compiler.resolution);
     return builder.buildFieldStoreBehavior(type);
   }
@@ -848,10 +850,9 @@ class NativeBehavior {
 
 abstract class BehaviorBuilder {
   CommonElements get commonElements;
-  BackendClasses get backendClasses;
-  BackendHelpers get helpers;
   DiagnosticReporter get reporter;
   ConstantEnvironment get constants;
+  NativeData get nativeData;
   bool get trustJSInteropTypeAnnotations;
 
   Resolution get resolution => null;
@@ -863,9 +864,9 @@ abstract class BehaviorBuilder {
     if (metadata.isEmpty) return;
 
     List creates =
-        _collect(metadata, helpers.annotationCreatesClass, lookupType);
+        _collect(metadata, commonElements.annotationCreatesClass, lookupType);
     List returns =
-        _collect(metadata, helpers.annotationReturnsClass, lookupType);
+        _collect(metadata, commonElements.annotationReturnsClass, lookupType);
 
     if (creates != null) {
       _behavior.typesInstantiated
@@ -949,8 +950,7 @@ abstract class BehaviorBuilder {
       if (!isInterop) {
         _behavior.typesInstantiated.add(type);
       } else {
-        if (type is InterfaceType &&
-            backendClasses.isNativeClass(type.element)) {
+        if (type is InterfaceType && nativeData.isNativeClass(type.element)) {
           // Any declared native or interop type (isNative implies isJsInterop)
           // is assumed to be allocated.
           _behavior.typesInstantiated.add(type);
@@ -965,7 +965,7 @@ abstract class BehaviorBuilder {
           // annotations. This means that to some degree we still use the return
           // type to decide whether to include native types, even if we don't
           // trust the type annotation.
-          ClassElement cls = helpers.jsJavaScriptObjectClass;
+          ClassElement cls = commonElements.jsJavaScriptObjectClass;
           cls.ensureResolved(resolution);
           _behavior.typesInstantiated.add(cls.thisType);
         } else {
@@ -1038,8 +1038,9 @@ abstract class BehaviorBuilder {
 
 class ResolverBehaviorBuilder extends BehaviorBuilder {
   final Compiler compiler;
+  final NativeData nativeData;
 
-  ResolverBehaviorBuilder(this.compiler);
+  ResolverBehaviorBuilder(this.compiler, this.nativeData);
 
   @override
   CommonElements get commonElements => compiler.commonElements;
@@ -1053,15 +1054,6 @@ class ResolverBehaviorBuilder extends BehaviorBuilder {
 
   @override
   DiagnosticReporter get reporter => compiler.reporter;
-
-  @override
-  BackendHelpers get helpers {
-    JavaScriptBackend backend = compiler.backend;
-    return backend.helpers;
-  }
-
-  @override
-  BackendClasses get backendClasses => compiler.backend.backendClasses;
 
   @override
   Resolution get resolution => compiler.resolution;

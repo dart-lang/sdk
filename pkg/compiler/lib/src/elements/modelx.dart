@@ -26,6 +26,7 @@ import '../tree/tree.dart';
 import '../util/util.dart';
 import 'common.dart';
 import 'elements.dart';
+import 'entities.dart';
 import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 
@@ -245,6 +246,7 @@ class ErroneousElementX extends ElementX
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
+  get parameterStructure => unsupported();
   get parameters => unsupported();
   get patch => null;
   get origin => this;
@@ -431,6 +433,11 @@ class ErroneousConstructorElementX extends ErroneousElementX
   @override
   set functionSignature(_) {
     throw new UnsupportedError("functionSignature=");
+  }
+
+  @override
+  get parameterStructure {
+    throw new UnsupportedError("parameterStructure");
   }
 
   @override
@@ -2015,6 +2022,9 @@ abstract class BaseFunctionElementX extends ElementX
     return isClassMember && !isConstructor && !isStatic;
   }
 
+  ParameterStructure get parameterStructure =>
+      functionSignature.parameterStructure;
+
   bool get hasFunctionSignature => _functionSignatureCache != null;
 
   void _computeSignature(Resolution resolution) {
@@ -2692,7 +2702,7 @@ abstract class BaseClassElementX extends ElementX
     implements ClassElement {
   final int id;
 
-  ResolutionDartType supertype;
+  ResolutionInterfaceType supertype;
   Link<ResolutionDartType> interfaces;
   int supertypeLoadState;
   int resolutionState;

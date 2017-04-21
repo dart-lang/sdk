@@ -5,21 +5,20 @@
 // as Smi's would be used to represent many of the numbers.
 
 library MediumIntegerTest;
+
 import "package:expect/expect.dart";
 
-
 class MediumIntegerTest {
-
   static int getMint() {
     return 1234567890123456789;
   }
 
   static testSmiOverflow() {
-     int a = 1073741823;
-     int b = 1073741822;
-     Expect.equals(2147483645, a + b);
-     Expect.equals(1152921501385621506, a * b);
-     Expect.equals(-2147483645, -a - b);
+    int a = 1073741823;
+    int b = 1073741822;
+    Expect.equals(2147483645, a + b);
+    Expect.equals(1152921501385621506, a * b);
+    Expect.equals(-2147483645, -a - b);
   }
 
   static testMintAdd() {

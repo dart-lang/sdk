@@ -9,24 +9,22 @@ main() {
   List<int> list2 = const <int>[4, 5, 6];
   List<String> list3 = <String>[];
   Set<int> set1 = new Set<int>();
-  set1..add(11)
-      ..add(12)
-      ..add(13);
+  set1..add(11)..add(12)..add(13);
   Set set2 = new Set();
 
   Expect.equals(1, list1.elementAt(0));
   Expect.equals(2, list1.elementAt(1));
   Expect.equals(3, list1.elementAt(2));
-  Expect.throws(() => list1.elementAt("2"),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => list1.elementAt("2"), (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => list1.elementAt(-1), (e) => e is ArgumentError);
   Expect.throws(() => list1.elementAt(3), (e) => e is RangeError);
 
   Expect.equals(4, list2.elementAt(0));
   Expect.equals(5, list2.elementAt(1));
   Expect.equals(6, list2.elementAt(2));
-  Expect.throws(() => list2.elementAt("2"),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => list2.elementAt("2"), (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => list2.elementAt(-1), (e) => e is ArgumentError);
   Expect.throws(() => list2.elementAt(3), (e) => e is RangeError);
 
@@ -36,8 +34,8 @@ main() {
   Expect.throws(() => set1.elementAt(-1), (e) => e is ArgumentError);
   Expect.throws(() => set1.elementAt(3), (e) => e is RangeError);
 
-  Expect.throws(() => set2.elementAt("2"),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => set2.elementAt("2"), (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => set2.elementAt(-1), (e) => e is ArgumentError);
   Expect.throws(() => set2.elementAt(0), (e) => e is RangeError);
   Expect.throws(() => set2.elementAt(1), (e) => e is RangeError);

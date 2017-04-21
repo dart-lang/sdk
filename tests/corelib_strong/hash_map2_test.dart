@@ -9,6 +9,7 @@
 // modification errors.
 
 library hash_map2_test;
+
 import "package:expect/expect.dart";
 import 'dart:collection';
 
@@ -22,10 +23,13 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
   bool odd(int n) => (n & 1) == 1;
   bool even(int n) => (n & 1) == 0;
   void addAll(Map toMap, Map fromMap) {
-    fromMap.forEach((k, v) { toMap[k] = v; });
+    fromMap.forEach((k, v) {
+      toMap[k] = v;
+    });
   }
 
-  {  // Test growing to largish capacity.
+  {
+    // Test growing to largish capacity.
     Map map = newMap();
 
     for (int i = 0; i < 256; i++) {
@@ -46,7 +50,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     Expect.equals(1000, map.length);
   }
 
-  {  // Test having many deleted elements.
+  {
+    // Test having many deleted elements.
     Map map = newMap();
     map[0] = 0;
     for (int i = 0; i < 1000; i++) {
@@ -56,7 +61,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     }
   }
 
-  {  // Test having many elements with same hashCode
+  {
+    // Test having many elements with same hashCode
     Map map = newMap();
     for (int i = 0; i < 1000; i++) {
       map[new BadHashCode()] = 0;
@@ -64,19 +70,24 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     Expect.equals(1000, map.length);
   }
 
-  {  // Check concurrent modification
-    Map map = newMap()..[0] = 0..[1] = 1;
+  {
+    // Check concurrent modification
+    Map map = newMap()
+      ..[0] = 0
+      ..[1] = 1;
 
-    {  // Test adding before a moveNext.
+    {
+      // Test adding before a moveNext.
       Iterator iter = map.keys.iterator;
       iter.moveNext();
-      map[1] = 9;  // Updating existing key isn't a modification.
+      map[1] = 9; // Updating existing key isn't a modification.
       iter.moveNext();
       map[2] = 2;
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test adding after last element.
+    {
+      // Test adding after last element.
       Iterator iter = map.keys.iterator;
       Expect.equals(3, map.length);
       iter.moveNext();
@@ -86,10 +97,11 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test removing during iteration.
+    {
+      // Test removing during iteration.
       Iterator iter = map.keys.iterator;
       iter.moveNext();
-      map.remove(1000);  // Not a modification if it's not there.
+      map.remove(1000); // Not a modification if it's not there.
       iter.moveNext();
       int n = iter.current;
       map.remove(n);
@@ -98,7 +110,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test removing after last element.
+    {
+      // Test removing after last element.
       Iterator iter = map.keys.iterator;
       Expect.equals(3, map.length);
       iter.moveNext();
@@ -111,8 +124,9 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test that updating value of existing key doesn't cause concurrent
-       // modification error.
+    {
+      // Test that updating value of existing key doesn't cause concurrent
+      // modification error.
       Iterator iter = map.keys.iterator;
       Expect.equals(2, map.length);
       iter.moveNext();
@@ -122,7 +136,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
       Expect.equals(map[iter.current], iter.current);
     }
 
-    {  // Test that modification during putIfAbsent is not an error.
+    {
+      // Test that modification during putIfAbsent is not an error.
       map.putIfAbsent(4, () {
         map[5] = 5;
         map[4] = -1;
@@ -132,7 +147,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
       Expect.equals(5, map[5]);
     }
 
-    {  // Check adding many existing keys isn't considered modification.
+    {
+      // Check adding many existing keys isn't considered modification.
       Map map2 = newMap();
       for (var key in map.keys) {
         map2[key] = map[key] + 1;
@@ -144,8 +160,9 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     }
   }
 
-  {  // Regression test for bug in putIfAbsent where adding an element
-     // that make the table grow, can be lost.
+  {
+    // Regression test for bug in putIfAbsent where adding an element
+    // that make the table grow, can be lost.
     Map map = newMap();
     map.putIfAbsent("S", () => 0);
     map.putIfAbsent("T", () => 0);
@@ -157,68 +174,70 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     Expect.isTrue(map.containsKey("n"));
   }
 
-  {  // Check that putIfAbsent works just as well as put.
+  {
+    // Check that putIfAbsent works just as well as put.
     Map map = newMap();
     for (int i = 0; i < 128; i++) {
       map.putIfAbsent(i, () => i);
       Expect.isTrue(map.containsKey(i));
-      map.putIfAbsent(i >> 1, () => -1);  // Never triggers.
+      map.putIfAbsent(i >> 1, () => -1); // Never triggers.
     }
     for (int i = 0; i < 128; i++) {
       Expect.equals(i, map[i]);
     }
   }
 
-  {  // Check that updating existing elements is not a modification.
-     // This must be the case even if the underlying data structure is
-     // nearly full.
-     for (int i = 1; i < 128; i++) {
-        // Create maps of different sizes, some of which should be
-        // at a limit of the underlying data structure.
-        Map map = newMapFrom(gen(0, i));
+  {
+    // Check that updating existing elements is not a modification.
+    // This must be the case even if the underlying data structure is
+    // nearly full.
+    for (int i = 1; i < 128; i++) {
+      // Create maps of different sizes, some of which should be
+      // at a limit of the underlying data structure.
+      Map map = newMapFrom(gen(0, i));
 
-        // ForEach-iteration.
-        map.forEach((key, v) {
-          Expect.equals(key, map[key]);
-          map[key] = key + 1;
-          map.remove(1000);  // Removing something not there.
-          map.putIfAbsent(key, () => Expect.fail("SHOULD NOT BE ABSENT"));
-          // Doesn't cause ConcurrentModificationError.
-        });
+      // ForEach-iteration.
+      map.forEach((key, v) {
+        Expect.equals(key, map[key]);
+        map[key] = key + 1;
+        map.remove(1000); // Removing something not there.
+        map.putIfAbsent(key, () => Expect.fail("SHOULD NOT BE ABSENT"));
+        // Doesn't cause ConcurrentModificationError.
+      });
 
-        // for-in iteration.
-        for (int key in map.keys) {
-          Expect.equals(key + 1, map[key]);
-          map[key] = map[key] + 1;
-          map.remove(1000);  // Removing something not there.
-          map.putIfAbsent(key, () => Expect.fail("SHOULD NOT BE ABSENT"));
-          // Doesn't cause ConcurrentModificationError.
-        }
+      // for-in iteration.
+      for (int key in map.keys) {
+        Expect.equals(key + 1, map[key]);
+        map[key] = map[key] + 1;
+        map.remove(1000); // Removing something not there.
+        map.putIfAbsent(key, () => Expect.fail("SHOULD NOT BE ABSENT"));
+        // Doesn't cause ConcurrentModificationError.
+      }
 
-        // Raw iterator.
-        Iterator iter = map.keys.iterator;
-        for (int key = 0; key < i; key++) {
-          Expect.equals(key + 2, map[key]);
-          map[key] = key + 3;
-          map.remove(1000);  // Removing something not there.
-          map.putIfAbsent(key, () => Expect.fail("SHOULD NOT BE ABSENT"));
-          // Doesn't cause ConcurrentModificationError on the moveNext.
-        }
-        iter.moveNext();  // Should not throw.
+      // Raw iterator.
+      Iterator iter = map.keys.iterator;
+      for (int key = 0; key < i; key++) {
+        Expect.equals(key + 2, map[key]);
+        map[key] = key + 3;
+        map.remove(1000); // Removing something not there.
+        map.putIfAbsent(key, () => Expect.fail("SHOULD NOT BE ABSENT"));
+        // Doesn't cause ConcurrentModificationError on the moveNext.
+      }
+      iter.moveNext(); // Should not throw.
 
-        // Remove a lot of elements, which can cause a re-tabulation.
-        for (int key = 1; key < i; key++) {
-          Expect.equals(key + 3, map[key]);
-          map.remove(key);
-        }
-        iter = map.keys.iterator;
-        map[0] = 2;
-        iter.moveNext();  // Should not throw.
-     }
+      // Remove a lot of elements, which can cause a re-tabulation.
+      for (int key = 1; key < i; key++) {
+        Expect.equals(key + 3, map[key]);
+        map.remove(key);
+      }
+      iter = map.keys.iterator;
+      map[0] = 2;
+      iter.moveNext(); // Should not throw.
+    }
   }
 
-
-  {  // Check that null can be in the map.
+  {
+    // Check that null can be in the map.
     Map map = newMap();
     map[null] = 0;
     Expect.equals(1, map.length);
@@ -283,7 +302,6 @@ void main() {
   testMap(() => new HashMap(), (m) => new HashMap.from(m));
   testMap(() => new LinkedHashMap(), (m) => new LinkedHashMap.from(m));
 }
-
 
 class BadHashCode {
   static int idCounter = 0;

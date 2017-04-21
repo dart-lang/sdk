@@ -66,7 +66,7 @@ class Dynamic extends TypeRep {
   toString() => 'dynamic';
 }
 
-class LazyJSType implements Type {
+class LazyJSType extends TypeRep {
   final _jsTypeCallback;
   final _dartName;
 
@@ -114,7 +114,10 @@ _asInstanceOfLazyJSType(o, LazyJSType t) {
   return o;
 }
 
-bool _isJSObject(o) => JS('bool', '!dart.getReifiedType(o)[dart._runtimeType]');
+bool _isJSObject(o) =>
+    JS('bool', '!dart.getReifiedType(#)[dart._runtimeType]', o);
+
+bool _isJSType(t) => JS('bool', '!#[dart._runtimeType]', t);
 
 @JSExportName('dynamic')
 final _dynamic = new Dynamic();
@@ -577,12 +580,12 @@ getImplicitFunctionType(type) {
 bool isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
     AbstractFunctionType, type, Function);
 
-isLazyJSSubtype(LazyJSType t1, LazyJSType t2, isCovariant) {
-  if (t1 == t2) return true;
-
-  // All anonymous JS types are subtypes of each other.
-  if (t1._jsTypeCallback == null || t2._jsTypeCallback == null) return true;
-  return isClassSubType(t1._rawJSType, t2._rawJSType, isCovariant);
+isLazyJSSubtype(t1, LazyJSType t2, isCovariant) {
+  // All JS types are subtypes of anonymous JS types.
+  if (t2._jsTypeCallback == null) {
+    return _isJSType(t1);
+  }
+  return _isSubtype(t1, t2._rawJSType, isCovariant);
 }
 
 /// Returns true if [ft1] <: [ft2].
@@ -765,6 +768,10 @@ _isSubtype(t1, t2, isCovariant) => JS(
     if (result === true || result === null) return result;
   }
 
+  if ($t2 instanceof $LazyJSType) {
+    return $isLazyJSSubtype($t1, $t2, $isCovariant);
+  }
+
   // Function subtyping.
 
   // Handle Objects with call methods.  Those are functions
@@ -775,11 +782,7 @@ _isSubtype(t1, t2, isCovariant) => JS(
   if ($isFunctionType($t1) && $isFunctionType($t2)) {
     return $isFunctionSubtype($t1, $t2, $isCovariant);
   }
-  
-  if ($t1 instanceof $LazyJSType && $t2 instanceof $LazyJSType) {
-    return $isLazyJSSubtype($t1, $t2, $isCovariant);
-  }
-  
+
   return false;
 })()''');
 

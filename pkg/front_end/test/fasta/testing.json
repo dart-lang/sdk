@@ -43,7 +43,7 @@
       "name": "outline",
       "kind": "Chain",
       "source": "outline_test.dart",
-      "path": "./",
+      "path": "../../testcases/",
       "status": "outline.status",
       "pattern": [
         "\\.dart$"
@@ -51,7 +51,7 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/test/fasta/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -59,7 +59,7 @@
       "name": "compile",
       "kind": "Chain",
       "source": "compile_test.dart",
-      "path": "./",
+      "path": "../../testcases/",
       "status": "compile.status",
       "pattern": [
         "\\.dart$"
@@ -67,7 +67,7 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/test/fasta/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -75,7 +75,7 @@
       "name": "kompile",
       "kind": "Chain",
       "source": "kompile_test.dart",
-      "path": "./",
+      "path": "../../testcases/",
       "status": "kompile.status",
       "pattern": [
         "\\.dart$"
@@ -83,7 +83,23 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/test/fasta/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$"
+      ]
+    },
+
+    {
+      "name": "strong",
+      "kind": "Chain",
+      "source": "strong_test.dart",
+      "path": "../../testcases/",
+      "status": "strong.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$",
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -153,8 +169,8 @@
       "outline_test.dart",
       "sdk_test.dart",
       "../../../analyzer/lib/src/fasta",
-      "../../../compiler/lib/src/parser",
-      "../../../compiler/lib/src/scanner",
+      "../../../analyzer/lib/src/dart/analysis/file_state.dart",
+      "../../../analyzer/test/generated/parser_fasta_test.dart",
       "../../../../utils/kernel-service/kernel-service.dart",
       "../../../../tools/patch_sdk.dart"
     ],
@@ -162,9 +178,7 @@
     "exclude": [
       "/third_party/pkg/",
       "/third_party/pkg_tested/",
-      "/pkg/analyzer/(?!.*/(fasta|kernel)/)",
-      "/pkg/compiler/lib/src/(?!(scanner|parser)/)",
-      "/pkg/compiler/lib/src/parser/partial_elements\\.dart$",
+      "/pkg/analyzer/(?!.*/(fasta/|kernel/|(file_state|parser_fasta_test)\\.dart$))",
       "/pkg/js_ast/"
     ]
   }

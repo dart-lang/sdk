@@ -22,11 +22,11 @@ measure(fn, a, b) {
 main() {
   var n = LEN;
   StringBuffer s = new StringBuffer();
-  for (var i=0; i < n; ++i) s.write("A");
+  for (var i = 0; i < n; ++i) s.write("A");
   String t = s.toString();
   String u = s.toString();
   String v = s.toString() + "\u1234";
   String w = s.toString() + "\u1234";
-  for (var i=0; i<10; i++) measure(test1, t, u);
-  for (var i=0; i<10; i++) measure(test1, v, w);
+  for (var i = 0; i < 10; i++) measure(test1, t, u);
+  for (var i = 0; i < 10; i++) measure(test1, v, w);
 }

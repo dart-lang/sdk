@@ -31,8 +31,10 @@ testDoWhile() {
 
 testLabledBreakOutermost() {
   int i = 0;
-  outer: {
-    middle: {
+  outer:
+  {
+    middle:
+    {
       while (i < 100) {
         if (++i > 41) break outer;
       }
@@ -45,8 +47,10 @@ testLabledBreakOutermost() {
 
 testLabledBreakMiddle() {
   int i = 0;
-  outer: {
-    middle: {
+  outer:
+  {
+    middle:
+    {
       while (i < 100) {
         if (++i > 41) break middle;
       }
@@ -59,8 +63,10 @@ testLabledBreakMiddle() {
 
 testLabledBreakInner() {
   int i = 0;
-  outer: {
-    middle: {
+  outer:
+  {
+    middle:
+    {
       while (i < 100) {
         if (++i > 41) break;
       }

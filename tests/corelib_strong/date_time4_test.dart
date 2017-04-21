@@ -9,7 +9,6 @@ import "package:expect/expect.dart";
 bool get supportsMicroseconds =>
     new DateTime.fromMicrosecondsSinceEpoch(1).microsecondsSinceEpoch == 1;
 
-
 main() {
   if (supportsMicroseconds) {
     testMicrosecondPrecision();

@@ -5,21 +5,21 @@
 import "package:expect/expect.dart";
 
 class C {
- get call => this;
+  get call => this;
 }
 
 // Recurs outside the try-block to avoid disabling inlining.
 foo() {
- var c = new C();
- c();
+  var c = new C();
+  c();
 }
 
 main() {
- bool exceptionCaught = false;
- try {
-  foo();
- } on StackOverflowError catch (e) {
-  exceptionCaught = true;
- }
- Expect.equals(true, exceptionCaught);
+  bool exceptionCaught = false;
+  try {
+    foo();
+  } on StackOverflowError catch (e) {
+    exceptionCaught = true;
+  }
+  Expect.equals(true, exceptionCaught);
 }

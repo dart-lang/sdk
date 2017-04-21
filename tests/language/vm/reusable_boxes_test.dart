@@ -43,7 +43,6 @@ testD() {
   Expect.equals(20.0, r);
 }
 
-
 class F {
   var a = new Float32x4.zero();
   var b = new Float32x4(1.0, 2.0, 3.0, 4.0);
@@ -60,7 +59,6 @@ class F {
     y = y * y;
     c = x + y;
   }
-
 }
 
 testF() {
@@ -84,7 +82,6 @@ testF() {
   Expect.equals(60.0, r.z);
   Expect.equals(80.0, r.w);
 }
-
 
 main() {
   testD();

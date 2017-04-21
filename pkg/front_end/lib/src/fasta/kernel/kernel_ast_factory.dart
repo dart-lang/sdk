@@ -2,17 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart';
 
-import '../builder/ast_factory.dart' as builder;
-import '../builder/shadow_ast.dart' as builder;
+import '../builder/ast_factory.dart';
 import 'kernel_shadow_ast.dart';
 
 /// Concrete implementation of [builder.AstFactory] for building a kernel AST.
-class KernelAstFactory implements builder.AstFactory {
+class KernelAstFactory implements AstFactory {
   @override
-  KernelBlock block(List<builder.ShadowStatement> statements, int charOffset) {
+  KernelBlock block(List<Statement> statements, int charOffset) {
     return new KernelBlock(statements)..fileOffset = charOffset;
+  }
+
+  @override
+  Field field(Name name, int charOffset, {String fileUri}) {
+    return new KernelField(name, fileUri: fileUri)..fileOffset = charOffset;
   }
 
   @override
@@ -21,10 +25,11 @@ class KernelAstFactory implements builder.AstFactory {
   }
 
   @override
-  KernelListLiteral listLiteral(List<builder.ShadowExpression> expressions,
+  KernelListLiteral listLiteral(List<Expression> expressions,
       DartType typeArgument, bool isConst, int charOffset) {
     return new KernelListLiteral(expressions,
-        typeArgument: typeArgument, isConst: isConst)..fileOffset = charOffset;
+        typeArgument: typeArgument, isConst: isConst)
+      ..fileOffset = charOffset;
   }
 
   @override
@@ -33,22 +38,28 @@ class KernelAstFactory implements builder.AstFactory {
   }
 
   @override
-  KernelReturnStatement returnStatement(
-      builder.ShadowExpression expression, int charOffset) {
+  KernelReturnStatement returnStatement(Expression expression, int charOffset) {
     return new KernelReturnStatement(expression)..fileOffset = charOffset;
   }
 
   @override
-  KernelVariableDeclaration variableDeclaration(String name,
+  StaticGet staticGet(Member readTarget, int offset) {
+    return new KernelStaticGet(readTarget)..fileOffset = offset;
+  }
+
+  @override
+  KernelVariableDeclaration variableDeclaration(String name, int charOffset,
       {DartType type,
-      builder.ShadowExpression initializer,
-      int charOffset,
+      Expression initializer,
+      int equalsCharOffset = TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false}) {
     return new KernelVariableDeclaration(name,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
-        isConst: isConst)..fileEqualsOffset = charOffset;
+        isConst: isConst)
+      ..fileOffset = charOffset
+      ..fileEqualsOffset = equalsCharOffset;
   }
 }

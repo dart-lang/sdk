@@ -19,7 +19,6 @@ import "dart:isolate";
 part "testing_server.dart";
 
 class EchoServerGame {
-
   static const MSGSIZE = 10;
   static const MESSAGES = 100;
   static const FIRSTCHAR = 65;
@@ -62,9 +61,7 @@ class EchoServerGame {
     }
 
     void connectHandler() {
-      _socket.listen(onData,
-                     onError: errorHandler,
-                     onDone: onClosed);
+      _socket.listen(onData, onError: errorHandler, onDone: onClosed);
       _socket.add(_buffer);
       _socket.close();
       data = new List<int>(MSGSIZE);
@@ -98,7 +95,6 @@ class EchoServerGame {
   int _messages;
 }
 
-
 void startEchoServer(SendPort replyPort) {
   var server = new EchoServer();
   server.init().then((port) {
@@ -106,9 +102,7 @@ void startEchoServer(SendPort replyPort) {
   });
 }
 
-
 class EchoServer extends TestingServer {
-
   static const int MSGSIZE = EchoServerGame.MSGSIZE;
 
   void onConnection(Socket connection) {

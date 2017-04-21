@@ -6,13 +6,14 @@
 import "package:expect/expect.dart";
 
 class ListLiteralTest {
-
   static const LAUREL = 1;
-  static const HARDY  = 2;
+  static const HARDY = 2;
 
   static testMain() {
-
-    var funny = <int>[LAUREL, HARDY, ];  // Check that trailing comma works.
+    var funny = <int>[
+      LAUREL,
+      HARDY,
+    ]; // Check that trailing comma works.
     Expect.equals(2, funny.length);
 
     List<int> m = <int>[101, 102, 100 + 3];
@@ -32,7 +33,11 @@ class ListLiteralTest {
     e2 = const <num>[5.1, -55, 555, 5555][2];
     Expect.equals(555, e2);
 
-    e2 = const [5.1, const <num>[-55, 555], 5555][1][1];
+    e2 = const [
+      5.1,
+      const <num>[-55, 555],
+      5555
+    ][1][1];
     Expect.equals(555, e2);
 
     Expect.equals(0, [].length);

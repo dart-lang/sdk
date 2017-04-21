@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library web_gl_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -58,14 +59,14 @@ main() {
       test('texImage2D', () {
         var canvas = new CanvasElement();
         var context = canvas.getContext3d();
-        var pixels = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+        var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
         context.texImage2DUntyped(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
         canvas = new CanvasElement();
         document.body.children.add(canvas);
         var context2 = canvas.getContext('2d');
-        context.texImage2DData(1, 1, 1, 1, 10,
-            context2.getImageData(10, 10, 10, 10));
+        context.texImage2DData(
+            1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
 
         context.texImage2DImage(1, 1, 1, 1, 10, new ImageElement());
         context.texImage2DCanvas(1, 1, 1, 1, 10, new CanvasElement());
@@ -75,14 +76,14 @@ main() {
       test('texSubImage2D', () {
         var canvas = new CanvasElement();
         var context = canvas.getContext3d();
-        var pixels = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+        var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
         context.texSubImage2DUntyped(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
         canvas = new CanvasElement();
         document.body.children.add(canvas);
         var context2 = canvas.getContext('2d');
-        context.texSubImage2DData(1, 1, 1, 1, 1, 10,
-            context2.getImageData(10, 10, 10, 10));
+        context.texSubImage2DData(
+            1, 1, 1, 1, 1, 10, context2.getImageData(10, 10, 10, 10));
 
         context.texSubImage2DImage(1, 1, 1, 1, 1, 10, new ImageElement());
         context.texSubImage2DCanvas(1, 1, 1, 1, 1, 10, new CanvasElement());

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library constructor_calls_created_synchronously_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -55,7 +56,8 @@ main() {
         extendsTag: 'section');
     var fancy = document.createElement('section', 'fancy-section');
     expect(fancy is FancySection, true, reason: 'fancy-section was registered');
-    expect((fancy as FancySection).wasCreated, true, reason: 'FancySection ctor was called');
+    expect((fancy as FancySection).wasCreated, true,
+        reason: 'FancySection ctor was called');
   });
 }
 

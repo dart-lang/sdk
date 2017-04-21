@@ -244,7 +244,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFieldInitializer(Token assignment) {
+  void endFieldInitializer(Token assignment, Token token) {
     debugEvent("FieldInitializer");
     pop(); // Expression
   }

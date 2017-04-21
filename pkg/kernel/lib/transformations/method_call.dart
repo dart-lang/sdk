@@ -785,7 +785,8 @@ class MethodCallTransformer extends Transformer {
           initializer: orgVar.initializer,
           type: orgVar.type,
           isFinal: orgVar.isFinal,
-          isConst: orgVar.isConst)..parent = newStuffParent;
+          isConst: orgVar.isConst)
+        ..parent = newStuffParent;
       variableDeclaration.initializer?.parent = variableDeclaration;
       newParameterDeclarations.add(variableDeclaration);
       orgVar.initializer = null;
@@ -799,7 +800,8 @@ class MethodCallTransformer extends Transformer {
           initializer: orgVar.initializer,
           type: orgVar.type,
           isFinal: orgVar.isFinal,
-          isConst: orgVar.isConst)..parent = newStuffParent;
+          isConst: orgVar.isConst)
+        ..parent = newStuffParent;
       variableDeclaration.initializer?.parent = variableDeclaration;
       newNamedParameterDeclarations.add(variableDeclaration);
       orgVar.initializer = null;

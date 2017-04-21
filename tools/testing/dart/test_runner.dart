@@ -236,8 +236,7 @@ class KernelCompilationCommand extends CompilationCommand {
       List<String> arguments,
       Map<String, String> environmentOverrides)
       : super._(displayName, outputFile, neverSkipCompilation,
-                bootstrapDependencies, executable, arguments,
-                environmentOverrides);
+            bootstrapDependencies, executable, arguments, environmentOverrides);
 
   int get maxNumRetries => 1;
 }
@@ -374,14 +373,14 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
   final bool checked;
 
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
-      Map<String, String> environmentOverrides, {this.checked: true})
+      Map<String, String> environmentOverrides,
+      {this.checked: true})
       : this.dartFile = dartFile,
         super._('vm-batch', executable, arguments, environmentOverrides);
 
   @override
-  List<String> get batchArguments => checked
-      ? ['--checked', dartFile]
-      : [dartFile];
+  List<String> get batchArguments =>
+      checked ? ['--checked', dartFile] : [dartFile];
 
   @override
   bool _equal(VmBatchCommand other) {
@@ -405,11 +404,12 @@ class AdbPrecompilationCommand extends Command {
   final List<String> arguments;
   final bool useBlobs;
 
-  AdbPrecompilationCommand._(this.precompiledRunnerFilename,
-                             this.processTestFilename,
-                             this.precompiledTestDirectory,
-                             this.arguments,
-                             this.useBlobs)
+  AdbPrecompilationCommand._(
+      this.precompiledRunnerFilename,
+      this.processTestFilename,
+      this.precompiledTestDirectory,
+      this.arguments,
+      this.useBlobs)
       : super._("adb_precompilation");
 
   void _buildHashCode(HashCodeBuilder builder) {
@@ -648,17 +648,18 @@ class CommandBuilder {
   VmBatchCommand getVmBatchCommand(String executable, String tester,
       List<String> arguments, Map<String, String> environmentOverrides,
       {bool checked: true}) {
-    var command =
-        new VmBatchCommand._(executable, tester, arguments, environmentOverrides,
-            checked: checked);
+    var command = new VmBatchCommand._(
+        executable, tester, arguments, environmentOverrides,
+        checked: checked);
     return _getUniqueCommand(command);
   }
 
-  AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
-                                                    String processTest,
-                                                    String testDirectory,
-                                                    List<String> arguments,
-                                                    bool useBlobs) {
+  AdbPrecompilationCommand getAdbPrecompiledCommand(
+      String precompiledRunner,
+      String processTest,
+      String testDirectory,
+      List<String> arguments,
+      bool useBlobs) {
     var command = new AdbPrecompilationCommand._(
         precompiledRunner, processTest, testDirectory, arguments, useBlobs);
     return _getUniqueCommand(command);
@@ -687,9 +688,8 @@ class CommandBuilder {
   Command getPubCommand(String pubCommand, String pubExecutable,
       String pubspecYamlDirectory, String pubCacheDirectory,
       {List<String> arguments: const <String>[]}) {
-    var command = new PubCommand._(
-        pubCommand, pubExecutable, pubspecYamlDirectory, pubCacheDirectory,
-        arguments);
+    var command = new PubCommand._(pubCommand, pubExecutable,
+        pubspecYamlDirectory, pubCacheDirectory, arguments);
     return _getUniqueCommand(command);
   }
 
@@ -1610,11 +1610,15 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
 
 class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
   KernelCompilationCommandOutputImpl(
-      Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr,
-      Duration time, bool compilationSkipped)
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-              compilationSkipped);
+            compilationSkipped);
 
   bool get canRunDependendCommands {
     // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
@@ -1784,16 +1788,16 @@ class OutputLog {
       ? tail.sublist(tail.length - TAIL_LENGTH)
       : tail;
 
-
   void _checkUtf8(List<int> data) {
     try {
       UTF8.decode(data, allowMalformed: false);
     } on FormatException catch (e) {
       hasNonUtf8 = true;
       String malformed = UTF8.decode(data, allowMalformed: true);
-      data..clear()
-          ..addAll(UTF8.encode(malformed))
-          ..addAll("""
+      data
+        ..clear()
+        ..addAll(UTF8.encode(malformed))
+        ..addAll("""
 
   *****************************************************************************
 
@@ -1802,10 +1806,9 @@ class OutputLog {
   *****************************************************************************
 
   """
-          .codeUnits);
+            .codeUnits);
     }
   }
-
 
   List<int> toList() {
     if (complete == null) {
@@ -1840,14 +1843,19 @@ Future<List<int>> _getPidList(pid, diagnostics) async {
   var lines;
   var start_line = 0;
   if (io.Platform.isLinux || io.Platform.isMacOS) {
-    var result = await io.Process.run("pgrep",
-        ["-P", "${pid_list[0]}"],
-        runInShell: true);
+    var result = await io.Process
+        .run("pgrep", ["-P", "${pid_list[0]}"], runInShell: true);
     lines = result.stdout.split('\n');
   } else if (io.Platform.isWindows) {
-    var result = await io.Process.run("wmic",
-        ["process", "where" , "(ParentProcessId=${pid_list[0]})",
-         "get", "ProcessId"],
+    var result = await io.Process.run(
+        "wmic",
+        [
+          "process",
+          "where",
+          "(ParentProcessId=${pid_list[0]})",
+          "get",
+          "ProcessId"
+        ],
         runInShell: true);
     lines = result.stdout.split('\n');
     // Skip first line containing header "ProcessId".
@@ -1891,9 +1899,7 @@ class RunningProcess {
   Completer<CommandOutput> completer;
   Map configuration;
 
-  RunningProcess(this.command,
-                 this.timeout,
-                 {this.configuration});
+  RunningProcess(this.command, this.timeout, {this.configuration});
 
   Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
@@ -1910,8 +1916,7 @@ class RunningProcess {
       } else {
         var processEnvironment = _createProcessEnvironment();
         var args = command.arguments;
-        Future processFuture = io.Process.start(
-            command.executable, args,
+        Future processFuture = io.Process.start(command.executable, args,
             environment: processEnvironment,
             workingDirectory: command.workingDirectory);
         processFuture.then((io.Process process) {
@@ -1941,6 +1946,7 @@ class RunningProcess {
               }
             }
           }
+
           closeStderr([_]) {
             if (!stderrDone) {
               stderrCompleter.complete();
@@ -1968,18 +1974,20 @@ class RunningProcess {
                 executable = '/usr/bin/sample';
               } else if (io.Platform.isWindows) {
                 bool is_x64 = command.executable.contains("X64") ||
-                              command.executable.contains("SIMARM64");
+                    command.executable.contains("SIMARM64");
                 var win_sdk_path = configuration['win_sdk_path'];
                 if (win_sdk_path != null) {
                   executable = win_sdk_path +
-                      "\\Debuggers\\" + (is_x64 ? "x64" : "x86") + "\\cdb.exe";
+                      "\\Debuggers\\" +
+                      (is_x64 ? "x64" : "x86") +
+                      "\\cdb.exe";
                   diagnostics.add("Using $executable to print stack traces");
                 } else {
                   diagnostics.add("win_sdk path not found");
                 }
               } else {
                 diagnostics.add("Capturing stack traces on"
-                                "${io.Platform.operatingSystem} not supported");
+                    "${io.Platform.operatingSystem} not supported");
               }
               if (executable != null) {
                 var pid_list = await _getPidList(process.pid, diagnostics);
@@ -2100,7 +2108,7 @@ class RunningProcess {
   }
 }
 
-class BatchRunnerProcess  {
+class BatchRunnerProcess {
   Completer<CommandOutput> _completer;
   ProcessCommand _command;
   List<String> _arguments;
@@ -2225,6 +2233,7 @@ class BatchRunnerProcess  {
         _process = null;
       }
     }
+
     return handler;
   }
 
@@ -2236,7 +2245,9 @@ class BatchRunnerProcess  {
   _startProcess(callback) {
     assert(_command is ProcessCommand);
     var executable = _command.executable;
-    var arguments = []..addAll(_command.batchArguments)..add('--batch');
+    var arguments = []
+      ..addAll(_command.batchArguments)
+      ..add('--batch');
     var environment = new Map.from(io.Platform.environment);
     if (_processEnvironmentOverrides != null) {
       for (var key in _processEnvironmentOverrides.keys) {
@@ -2379,6 +2390,7 @@ class TestCaseEnqueuer {
         iterator.current.forEachTest(newTest, testCache, enqueueNextSuite);
       }
     }
+
     enqueueNextSuite();
   }
 }
@@ -2669,6 +2681,7 @@ class CommandExecutorImpl implements CommandExecutor {
         }
       });
     }
+
     return runCommand(command.maxNumRetries);
   }
 
@@ -2705,8 +2718,9 @@ class CommandExecutorImpl implements CommandExecutor {
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
     } else {
-      return new RunningProcess(
-          command, timeout, configuration: globalConfiguration).run();
+      return new RunningProcess(command, timeout,
+              configuration: globalConfiguration)
+          .run();
     }
   }
 
@@ -2734,12 +2748,15 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(() => device.pushCachedData(runner,
-                                          '$devicedir/dart_precompiled_runtime'));
-    steps.add(() => device.pushCachedData(processTest,
-                                          '$devicedir/process_test'));
-    steps.add(() => device.runAdbShellCommand(
-        ['chmod', '777', '$devicedir/dart_precompiled_runtime $devicedir/process_test']));
+    steps.add(() =>
+        device.pushCachedData(runner, '$devicedir/dart_precompiled_runtime'));
+    steps.add(
+        () => device.pushCachedData(processTest, '$devicedir/process_test'));
+    steps.add(() => device.runAdbShellCommand([
+          'chmod',
+          '777',
+          '$devicedir/dart_precompiled_runtime $devicedir/process_test'
+        ]));
 
     for (var file in files) {
       steps.add(() => device
@@ -2928,11 +2945,11 @@ bool shouldRetryCommand(CommandOutput output) {
         return line.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
             line.contains(MESSAGE_FAILED_TO_RUN_COMMAND);
       }
+
       if (stdout.any(containsFailureMsg) || stderr.any(containsFailureMsg)) {
         return true;
       }
     }
-
   }
   return false;
 }

@@ -25,7 +25,6 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
-import 'backend_helpers.dart' show BackendHelpers;
 import 'js_backend.dart' show JavaScriptBackend;
 
 class JsInteropAnalysis {
@@ -40,13 +39,11 @@ class JsInteropAnalysis {
 
   JsInteropAnalysis(this.backend);
 
-  BackendHelpers get helpers => backend.helpers;
-
   void onQueueClosed() {
     if (_inCodegen) return;
 
-    if (helpers.jsAnnotationClass != null) {
-      ClassElement cls = helpers.jsAnnotationClass;
+    if (backend.compiler.commonElements.jsAnnotationClass != null) {
+      ClassElement cls = backend.compiler.commonElements.jsAnnotationClass;
       nameField = cls.lookupMember('name');
       backend.compiler.libraryLoader.libraries
           .forEach(processJsInteropAnnotationsInLibrary);
@@ -67,7 +64,8 @@ class JsInteropAnalysis {
           backend.compiler.constants.getConstantValue(annotation.constant);
       if (constant == null || constant is! ConstructedConstantValue) continue;
       ConstructedConstantValue constructedConstant = constant;
-      if (constructedConstant.type.element == helpers.jsAnnotationClass) {
+      if (constructedConstant.type.element ==
+          backend.compiler.commonElements.jsAnnotationClass) {
         ConstantValue value = constructedConstant.fields[nameField];
         String name;
         if (value.isString) {
@@ -85,7 +83,7 @@ class JsInteropAnalysis {
   }
 
   bool hasAnonymousAnnotation(Element element) {
-    if (backend.helpers.jsAnonymousClass == null) return false;
+    if (backend.compiler.commonElements.jsAnonymousClass == null) return false;
     return element.metadata.any((MetadataAnnotation annotation) {
       ConstantValue constant =
           backend.compiler.constants.getConstantValue(annotation.constant);
@@ -93,7 +91,7 @@ class JsInteropAnalysis {
         return false;
       ConstructedConstantValue constructedConstant = constant;
       return constructedConstant.type.element ==
-          backend.helpers.jsAnonymousClass;
+          backend.compiler.commonElements.jsAnonymousClass;
     });
   }
 
@@ -142,7 +140,8 @@ class JsInteropAnalysis {
         return;
       }
 
-      if (!classElement.implementsInterface(helpers.jsJavaScriptObjectClass)) {
+      if (!classElement.implementsInterface(
+          backend.compiler.commonElements.jsJavaScriptObjectClass)) {
         backend.reporter.reportErrorMessage(classElement,
             MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
           'cls': classElement.name,

@@ -8,8 +8,9 @@ import 'dart:collection';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/resolution/constructors.dart';
 import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
@@ -807,7 +808,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       ClassElement aElement = compiler.mainApp.find("A");
-      Link<ResolutionDartType> supertypes = aElement.allSupertypes;
+      Link<InterfaceType> supertypes = aElement.allSupertypes;
       Expect.equals(<String>['B', 'C', 'Object'].toString(),
           asSortedStrings(supertypes).toString());
     }),
@@ -824,7 +825,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       ClassElement aElement = compiler.mainApp.find("C");
-      Link<ResolutionDartType> supertypes = aElement.allSupertypes;
+      Link<InterfaceType> supertypes = aElement.allSupertypes;
       // Object is once per inheritance path, that is from both A and I.
       Expect.equals(
           <String>[
@@ -846,7 +847,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       ClassElement aElement = compiler.mainApp.find("E");
-      Link<ResolutionDartType> supertypes = aElement.allSupertypes;
+      Link<InterfaceType> supertypes = aElement.allSupertypes;
       Expect.equals(<String>['A<E>', 'D', 'Object'].toString(),
           asSortedStrings(supertypes).toString());
     }),

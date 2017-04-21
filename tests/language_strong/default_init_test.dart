@@ -57,7 +57,7 @@ class C {
 }
 
 class D {
-  const D(): this.z = 3;
+  const D() : this.z = 3;
   final int z;
 }
 

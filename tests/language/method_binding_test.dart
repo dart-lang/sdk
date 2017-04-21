@@ -11,37 +11,61 @@ class A {
 
   static var func;
 
-  A(this.a) { }
+  A(this.a) {}
 
-  static foo() { return 4; }
+  static foo() {
+    return 4;
+  }
 
-  bar() { return a; }
+  bar() {
+    return a;
+  }
 
-  int baz() { return a; }
+  int baz() {
+    return a;
+  }
 
-  getThis() { return this.bar; }
+  getThis() {
+    return this.bar;
+  }
 
-  getNoThis() { return bar; }
+  getNoThis() {
+    return bar;
+  }
 
-  methodArgs(arg) { return arg + a; }
+  methodArgs(arg) {
+    return arg + a;
+  }
 
-  selfReference () { return selfReference; }
+  selfReference() {
+    return selfReference;
+  }
 
-  invokeBaz() { return (baz)(); }
+  invokeBaz() {
+    return (baz)();
+  }
 
-  invokeBar(var obj) { return (obj.bar)(); }
+  invokeBar(var obj) {
+    return (obj.bar)();
+  }
 
-  invokeThisBar() { return (this.bar)(); }
+  invokeThisBar() {
+    return (this.bar)();
+  }
 
-  implicitStaticRef() { return foo; }
+  implicitStaticRef() {
+    return foo;
+  }
 }
 
 class B {
-  static foo() { return -1; }
+  static foo() {
+    return -1;
+  }
 }
 
 class C {
-  C() { }
+  C() {}
   var f;
 }
 
@@ -52,13 +76,14 @@ topLevel99() {
 var topFunc;
 
 class D extends A {
-  D(a): super(a) { }
-  getSuper() { return super.bar; }
+  D(a) : super(a) {}
+  getSuper() {
+    return super.bar;
+  }
 }
 
 class MethodBindingTest {
   static test() {
-
     // Create closure from global
     Expect.equals(99, topLevel99());
     Function f99 = topLevel99;
@@ -66,7 +91,7 @@ class MethodBindingTest {
 
     // Invoke closure through a global
     topFunc = f99;
-    Expect.equals(99, topFunc());   
+    Expect.equals(99, topFunc());
 
     // Create closure from static method
     Function f4 = A.foo;

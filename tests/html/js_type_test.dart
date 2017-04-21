@@ -14,7 +14,8 @@ import 'js_type_test_lib.dart';
 
 class Bar {}
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 class Is<T> {
@@ -25,7 +26,7 @@ class Is<T> {
 main() {
   useHtmlIndividualConfiguration();
 
-  new Is<Foo>().check(new Bar());  // Bar is instantiated by this code.
+  new Is<Foo>().check(new Bar()); // Bar is instantiated by this code.
   new Is<Foo>().check([]);
   new Is<List>().check([]);
 
@@ -142,5 +143,4 @@ main() {
       expect(const Is<Foo>().check(e), isFalse);
     });
   });
-
 }

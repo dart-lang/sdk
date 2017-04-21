@@ -1,4 +1,5 @@
 library InstanceOfTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -11,19 +12,17 @@ main() {
   canvas.attributes['height'] = '100';
   document.body.append(canvas);
 
-  var isCanvasRenderingContext = predicate((x) => x is CanvasRenderingContext,
-      'is a CanvasRenderingContext');
-  var isCanvasRenderingContext2D =
-      predicate((x) => x is CanvasRenderingContext2D,
-      'is a CanvasRenderingContext2D');
+  var isCanvasRenderingContext = predicate(
+      (x) => x is CanvasRenderingContext, 'is a CanvasRenderingContext');
+  var isCanvasRenderingContext2D = predicate(
+      (x) => x is CanvasRenderingContext2D, 'is a CanvasRenderingContext2D');
   var isElement = predicate((x) => x is Element, 'is an Element');
   var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
   var isImageData = predicate((x) => x is ImageData, 'is an ImageData');
   //var isUint8ClampedArray =
   //  predicate((x) => x is Uint8ClampedArray, 'is a Uint8ClampedArray');
-  var isIntList =
-      predicate((x) => x is List<int>, 'is a List<int>');
+  var isIntList = predicate((x) => x is List<int>, 'is a List<int>');
 
   useHtmlConfiguration();
   test('Instanceof', () {
@@ -43,8 +42,8 @@ main() {
     // expect(context, isNot(isCanvasPixelArray));
 
     // FIXME(b/5286633): Interface injection type check workaround.
-    var image = context.createImageData(canvas.width as dynamic,
-                                        canvas.height as dynamic);
+    var image = context.createImageData(
+        canvas.width as dynamic, canvas.height as dynamic);
     expect(image, isNot(isCanvasRenderingContext));
     expect(image, isNot(isCanvasRenderingContext2D));
     expect(image, isNot(isElement));

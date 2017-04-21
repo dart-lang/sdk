@@ -516,6 +516,7 @@ class NodeListener extends ElementListener {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
+    popNode();
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
@@ -530,7 +531,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     endVariableInitializer(assignmentOperator);
   }
 

@@ -12,7 +12,7 @@ main() {
   TypeMirror dynamicMirror = currentMirrorSystem().dynamicType;
   TypeMirror dynamicMirror2 = reflectType(dynamic);
   TypeMirror voidMirror = currentMirrorSystem().voidType;
-  
+
   expectReflectedType(dynamicMirror, dynamic);
   expectReflectedType(dynamicMirror2, dynamic);
   expectReflectedType(voidMirror, null);

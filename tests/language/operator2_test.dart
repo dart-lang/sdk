@@ -7,10 +7,11 @@ import "package:expect/expect.dart";
 
 class Helper {
   int i;
-  Helper(int val) : i = val { }
+  Helper(int val) : i = val {}
   operator [](int index) {
     return i + index;
   }
+
   void operator []=(int index, int val) {
     i = val;
   }
@@ -24,7 +25,6 @@ class OperatorTest {
     Expect.equals(30, obj[10]);
   }
 }
-
 
 main() {
   OperatorTest.testMain();

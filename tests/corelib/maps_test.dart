@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library maps_test;
+
 import "package:expect/expect.dart";
 import 'dart:collection';
 
@@ -100,6 +101,7 @@ main() {
   void testForEachMap(key, value) {
     other_map[key] = value;
   }
+
   Maps.forEach(map, testForEachMap);
   Expect.equals(true, other_map.containsKey(key1));
   Expect.equals(true, other_map.containsKey(key2));
@@ -111,6 +113,7 @@ main() {
   void testForEachCollection(value) {
     other_map[value] = value;
   }
+
   Iterable values = Maps.getValues(map);
   other_map = new Map();
   values.forEach(testForEachCollection);

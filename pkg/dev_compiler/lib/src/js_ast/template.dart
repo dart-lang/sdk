@@ -670,7 +670,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       if (node is ArrowFun) {
         return new ArrowFun(params, body);
       } else if (node is Fun) {
-        return new Fun(params, body);
+        return new Fun(params, body,
+            isGenerator: node.isGenerator, asyncModifier: node.asyncModifier);
       } else {
         throw "Unknown FunctionExpression type ${node.runtimeType}: $node";
       }
@@ -738,13 +739,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new RegExpLiteral(node.pattern);
 
   Instantiator visitTemplateString(TemplateString node) {
-    Iterable makeElements =
-        node.elements.map((e) => e is String ? e : visit(e));
-    return (arguments) {
-      return new TemplateString(makeElements
-          .map((m) => m is String ? m : m(arguments))
-          .toList(growable: false));
-    };
+    Iterable<Instantiator> makeElements = node.interpolations.map(visit);
+    return (arguments) => new TemplateString(node.strings,
+        makeElements.map((m) => m(arguments)).toList(growable: false));
   }
 
   Instantiator visitTaggedTemplate(TaggedTemplate node) {

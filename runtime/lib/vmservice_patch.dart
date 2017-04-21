@@ -7,12 +7,12 @@ class Asset {
   /// Call to request assets from the embedder.
   @patch
   static HashMap<String, Asset> request() {
-    HashMap<String, Asset> assets = new HashMap<String, Asset>();
     Uint8List tarBytes = _requestAssets();
     if (tarBytes == null) {
-      return assets;
+      return null;
     }
     List assetList = _decodeAssets(tarBytes);
+    HashMap<String, Asset> assets = new HashMap<String, Asset>();
     for (int i = 0; i < assetList.length; i += 2) {
       var a = new Asset(assetList[i], assetList[i + 1]);
       assets[a.name] = a;

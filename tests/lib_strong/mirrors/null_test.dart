@@ -11,19 +11,13 @@ import 'package:expect/expect.dart';
 main() {
   InstanceMirror nullMirror = reflect(null);
   Expect.isTrue(nullMirror.getField(#hashCode).reflectee is int);
-  Expect.equals(null.hashCode,
-                nullMirror.getField(#hashCode).reflectee);
-  Expect.equals('Null',
-                nullMirror.getField(#runtimeType).reflectee
-                .toString());
+  Expect.equals(null.hashCode, nullMirror.getField(#hashCode).reflectee);
+  Expect.equals('Null', nullMirror.getField(#runtimeType).reflectee.toString());
   Expect.isTrue(nullMirror.invoke(#==, [null]).reflectee);
-  Expect.isFalse(nullMirror.invoke(#==, [new Object()])
-                 .reflectee);
-  Expect.equals('null',
-                nullMirror.invoke(#toString, []).reflectee);
+  Expect.isFalse(nullMirror.invoke(#==, [new Object()]).reflectee);
+  Expect.equals('null', nullMirror.invoke(#toString, []).reflectee);
   Expect.throws(() => nullMirror.invoke(#notDefined, []),
-                (e) => e is NoSuchMethodError,
-                'noSuchMethod');
+      (e) => e is NoSuchMethodError, 'noSuchMethod');
 
   ClassMirror NullMirror = nullMirror.type;
   Expect.equals(reflectClass(Null), NullMirror);

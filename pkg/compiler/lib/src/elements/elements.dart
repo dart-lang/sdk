@@ -25,6 +25,7 @@ import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
 import 'resolution_types.dart';
+import 'types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';
@@ -470,7 +471,8 @@ class Elements {
   static bool isInStaticContext(Element element) {
     if (isUnresolved(element)) return true;
     if (element.enclosingElement.isClosure) {
-      var closureClass = element.enclosingElement;
+      dynamic closureClass = element.enclosingElement;
+      // ignore: UNDEFINED_GETTER
       element = closureClass.methodElement;
     }
     Element outer = element.outermostEnclosingMemberOrTopLevel;
@@ -777,7 +779,7 @@ class Elements {
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == closedWorld.commonElements.typedDataLibrary &&
-        closedWorld.backendClasses.isNativeClass(cls) &&
+        closedWorld.nativeData.isNativeClass(cls) &&
         closedWorld.isSubtypeOf(
             cls, closedWorld.commonElements.typedDataClass) &&
         closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
@@ -926,7 +928,7 @@ class Elements {
     // TODO(ngeoffray): Should the resolver do it instead?
     CallStructure callStructure = new CallStructure(
         signature.parameterCount, signature.type.namedParameters);
-    if (!callStructure.signatureApplies(signature.type)) {
+    if (!callStructure.signatureApplies(signature.parameterStructure)) {
       return false;
     }
     list.addAll(makeArgumentsList<T>(callStructure, nodes, callee,
@@ -1287,6 +1289,8 @@ abstract class FunctionSignature {
   void orderedForEachParameter(void function(FormalElement parameter));
 
   bool isCompatibleWith(FunctionSignature constructorSignature);
+
+  ParameterStructure get parameterStructure;
 }
 
 /// A top level, static or instance method, constructor, local function, or
@@ -1316,6 +1320,9 @@ abstract class FunctionElement extends Element
 
   /// `true` if this function is external.
   bool get isExternal;
+
+  /// The structure of the function parameters.
+  ParameterStructure get parameterStructure;
 }
 
 /// A getter or setter.
@@ -1594,7 +1601,7 @@ abstract class ClassElement extends TypeDeclarationElement
   OrderedTypeSet get allSupertypesAndSelf;
 
   /// A list of all supertypes of this class excluding the class itself.
-  Link<ResolutionDartType> get allSupertypes;
+  Link<InterfaceType> get allSupertypes;
 
   /// Returns the this type of this class as an instance of [cls].
   ResolutionInterfaceType asInstanceOf(ClassElement cls);
@@ -1670,8 +1677,8 @@ abstract class ClassElement extends TypeDeclarationElement
   ///
   /// This method recursively visits superclasses until the member is found or
   /// [stopAt] is reached.
-  Element lookupByName(Name memberName, {ClassElement stopAt});
-  Element lookupSuperByName(Name memberName);
+  MemberElement lookupByName(Name memberName, {ClassElement stopAt});
+  MemberElement lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);
   Element lookupBackendMember(String memberName);

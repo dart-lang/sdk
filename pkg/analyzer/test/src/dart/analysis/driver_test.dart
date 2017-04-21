@@ -39,8 +39,9 @@ import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDriverTest);
     defineReflectiveTests(AnalysisDriverSchedulerTest);
+    defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(CacheAllAnalysisDriverTest);
   });
 }
 
@@ -80,7 +81,7 @@ class AnalysisDriverSchedulerTest {
         provider,
         byteStore,
         contentOverlay,
-        'test',
+        null,
         new SourceFactory(
             [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
             null,
@@ -95,6 +96,96 @@ class AnalysisDriverSchedulerTest {
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     scheduler.start();
+  }
+
+  test_priorities_allChangedFirst() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    String c = _p('/c.dart');
+    String d = _p('/d.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "import 'a.dart';");
+    provider.newFile(c, 'class C {}');
+    provider.newFile(d, "import 'c.dart';");
+    driver1.addFile(a);
+    driver1.addFile(b);
+    driver2.addFile(c);
+    driver2.addFile(d);
+
+    await scheduler.waitForIdle();
+    allResults.clear();
+
+    provider.updateFile(a, 'class A2 {}');
+    provider.updateFile(c, 'class C2 {}');
+    driver1.changeFile(a);
+    driver1.changeFile(c);
+    driver2.changeFile(a);
+    driver2.changeFile(c);
+
+    await scheduler.waitForIdle();
+    expect(allResults, hasLength(greaterThanOrEqualTo(2)));
+    expect(allResults[0].path, a);
+    expect(allResults[1].path, c);
+  }
+
+  test_priorities_firstChanged_thenImporting() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    String c = _p('/c.dart');
+    provider.newFile(a, "import 'c.dart';");
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, "import 'b.dart';");
+    driver1.addFile(a);
+    driver1.addFile(b);
+    driver2.addFile(c);
+
+    await scheduler.waitForIdle();
+    allResults.clear();
+
+    provider.updateFile(b, 'class B2 {}');
+    driver1.changeFile(b);
+    driver2.changeFile(b);
+
+    await scheduler.waitForIdle();
+    expect(allResults, hasLength(greaterThanOrEqualTo(2)));
+    expect(allResults[0].path, b);
+    expect(allResults[1].path, c);
+  }
+
+  test_priorities_firstChanged_thenWithErrors() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    String c = _p('/c.dart');
+    String d = _p('/d.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "export 'a.dart';");
+    provider.newFile(c, "import 'b.dart';");
+    provider.newFile(d, "import 'b.dart'; class D extends X {}");
+    driver1.addFile(a);
+    driver1.addFile(b);
+    driver2.addFile(c);
+    driver2.addFile(d);
+
+    await scheduler.waitForIdle();
+    allResults.clear();
+
+    provider.updateFile(a, 'class A2 {}');
+    driver1.changeFile(a);
+    driver2.changeFile(a);
+
+    await scheduler.waitForIdle();
+    expect(allResults, hasLength(greaterThanOrEqualTo(2)));
+    expect(allResults[0].path, a);
+    expect(allResults[1].path, d);
   }
 
   test_priorities_getResult_beforePriority() async {
@@ -1231,9 +1322,9 @@ export 'dart:math';
         .elementDeclaredByCompilationUnit(result.unit)
         .library
         .exports;
-    expect(
-        imports.map((import) => import.exportedLibrary.source.uri.toString()),
-        unorderedEquals(['dart:async', 'dart:math']));
+    expect(imports.map((import) {
+      return import.exportedLibrary?.source?.uri?.toString();
+    }), ['dart:async', null, 'dart:math']);
   }
 
   test_getResult_invalidUri_imports_dart() async {
@@ -1251,12 +1342,11 @@ import 'dart:math';
         .elementDeclaredByCompilationUnit(result.unit)
         .library
         .imports;
-    expect(
-        imports.map((import) => import.importedLibrary.source.uri.toString()),
-        unorderedEquals(['dart:async', 'dart:math', 'dart:core']));
+    expect(imports.map((import) {
+      return import.importedLibrary?.source?.uri?.toString();
+    }), ['dart:async', null, 'dart:math', 'dart:core']);
   }
 
-  @failingTest
   test_getResult_invalidUri_metadata() async {
     String content = r'''
 @foo
@@ -1333,6 +1423,20 @@ String z = "string";
 foo([p = V]) {}
 V();
 var V;
+''';
+    addTestFile(content);
+    await driver.getResult(testFile);
+  }
+
+  test_getResult_nameConflict_local_typeInference() async {
+    String content = r'''
+typedef F();
+var F;
+F _ff() => null;
+var f = _ff(); // the inference must fail
+main() {
+  f();
+}
 ''';
     addTestFile(content);
     await driver.getResult(testFile);
@@ -2180,6 +2284,113 @@ var A = B;
     allResults.clear();
   }
 
+  test_results_order() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    var d = _p('/test/lib/d.dart');
+    var e = _p('/test/lib/e.dart');
+    var f = _p('/test/lib/f.dart');
+    provider.newFile(
+        a,
+        r'''
+import 'd.dart';
+''');
+    provider.newFile(b, '');
+    provider.newFile(
+        c,
+        r'''
+import 'd.dart';
+''');
+    provider.newFile(
+        d,
+        r'''
+import 'b.dart';
+''');
+    provider.newFile(
+        e,
+        r'''
+export 'b.dart';
+''');
+    provider.newFile(
+        f,
+        r'''
+import 'e.dart';
+class F extends X {}
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+    driver.addFile(e);
+    driver.addFile(f);
+    await scheduler.waitForIdle();
+
+    // The file f.dart has an error or warning.
+    // So, its analysis will have higher priority.
+    expect(driver.fsState.getFileForPath(f).hasErrorOrWarning, isTrue);
+
+    allResults.clear();
+
+    // Update a.dart with changing its API signature.
+    provider.updateFile(b, 'class A {}');
+    driver.changeFile(b);
+    await scheduler.waitForIdle();
+
+    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+
+    // The changed file must be the first.
+    expect(analyzedPaths[0], b);
+
+    // Then the file that imports the changed file.
+    expect(analyzedPaths[1], d);
+
+    // Then the file that has an error (even if it is unrelated).
+    expect(analyzedPaths[2], f);
+  }
+
+  test_results_order_allChangedFirst_thenImports() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    var d = _p('/test/lib/d.dart');
+    var e = _p('/test/lib/e.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, '');
+    provider.newFile(d, "import 'a.dart';");
+    provider.newFile(e, "import 'b.dart';");
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+    driver.addFile(e);
+    await scheduler.waitForIdle();
+
+    allResults.clear();
+
+    // Change b.dart and then a.dart files.
+    // So, a.dart and b.dart should be analyzed first.
+    // Then d.dart and e.dart because they import a.dart and b.dart files.
+    provider.updateFile(a, 'class A2 {}');
+    provider.updateFile(b, 'class B2 {}');
+    driver.changeFile(b);
+    driver.changeFile(a);
+    await scheduler.waitForIdle();
+
+    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+
+    // The changed files must be the first.
+    expect(analyzedPaths[0], a);
+    expect(analyzedPaths[1], b);
+
+    // Then the file that imports the changed file.
+    expect(analyzedPaths[2], d);
+    expect(analyzedPaths[3], e);
+  }
+
   test_results_priority() async {
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);
@@ -2405,6 +2616,99 @@ var A = B;
   static String _md5(String content) {
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
   }
+}
+
+@reflectiveTest
+class CacheAllAnalysisDriverTest extends BaseAnalysisDriverTest {
+  bool get disableChangesAndCacheAllResults => true;
+
+  test_addFile() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    driver.addFile(a);
+    driver.addFile(b);
+  }
+
+  test_changeFile() async {
+    var path = _p('/test.dart');
+    expect(() {
+      driver.changeFile(path);
+    }, throwsStateError);
+  }
+
+  test_getResult_libraryUnits() async {
+    var lib = _p('/lib.dart');
+    var part1 = _p('/part1.dart');
+    var part2 = _p('/part2.dart');
+
+    provider.newFile(
+        lib,
+        r'''
+library test;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    provider.newFile(part1, 'part of test; class A {}');
+    provider.newFile(part2, 'part of test; class B {}');
+
+    driver.addFile(lib);
+    driver.addFile(part1);
+    driver.addFile(part2);
+
+    // No analyzed libraries initially.
+    expect(driver.test.numOfAnalyzedLibraries, 0);
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    AnalysisResult partResult1 = await driver.getResult(part1);
+    AnalysisResult partResult2 = await driver.getResult(part2);
+
+    // Just one library was analyzed, results for parts are cached.
+    expect(driver.test.numOfAnalyzedLibraries, 1);
+
+    expect(libResult.path, lib);
+    expect(partResult1.path, part1);
+    expect(partResult2.path, part2);
+
+    expect(libResult.unit, isNotNull);
+    expect(partResult1.unit, isNotNull);
+    expect(partResult2.unit, isNotNull);
+
+    // The parts uses the same resynthesized library element.
+    var libLibrary = libResult.unit.element.library;
+    var partLibrary1 = partResult1.unit.element.library;
+    var partLibrary2 = partResult2.unit.element.library;
+    expect(partLibrary1, same(libLibrary));
+    expect(partLibrary2, same(libLibrary));
+  }
+
+  test_getResult_singleFile() async {
+    var path = _p('/test.dart');
+    provider.newFile(path, 'main() {}');
+    driver.addFile(path);
+
+    AnalysisResult result1 = await driver.getResult(path);
+    expect(driver.test.numOfAnalyzedLibraries, 1);
+    var unit1 = result1.unit;
+    var unitElement1 = unit1.element;
+    expect(result1.path, path);
+    expect(unit1, isNotNull);
+    expect(unitElement1, isNotNull);
+
+    AnalysisResult result2 = await driver.getResult(path);
+    expect(driver.test.numOfAnalyzedLibraries, 1);
+    expect(result2.path, path);
+    expect(result2.unit, same(unit1));
+    expect(result2.unit.element, same(unitElement1));
+  }
+
+  test_removeFile() async {
+    var path = _p('/test.dart');
+    expect(() {
+      driver.removeFile(path);
+    }, throwsStateError);
+  }
+
+  String _p(String path) => provider.convertPath(path);
 }
 
 class _SourceMock extends TypedMock implements Source {}

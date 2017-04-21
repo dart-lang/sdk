@@ -52,7 +52,8 @@ abstract class CompilationResult {
   List toResponse() => [status.index, payload];
 }
 
-Future<CompilationResult> parseScript(Uri script, {bool verbose: false}) async {
+Future<CompilationResult> parseScript(Uri script,
+    {bool verbose: false, bool strongMode: false}) async {
   final Uri packagesUri = (Platform.packageConfig != null)
       ? Uri.parse(Platform.packageConfig)
       : await _findPackagesFile(script);
@@ -73,7 +74,8 @@ Future<CompilationResult> parseScript(Uri script, {bool verbose: false}) async {
   }
 
   try {
-    return await fasta.parseScript(script, packagesUri, patchedSdk, verbose);
+    return await fasta.parseScript(script, packagesUri, patchedSdk,
+        verbose: verbose, strongMode: strongMode);
   } catch (err, stack) {
     return new CompilationResult.crash(err, stack);
   }

@@ -1,3 +1,26 @@
+## 1.24.0
+
+### Language
+
+#### Strong Mode
+
+### Core library changes
+
+* `dart:io`
+  * Added `Platform.localeName`, needed for accessing the locale on platforms
+    that don't store it in an environment variable.
+  * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
+    the Dart VM process current and peak resident set size.
+
+### Dart VM
+
+### Tool Changes
+
+* Pub
+    * `pub build` will use a failing exit code if there are errors in any
+      transformer.
+    * Allow publishing packages that depend on the Flutter SDK.
+
 ## 1.23.0
 
 #### Strong Mode

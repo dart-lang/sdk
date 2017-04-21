@@ -175,8 +175,8 @@ main() {
     });
 
     test('throws if object is not a Map or Iterable', () {
-      expect(() => js_util.jsify('a'),
-          throwsA(new isInstanceOf<ArgumentError>()));
+      expect(
+          () => js_util.jsify('a'), throwsA(new isInstanceOf<ArgumentError>()));
     });
   });
 

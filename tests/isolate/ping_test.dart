@@ -16,9 +16,9 @@ isomain1(replyPort) {
   replyPort.send(port.sendPort);
 }
 
-void main(){
+void main() {
   asyncStart();
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
     List result = [];
@@ -27,15 +27,13 @@ void main(){
         result.add(v);
         if (v == 0) {
           Expect.listEquals(["alive", "control"],
-                            result.where((x) => x is String).toList(),
-                            "control events");
+              result.where((x) => x is String).toList(), "control events");
           Expect.listEquals([3, 2, 1, 0],
-                            result.where((x) => x is int).toList(),
-                            "data events");
-          Expect.isTrue(result.indexOf("alive") < result.indexOf(2),
-                        "alive index < 2");
+              result.where((x) => x is int).toList(), "data events");
+          Expect.isTrue(
+              result.indexOf("alive") < result.indexOf(2), "alive index < 2");
           Expect.isTrue(result.indexOf("control") < result.indexOf(1),
-                        "control index < 1");
+              "control index < 1");
           reply.close();
           asyncEnd();
         }
@@ -50,6 +48,7 @@ void main(){
       ping(message, priority) {
         isolate.ping(pingPort.sendPort, response: message, priority: priority);
       }
+
       echoPort.send(3);
       ping("alive", Isolate.IMMEDIATE);
       echoPort.send(2);

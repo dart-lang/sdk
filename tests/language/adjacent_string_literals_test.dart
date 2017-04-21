@@ -60,27 +60,41 @@ testInterpolation() {
 }
 
 testMultiline() {
-  Expect.equals("abe",
-                "a"
-                "b"
-                "e");
-  Expect.equals("a b e",
-                "a "
-                "b "
-                "e");
-  Expect.equals("a b e",
-                "a"
-                " b"
-                " e");
+  Expect.equals(
+      "abe",
+      "a"
+      "b"
+      "e");
+  Expect.equals(
+      "a b e",
+      "a "
+      "b "
+      "e");
+  Expect.equals(
+      "a b e",
+      "a"
+      " b"
+      " e");
 
-  Expect.equals("abe", """
-a""" "b" "e");
-  Expect.equals("a b e", """
-a""" " b" " e");
+  Expect.equals(
+      "abe",
+      """
+a"""
+      "b"
+      "e");
+  Expect.equals(
+      "a b e",
+      """
+a"""
+      " b"
+      " e");
 
-  Expect.equals("abe", """
-a""" """
-b""" """
+  Expect.equals(
+      "abe",
+      """
+a"""
+      """
+b"""
+      """
 e""");
 }
-

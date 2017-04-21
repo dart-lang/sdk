@@ -16,9 +16,9 @@ abstract class Priority implements Comparable {
    * Return < 0 if other is bigger, >0 if other is smaller, 0 if they are equal.
    */
   int compareTo(Priority other);
-  bool operator<(Priority other) => compareTo(other) < 0;
-  bool operator>(Priority other) => compareTo(other) > 0;
-  bool operator==(Priority other) => compareTo(other) == 0;
+  bool operator <(Priority other) => compareTo(other) < 0;
+  bool operator >(Priority other) => compareTo(other) > 0;
+  bool operator ==(Priority other) => compareTo(other) == 0;
 }
 
 /**
@@ -31,6 +31,7 @@ class IntPriority extends Priority {
   int compareTo(IntPriority other) {
     return priority - other.priority;
   }
+
   String toString() => "$priority";
 }
 
@@ -42,14 +43,13 @@ abstract class TypedElement<V> {
   bool typeEquals(var other);
 }
 
-class StringTypedElement<V> extends TypedElement{
+class StringTypedElement<V> extends TypedElement {
   String type;
   V value;
   StringTypedElement(String this.type, V this.value);
   bool typeEquals(String otherType) => otherType == type;
   String toString() => "<Type: $type, Value: $value>";
 }
-
 
 /**
  * A priority node in a priority queue. A priority node contains all of the
@@ -61,8 +61,7 @@ class PriorityNode<N extends TypedElement, T extends Priority> {
   Queue<N> values;
   PriorityNode prev;
   PriorityNode next;
-  PriorityNode(N initialNode, T this.priority)
-    : values = new Queue<N>() {
+  PriorityNode(N initialNode, T this.priority) : values = new Queue<N>() {
     add(initialNode);
   }
 
@@ -185,8 +184,8 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
 
   bool get isEmpty => restrictedQueues.length + mainQueue.length == 0;
 
-  int get length => restrictedQueues.fold(0, (v, e) => v + e.length) +
-                    mainQueue.length;
+  int get length =>
+      restrictedQueues.fold(0, (v, e) => v + e.length) + mainQueue.length;
 
   PriorityQueue getRestricted(List<N> restrictions) {
     var current = null;
@@ -208,7 +207,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
     var candidate = getRestricted([]);
     if (candidate != null &&
         (mainQueue.isEmpty ||
-         mainQueue.firstPriority < candidate.firstPriority)) {
+            mainQueue.firstPriority < candidate.firstPriority)) {
       return candidate.first;
     }
     return mainQueue.isEmpty ? null : mainQueue.first;
@@ -226,7 +225,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
 
     if (candidate != null &&
         (mainQueue.isEmpty ||
-         mainQueue.firstPriority < candidate.firstPriority)) {
+            mainQueue.firstPriority < candidate.firstPriority)) {
       var value = candidate.removeFirst();
       if (candidate.isEmpty) restrictedQueues.remove(candidate);
       return value;
@@ -237,9 +236,9 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
       if (!restrictions.any((e) => current.typeEquals(e))) {
         return current;
       } else {
-        var restrictedQueue = restrictedQueues
-          .firstWhere((e) => current.typeEquals(e.first.type),
-                      orElse: () => null);
+        var restrictedQueue = restrictedQueues.firstWhere(
+            (e) => current.typeEquals(e.first.type),
+            orElse: () => null);
         if (restrictedQueue == null) {
           restrictedQueue = new PriorityQueue<N, P>();
           restrictedQueues.add(restrictedQueue);
@@ -275,23 +274,24 @@ void stress(queue) {
   Random random = new Random(29);
 
   var priorities = [1, 2, 3, 16, 32, 42, 56, 57, 59, 90];
-  var values = [new StringTypedElement('safari', 'foo'),
-                new StringTypedElement('ie', 'bar'),
-                new StringTypedElement('ff', 'foobar'),
-                new StringTypedElement('dartium', 'barfoo'),
-                new StringTypedElement('chrome', 'hest'),
-                new StringTypedElement('drt', 'fisk')];
+  var values = [
+    new StringTypedElement('safari', 'foo'),
+    new StringTypedElement('ie', 'bar'),
+    new StringTypedElement('ff', 'foobar'),
+    new StringTypedElement('dartium', 'barfoo'),
+    new StringTypedElement('chrome', 'hest'),
+    new StringTypedElement('drt', 'fisk')
+  ];
 
   var restricted = ['safari', 'chrome'];
 
-
   void addRandom() {
     queue.add(values[random.nextInt(values.length)],
-              new IntPriority(priorities[random.nextInt(priorities.length)]));
+        new IntPriority(priorities[random.nextInt(priorities.length)]));
   }
 
   var stopwatch = new Stopwatch()..start();
-  while(queue.length < SIZE) {
+  while (queue.length < SIZE) {
     addRandom();
   }
 
@@ -300,16 +300,15 @@ void stress(queue) {
   print("Queue length: ${queue.length}");
 
   stopwatch = new Stopwatch()..start();
-  while(queue.length > 0) {
+  while (queue.length > 0) {
     queue.removeFirst();
   }
   stopwatch.stop();
   print("Remowing took: ${stopwatch.elapsedMilliseconds}");
   print("Queue length: ${queue.length}");
 
-
   print("Restricted add/remove");
-  while(queue.length < SIZE) {
+  while (queue.length < SIZE) {
     addRandom();
   }
 

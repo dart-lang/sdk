@@ -14,4 +14,3 @@ main() {
     document.body.nodes.add(lbl);
   });
 }
-

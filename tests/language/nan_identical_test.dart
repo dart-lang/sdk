@@ -12,7 +12,7 @@ double createOtherNAN() {
   var buffer = new Uint8List(8).buffer;
   var bdata = new ByteData.view(buffer);
   bdata.setFloat64(0, double.NAN);
-  bdata.setInt8(7, bdata.getInt8(7) ^ 1);  // Flip bit 0, big endian.
+  bdata.setInt8(7, bdata.getInt8(7) ^ 1); // Flip bit 0, big endian.
   double result = bdata.getFloat64(0);
   Expect.isTrue(result.isNaN);
   return result;

@@ -40,7 +40,4 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
       expect(message.error['code'], 'INVALID_PARAMETER');
     }
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

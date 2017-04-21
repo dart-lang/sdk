@@ -7,4 +7,3 @@ library lib3;
 class A {
   var p = true;
 }
-

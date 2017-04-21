@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-class Foo {
-}
+class Foo {}
 
 main() {
   Expect.stringEquals('Foo', '${new Foo().runtimeType}');

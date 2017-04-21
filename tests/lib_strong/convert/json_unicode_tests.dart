@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library json_unicode_tests;
+
 import 'unicode_tests.dart';
 
-const _QUOTE = 0x22;  // "
-const _COLON = 0x3a;  // :
-const _COMMA = 0x2c;  // ,
-const _BRACE_OPEN = 0x7b;  // {
-const _BRACE_CLOSE = 0x7d;  // }
-const _BRACKET_OPEN = 0x5b;  // [
-const _BRACKET_CLOSE = 0x5d;  // ]
+const _QUOTE = 0x22; // "
+const _COLON = 0x3a; // :
+const _COMMA = 0x2c; // ,
+const _BRACE_OPEN = 0x7b; // {
+const _BRACE_CLOSE = 0x7d; // }
+const _BRACKET_OPEN = 0x5b; // [
+const _BRACKET_CLOSE = 0x5d; // ]
 
 _expandUnicodeTests() {
   return UNICODE_TESTS.expand((test) {
@@ -36,7 +37,11 @@ _expandUnicodeTests() {
 
     // Put the quoted string into a triple nested list.
     // For example: 'abcd' -> '[[["abcd"]]]'.
-    var listExpected = [[[string]]];
+    var listExpected = [
+      [
+        [string]
+      ]
+    ];
     var inListBytes = [];
     inListBytes.addAll([_BRACKET_OPEN, _BRACKET_OPEN, _BRACKET_OPEN]);
     inListBytes.addAll(inQuotesBytes);

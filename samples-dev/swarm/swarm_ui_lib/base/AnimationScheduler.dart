@@ -44,8 +44,7 @@ class AnimationScheduler {
   CssStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
 
-  AnimationScheduler()
-    : _callbacks = new List<CallbackData>() {
+  AnimationScheduler() : _callbacks = new List<CallbackData>() {
     if (_isMobileSafari) {
       // TODO(jacobr): find a better workaround for the issue that 3d transforms
       // sometimes don't render on iOS without forcing a layout.
@@ -72,8 +71,7 @@ class AnimationScheduler {
    * pending callback.
    */
   int requestAnimationFrame(AnimationCallback callback,
-                            [Element element = null,
-                             num minTime = null]) {
+      [Element element = null, num minTime = null]) {
     final callbackData = new CallbackData(callback, minTime);
     _requestAnimationFrameHelper(callbackData);
     return callbackData.id;
@@ -85,8 +83,9 @@ class AnimationScheduler {
   }
 
   void _setupInterval() {
-    window.requestAnimationFrame(
-        (num ignored) { _step(); });
+    window.requestAnimationFrame((num ignored) {
+      _step();
+    });
   }
 
   void _step() {

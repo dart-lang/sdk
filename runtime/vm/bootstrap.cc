@@ -274,13 +274,15 @@ static void Finish(Thread* thread, bool from_kernel) {
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
   const Array& fields = Array::Handle(zone, cls.fields());
-  ASSERT(fields.Length() == 3);
+  ASSERT(fields.Length() == 4);
   Field& field = Field::Handle(zone);
   field ^= fields.At(0);
-  ASSERT(field.Offset() == Closure::instantiator_offset());
+  ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
   field ^= fields.At(1);
-  ASSERT(field.Offset() == Closure::function_offset());
+  ASSERT(field.Offset() == Closure::function_type_arguments_offset());
   field ^= fields.At(2);
+  ASSERT(field.Offset() == Closure::function_offset());
+  field ^= fields.At(3);
   ASSERT(field.Offset() == Closure::context_offset());
 #endif  // defined(DEBUG)
 
@@ -358,7 +360,6 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
 
   Library& library = Library::Handle(zone);
   String& dart_name = String::Handle(zone);
-  String& kernel_name = String::Handle(zone);
   for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
@@ -366,7 +367,7 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     for (intptr_t j = 0; j < program->libraries().length(); ++j) {
       kernel::Library* kernel_library = program->libraries()[j];
       kernel::String* uri = kernel_library->import_uri();
-      kernel_name = Symbols::FromUTF8(thread, uri->buffer(), uri->size());
+      const String& kernel_name = reader.DartSymbol(uri);
       if (kernel_name.Equals(dart_name)) {
         reader.ReadLibrary(kernel_library);
         library.SetLoaded();

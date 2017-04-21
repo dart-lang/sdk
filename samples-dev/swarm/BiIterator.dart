@@ -5,7 +5,6 @@ part of swarmlib;
  * a set of items. (Bi-directional)
  */
 class BiIterator<E> {
-
   /**
    * Provides forward and backward iterator functionality to keep track
    * which item is currently selected.
@@ -18,7 +17,7 @@ class BiIterator<E> {
   List<E> list;
 
   BiIterator(this.list, [List<ChangeListener> oldListeners = null])
-    : currentIndex = new ObservableValue<int>(0) {
+      : currentIndex = new ObservableValue<int>(0) {
     if (oldListeners != null) {
       currentIndex.listeners = oldListeners;
     }

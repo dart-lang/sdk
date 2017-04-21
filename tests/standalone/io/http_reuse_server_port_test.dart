@@ -26,13 +26,18 @@ Future<int> runServer(int port, int connections, bool clean) {
       }
     });
 
-    Future.wait(new List.generate(connections, (_) {
+    Future
+        .wait(new List.generate(connections, (_) {
       var client = new HttpClient();
-      return client.get("127.0.0.1", server.port, "/")
+      return client
+          .get("127.0.0.1", server.port, "/")
           .then((request) => request.close())
           .then((response) => response.drain())
-          .catchError((e) { if (clean) throw e; });
-    })).then((_) {
+          .catchError((e) {
+        if (clean) throw e;
+      });
+    }))
+        .then((_) {
       if (clean) {
         int port = server.port;
         server.close().then((_) => completer.complete(port));
@@ -41,7 +46,6 @@ Future<int> runServer(int port, int connections, bool clean) {
   });
   return completer.future;
 }
-
 
 void testReusePort() {
   asyncStart();
@@ -55,7 +59,6 @@ void testReusePort() {
   });
 }
 
-
 void testUncleanReusePort() {
   asyncStart();
   runServer(0, 10, false).then((int port) {
@@ -67,7 +70,6 @@ void testUncleanReusePort() {
     });
   });
 }
-
 
 void main() {
   testReusePort();

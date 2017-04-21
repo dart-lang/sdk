@@ -21,6 +21,6 @@ main() {
   // Call [A.full] with an int to have the inferrer think [field] is
   // always an int.
   Expect.equals(84, new A.full(42).field + 42);
-  Expect.throws(() => new B.full(null).field + 42,
-                (e) => e is NoSuchMethodError);
+  Expect.throws(
+      () => new B.full(null).field + 42, (e) => e is NoSuchMethodError);
 }

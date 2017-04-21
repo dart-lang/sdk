@@ -5,4 +5,3 @@
 library reexport_core_helper;
 
 export 'dart:core';
-

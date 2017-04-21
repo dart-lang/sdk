@@ -4,17 +4,18 @@
 
 import "package:expect/expect.dart";
 
-// The intermediate variable 'y' must either be preserved 
+// The intermediate variable 'y' must either be preserved
 // or parameters must be renamed.
 
 foo(x) {
-    var y = x;
-    bar(x) {
-        return y - x;
-    }
-    return bar;
+  var y = x;
+  bar(x) {
+    return y - x;
+  }
+
+  return bar;
 }
 
 main() {
-    Expect.equals(-10, foo(10)(20));
+  Expect.equals(-10, foo(10)(20));
 }

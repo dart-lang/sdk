@@ -279,6 +279,8 @@ public interface AnalysisServer {
    * options that are not valid, they will be silently ignored.
    *
    * @param options The options that are to be used to control analysis.
+   *
+   * @deprecated
    */
   public void analysis_updateOptions(AnalysisOptions options);
 
@@ -387,6 +389,20 @@ public interface AnalysisServer {
   public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
 
   /**
+   * {@code edit.getStatementCompletion}
+   *
+   * Get the changes required to convert the partial statement at the given location into a
+   * syntactically valid statement. If the current statement is already valid the change will insert
+   * a newline plus appropriate indentation at the end of the line containing the offset. If a change
+   * that makes the statement valid cannot be determined (perhaps because it has not yet been
+   * implemented) the statement will be considered already valid and the appropriate change returned.
+   *
+   * @param file The file containing the statement to be completed.
+   * @param offset The offset used to identify the statement to be completed.
+   */
+  public void edit_getStatementCompletion(String file, int offset, GetStatementCompletionConsumer consumer);
+
+  /**
    * {@code edit.organizeDirectives}
    *
    * Organizes all of the directives - removes unused imports and sorts directives of the given Dart
@@ -477,6 +493,8 @@ public interface AnalysisServer {
    * then the current subscriptions will remain unchanged.
    *
    * @param subscriptions A list of the services being subscribed to.
+   *
+   * @deprecated
    */
   public void execution_setSubscriptions(List<String> subscriptions);
 

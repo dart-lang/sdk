@@ -1231,14 +1231,14 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
-bool UnboxedIntConverterInstr::CanDeoptimize() const {
+bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
   return (to() == kUnboxedInt32) && !is_truncating() &&
          !RangeUtils::Fits(value()->definition()->range(),
                            RangeBoundary::kRangeBoundaryInt32);
 }
 
 
-bool UnboxInt32Instr::CanDeoptimize() const {
+bool UnboxInt32Instr::ComputeCanDeoptimize() const {
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
     return (kSmiBits > 32) && !is_truncating() &&
@@ -1260,7 +1260,7 @@ bool UnboxInt32Instr::CanDeoptimize() const {
 }
 
 
-bool UnboxUint32Instr::CanDeoptimize() const {
+bool UnboxUint32Instr::ComputeCanDeoptimize() const {
   ASSERT(is_truncating());
   if ((value()->Type()->ToCid() == kSmiCid) ||
       (value()->Type()->ToCid() == kMintCid)) {
@@ -1272,7 +1272,7 @@ bool UnboxUint32Instr::CanDeoptimize() const {
 }
 
 
-bool BinaryInt32OpInstr::CanDeoptimize() const {
+bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
@@ -1296,7 +1296,7 @@ bool BinaryInt32OpInstr::CanDeoptimize() const {
 }
 
 
-bool BinarySmiOpInstr::CanDeoptimize() const {
+bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
@@ -2064,25 +2064,29 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
       value()->Type()->IsAssignableTo(dst_type())) {
     return value()->definition();
   }
-
-  // For uninstantiated target types: If the instantiator type arguments
-  // are constant, instantiate the target type here.
-  if (dst_type().IsInstantiated()) return this;
-
-  // TODO(regis): Only try to instantiate here if function_type_args is constant
-  // or null and dst_type does not refer to parent function type parameters.
-  ConstantInstr* constant_type_args =
+  if (dst_type().IsInstantiated()) {
+    return this;
+  }
+  // For uninstantiated target types: If the instantiator and function
+  // type arguments are constant, instantiate the target type here.
+  ConstantInstr* constant_instantiator_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
-  if (constant_type_args != NULL) {
-    ASSERT(constant_type_args->value().IsNull() ||
-           constant_type_args->value().IsTypeArguments());
+  ConstantInstr* constant_function_type_args =
+      function_type_arguments()->definition()->AsConstant();
+  if ((constant_instantiator_type_args != NULL) &&
+      (constant_function_type_args != NULL)) {
+    ASSERT(constant_instantiator_type_args->value().IsNull() ||
+           constant_instantiator_type_args->value().IsTypeArguments());
+    ASSERT(constant_function_type_args->value().IsNull() ||
+           constant_function_type_args->value().IsTypeArguments());
     TypeArguments& instantiator_type_args = TypeArguments::Handle();
-    instantiator_type_args ^= constant_type_args->value().raw();
+    instantiator_type_args ^= constant_instantiator_type_args->value().raw();
+    TypeArguments& function_type_args = TypeArguments::Handle();
+    function_type_args ^= constant_function_type_args->value().raw();
     Error& bound_error = Error::Handle();
-    AbstractType& new_dst_type =
-        AbstractType::Handle(dst_type().InstantiateFrom(
-            instantiator_type_args, /* function_type_args, */
-            &bound_error, NULL, NULL, Heap::kOld));
+    AbstractType& new_dst_type = AbstractType::Handle(
+        dst_type().InstantiateFrom(instantiator_type_args, function_type_args,
+                                   &bound_error, NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -2100,7 +2104,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
-    // TODO(regis): function_type_arguments()->BindTo(null_constant);
+    function_type_arguments()->BindTo(null_constant);
   }
   return this;
 }
@@ -2310,6 +2314,11 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       value()->definition()->AsUnboxedIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
     if (box_defn->from() == to()) {
+      // Do not erase truncating convertions from 64-bit value to 32-bit values
+      // because such convertions erase upper 32 bits.
+      if ((box_defn->from() == kUnboxedMint) && box_defn->is_truncating()) {
+        return this;
+      }
       return box_defn->value()->definition();
     }
 
@@ -3969,6 +3978,11 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
 
 
 void NativeCallInstr::SetupNative() {
+  if (link_lazily()) {
+    // Resolution will happen during NativeEntry::LinkNativeCall.
+    return;
+  }
+
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
@@ -3976,10 +3990,6 @@ void NativeCallInstr::SetupNative() {
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
   set_is_bootstrap_native(is_bootstrap_native);
-
-  if (link_lazily() && !is_bootstrap_native) {
-    return;
-  }
 
   const int num_params =
       NativeArguments::ParameterCountForResolution(function());
@@ -3992,8 +4002,8 @@ void NativeCallInstr::SetupNative() {
                      "native function '%s' (%" Pd " arguments) cannot be found",
                      native_name().ToCString(), function().NumParameters());
   }
+  set_is_auto_scope(auto_setup_scope);
   set_native_c_function(native_function);
-  function().SetIsNativeAutoSetupScope(auto_setup_scope);
 }
 
 #undef __

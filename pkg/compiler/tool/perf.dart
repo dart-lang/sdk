@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart' show LibraryEntity;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
@@ -361,14 +361,10 @@ class MyCompiler extends CompilerImpl {
         resolutionEnqueuer.applyImpact(mainImpact);
         // Note: we enqueue everything in the program so we measure generating
         // kernel for the entire code, not just what's reachable from main.
-        libraryLoader.libraries.forEach((LibraryElement library) {
+        libraryLoader.libraries.forEach((LibraryEntity library) {
           resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
-        if (deferredLoadTask.isProgramSplit) {
-          resolutionEnqueuer
-              .applyImpact(backend.computeDeferredLoadingImpact());
-        }
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);

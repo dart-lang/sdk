@@ -7,6 +7,7 @@
 // lib12.Library13 is not resolved.
 
 library Prefix16NegativeTest.dart;
+
 import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 

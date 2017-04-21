@@ -229,35 +229,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
-  Object visitFieldFormalParameter(FieldFormalParameter node) {
-    if (node.parent is! DefaultFormalParameter) {
-      SimpleIdentifier parameterName = node.identifier;
-      FieldFormalParameterElementImpl parameter =
-          new FieldFormalParameterElementImpl.forNode(parameterName);
-      _setCodeRange(parameter, node);
-      _setFieldParameterField(node, parameter);
-      parameter.isConst = node.isConst;
-      parameter.isExplicitlyCovariant = node.covariantKeyword != null;
-      parameter.isFinal = node.isFinal;
-      parameter.parameterKind = node.kind;
-      _currentHolder.addParameter(parameter);
-      parameterName.staticElement = parameter;
-    }
-    //
-    // The children of this parameter include any parameters defined on the type
-    // of this parameter.
-    //
-    ElementHolder holder = new ElementHolder();
-    _visitChildren(holder, node);
-    ParameterElementImpl element = node.element;
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
-    holder.validate();
-    return null;
-  }
-
-  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression expression = node.functionExpression;
     if (expression != null) {
@@ -1432,6 +1403,35 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     }
     parameterName?.staticElement = parameter;
     normalParameter.accept(this);
+    return null;
+  }
+
+  @override
+  Object visitFieldFormalParameter(FieldFormalParameter node) {
+    if (node.parent is! DefaultFormalParameter) {
+      SimpleIdentifier parameterName = node.identifier;
+      FieldFormalParameterElementImpl parameter =
+          new FieldFormalParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
+      _setFieldParameterField(node, parameter);
+      parameter.isConst = node.isConst;
+      parameter.isExplicitlyCovariant = node.covariantKeyword != null;
+      parameter.isFinal = node.isFinal;
+      parameter.parameterKind = node.kind;
+      _currentHolder.addParameter(parameter);
+      parameterName.staticElement = parameter;
+    }
+    //
+    // The children of this parameter include any parameters defined on the type
+    // of this parameter.
+    //
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    ParameterElementImpl element = node.element;
+    element.metadata = _createElementAnnotations(node.metadata);
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+    holder.validate();
     return null;
   }
 

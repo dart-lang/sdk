@@ -67,7 +67,8 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
     final content = (_vm.isolates.map((isolate) {
       return new NavMenuItemElement(isolate.name,
           queue: _r.queue, link: Uris.inspect(isolate));
-    }).toList()..addAll(_content));
+    }).toList()
+      ..addAll(_content));
     children = [navMenu(vm.displayName, link: Uris.vm(), content: content)];
   }
 }

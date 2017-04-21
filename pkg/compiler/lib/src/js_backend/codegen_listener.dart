@@ -4,12 +4,9 @@
 
 library js_backend.backend.codegen_listener;
 
-import '../common.dart';
-import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
-import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
@@ -20,22 +17,17 @@ import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'backend.dart';
-import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
-import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
-import 'mirrors_data.dart';
 import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
-  final BackendHelpers _helpers;
   final BackendImpacts _impacts;
-  final BackendClasses _backendClasses;
 
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
@@ -52,9 +44,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   CodegenEnqueuerListener(
       this._elementEnvironment,
       this._commonElements,
-      this._helpers,
       this._impacts,
-      this._backendClasses,
       this._backendUsage,
       this._rtiNeed,
       this._customElementsAnalysis,
@@ -204,7 +194,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
     } else if (constant.isType) {
       impactBuilder
-          .registerTypeUse(new TypeUse.instantiation(_backendClasses.typeType));
+          .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
@@ -224,16 +214,16 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       if (_rtiNeed.classNeedsRtiField(type.element)) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
-            _helpers.setRuntimeTypeInfo,
+            _commonElements.setRuntimeTypeInfo,
             null));
       }
-      if (type.element == _backendClasses.typeClass) {
+      if (type.element == _commonElements.typeLiteralClass) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
-            _helpers.createRuntimeType,
+            _commonElements.createRuntimeType,
             null));
       }
     }
@@ -269,7 +259,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (!cls.typeVariables.isEmpty) {
       _typeVariableCodegenAnalysis.registerClassWithTypeVariables(cls);
     }
-    if (cls == _helpers.closureClass) {
+    if (cls == _commonElements.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
     }
 
@@ -278,51 +268,53 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           new TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
     }
 
-    if (cls == _commonElements.stringClass || cls == _helpers.jsStringClass) {
-      registerInstantiation(_helpers.jsStringClass);
+    if (cls == _commonElements.stringClass ||
+        cls == _commonElements.jsStringClass) {
+      registerInstantiation(_commonElements.jsStringClass);
     } else if (cls == _commonElements.listClass ||
-        cls == _helpers.jsArrayClass ||
-        cls == _helpers.jsFixedArrayClass ||
-        cls == _helpers.jsExtendableArrayClass ||
-        cls == _helpers.jsUnmodifiableArrayClass) {
-      registerInstantiation(_helpers.jsArrayClass);
-      registerInstantiation(_helpers.jsMutableArrayClass);
-      registerInstantiation(_helpers.jsFixedArrayClass);
-      registerInstantiation(_helpers.jsExtendableArrayClass);
-      registerInstantiation(_helpers.jsUnmodifiableArrayClass);
-    } else if (cls == _commonElements.intClass || cls == _helpers.jsIntClass) {
-      registerInstantiation(_helpers.jsIntClass);
-      registerInstantiation(_helpers.jsPositiveIntClass);
-      registerInstantiation(_helpers.jsUInt32Class);
-      registerInstantiation(_helpers.jsUInt31Class);
-      registerInstantiation(_helpers.jsNumberClass);
+        cls == _commonElements.jsArrayClass ||
+        cls == _commonElements.jsFixedArrayClass ||
+        cls == _commonElements.jsExtendableArrayClass ||
+        cls == _commonElements.jsUnmodifiableArrayClass) {
+      registerInstantiation(_commonElements.jsArrayClass);
+      registerInstantiation(_commonElements.jsMutableArrayClass);
+      registerInstantiation(_commonElements.jsFixedArrayClass);
+      registerInstantiation(_commonElements.jsExtendableArrayClass);
+      registerInstantiation(_commonElements.jsUnmodifiableArrayClass);
+    } else if (cls == _commonElements.intClass ||
+        cls == _commonElements.jsIntClass) {
+      registerInstantiation(_commonElements.jsIntClass);
+      registerInstantiation(_commonElements.jsPositiveIntClass);
+      registerInstantiation(_commonElements.jsUInt32Class);
+      registerInstantiation(_commonElements.jsUInt31Class);
+      registerInstantiation(_commonElements.jsNumberClass);
     } else if (cls == _commonElements.doubleClass ||
-        cls == _helpers.jsDoubleClass) {
-      registerInstantiation(_helpers.jsDoubleClass);
-      registerInstantiation(_helpers.jsNumberClass);
+        cls == _commonElements.jsDoubleClass) {
+      registerInstantiation(_commonElements.jsDoubleClass);
+      registerInstantiation(_commonElements.jsNumberClass);
     } else if (cls == _commonElements.boolClass ||
-        cls == _helpers.jsBoolClass) {
-      registerInstantiation(_helpers.jsBoolClass);
+        cls == _commonElements.jsBoolClass) {
+      registerInstantiation(_commonElements.jsBoolClass);
     } else if (cls == _commonElements.nullClass ||
-        cls == _helpers.jsNullClass) {
-      registerInstantiation(_helpers.jsNullClass);
+        cls == _commonElements.jsNullClass) {
+      registerInstantiation(_commonElements.jsNullClass);
     } else if (cls == _commonElements.numClass ||
-        cls == _helpers.jsNumberClass) {
-      registerInstantiation(_helpers.jsIntClass);
-      registerInstantiation(_helpers.jsPositiveIntClass);
-      registerInstantiation(_helpers.jsUInt32Class);
-      registerInstantiation(_helpers.jsUInt31Class);
-      registerInstantiation(_helpers.jsDoubleClass);
-      registerInstantiation(_helpers.jsNumberClass);
-    } else if (cls == _helpers.jsJavaScriptObjectClass) {
-      registerInstantiation(_helpers.jsJavaScriptObjectClass);
-    } else if (cls == _helpers.jsPlainJavaScriptObjectClass) {
-      registerInstantiation(_helpers.jsPlainJavaScriptObjectClass);
-    } else if (cls == _helpers.jsUnknownJavaScriptObjectClass) {
-      registerInstantiation(_helpers.jsUnknownJavaScriptObjectClass);
-    } else if (cls == _helpers.jsJavaScriptFunctionClass) {
-      registerInstantiation(_helpers.jsJavaScriptFunctionClass);
-    } else if (cls == _helpers.jsIndexingBehaviorInterface) {
+        cls == _commonElements.jsNumberClass) {
+      registerInstantiation(_commonElements.jsIntClass);
+      registerInstantiation(_commonElements.jsPositiveIntClass);
+      registerInstantiation(_commonElements.jsUInt32Class);
+      registerInstantiation(_commonElements.jsUInt31Class);
+      registerInstantiation(_commonElements.jsDoubleClass);
+      registerInstantiation(_commonElements.jsNumberClass);
+    } else if (cls == _commonElements.jsJavaScriptObjectClass) {
+      registerInstantiation(_commonElements.jsJavaScriptObjectClass);
+    } else if (cls == _commonElements.jsPlainJavaScriptObjectClass) {
+      registerInstantiation(_commonElements.jsPlainJavaScriptObjectClass);
+    } else if (cls == _commonElements.jsUnknownJavaScriptObjectClass) {
+      registerInstantiation(_commonElements.jsUnknownJavaScriptObjectClass);
+    } else if (cls == _commonElements.jsJavaScriptFunctionClass) {
+      registerInstantiation(_commonElements.jsJavaScriptFunctionClass);
+    } else if (cls == _commonElements.jsIndexingBehaviorInterface) {
       _impacts.jsIndexingBehavior
           .registerImpact(impactBuilder, _elementEnvironment);
     }

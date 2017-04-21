@@ -10,9 +10,8 @@ main() {
   final div = new DivElement();
   final canvas = new CanvasElement(width: 200, height: 200);
   canvas.id = 'testcanvas';
-  final element =
-      new Element.html("<div><br/><img/><input/><img/></div>");
-  document.body.nodes.addAll([div, canvas,  element]);
+  final element = new Element.html("<div><br/><img/><input/><img/></div>");
+  document.body.nodes.addAll([div, canvas, element]);
 
   var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
@@ -20,35 +19,34 @@ main() {
       predicate((x) => x is ImageElement, 'is an ImageElement');
 
   test('query', () {
-      Element e = query('#testcanvas');
-      expect(e, isNotNull);
-      expect(e.id, 'testcanvas');
-      expect(e, isCanvasElement);
-      expect(e, canvas);
-    });
+    Element e = query('#testcanvas');
+    expect(e, isNotNull);
+    expect(e.id, 'testcanvas');
+    expect(e, isCanvasElement);
+    expect(e, canvas);
+  });
 
   test('query (None)', () {
-      Element e = query('#nothere');
-      expect(e, isNull);
-    });
+    Element e = query('#nothere');
+    expect(e, isNull);
+  });
 
   test('queryAll (One)', () {
-      List l = queryAll('canvas');
-      expect(l.length, 1);
-      expect(l[0], canvas);
-    });
-
+    List l = queryAll('canvas');
+    expect(l.length, 1);
+    expect(l[0], canvas);
+  });
 
   test('queryAll (Multiple)', () {
-      List l = queryAll('img');
-      expect(l.length, 2);
-      expect(l[0], isImageElement);
-      expect(l[1], isImageElement);
-      expect(l[0] == l[1], isFalse);
-    });
+    List l = queryAll('img');
+    expect(l.length, 2);
+    expect(l[0], isImageElement);
+    expect(l[1], isImageElement);
+    expect(l[0] == l[1], isFalse);
+  });
 
   test('queryAll (None)', () {
-      List l = queryAll('video');
-      expect(l.isEmpty, isTrue);
-    });
+    List l = queryAll('video');
+    expect(l.isEmpty, isTrue);
+  });
 }

@@ -5,8 +5,8 @@ import 'dart:collection';
 
 class MyList extends Object with ListMixin {
   int length = 0;
-  operator[](index) => null;
-  void operator[]=(index, value) {}
+  operator [](index) => null;
+  void operator []=(index, value) {}
 }
 
 main() {

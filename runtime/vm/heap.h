@@ -46,12 +46,8 @@ class Heap {
     kGCTestCase,
   };
 
-#if defined(DEBUG)
   // Pattern for unused new space and swept old space.
-  static const uint64_t kZap64Bits = 0xf3f3f3f3f3f3f3f3;
-  static const uint32_t kZap32Bits = 0xf3f3f3f3;
   static const uint8_t kZapByte = 0xf3;
-#endif  // DEBUG
 
   ~Heap();
 
@@ -216,7 +212,7 @@ class Heap {
 
   // Stats collection.
   void RecordTime(int id, int64_t micros) {
-    ASSERT((id >= 0) && (id < GCStats::kDataEntries));
+    ASSERT((id >= 0) && (id < GCStats::kTimeEntries));
     stats_.times_[id] = micros;
   }
 
@@ -268,11 +264,12 @@ class Heap {
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
 
+    enum { kTimeEntries = 6 };
     enum { kDataEntries = 4 };
 
     Data before_;
     Data after_;
-    int64_t times_[kDataEntries];
+    int64_t times_[kTimeEntries];
     intptr_t data_[kDataEntries];
 
    private:

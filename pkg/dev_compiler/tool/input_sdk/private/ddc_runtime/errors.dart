@@ -78,3 +78,12 @@ throwNullValueError() => JS(
   $throw_(new $NoSuchMethodError(null,
       new $Symbol('<Unexpected Null Value>'), null, null, null));
 })()''');
+
+throwNoSuchMethodError(
+        receiver, memberName, positionalArguments, namedArguments) =>
+    JS(
+        '',
+        '''(() => {
+  if ($_trapRuntimeErrors) debugger;
+  $throw_(new $NoSuchMethodError($receiver, $memberName, $positionalArguments, $namedArguments));
+})()''');

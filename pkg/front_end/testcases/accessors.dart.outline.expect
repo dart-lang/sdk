@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    ;
+  set onlySetter(dynamic value) → void
+    ;
+  method testC() → dynamic
+    ;
+  method testD() → dynamic
+    ;
+}
+class D extends self::C {
+  constructor •() → void
+    ;
+  get onlySetter() → core::String
+    ;
+  set onlySetter(dynamic value) → void
+    ;
+}
+static set onlySetter(dynamic value) → void
+  ;
+static method main() → dynamic
+  ;

@@ -28,19 +28,18 @@ void testHttpIPv6() {
     var client = new HttpClient();
     var url = Uri.parse('http://[::1]:${server.port}/xxx');
     Expect.equals(url.host, '::1');
-    client.openUrl('GET', url)
+    client
+        .openUrl('GET', url)
         .then((request) => request.close())
         .then((response) {
-          Expect.equals(response.statusCode, HttpStatus.OK);
-        }).whenComplete(() {
-          server.close();
-          client.close();
-          asyncEnd();
-        });
+      Expect.equals(response.statusCode, HttpStatus.OK);
+    }).whenComplete(() {
+      server.close();
+      client.close();
+      asyncEnd();
+    });
   });
 }
-
-
 
 void main() {
   testHttpIPv6();

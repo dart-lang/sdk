@@ -600,9 +600,14 @@ class SetCommand extends DebuggerCommand {
     ],
     'causal-async-stacks': [
       _boolValues,
-      _setSaneAsyncStacks,
+      _setCausalAsyncStacks,
       (debugger, _) => debugger.saneAsyncStacks
     ],
+    'awaiter-stacks': [
+      _boolValues,
+      _setAwaiterStacks,
+      (debugger, _) => debugger.awaiterStacks
+    ]
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
@@ -624,14 +629,20 @@ class SetCommand extends DebuggerCommand {
     debugger.console.print('${name} = ${value}');
   }
 
-  static Future _setSaneAsyncStacks(debugger, name, value) async {
+  static Future _setCausalAsyncStacks(debugger, name, value) async {
     if (value == 'true') {
-      debugger.saneAsyncStacks = true;
+      debugger.causalAsyncStacks = true;
     } else {
-      debugger.saneAsyncStacks = false;
+      debugger.causalAsyncStacks = false;
     }
     debugger.refreshStack();
     debugger.console.print('${name} = ${value}');
+  }
+
+  static Future _setAwaiterStacks(debugger, name, value) async {
+    debugger.awaiterStacks = (value == 'true');
+    debugger.refreshStack();
+    debugger.console.print('${name} == ${value}');
   }
 
   Future run(List<String> args) async {
@@ -1236,7 +1247,6 @@ class VmNameCommand extends DebuggerCommand {
       'Syntax: vm name <name>\n';
 }
 
-
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
       : super(debugger, 'vm', [
@@ -1363,14 +1373,23 @@ class ObservatoryDebugger extends Debugger {
 
   bool _upIsDown;
 
-  bool get saneAsyncStacks => _saneAsyncStacks;
-  void set saneAsyncStacks(bool value) {
+  bool get causalAsyncStacks => _causalAsyncStacks;
+  void set causalAsyncStacks(bool value) {
     settings.set('causal-async-stacks', value);
-    _saneAsyncStacks = value;
+    _causalAsyncStacks = value;
   }
 
-  bool _saneAsyncStacks;
+  bool _causalAsyncStacks;
 
+  bool get awaiterStacks => _awaiterStacks;
+  void set awaiterStacks(bool value) {
+    settings.set('awaiter-stacks', value);
+    _causalAsyncStacks = value;
+  }
+
+  bool _awaiterStacks;
+
+  static const String kAwaiterStackFrames = 'awaiterFrames';
   static const String kAsyncCausalStackFrames = 'asyncCausalFrames';
   static const String kStackFrames = 'frames';
 
@@ -1391,31 +1410,35 @@ class ObservatoryDebugger extends Debugger {
   }
 
   int get stackDepth {
-    if (saneAsyncStacks) {
-      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
-      var stackFrames = stack[kStackFrames];
-      if (asyncCausalStackFrames == null) {
-        // No causal frames.
-        return stackFrames.length;
+    if (awaiterStacks) {
+      var awaiterStackFrames = stack[kAwaiterStackFrames];
+      if (awaiterStackFrames != null) {
+        return awaiterStackFrames.length;
       }
-      return asyncCausalStackFrames.length;
-    } else {
-      return stack[kStackFrames].length;
     }
+    if (causalAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      if (asyncCausalStackFrames != null) {
+        return asyncCausalStackFrames.length;
+      }
+    }
+    return stack[kStackFrames].length;
   }
 
   List get stackFrames {
-    if (saneAsyncStacks) {
-      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
-      var stackFrames = stack[kStackFrames];
-      if (asyncCausalStackFrames == null) {
-        // No causal frames.
-        return stackFrames ?? [];
+    if (awaiterStacks) {
+      var awaiterStackFrames = stack[kAwaiterStackFrames];
+      if (awaiterStackFrames != null) {
+        return awaiterStackFrames;
       }
-      return asyncCausalStackFrames;
-    } else {
-      return stack[kStackFrames] ?? [];
     }
+    if (causalAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      if (asyncCausalStackFrames != null) {
+        return asyncCausalStackFrames;
+      }
+    }
+    return stack[kStackFrames] ?? [];
   }
 
   static final _history = [''];
@@ -1453,7 +1476,8 @@ class ObservatoryDebugger extends Debugger {
 
   void _loadSettings() {
     _upIsDown = settings.get('up-is-down');
-    _saneAsyncStacks = settings.get('causal-async-stacks') ?? true;
+    _causalAsyncStacks = settings.get('causal-async-stacks') ?? true;
+    _awaiterStacks = settings.get('awaiter-stacks') ?? true;
   }
 
   S.VM get vm => page.app.vm;
@@ -2272,7 +2296,10 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
   void updateStackFrames(S.ServiceMap newStack) {
     List frameElements = _frameList.children;
     List newFrames;
-    if (_debugger.saneAsyncStacks &&
+    if (_debugger.awaiterStacks &&
+        (newStack[ObservatoryDebugger.kAwaiterStackFrames] != null)) {
+      newFrames = newStack[ObservatoryDebugger.kAwaiterStackFrames];
+    } else if (_debugger.causalAsyncStacks &&
         (newStack[ObservatoryDebugger.kAsyncCausalStackFrames] != null)) {
       newFrames = newStack[ObservatoryDebugger.kAsyncCausalStackFrames];
     } else {
@@ -2539,22 +2566,21 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                                           queue: _r.queue)
                                     ]
                                 ]
-                      ]
-                        ..addAll(_frame.variables
-                            .map((v) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = [
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..text = v.name,
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..children = [
-                                    anyRef(_isolate, v['value'], _instances,
-                                        queue: _r.queue)
-                                  ]
-                              ])
-                            .toList()))
+                      ]..addAll(_frame.variables
+                          .map((v) => new DivElement()
+                            ..classes = ['memberItem']
+                            ..children = [
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..text = v.name,
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..children = [
+                                  anyRef(_isolate, v['value'], _instances,
+                                      queue: _r.queue)
+                                ]
+                            ])
+                          .toList()))
                   ]
               ],
             new DivElement()
@@ -2849,13 +2875,12 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                               ..onClick.listen((_) {
                                 previewButton.disabled = true;
                               })
-                          ]
-                            ..addAll(_preview == null
-                                ? const []
-                                : [
-                                    anyRef(_isolate, _preview, _instances,
-                                        queue: _r.queue)
-                                  ]))
+                          ]..addAll(_preview == null
+                              ? const []
+                              : [
+                                  anyRef(_isolate, _preview, _instances,
+                                      queue: _r.queue)
+                                ]))
                       ]
                   ]
               ],

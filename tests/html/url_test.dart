@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library url_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -59,13 +60,11 @@ main() {
 
       var img = new ImageElement();
       // Image should fail to load since the URL was revoked.
-      img.onError.listen(expectAsync((_) {
-      }));
+      img.onError.listen(expectAsync((_) {}));
       img.onLoad.listen((_) {
         fail('URL should not have loaded.');
       });
       img.src = url;
     });
-
   });
 }

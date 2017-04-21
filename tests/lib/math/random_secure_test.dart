@@ -28,7 +28,7 @@ main() {
   };
   results = [];
   rng0 = new Random.secure();
-  for(var i = 0; i <= 32; i++) {
+  for (var i = 0; i <= 32; i++) {
     rng1 = new Random.secure();
     checkInt(pow(2, 32));
     checkInt(pow(2, 32 - i));
@@ -44,14 +44,14 @@ main() {
   };
   results = [];
   rng0 = new Random.secure();
-  for(var i = 0; i < 32; i++) {
+  for (var i = 0; i < 32; i++) {
     rng1 = new Random.secure();
     checkDouble();
   }
   var cnt0 = 0;
   var cnt1 = 0;
   rng0 = new Random.secure();
-  for(var i = 0; i < 32; i++) {
+  for (var i = 0; i < 32; i++) {
     rng1 = new Random.secure();
     cnt0 += rng0.nextBool() ? 1 : 0;
     cnt1 += rng1.nextBool() ? 1 : 0;
@@ -59,4 +59,3 @@ main() {
   Expect.isTrue((cnt0 > 0) && (cnt0 < 32));
   Expect.isTrue((cnt1 > 0) && (cnt1 < 32));
 }
-

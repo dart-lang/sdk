@@ -4,8 +4,13 @@
 
 import "package:expect/expect.dart";
 
-class A { const A(); }
-class B extends A { const B(); }
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+}
 
 void test(List<B> list) {
   // Test that the list accepts a different type for indexOf.

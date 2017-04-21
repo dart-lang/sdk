@@ -663,6 +663,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
 #if defined(TARGET_ARCH_DBC)
   if (block->IsCatchBlockEntry()) {
     if (defn->IsParameter()) {
+      // This must be in sync with FlowGraphCompiler::CatchEntryRegForVariable.
       ParameterInstr* param = defn->AsParameter();
       intptr_t slot_index = param->index();
       AssignSafepoints(defn, range);

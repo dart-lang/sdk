@@ -46,10 +46,10 @@ class C {
   final test17;
 
   const C(x,
-          [this.test9  = theNull ?? notNull,
-           this.test10 = notNull ?? theNull,
-           this.test11 = theNull ?? theNull ?? notNull,
-           this.test12 = theNull ?? theNull ?? theNull])
+      [this.test9 = theNull ?? notNull,
+      this.test10 = notNull ?? theNull,
+      this.test11 = theNull ?? theNull ?? notNull,
+      this.test12 = theNull ?? theNull ?? theNull])
       : test13 = theNull ?? x,
         test14 = notNull ?? x,
         test15 = x ?? notNull,
@@ -68,10 +68,12 @@ class C {
 
   List expressionLocal() {
     // Constant expression sub-expression.
-    return const [theNull ?? notNull,
-                  notNull ?? theNull,
-                  theNull ?? theNull ?? notNull,
-                  theNull ?? theNull ?? theNull];
+    return const [
+      theNull ?? notNull,
+      notNull ?? theNull,
+      theNull ?? theNull ?? notNull,
+      theNull ?? theNull ?? theNull
+    ];
   }
 }
 
@@ -116,11 +118,11 @@ main() {
   Expect.identical(notNull, c2.test11, "test28");
   Expect.identical(theNull, c2.test12, "test29");
 
-  Expect.identical(42     , c2.test13, "test30");
+  Expect.identical(42, c2.test13, "test30");
   Expect.identical(notNull, c2.test14, "test31");
-  Expect.identical(42     , c2.test15, "test32");
-  Expect.identical(42     , c2.test16, "test33");
-  Expect.identical(42     , c2.test17, "test34");
+  Expect.identical(42, c2.test15, "test32");
+  Expect.identical(42, c2.test16, "test33");
+  Expect.identical(42, c2.test17, "test34");
 
   list = c2.methodLocal();
   Expect.identical(notNull, list[0], "test35");

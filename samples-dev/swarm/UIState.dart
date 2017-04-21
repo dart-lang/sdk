@@ -60,8 +60,8 @@ abstract class UIState {
     // TODO(jmesserly): [state] should be an Object, and we should pass it to
     // the state parameter instead of as a #hash URL. Right now we're working
     //  around b/4582542.
-    window.history.pushState(null,
-        '${document.title}', '${document.title}#$state');
+    window.history
+        .pushState(null, '${document.title}', '${document.title}#$state');
   }
 
   /**

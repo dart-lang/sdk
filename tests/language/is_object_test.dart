@@ -16,7 +16,10 @@ testTryCatch(x) {
 
 main() {
   var evalCount = 0;
-  testEval(x) { evalCount++; return x; }
+  testEval(x) {
+    evalCount++;
+    return x;
+  }
 
   // Test that types that match JS primitive types compare correctly to Object
   var x = 1;

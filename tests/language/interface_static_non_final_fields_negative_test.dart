@@ -7,9 +7,7 @@ abstract class A {
 }
 
 class InterfaceStaticNonConstFieldsNegativeTest {
-
-  static testMain() {
-  }
+  static testMain() {}
 }
 
 main() {

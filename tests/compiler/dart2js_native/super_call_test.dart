@@ -31,10 +31,10 @@ class D extends C {
   bar() => 'D.bar';
 }
 
-makeA() native ;
-makeB() native ;
-makeC() native ;
-makeD() native ;
+makeA() native;
+makeB() native;
+makeC() native;
+makeD() native;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

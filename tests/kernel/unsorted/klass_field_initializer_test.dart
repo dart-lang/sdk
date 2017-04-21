@@ -20,7 +20,9 @@ class B extends A {
   var n;
   var m;
 
-  B(this.n, o) : super(o), m = "m";
+  B(this.n, o)
+      : super(o),
+        m = "m";
 }
 
 main() {

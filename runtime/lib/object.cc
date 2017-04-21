@@ -169,19 +169,21 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 3) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const TypeArguments& function_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
   const AbstractType& type =
-      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
   Error& bound_error = Error::Handle(zone, Error::null());
-  const bool is_instance_of =
-      instance.IsInstanceOf(type, instantiator_type_arguments, &bound_error);
+  const bool is_instance_of = instance.IsInstanceOf(
+      type, instantiator_type_arguments, function_type_arguments, &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
@@ -213,19 +215,19 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 3) {
 
 DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
   // This native is only called when the right hand side passes
-  // simpleInstanceOfType and it is a non-negative test.
+  // SimpleInstanceOfType and it is a non-negative test.
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(1));
-  const TypeArguments& instantiator_type_arguments =
-      TypeArguments::Handle(TypeArguments::null());
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
+  ASSERT(type.IsInstantiated());
   Error& bound_error = Error::Handle(zone, Error::null());
   const bool is_instance_of =
-      instance.IsInstanceOf(type, instantiator_type_arguments, &bound_error);
+      instance.IsInstanceOf(type, Object::null_type_arguments(),
+                            Object::null_type_arguments(), &bound_error);
   if (!is_instance_of && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
     DartFrameIterator iterator;
@@ -243,20 +245,23 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_as, 3) {
+DEFINE_NATIVE_ENTRY(Object_as, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const TypeArguments& function_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
   AbstractType& type =
-      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
   Error& bound_error = Error::Handle(zone);
   const bool is_instance_of =
       instance.IsNull() ||
-      instance.IsInstanceOf(type, instantiator_type_arguments, &bound_error);
+      instance.IsInstanceOf(type, instantiator_type_arguments,
+                            function_type_arguments, &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
@@ -279,7 +284,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
         AbstractType::Handle(zone, instance.GetType(Heap::kNew));
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
-      type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,
+      type = type.InstantiateFrom(instantiator_type_arguments,
+                                  function_type_arguments, NULL, NULL, NULL,
                                   Heap::kNew);
       // Note that the instantiated type may be malformed.
     }

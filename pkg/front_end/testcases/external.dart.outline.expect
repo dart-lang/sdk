@@ -1,0 +1,8 @@
+library;
+import self as self;
+
+static field dynamic subscription;
+static method onData(dynamic x) → void
+  ;
+static method main() → dynamic
+  ;

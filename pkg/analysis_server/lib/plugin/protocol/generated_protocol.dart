@@ -6995,6 +6995,226 @@ class EditGetRefactoringResult implements HasToJson {
 }
 
 /**
+ * edit.getStatementCompletion params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditGetStatementCompletionParams implements HasToJson {
+  String _file;
+
+  int _offset;
+
+  /**
+   * The file containing the statement to be completed.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the statement to be completed.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The offset used to identify the statement to be completed.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset used to identify the statement to be completed.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  EditGetStatementCompletionParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
+
+  factory EditGetStatementCompletionParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      return new EditGetStatementCompletionParams(file, offset);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.getStatementCompletion params", json);
+    }
+  }
+
+  factory EditGetStatementCompletionParams.fromRequest(Request request) {
+    return new EditGetStatementCompletionParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "edit.getStatementCompletion", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditGetStatementCompletionParams) {
+      return file == other.file && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.getStatementCompletion result
+ *
+ * {
+ *   "change": SourceChange
+ *   "whitespaceOnly": bool
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditGetStatementCompletionResult implements HasToJson {
+  SourceChange _change;
+
+  bool _whitespaceOnly;
+
+  /**
+   * The change to be applied in order to complete the statement.
+   */
+  SourceChange get change => _change;
+
+  /**
+   * The change to be applied in order to complete the statement.
+   */
+  void set change(SourceChange value) {
+    assert(value != null);
+    this._change = value;
+  }
+
+  /**
+   * Will be true if the change contains nothing but whitespace characters, or
+   * is empty.
+   */
+  bool get whitespaceOnly => _whitespaceOnly;
+
+  /**
+   * Will be true if the change contains nothing but whitespace characters, or
+   * is empty.
+   */
+  void set whitespaceOnly(bool value) {
+    assert(value != null);
+    this._whitespaceOnly = value;
+  }
+
+  EditGetStatementCompletionResult(SourceChange change, bool whitespaceOnly) {
+    this.change = change;
+    this.whitespaceOnly = whitespaceOnly;
+  }
+
+  factory EditGetStatementCompletionResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceChange change;
+      if (json.containsKey("change")) {
+        change = new SourceChange.fromJson(
+            jsonDecoder, jsonPath + ".change", json["change"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "change");
+      }
+      bool whitespaceOnly;
+      if (json.containsKey("whitespaceOnly")) {
+        whitespaceOnly = jsonDecoder.decodeBool(
+            jsonPath + ".whitespaceOnly", json["whitespaceOnly"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "whitespaceOnly");
+      }
+      return new EditGetStatementCompletionResult(change, whitespaceOnly);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.getStatementCompletion result", json);
+    }
+  }
+
+  factory EditGetStatementCompletionResult.fromResponse(Response response) {
+    return new EditGetStatementCompletionResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["change"] = change.toJson();
+    result["whitespaceOnly"] = whitespaceOnly;
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditGetStatementCompletionResult) {
+      return change == other.change && whitespaceOnly == other.whitespaceOnly;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    hash = JenkinsSmiHash.combine(hash, whitespaceOnly.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * edit.sortMembers params
  *
  * {

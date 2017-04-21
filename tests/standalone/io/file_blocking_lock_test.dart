@@ -21,20 +21,20 @@ import "package:path/path.dart";
 
 // Check whether the file is locked or not.
 runPeer(String path, int len, FileLock mode) {
-  var script = Platform.script.resolve(
-      'file_blocking_lock_script.dart').toFilePath();
+  var script =
+      Platform.script.resolve('file_blocking_lock_script.dart').toFilePath();
   var arguments = []
-      ..addAll(Platform.executableArguments)
-      ..add(script)
-      ..add(path)
-      ..add(len.toString());
+    ..addAll(Platform.executableArguments)
+    ..add(script)
+    ..add(path)
+    ..add(len.toString());
   return Process.start(Platform.executable, arguments).then((process) {
-    process.stdout
-        .transform(UTF8.decoder)
-        .listen((data) { print(data); });
-    process.stderr
-        .transform(UTF8.decoder)
-        .listen((data) { print(data); });
+    process.stdout.transform(UTF8.decoder).listen((data) {
+      print(data);
+    });
+    process.stderr.transform(UTF8.decoder).listen((data) {
+      print(data);
+    });
     return process;
   });
 }

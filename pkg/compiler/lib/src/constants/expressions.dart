@@ -482,12 +482,8 @@ class MapConstantExpression extends ConstantExpression {
       ConstantValue value = values[index].evaluate(environment, constantSystem);
       valueMap[key] = value;
     }
-    return constantSystem.createMap(
-        environment.commonElements,
-        environment.backendClasses,
-        type,
-        valueMap.keys.toList(),
-        valueMap.values.toList());
+    return constantSystem.createMap(environment.commonElements, type,
+        valueMap.keys.toList(), valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -738,8 +734,7 @@ class SymbolConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createSymbol(
-        environment.commonElements, environment.backendClasses, name);
+    return constantSystem.createSymbol(environment.commonElements, name);
   }
 
   @override
@@ -774,8 +769,7 @@ class TypeConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createType(
-        environment.commonElements, environment.backendClasses, type);
+    return constantSystem.createType(environment.commonElements, type);
   }
 
   @override
@@ -941,6 +935,7 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
+  // ignore: MISSING_RETURN
   InterfaceType getKnownType(CommonElements commonElements) {
     DartType knownLeftType = left.getKnownType(commonElements);
     DartType knownRightType = right.getKnownType(commonElements);

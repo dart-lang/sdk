@@ -12,7 +12,9 @@ class A {
   var b;
   A() : b = new B();
 
-  foo(i) { return (() => b.foo(i))(); }
+  foo(i) {
+    return (() => b.foo(i))();
+  }
 }
 
 main() {
@@ -21,4 +23,3 @@ main() {
   var f = a.foo;
   Expect.equals(521, f(22));
 }
-

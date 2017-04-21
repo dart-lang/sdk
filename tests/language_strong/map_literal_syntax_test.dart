@@ -9,7 +9,11 @@ class Foo {
   var y;
   var z;
   var v;
-  Foo() : x = {}, y = <String, int>{}, z = const {}, v = const <String, int>{};
+  Foo()
+      : x = {},
+        y = <String, int>{},
+        z = const {},
+        v = const <String, int>{};
 }
 
 main() {

@@ -46,7 +46,7 @@ void main() {
 
   // Run enough times to get a number of GC's (all mark sweep because of the
   // --gc_global) flag.
-  for ( var i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     // Make a long string with plenty of matches for re.
     var x = "s foo s bar s foo s bar s";
     x = x + x;

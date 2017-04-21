@@ -7,8 +7,13 @@ import "package:expect/expect.dart";
 // Checks that abstract instance methods are correctly resolved.
 
 int get length => throw "error: top-level getter called";
-set height(x) { throw "error: top-level setter called"; }
-width() { throw "error: top-level function called"; }
+set height(x) {
+  throw "error: top-level setter called";
+}
+
+width() {
+  throw "error: top-level function called";
+}
 
 abstract class A {
   int get length; //    Abstract instance getter.
@@ -24,8 +29,8 @@ abstract class A {
 }
 
 class A1 extends A {
-  int length;  // Implies a length getter.
-  int height;  // Implies a height setter.
+  int length; // Implies a length getter.
+  int height; // Implies a height setter.
   int width() => 345;
   A1(this.length);
 }
@@ -38,4 +43,3 @@ main() {
   Expect.equals(345, a.useWidth());
   print([a.useLength, a.height, a.useWidth()]);
 }
-

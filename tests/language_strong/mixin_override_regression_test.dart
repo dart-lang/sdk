@@ -16,6 +16,7 @@ class D {
 }
 
 class E0 extends C0 with D {}
+
 class E1 extends C1 with D {}
 
 main() {

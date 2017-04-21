@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
 
 membersOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
-    if(v is MethodMirror && !v.isConstructor) result[k] = v;
-    if(v is VariableMirror) result[k] = v;
+  cm.declarations.forEach((k, v) {
+    if (v is MethodMirror && !v.isConstructor) result[k] = v;
+    if (v is VariableMirror) result[k] = v;
   });
   return result;
 }
@@ -24,18 +27,15 @@ main() {
   Expect.isTrue(new WannabeFunction() is Function);
 
   ClosureMirror cm = reflect(new WannabeFunction());
-  Expect.equals(7, cm.invoke(#call, [3,4]).reflectee);
-  Expect.throws(() => cm.invoke(#call, [3]),
-                (e) => e is NoSuchMethodError,
-                "Wrong arity");
+  Expect.equals(7, cm.invoke(#call, [3, 4]).reflectee);
+  Expect.throws(() => cm.invoke(#call, [3]), (e) => e is NoSuchMethodError,
+      "Wrong arity");
   Expect.equals(49, cm.invoke(#method, [7]).reflectee);
-  Expect.throws(() => cm.invoke(#method, [3, 4]),
-                (e) => e is NoSuchMethodError,
-                "Wrong arity");
-  Expect.equals(7, cm.apply([3,4]).reflectee);
-  Expect.throws(() => cm.apply([3]),
-                (e) => e is NoSuchMethodError,
-                "Wrong arity");
+  Expect.throws(() => cm.invoke(#method, [3, 4]), (e) => e is NoSuchMethodError,
+      "Wrong arity");
+  Expect.equals(7, cm.apply([3, 4]).reflectee);
+  Expect.throws(
+      () => cm.apply([3]), (e) => e is NoSuchMethodError, "Wrong arity");
 
   MethodMirror mm = cm.function;
   Expect.equals(#call, mm.simpleName);

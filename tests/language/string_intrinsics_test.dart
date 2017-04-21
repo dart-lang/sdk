@@ -18,11 +18,9 @@ main() {
   }
 }
 
-
 testLength(s) {
   return s.length;
 }
-
 
 testIsEmpty(s) {
   return s.isEmpty;

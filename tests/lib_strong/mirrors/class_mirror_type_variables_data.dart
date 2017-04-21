@@ -5,15 +5,21 @@
 library class_mirror_type_variables_data;
 
 class NoTypeParams {}
+
 class A<T, S extends String> {}
+
 class B<Z extends B<Z>> {}
+
 class C<Z extends B<Z>> {}
-class D<R,S,T> {
+
+class D<R, S, T> {
   R foo(R r) => r;
   S bar(S s) => s;
   T baz(T t) => t;
 }
-class Helper<S> {}
-class E<R extends Map<R, Helper<String>>> {}
-class F<Z extends Helper<F<Z>>> {}
 
+class Helper<S> {}
+
+class E<R extends Map<R, Helper<String>>> {}
+
+class F<Z extends Helper<F<Z>>> {}

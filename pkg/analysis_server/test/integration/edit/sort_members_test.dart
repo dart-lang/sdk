@@ -60,7 +60,4 @@ int bar;
       expect(message.error['code'], 'SORT_MEMBERS_PARSE_ERRORS');
     }
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

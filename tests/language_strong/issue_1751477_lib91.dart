@@ -23,6 +23,4 @@ import 'issue_1751477_lib61.dart';
 import 'issue_1751477_lib71.dart';
 import 'issue_1751477_lib81.dart';
 
-lib91_func()
-{
-}
+lib91_func() {}

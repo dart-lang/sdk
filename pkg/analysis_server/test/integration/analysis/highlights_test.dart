@@ -11,12 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
-    defineReflectiveTests(AnalysisHighlightsTest_Driver);
   });
 }
 
-class AbstractAnalysisHighlightsTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   test_highlights() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -143,13 +142,4 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
-}
-
-@reflectiveTest
-class AnalysisHighlightsTest extends AbstractAnalysisHighlightsTest {}
-
-@reflectiveTest
-class AnalysisHighlightsTest_Driver extends AbstractAnalysisHighlightsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

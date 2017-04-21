@@ -104,6 +104,12 @@ class Listener {
     logEvent("CompilationUnit");
   }
 
+  void beginConstLiteral(Token token) {}
+
+  void endConstLiteral(Token token) {
+    logEvent("ConstLiteral");
+  }
+
   void beginConstructorReference(Token start) {}
 
   void endConstructorReference(
@@ -409,7 +415,7 @@ class Listener {
 
   /// Handle the end of a field initializer.  Substructures:
   /// - Initializer expression
-  void endFieldInitializer(Token assignment) {
+  void endFieldInitializer(Token assignment, Token token) {
     logEvent("FieldInitializer");
   }
 
@@ -1020,6 +1026,28 @@ class Listener {
 
   void handleScript(Token token) {
     logEvent("Script");
+  }
+
+  /// Matches a generic comment type substitution and injects it into the token
+  /// stream before the given [token].
+  Token injectGenericCommentTypeAssign(Token token) {
+    return token;
+  }
+
+  /// Matches a generic comment type parameters or type arguments and injects
+  /// them into the token stream before the given [token].
+  Token injectGenericCommentTypeList(Token token) {
+    return token;
+  }
+
+  /// If the [tokenWithComment] has a type substitution comment /*=T*/, then
+  /// the comment should be scanned into new tokens, and these tokens inserted
+  /// instead of tokens from the [tokenToStartReplacing] to the
+  /// [tokenWithComment]. Returns the first newly inserted token, or the
+  /// original [tokenWithComment].
+  Token replaceTokenWithGenericCommentTypeAssign(
+      Token tokenToStartReplacing, Token tokenWithComment) {
+    return tokenToStartReplacing;
   }
 
   /// Creates a new synthetic token whose `next` pointer points to [next].

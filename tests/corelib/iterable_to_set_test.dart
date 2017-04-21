@@ -9,13 +9,9 @@ main() {
   List<int> list2 = const <int>[4, 4];
   List<String> list3 = <String>[];
   Set<int> set1 = new Set<int>();
-  set1..add(11)
-      ..add(12)
-      ..add(13);
+  set1..add(11)..add(12)..add(13);
   Set<String> set2 = new Set<String>();
-  set2..add("foo")
-      ..add("bar")
-      ..add("toto");
+  set2..add("foo")..add("bar")..add("toto");
   Set set3 = new Set();
 
   var setCopy = list1.toSet();

@@ -22,4 +22,11 @@ class LintCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.LINT;
+
+  /**
+   * Overridden so that [LintCode] and its subclasses share the same uniqueName
+   * pattern (we know how to identify a lint even if we don't know the specific
+   * subclass the lint's code is defined in.
+   */
+  String get uniqueName => "LintCode.$name";
 }

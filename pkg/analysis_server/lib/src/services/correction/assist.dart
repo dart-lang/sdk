@@ -125,10 +125,10 @@ class DartAssistKind {
       const AssistKind("MOVE_FLUTTER_WIDGET_DOWN", 30, "Move widget down");
   static const MOVE_FLUTTER_WIDGET_UP =
       const AssistKind("MOVE_FLUTTER_WIDGET_UP", 30, "Move widget up");
-  static const REPARENT_FLUTTER_LIST = const AssistKind(
-      "REPARENT_FLUTTER_LIST", 30, "Wrap widget list with new widget");
-  static const REPARENT_FLUTTER_WIDGET = const AssistKind(
-      "REPARENT_FLUTTER_WIDGET", 30, "Wrap new-expression with new widget");
+  static const REPARENT_FLUTTER_LIST =
+      const AssistKind("REPARENT_FLUTTER_LIST", 30, "Wrap with new widget");
+  static const REPARENT_FLUTTER_WIDGET =
+      const AssistKind("REPARENT_FLUTTER_WIDGET", 30, "Wrap with new widget");
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(

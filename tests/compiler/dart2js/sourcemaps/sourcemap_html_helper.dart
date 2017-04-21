@@ -487,7 +487,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
     Map<int, List<SourceLocation>> uriMap =
         sourceLocationMap.putIfAbsent(sourceLocation.sourceUri, () => {});
     List<SourceLocation> lineList =
-        uriMap.putIfAbsent(sourceLocation.line, () => []);
+        uriMap.putIfAbsent(sourceLocation.line - 1, () => []);
     lineList.add(sourceLocation);
   });
   sourceLocationMap.forEach((Uri uri, Map<int, List<SourceLocation>> uriMap) {
@@ -515,7 +515,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
             line++) {
           if (line >= 0) {
             dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
-            dartCodeBuffer.write(sourceFile.getLineText(line));
+            dartCodeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
           }
         }
         dartCodeBuffer.write(codeBuffer);
@@ -524,7 +524,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
             line++) {
           if (line < sourceFile.lines) {
             dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
-            dartCodeBuffer.write(sourceFile.getLineText(line));
+            dartCodeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
           }
         }
         dartCodeBuffer.write('</pre>\n');
@@ -544,18 +544,18 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
       } else {
         for (int line = lastLineIndex + 1; line < lineIndex; line++) {
           codeBuffer.write(lineNumber(line, width: lineNoWidth));
-          codeBuffer.write(sourceFile.getLineText(line));
+          codeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
         }
       }
-      String line = sourceFile.getLineText(lineIndex);
+      String line = sourceFile.kernelSource.getTextLine(lineIndex + 1);
       locations.sort((a, b) => a.offset.compareTo(b.offset));
       for (int i = 0; i < locations.length; i++) {
         SourceLocation sourceLocation = locations[i];
         int index = collection.getIndex(sourceLocation);
-        int start = sourceLocation.column;
+        int start = sourceLocation.column - 1;
         int end = line.length;
         if (i + 1 < locations.length) {
-          end = locations[i + 1].column;
+          end = locations[i + 1].column - 1;
         }
         if (i == 0) {
           codeBuffer.write(lineNumber(lineIndex, width: lineNoWidth));

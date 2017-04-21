@@ -11,8 +11,7 @@ class Size {
   num width;
   num height;
 
-  Size(num this.width, num this.height) {
-  }
+  Size(num this.width, num this.height) {}
 
   bool operator ==(Size other) {
     return other != null && width == other.width && height == other.height;
@@ -127,8 +126,9 @@ class Size {
    * Returns this Size object, after optional scaling.
    */
   Size scaleToFit(Size target) {
-    num s = aspectRatio() > target.aspectRatio() ?
-        target.width / width : target.height / height;
+    num s = aspectRatio() > target.aspectRatio()
+        ? target.width / width
+        : target.height / height;
     return scale(s);
   }
 

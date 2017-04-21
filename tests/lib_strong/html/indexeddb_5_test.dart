@@ -1,4 +1,5 @@
 library IndexedDB1Test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:async';
@@ -20,13 +21,12 @@ main() {
   test('init', () {
     return html.window.indexedDB.deleteDatabase(dbName).then((_) {
       return html.window.indexedDB.open(dbName, version: 1,
-        onUpgradeNeeded: (e) {
-          var db = e.target.result;
-          var objectStore = db.createObjectStore(storeName,
-              autoIncrement: true);
-          var index = objectStore.createIndex(indexName, 'name_index',
-              unique: false);
-        });
+          onUpgradeNeeded: (e) {
+        var db = e.target.result;
+        var objectStore = db.createObjectStore(storeName, autoIncrement: true);
+        var index =
+            objectStore.createIndex(indexName, 'name_index', unique: false);
+      });
     }).then((database) {
       db = database;
     });
@@ -161,7 +161,6 @@ main() {
         }
       });
       return cursors.last;
-
     }).then((_) {
       return transaction.completed;
     }).then((_) {

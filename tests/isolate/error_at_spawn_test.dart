@@ -13,7 +13,7 @@ isomain(args) {
   throw new ArgumentError("fast error");
 }
 
-main(){
+main() {
   asyncStart();
 
   // Capture errors from other isolate as raw messages.
@@ -25,10 +25,9 @@ main(){
     errorPort.close();
     asyncEnd();
   };
-  
-  Isolate.spawn(isomain,
-                null,
-                // Setup handler as part of spawn.
-                errorsAreFatal: false,
-                onError: errorPort.sendPort);
+
+  Isolate.spawn(isomain, null,
+      // Setup handler as part of spawn.
+      errorsAreFatal: false,
+      onError: errorPort.sendPort);
 }

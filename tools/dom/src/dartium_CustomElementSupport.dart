@@ -10,15 +10,14 @@ class _VMElementUpgrader implements ElementUpgrader {
   final Type _nativeType;
   final String _extendsTag;
 
-  _VMElementUpgrader(Document document, Type type, String extendsTag) :
-      _type = type,
-      _extendsTag = extendsTag,
-      _nativeType = _validateCustomType(type).reflectedType {
-
+  _VMElementUpgrader(Document document, Type type, String extendsTag)
+      : _type = type,
+        _extendsTag = extendsTag,
+        _nativeType = _validateCustomType(type).reflectedType {
     if (extendsTag == null) {
       if (_nativeType != HtmlElement) {
         throw new UnsupportedError('Class must provide extendsTag if base '
-              'native class is not HtmlElement');
+            'native class is not HtmlElement');
       }
     } else {
       if (document.createElement(extendsTag).runtimeType != _nativeType) {
@@ -78,7 +77,7 @@ ClassMirror _validateCustomType(Type type) {
       cls != null && cls.qualifiedName == elementName;
   ClassMirror superClass = cls.superclass;
   ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
-  while(!isRoot(superClass) && !isElement(superClass)) {
+  while (!isRoot(superClass) && !isElement(superClass)) {
     superClass = superClass.superclass;
     if (nativeClass == null && _isBuiltinType(superClass)) {
       nativeClass = superClass;
@@ -86,7 +85,6 @@ ClassMirror _validateCustomType(Type type) {
   }
   return nativeClass;
 }
-
 
 bool _isBuiltinType(ClassMirror cls) {
   // TODO(vsm): Find a less hackish way to do this.

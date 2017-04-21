@@ -23,7 +23,7 @@ List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -49,9 +49,8 @@ SecurityContext clientContext = new SecurityContext()
 // server will not happen until the first TLS handshake data has been
 // received from the client. This argument only takes effect when
 // handshakeBeforeSecure is true.
-void test(bool hostnameInConnect,
-          bool handshakeBeforeSecure,
-          [bool postponeSecure = false]) {
+void test(bool hostnameInConnect, bool handshakeBeforeSecure,
+    [bool postponeSecure = false]) {
   asyncStart();
 
   const messageSize = 1000;
@@ -92,32 +91,28 @@ void test(bool hostnameInConnect,
   Future runServer(Socket client) {
     var completer = new Completer();
     var dataReceived = [];
-    client.listen(
-        (data) {
-          dataReceived.addAll(data);
-          if (dataReceived.length == messageSize) {
-            verifyTestData(dataReceived);
-            client.add(dataReceived);
-            client.close();
-          }
-        },
-        onDone: () => completer.complete(null));
+    client.listen((data) {
+      dataReceived.addAll(data);
+      if (dataReceived.length == messageSize) {
+        verifyTestData(dataReceived);
+        client.add(dataReceived);
+        client.close();
+      }
+    }, onDone: () => completer.complete(null));
     return completer.future;
   }
 
   Future<RawSocket> runClient(Socket socket) {
     var completer = new Completer();
     var dataReceived = [];
-    socket.listen(
-        (data) {
-          dataReceived.addAll(data);
-        },
-        onDone: () {
-          Expect.equals(messageSize, dataReceived.length);
-          verifyTestData(dataReceived);
-          socket.close();
-          completer.complete(null);
-        });
+    socket.listen((data) {
+      dataReceived.addAll(data);
+    }, onDone: () {
+      Expect.equals(messageSize, dataReceived.length);
+      verifyTestData(dataReceived);
+      socket.close();
+      completer.complete(null);
+    });
     socket.add(createTestData());
     return completer.future;
   }
@@ -126,39 +121,34 @@ void test(bool hostnameInConnect,
     var completer = new Completer();
     var dataReceived = [];
     var subscription;
-    subscription = client.listen(
-        (data) {
-          if (dataReceived.length == handshakeMessageSize) {
-            Expect.isTrue(postponeSecure);
-            subscription.pause();
-            completer.complete(data);
-          }
-          dataReceived.addAll(data);
-          if (dataReceived.length == handshakeMessageSize) {
-            verifyHandshakeTestData(dataReceived);
-            client.add(dataReceived);
-            if (!postponeSecure) {
-              completer.complete(null);
-            }
-          }
-        },
-        onDone: () => completer.complete(null));
+    subscription = client.listen((data) {
+      if (dataReceived.length == handshakeMessageSize) {
+        Expect.isTrue(postponeSecure);
+        subscription.pause();
+        completer.complete(data);
+      }
+      dataReceived.addAll(data);
+      if (dataReceived.length == handshakeMessageSize) {
+        verifyHandshakeTestData(dataReceived);
+        client.add(dataReceived);
+        if (!postponeSecure) {
+          completer.complete(null);
+        }
+      }
+    }, onDone: () => completer.complete(null));
     return completer.future;
   }
 
   Future<Socket> runClientHandshake(Socket socket) {
     var completer = new Completer();
     var dataReceived = [];
-    socket.listen(
-        (data) {
-          dataReceived.addAll(data);
-          if (dataReceived.length == handshakeMessageSize) {
-            verifyHandshakeTestData(dataReceived);
-            completer.complete(null);
-          }
-        },
-        onDone: () => Expect.fail("Should not be called")
-    );
+    socket.listen((data) {
+      dataReceived.addAll(data);
+      if (dataReceived.length == handshakeMessageSize) {
+        verifyHandshakeTestData(dataReceived);
+        completer.complete(null);
+      }
+    }, onDone: () => Expect.fail("Should not be called"));
     socket.add(createHandshakeTestData());
     return completer.future;
   }
@@ -170,9 +160,8 @@ void test(bool hostnameInConnect,
         if (hostnameInConnect) {
           future = SecureSocket.secure(socket, context: clientContext);
         } else {
-          future = SecureSocket.secure(socket,
-                                       host: HOST,
-                                       context: clientContext);
+          future =
+              SecureSocket.secure(socket, host: HOST, context: clientContext);
         }
         return future.then((secureSocket) {
           socket.add([0]);
@@ -182,18 +171,17 @@ void test(bool hostnameInConnect,
     } else {
       return Socket.connect(HOST, port).then((socket) {
         return runClientHandshake(socket).then((_) {
-            var future;
-            if (hostnameInConnect) {
-              future = SecureSocket.secure(socket, context: clientContext);
-            } else {
-              future = SecureSocket.secure(socket,
-                                           host: HOST,
-                                           context: clientContext);
-            }
-            return future.then((secureSocket) {
-              socket.add([0]);
-              return secureSocket;
-            });
+          var future;
+          if (hostnameInConnect) {
+            future = SecureSocket.secure(socket, context: clientContext);
+          } else {
+            future =
+                SecureSocket.secure(socket, host: HOST, context: clientContext);
+          }
+          return future.then((secureSocket) {
+            socket.add([0]);
+            return secureSocket;
+          });
         });
       });
     }
@@ -208,10 +196,9 @@ void test(bool hostnameInConnect,
         });
       } else {
         runServerHandshake(client).then((carryOverData) {
-          SecureSocket.secureServer(
-              client,
-              serverContext,
-              bufferedData: carryOverData).then((secureClient) {
+          SecureSocket
+              .secureServer(client, serverContext, bufferedData: carryOverData)
+              .then((secureClient) {
             client.add([0]);
             runServer(secureClient).then((_) => server.close());
           });

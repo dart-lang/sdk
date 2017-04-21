@@ -14,7 +14,12 @@ foo() {
 
 main() {
   var caughtIt = false;
-  try { foo(); } catch (e) { caughtIt = true; };
+  try {
+    foo();
+  } catch (e) {
+    caughtIt = true;
+  }
+  ;
   D.loadLibrary().then((_) {
     foo();
     Expect.isTrue(caughtIt);

@@ -17,7 +17,7 @@ class Z {
   foo() => 100;
 }
 
-makeZ() native ;
+makeZ() native;
 
 void setup() native """
 function A(){}

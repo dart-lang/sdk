@@ -8,25 +8,26 @@ var counter = 0;
 var global = 0;
 
 test() {
-    ++counter;
-    return counter <= 2;
+  ++counter;
+  return counter <= 2;
 }
 
 first() {
-    global = global + 1;
+  global = global + 1;
 }
+
 second() {
-    global = global * 2;
+  global = global * 2;
 }
 
 foo() {
-    while (test()) {
-        first();
-        second();
-    }
+  while (test()) {
+    first();
+    second();
+  }
 }
 
 main() {
-    foo();
-    Expect.equals(6, global);
+  foo();
+  Expect.equals(6, global);
 }

@@ -19,7 +19,9 @@ class C<T> extends A<U, T, W> {}
 class D<X, Y, Z> extends A<Y, Z, X> {}
 
 class U {}
+
 class V {}
+
 class W {}
 
 sameType(a, b) => Expect.equals(a.runtimeType, b.runtimeType);

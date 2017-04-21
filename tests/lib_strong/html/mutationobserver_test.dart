@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library mutationobserver_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -56,11 +57,12 @@ main() {
 
     test('empty options is syntax error', () {
       expect(() {
-        var mutationObserver = new MutationObserver(
-            (mutations, observer) { expect(false, isTrue,
-                reason: 'Should not be reached'); });
-        expect(() { mutationObserver.observe(document, {}); },
-               throws);
+        var mutationObserver = new MutationObserver((mutations, observer) {
+          expect(false, isTrue, reason: 'Should not be reached');
+        });
+        expect(() {
+          mutationObserver.observe(document, {});
+        }, throws);
       }, expectation);
     });
 

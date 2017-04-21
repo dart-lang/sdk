@@ -17,6 +17,8 @@ class Import {
   /// The library being imported.
   final LibraryBuilder imported;
 
+  final bool deferred;
+
   final String prefix;
 
   final List<Combinator> combinators;
@@ -25,8 +27,8 @@ class Import {
 
   final int prefixCharOffset;
 
-  Import(this.importer, this.imported, this.prefix, this.combinators,
-      this.charOffset, this.prefixCharOffset);
+  Import(this.importer, this.imported, this.deferred, this.prefix,
+      this.combinators, this.charOffset, this.prefixCharOffset);
 
   Uri get fileUri => importer.fileUri;
 
@@ -38,10 +40,14 @@ class Import {
         importer.addToScope(name, member, charOffset, true);
       };
     } else {
-      prefix = new PrefixBuilder(
-          this.prefix, <String, Builder>{}, importer, prefixCharOffset);
+      prefix =
+          new PrefixBuilder(this.prefix, deferred, importer, prefixCharOffset);
       add = (String name, Builder member) {
-        prefix.exports[name] = member;
+        if (member.isSetter) {
+          prefix.exports.setters[name] = member;
+        } else {
+          prefix.exports.local[name] = member;
+        }
       };
     }
     imported.exports.forEach((String name, Builder member) {

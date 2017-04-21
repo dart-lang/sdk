@@ -4,8 +4,8 @@
 // Testing Bigints.
 
 library bit_twiddling_test;
-import "package:expect/expect.dart";
 
+import "package:expect/expect.dart";
 
 bool haveBigints() {
   return 100000000000000000000 + 1 != 100000000000000000000;
@@ -15,7 +15,7 @@ testBitLength() {
   check(int i, width) {
     Expect.equals(width, i.bitLength, '$i.bitLength ==  $width');
     // (~i) written as (-i-1) to avoid issues with limited range of dart2js ops.
-    Expect.equals(width, (-i-1).bitLength, '(~$i).bitLength == $width');
+    Expect.equals(width, (-i - 1).bitLength, '(~$i).bitLength == $width');
   }
 
   check(0, 0);
@@ -52,12 +52,10 @@ testBitLength() {
     check(0x1000000000000000000, 73);
     check(0x1000000000000000001, 73);
 
-
     check(0xfffffffffffffffffffffffffffffffffffffe, 152);
     check(0xffffffffffffffffffffffffffffffffffffff, 152);
     check(0x100000000000000000000000000000000000000, 153);
     check(0x100000000000000000000000000000000000001, 153);
-
   }
 }
 
@@ -89,37 +87,37 @@ testToUnsigned() {
   checkU(0x1ffffffff, 32, 0xffffffff);
 
   checkU(-1, 0, 0);
-  checkU( 0, 0, 0);
-  checkU( 1, 0, 0);
-  checkU( 2, 0, 0);
-  checkU( 3, 0, 0);
+  checkU(0, 0, 0);
+  checkU(1, 0, 0);
+  checkU(2, 0, 0);
+  checkU(3, 0, 0);
 
   checkU(-1, 1, 1);
-  checkU( 0, 1, 0);
-  checkU( 1, 1, 1);
-  checkU( 2, 1, 0);
-  checkU( 3, 1, 1);
-  checkU( 4, 1, 0);
+  checkU(0, 1, 0);
+  checkU(1, 1, 1);
+  checkU(2, 1, 0);
+  checkU(3, 1, 1);
+  checkU(4, 1, 0);
 
   checkU(-1, 2, 3);
-  checkU( 0, 2, 0);
-  checkU( 1, 2, 1);
-  checkU( 2, 2, 2);
-  checkU( 3, 2, 3);
-  checkU( 4, 2, 0);
+  checkU(0, 2, 0);
+  checkU(1, 2, 1);
+  checkU(2, 2, 2);
+  checkU(3, 2, 3);
+  checkU(4, 2, 0);
 
   checkU(-1, 3, 7);
-  checkU( 0, 3, 0);
-  checkU( 1, 3, 1);
-  checkU( 2, 3, 2);
-  checkU( 3, 3, 3);
-  checkU( 4, 3, 4);
+  checkU(0, 3, 0);
+  checkU(1, 3, 1);
+  checkU(2, 3, 2);
+  checkU(3, 3, 3);
+  checkU(4, 3, 4);
 }
 
 testToSigned() {
   checkS(src, width, expected) {
-    Expect.equals(expected, src.toSigned(width),
-        '$src.toSigned($width) == $expected');
+    Expect.equals(
+        expected, src.toSigned(width), '$src.toSigned($width) == $expected');
   }
 
   checkS(1, 8, 1);
@@ -147,25 +145,25 @@ testToSigned() {
   checkS(0x1ffffffff, 32, -1);
 
   checkS(-1, 1, -1);
-  checkS( 0, 1,  0);
-  checkS( 1, 1, -1);  // The only bit is the sign bit.
-  checkS( 2, 1,  0);
-  checkS( 3, 1, -1);
-  checkS( 4, 1,  0);
+  checkS(0, 1, 0);
+  checkS(1, 1, -1); // The only bit is the sign bit.
+  checkS(2, 1, 0);
+  checkS(3, 1, -1);
+  checkS(4, 1, 0);
 
   checkS(-1, 2, -1);
-  checkS( 0, 2,  0);
-  checkS( 1, 2,  1);
-  checkS( 2, 2, -2);
-  checkS( 3, 2, -1);
-  checkS( 4, 2,  0);
+  checkS(0, 2, 0);
+  checkS(1, 2, 1);
+  checkS(2, 2, -2);
+  checkS(3, 2, -1);
+  checkS(4, 2, 0);
 
   checkS(-1, 3, -1);
-  checkS( 0, 3,  0);
-  checkS( 1, 3,  1);
-  checkS( 2, 3,  2);
-  checkS( 3, 3,  3);
-  checkS( 4, 3, -4);
+  checkS(0, 3, 0);
+  checkS(1, 3, 1);
+  checkS(2, 3, 2);
+  checkS(3, 3, 3);
+  checkS(4, 3, -4);
 }
 
 main() {

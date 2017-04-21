@@ -319,6 +319,10 @@ class Driver implements CommandLineStarter {
         _previousOptions.enableStrictCallChecks) {
       return false;
     }
+    if (options.enableAssertInitializer !=
+        _previousOptions.enableAssertInitializer) {
+      return false;
+    }
     if (options.showPackageWarnings != _previousOptions.showPackageWarnings) {
       return false;
     }
@@ -586,7 +590,7 @@ class Driver implements CommandLineStarter {
           resourceProvider,
           analysisDriverMemoryByteStore,
           new FileContentOverlay(),
-          'test',
+          null,
           context.sourceFactory,
           context.analysisOptions);
       analysisDriver.results.listen((_) {});
@@ -764,6 +768,7 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.enableAssertInitializer = options.enableAssertInitializer;
 
     return contextOptions;
   }

@@ -20,9 +20,9 @@ import 'dart:_interceptors'
 @Native('QQ')
 class Q {}
 
-makeA() native ;
-makeB() native ;
-makeQ() native ;
+makeA() native;
+makeB() native;
+makeQ() native;
 
 void setup() native r"""
 makeA = function(){return {hello: 123};};

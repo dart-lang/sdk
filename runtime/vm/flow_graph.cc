@@ -975,8 +975,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // Add global constants to the initial definitions.
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
-  constant_empty_context_ =
-      GetConstant(Context::Handle(isolate()->object_store()->empty_context()));
+  constant_empty_context_ = GetConstant(Object::empty_context());
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
@@ -1042,7 +1041,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     Value* use = it.CurrentValue();
     use->definition()->AddEnvUse(use);
   }
-  if (instr->CanDeoptimize()) {
+  if (instr->ComputeCanDeoptimize()) {
     instr->env()->set_deopt_id(instr->deopt_id());
   }
 }
@@ -1316,6 +1315,7 @@ void FlowGraph::RemoveRedefinitions() {
   // Remove redefinition instructions inserted to inhibit hoisting.
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
+    thread()->CheckForSafepoint();
     for (ForwardInstructionIterator instr_it(block_it.Current());
          !instr_it.Done(); instr_it.Advance()) {
       RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
@@ -2020,7 +2020,7 @@ void FlowGraph::EliminateEnvironments() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!current->CanDeoptimize() &&
+      if (!current->ComputeCanDeoptimize() &&
           (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.

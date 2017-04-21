@@ -10,11 +10,12 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'kernel_builder.dart'
     show
-        Builder,
         KernelTypeBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MetadataBuilder,
         NamedMixinApplicationBuilder,
+        Scope,
         TypeVariableBuilder;
 
 class KernelNamedMixinApplicationBuilder extends SourceClassBuilder
@@ -28,8 +29,21 @@ class KernelNamedMixinApplicationBuilder extends SourceClassBuilder
       List<KernelTypeBuilder> interfaces,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, modifiers, name, typeVariables, mixinApplication,
-            interfaces, <String, Builder>{}, parent, null, charOffset);
+      : super(
+            metadata,
+            modifiers,
+            name,
+            typeVariables,
+            mixinApplication,
+            interfaces,
+            new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
+                parent.scope.withTypeVariables(typeVariables),
+                isModifiable: false),
+            new Scope(<String, MemberBuilder>{}, null, null,
+                isModifiable: false),
+            parent,
+            null,
+            charOffset);
 
   KernelTypeBuilder get mixinApplication => supertype;
 

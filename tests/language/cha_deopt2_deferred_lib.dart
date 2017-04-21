@@ -4,6 +4,6 @@
 
 import "cha_deopt2_lib.dart";
 
-class U extends T { }
+class U extends T {}
 
 make_u() => new U();

@@ -30,8 +30,8 @@ main() {
   var symbol = const Symbol('a');
   var requiredParameters = [1];
   var optionalParameters = new Map<Symbol, int>()..[symbol] = 42;
-  Invocation i = Function.apply(
-      new G(), requiredParameters, optionalParameters);
+  Invocation i =
+      Function.apply(new G(), requiredParameters, optionalParameters);
 
   Expect.equals(const Symbol('call'), i.memberName);
   Expect.listEquals(requiredParameters, i.positionalArguments);

@@ -5,7 +5,7 @@
 library dart2js.call_structure;
 
 import '../common/names.dart' show Names;
-import '../elements/types.dart' show FunctionType;
+import '../elements/entities.dart' show ParameterStructure;
 import '../util/util.dart';
 import 'selector.dart' show Selector;
 
@@ -74,15 +74,14 @@ class CallStructure {
     return match(other);
   }
 
-  bool signatureApplies(FunctionType type) {
-    int requiredParameterCount = type.parameterTypes.length;
-    int optionalParameterCount =
-        type.optionalParameterTypes.length + type.namedParameters.length;
+  bool signatureApplies(ParameterStructure parameters) {
+    int requiredParameterCount = parameters.requiredParameters;
+    int optionalParameterCount = parameters.optionalParameters;
     int parameterCount = requiredParameterCount + optionalParameterCount;
     if (argumentCount > parameterCount) return false;
     if (positionalArgumentCount < requiredParameterCount) return false;
 
-    if (type.namedParameters.isEmpty) {
+    if (parameters.namedParameters.isEmpty) {
       // We have already checked that the number of arguments are
       // not greater than the number of parameters. Therefore the
       // number of positional arguments are not greater than the
@@ -95,7 +94,7 @@ class CallStructure {
       if (namedArgumentCount > optionalParameterCount) return false;
 
       int nameIndex = 0;
-      List<String> namedParameters = type.namedParameters;
+      List<String> namedParameters = parameters.namedParameters;
       for (String name in getOrderedNamedArguments()) {
         bool found = false;
         // Note: we start at the existing index because arguments are sorted.

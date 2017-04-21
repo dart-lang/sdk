@@ -8,13 +8,12 @@ typedef dynamic GetFromThing<T extends Thing>(T target);
 
 typedef GetFromThing<T> DefGetFromThing<T extends Thing>(dynamic def);
 
-class Thing { }
+class Thing {}
 
 class Test {
-  static final DefGetFromThing<Thing> fromThing = (dynamic def) { };
+  static final DefGetFromThing<Thing> fromThing = (dynamic def) {};
 }
 
 main() {
   Test.fromThing(10);
 }
-

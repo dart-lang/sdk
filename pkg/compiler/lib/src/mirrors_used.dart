@@ -423,7 +423,7 @@ class MirrorUsageBuilder {
       ResolutionInterfaceType interface = type;
       ClassElement cls = type.element;
       cls.ensureResolved(compiler.resolution);
-      for (ResolutionDartType supertype in cls.allSupertypes) {
+      for (ResolutionInterfaceType supertype in cls.allSupertypes) {
         if (supertype.isInterfaceType &&
             !supertype.element.library.isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);

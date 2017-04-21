@@ -14,6 +14,8 @@
 analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer/tool/summary/check_test: Skip  # Issue 29133
+analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
+analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
@@ -34,9 +36,12 @@ front_end/test/fasta/sdk_test: SkipByDesign
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
 front_end/test/fasta/kompile_test: Pass, Slow
+front_end/test/fasta/strong_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
+
+front_end/test/fasta/analyze_test: Pass, Slow
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
@@ -80,10 +85,7 @@ analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 front_end/tool/perf_test: Slow, Pass
 
 [ $runtime == vm && $use_sdk ]
-front_end/test/fasta/compile_test: Skip # Issue 28629
-front_end/test/fasta/kompile_test: Skip # Issue 28629
-front_end/test/fasta/outline_test: Skip # Issue 28629
-front_end/test/fasta/bootstrap_test: Skip # Issue 28629
+front_end/test/fasta/*: Skip # Issue 28629
 
 [ $runtime == vm && $use_sdk == false ]
 front_end/test/incremental_kernel_generator_test: Skip # Issue 28698

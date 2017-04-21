@@ -10,5 +10,4 @@ library duplicate_export_test;
 export 'duplicate_import_liba.dart';
 export 'duplicate_export_liba.dart'; // reexports 'duplicate_import_liba.dart'.
 
-void main() {
-}
+void main() {}

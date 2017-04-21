@@ -51,7 +51,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
   /// All declaration elements that have been processed by codegen.
-  final Set<Entity> _processedEntities = new Set<Entity>();
+  final Set<MemberEntity> _processedEntities = new Set<MemberEntity>();
 
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
@@ -259,7 +259,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   ImpactUseCase get impactUse => IMPACT_USE;
 
   @override
-  Iterable<Entity> get processedEntities => _processedEntities;
+  Iterable<MemberEntity> get processedEntities => _processedEntities;
 
   @override
   Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;

@@ -24,6 +24,6 @@ void main() {
   Expect.isFalse(new A<Foo>().foo(bar2));
   Expect.isTrue(new A<Foo>().foo(bar3));
   Expect.isFalse(new A<Foo>().foo(bar4));
-  Expect.isTrue(new A<Foo>().foo((){}));
-  Expect.isFalse(new A<Foo>().foo((i){}));
+  Expect.isTrue(new A<Foo>().foo(() {}));
+  Expect.isFalse(new A<Foo>().foo((i) {}));
 }

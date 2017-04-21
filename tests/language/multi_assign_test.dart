@@ -5,7 +5,6 @@
 
 import "package:expect/expect.dart";
 
-
 class MultiAssignTest {
   static testMain() {
     var i, j, k;

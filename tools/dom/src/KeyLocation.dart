@@ -9,7 +9,6 @@ part of html;
  * KeyboardEvent.getKeyLocation.
  */
 abstract class KeyLocation {
-
   /**
    * The event key is not distinguished as the left or right version
    * of the key, and did not originate from the numeric keypad (or did not

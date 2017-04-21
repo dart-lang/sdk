@@ -14,11 +14,10 @@ class A {
 }
 
 abstract class B {
-  get document;  // Abstract.
+  get document; // Abstract.
 }
 
-class C extends A implements B {
-}
+class C extends A implements B {}
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
@@ -28,4 +27,4 @@ void main() {
   int res = 0;
   if (obj is B) res = obj.document;
   Expect.equals(42, res);
-} 
+}

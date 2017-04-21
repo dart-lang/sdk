@@ -24,8 +24,12 @@ class BezierPhysics {
    * bezier when the final velocity is zero. This is a special case for which
    * these control points are constants.
    */
-  static const List<num> _FINAL_VELOCITY_ZERO_BEZIER =
-      const [_ONE_THIRD, _TWO_THIRDS, _TWO_THIRDS, 1];
+  static const List<num> _FINAL_VELOCITY_ZERO_BEZIER = const [
+    _ONE_THIRD,
+    _TWO_THIRDS,
+    _TWO_THIRDS,
+    1
+  ];
 
   /**
    * Given consistent kinematics parameters for constant acceleration, returns
@@ -34,9 +38,8 @@ class BezierPhysics {
    * Returns a list [:[x1, y1, x2, y2]:] representing the intermediate control
    *     points of the cubic Bezier.
    */
-  static List<num> calculateCubicBezierFromKinematics(
-      num initialVelocity, num finalVelocity, num totalTime,
-      num totalDisplacement) {
+  static List<num> calculateCubicBezierFromKinematics(num initialVelocity,
+      num finalVelocity, num totalTime, num totalDisplacement) {
     // Total time must be greater than 0.
     assert(!GoogleMath.nearlyEquals(totalTime, 0) && totalTime > 0);
     // Total displacement must not be 0.
@@ -51,8 +54,8 @@ class BezierPhysics {
     }
     List<num> controlPoint = _tangentLinesToQuadraticBezier(
         initialVelocity, finalVelocity, totalTime, totalDisplacement);
-    controlPoint = _normalizeQuadraticBezier(controlPoint[0], controlPoint[1],
-        totalTime, totalDisplacement);
+    controlPoint = _normalizeQuadraticBezier(
+        controlPoint[0], controlPoint[1], totalTime, totalDisplacement);
     return _quadraticToCubic(controlPoint[0], controlPoint[1]);
   }
 
@@ -86,8 +89,7 @@ class BezierPhysics {
    * [y2] The y-coordinate of the end point.
    * Returns a list [:[x1, y1]:] representing the intermediate control point.
    */
-  static List<num> _normalizeQuadraticBezier(
-      num x1, num y1, num x2, num y2) {
+  static List<num> _normalizeQuadraticBezier(num x1, num y1, num x2, num y2) {
     // The end point must not lie on any axes.
     assert(!GoogleMath.nearlyEquals(x2, 0) && !GoogleMath.nearlyEquals(y2, 0));
     return [x1 / x2, y1 / y2];

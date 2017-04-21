@@ -8,4 +8,3 @@ main(message, replyTo) {
     replyTo.send('DONE');
   });
 }
-

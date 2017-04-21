@@ -18,7 +18,7 @@ checkClass(classMirror) {
   Expect.isTrue(classMirror.owner is LibraryMirror);
   if (!isAnonymousMixinApplication(classMirror)) {
     Expect.equals(classMirror.originalDeclaration,
-                  classMirror.owner.declarations[classMirror.simpleName]);
+        classMirror.owner.declarations[classMirror.simpleName]);
   } else {
     Expect.isNull(classMirror.owner.declarations[classMirror.simpleName]);
   }

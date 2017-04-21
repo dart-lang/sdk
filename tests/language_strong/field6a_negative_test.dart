@@ -8,6 +8,7 @@ class A {
   int get a {
     return 10;
   }
+
   int a() {
     return 1;
   }

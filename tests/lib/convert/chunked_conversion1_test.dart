@@ -82,10 +82,12 @@ class IntBoolConverter1Sink extends MyChunkedIntSink {
   add(int i) {
     outSink.specialB(i > 0);
   }
+
   specialI(int i) {
     specialICounter++;
     add(i);
   }
+
   close() => outSink.close();
 }
 
@@ -101,6 +103,7 @@ class BoolIntConverter1Sink extends MyChunkedBoolSink {
     specialBCounter++;
     add(b);
   }
+
   close() => outSink.close();
 }
 
@@ -125,8 +128,8 @@ main() {
 
   // Test int->bool converter individually.
   converter1 = new IntBoolConverter1();
-  Expect.listEquals([true, false, true],
-                    [2, -2, 2].map(converter1.convert).toList());
+  Expect.listEquals(
+      [true, false, true], [2, -2, 2].map(converter1.convert).toList());
   hasExecuted = false;
   boolSink = new MyChunkedBoolSink.withCallback((value) {
     hasExecuted = true;
@@ -144,8 +147,8 @@ main() {
 
   // Test bool->int converter individually.
   converter2 = new BoolIntConverter1();
-  Expect.listEquals([1, 0, 1],
-                    [true, false, true].map(converter2.convert).toList());
+  Expect.listEquals(
+      [1, 0, 1], [true, false, true].map(converter2.convert).toList());
   hasExecuted = false;
   intSink = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;

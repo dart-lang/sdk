@@ -53,11 +53,12 @@ main() {
     expect(window.localStorage['key4'], 'val4');
 
     expect(window.localStorage['key3'], 'val3');
-    expect(window.localStorage.putIfAbsent('key3',
-        () {
+    expect(
+        window.localStorage.putIfAbsent('key3', () {
           fail('should not be called');
           return 'unused';
-        }), 'val3');
+        }),
+        'val3');
     expect(window.localStorage['key3'], 'val3');
   });
 

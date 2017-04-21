@@ -8,12 +8,13 @@ abstract class Link<T> {
   factory Link.create() = LinkFactory<T>.create;
 }
 
-class LinkFactory { //   Compile time error: should be LinkFactory<T> to match abstract class above
+class LinkFactory {
+  //   Compile time error: should be LinkFactory<T> to match abstract class above
   factory Link.create() {
     return null;
   }
 }
 
 main() {
-  var a = new Link.create();  // Equivalent to new Link<dynamic>.create().
+  var a = new Link.create(); // Equivalent to new Link<dynamic>.create().
 }

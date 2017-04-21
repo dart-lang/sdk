@@ -36,7 +36,7 @@ main() {
   Expect.equals('t', A.staticFieldForTopLevelMethod());
   Expect.equals('s', A.staticFieldForStaticMethod());
 
-  var map = const {'t': topLevelMethod, 's': A.staticMethod };
+  var map = const {'t': topLevelMethod, 's': A.staticMethod};
   Expect.equals('t', map['t']());
   Expect.equals('s', map['s']());
 }

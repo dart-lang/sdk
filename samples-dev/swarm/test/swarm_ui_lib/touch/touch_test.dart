@@ -5,7 +5,7 @@
 library touchTests;
 
 import 'dart:html'; // TODO(rnystrom): Only needed to tell architecture.py
-                    // that this is a web test. Come up with cleaner solution.
+// that this is a web test. Come up with cleaner solution.
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import '../../../swarm_ui_lib/touch/touch.dart';
@@ -39,8 +39,8 @@ class TestMomentumDelegate {
   Function onDecelerationEndCallback;
 
   void onDecelerate(num x, num y,
-                    [num duration = 0, String timingFunction = null]) {
-     onDecelerateCallback(x, y, duration, timingFunction);
+      [num duration = 0, String timingFunction = null]) {
+    onDecelerateCallback(x, y, duration, timingFunction);
   }
 
   /**

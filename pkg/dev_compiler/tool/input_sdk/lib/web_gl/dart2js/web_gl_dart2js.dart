@@ -399,20 +399,20 @@ class AngleInstancedArrays extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   void drawArraysInstancedAngle(int mode, int first, int count, int primcount)
-      native ;
+      native;
 
   @JSName('drawElementsInstancedANGLE')
   @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
   void drawElementsInstancedAngle(
-      int mode, int count, int type, int offset, int primcount) native ;
+      int mode, int count, int type, int offset, int primcount) native;
 
   @JSName('vertexAttribDivisorANGLE')
   @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) native ;
+  void vertexAttribDivisorAngle(int index, int divisor) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -660,7 +660,7 @@ class DebugShaders extends Interceptor {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
-  String getTranslatedShaderSource(Shader shader) native ;
+  String getTranslatedShaderSource(Shader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -835,7 +835,7 @@ class DrawBuffers extends Interceptor {
   @JSName('drawBuffersWEBGL')
   @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
   @DocsEditable()
-  void drawBuffersWebgl(List<int> buffers) native ;
+  void drawBuffersWebgl(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -944,11 +944,11 @@ class LoseContext extends Interceptor {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
-  void loseContext() native ;
+  void loseContext() native;
 
   @DomName('WebGLLoseContext.restoreContext')
   @DocsEditable()
-  void restoreContext() native ;
+  void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1070,22 +1070,22 @@ class OesVertexArrayObject extends Interceptor {
   @JSName('bindVertexArrayOES')
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable()
-  void bindVertexArray(VertexArrayObject arrayObject) native ;
+  void bindVertexArray(VertexArrayObject arrayObject) native;
 
   @JSName('createVertexArrayOES')
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() native ;
+  VertexArrayObject createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
-  void deleteVertexArray(VertexArrayObject arrayObject) native ;
+  void deleteVertexArray(VertexArrayObject arrayObject) native;
 
   @JSName('isVertexArrayOES')
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable()
-  bool isVertexArray(VertexArrayObject arrayObject) native ;
+  bool isVertexArray(VertexArrayObject arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2341,52 +2341,52 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.activeTexture')
   @DocsEditable()
-  void activeTexture(int texture) native ;
+  void activeTexture(int texture) native;
 
   @DomName('WebGLRenderingContext.attachShader')
   @DocsEditable()
-  void attachShader(Program program, Shader shader) native ;
+  void attachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.bindAttribLocation')
   @DocsEditable()
-  void bindAttribLocation(Program program, int index, String name) native ;
+  void bindAttribLocation(Program program, int index, String name) native;
 
   @DomName('WebGLRenderingContext.bindBuffer')
   @DocsEditable()
-  void bindBuffer(int target, Buffer buffer) native ;
+  void bindBuffer(int target, Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.bindFramebuffer')
   @DocsEditable()
-  void bindFramebuffer(int target, Framebuffer framebuffer) native ;
+  void bindFramebuffer(int target, Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.bindRenderbuffer')
   @DocsEditable()
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native ;
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.bindTexture')
   @DocsEditable()
-  void bindTexture(int target, Texture texture) native ;
+  void bindTexture(int target, Texture texture) native;
 
   @DomName('WebGLRenderingContext.blendColor')
   @DocsEditable()
-  void blendColor(num red, num green, num blue, num alpha) native ;
+  void blendColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.blendEquation')
   @DocsEditable()
-  void blendEquation(int mode) native ;
+  void blendEquation(int mode) native;
 
   @DomName('WebGLRenderingContext.blendEquationSeparate')
   @DocsEditable()
-  void blendEquationSeparate(int modeRGB, int modeAlpha) native ;
+  void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
   @DomName('WebGLRenderingContext.blendFunc')
   @DocsEditable()
-  void blendFunc(int sfactor, int dfactor) native ;
+  void blendFunc(int sfactor, int dfactor) native;
 
   @DomName('WebGLRenderingContext.blendFuncSeparate')
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-      native ;
+      native;
 
   @JSName('bufferData')
   /**
@@ -2398,7 +2398,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferByteData(int target, ByteBuffer data, int usage) native ;
+  void bufferByteData(int target, ByteBuffer data, int usage) native;
 
   /**
    * Buffers the specified data.
@@ -2409,7 +2409,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferData(int target, data_OR_size, int usage) native ;
+  void bufferData(int target, data_OR_size, int usage) native;
 
   @JSName('bufferData')
   /**
@@ -2421,7 +2421,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferDataTyped(int target, TypedData data, int usage) native ;
+  void bufferDataTyped(int target, TypedData data, int usage) native;
 
   @JSName('bufferSubData')
   /**
@@ -2433,7 +2433,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubByteData(int target, int offset, ByteBuffer data) native ;
+  void bufferSubByteData(int target, int offset, ByteBuffer data) native;
 
   /**
    * Buffers the specified subset of data.
@@ -2444,7 +2444,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubData(int target, int offset, data) native ;
+  void bufferSubData(int target, int offset, data) native;
 
   @JSName('bufferSubData')
   /**
@@ -2456,195 +2456,195 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubDataTyped(int target, int offset, TypedData data) native ;
+  void bufferSubDataTyped(int target, int offset, TypedData data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
-  int checkFramebufferStatus(int target) native ;
+  int checkFramebufferStatus(int target) native;
 
   @DomName('WebGLRenderingContext.clear')
   @DocsEditable()
-  void clear(int mask) native ;
+  void clear(int mask) native;
 
   @DomName('WebGLRenderingContext.clearColor')
   @DocsEditable()
-  void clearColor(num red, num green, num blue, num alpha) native ;
+  void clearColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.clearDepth')
   @DocsEditable()
-  void clearDepth(num depth) native ;
+  void clearDepth(num depth) native;
 
   @DomName('WebGLRenderingContext.clearStencil')
   @DocsEditable()
-  void clearStencil(int s) native ;
+  void clearStencil(int s) native;
 
   @DomName('WebGLRenderingContext.colorMask')
   @DocsEditable()
-  void colorMask(bool red, bool green, bool blue, bool alpha) native ;
+  void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
   @DomName('WebGLRenderingContext.compileShader')
   @DocsEditable()
-  void compileShader(Shader shader) native ;
+  void compileShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable()
   void compressedTexImage2D(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data) native ;
+      int width, int height, int border, TypedData data) native;
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable()
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data) native ;
+      int width, int height, int format, TypedData data) native;
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable()
   void copyTexImage2D(int target, int level, int internalformat, int x, int y,
-      int width, int height, int border) native ;
+      int width, int height, int border) native;
 
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
   @DocsEditable()
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
-      int y, int width, int height) native ;
+      int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() native ;
+  Buffer createBuffer() native;
 
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() native ;
+  Framebuffer createFramebuffer() native;
 
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() native ;
+  Program createProgram() native;
 
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() native ;
+  Renderbuffer createRenderbuffer() native;
 
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
-  Shader createShader(int type) native ;
+  Shader createShader(int type) native;
 
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() native ;
+  Texture createTexture() native;
 
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
-  void cullFace(int mode) native ;
+  void cullFace(int mode) native;
 
   @DomName('WebGLRenderingContext.deleteBuffer')
   @DocsEditable()
-  void deleteBuffer(Buffer buffer) native ;
+  void deleteBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.deleteFramebuffer')
   @DocsEditable()
-  void deleteFramebuffer(Framebuffer framebuffer) native ;
+  void deleteFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.deleteProgram')
   @DocsEditable()
-  void deleteProgram(Program program) native ;
+  void deleteProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
   @DocsEditable()
-  void deleteRenderbuffer(Renderbuffer renderbuffer) native ;
+  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.deleteShader')
   @DocsEditable()
-  void deleteShader(Shader shader) native ;
+  void deleteShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.deleteTexture')
   @DocsEditable()
-  void deleteTexture(Texture texture) native ;
+  void deleteTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.depthFunc')
   @DocsEditable()
-  void depthFunc(int func) native ;
+  void depthFunc(int func) native;
 
   @DomName('WebGLRenderingContext.depthMask')
   @DocsEditable()
-  void depthMask(bool flag) native ;
+  void depthMask(bool flag) native;
 
   @DomName('WebGLRenderingContext.depthRange')
   @DocsEditable()
-  void depthRange(num zNear, num zFar) native ;
+  void depthRange(num zNear, num zFar) native;
 
   @DomName('WebGLRenderingContext.detachShader')
   @DocsEditable()
-  void detachShader(Program program, Shader shader) native ;
+  void detachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.disable')
   @DocsEditable()
-  void disable(int cap) native ;
+  void disable(int cap) native;
 
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
   @DocsEditable()
-  void disableVertexAttribArray(int index) native ;
+  void disableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.drawArrays')
   @DocsEditable()
-  void drawArrays(int mode, int first, int count) native ;
+  void drawArrays(int mode, int first, int count) native;
 
   @DomName('WebGLRenderingContext.drawElements')
   @DocsEditable()
-  void drawElements(int mode, int count, int type, int offset) native ;
+  void drawElements(int mode, int count, int type, int offset) native;
 
   @DomName('WebGLRenderingContext.enable')
   @DocsEditable()
-  void enable(int cap) native ;
+  void enable(int cap) native;
 
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
   @DocsEditable()
-  void enableVertexAttribArray(int index) native ;
+  void enableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.finish')
   @DocsEditable()
-  void finish() native ;
+  void finish() native;
 
   @DomName('WebGLRenderingContext.flush')
   @DocsEditable()
-  void flush() native ;
+  void flush() native;
 
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   @DocsEditable()
   void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer renderbuffer) native ;
+      int renderbuffertarget, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.framebufferTexture2D')
   @DocsEditable()
   void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture texture, int level) native ;
+      Texture texture, int level) native;
 
   @DomName('WebGLRenderingContext.frontFace')
   @DocsEditable()
-  void frontFace(int mode) native ;
+  void frontFace(int mode) native;
 
   @DomName('WebGLRenderingContext.generateMipmap')
   @DocsEditable()
-  void generateMipmap(int target) native ;
+  void generateMipmap(int target) native;
 
   @DomName('WebGLRenderingContext.getActiveAttrib')
   @DocsEditable()
-  ActiveInfo getActiveAttrib(Program program, int index) native ;
+  ActiveInfo getActiveAttrib(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getActiveUniform')
   @DocsEditable()
-  ActiveInfo getActiveUniform(Program program, int index) native ;
+  ActiveInfo getActiveUniform(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  List<Shader> getAttachedShaders(Program program) native ;
+  List<Shader> getAttachedShaders(Program program) native;
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
-  int getAttribLocation(Program program, String name) native ;
+  int getAttribLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getBufferParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getBufferParameter(int target, int pname) native ;
+  Object getBufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
@@ -2657,22 +2657,22 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
   @Creates('ContextAttributes|=Object')
-  _getContextAttributes_1() native ;
+  _getContextAttributes_1() native;
 
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
-  int getError() native ;
+  int getError() native;
 
   @DomName('WebGLRenderingContext.getExtension')
   @DocsEditable()
-  Object getExtension(String name) native ;
+  Object getExtension(String name) native;
 
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable()
   @Creates('int|Renderbuffer|Texture|Null')
   @Returns('int|Renderbuffer|Texture|Null')
   Object getFramebufferAttachmentParameter(
-      int target, int attachment, int pname) native ;
+      int target, int attachment, int pname) native;
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable()
@@ -2680,52 +2680,52 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
-  Object getParameter(int pname) native ;
+  Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
   @DocsEditable()
-  String getProgramInfoLog(Program program) native ;
+  String getProgramInfoLog(Program program) native;
 
   @DomName('WebGLRenderingContext.getProgramParameter')
   @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getProgramParameter(Program program, int pname) native ;
+  Object getProgramParameter(Program program, int pname) native;
 
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getRenderbufferParameter(int target, int pname) native ;
+  Object getRenderbufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderInfoLog')
   @DocsEditable()
-  String getShaderInfoLog(Shader shader) native ;
+  String getShaderInfoLog(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getShaderParameter(Shader shader, int pname) native ;
+  Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
   ShaderPrecisionFormat getShaderPrecisionFormat(
-      int shadertype, int precisiontype) native ;
+      int shadertype, int precisiontype) native;
 
   @DomName('WebGLRenderingContext.getShaderSource')
   @DocsEditable()
-  String getShaderSource(Shader shader) native ;
+  String getShaderSource(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   @DocsEditable()
-  List<String> getSupportedExtensions() native ;
+  List<String> getSupportedExtensions() native;
 
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getTexParameter(int target, int pname) native ;
+  Object getTexParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable()
@@ -2733,119 +2733,119 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
-  Object getUniform(Program program, UniformLocation location) native ;
+  Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')
   @DocsEditable()
-  UniformLocation getUniformLocation(Program program, String name) native ;
+  UniformLocation getUniformLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()
   @Creates('Null|num|bool|NativeFloat32List|Buffer')
   @Returns('Null|num|bool|NativeFloat32List|Buffer')
-  Object getVertexAttrib(int index, int pname) native ;
+  Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
   @DocsEditable()
-  int getVertexAttribOffset(int index, int pname) native ;
+  int getVertexAttribOffset(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.hint')
   @DocsEditable()
-  void hint(int target, int mode) native ;
+  void hint(int target, int mode) native;
 
   @DomName('WebGLRenderingContext.isBuffer')
   @DocsEditable()
-  bool isBuffer(Buffer buffer) native ;
+  bool isBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.isContextLost')
   @DocsEditable()
-  bool isContextLost() native ;
+  bool isContextLost() native;
 
   @DomName('WebGLRenderingContext.isEnabled')
   @DocsEditable()
-  bool isEnabled(int cap) native ;
+  bool isEnabled(int cap) native;
 
   @DomName('WebGLRenderingContext.isFramebuffer')
   @DocsEditable()
-  bool isFramebuffer(Framebuffer framebuffer) native ;
+  bool isFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.isProgram')
   @DocsEditable()
-  bool isProgram(Program program) native ;
+  bool isProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.isRenderbuffer')
   @DocsEditable()
-  bool isRenderbuffer(Renderbuffer renderbuffer) native ;
+  bool isRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.isShader')
   @DocsEditable()
-  bool isShader(Shader shader) native ;
+  bool isShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.isTexture')
   @DocsEditable()
-  bool isTexture(Texture texture) native ;
+  bool isTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.lineWidth')
   @DocsEditable()
-  void lineWidth(num width) native ;
+  void lineWidth(num width) native;
 
   @DomName('WebGLRenderingContext.linkProgram')
   @DocsEditable()
-  void linkProgram(Program program) native ;
+  void linkProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.pixelStorei')
   @DocsEditable()
-  void pixelStorei(int pname, int param) native ;
+  void pixelStorei(int pname, int param) native;
 
   @DomName('WebGLRenderingContext.polygonOffset')
   @DocsEditable()
-  void polygonOffset(num factor, num units) native ;
+  void polygonOffset(num factor, num units) native;
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
   void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) native ;
+      TypedData pixels) native;
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
   @DocsEditable()
   void renderbufferStorage(
-      int target, int internalformat, int width, int height) native ;
+      int target, int internalformat, int width, int height) native;
 
   @DomName('WebGLRenderingContext.sampleCoverage')
   @DocsEditable()
-  void sampleCoverage(num value, bool invert) native ;
+  void sampleCoverage(num value, bool invert) native;
 
   @DomName('WebGLRenderingContext.scissor')
   @DocsEditable()
-  void scissor(int x, int y, int width, int height) native ;
+  void scissor(int x, int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.shaderSource')
   @DocsEditable()
-  void shaderSource(Shader shader, String string) native ;
+  void shaderSource(Shader shader, String string) native;
 
   @DomName('WebGLRenderingContext.stencilFunc')
   @DocsEditable()
-  void stencilFunc(int func, int ref, int mask) native ;
+  void stencilFunc(int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
   @DocsEditable()
-  void stencilFuncSeparate(int face, int func, int ref, int mask) native ;
+  void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMask')
   @DocsEditable()
-  void stencilMask(int mask) native ;
+  void stencilMask(int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
   @DocsEditable()
-  void stencilMaskSeparate(int face, int mask) native ;
+  void stencilMaskSeparate(int face, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilOp')
   @DocsEditable()
-  void stencilOp(int fail, int zfail, int zpass) native ;
+  void stencilOp(int fail, int zfail, int zpass) native;
 
   @DomName('WebGLRenderingContext.stencilOpSeparate')
   @DocsEditable()
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native ;
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   /**
    * Updates the currently bound texture to [data].
@@ -2933,7 +2933,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData pixels) native ;
+      format, type, TypedData pixels) native;
   @JSName('texImage2D')
   /**
    * Updates the currently bound texture to [data].
@@ -2946,7 +2946,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_2(target, level, internalformat, format, type, pixels)
-      native ;
+      native;
   @JSName('texImage2D')
   /**
    * Updates the currently bound texture to [data].
@@ -2959,7 +2959,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_3(
-      target, level, internalformat, format, type, ImageElement image) native ;
+      target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
   /**
    * Updates the currently bound texture to [data].
@@ -2971,8 +2971,8 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void _texImage2D_4(target, level, internalformat, format, type,
-      CanvasElement canvas) native ;
+  void _texImage2D_4(
+      target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
   /**
    * Updates the currently bound texture to [data].
@@ -2985,7 +2985,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_5(
-      target, level, internalformat, format, type, VideoElement video) native ;
+      target, level, internalformat, format, type, VideoElement video) native;
 
   @JSName('texImage2D')
   /**
@@ -2999,7 +2999,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DCanvas(int target, int level, int internalformat, int format,
-      int type, CanvasElement canvas) native ;
+      int type, CanvasElement canvas) native;
 
   @JSName('texImage2D')
   /**
@@ -3013,7 +3013,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DImage(int target, int level, int internalformat, int format,
-      int type, ImageElement image) native ;
+      int type, ImageElement image) native;
 
   /**
    * Updates the currently bound texture to [data].
@@ -3045,7 +3045,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2DImageData_1(
-      target, level, internalformat, format, type, pixels) native ;
+      target, level, internalformat, format, type, pixels) native;
 
   @JSName('texImage2D')
   /**
@@ -3059,15 +3059,15 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DVideo(int target, int level, int internalformat, int format,
-      int type, VideoElement video) native ;
+      int type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
-  void texParameterf(int target, int pname, num param) native ;
+  void texParameterf(int target, int pname, num param) native;
 
   @DomName('WebGLRenderingContext.texParameteri')
   @DocsEditable()
-  void texParameteri(int target, int pname, int param) native ;
+  void texParameteri(int target, int pname, int param) native;
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3150,7 +3150,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData pixels) native ;
+      int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3163,7 +3163,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
-      native ;
+      native;
   @JSName('texSubImage2D')
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3175,8 +3175,8 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type,
-      ImageElement image) native ;
+  void _texSubImage2D_3(
+      target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3189,7 +3189,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
-      CanvasElement canvas) native ;
+      CanvasElement canvas) native;
   @JSName('texSubImage2D')
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3201,8 +3201,8 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type,
-      VideoElement video) native ;
+  void _texSubImage2D_5(
+      target, level, xoffset, yoffset, format, type, VideoElement video) native;
 
   @JSName('texSubImage2D')
   /**
@@ -3216,7 +3216,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset,
-      int format, int type, CanvasElement canvas) native ;
+      int format, int type, CanvasElement canvas) native;
 
   @JSName('texSubImage2D')
   /**
@@ -3230,7 +3230,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DImage(int target, int level, int xoffset, int yoffset,
-      int format, int type, ImageElement image) native ;
+      int format, int type, ImageElement image) native;
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3262,7 +3262,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2DImageData_1(
-      target, level, xoffset, yoffset, format, type, pixels) native ;
+      target, level, xoffset, yoffset, format, type, pixels) native;
 
   @JSName('texSubImage2D')
   /**
@@ -3276,135 +3276,135 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DVideo(int target, int level, int xoffset, int yoffset,
-      int format, int type, VideoElement video) native ;
+      int format, int type, VideoElement video) native;
 
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()
-  void uniform1f(UniformLocation location, num x) native ;
+  void uniform1f(UniformLocation location, num x) native;
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable()
-  void uniform1fv(UniformLocation location, Float32List v) native ;
+  void uniform1fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable()
-  void uniform1i(UniformLocation location, int x) native ;
+  void uniform1i(UniformLocation location, int x) native;
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable()
-  void uniform1iv(UniformLocation location, Int32List v) native ;
+  void uniform1iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable()
-  void uniform2f(UniformLocation location, num x, num y) native ;
+  void uniform2f(UniformLocation location, num x, num y) native;
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable()
-  void uniform2fv(UniformLocation location, Float32List v) native ;
+  void uniform2fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable()
-  void uniform2i(UniformLocation location, int x, int y) native ;
+  void uniform2i(UniformLocation location, int x, int y) native;
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable()
-  void uniform2iv(UniformLocation location, Int32List v) native ;
+  void uniform2iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable()
-  void uniform3f(UniformLocation location, num x, num y, num z) native ;
+  void uniform3f(UniformLocation location, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable()
-  void uniform3fv(UniformLocation location, Float32List v) native ;
+  void uniform3fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable()
-  void uniform3i(UniformLocation location, int x, int y, int z) native ;
+  void uniform3i(UniformLocation location, int x, int y, int z) native;
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable()
-  void uniform3iv(UniformLocation location, Int32List v) native ;
+  void uniform3iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable()
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) native ;
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable()
-  void uniform4fv(UniformLocation location, Float32List v) native ;
+  void uniform4fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable()
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) native ;
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable()
-  void uniform4iv(UniformLocation location, Int32List v) native ;
+  void uniform4iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable()
   void uniformMatrix2fv(
-      UniformLocation location, bool transpose, Float32List array) native ;
+      UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable()
   void uniformMatrix3fv(
-      UniformLocation location, bool transpose, Float32List array) native ;
+      UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable()
   void uniformMatrix4fv(
-      UniformLocation location, bool transpose, Float32List array) native ;
+      UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable()
-  void useProgram(Program program) native ;
+  void useProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.validateProgram')
   @DocsEditable()
-  void validateProgram(Program program) native ;
+  void validateProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1f')
   @DocsEditable()
-  void vertexAttrib1f(int indx, num x) native ;
+  void vertexAttrib1f(int indx, num x) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable()
-  void vertexAttrib1fv(int indx, Float32List values) native ;
+  void vertexAttrib1fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable()
-  void vertexAttrib2f(int indx, num x, num y) native ;
+  void vertexAttrib2f(int indx, num x, num y) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable()
-  void vertexAttrib2fv(int indx, Float32List values) native ;
+  void vertexAttrib2fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable()
-  void vertexAttrib3f(int indx, num x, num y, num z) native ;
+  void vertexAttrib3f(int indx, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable()
-  void vertexAttrib3fv(int indx, Float32List values) native ;
+  void vertexAttrib3fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable()
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) native ;
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable()
-  void vertexAttrib4fv(int indx, Float32List values) native ;
+  void vertexAttrib4fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable()
   void vertexAttribPointer(int indx, int size, int type, bool normalized,
-      int stride, int offset) native ;
+      int stride, int offset) native;
 
   @DomName('WebGLRenderingContext.viewport')
   @DocsEditable()
-  void viewport(int x, int y, int width, int height) native ;
+  void viewport(int x, int y, int width, int height) native;
 
   /**
    * Sets the currently bound texture to [data].
@@ -3417,7 +3417,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @JSName('texImage2D')
   void texImage2DUntyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int format, int type, data) native ;
+      int internalFormat, int format, int type, data) native;
 
   /**
    * Sets the currently bound texture to [data].
@@ -3432,7 +3432,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int border,
       int format,
       int type,
-      TypedData data) native ;
+      TypedData data) native;
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3445,7 +3445,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @JSName('texSubImage2D')
   void texSubImage2DUntyped(int targetTexture, int levelOfDetail, int xOffset,
-      int yOffset, int format, int type, data) native ;
+      int yOffset, int format, int type, data) native;
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
@@ -3461,7 +3461,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int border,
       int format,
       int type,
-      TypedData data) native ;
+      TypedData data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

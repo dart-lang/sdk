@@ -10,7 +10,11 @@ void main() {
   var st0;
   var st1;
   // Primitive way to get stack trace,.
-  try { throw 0; } catch (_, s) { st0 = s; }
+  try {
+    throw 0;
+  } catch (_, s) {
+    st0 = s;
+  }
   st1 = StackTrace.current;
 
   var st0s = findMain(st0);

@@ -17,7 +17,6 @@ main() {
   a[0] = a[1] = 0xff;
   var b = new Int16List.view(a.buffer);
   Expect.equals(-1, li16(b));
-  for (var i=0; i<10000; i++) li16(b);
+  for (var i = 0; i < 10000; i++) li16(b);
   Expect.equals(-1, li16(b));
 }
-

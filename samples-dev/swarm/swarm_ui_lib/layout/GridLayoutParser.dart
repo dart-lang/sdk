@@ -13,18 +13,18 @@ class _Parser {
 
   // TODO(jmesserly): shouldn't need this optimization, but dart_json parser
   // found that they needed this.
-  static const A_BIG = 65;  // 'A'.codeUnitAt(0)
-  static const Z_BIG = 90;  // 'Z'.codeUnitAt(0)
-  static const A_SMALL = 97;  // 'a'.codeUnitAt(0)
-  static const Z_SMALL = 122;  // 'z'.codeUnitAt(0)
-  static const TAB = 9;  // '\t'.codeUnitAt(0)
-  static const NEW_LINE = 10;  // '\n'.codeUnitAt(0)
-  static const LINE_FEED = 13;  // '\r'.codeUnitAt(0)
-  static const SPACE = 32;  // ' '.codeUnitAt(0)
-  static const ZERO = 48;  // '0'.codeUnitAt(0)
-  static const NINE = 57;  // '9'.codeUnitAt(0)
-  static const DOT = 46;  // '.'.codeUnitAt(0)
-  static const R_PAREN = 41;  // ')'.codeUnitAt(0)
+  static const A_BIG = 65; // 'A'.codeUnitAt(0)
+  static const Z_BIG = 90; // 'Z'.codeUnitAt(0)
+  static const A_SMALL = 97; // 'a'.codeUnitAt(0)
+  static const Z_SMALL = 122; // 'z'.codeUnitAt(0)
+  static const TAB = 9; // '\t'.codeUnitAt(0)
+  static const NEW_LINE = 10; // '\n'.codeUnitAt(0)
+  static const LINE_FEED = 13; // '\r'.codeUnitAt(0)
+  static const SPACE = 32; // ' '.codeUnitAt(0)
+  static const ZERO = 48; // '0'.codeUnitAt(0)
+  static const NINE = 57; // '9'.codeUnitAt(0)
+  static const DOT = 46; // '.'.codeUnitAt(0)
+  static const R_PAREN = 41; // ')'.codeUnitAt(0)
 
   final String _src;
   int _offset;
@@ -74,8 +74,8 @@ class _Parser {
   }
 
   bool _maybeEatMultiLineComment() {
-    if (_maybeEat('/*', /*eatWhitespace:*/false)) {
-      while (!_maybeEat('*/', /*eatWhitespace:*/false)) {
+    if (_maybeEat('/*', /*eatWhitespace:*/ false)) {
+      while (!_maybeEat('*/', /*eatWhitespace:*/ false)) {
         if (_offset >= length) {
           _error('expected */');
         }
@@ -330,9 +330,9 @@ class _GridTrackParser extends _Parser {
   final Map<String, int> _lineNames;
 
   _GridTrackParser._internal(String src)
-    : super(src),
-      _tracks = new List<GridTrack>(),
-      _lineNames = new Map<String, int>();
+      : super(src),
+        _tracks = new List<GridTrack>(),
+        _lineNames = new Map<String, int>();
 
   /** Parses the grid-rows and grid-columns CSS properties into object form. */
   static GridTrackList parse(String str) {
@@ -464,7 +464,6 @@ class _GridTrackParser extends _Parser {
     }
   }
 }
-
 
 /**
  * Exception thrown because the grid style properties had incorrect values.

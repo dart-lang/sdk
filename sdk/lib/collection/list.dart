@@ -177,8 +177,8 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<T> map<T>(T f(E element)) => new MappedListIterable<E, T>(this, f);
 
-  Iterable<T>
-      expand<T>(Iterable<T> f(E element)) => new ExpandIterable<E, T>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      new ExpandIterable<E, T>(this, f);
 
   E reduce(E combine(E previousValue, E element)) {
     int length = this.length;

@@ -15,7 +15,8 @@ import '../compiler/dart2js/mock_libraries.dart';
 String libProvider(Uri uri) {
   if (uri.path.endsWith(".platform")) {
     return DEFAULT_PLATFORM_CONFIG;
-  } if (uri.path.endsWith("/core.dart")) {
+  }
+  if (uri.path.endsWith("/core.dart")) {
     return buildLibrarySource(DEFAULT_CORE_LIBRARY);
   } else if (uri.path.endsWith('core_patch.dart')) {
     return DEFAULT_PATCH_CORE_SOURCE;
@@ -39,7 +40,7 @@ Future<String> provider(Uri uri) {
   } else if (uri.scheme == "lib") {
     source = libProvider(uri);
   } else {
-   throw "unexpected URI $uri";
+    throw "unexpected URI $uri";
   }
   return new Future.value(source);
 }
@@ -54,16 +55,17 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   asyncStart();
-  Future<CompilationResult> result =
-      compile(new Uri(scheme: 'main'),
-              new Uri(scheme: 'lib', path: '/'),
-              new Uri(scheme: 'package', path: '/'),
-              provider, handler);
+  Future<CompilationResult> result = compile(
+      new Uri(scheme: 'main'),
+      new Uri(scheme: 'lib', path: '/'),
+      new Uri(scheme: 'package', path: '/'),
+      provider,
+      handler);
   result.then((CompilationResult result) {
     if (!result.isSuccess) {
       throw 'Compilation failed';
     }
   }, onError: (e, s) {
-      throw 'Compilation failed: $e\n$s';
+    throw 'Compilation failed: $e\n$s';
   }).then(asyncSuccess);
 }

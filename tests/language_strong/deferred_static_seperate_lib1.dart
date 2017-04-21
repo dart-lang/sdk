@@ -13,11 +13,12 @@ var x = const ConstClass(const ConstClass(1));
 
 class C {
   static foo() {
-    () {} (); // Hack to avoid inlining.
+    () {}(); // Hack to avoid inlining.
     return 1;
   }
+
   bar() {
-    () {} (); // Hack to avoid inlining.
+    () {}(); // Hack to avoid inlining.
     return 1;
   }
 }
@@ -43,9 +44,11 @@ class C4 {
 }
 
 class C5 {
-  static const foo = const [const {1: 3}];
+  static const foo = const [
+    const {1: 3}
+  ];
   bar() {
-    () {} (); // Hack to avoid inlining.
+    () {}(); // Hack to avoid inlining.
     return 1;
   }
 }

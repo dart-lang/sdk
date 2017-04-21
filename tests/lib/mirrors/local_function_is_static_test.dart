@@ -4,11 +4,13 @@
 
 library test.local_function_is_static;
 
+@MirrorsUsed(targets: "test.local_function_is_static")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 topLevel() => 1;
 topLevelLocal() => () => 2;
+
 class C {
   static klass() => 3;
   static klassLocal() => () => 4;

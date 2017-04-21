@@ -92,6 +92,18 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
+
+void FUNCTION_NAME(ProcessInfo_CurrentRSS)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewInternalError("Process is not supported on this platform"));
+}
+
+
+void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewInternalError("Process is not supported on this platform"));
+}
+
 }  // namespace bin
 }  // namespace dart
 

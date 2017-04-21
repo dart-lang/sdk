@@ -6,9 +6,9 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 main() {
- var list = new UnmodifiableListView([1, 2]);
- var typed = new Uint8List.fromList(list);
- if (typed[0] != 1 || typed[1] != 2 || typed.length != 2) {
-   throw 'Test failed';
- }
+  var list = new UnmodifiableListView([1, 2]);
+  var typed = new Uint8List.fromList(list);
+  if (typed[0] != 1 || typed[1] != 2 || typed.length != 2) {
+    throw 'Test failed';
+  }
 }

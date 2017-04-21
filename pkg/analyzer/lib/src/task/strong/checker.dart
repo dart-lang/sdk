@@ -742,7 +742,7 @@ class CodeChecker extends RecursiveAstVisitor {
       {DartType from, bool opAssign: false}) {
     from ??= _getDefiniteType(expr);
 
-    if (_needsImplicitCast(expr, to, from: from)) {
+    if (_needsImplicitCast(expr, to, from: from) == true) {
       _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
     }
   }
@@ -841,9 +841,11 @@ class CodeChecker extends RecursiveAstVisitor {
         // Stream<T> -> T
         expectedType = typeProvider.streamType;
       } else {
-        // Don't validate return type of async methods.
-        // They're handled by the runtime implementation.
-        return null;
+        // Future<T> -> FutureOr<T>
+        var typeArg = (type.element == typeProvider.futureType.element)
+            ? (type as InterfaceType).typeArguments[0]
+            : typeProvider.dynamicType;
+        return typeProvider.futureOrType.instantiate([typeArg]);
       }
     } else {
       if (body.isGenerator) {
@@ -907,9 +909,10 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   /// Returns true if we need an implicit cast of [expr] from [from] type to
-  /// [to] type, otherwise returns false.
+  /// [to] type, returns false if no cast is needed, and returns null if the
+  /// types are statically incompatible.
   ///
-  /// If [from] is omitted, uses the static type of [expr].
+  /// If [from] is omitted, uses the static type of [expr]
   bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
     from ??= _getDefiniteType(expr);
 
@@ -921,22 +924,22 @@ class CodeChecker extends RecursiveAstVisitor {
     // fromT <: toT, no coercion needed.
     if (rules.isSubtypeOf(from, to)) return false;
 
-    // Note: a function type is never assignable to a class per the Dart
-    // spec - even if it has a compatible call method.  We disallow as
-    // well for consistency.
-    if (from is FunctionType && rules.getCallMethodType(to) != null) {
-      return false;
-    }
+    // Down cast or legal sideways cast, coercion needed.
+    if (rules.isAssignableTo(from, to)) return true;
 
-    // Downcast if toT <: fromT
-    if (rules.isSubtypeOf(to, from)) {
-      return true;
+    // Special case for FutureOr to handle returned values from async functions.
+    // In this case, we're more permissive than assignability.
+    if (to.element == typeProvider.futureOrType.element) {
+      var to1 = (to as InterfaceType).typeArguments[0];
+      var to2 = typeProvider.futureType.instantiate([to1]);
+      return _needsImplicitCast(expr, to1, from: from) == true ||
+          _needsImplicitCast(expr, to2, from: from) == true;
     }
 
     // Anything else is an illegal sideways cast.
     // However, these will have been reported already in error_verifier, so we
     // don't need to report them again.
-    return false;
+    return null;
   }
 
   void _recordDynamicInvoke(AstNode node, Expression target) {
@@ -953,8 +956,6 @@ class CodeChecker extends RecursiveAstVisitor {
   /// the AST node.
   void _recordImplicitCast(Expression expr, DartType to,
       {DartType from, bool opAssign: false}) {
-    assert(rules.isSubtypeOf(to, from));
-
     // Inference "casts":
     if (expr is Literal) {
       // fromT should be an exact type - this will almost certainly fail at

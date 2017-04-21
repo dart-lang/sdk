@@ -10,6 +10,9 @@ import 'dart:convert' show JSON;
 
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 
+import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
+    show ValidatingInstrumentation;
+
 import 'package:kernel/ast.dart' show Library, Program;
 
 import 'package:analyzer/src/kernel/loader.dart' show DartLoader;
@@ -34,7 +37,7 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-export 'kernel_chain.dart' show TestContext;
+export 'kernel_chain.dart' show STRONG_MODE, TestContext;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -51,12 +54,12 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-String shortenAstKindName(AstKind astKind) {
+String shortenAstKindName(AstKind astKind, bool strongMode) {
   switch (astKind) {
     case AstKind.Analyzer:
-      return "dartk";
+      return strongMode ? "dartk-strong" : "dartk";
     case AstKind.Kernel:
-      return "direct";
+      return strongMode ? "strong" : "direct";
   }
   throw "Unknown AST kind: $astKind";
 }
@@ -87,12 +90,13 @@ class FastaContext extends TestContext {
       bool fullCompile,
       AstKind astKind)
       : steps = <Step>[
-          new Outline(fullCompile, astKind),
+          new Outline(fullCompile, astKind, strongMode,
+              updateExpectations: updateExpectations),
           const Print(),
           new Verify(fullCompile),
           new MatchExpectation(
               fullCompile
-                  ? ".${shortenAstKindName(astKind)}.expect"
+                  ? ".${shortenAstKindName(astKind, strongMode)}.expect"
                   : ".outline.expect",
               updateExpectations: updateExpectations)
         ],
@@ -159,7 +163,12 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   final AstKind astKind;
 
-  const Outline(this.fullCompile, this.astKind);
+  final bool strongMode;
+
+  const Outline(this.fullCompile, this.astKind, this.strongMode,
+      {this.updateExpectations: false});
+
+  final bool updateExpectations;
 
   String get name {
     return fullCompile ? "${astKind} compile" : "outline";
@@ -176,16 +185,30 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(dillTarget, context.uriTranslator)
-        : new KernelTarget(dillTarget, context.uriTranslator);
+        ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
+        : new KernelTarget(dillTarget, context.uriTranslator, strongMode);
 
     Program p;
     try {
       sourceTarget.read(description.uri);
       await dillTarget.writeOutline(null);
+      ValidatingInstrumentation instrumentation;
+      if (strongMode) {
+        instrumentation = new ValidatingInstrumentation();
+        await instrumentation.loadExpectations(description.uri);
+        sourceTarget.loader.instrumentation = instrumentation;
+      }
       p = await sourceTarget.writeOutline(null);
       if (fullCompile) {
         p = await sourceTarget.writeProgram(null);
+        instrumentation?.finish();
+        if (instrumentation != null && instrumentation.hasProblems) {
+          if (updateExpectations) {
+            await instrumentation.fixSource(description.uri);
+          } else {
+            return fail(null, instrumentation.problemsAsString);
+          }
+        }
       }
     } on InputError catch (e, s) {
       return fail(null, e.error, s);

@@ -6,7 +6,7 @@ library compiler.src.inferrer.closure_tracer;
 
 import '../common/names.dart' show Names;
 import '../elements/elements.dart';
-import '../js_backend/backend_helpers.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
@@ -53,7 +53,8 @@ class ClosureTracerVisitor extends TracerVisitor {
     Selector selector = info.selector;
     TypeMask mask = info.mask;
     tracedElements.forEach((FunctionElement functionElement) {
-      if (!selector.callStructure.signatureApplies(functionElement.type)) {
+      if (!selector.callStructure
+          .signatureApplies(functionElement.parameterStructure)) {
         return;
       }
       inferrer.updateParameterAssignments(
@@ -78,7 +79,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     Element called = info.calledElement;
     if (compiler.backend.isForeign(called)) {
       String name = called.name;
-      if (name == BackendHelpers.JS || name == 'DART_CLOSURE_TO_JS') {
+      if (name == JavaScriptBackend.JS || name == 'DART_CLOSURE_TO_JS') {
         bailout('Used in JS ${info.call}');
       }
     }
@@ -90,7 +91,8 @@ class ClosureTracerVisitor extends TracerVisitor {
       // where `foo` is a getter.
       _registerCallForLaterAnalysis(info);
     }
-    if (_checkIfFunctionApply(called) &&
+    if (called is MemberElement &&
+        _checkIfFunctionApply(called) &&
         info.arguments != null &&
         info.arguments.contains(currentUser)) {
       _tagAsFunctionApplyTarget("static call");
@@ -100,9 +102,8 @@ class ClosureTracerVisitor extends TracerVisitor {
   bool _checkIfCurrentUser(element) =>
       inferrer.types.getInferredTypeOf(element) == currentUser;
 
-  bool _checkIfFunctionApply(Element element) {
-    return element is MemberElement &&
-        compiler.commonElements.isFunctionApplyMethod(element);
+  bool _checkIfFunctionApply(MemberElement element) {
+    return compiler.commonElements.isFunctionApplyMethod(element);
   }
 
   @override

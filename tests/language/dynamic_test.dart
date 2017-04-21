@@ -6,27 +6,23 @@
 
 import "package:expect/expect.dart";
 
-abstract class Iface<K,V> {
-}
+abstract class Iface<K, V> {}
 
-class M1<K, V> implements Iface<K, V> {
-}
+class M1<K, V> implements Iface<K, V> {}
 
-class M2<K> implements Iface<K, dynamic> {
-}
+class M2<K> implements Iface<K, dynamic> {}
 
-class M3 implements Iface<String, dynamic> {
-}
+class M3 implements Iface<String, dynamic> {}
 
 typedef dynamic F1<T>(dynamic x, T y);
 
 class HasFieldDynamic {
-  HasFieldDynamic() : dynamic = "dynamic" { }
-  var dynamic;  // Field named dynamic is allowed.
+  HasFieldDynamic() : dynamic = "dynamic" {}
+  var dynamic; // Field named dynamic is allowed.
 }
 
 class HasMethodDynamic {
-  dynamic() => "dynamic";  // Method named dynamic is allowed.
+  dynamic() => "dynamic"; // Method named dynamic is allowed.
 }
 
 main() {
@@ -49,7 +45,7 @@ main() {
   Expect.isTrue(m3 is Iface<dynamic, num>);
   Expect.isTrue(m3 is Iface<String, dynamic>);
   Expect.isTrue(m3 is Iface<String, num>);
-  Expect.isTrue(m3 is !Iface<num, String>);
+  Expect.isTrue(m3 is! Iface<num, String>);
 
   F1<int> f1 = (String s, int i) => s[i];
   Expect.isTrue(f1 is F1<int>);
@@ -61,7 +57,7 @@ main() {
   Expect.equals("dynamic", has_method.dynamic());
 
   {
-    int dynamic = 0;  // Local variable named dynamic is allowed.
+    int dynamic = 0; // Local variable named dynamic is allowed.
     Expect.equals(0, dynamic);
   }
 }

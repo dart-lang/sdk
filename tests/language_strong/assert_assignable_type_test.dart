@@ -19,13 +19,10 @@ testInt64List() {
   testInt64ListImpl(array);
 }
 
-
 testInt64ListImpl(array) {
-  for (int i = 0; i < 10; ++i) {
-  }
+  for (int i = 0; i < 10; ++i) {}
   int sum = 0;
   for (int i = 0; i < 10; ++i) {
     array[i] = -0x80000000000000 + i;
   }
 }
-

@@ -22,7 +22,6 @@ void testDeleteLongPathPrefix() {
   Expect.isFalse(prefixDir.existsSync());
 }
 
-
 void main() {
   if (!Platform.isWindows) return;
   testDeleteLongPathPrefix();

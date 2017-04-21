@@ -130,7 +130,7 @@ class IncrementalResolvedAstGeneratorImpl
         _resourceProvider,
         byteStore,
         fileContentOverlay,
-        'front_end',
+        null,
         sourceFactory,
         analysisOptions,
         sdkBundle: sdkBundle);

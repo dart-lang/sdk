@@ -31,7 +31,6 @@ collect() async {
 }
 
 test_code() async {
-  // LINE_B
   try {
     await collect();
   } on TimeoutException {

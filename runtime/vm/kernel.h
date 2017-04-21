@@ -21,7 +21,8 @@
   M(VoidType)                                                                  \
   M(InterfaceType)                                                             \
   M(FunctionType)                                                              \
-  M(TypeParameterType)
+  M(TypeParameterType)                                                         \
+  M(VectorType)
 
 #define KERNEL_TREE_NODES_DO(M)                                                \
   M(Library)                                                                   \
@@ -79,6 +80,11 @@
   M(AwaitExpression)                                                           \
   M(FunctionExpression)                                                        \
   M(Let)                                                                       \
+  M(VectorCreation)                                                            \
+  M(VectorGet)                                                                 \
+  M(VectorSet)                                                                 \
+  M(VectorCopy)                                                                \
+  M(ClosureCreation)                                                           \
   M(Statement)                                                                 \
   M(InvalidStatement)                                                          \
   M(ExpressionStatement)                                                       \
@@ -257,23 +263,21 @@ class Tuple {
 
 class String {
  public:
+  // Read a string reference, which is an index into the string table.
   static String* ReadFrom(Reader* reader);
-  static String* ReadFromImpl(Reader* reader);
 
-  String(const uint8_t* utf8, int length) {
-    buffer_ = new uint8_t[length];
-    size_ = length;
-    memmove(buffer_, utf8, length);
-  }
-  ~String() { delete[] buffer_; }
+  // Read a string implementation given its size.
+  static String* ReadRaw(Reader* reader, intptr_t size);
 
-  uint8_t* buffer() { return buffer_; }
+  String(intptr_t offset, int size) : offset_(offset), size_(size) {}
+
+  intptr_t offset() { return offset_; }
   int size() { return size_; }
 
   bool is_empty() { return size_ == 0; }
 
  private:
-  uint8_t* buffer_;
+  intptr_t offset_;
   int size_;
 
   DISALLOW_COPY_AND_ASSIGN(String);
@@ -297,34 +301,51 @@ class StringTable {
 };
 
 
-class SourceTable {
+class Source {
  public:
-  void ReadFrom(Reader* reader);
-  ~SourceTable() {
-    for (intptr_t i = 0; i < size_; ++i) {
-      delete source_code_[i];
-      delete[] line_starts_[i];
-    }
-    delete[] source_code_;
-    delete[] line_starts_;
-    delete[] line_count_;
-  }
-
-  intptr_t size() { return size_; }
-  String* SourceFor(intptr_t i) { return source_code_[i]; }
-  intptr_t* LineStartsFor(intptr_t i) { return line_starts_[i]; }
-  intptr_t LineCountFor(intptr_t i) { return line_count_[i]; }
+  ~Source();
 
  private:
-  SourceTable()
-      : source_code_(NULL), line_starts_(NULL), line_count_(NULL), size_(0) {}
+  uint8_t* uri_;               // UTF-8 encoded.
+  intptr_t uri_size_;          // In bytes.
+  uint8_t* source_code_;       // UTF-8 encoded.
+  intptr_t source_code_size_;  // In bytes.
+  intptr_t* line_starts_;
+  intptr_t line_count_;
+
+  friend class SourceTable;
+};
+
+
+class SourceTable {
+ public:
+  ~SourceTable();
+
+  void ReadFrom(Reader* reader);
+
+  intptr_t size() { return size_; }
+
+  uint8_t* UriFor(intptr_t i) { return sources_[i].uri_; }
+  intptr_t UriSizeFor(intptr_t i) { return sources_[i].uri_size_; }
+
+  uint8_t* SourceCodeFor(intptr_t i) { return sources_[i].source_code_; }
+  intptr_t SourceCodeSizeFor(intptr_t i) {
+    return sources_[i].source_code_size_;
+  }
+
+  intptr_t* LineStartsFor(intptr_t i) { return sources_[i].line_starts_; }
+  intptr_t LineCountFor(intptr_t i) { return sources_[i].line_count_; }
+
+ private:
+  SourceTable() : size_(0), sources_(NULL) {}
 
   friend class Program;
 
-  String** source_code_;
-  intptr_t** line_starts_;
-  intptr_t* line_count_;
+  // The number of entries in the table.
   intptr_t size_;
+
+  // An array of sources.
+  Source* sources_;
 
   DISALLOW_COPY_AND_ASSIGN(SourceTable);
 };
@@ -371,26 +392,7 @@ class CanonicalName {
   bool is_referenced() { return is_referenced_; }
   void set_referenced(bool referenced) { is_referenced_ = referenced; }
 
-  CanonicalName* AddChild(String* name);
-
-  bool IsAdministrative();
-  bool IsPrivate();
-
-  bool IsRoot();
-  bool IsLibrary();
-  bool IsClass();
-  bool IsMember();
-  bool IsField();
-  bool IsConstructor();
-  bool IsProcedure();
-  bool IsMethod();
-  bool IsGetter();
-  bool IsSetter();
-  bool IsFactory();
-
-  // For a member (field, constructor, or procedure) return the canonical name
-  // of the enclosing class or library.
-  CanonicalName* EnclosingName();
+  CanonicalName* AddChild(String* string);
 
   static CanonicalName* NewRoot();
 
@@ -440,7 +442,7 @@ class TreeNode : public Node {
 
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
-  intptr_t kernel_offset() { return kernel_offset_; }
+  intptr_t kernel_offset() const { return kernel_offset_; }
 
  protected:
   TreeNode() : kernel_offset_(-1) {}
@@ -490,30 +492,11 @@ class Library : public LinkedNode {
   List<Field>& fields() { return fields_; }
   List<Procedure>& procedures() { return procedures_; }
 
-  bool IsCorelibrary() {
-    static const char* dart_library = "dart:";
-    static intptr_t dart_library_length = strlen(dart_library);
-    static const char* patch_library = "dart:_patch";
-    static intptr_t patch_library_length = strlen(patch_library);
-
-    if (name_->size() < 5) return false;
-
-    // Check for dart: prefix.
-    char* buffer = reinterpret_cast<char*>(import_uri_->buffer());
-    if (strncmp(buffer, dart_library, dart_library_length) != 0) {
-      return false;
-    }
-
-    // Rasta emits dart:_patch and we should treat it as a user library.
-    if (name_->size() == patch_library_length &&
-        strncmp(buffer, patch_library, patch_library_length) == 0) {
-      return false;
-    }
-    return true;
-  }
+  const uint8_t* kernel_data() { return kernel_data_; }
+  intptr_t kernel_data_size() { return kernel_data_size_; }
 
  private:
-  Library() : name_(NULL) {}
+  Library() : name_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
 
   template <typename T>
   friend class List;
@@ -524,6 +507,8 @@ class Library : public LinkedNode {
   List<Class> classes_;
   List<Field> fields_;
   List<Procedure> procedures_;
+  const uint8_t* kernel_data_;
+  intptr_t kernel_data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(Library);
 };
@@ -1342,6 +1327,8 @@ class StaticInvocation : public Expression {
   static StaticInvocation* ReadFrom(Reader* reader, bool is_const);
   ~StaticInvocation();
 
+  DEFINE_CASTING_OPERATIONS(StaticInvocation);
+
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
@@ -1918,6 +1905,126 @@ class Let : public Expression {
   TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(Let);
+};
+
+
+class VectorCreation : public Expression {
+ public:
+  static VectorCreation* ReadFrom(Reader* reader);
+
+  virtual ~VectorCreation();
+
+  DEFINE_CASTING_OPERATIONS(VectorCreation);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  intptr_t value() { return value_; }
+
+ private:
+  VectorCreation() {}
+
+  intptr_t value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorCreation);
+};
+
+
+class VectorGet : public Expression {
+ public:
+  static VectorGet* ReadFrom(Reader* reader);
+
+  virtual ~VectorGet();
+
+  DEFINE_CASTING_OPERATIONS(VectorGet);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+  intptr_t index() { return index_; }
+
+ private:
+  VectorGet() {}
+
+  Child<Expression> vector_expression_;
+  intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorGet);
+};
+
+
+class VectorSet : public Expression {
+ public:
+  static VectorSet* ReadFrom(Reader* reader);
+
+  virtual ~VectorSet();
+
+  DEFINE_CASTING_OPERATIONS(VectorSet);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+  intptr_t index() { return index_; }
+  Expression* value() { return value_; }
+
+ private:
+  VectorSet() {}
+
+  Child<Expression> vector_expression_;
+  intptr_t index_;
+  Child<Expression> value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorSet);
+};
+
+
+class VectorCopy : public Expression {
+ public:
+  static VectorCopy* ReadFrom(Reader* reader);
+
+  virtual ~VectorCopy();
+
+  DEFINE_CASTING_OPERATIONS(VectorCopy);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+
+ private:
+  VectorCopy() {}
+
+  Child<Expression> vector_expression_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorCopy);
+};
+
+
+class ClosureCreation : public Expression {
+ public:
+  static ClosureCreation* ReadFrom(Reader* reader);
+
+  virtual ~ClosureCreation();
+
+  DEFINE_CASTING_OPERATIONS(ClosureCreation);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  CanonicalName* top_level_function() { return top_level_function_reference_; }
+  Expression* context_vector() { return context_vector_; }
+  FunctionType* function_type() { return function_type_; }
+
+ private:
+  ClosureCreation() {}
+
+  Ref<CanonicalName> top_level_function_reference_;  // Procedure.
+  Child<Expression> context_vector_;
+  Child<FunctionType> function_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClosureCreation);
 };
 
 
@@ -2696,6 +2803,24 @@ class TypeParameterType : public DartType {
 };
 
 
+class VectorType : public DartType {
+ public:
+  static VectorType* ReadFrom(Reader* reader);
+
+  virtual ~VectorType();
+
+  DEFINE_CASTING_OPERATIONS(VectorType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+ private:
+  VectorType() {}
+
+  DISALLOW_COPY_AND_ASSIGN(VectorType);
+};
+
+
 class TypeParameter : public TreeNode {
  public:
   TypeParameter* ReadFrom(Reader* reader);
@@ -2736,13 +2861,13 @@ class Program : public TreeNode {
   virtual void VisitChildren(Visitor* visitor);
 
   StringTable& string_table() { return string_table_; }
-  StringTable& source_uri_table() { return source_uri_table_; }
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
   CanonicalName* main_method() { return main_method_reference_; }
   CanonicalName* canonical_name_root() { return canonical_name_root_; }
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> valid_token_positions;
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> yield_token_positions;
+  intptr_t string_data_offset() { return string_data_offset_; }
 
  private:
   Program() {}
@@ -2751,8 +2876,11 @@ class Program : public TreeNode {
   List<Library> libraries_;
   Ref<CanonicalName> main_method_reference_;  // Procedure.
   StringTable string_table_;
-  StringTable source_uri_table_;
   SourceTable source_table_;
+
+  // The offset from the start of the binary to the start of the UTF-8 encoded
+  // string data.
+  intptr_t string_data_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
@@ -2869,6 +2997,17 @@ class ExpressionVisitor {
     VisitDefaultBasicLiteral(node);
   }
   virtual void VisitLet(Let* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorCreation(VectorCreation* node) {
+    VisitDefaultExpression(node);
+  }
+  virtual void VisitVectorGet(VectorGet* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorSet(VectorSet* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorCopy(VectorCopy* node) {
+    VisitDefaultExpression(node);
+  }
+  virtual void VisitClosureCreation(ClosureCreation* node) {
+    VisitDefaultExpression(node);
+  }
 };
 
 
@@ -3001,6 +3140,7 @@ class DartTypeVisitor {
   virtual void VisitTypeParameterType(TypeParameterType* node) {
     VisitDefaultDartType(node);
   }
+  virtual void VisitVectorType(VectorType* node) { VisitDefaultDartType(node); }
 };
 
 
@@ -3144,7 +3284,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length);
-
 
 
 }  // namespace dart

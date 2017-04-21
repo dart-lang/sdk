@@ -18,15 +18,17 @@ class ClosureBreak1Test {
       o1.field++;
       Expect.equals(8, newstr.length);
     }
+
     bool loop = true;
     L:
     while (loop) {
       String newstr1 = "abcd";
       var o2 = new ClosureBreak1(3);
       foo1() {
-         o2.field++;
-         Expect.equals(4, newstr1.length);
+        o2.field++;
+        Expect.equals(4, newstr1.length);
       }
+
       Expect.equals(4, newstr1.length);
       while (loop) {
         int newint = 0;
@@ -35,6 +37,7 @@ class ClosureBreak1Test {
           o3.field++;
           Expect.equals(0, newint);
         }
+
         foo2();
         break L;
       }

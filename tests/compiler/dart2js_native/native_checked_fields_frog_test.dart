@@ -16,8 +16,8 @@ class B {
   String foo;
 }
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {}

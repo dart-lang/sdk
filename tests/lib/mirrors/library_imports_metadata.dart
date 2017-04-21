@@ -7,7 +7,8 @@ library library_imports_metadata;
 @m1
 import 'dart:mirrors' as mirrors;
 
-@m2 @m3
+@m2
+@m3
 import 'dart:collection';
 
 import 'dart:async';

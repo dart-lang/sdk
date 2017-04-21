@@ -3,21 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 // Regression test for issue 6353.
 
-class A<E> {
-}
+class A<E> {}
 
 class C<E> extends A<E> {
-  forEach(callback(E element)) {
-  }
+  forEach(callback(E element)) {}
 }
 
 class D<E> {
-  lala(E element) {
-  }
+  lala(E element) {}
 }
 
 main() {
   var c = new C<int>();
   c.forEach(new D<int>().lala);
 }
-

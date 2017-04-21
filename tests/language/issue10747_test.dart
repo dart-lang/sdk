@@ -4,8 +4,7 @@
 
 import "package:expect/expect.dart";
 
-class B<T> {
-}
+class B<T> {}
 
 class A<T> {
   var field;
@@ -17,12 +16,9 @@ class A<T> {
 main() {
   Expect.equals(42, new A<int>(42).asTypeVariable());
   Expect.throws(
-      () => new A<String>(42).asTypeVariable(),
-      (e) => e is CastError);
+      () => new A<String>(42).asTypeVariable(), (e) => e is CastError);
 
   var b = new B<int>();
   Expect.equals(b, new A<int>(b).asBOfT());
-  Expect.throws(
-      () => new A<String>(b).asBOfT(),
-      (e) => e is CastError);
+  Expect.throws(() => new A<String>(b).asBOfT(), (e) => e is CastError);
 }

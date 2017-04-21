@@ -39,15 +39,16 @@ const char* StackFrame::ToCString() const {
   ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
   if (IsDartFrame()) {
-    const Code& code = Code::Handle(LookupDartCode());
+    const Code& code = Code::Handle(zone, LookupDartCode());
     ASSERT(!code.IsNull());
-    const Object& owner = Object::Handle(code.owner());
+    const Object& owner = Object::Handle(zone, code.owner());
     ASSERT(!owner.IsNull());
     if (owner.IsFunction()) {
+      const char* opt = code.is_optimized() ? "*" : "";
       const Function& function = Function::Cast(owner);
       return zone->PrintToString(
-          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]", GetName(),
-          sp(), fp(), pc(), function.ToFullyQualifiedCString());
+          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s%s ]", GetName(),
+          sp(), fp(), pc(), opt, function.ToFullyQualifiedCString());
     } else {
       return zone->PrintToString(
           "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]", GetName(),
@@ -97,10 +98,6 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   Code code;
   code = GetCodeObject();
   if (!code.IsNull()) {
-    // Visit the code object.
-    RawObject* raw_code = code.raw();
-    visitor->VisitPointer(&raw_code);
-
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
     Array maps;

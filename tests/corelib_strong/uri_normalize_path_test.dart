@@ -8,21 +8,25 @@ import "package:expect/expect.dart";
 
 test(String path, String normalizedPath) {
   for (var scheme in ["http", "file", "unknown"]) {
-    for (var auth in [[null, "hostname", null],
-                      ["userinfo", "hostname", 1234],
-                      [null, null, null]]) {
+    for (var auth in [
+      [null, "hostname", null],
+      ["userinfo", "hostname", 1234],
+      [null, null, null]
+    ]) {
       for (var query in [null, "query"]) {
         for (var fragment in [null, "fragment"]) {
-          var base = new Uri(scheme: scheme,
-                             userInfo: auth[0],
-                             host: auth[1],
-                             port: auth[2],
-                             path: path,
-                             query: query,
-                             fragment: fragment);
-          var expected = base.replace(path:
-              (base.hasAuthority && normalizedPath.isEmpty) ? "/"
-                                                            : normalizedPath);
+          var base = new Uri(
+              scheme: scheme,
+              userInfo: auth[0],
+              host: auth[1],
+              port: auth[2],
+              path: path,
+              query: query,
+              fragment: fragment);
+          var expected = base.replace(
+              path: (base.hasAuthority && normalizedPath.isEmpty)
+                  ? "/"
+                  : normalizedPath);
           var actual = base.normalizePath();
           Expect.equals(expected, actual, "$base");
         }
@@ -30,6 +34,7 @@ test(String path, String normalizedPath) {
     }
   }
 }
+
 testNoChange(String path) {
   test(path, path);
 }

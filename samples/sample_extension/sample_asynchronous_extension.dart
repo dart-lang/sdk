@@ -12,7 +12,7 @@ import 'dart-ext:sample_extension';
 class RandomArray {
   static SendPort _port;
 
-  Future<List<int> > randomArray(int seed, int length) {
+  Future<List<int>> randomArray(int seed, int length) {
     var completer = new Completer();
     var replyPort = new RawReceivePort();
     var args = new List(3);

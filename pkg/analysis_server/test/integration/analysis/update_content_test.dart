@@ -14,7 +14,8 @@ main() {
   });
 }
 
-class AbstractUpdateContentTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
   test_updateContent() async {
     String path = sourcePath('test.dart');
     String goodText = r'''
@@ -106,6 +107,3 @@ void main() {
     expect(errors2[0].location.file, equals(pathname));
   }
 }
-
-@reflectiveTest
-class UpdateContentTest extends AbstractUpdateContentTest {}

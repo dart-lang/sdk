@@ -360,7 +360,8 @@ class CloneVisitor extends TreeVisitor {
         isExternal: node.isExternal,
         isConst: node.isConst,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
+        fileUri: node.fileUri)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitField(Field node) {
@@ -373,7 +374,8 @@ class CloneVisitor extends TreeVisitor {
         hasImplicitGetter: node.hasImplicitGetter,
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
+        fileUri: node.fileUri)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitTypeParameter(TypeParameter node) {

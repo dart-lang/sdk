@@ -6,14 +6,14 @@ main() {
   var isLocation = predicate((x) => x is Location, 'is a Location');
 
   test('location hash', () {
-      final location = window.location;
-      expect(location, isLocation);
+    final location = window.location;
+    expect(location, isLocation);
 
-      // The only navigation we dare try is hash.
-      location.hash = 'hello';
-      var h = location.hash;
-      expect(h, '#hello');
-    });
+    // The only navigation we dare try is hash.
+    location.hash = 'hello';
+    var h = location.hash;
+    expect(h, '#hello');
+  });
 
   test('location.origin', () {
     var origin = window.location.origin;

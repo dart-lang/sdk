@@ -5,6 +5,9 @@
 // Regression test for Issue 15744
 // Also, tests that syntax errors in reflected classes are reported correctly.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class MD {

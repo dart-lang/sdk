@@ -220,16 +220,15 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
     ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
     TypeArguments& type_args = TypeArguments::Handle();
     intptr_t i = 0;
-    while (true) {
-      if (prior_instantiations.At(i) == Smi::New(StubCode::kNoInstantiator)) {
-        break;
-      }
+    while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
       JSONObject instantiation(&jsarr);
       type_args ^= prior_instantiations.At(i);
-      instantiation.AddProperty("instantiator", type_args, true);
+      instantiation.AddProperty("instantiatorTypeArguments", type_args, true);
       type_args ^= prior_instantiations.At(i + 1);
+      instantiation.AddProperty("functionTypeArguments", type_args, true);
+      type_args ^= prior_instantiations.At(i + 2);
       instantiation.AddProperty("instantiated", type_args, true);
-      i += 2;
+      i += StubCode::kInstantiationSizeInWords;
     }
   }
 }
@@ -527,14 +526,13 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray jsarr(&jsobj, "dependencies");
 
-    Array& ports = Array::Handle();
     Namespace& ns = Namespace::Handle();
     Library& target = Library::Handle();
 
     // Unprefixed imports.
-    ports = imports();
-    for (intptr_t i = 0; i < ports.Length(); i++) {
-      ns ^= ports.At(i);
+    Array& imports = Array::Handle(this->imports());
+    for (intptr_t i = 0; i < imports.Length(); i++) {
+      ns ^= imports.At(i);
       if (ns.IsNull()) continue;
 
       JSONObject jsdep(&jsarr);
@@ -546,9 +544,9 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
 
     // Exports.
-    ports = exports();
-    for (intptr_t i = 0; i < ports.Length(); i++) {
-      ns ^= ports.At(i);
+    const Array& exports = Array::Handle(this->exports());
+    for (intptr_t i = 0; i < exports.Length(); i++) {
+      ns ^= exports.At(i);
       if (ns.IsNull()) continue;
 
       JSONObject jsdep(&jsarr);
@@ -568,20 +566,22 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
         prefix ^= entry.raw();
-        ports = prefix.imports();
-        for (intptr_t i = 0; i < ports.Length(); i++) {
-          ns ^= ports.At(i);
-          if (ns.IsNull()) continue;
+        imports = prefix.imports();
+        if (!imports.IsNull()) {
+          for (intptr_t i = 0; i < imports.Length(); i++) {
+            ns ^= imports.At(i);
+            if (ns.IsNull()) continue;
 
-          JSONObject jsdep(&jsarr);
-          jsdep.AddProperty("isDeferred", prefix.is_deferred_load());
-          jsdep.AddProperty("isExport", false);
-          jsdep.AddProperty("isImport", true);
-          prefixName = prefix.name();
-          ASSERT(!prefixName.IsNull());
-          jsdep.AddProperty("prefix", prefixName.ToCString());
-          target = ns.library();
-          jsdep.AddProperty("target", target);
+            JSONObject jsdep(&jsarr);
+            jsdep.AddProperty("isDeferred", prefix.is_deferred_load());
+            jsdep.AddProperty("isExport", false);
+            jsdep.AddProperty("isImport", true);
+            prefixName = prefix.name();
+            ASSERT(!prefixName.IsNull());
+            jsdep.AddProperty("prefix", prefixName.ToCString());
+            target = ns.library();
+            jsdep.AddProperty("target", target);
+          }
         }
       }
     }
@@ -884,7 +884,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void Code::SetAwaitTokenPositions(const Array& await_token_positions) const {
+void Code::set_await_token_positions(const Array& await_token_positions) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
 #endif
@@ -1077,7 +1077,8 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddServiceId(*this);
   if (IsClosure()) {
-    // TODO(regis): How about closureInstantiator?
+    // TODO(regis): How about closureInstantiatorTypeArguments and
+    // closureFunctionTypeArguments?
     jsobj.AddProperty("closureFunction",
                       Function::Handle(Closure::Cast(*this).function()));
     jsobj.AddProperty("closureContext",

@@ -47,7 +47,7 @@ class MeasureText {
   String quickTruncate(String text, num lineWidth, int maxLines) {
     int targetLength = lineWidth * maxLines ~/ _typicalCharLength;
     // Advance to next word break point.
-    while(targetLength < text.length && !isWhitespace(text[targetLength])) {
+    while (targetLength < text.length && !isWhitespace(text[targetLength])) {
       targetLength++;
     }
 
@@ -64,8 +64,8 @@ class MeasureText {
    * This function is safe to call with [:sb == null:] in which case just the
    * line count is returned.
    */
-  int addLineBrokenText(StringBuffer sb, String text, num lineWidth,
-                        int maxLines) {
+  int addLineBrokenText(
+      StringBuffer sb, String text, num lineWidth, int maxLines) {
     // Strip surrounding whitespace. This ensures we create zero lines if there
     // is no visible text.
     text = text.trim();
@@ -112,8 +112,7 @@ class MeasureText {
     return lines;
   }
 
-  void lineBreak(String text, num lineWidth, int maxLines,
-                 Function callback) {
+  void lineBreak(String text, num lineWidth, int maxLines, Function callback) {
     _context.font = font;
     int lines = 0;
     num currentLength = 0;
@@ -128,8 +127,8 @@ class MeasureText {
       // Treat the char after the end of the string as whitespace.
       bool whitespace = i == len || isWhitespace(text[i]);
       if (whitespace && !lastWhitespace) {
-        num wordLength = _context.measureText(text.substring(
-            wordStartIndex, i)).width;
+        num wordLength =
+            _context.measureText(text.substring(wordStartIndex, i)).width;
         // TODO(jimhug): Replace the line above with this one to workaround
         //               dartium bug - error: unimplemented code
         // num wordLength = (i - wordStartIndex) * 17;
@@ -146,7 +145,7 @@ class MeasureText {
             return;
           }
           startIndex = wordStartIndex;
-    	  currentLength = wordLength;
+          currentLength = wordLength;
         }
         lastWordEndIndex = i;
         currentLength += _spaceLength;

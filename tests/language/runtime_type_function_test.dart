@@ -26,7 +26,7 @@ main() {
   check(fn('dynamic', '()'), main); //        Top-level tear-off.
   check(fn('void', '()'), Xyzzy.foo); //      Class static member tear-off.
   check(fn('void', '(dynamic)'), [].add); //  Instance tear-off.
-  check(fn('dynamic', '()'), ()=>1); //       closure.
+  check(fn('dynamic', '()'), () => 1); //       closure.
 
   var s = new Xyzzy().runtimeType.toString();
   if (s.length <= 3) return; // dart2js --minify has minified names.
@@ -51,7 +51,10 @@ main() {
 
   // Closures.
   String localFunc(String a, String b) => a + b;
-  void localFunc2(int a) { print(a); }
+  void localFunc2(int a) {
+    print(a);
+  }
+
   Expect.isTrue(localFunc is F);
   check(fn('String', '(String, String)'), localFunc);
   check(fn('void', '(int)'), localFunc2);
@@ -66,7 +69,6 @@ Type print string does not match expectation
   Actual: '$type'
 """);
 }
-
 
 class Xyzzy {
   static void foo() {}

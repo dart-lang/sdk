@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show JSON, UTF8;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
@@ -175,12 +176,17 @@ main() {
           // Remove `filename:line:column:` and message.
           String strippedLocationMessage = locationMessage
               .substring(locationMessage.indexOf(MARKER) + MARKER.length + 1);
+          // Using JSON.encode to add string quotes and backslashes.
+          String expected = JSON.encode(
+              UTF8.decode(expectedSpanText.codeUnits, allowMalformed: true));
+          String actual = JSON.encode(UTF8
+              .decode(strippedLocationMessage.codeUnits, allowMalformed: true));
           Expect.equals(
               expectedSpanText,
               strippedLocationMessage,
               "Unexpected span for ${message.messageKind} in\n${test.code}"
-              "\nExpected:${expectedSpanText.codeUnits}"
-              "\nActual  :${strippedLocationMessage.codeUnits}");
+              "\nExpected: $expected"
+              "\nActual  : $actual");
           kindToSpan.remove(message.messageKind);
         }
       }

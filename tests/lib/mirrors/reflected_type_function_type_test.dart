@@ -4,6 +4,7 @@
 
 library test.reflected_type_function_types;
 
+@MirrorsUsed(targets: "test.reflected_type_function_types")
 import 'dart:mirrors';
 
 import 'reflected_type_helper.dart';

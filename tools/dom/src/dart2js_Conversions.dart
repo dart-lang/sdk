@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Conversions for Window.  These check if the window is the local
 // window, and if it's not, wraps or unwraps it with a secure wrapper.
 // We need to test for EventTarget here as well as it's a base type.
@@ -30,8 +29,7 @@ EventTarget _convertNativeToDart_EventTarget(e) {
       return window;
     }
     return null;
-  }
-  else
+  } else
     return e;
 }
 

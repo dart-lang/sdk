@@ -11,11 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OutlineTest);
-    defineReflectiveTests(OutlineTest_Driver);
   });
 }
 
-class AbstractOutlineTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class OutlineTest extends AbstractAnalysisServerIntegrationTest {
   /**
    * Verify that the range of source text covered by the given outline objects
    * is connected (the end of each object in the list corresponds to the start
@@ -80,13 +80,4 @@ class Class2 {
       checkConnected(members);
     });
   }
-}
-
-@reflectiveTest
-class OutlineTest extends AbstractOutlineTest {}
-
-@reflectiveTest
-class OutlineTest_Driver extends AbstractOutlineTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

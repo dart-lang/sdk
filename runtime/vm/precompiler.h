@@ -66,97 +66,6 @@ class SymbolKeyValueTrait {
 
 typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
 
-class StackMapKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const StackMap* Key;
-  typedef const StackMap* Value;
-  typedef const StackMap* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->PcOffset(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->Equals(*key);
-  }
-};
-
-typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
-
-
-class CodeSourceMapKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const CodeSourceMap* Key;
-  typedef const CodeSourceMap* Value;
-  typedef const CodeSourceMap* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->Length(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->Equals(*key);
-  }
-};
-
-typedef DirectChainedHashMap<CodeSourceMapKeyValueTrait> CodeSourceMapSet;
-
-
-class ArrayKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Array* Key;
-  typedef const Array* Value;
-  typedef const Array* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->Length(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    if (pair->Length() != key->Length()) {
-      return false;
-    }
-    for (intptr_t i = 0; i < pair->Length(); i++) {
-      if (pair->At(i) != key->At(i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-};
-
-typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
-
-
-class InstructionsKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Instructions* Key;
-  typedef const Instructions* Value;
-  typedef const Instructions* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->Size(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->Equals(*key);
-  }
-};
-
-typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
-
 
 class UnlinkedCallKeyValueTrait {
  public:
@@ -493,16 +402,12 @@ class Precompiler : public ValueObject {
   void DropTypes();
   void DropTypeArguments();
   void DropScriptData();
+  void DropLibraryEntries();
   void DropClasses();
   void DropLibraries();
 
   void BindStaticCalls();
   void SwitchICCalls();
-  void ShareMegamorphicBuckets();
-  void DedupStackMaps();
-  void DedupCodeSourceMaps();
-  void DedupLists();
-  void DedupInstructions();
   void ResetPrecompilerState();
 
   void CollectDynamicFunctionNames();

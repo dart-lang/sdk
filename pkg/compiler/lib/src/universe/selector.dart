@@ -7,14 +7,7 @@ library dart2js.selector;
 import '../common.dart';
 import '../common/names.dart' show Names;
 import '../elements/elements.dart'
-    show
-        Element,
-        Elements,
-        FunctionSignature,
-        MemberElement,
-        MethodElement,
-        Name,
-        PublicName;
+    show Element, Elements, FunctionSignature, Name, PublicName;
 import '../elements/entities.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
@@ -217,14 +210,13 @@ class Selector {
     return kind;
   }
 
-  bool appliesUnnamed(MemberElement element) {
+  bool appliesUnnamed(MemberEntity element) {
     assert(name == element.name);
     return appliesUntyped(element);
   }
 
-  bool appliesUntyped(MemberElement element) {
+  bool appliesUntyped(MemberEntity element) {
     assert(name == element.name);
-    if (Elements.isUnresolved(element)) return false;
     if (memberName.isPrivate && memberName.library != element.library) {
       // TODO(johnniwinther): Maybe this should be
       // `memberName != element.memberName`.
@@ -233,21 +225,18 @@ class Selector {
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
     if (element.isField) {
-      return isSetter
-          ? !element.isFinal && !element.isConst
-          : isGetter || isCall;
+      return isSetter ? element.isAssignable : isGetter || isCall;
     }
     if (isGetter) return true;
     if (isSetter) return false;
     return signatureApplies(element);
   }
 
-  bool signatureApplies(MethodElement function) {
-    if (Elements.isUnresolved(function)) return false;
-    return callStructure.signatureApplies(function.type);
+  bool signatureApplies(FunctionEntity function) {
+    return callStructure.signatureApplies(function.parameterStructure);
   }
 
-  bool applies(MemberElement element) {
+  bool applies(MemberEntity element) {
     if (name != element.name) return false;
     return appliesUnnamed(element);
   }

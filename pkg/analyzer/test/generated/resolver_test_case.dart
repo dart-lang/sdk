@@ -684,7 +684,7 @@ class ResolverTestCase extends EngineTestCase {
           resourceProvider,
           new MemoryByteStore(),
           fileContentOverlay,
-          'test',
+          null,
           sourceFactory,
           options);
       scheduler.start();

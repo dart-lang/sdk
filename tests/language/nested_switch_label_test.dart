@@ -16,27 +16,34 @@ void main() {
 void doSwitch(int target, List expect) {
   List list = [];
   switch (target) {
-  outer0: case 0:
-    list.add('0');
-    continue outer2;
-  outer1: case 1:
-    list.add('1');
-    continue outerDefault;
-  outer2: case 2:
-    switch (target) {
-    inner0: case 0:
-      list.add('2:0');
+    outer0:
+    case 0:
+      list.add('0');
+      continue outer2;
+    outer1:
+    case 1:
+      list.add('1');
+      continue outerDefault;
+    outer2:
+    case 2:
+      switch (target) {
+        inner0:
+        case 0:
+          list.add('2:0');
+          continue outer1;
+        inner2:
+        case 2:
+          list.add('2:2');
+          continue inner1;
+        inner1:
+        case 1:
+          list.add('2:1');
+      }
+      list.add('2');
       continue outer1;
-    inner2: case 2:
-      list.add('2:2');
-      continue inner1;
-    inner1: case 1:
-      list.add('2:1');
-    }
-    list.add('2');
-    continue outer1;
-  outerDefault: default:
-    list.add('default');
+    outerDefault:
+    default:
+      list.add('default');
   }
   Expect.listEquals(expect, list);
 }

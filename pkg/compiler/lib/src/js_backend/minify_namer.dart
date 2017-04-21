@@ -12,9 +12,9 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(BackendHelpers helpers, NativeData nativeData,
-      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
-      : super(helpers, nativeData, closedWorld, codegenWorldBuilder) {
+  MinifyNamer(NativeData nativeData, ClosedWorld closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder)
+      : super(nativeData, closedWorld, codegenWorldBuilder) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
@@ -28,6 +28,9 @@ class MinifyNamer extends Namer
   final String getterPrefix = 'g';
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
+  String get requiredParameterField => r'$R';
+  String get defaultValuesField => r'$D';
+  String get operatorSignature => r'$S';
 
   final ALPHABET_CHARACTERS = 52; // a-zA-Z.
   final ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.

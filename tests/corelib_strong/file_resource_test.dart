@@ -57,7 +57,7 @@ createFile() async {
 
 deleteFile(File file) async {
   // Removes the file and the temporary directory it's in.
-  var parentDir = new Directory(file.path.substring(0,
-                                file.path.lastIndexOf(Platform.pathSeparator)));
+  var parentDir = new Directory(
+      file.path.substring(0, file.path.lastIndexOf(Platform.pathSeparator)));
   await parentDir.delete(recursive: true);
 }

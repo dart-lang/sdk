@@ -29,13 +29,24 @@ Program loadProgramFromBinary(String path, [Program program]) {
 }
 
 Future writeProgramToBinary(Program program, String path) {
-  var sink = new File(path).openWrite();
+  var sink;
+  if (path == 'null' || path == 'stdout') {
+    sink = stdout.nonBlocking;
+  } else {
+    sink = new File(path).openWrite();
+  }
+
   var future;
   try {
     new BinaryPrinter(sink).writeProgramFile(program);
   } finally {
-    future = sink.close();
+    if (sink == stdout.nonBlocking) {
+      future = sink.flush();
+    } else {
+      future = sink.close();
+    }
   }
+
   return future;
 }
 

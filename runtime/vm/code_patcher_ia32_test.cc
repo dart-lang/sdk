@@ -6,12 +6,12 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
+#include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"

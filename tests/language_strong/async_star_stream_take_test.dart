@@ -13,7 +13,7 @@ Stream makeStream(int n) async* {
 main() {
   f(Stream s) async {
     var r = 0;
-    await for(var v in s.take(5)) r += v;
+    await for (var v in s.take(5)) r += v;
     return r;
   }
 
@@ -23,4 +23,3 @@ main() {
     asyncEnd();
   });
 }
-

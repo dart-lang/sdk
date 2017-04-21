@@ -18,8 +18,8 @@
 namespace dart {
 namespace kernel {
 
-// TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
-// should use [TokenPosition]s.
+class StreamingFlowGraphBuilder;
+
 class KernelConstMapKeyEqualsTraits {
  public:
   static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
@@ -30,25 +30,24 @@ class KernelConstMapKeyEqualsTraits {
     const Smi& key2 = Smi::Cast(b);
     return (key1.Value() == key2.Value());
   }
-  static bool IsMatch(const TreeNode* key1, const Object& b) {
+  static bool IsMatch(const intptr_t key1, const Object& b) {
     return KeyAsSmi(key1) == Smi::Cast(b).raw();
   }
   static uword Hash(const Object& obj) {
     const Smi& key = Smi::Cast(obj);
     return HashValue(key.Value());
   }
-  static uword Hash(const TreeNode* key) {
+  static uword Hash(const intptr_t key) {
     return HashValue(Smi::Value(KeyAsSmi(key)));
   }
-  static RawObject* NewKey(const TreeNode* key) { return KeyAsSmi(key); }
+  static RawObject* NewKey(const intptr_t key) { return KeyAsSmi(key); }
 
  private:
   static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
 
-  static RawSmi* KeyAsSmi(const TreeNode* key) {
-    // We exploit that all [TreeNode] objects will be aligned and therefore are
-    // already [Smi]s!
-    return reinterpret_cast<RawSmi*>(const_cast<TreeNode*>(key));
+  static RawSmi* KeyAsSmi(const intptr_t key) {
+    ASSERT(key >= 0);
+    return Smi::New(key);
   }
 };
 typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
@@ -270,12 +269,7 @@ class ActiveFunctionScope {
 
 class TranslationHelper {
  public:
-  explicit TranslationHelper(dart::Thread* thread)
-      : thread_(thread),
-        zone_(thread->zone()),
-        isolate_(thread->isolate()),
-        allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld) {
-  }
+  explicit TranslationHelper(dart::Thread* thread);
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -285,6 +279,31 @@ class TranslationHelper {
   Isolate* isolate() { return isolate_; }
 
   Heap::Space allocation_space() { return allocation_space_; }
+
+  // Access to strings.
+  const TypedData& string_data() { return string_data_; }
+  void SetStringData(const TypedData& string_data);
+  uint8_t CharacterAt(String* str, intptr_t index);
+  bool StringEquals(String* str, const char* other);
+
+  // Predicates on CanonicalNames.
+  bool IsAdministrative(CanonicalName* name);
+  bool IsPrivate(CanonicalName* name);
+  bool IsRoot(CanonicalName* name);
+  bool IsLibrary(CanonicalName* name);
+  bool IsClass(CanonicalName* name);
+  bool IsMember(CanonicalName* name);
+  bool IsField(CanonicalName* name);
+  bool IsConstructor(CanonicalName* name);
+  bool IsProcedure(CanonicalName* name);
+  bool IsMethod(CanonicalName* name);
+  bool IsGetter(CanonicalName* name);
+  bool IsSetter(CanonicalName* name);
+  bool IsFactory(CanonicalName* name);
+
+  // For a member (field, constructor, or procedure) return the canonical name
+  // of the enclosing class or library.
+  CanonicalName* EnclosingName(CanonicalName* name);
 
   RawInstance* Canonicalize(const Instance& instance);
 
@@ -298,8 +317,16 @@ class TranslationHelper {
   }
   dart::String& DartString(String* content, Heap::Space space);
 
+  dart::String& DartString(const uint8_t* utf8_array, intptr_t len) {
+    return DartString(utf8_array, len, allocation_space_);
+  }
+  dart::String& DartString(const uint8_t* utf8_array,
+                           intptr_t len,
+                           Heap::Space space);
+
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
+  dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
 
   const dart::String& DartClassName(CanonicalName* kernel_class);
 
@@ -355,10 +382,12 @@ class TranslationHelper {
   const dart::String& DartGetterName(CanonicalName* parent, String* getter);
   const dart::String& DartMethodName(CanonicalName* parent, String* method);
 
-  dart::Thread* thread_;
-  dart::Zone* zone_;
-  dart::Isolate* isolate_;
+  Thread* thread_;
+  Zone* zone_;
+  Isolate* isolate_;
   Heap::Space allocation_space_;
+
+  TypedData& string_data_;
 };
 
 // Regarding malformed types:
@@ -548,9 +577,6 @@ class ConstantEvaluator : public ExpressionVisitor {
     return result_.raw() == Bool::True().raw();
   }
 
-  // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
-  // should use [TokenPosition]s as well as the existing functionality in
-  // `Parser::CacheConstantValue`.
   bool GetCachedConstant(TreeNode* node, Instance* value);
   void CacheConstantValue(TreeNode* node, const Instance& value);
 
@@ -624,19 +650,7 @@ class ScopeBuildingResult : public ZoneAllocated {
 
 class ScopeBuilder : public RecursiveVisitor {
  public:
-  ScopeBuilder(ParsedFunction* parsed_function, TreeNode* node)
-      : result_(NULL),
-        parsed_function_(parsed_function),
-        node_(node),
-        translation_helper_(Thread::Current()),
-        zone_(translation_helper_.zone()),
-        type_translator_(&translation_helper_,
-                         &active_class_,
-                         /*finalize=*/true),
-        current_function_scope_(NULL),
-        scope_(NULL),
-        depth_(0),
-        name_index_(0) {}
+  ScopeBuilder(ParsedFunction* parsed_function, TreeNode* node);
 
   virtual ~ScopeBuilder() {}
 
@@ -649,6 +663,8 @@ class ScopeBuilder : public RecursiveVisitor {
   virtual void VisitTypeParameterType(TypeParameterType* node);
   virtual void VisitVariableGet(VariableGet* node);
   virtual void VisitVariableSet(VariableSet* node);
+  virtual void VisitConditionalExpression(ConditionalExpression* node);
+  virtual void VisitLogicalExpression(LogicalExpression* node);
   virtual void VisitFunctionExpression(FunctionExpression* node);
   virtual void VisitLet(Let* node);
   virtual void VisitBlock(Block* node);
@@ -735,8 +751,9 @@ class ScopeBuilder : public RecursiveVisitor {
   DepthState depth_;
 
   intptr_t name_index_;
-};
 
+  bool needs_expr_temp_;
+};
 
 class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
  public:
@@ -835,6 +852,8 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment TranslateInitializers(Class* kernel_class,
                                  List<Initializer>* initialiers);
+  Fragment TranslateFieldInitializer(CanonicalName* canonical_name,
+                                     Expression* init);
 
   Fragment TranslateStatement(Statement* statement);
   Fragment TranslateCondition(Expression* expression, bool* negate);
@@ -855,6 +874,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment PopContext();
 
   Fragment LoadInstantiatorTypeArguments();
+  Fragment LoadFunctionTypeArguments();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
   Fragment TranslateInstantiatedTypeArguments(
@@ -1067,17 +1087,49 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   DartTypeTranslator type_translator_;
   ConstantEvaluator constant_evaluator_;
 
+  StreamingFlowGraphBuilder* streaming_flow_graph_builder_;
+
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
   friend class DartTypeTranslator;
+  friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;
   friend class SwitchBlock;
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
 };
 
-RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+
+class CatchBlock {
+ public:
+  CatchBlock(FlowGraphBuilder* builder,
+             LocalVariable* exception_var,
+             LocalVariable* stack_trace_var,
+             intptr_t catch_try_index)
+      : builder_(builder),
+        outer_(builder->catch_block_),
+        exception_var_(exception_var),
+        stack_trace_var_(stack_trace_var),
+        catch_try_index_(catch_try_index) {
+    builder_->catch_block_ = this;
+  }
+  ~CatchBlock() { builder_->catch_block_ = outer_; }
+
+  LocalVariable* exception_var() { return exception_var_; }
+  LocalVariable* stack_trace_var() { return stack_trace_var_; }
+  intptr_t catch_try_index() { return catch_try_index_; }
+
+ private:
+  FlowGraphBuilder* builder_;
+  CatchBlock* outer_;
+  LocalVariable* exception_var_;
+  LocalVariable* stack_trace_var_;
+  intptr_t catch_try_index_;
+};
+
+
+RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 
@@ -1092,7 +1144,7 @@ RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 namespace dart {
 namespace kernel {
 
-RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 }  // namespace kernel

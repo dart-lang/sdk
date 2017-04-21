@@ -7,9 +7,9 @@ import "package:expect/expect.dart";
 
 // Test allocation sinking with optimized try-catch.
 
-bar() {  // Should not be inlined.
-  try {
-  } finally { }
+bar() {
+  // Should not be inlined.
+  try {} finally {}
 }
 
 foo(a) {
@@ -19,13 +19,12 @@ foo(a) {
   }
   try {
     bar();
-  } finally {
-  }
+  } finally {}
   return r;
 }
 
 main() {
-  var a = [1,2,3];
+  var a = [1, 2, 3];
   for (var i = 0; i < 20; i++) foo(a);
   Expect.equals(6, foo(a));
 }

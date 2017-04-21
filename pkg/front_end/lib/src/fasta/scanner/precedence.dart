@@ -18,7 +18,7 @@ class PrecedenceInfo implements TokenType {
   const PrecedenceInfo(this.value, this.name, this.precedence, this.kind,
       {this.isOperator: false, this.isUserDefinableOperator: false});
 
-  toString() => 'PrecedenceInfo($value, $precedence, $kind)';
+  toString() => 'PrecedenceInfo($value, $name, $precedence, $kind)';
 
   static const List<PrecedenceInfo> all = const <PrecedenceInfo>[
     BACKPING_INFO,
@@ -95,6 +95,8 @@ class PrecedenceInfo implements TokenType {
     HEXADECIMAL_INFO,
     SINGLE_LINE_COMMENT_INFO,
     MULTI_LINE_COMMENT_INFO,
+    GENERIC_METHOD_TYPE_ASSIGN,
+    GENERIC_METHOD_TYPE_LIST,
   ];
 
   @override
@@ -396,3 +398,15 @@ const PrecedenceInfo SINGLE_LINE_COMMENT_INFO =
 
 const PrecedenceInfo MULTI_LINE_COMMENT_INFO =
     const PrecedenceInfo('comment', 'MULTI_LINE_COMMENT', 0, COMMENT_TOKEN);
+
+const PrecedenceInfo GENERIC_METHOD_TYPE_ASSIGN = const PrecedenceInfo(
+    'generic_comment_assign',
+    'GENERIC_METHOD_TYPE_ASSIGN',
+    0,
+    GENERIC_METHOD_TYPE_ASSIGN_TOKEN);
+
+const PrecedenceInfo GENERIC_METHOD_TYPE_LIST = const PrecedenceInfo(
+    'generic_comment_list',
+    'GENERIC_METHOD_TYPE_LIST',
+    0,
+    GENERIC_METHOD_TYPE_LIST_TOKEN);

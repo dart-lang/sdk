@@ -47,11 +47,17 @@ main() {
   Expect.equals('aMethod', b.aMethod());
   Expect.equals('aMethod', c.aMethod());
 
-  Expect.throws(() { a.bMethod(); }, isNoSuchMethodError);
+  Expect.throws(() {
+    a.bMethod();
+  }, isNoSuchMethodError);
   Expect.equals('bMethod', b.bMethod());
   Expect.equals('bMethod', c.bMethod());
 
-  Expect.throws(() { a.cMethod(); }, isNoSuchMethodError);
-  Expect.throws(() { b.cMethod(); }, isNoSuchMethodError);
+  Expect.throws(() {
+    a.cMethod();
+  }, isNoSuchMethodError);
+  Expect.throws(() {
+    b.cMethod();
+  }, isNoSuchMethodError);
   Expect.equals('cMethod', c.cMethod());
 }

@@ -1569,7 +1569,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.SUPER_METHOD:
           MethodElement superMethod = semantics.element;
           superMethod.computeType(resolution);
-          if (!callStructure.signatureApplies(superMethod.type)) {
+          if (!callStructure.signatureApplies(superMethod.parameterStructure)) {
             registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
             registry.registerDynamicUse(new DynamicUse(selector, null));
             registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
@@ -1643,6 +1643,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   /// Handle a [Send] whose selector is an [Operator], like `a && b`, `a is T`,
   /// `a + b`, and `~a`.
+  // ignore: MISSING_RETURN
   ResolutionResult handleOperatorSend(Send node) {
     String operatorText = node.selector.asOperator().source;
     if (operatorText == 'is') {
@@ -2502,7 +2503,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.LOCAL_FUNCTION:
           LocalFunctionElementX function = semantics.element;
           function.computeType(resolution);
-          if (!callStructure.signatureApplies(function.type)) {
+          if (!callStructure.signatureApplies(function.parameterStructure)) {
             registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
             registry.registerDynamicUse(new DynamicUse(selector, null));
             isIncompatibleInvoke = true;
@@ -2671,7 +2672,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.TOPLEVEL_METHOD:
           MethodElement method = semantics.element;
           method.computeType(resolution);
-          if (!callStructure.signatureApplies(method.type)) {
+          if (!callStructure.signatureApplies(method.parameterStructure)) {
             registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
             registry.registerDynamicUse(new DynamicUse(selector, null));
             isIncompatibleInvoke = true;
@@ -3858,7 +3859,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       case ConstructorResultKind.GENERATIVE:
         // Ensure that the signature of [constructor] has been computed.
         constructor.computeType(resolution);
-        if (!callStructure.signatureApplies(constructor.type)) {
+        if (!callStructure.signatureApplies(constructor.parameterStructure)) {
           isInvalid = true;
           kind = ConstructorAccessKind.INCOMPATIBLE;
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
@@ -3869,7 +3870,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       case ConstructorResultKind.FACTORY:
         // Ensure that the signature of [constructor] has been computed.
         constructor.computeType(resolution);
-        if (!callStructure.signatureApplies(constructor.type)) {
+        if (!callStructure.signatureApplies(constructor.parameterStructure)) {
           // The effective target might still be valid(!) so the is not an
           // invalid case in itself. For instance
           //

@@ -10,7 +10,6 @@ main() {
 }
 
 class PrivateMain {
-
   static const _myPrecious = "A Ring";
 
   static accessMyPrivates() {

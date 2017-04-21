@@ -4,12 +4,15 @@
 
 library test.relation_subtype;
 
+@MirrorsUsed(targets: "test.relation_subtype")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
 
 class Superclass {}
+
 class Subclass1 extends Superclass {}
+
 class Subclass2 extends Superclass {}
 
 typedef bool NumberPredicate(num x);
@@ -21,7 +24,9 @@ typedef int IntegerGenerator();
 typedef double DoubleGenerator();
 
 class A<T> {}
+
 class B<T> extends A<T> {}
+
 class C<T extends num> {}
 
 test(MirrorSystem mirrors) {
@@ -61,7 +66,7 @@ test(MirrorSystem mirrors) {
 
   Expect.isTrue(Nul.isSubtypeOf(Obj));
   Expect.isFalse(Obj.isSubtypeOf(Nul));
-  Expect.isTrue(Nul.isSubtypeOf(Super));  // Null type is bottom type.
+  Expect.isTrue(Nul.isSubtypeOf(Super)); // Null type is bottom type.
   Expect.isFalse(Super.isSubtypeOf(Nul));
 
   // Function typedef - argument type.
@@ -92,7 +97,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(IntPred.isSubtypeOf(Obj));
   Expect.isTrue(DubPred.isSubtypeOf(Obj));
 
-
   // Function typedef - return type.
   TypedefMirror NumGen = thisLibrary.declarations[#NumberGenerator];
   TypedefMirror IntGen = thisLibrary.declarations[#IntegerGenerator];
@@ -119,7 +123,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(IntGen.isSubtypeOf(Obj));
   Expect.isTrue(DubGen.isSubtypeOf(Obj));
 
-  
   // Function - argument type.
   TypeMirror NumPredRef = NumPred.referent;
   TypeMirror IntPredRef = IntPred.referent;
@@ -147,7 +150,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(IntPredRef.isSubtypeOf(Obj));
   Expect.isTrue(DubPredRef.isSubtypeOf(Obj));
 
-
   // Function - return type.
   TypeMirror NumGenRef = NumGen.referent;
   TypeMirror IntGenRef = IntGen.referent;
@@ -174,7 +176,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(IntGenRef.isSubtypeOf(Obj));
   Expect.isTrue(DubGenRef.isSubtypeOf(Obj));
 
-
   // Function typedef / function.
   Expect.isTrue(NumPred.isSubtypeOf(NumPredRef));
   Expect.isTrue(IntPred.isSubtypeOf(IntPredRef));
@@ -183,7 +184,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(IntPredRef.isSubtypeOf(IntPred));
   Expect.isTrue(DubPredRef.isSubtypeOf(DubPred));
 
-
   // Function typedef / function.
   Expect.isTrue(NumGen.isSubtypeOf(NumGenRef));
   Expect.isTrue(IntGen.isSubtypeOf(IntGenRef));
@@ -191,7 +191,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(NumGenRef.isSubtypeOf(NumGen));
   Expect.isTrue(IntGenRef.isSubtypeOf(IntGen));
   Expect.isTrue(DubGenRef.isSubtypeOf(DubGen));
-
 
   // Type variable.
   TypeMirror TFromA =
@@ -211,11 +210,10 @@ test(MirrorSystem mirrors) {
   Expect.isFalse(TFromB.isSubtypeOf(TFromC));
   Expect.isFalse(TFromC.isSubtypeOf(TFromA));
   Expect.isFalse(TFromC.isSubtypeOf(TFromB));
-  
+
   TypeMirror Num = coreLibrary.declarations[#num];
   Expect.isTrue(TFromC.isSubtypeOf(Num));
   Expect.isFalse(Num.isSubtypeOf(TFromC));
-
 
   // dynamic & void.
   TypeMirror Dynamic = mirrors.dynamicType;

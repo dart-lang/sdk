@@ -109,6 +109,16 @@ void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewStringFromCString(Dart_VersionString()));
 }
 
+
+void FUNCTION_NAME(Platform_LocaleName)(Dart_NativeArguments args) {
+  const char* locale = Platform::LocaleName();
+  if (locale == NULL) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  } else {
+    Dart_SetReturnValue(args, Dart_NewStringFromCString(locale));
+  }
+}
+
 }  // namespace bin
 }  // namespace dart
 

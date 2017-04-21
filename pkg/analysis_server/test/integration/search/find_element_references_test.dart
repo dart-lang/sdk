@@ -69,7 +69,4 @@ main() {
     expect(searchParams.isLast, isTrue);
     return searchParams.results;
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

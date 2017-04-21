@@ -25,18 +25,23 @@ dart.fn(es6_modules.f, VoidTodynamic());
 es6_modules._f = function() {
 };
 dart.fn(es6_modules._f, VoidTodynamic());
-es6_modules.constant = "abc";
-es6_modules.finalConstant = "abc";
 dart.defineLazy(es6_modules, {
+  get constant() {
+    return "abc";
+  },
+  get finalConstant() {
+    return "abc";
+  },
   get lazy() {
     return dart.fn(() => {
       core.print('lazy');
       return "abc";
     }, VoidToString())();
-  }
-});
-es6_modules.mutable = "abc";
-dart.defineLazy(es6_modules, {
+  },
+  get mutable() {
+    return "abc";
+  },
+  set mutable(_) {},
   get lazyMutable() {
     return dart.fn(() => {
       core.print('lazyMutable');
@@ -45,4 +50,6 @@ dart.defineLazy(es6_modules, {
   },
   set lazyMutable(_) {}
 });
-dart.trackLibraries("es6_modules", {"es6_modules.dart": es6_modules}, null);
+dart.trackLibraries("es6_modules", {
+  "es6_modules.dart": es6_modules
+}, null);

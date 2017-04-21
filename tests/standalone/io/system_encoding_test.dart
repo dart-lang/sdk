@@ -10,8 +10,7 @@ import "package:expect/expect.dart";
 // This only works reliabily for "ASCII" cross platform as that is the only
 // well known part of the default Windows code page.
 void testEncodeDecode(String str) {
-  Expect.equals(
-      SYSTEM_ENCODING.decode(SYSTEM_ENCODING.encode(str)), str);
+  Expect.equals(SYSTEM_ENCODING.decode(SYSTEM_ENCODING.encode(str)), str);
 }
 
 // This only works reliabily for "ASCII" cross platform as that is the only
@@ -40,13 +39,11 @@ main() {
     // On Windows the default Windows code page cannot encode these
     // Unicode characters and the ? character is used.
     Expect.listEquals(
-        SYSTEM_ENCODING.encode('\u1234\u5678\u9abc'),
-        '???'.codeUnits);
+        SYSTEM_ENCODING.encode('\u1234\u5678\u9abc'), '???'.codeUnits);
   } else {
     // On all systems except for Windows UTF-8 is used as the system
     // encoding.
-    Expect.listEquals(
-        SYSTEM_ENCODING.encode('\u1234\u5678\u9abc'),
+    Expect.listEquals(SYSTEM_ENCODING.encode('\u1234\u5678\u9abc'),
         UTF8.encode('\u1234\u5678\u9abc'));
   }
 }

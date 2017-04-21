@@ -9,7 +9,7 @@ import "native_testing.dart";
 @Native("A")
 class Foo {
   // There is one native class with dispatch tag 'A'.
-  token() native ;
+  token() native;
 }
 
 void setup() native r"""
@@ -37,8 +37,8 @@ makeB = function() { return new B; };
 self.nativeConstructor(A);
 """;
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 main() {
   nativeTesting();

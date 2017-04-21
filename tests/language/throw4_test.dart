@@ -21,7 +21,7 @@ class MyException3 {
 }
 
 class Helper {
-  Helper() : i = 0 { }
+  Helper() : i = 0 {}
 
   int f1() {
     int j = 0;
@@ -65,6 +65,7 @@ class Helper {
     }
     return i;
   }
+
   int i;
 }
 

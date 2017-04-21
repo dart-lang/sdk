@@ -159,7 +159,7 @@ namespace dart {
 //    Lookup and invoke method with N checked arguments using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
 //
-//  - NativeCall, NativeBootstrapCall
+//  - NativeBootstrapCall, NativeNoScopeCall, NativeAutoScopeCall
 //
 //    Invoke native function SP[-1] with argc_tag SP[0].
 //
@@ -535,26 +535,30 @@ namespace dart {
 //
 //  - InstantiateType D
 //
-//    Instantiate type PP[D] with instantiator type arguments SP[0].
+//    Instantiate type PP[D] with instantiator type arguments SP[-1] and
+//    function type arguments SP[0].
 //
 //  - InstantiateTypeArgumentsTOS D
 //
-//    Instantiate type arguments PP[D] with instantiator SP[0].
+//    Instantiate type arguments PP[D] with instantiator type arguments SP[-1]
+//    and function type arguments SP[0].
 //
 //  - InstanceOf
 //
-//    Test if instance SP[-3] with type arguments SP[-2] is  a subtype of SP[-1]
-//    using SubtypeTestCache SP[0], with result placed at top of stack.
+//    Test if instance SP[-4] with instantiator type arguments SP[-3] and
+//    function type arguments SP[-2] is a subtype of type SP[-1] using
+//    SubtypeTestCache SP[0], with result placed at top of stack.
 //
 //  - AssertAssignable A, D
 //
-//    Assert that SP[-3] is assignable to variable named SP[0] of type
-//    SP[-1] with type arguments SP[-2] using SubtypeTestCache PP[D].
+//    Assert that instance SP[-4] is assignable to variable named SP[0] of
+//    type SP[-1] with instantiator type arguments SP[-3] and function type
+//    arguments SP[-2] using SubtypeTestCache PP[D].
 //    If A is 1, then the instance may be a Smi.
 //
 //  - BadTypeError
 //
-//    If SP[-3] is non-null, throws a BadType error by calling into the runtime.
+//    If SP[-4] is non-null, throws a BadType error by calling into the runtime.
 //    Assumes that the stack is arranged the same as for AssertAssignable.
 //
 //  - AssertBoolean A
@@ -696,8 +700,9 @@ namespace dart {
   V(InstanceCall2Opt,                    A_D, num, num, ___) \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
-  V(NativeCall,                            0, ___, ___, ___) \
   V(NativeBootstrapCall,                   0, ___, ___, ___) \
+  V(NativeNoScopeCall,                     0, ___, ___, ___) \
+  V(NativeAutoScopeCall,                   0, ___, ___, ___) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \

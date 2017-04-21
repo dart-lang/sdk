@@ -15,13 +15,14 @@ class HelpDialog extends DialogView {
   Function _doneHandler;
 
   HelpDialog(this._parent, this._doneHandler)
-    : super('Information', '', makeContent());
+      : super('Information', '', makeContent());
 
-  void onDone() { _doneHandler(); }
+  void onDone() {
+    _doneHandler();
+  }
 
   static View makeContent() {
-    return new View.html(
-        '''
+    return new View.html('''
         <div>
 
           <p>

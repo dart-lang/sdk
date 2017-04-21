@@ -8,11 +8,19 @@ import "package:expect/expect.dart";
 
 void testIllegalArguments() {
   var args = [
-      null, 1, 1.1, new Object(), [], {'a' : '127.0.0.1'},
-      "", "." , ":", ":::"];
+    null,
+    1,
+    1.1,
+    new Object(),
+    [],
+    {'a': '127.0.0.1'},
+    "",
+    ".",
+    ":",
+    ":::"
+  ];
   args.forEach((arg) {
-    Expect.throws(() => new InternetAddress(arg),
-                  (e) => e is ArgumentError);
+    Expect.throws(() => new InternetAddress(arg), (e) => e is ArgumentError);
   });
 }
 

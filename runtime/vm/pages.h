@@ -324,10 +324,12 @@ class PageSpace {
   // Ids for time and data records in Heap::GCStats.
   enum {
     // Time
-    kMarkObjects = 0,
-    kResetFreeLists = 1,
-    kSweepPages = 2,
-    kSweepLargePages = 3,
+    kConcurrentSweep = 0,
+    kSafePoint = 1,
+    kMarkObjects = 2,
+    kResetFreeLists = 3,
+    kSweepPages = 4,
+    kSweepLargePages = 5,
     // Data
     kGarbageRatio = 0,
     kGCTimeFraction = 1,

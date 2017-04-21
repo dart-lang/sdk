@@ -6,6 +6,7 @@
 // VMOptions=--enable_type_checks --enable_asserts
 
 library TypedDataMessageTest;
+
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:unittest/unittest.dart';
@@ -105,8 +106,8 @@ void main([args, port]) {
 
       // Shutdown the MessageServer.
       sendReceive(remote, -1).then(expectAsync((int message) {
-          expect(message, elements.length);
-        }));
+        expect(message, elements.length);
+      }));
     });
   });
 }

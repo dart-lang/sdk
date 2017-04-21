@@ -32,7 +32,6 @@ mint_to_int32(a, c, d) {
 
 uint32_to_int32(a, c) {
   return (a * a * a) * (c & 0xFFFFFFFF);
-
 }
 
 main() {
@@ -49,13 +48,13 @@ main() {
 
   Expect.equals(0x7ffffffe, int32_add(0x7ffffffc ~/ 2, 1, 2));
   Expect.equals(-0x80000000, int32_add(-0x7ffffffe ~/ 2, -1, 2));
-  Expect.equals(-0x80000002, int32_add(-0x7ffffffe ~/ 2, -2, 2));  // Overflow.
+  Expect.equals(-0x80000002, int32_add(-0x7ffffffe ~/ 2, -2, 2)); // Overflow.
   Expect.equals(0x7ffffffe, int32_sub(0x7ffffffc ~/ 2, -1, 2));
   Expect.equals(-0x80000000, int32_sub(-0x7ffffffe ~/ 2, 1, 2));
-  Expect.equals(-0x80000002, int32_sub(-0x7ffffffe ~/ 2, 2, 2));  // Overflow.
+  Expect.equals(-0x80000002, int32_sub(-0x7ffffffe ~/ 2, 2, 2)); // Overflow.
   Expect.equals(-0x7ffffffe, int32_mul(0x7ffffffe ~/ 2, -1, 2));
   Expect.equals(-0x80000000, int32_mul(-0x80000000 ~/ 2, 1, 2));
-  Expect.equals(0x80000000, int32_mul(-0x80000000 ~/ 2, -1, 2));  // Overflow.
+  Expect.equals(0x80000000, int32_mul(-0x80000000 ~/ 2, -1, 2)); // Overflow.
   Expect.equals(0x60000000, int32_xor(0x40000000 ~/ 2, 0x20000000 ~/ 2, 2));
   Expect.equals(0x00000000, int32_xor(0x40000000 ~/ 2, 0x40000000 ~/ 2, 2));
   Expect.equals(0x60000000, int32_or(0x40000000 ~/ 2, 0x20000000 ~/ 2, 2));
@@ -65,7 +64,7 @@ main() {
   Expect.equals(1, int32_shr(1, 1 << 16, 1));
   Expect.equals(-1 << 15, int32_shr(1 << 15, -(1 << 16), 1));
   Expect.equals(-0x080000000, int32_shl(-1 << 15, 1, 1));
-  Expect.equals(-0x100000000, int32_shl(-1 << 16, 1, 1));  // Overflow.
+  Expect.equals(-0x100000000, int32_shl(-1 << 16, 1, 1)); // Overflow.
 
   Expect.equals(0, int32_shr(1, 1, 1));
   Expect.equals(1 << 16, int32_shl(1, 1, 1));

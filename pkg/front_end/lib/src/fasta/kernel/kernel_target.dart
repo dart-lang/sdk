@@ -30,7 +30,6 @@ import 'package:kernel/ast.dart'
         NullLiteral,
         ProcedureKind,
         Program,
-        RedirectingInitializer,
         Source,
         StringLiteral,
         SuperInitializer,
@@ -83,6 +82,7 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MixinApplicationBuilder,
         NamedMixinApplicationBuilder,
         NamedTypeBuilder,
@@ -92,6 +92,8 @@ import 'kernel_builder.dart'
 import 'verifier.dart' show verifyProgram;
 
 class KernelTarget extends TargetImplementation {
+  final bool strongMode;
+
   final DillTarget dillTarget;
 
   /// Shared with [CompilerContext].
@@ -105,7 +107,8 @@ class KernelTarget extends TargetImplementation {
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
-  KernelTarget(DillTarget dillTarget, TranslateUri uriTranslator,
+  KernelTarget(
+      DillTarget dillTarget, TranslateUri uriTranslator, this.strongMode,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
@@ -175,7 +178,7 @@ class KernelTarget extends TargetImplementation {
   List<ClassBuilder> collectAllClasses() {
     List<ClassBuilder> result = <ClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.members.forEach((String name, Builder member) {
+      library.forEach((String name, Builder member) {
         if (member is KernelClassBuilder) {
           result.add(member);
         }
@@ -191,7 +194,7 @@ class KernelTarget extends TargetImplementation {
   List<SourceClassBuilder> collectAllSourceClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.members.forEach((String name, Builder member) {
+      library.forEach((String name, Builder member) {
         if (member is SourceClassBuilder) {
           result.add(member);
         }
@@ -227,10 +230,11 @@ class KernelTarget extends TargetImplementation {
   Future<Program> writeOutline(Uri uri) async {
     if (loader.first == null) return null;
     try {
+      loader.createTopLevelTypeInferrer();
       await loader.buildOutlines();
       loader.coreLibrary
           .becomeCoreLibrary(const DynamicType(), const VoidType());
-      dynamicType.bind(loader.coreLibrary.members["dynamic"]);
+      dynamicType.bind(loader.coreLibrary["dynamic"]);
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
@@ -244,6 +248,8 @@ class KernelTarget extends TargetImplementation {
       program = link(new List<Library>.from(loader.libraries));
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
+      loader.prepareInitializerInference();
+      loader.performInitializerInference();
       if (uri == null) return program;
       return await writeLinkedProgram(uri, program, isFullProgram: false);
     } on InputError catch (e) {
@@ -286,7 +292,27 @@ class KernelTarget extends TargetImplementation {
   Future writeDepsFile(Uri output, Uri depsFile,
       {Iterable<Uri> extraDependencies}) async {
     String toRelativeFilePath(Uri uri) {
-      return Uri.parse(relativizeUri(uri)).toFilePath();
+      // Ninja expects to find file names relative to the current working
+      // directory. We've tried making them relative to the deps file, but that
+      // doesn't work for downstream projects. Making them absolute also
+      // doesn't work.
+      //
+      // We can test if it works by running ninja twice, for example:
+      //
+      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+      //
+      // The second time, ninja should say:
+      //
+      //     ninja: Entering directory `xcodebuild/ReleaseX64'
+      //     ninja: no work to do.
+      //
+      // It's broken if it says something like this:
+      //
+      //     ninja explain: expected depfile 'patched_sdk.d' to mention
+      //     'patched_sdk/platform.dill', got
+      //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
+      return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
     }
 
     if (loader.first == null) return null;
@@ -335,7 +361,7 @@ class KernelTarget extends TargetImplementation {
       mainBuilder.body = new ExpressionStatement(
           new Throw(new StringLiteral("${errors.join('\n')}")));
     }
-    library.build();
+    library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
   }
 
@@ -357,7 +383,7 @@ class KernelTarget extends TargetImplementation {
     uriToSource[""] = new Source(<int>[0], const <int>[]);
     Program program = new Program(libraries, uriToSource);
     if (loader.first != null) {
-      Builder builder = loader.first.members["main"];
+      Builder builder = loader.first.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
       }
@@ -390,7 +416,7 @@ class KernelTarget extends TargetImplementation {
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.members.forEach((String name, Builder builder) {
+      library.forEach((String name, Builder builder) {
         if (builder is SourceClassBuilder) {
           Class cls = builder.target;
           if (cls != objectClass) {
@@ -415,9 +441,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed default constructors");
   }
 
-  KernelClassBuilder get objectClassBuilder {
-    return loader.coreLibrary.exports["Object"];
-  }
+  KernelClassBuilder get objectClassBuilder => loader.coreLibrary["Object"];
 
   Class get objectClass => objectClassBuilder.cls;
 
@@ -430,7 +454,7 @@ class KernelTarget extends TargetImplementation {
       // to add a default constructor to complete error recovery.
       return;
     }
-    if (builder.constructors.isNotEmpty) return;
+    if (builder.constructors.local.isNotEmpty) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
@@ -544,7 +568,7 @@ class KernelTarget extends TargetImplementation {
     for (SourceClassBuilder builder in collectAllSourceClasses()) {
       Class cls = builder.target;
       if (cls != objectClass) {
-        finishConstructors(cls);
+        finishConstructors(builder);
       }
     }
     ticker.logMs("Finished constructors");
@@ -552,10 +576,11 @@ class KernelTarget extends TargetImplementation {
 
   /// Ensure constructors of [cls] have the correct initializers and other
   /// requirements.
-  void finishConstructors(Class cls) {
+  void finishConstructors(SourceClassBuilder builder) {
+    Class cls = builder.target;
+
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    Constructor superTarget;
     List<Field> uninitializedFields = <Field>[];
     List<Field> nonFinalFields = <Field>[];
     for (Field field in cls.fields) {
@@ -568,12 +593,16 @@ class KernelTarget extends TargetImplementation {
     }
     Map<Constructor, List<FieldInitializer>> fieldInitializers =
         <Constructor, List<FieldInitializer>>{};
-    for (Constructor constructor in cls.constructors) {
-      if (!isRedirectingGenerativeConstructor(constructor)) {
+    Constructor superTarget;
+    builder.constructors.forEach((String name, Builder member) {
+      if (member.isFactory) return;
+      MemberBuilder constructorBuilder = member;
+      Constructor constructor = constructorBuilder.target;
+      if (!constructorBuilder.isRedirectingGenerativeConstructor) {
         /// >If no superinitializer is provided, an implicit superinitializer
         /// >of the form super() is added at the end of k’s initializer list,
         /// >unless the enclosing class is class Object.
-        if (!constructor.initializers.any(isSuperinitializerOrInvalid)) {
+        if (constructor.initializers.isEmpty) {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
@@ -614,7 +643,7 @@ class KernelTarget extends TargetImplementation {
           nonFinalFields.clear();
         }
       }
-    }
+    });
     Set<Field> initializedFields;
     fieldInitializers.forEach(
         (Constructor constructor, List<FieldInitializer> initializers) {
@@ -676,16 +705,6 @@ class KernelTarget extends TargetImplementation {
     errors.addAll(verifyProgram(program));
     ticker.logMs("Verified program");
   }
-}
-
-bool isSuperinitializerOrInvalid(Initializer initializer) {
-  return initializer is SuperInitializer || initializer is InvalidInitializer;
-}
-
-bool isRedirectingGenerativeConstructor(Constructor constructor) {
-  List<Initializer> initializers = constructor.initializers;
-  return initializers.length == 1 &&
-      initializers.single is RedirectingInitializer;
 }
 
 /// Looks for a constructor call that matches `super()` from a constructor in

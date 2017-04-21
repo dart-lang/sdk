@@ -13,11 +13,17 @@ class B {
   var x;
   final y;
 
-  B(a) : x = a..foo()..bar(), y = a..foo()..bar() {}
+  B(a)
+      : x = a
+          ..foo()
+          ..bar(),
+        y = a
+          ..foo()
+          ..bar() {}
 }
 
 main() {
   var a = new A(), b = new B(a);
   Expect.equals(a, b.x);
   Expect.equals(a, b.y);
-}  
+}

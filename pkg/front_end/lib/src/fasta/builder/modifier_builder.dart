@@ -10,7 +10,9 @@ import '../modifier.dart'
 import 'builder.dart' show Builder;
 
 abstract class ModifierBuilder extends Builder {
-  ModifierBuilder(Builder parent, int charOffset, [Uri fileUri])
+  final int charOffset;
+
+  ModifierBuilder(Builder parent, this.charOffset, [Uri fileUri])
       : super(parent, charOffset, fileUri ?? parent?.fileUri);
 
   int get modifiers;

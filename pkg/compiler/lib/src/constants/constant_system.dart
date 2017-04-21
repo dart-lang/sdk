@@ -4,7 +4,6 @@
 
 library dart2js.constant_system;
 
-import '../common/backend_api.dart' show BackendClasses;
 import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart' show DartTypes;
 import '../elements/types.dart';
@@ -67,16 +66,10 @@ abstract class ConstantSystem {
   ConstantValue createBool(bool value);
   ConstantValue createNull();
   ConstantValue createList(InterfaceType type, List<ConstantValue> values);
-  ConstantValue createMap(
-      CommonElements commonElements,
-      BackendClasses backendClasses,
-      InterfaceType type,
-      List<ConstantValue> keys,
-      List<ConstantValue> values);
-  ConstantValue createType(CommonElements commonElements,
-      BackendClasses backendClasses, DartType type);
-  ConstantValue createSymbol(CommonElements commonElements,
-      BackendClasses backendClasses, String text);
+  ConstantValue createMap(CommonElements commonElements, InterfaceType type,
+      List<ConstantValue> keys, List<ConstantValue> values);
+  ConstantValue createType(CommonElements commonElements, DartType type);
+  ConstantValue createSymbol(CommonElements commonElements, String text);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.

@@ -18,6 +18,7 @@ class C<T> {
 }
 
 class I<T> {}
+
 class J<T> extends I<int> {}
 
 main() {

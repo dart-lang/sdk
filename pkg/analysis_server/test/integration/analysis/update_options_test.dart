@@ -32,19 +32,18 @@ class Foo {
 ''');
     standardAnalysisSetup();
 
+    // ignore: deprecated_member_use
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..generateHints = false);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), isEmpty);
 
+    // ignore: deprecated_member_use
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..generateHints = true);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), hasLength(1));
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
