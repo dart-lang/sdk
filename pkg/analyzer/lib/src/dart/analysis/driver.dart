@@ -1449,7 +1449,10 @@ class AnalysisDriverScheduler {
    * asked to perform any new work.
    */
   void _remove(AnalysisDriverGeneric driver) {
-    driverWatcher?.removedDriver(driver);
+    if (driver is AnalysisDriver) {
+      driverWatcher?.removedDriver(driver);
+    }
+
     _drivers.remove(driver);
     _hasWork.notify();
   }
@@ -1479,7 +1482,7 @@ class AnalysisDriverScheduler {
       // Find the driver with the highest priority.
       AnalysisDriverGeneric bestDriver;
       AnalysisDriverPriority bestPriority = AnalysisDriverPriority.nothing;
-      for (AnalysisDriver driver in _drivers) {
+      for (AnalysisDriverGeneric driver in _drivers) {
         AnalysisDriverPriority priority = driver.workPriority;
         if (priority.index > bestPriority.index) {
           bestDriver = driver;
