@@ -14,6 +14,7 @@ import '../../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(_ControlFlowCompletionTest);
     defineReflectiveTests(_DoCompletionTest);
     defineReflectiveTests(_ForCompletionTest);
     defineReflectiveTests(_ForEachCompletionTest);
@@ -89,6 +90,177 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit(sourceCode);
     await _computeCompletion(offset);
+  }
+}
+
+@reflectiveTest
+class _ControlFlowCompletionTest extends StatementCompletionTest {
+  test_doReturnExprLineComment() async {
+    await _prepareCompletion(
+        'return 3',
+        '''
+ex(e) {
+  do {
+    return 3//
+  } while (true);
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  do {
+    return 3;//
+  } while (true);
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_doReturnUnterminated() async {
+    await _prepareCompletion(
+        'return',
+        '''
+ex(e) {
+  do {
+    return
+  } while (true);
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  do {
+    return;
+  } while (true);
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_forEachReturn() async {
+    await _prepareCompletion(
+        'return;',
+        '''
+ex(e) {
+  for (var x in e) {
+    return;
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  for (var x in e) {
+    return;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_forThrowUnterminated() async {
+    await _prepareCompletion(
+        'throw e',
+        '''
+ex(e) {
+  for (int i = 0; i < 3; i++) {
+    throw e
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  for (int i = 0; i < 3; i++) {
+    throw e;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_ifThrow() async {
+    await _prepareCompletion(
+        'throw e;',
+        '''
+ex(e) {
+  if (true) {
+    throw e;
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  if (true) {
+    throw e;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_ifThrowUnterminated() async {
+    await _prepareCompletion(
+        'throw e',
+        '''
+ex(e) {
+  if (true) {
+    throw e
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  if (true) {
+    throw e;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_whileReturnExpr() async {
+    await _prepareCompletion(
+        '+ 4',
+        '''
+ex(e) {
+  while (true) {
+    return 3 + 4
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  while (true) {
+    return 3 + 4;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
   }
 }
 

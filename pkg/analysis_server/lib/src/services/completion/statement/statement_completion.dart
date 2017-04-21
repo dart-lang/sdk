@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -34,6 +33,8 @@ class DartStatementCompletion {
       'SIMPLE_ENTER', "Insert a newline at the end of the current line");
   static const SIMPLE_SEMICOLON = const StatementCompletionKind(
       'SIMPLE_SEMICOLON', "Add a semicolon and newline");
+  static const COMPLETE_CONTROL_FLOW_BLOCK = const StatementCompletionKind(
+      'COMPLETE_CONTROL_FLOW_BLOCK', "Complete control flow block");
   static const COMPLETE_DO_STMT = const StatementCompletionKind(
       'COMPLETE_DO_STMT', "Complete do-statement");
   static const COMPLETE_IF_STMT = const StatementCompletionKind(
@@ -186,7 +187,7 @@ class StatementCompletionProcessor {
     }
 
     if (errors.isEmpty) {
-      if (_complete_simpleEnter()) {
+      if (_complete_controlFlowBlock() || _complete_simpleEnter()) {
         return completion;
       }
     } else {
@@ -197,8 +198,8 @@ class StatementCompletionProcessor {
           _complete_switchStatement() ||
           _complete_tryStatement() ||
           _complete_whileStatement() ||
-          _complete_simpleSemicolon() ||
           _complete_controlFlowBlock() ||
+          _complete_simpleSemicolon() ||
           _complete_simpleEnter()) {
         return completion;
       }
@@ -231,10 +232,14 @@ class StatementCompletionProcessor {
   }
 
   int _appendNewlinePlusIndent() {
+    return _appendNewlinePlusIndentAt(selectionOffset);
+  }
+
+  int _appendNewlinePlusIndentAt(int offset) {
     // Append a newline plus proper indent and another newline.
     // Return the position before the second newline.
-    String indent = utils.getLinePrefix(selectionOffset);
-    int loc = utils.getLineNext(selectionOffset);
+    String indent = utils.getLinePrefix(offset);
+    int loc = utils.getLineNext(offset);
     _addInsertEdit(loc, indent + eol);
     return loc + indent.length;
   }
@@ -248,11 +253,55 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_controlFlowBlock() {
-    //TODO(messick) Implement _complete_controlFlowBlock
-    // Use statement completion to move the cursor to a new line outside the
-    // current block. The statement has no errors in this case. Used to jump
-    // out of do/for/if/while blocks.
-    return false;
+    Expression expr = (node is ExpressionStatement)
+        ? (node as ExpressionStatement).expression
+        : (node is ReturnStatement
+            ? (node as ReturnStatement).expression
+            : null);
+    if (!(node is ReturnStatement || expr is ThrowExpression)) {
+      return false;
+    }
+    if (node.parent is! Block) {
+      return false;
+    }
+    AstNode outer = node.parent.parent;
+    if (!(outer is DoStatement ||
+        outer is ForStatement ||
+        outer is ForEachStatement ||
+        outer is IfStatement ||
+        outer is WhileStatement)) {
+      return false;
+    }
+    int delta = 0;
+    if (errors.isNotEmpty) {
+      var error =
+          _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+      if (error != null) {
+        int insertOffset;
+        if (expr == null || expr.isSynthetic) {
+          if (node is ReturnStatement) {
+            insertOffset = (node as ReturnStatement).returnKeyword.end;
+          } else if (node is ExpressionStatement) {
+            insertOffset =
+                ((node as ExpressionStatement).expression as ThrowExpression)
+                    .throwKeyword
+                    .end;
+          } else {
+            insertOffset = node.end; // Not reached.
+          }
+        } else {
+          insertOffset = expr.end;
+        }
+        //TODO(messick) Uncomment the following line when error location is fixed.
+        //insertOffset = error.offset + error.length;
+        _addInsertEdit(insertOffset, ';');
+        delta = 1;
+      }
+    }
+    int offset = _appendNewlinePlusIndentAt(node.parent.end);
+    exitPosition = new Position(file, offset + delta);
+    _setCompletion(DartStatementCompletion.COMPLETE_CONTROL_FLOW_BLOCK);
+    return true;
   }
 
   bool _complete_doStatement() {
@@ -540,6 +589,7 @@ class StatementCompletionProcessor {
     }
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
     if (error != null) {
+      // TODO(messick) Fix this to find the correct place in all cases.
       int insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
       int offset = _appendNewlinePlusIndent() + 1 /* ';' */;
