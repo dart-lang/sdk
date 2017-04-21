@@ -75,59 +75,67 @@ class Environment {
 }
 
 /// Evaluate expressions.
-class Evaluator extends ExpressionVisitor1<Configuration, ExpressionState> {
-  Configuration eval(Expression expr, ExpressionState state) =>
-      expr.accept1(this, state);
+class Evaluator
+    extends ExpressionVisitor1<Configuration, ExpressionConfiguration> {
+  Configuration eval(Expression expr, ExpressionConfiguration config) =>
+      expr.accept1(this, config);
 
-  Configuration defaultExpression(Expression node, ExpressionState state) {
+  Configuration defaultExpression(
+      Expression node, ExpressionConfiguration config) {
     throw new NotImplemented('Evaluation for expressions of type '
         '${node.runtimeType} is not implemented.');
   }
 
   Configuration visitInvalidExpression1(
-      InvalidExpression node, ExpressionState state) {
+      InvalidExpression node, ExpressionConfiguration config) {
     throw 'Invalid expression at ${node.location.toString()}';
   }
 
-  Configuration visitVariableGet(VariableGet node, ExpressionState state) {
-    Value value = state.environment.lookup(node.variable);
-    return new ContinuationConfiguration(state.continuation, value);
+  Configuration visitVariableGet(
+      VariableGet node, ExpressionConfiguration config) {
+    Value value = config.environment.lookup(node.variable);
+    return new ContinuationConfiguration(config.continuation, value);
   }
 
-  Configuration visitVariableSet(VariableSet node, ExpressionState state) {
-    var cont = new VariableSetContinuation(state, node.variable);
-    return new ExpressionConfiguration(
-        node.value, state.withContinuation(cont));
+  Configuration visitVariableSet(
+      VariableSet node, ExpressionConfiguration config) {
+    var cont = new VariableSetContinuation(
+        node.variable, config.environment, config.continuation);
+    return new ExpressionConfiguration(node.value, config.environment, cont);
   }
 
-  Configuration visitPropertyGet(PropertyGet node, ExpressionState state) {
-    var cont = new PropertyGetContinuation(node.name, state);
-    return new ExpressionConfiguration(
-        node.receiver, state.withContinuation(cont));
+  Configuration visitPropertyGet(
+      PropertyGet node, ExpressionConfiguration config) {
+    var cont = new PropertyGetContinuation(node.name, config.continuation);
+    return new ExpressionConfiguration(node.receiver, config.environment, cont);
   }
 
-  Configuration visitPropertySet(PropertySet node, ExpressionState state) {
-    var cont = new PropertySetContinuation(node.value, node.name, state);
-    return new ExpressionConfiguration(
-        node.receiver, state.withContinuation(cont));
+  Configuration visitPropertySet(
+      PropertySet node, ExpressionConfiguration config) {
+    var cont = new PropertySetContinuation(
+        node.value, node.name, config.environment, config.continuation);
+    return new ExpressionConfiguration(node.receiver, config.environment, cont);
   }
 
-  Configuration visitStaticGet(StaticGet node, ExpressionState state) =>
-      defaultExpression(node, state);
-  Configuration visitStaticSet(StaticSet node, ExpressionState state) =>
-      defaultExpression(node, state);
+  Configuration visitStaticGet(
+          StaticGet node, ExpressionConfiguration config) =>
+      defaultExpression(node, config);
+  Configuration visitStaticSet(
+          StaticSet node, ExpressionConfiguration config) =>
+      defaultExpression(node, config);
 
   Configuration visitStaticInvocation(
-      StaticInvocation node, ExpressionState state) {
+      StaticInvocation node, ExpressionConfiguration config) {
     if ('print' == node.name.toString()) {
-      return new ExpressionConfiguration(node.arguments.positional.first,
-          state.withContinuation(new PrintContinuation(state)));
+      var cont = new PrintContinuation(config.continuation);
+      return new ExpressionConfiguration(
+          node.arguments.positional.first, config.environment, cont);
     } else {
       // Currently supports only static invocations with no arguments.
       if (node.arguments.positional.isEmpty && node.arguments.named.isEmpty) {
         State statementState = new State.initial()
-            .withExpressionContinuation(state.continuation)
-            .withConfiguration(new ExitConfiguration(state.continuation));
+            .withExpressionContinuation(config.continuation)
+            .withConfiguration(new ExitConfiguration(config.continuation));
 
         return new StatementConfiguration(
             node.target.function.body, statementState);
@@ -138,18 +146,17 @@ class Evaluator extends ExpressionVisitor1<Configuration, ExpressionState> {
   }
 
   Configuration visitMethodInvocation(
-      MethodInvocation node, ExpressionState state) {
+      MethodInvocation node, ExpressionConfiguration config) {
     // Currently supports only method invocation with <2 arguments and is used
     // to evaluate implemented operators for int, double and String values.
-    var cont =
-        new MethodInvocationContinuation(node.arguments, node.name, state);
+    var cont = new MethodInvocationContinuation(
+        node.arguments, node.name, config.environment, config.continuation);
 
-    return new ExpressionConfiguration(
-        node.receiver, state.withContinuation(cont));
+    return new ExpressionConfiguration(node.receiver, config.environment, cont);
   }
 
   Configuration visitConstructorInvocation(
-      ConstructorInvocation node, ExpressionState state) {
+      ConstructorInvocation node, ExpressionConfiguration config) {
     Class class_ = new Class(node.target.enclosingClass.reference);
 
     // Currently we don't support initializers.
@@ -159,72 +166,80 @@ class Evaluator extends ExpressionVisitor1<Configuration, ExpressionState> {
     List<Value> fields = <Value>[];
 
     return new ContinuationConfiguration(
-        state.continuation, new ObjectValue(class_, fields));
+        config.continuation, new ObjectValue(class_, fields));
   }
 
-  Configuration visitNot(Not node, ExpressionState state) {
-    return new ExpressionConfiguration(
-        node.operand, state.withContinuation(new NotContinuation(state)));
+  Configuration visitNot(Not node, ExpressionConfiguration config) {
+    return new ExpressionConfiguration(node.operand, config.environment,
+        new NotContinuation(config.continuation));
   }
 
   Configuration visitLogicalExpression(
-      LogicalExpression node, ExpressionState state) {
+      LogicalExpression node, ExpressionConfiguration config) {
     if ('||' == node.operator) {
-      var cont = new OrContinuation(node.right, state);
-      return new ExpressionConfiguration(
-          node.left, state.withContinuation(cont));
+      var cont = new OrContinuation(
+          node.right, config.environment, config.continuation);
+      return new ExpressionConfiguration(node.left, config.environment, cont);
     } else {
       assert('&&' == node.operator);
-      var cont = new AndContinuation(node.right, state);
-      return new ExpressionConfiguration(
-          node.left, state.withContinuation(cont));
+      var cont = new AndContinuation(
+          node.right, config.environment, config.continuation);
+      return new ExpressionConfiguration(node.left, config.environment, cont);
     }
   }
 
   Configuration visitConditionalExpression(
-      ConditionalExpression node, ExpressionState state) {
-    var cont = new ConditionalContinuation(node.then, node.otherwise, state);
+      ConditionalExpression node, ExpressionConfiguration config) {
+    var cont = new ConditionalContinuation(
+        node.then, node.otherwise, config.environment, config.continuation);
     return new ExpressionConfiguration(
-        node.condition, state.withContinuation(cont));
+        node.condition, config.environment, cont);
   }
 
   Configuration visitStringConcatenation(
-      StringConcatenation node, ExpressionState state) {
-    var cont = new StringConcatenationContinuation(node.expressions, state);
+      StringConcatenation node, ExpressionConfiguration config) {
+    var cont = new StringConcatenationContinuation(
+        node.expressions, config.environment, config.continuation);
     return new ExpressionConfiguration(
-        node.expressions.first, state.withContinuation(cont));
+        node.expressions.first, config.environment, cont);
   }
 
   // Evaluation of BasicLiterals.
-  Configuration visitStringLiteral(StringLiteral node, ExpressionState state) {
+  Configuration visitStringLiteral(
+      StringLiteral node, ExpressionConfiguration config) {
     return new ContinuationConfiguration(
-        state.continuation, new StringValue(node.value));
+        config.continuation, new StringValue(node.value));
   }
 
-  Configuration visitIntLiteral(IntLiteral node, ExpressionState state) {
+  Configuration visitIntLiteral(
+      IntLiteral node, ExpressionConfiguration config) {
     return new ContinuationConfiguration(
-        state.continuation, new IntValue(node.value));
+        config.continuation, new IntValue(node.value));
   }
 
-  Configuration visitDoubleLiteral(DoubleLiteral node, ExpressionState state) {
+  Configuration visitDoubleLiteral(
+      DoubleLiteral node, ExpressionConfiguration config) {
     return new ContinuationConfiguration(
-        state.continuation, new DoubleValue(node.value));
+        config.continuation, new DoubleValue(node.value));
   }
 
-  Configuration visitBoolLiteral(BoolLiteral node, ExpressionState state) {
+  Configuration visitBoolLiteral(
+      BoolLiteral node, ExpressionConfiguration config) {
     Value value = node.value ? Value.trueInstance : Value.falseInstance;
-    return new ContinuationConfiguration(state.continuation, value);
+    return new ContinuationConfiguration(config.continuation, value);
   }
 
-  Configuration visitNullLiteral(NullLiteral node, ExpressionState state) {
+  Configuration visitNullLiteral(
+      NullLiteral node, ExpressionConfiguration config) {
     return new ContinuationConfiguration(
-        state.continuation, Value.nullInstance);
+        config.continuation, Value.nullInstance);
   }
 
-  Configuration visitLet(Let node, ExpressionState state) {
-    var letCont = new LetContinuation(node.variable, node.body, state);
+  Configuration visitLet(Let node, ExpressionConfiguration config) {
+    var letCont = new LetContinuation(
+        node.variable, node.body, config.environment, config.continuation);
     return new ExpressionConfiguration(
-        node.variable.initializer, state.withContinuation(letCont));
+        node.variable.initializer, config.environment, letCont);
   }
 }
 
@@ -262,29 +277,6 @@ class State {
   Label lookupLabel(LabeledStatement s) {
     assert(labels != null);
     return labels.lookupLabel(s);
-  }
-}
-
-/// Represents a state for expression evaluation.
-class ExpressionState {
-  /// Environment in which the expression is evaluated.
-  final Environment environment;
-
-  /// Next continuation to be applied.
-  final ExpressionContinuation continuation;
-
-  ExpressionState(this.environment, this.continuation);
-
-  ExpressionState.fromStatementState(State state)
-      : this(state.environment,
-            new ExpressionStatementContinuation(state.statementConfiguration));
-
-  ExpressionState withEnvironment(Environment env) {
-    return new ExpressionState(env, continuation);
-  }
-
-  ExpressionState withContinuation(ExpressionContinuation cont) {
-    return new ExpressionState(environment, cont);
   }
 }
 
@@ -343,12 +335,17 @@ class ContinuationConfiguration extends Configuration {
 /// Represents the configuration for evaluating an [Expression].
 class ExpressionConfiguration extends Configuration {
   final Expression expression;
-  final ExpressionState state;
 
-  ExpressionConfiguration(this.expression, this.state);
+  /// Environment in which the expression is evaluated.
+  final Environment environment;
+
+  /// Next continuation to be applied.
+  final ExpressionContinuation continuation;
+
+  ExpressionConfiguration(this.expression, this.environment, this.continuation);
 
   Configuration step(StatementExecuter executer) =>
-      executer.eval(expression, state);
+      executer.eval(expression, this);
 }
 
 /// Represents an expression continuation.
@@ -369,84 +366,87 @@ class ExpressionStatementContinuation extends ExpressionContinuation {
 }
 
 class PrintContinuation extends ExpressionContinuation {
-  final ExpressionState state;
+  final ExpressionContinuation continuation;
 
-  PrintContinuation(this.state);
+  PrintContinuation(this.continuation);
 
   Configuration call(Value v) {
     print(v.value);
-    return new ContinuationConfiguration(
-        state.continuation, Value.nullInstance);
+    return new ContinuationConfiguration(continuation, Value.nullInstance);
   }
 }
 
 class PropertyGetContinuation extends ExpressionContinuation {
   final Name name;
-  final ExpressionState state;
+  final ExpressionContinuation continuation;
 
-  PropertyGetContinuation(this.name, this.state);
+  PropertyGetContinuation(this.name, this.continuation);
 
   Configuration call(Value receiver) {
     // TODO: CPS the invocation of the getter.
     Value propertyValue = receiver.class_.lookupGetter(name)(receiver);
-    return new ContinuationConfiguration(state.continuation, propertyValue);
+    return new ContinuationConfiguration(continuation, propertyValue);
   }
 }
 
 class PropertySetContinuation extends ExpressionContinuation {
   final Expression value;
   final Name setterName;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  PropertySetContinuation(this.value, this.setterName, this.state);
+  PropertySetContinuation(
+      this.value, this.setterName, this.environment, this.continuation);
 
   Configuration call(Value receiver) {
-    var cont = new SetterContinuation(receiver, setterName, state);
-    return new ExpressionConfiguration(value, state.withContinuation(cont));
+    var cont = new SetterContinuation(receiver, setterName, continuation);
+    return new ExpressionConfiguration(value, environment, cont);
   }
 }
 
 class SetterContinuation extends ExpressionContinuation {
   final Value receiver;
   final Name name;
-  final ExpressionState state;
+  final ExpressionContinuation continuation;
 
-  SetterContinuation(this.receiver, this.name, this.state);
+  SetterContinuation(this.receiver, this.name, this.continuation);
 
   Configuration call(Value v) {
     Setter setter = receiver.class_.lookupSetter(name);
     setter(receiver, v);
-    return new ContinuationConfiguration(state.continuation, v);
+    return new ContinuationConfiguration(continuation, v);
   }
 }
 
 class StaticInvocationContinuation extends ExpressionContinuation {
-  final ExpressionState state;
+  final ExpressionContinuation continuation;
 
-  StaticInvocationContinuation(this.state);
+  StaticInvocationContinuation(this.continuation);
 
   Configuration call(Value v) {
-    return new ContinuationConfiguration(state.continuation, v);
+    return new ContinuationConfiguration(continuation, v);
   }
 }
 
 class MethodInvocationContinuation extends ExpressionContinuation {
   final Arguments arguments;
   final Name methodName;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  MethodInvocationContinuation(this.arguments, this.methodName, this.state);
+  MethodInvocationContinuation(
+      this.arguments, this.methodName, this.environment, this.continuation);
 
   Configuration call(Value receiver) {
     if (arguments.positional.isEmpty) {
       Value returnValue = receiver.invokeMethod(methodName);
-      return new ContinuationConfiguration(state.continuation, returnValue);
+      return new ContinuationConfiguration(continuation, returnValue);
     }
-    var cont =
-        new ArgumentsContinuation(receiver, methodName, arguments, state);
+    var cont = new ArgumentsContinuation(
+        receiver, methodName, arguments, environment, continuation);
 
     return new ExpressionConfiguration(
-        arguments.positional.first, state.withContinuation(cont));
+        arguments.positional.first, environment, cont);
   }
 }
 
@@ -454,92 +454,100 @@ class ArgumentsContinuation extends ExpressionContinuation {
   final Value receiver;
   final Name methodName;
   final Arguments arguments;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  ArgumentsContinuation(
-      this.receiver, this.methodName, this.arguments, this.state);
+  ArgumentsContinuation(this.receiver, this.methodName, this.arguments,
+      this.environment, this.continuation);
 
   Configuration call(Value value) {
     // Currently evaluates only one argument, for simple method invocations
     // with 1 argument.
     Value returnValue = receiver.invokeMethod(methodName, value);
-    return new ContinuationConfiguration(state.continuation, returnValue);
+    return new ContinuationConfiguration(continuation, returnValue);
   }
 }
 
 class VariableSetContinuation extends ExpressionContinuation {
-  final ExpressionState state;
   final VariableDeclaration variable;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  VariableSetContinuation(this.state, this.variable);
+  VariableSetContinuation(this.variable, this.environment, this.continuation);
 
   Configuration call(Value value) {
-    state.environment.assign(variable, value);
-    return new ContinuationConfiguration(state.continuation, value);
+    environment.assign(variable, value);
+    return new ContinuationConfiguration(continuation, value);
   }
 }
 
 class NotContinuation extends ExpressionContinuation {
-  final ExpressionState state;
+  final ExpressionContinuation continuation;
 
-  NotContinuation(this.state);
+  NotContinuation(this.continuation);
 
   Configuration call(Value value) {
     Value notValue = identical(Value.trueInstance, value)
         ? Value.falseInstance
         : Value.trueInstance;
-    return new ContinuationConfiguration(state.continuation, notValue);
+    return new ContinuationConfiguration(continuation, notValue);
   }
 }
 
 class OrContinuation extends ExpressionContinuation {
   final Expression right;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  OrContinuation(this.right, this.state);
+  OrContinuation(this.right, this.environment, this.continuation);
 
   Configuration call(Value left) {
     return identical(Value.trueInstance, left)
-        ? new ContinuationConfiguration(state.continuation, Value.trueInstance)
-        : new ExpressionConfiguration(right, state);
+        ? new ContinuationConfiguration(continuation, Value.trueInstance)
+        : new ExpressionConfiguration(right, environment, continuation);
   }
 }
 
 class AndContinuation extends ExpressionContinuation {
   final Expression right;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  AndContinuation(this.right, this.state);
+  AndContinuation(this.right, this.environment, this.continuation);
 
   Configuration call(Value left) {
     return identical(Value.falseInstance, left)
-        ? new ContinuationConfiguration(state.continuation, Value.falseInstance)
-        : new ExpressionConfiguration(right, state);
+        ? new ContinuationConfiguration(continuation, Value.falseInstance)
+        : new ExpressionConfiguration(right, environment, continuation);
   }
 }
 
 class ConditionalContinuation extends ExpressionContinuation {
   final Expression then;
   final Expression otherwise;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  ConditionalContinuation(this.then, this.otherwise, this.state);
+  ConditionalContinuation(
+      this.then, this.otherwise, this.environment, this.continuation);
 
   Configuration call(Value value) {
     return identical(Value.trueInstance, value)
-        ? new ExpressionConfiguration(then, state)
-        : new ExpressionConfiguration(otherwise, state);
+        ? new ExpressionConfiguration(then, environment, continuation)
+        : new ExpressionConfiguration(otherwise, environment, continuation);
   }
 }
 
 class StringConcatenationContinuation extends ExpressionContinuation {
   final List<Expression> expressions;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
   int _currentPosition = 0;
   final List<Value> _values = <Value>[];
 
-  StringConcatenationContinuation(this.expressions, this.state);
+  StringConcatenationContinuation(
+      this.expressions, this.environment, this.continuation);
 
   Configuration call(Value value) {
     _values.add(value);
@@ -551,24 +559,26 @@ class StringConcatenationContinuation extends ExpressionContinuation {
       }
 
       Value value = new StringValue(res.toString());
-      return new ContinuationConfiguration(state.continuation, value);
+      return new ContinuationConfiguration(continuation, value);
     }
     return new ExpressionConfiguration(
-        expressions[++_currentPosition], state.withContinuation(this));
+        expressions[++_currentPosition], environment, this);
   }
 }
 
 class LetContinuation extends ExpressionContinuation {
   final VariableDeclaration variable;
   final Expression letBody;
-  final ExpressionState state;
+  final Environment environment;
+  final ExpressionContinuation continuation;
 
-  LetContinuation(this.variable, this.letBody, this.state);
+  LetContinuation(
+      this.variable, this.letBody, this.environment, this.continuation);
 
   Configuration call(Value value) {
-    var letState = state.withEnvironment(new Environment(state.environment));
-    letState.environment.expand(variable, value);
-    return new ExpressionConfiguration(letBody, letState);
+    var letEnv = new Environment(environment);
+    letEnv.expand(variable, value);
+    return new ExpressionConfiguration(letBody, letEnv, continuation);
   }
 }
 
@@ -646,8 +656,8 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
 
   Configuration exec(Statement statement, State state) =>
       statement.accept1(this, state);
-  Configuration eval(Expression expression, ExpressionState state) =>
-      evaluator.eval(expression, state);
+  Configuration eval(Expression expression, ExpressionConfiguration config) =>
+      evaluator.eval(expression, config);
 
   Configuration defaultStatement(Statement node, State state) {
     throw notImplemented(
@@ -660,8 +670,10 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
 
   Configuration visitExpressionStatement(
       ExpressionStatement node, State state) {
+    var cont =
+        new ExpressionStatementContinuation(state.statementConfiguration);
     return new ExpressionConfiguration(
-        node.expression, new ExpressionState.fromStatementState(state));
+        node.expression, state.environment, cont);
   }
 
   Configuration visitBlock(Block node, State state) {
@@ -683,10 +695,9 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
   }
 
   Configuration visitIfStatement(IfStatement node, State state) {
-    var expState = new ExpressionState.fromStatementState(state);
     var cont = new IfConditionContinuation(node.then, node.otherwise, state);
-    return new ExpressionConfiguration(
-        node.condition, expState.withContinuation(cont));
+
+    return new ExpressionConfiguration(node.condition, state.environment, cont);
   }
 
   Configuration visitLabeledStatement(LabeledStatement node, State state) {
@@ -698,11 +709,9 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
   }
 
   Configuration visitWhileStatement(WhileStatement node, State state) {
-    var expState = new ExpressionState.fromStatementState(state);
     var cont = new WhileConditionContinuation(node, state);
 
-    return new ExpressionConfiguration(
-        node.condition, expState.withContinuation(cont));
+    return new ExpressionConfiguration(node.condition, state.environment, cont);
   }
 
   Configuration visitDoStatement(DoStatement node, State state) {
@@ -717,21 +726,22 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
 
   Configuration visitReturnStatement(ReturnStatement node, State state) {
     assert(state.returnContinuation != null);
-    // The new ExpressionState contains the next expression continuation.
-    var expState = new ExpressionState.fromStatementState(state)
-        .withContinuation(state.returnContinuation);
+    if (node.expression == null) {
+      return new ContinuationConfiguration(
+          state.returnContinuation, Value.nullInstance);
+    }
+
     return new ExpressionConfiguration(
-        node.expression ?? new NullLiteral(), expState);
+        node.expression, state.environment, state.returnContinuation);
   }
 
   Configuration visitVariableDeclaration(
       VariableDeclaration node, State state) {
     if (node.initializer != null) {
-      var expState = new ExpressionState.fromStatementState(state);
       var cont = new VariableInitializerContinuation(
           node, state.environment, state.statementConfiguration);
       return new ExpressionConfiguration(
-          node.initializer, expState.withContinuation(cont));
+          node.initializer, state.environment, cont);
     }
     state.environment.expand(node, Value.nullInstance);
     return state.statementConfiguration;
