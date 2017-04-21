@@ -12,6 +12,7 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class A<T> {}
+
 class B<R> extends A<R> {}
 
 testTypeVariableOfClass() {
@@ -26,7 +27,7 @@ testTypeVariableOfClass() {
   Expect.equals(aDecl, aOfInt.typeVariables[0].owner);
   Expect.equals(aDecl, aOfR.typeVariables[0].owner);
   Expect.equals(aDecl, aOfString.typeVariables[0].owner);
-  
+
   Expect.equals(bDecl, bDecl.typeVariables[0].owner);
   Expect.equals(bDecl, bOfString.typeVariables[0].owner);
 }
@@ -42,7 +43,7 @@ testTypeVariableOfTypedef() {
   TypedefMirror predicateOfList =
       (thisLibrary.declarations[#somePredicateOfList] as VariableMirror).type;
   TypedefMirror predicateDecl = predicateOfList.originalDeclaration;
-  
+
   Expect.equals(predicateDecl, predicateOfDynamic.typeVariables[0].owner);
   Expect.equals(predicateDecl, predicateOfList.typeVariables[0].owner);
   Expect.equals(predicateDecl, predicateDecl.typeVariables[0].owner);
@@ -50,5 +51,5 @@ testTypeVariableOfTypedef() {
 
 main() {
   testTypeVariableOfClass();
-  testTypeVariableOfTypedef();  /// 01: ok
+  testTypeVariableOfTypedef(); // //# 01: ok
 }

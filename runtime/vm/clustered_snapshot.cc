@@ -113,7 +113,10 @@ class ClassSerializationCluster : public SerializationCluster {
       s->WriteRef(*p);
     }
     intptr_t class_id = cls->ptr()->id_;
-    ASSERT(class_id != kIllegalCid);
+    if (class_id == kIllegalCid) {
+      FATAL1("Attempting to serialize class with illegal cid: %s\n",
+             Class::Handle(cls).ToCString());
+    }
     s->WriteCid(class_id);
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
@@ -1093,7 +1096,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         Thread::Current(), Timeline::GetIsolateStream(), "PostLoadField"));
 
     Field& field = Field::Handle(zone);
-    if (!FLAG_use_field_guards) {
+    if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
         field.set_guarded_cid(kDynamicCid);
@@ -1566,12 +1569,23 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->owner_);
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+    s->Push(code->ptr()->catch_entry_.catch_entry_state_maps_);
+#else
+    s->Push(code->ptr()->catch_entry_.variables_);
+#endif
     s->Push(code->ptr()->stackmaps_);
+    if (!FLAG_dwarf_stack_traces) {
+      s->Push(code->ptr()->inlined_id_to_function_);
+      s->Push(code->ptr()->code_source_map_);
+    }
+    if (s->kind() != Snapshot::kAppAOT) {
+      s->Push(code->ptr()->await_token_positions_);
+    }
 
     if (s->kind() == Snapshot::kAppJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      NOT_IN_PRODUCT(s->Push(code->ptr()->inlined_metadata_));
       NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
   }
@@ -1619,12 +1633,25 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->owner_);
       s->WriteRef(code->ptr()->exception_handlers_);
       s->WriteRef(code->ptr()->pc_descriptors_);
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+      s->WriteRef(code->ptr()->catch_entry_.catch_entry_state_maps_);
+#else
+      s->WriteRef(code->ptr()->catch_entry_.variables_);
+#endif
       s->WriteRef(code->ptr()->stackmaps_);
-
+      if (FLAG_dwarf_stack_traces) {
+        s->WriteRef(Array::null());
+        s->WriteRef(CodeSourceMap::null());
+      } else {
+        s->WriteRef(code->ptr()->inlined_id_to_function_);
+        s->WriteRef(code->ptr()->code_source_map_);
+      }
+      if (s->kind() != Snapshot::kAppAOT) {
+        s->WriteRef(code->ptr()->await_token_positions_);
+      }
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->inlined_metadata_));
         NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
 
@@ -1688,31 +1715,40 @@ class CodeDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawExceptionHandlers*>(d->ReadRef());
       code->ptr()->pc_descriptors_ =
           reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+      code->ptr()->catch_entry_.catch_entry_state_maps_ =
+          reinterpret_cast<RawTypedData*>(d->ReadRef());
+#else
+      code->ptr()->catch_entry_.variables_ =
+          reinterpret_cast<RawSmi*>(d->ReadRef());
+#endif
       code->ptr()->stackmaps_ = reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->inlined_id_to_function_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->code_source_map_ =
+          reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+      code->ptr()->await_token_positions_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+
       if (d->kind() == Snapshot::kAppJIT) {
         code->ptr()->deopt_info_array_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
 #if defined(PRODUCT)
-        code->ptr()->inlined_metadata_ = Array::null();
         code->ptr()->return_address_metadata_ = Object::null();
 #else
-        code->ptr()->inlined_metadata_ =
-            reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->return_address_metadata_ = d->ReadRef();
 #endif
       } else {
         code->ptr()->deopt_info_array_ = Array::null();
         code->ptr()->static_calls_target_table_ = Array::null();
-        code->ptr()->inlined_metadata_ = Array::null();
         code->ptr()->return_address_metadata_ = Object::null();
       }
 
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
-      code->ptr()->code_source_map_ = CodeSourceMap::null();
       code->ptr()->comments_ = Array::null();
 
       code->ptr()->compile_timestamp_ = 0;
@@ -1982,8 +2018,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       s->WriteRef(handlers->ptr()->handled_types_data_);
 
       uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes =
-          length * sizeof(RawExceptionHandlers::HandlerInfo);
+      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
       s->WriteBytes(data, length_in_bytes);
     }
   }
@@ -2026,8 +2061,7 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawArray*>(d->ReadRef());
 
       uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes =
-          length * sizeof(RawExceptionHandlers::HandlerInfo);
+      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
       d->ReadBytes(data, length_in_bytes);
     }
   }
@@ -4545,6 +4579,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
       return new (Z) RODataSerializationCluster(kPcDescriptorsCid);
+    case kCodeSourceMapCid:
+      return new (Z) RODataSerializationCluster(kCodeSourceMapCid);
     case kStackMapCid:
       return new (Z) RODataSerializationCluster(kStackMapCid);
     case kExceptionHandlersCid:
@@ -4647,7 +4683,8 @@ void Serializer::WriteVersionAndFeatures() {
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
-  const char* expected_features = Dart::FeaturesString(kind_);
+  const char* expected_features =
+      Dart::FeaturesString(Isolate::Current(), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -4910,6 +4947,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kObjectPoolCid:
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
+    case kCodeSourceMapCid:
     case kStackMapCid:
       return new (Z) RODataDeserializationCluster();
     case kExceptionHandlersCid:
@@ -4984,7 +5022,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
 }
 
 
-RawApiError* Deserializer::VerifyVersionAndFeatures() {
+RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -5021,7 +5059,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures() {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(kind_);
+  const char* expected_features = Dart::FeaturesString(isolate, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -5030,7 +5068,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures() {
   intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
-    const intptr_t kMessageBufferSize = 256;
+    const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
         OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
@@ -5473,7 +5511,7 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_,
                             instructions_buffer_, data_buffer_);
 
-  RawApiError* error = deserializer.VerifyVersionAndFeatures();
+  RawApiError* error = deserializer.VerifyVersionAndFeatures(/*isolate=*/NULL);
   if (error != ApiError::null()) {
     return error;
   }
@@ -5497,7 +5535,8 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_,
                             instructions_buffer_, data_buffer_);
 
-  RawApiError* error = deserializer.VerifyVersionAndFeatures();
+  RawApiError* error =
+      deserializer.VerifyVersionAndFeatures(thread_->isolate());
   if (error != ApiError::null()) {
     return error;
   }

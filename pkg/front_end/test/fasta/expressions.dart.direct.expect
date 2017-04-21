@@ -1,0 +1,79 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo({dynamic fisk = null}) → dynamic {
+  core::print(fisk);
+}
+static method caller(dynamic f) → dynamic {
+  f.call();
+}
+static method main() → dynamic {
+  core::int i = 0;
+  core::print(i.==(1) ? "bad" : "good");
+  core::print("${i}");
+  core::print("'${i}'");
+  core::print(" '${i}' ");
+  core::print(" '${i}' '${i}'");
+  core::print(" '${i}' '${i}'");
+  core::print("foobar");
+  core::print(" '${i}' '${i}' '${i}' '${i}'");
+  try {
+    throw "fisk";
+  }
+  on core::String catch(final dynamic e, final dynamic s) {
+    core::print(e);
+    if(!s.==(null))
+      core::print(s);
+  }
+  for (; false; ) {
+  }
+  dynamic list = <dynamic>["Hello, World!"];
+  core::print(list.[](i));
+  list.[]=(i, "Hello, Brave New World!");
+  core::print(list.[](i));
+  i = 87;
+  core::print(i.unary-());
+  core::print(i.~());
+  core::print(!i.==(42));
+  core::print(i = i.-(1));
+  core::print(i = i.+(1));
+  core::print(let final dynamic #t1 = i in let final dynamic #t2 = i = #t1.-(1) in #t1);
+  core::print(let final dynamic #t3 = i in let final dynamic #t4 = i = #t3.+(1) in #t3);
+  core::print(new core::Object::•());
+  core::print(const core::Object::•());
+  core::print(core::List::_internal<core::String>(2).runtimeType);
+  self::foo(fisk: "Blorp gulp");
+  function f() → dynamic {
+    core::print("f was called");
+  }
+  self::caller(f);
+  self::caller(() → dynamic {
+    core::print("<anon> was called");
+  });
+  function g([dynamic message]) → dynamic {
+    core::print(message);
+  }
+  g.call("Hello, World");
+  self::caller(([dynamic x]) → dynamic {
+    core::print("<anon> was called with ${x}");
+  });
+  function h({dynamic message}) → dynamic {
+    core::print(message);
+  }
+  h.call(message: "Hello, World");
+  self::caller(({dynamic x}) → dynamic {
+    core::print("<anon> was called with ${x}");
+  });
+  core::print(core::int.toString());
+  core::print(core::int);
+  core::print(let final dynamic #t5 = core::int in let final dynamic #t6 = #t5.toString() in #t5);
+  try {
+    core::print(throw new core::NoSuchMethodError::•(null, #toString, <dynamic>[], <dynamic, dynamic>{}, null));
+    throw "Shouldn't work";
+  }
+  on core::NoSuchMethodError catch(final dynamic e) {
+    core::print("As expected: ${e}");
+  }
+  core::print(core::int::parse("42"));
+}

@@ -10,6 +10,8 @@ import 'dart:collection';
 
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/string_utilities.dart';
+import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly
@@ -147,108 +149,106 @@ class DocumentationCommentToken extends CommentToken {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class Keyword {
-  static const Keyword ABSTRACT = const Keyword._('ABSTRACT', "abstract", true);
+abstract class Keyword {
+  static const Keyword ABSTRACT = fasta.Keyword.ABSTRACT;
 
-  static const Keyword AS = const Keyword._('AS', "as", true);
+  static const Keyword AS = fasta.Keyword.AS;
 
-  static const Keyword ASSERT = const Keyword._('ASSERT', "assert");
+  static const Keyword ASSERT = fasta.Keyword.ASSERT;
 
-  static const Keyword BREAK = const Keyword._('BREAK', "break");
+  static const Keyword BREAK = fasta.Keyword.BREAK;
 
-  static const Keyword CASE = const Keyword._('CASE', "case");
+  static const Keyword CASE = fasta.Keyword.CASE;
 
-  static const Keyword CATCH = const Keyword._('CATCH', "catch");
+  static const Keyword CATCH = fasta.Keyword.CATCH;
 
-  static const Keyword CLASS = const Keyword._('CLASS', "class");
+  static const Keyword CLASS = fasta.Keyword.CLASS;
 
-  static const Keyword CONST = const Keyword._('CONST', "const");
+  static const Keyword CONST = fasta.Keyword.CONST;
 
-  static const Keyword CONTINUE = const Keyword._('CONTINUE', "continue");
+  static const Keyword CONTINUE = fasta.Keyword.CONTINUE;
 
-  static const Keyword COVARIANT =
-      const Keyword._('COVARIANT', "covariant", true);
+  static const Keyword COVARIANT = fasta.Keyword.COVARIANT;
 
-  static const Keyword DEFAULT = const Keyword._('DEFAULT', "default");
+  static const Keyword DEFAULT = fasta.Keyword.DEFAULT;
 
-  static const Keyword DEFERRED = const Keyword._('DEFERRED', "deferred", true);
+  static const Keyword DEFERRED = fasta.Keyword.DEFERRED;
 
-  static const Keyword DO = const Keyword._('DO', "do");
+  static const Keyword DO = fasta.Keyword.DO;
 
-  static const Keyword DYNAMIC = const Keyword._('DYNAMIC', "dynamic", true);
+  static const Keyword DYNAMIC = fasta.Keyword.DYNAMIC;
 
-  static const Keyword ELSE = const Keyword._('ELSE', "else");
+  static const Keyword ELSE = fasta.Keyword.ELSE;
 
-  static const Keyword ENUM = const Keyword._('ENUM', "enum");
+  static const Keyword ENUM = fasta.Keyword.ENUM;
 
-  static const Keyword EXPORT = const Keyword._('EXPORT', "export", true);
+  static const Keyword EXPORT = fasta.Keyword.EXPORT;
 
-  static const Keyword EXTENDS = const Keyword._('EXTENDS', "extends");
+  static const Keyword EXTENDS = fasta.Keyword.EXTENDS;
 
-  static const Keyword EXTERNAL = const Keyword._('EXTERNAL', "external", true);
+  static const Keyword EXTERNAL = fasta.Keyword.EXTERNAL;
 
-  static const Keyword FACTORY = const Keyword._('FACTORY', "factory", true);
+  static const Keyword FACTORY = fasta.Keyword.FACTORY;
 
-  static const Keyword FALSE = const Keyword._('FALSE', "false");
+  static const Keyword FALSE = fasta.Keyword.FALSE;
 
-  static const Keyword FINAL = const Keyword._('FINAL', "final");
+  static const Keyword FINAL = fasta.Keyword.FINAL;
 
-  static const Keyword FINALLY = const Keyword._('FINALLY', "finally");
+  static const Keyword FINALLY = fasta.Keyword.FINALLY;
 
-  static const Keyword FOR = const Keyword._('FOR', "for");
+  static const Keyword FOR = fasta.Keyword.FOR;
 
-  static const Keyword GET = const Keyword._('GET', "get", true);
+  static const Keyword GET = fasta.Keyword.GET;
 
-  static const Keyword IF = const Keyword._('IF', "if");
+  static const Keyword IF = fasta.Keyword.IF;
 
-  static const Keyword IMPLEMENTS =
-      const Keyword._('IMPLEMENTS', "implements", true);
+  static const Keyword IMPLEMENTS = fasta.Keyword.IMPLEMENTS;
 
-  static const Keyword IMPORT = const Keyword._('IMPORT', "import", true);
+  static const Keyword IMPORT = fasta.Keyword.IMPORT;
 
-  static const Keyword IN = const Keyword._('IN', "in");
+  static const Keyword IN = fasta.Keyword.IN;
 
-  static const Keyword IS = const Keyword._('IS', "is");
+  static const Keyword IS = fasta.Keyword.IS;
 
-  static const Keyword LIBRARY = const Keyword._('LIBRARY', "library", true);
+  static const Keyword LIBRARY = fasta.Keyword.LIBRARY;
 
-  static const Keyword NEW = const Keyword._('NEW', "new");
+  static const Keyword NEW = fasta.Keyword.NEW;
 
-  static const Keyword NULL = const Keyword._('NULL', "null");
+  static const Keyword NULL = fasta.Keyword.NULL;
 
-  static const Keyword OPERATOR = const Keyword._('OPERATOR', "operator", true);
+  static const Keyword OPERATOR = fasta.Keyword.OPERATOR;
 
-  static const Keyword PART = const Keyword._('PART', "part", true);
+  static const Keyword PART = fasta.Keyword.PART;
 
-  static const Keyword RETHROW = const Keyword._('RETHROW', "rethrow");
+  static const Keyword RETHROW = fasta.Keyword.RETHROW;
 
-  static const Keyword RETURN = const Keyword._('RETURN', "return");
+  static const Keyword RETURN = fasta.Keyword.RETURN;
 
-  static const Keyword SET = const Keyword._('SET', "set", true);
+  static const Keyword SET = fasta.Keyword.SET;
 
-  static const Keyword STATIC = const Keyword._('STATIC', "static", true);
+  static const Keyword STATIC = fasta.Keyword.STATIC;
 
-  static const Keyword SUPER = const Keyword._('SUPER', "super");
+  static const Keyword SUPER = fasta.Keyword.SUPER;
 
-  static const Keyword SWITCH = const Keyword._('SWITCH', "switch");
+  static const Keyword SWITCH = fasta.Keyword.SWITCH;
 
-  static const Keyword THIS = const Keyword._('THIS', "this");
+  static const Keyword THIS = fasta.Keyword.THIS;
 
-  static const Keyword THROW = const Keyword._('THROW', "throw");
+  static const Keyword THROW = fasta.Keyword.THROW;
 
-  static const Keyword TRUE = const Keyword._('TRUE', "true");
+  static const Keyword TRUE = fasta.Keyword.TRUE;
 
-  static const Keyword TRY = const Keyword._('TRY', "try");
+  static const Keyword TRY = fasta.Keyword.TRY;
 
-  static const Keyword TYPEDEF = const Keyword._('TYPEDEF', "typedef", true);
+  static const Keyword TYPEDEF = fasta.Keyword.TYPEDEF;
 
-  static const Keyword VAR = const Keyword._('VAR', "var");
+  static const Keyword VAR = fasta.Keyword.VAR;
 
-  static const Keyword VOID = const Keyword._('VOID', "void");
+  static const Keyword VOID = fasta.Keyword.VOID;
 
-  static const Keyword WHILE = const Keyword._('WHILE', "while");
+  static const Keyword WHILE = fasta.Keyword.WHILE;
 
-  static const Keyword WITH = const Keyword._('WITH', "with");
+  static const Keyword WITH = fasta.Keyword.WITH;
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
@@ -311,27 +311,18 @@ class Keyword {
   /**
    * The name of the keyword type.
    */
-  final String name;
+  String get name;
 
   /**
    * The lexeme for the keyword.
    */
-  final String syntax;
+  String get syntax;
 
   /**
    * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords
    * can be used as identifiers.
    */
-  final bool isPseudoKeyword;
-
-  /**
-   * Initialize a newly created keyword to have the given [name] and [syntax].
-   * The keyword is a pseudo-keyword if the [isPseudoKeyword] flag is `true`.
-   */
-  const Keyword._(this.name, this.syntax, [this.isPseudoKeyword = false]);
-
-  @override
-  String toString() => name;
+  bool get isPseudoKeyword;
 
   /**
    * Create a table mapping the lexemes of keywords to the corresponding keyword
@@ -701,8 +692,9 @@ abstract class Token implements SyntacticEntity {
   void applyDelta(int delta);
 
   /**
-   * Return a newly created token that is a copy of this token but that is not a
-   * part of any token stream.
+   * Return a newly created token that is a copy of this tokens
+   * including any [preceedingComment] tokens,
+   * but that is not a part of any token stream.
    */
   Token copy();
 
@@ -891,259 +883,184 @@ class TokenClass {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class TokenType {
+abstract class TokenType {
   /**
    * The type of the token that marks the start or end of the input.
    */
-  static const TokenType EOF = const _EndOfFileTokenType();
+  static const TokenType EOF = fasta.EOF_INFO;
 
-  static const TokenType DOUBLE = const TokenType._('DOUBLE');
+  static const TokenType DOUBLE = fasta.DOUBLE_INFO;
 
-  static const TokenType HEXADECIMAL = const TokenType._('HEXADECIMAL');
+  static const TokenType HEXADECIMAL = fasta.HEXADECIMAL_INFO;
 
-  static const TokenType IDENTIFIER = const TokenType._('IDENTIFIER');
+  static const TokenType IDENTIFIER = fasta.IDENTIFIER_INFO;
 
-  static const TokenType INT = const TokenType._('INT');
+  static const TokenType INT = fasta.INT_INFO;
 
-  static const TokenType KEYWORD = const TokenType._('KEYWORD');
+  static const TokenType KEYWORD = fasta.KEYWORD_INFO;
 
-  static const TokenType MULTI_LINE_COMMENT =
-      const TokenType._('MULTI_LINE_COMMENT');
+  static const TokenType MULTI_LINE_COMMENT = fasta.MULTI_LINE_COMMENT_INFO;
 
-  static const TokenType SCRIPT_TAG = const TokenType._('SCRIPT_TAG');
+  static const TokenType SCRIPT_TAG = fasta.SCRIPT_INFO;
 
-  static const TokenType SINGLE_LINE_COMMENT =
-      const TokenType._('SINGLE_LINE_COMMENT');
+  static const TokenType SINGLE_LINE_COMMENT = fasta.SINGLE_LINE_COMMENT_INFO;
 
-  static const TokenType STRING = const TokenType._('STRING');
+  static const TokenType STRING = fasta.STRING_INFO;
 
-  static const TokenType AMPERSAND =
-      const TokenType._('AMPERSAND', TokenClass.BITWISE_AND_OPERATOR, '&');
+  static const TokenType AMPERSAND = fasta.AMPERSAND_INFO;
 
-  static const TokenType AMPERSAND_AMPERSAND = const TokenType._(
-      'AMPERSAND_AMPERSAND', TokenClass.LOGICAL_AND_OPERATOR, '&&');
+  static const TokenType AMPERSAND_AMPERSAND = fasta.AMPERSAND_AMPERSAND_INFO;
 
-  static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType._(
-      'AMPERSAND_AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, '&&=');
+  static const TokenType AMPERSAND_AMPERSAND_EQ =
+      const fasta.PrecedenceInfo('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
 
-  static const TokenType AMPERSAND_EQ =
-      const TokenType._('AMPERSAND_EQ', TokenClass.ASSIGNMENT_OPERATOR, '&=');
+  static const TokenType AMPERSAND_EQ = fasta.AMPERSAND_EQ_INFO;
 
-  static const TokenType AT = const TokenType._('AT', TokenClass.NO_CLASS, '@');
+  static const TokenType AT = fasta.AT_INFO;
 
-  static const TokenType BANG =
-      const TokenType._('BANG', TokenClass.UNARY_PREFIX_OPERATOR, '!');
+  static const TokenType BANG = fasta.BANG_INFO;
 
-  static const TokenType BANG_EQ =
-      const TokenType._('BANG_EQ', TokenClass.EQUALITY_OPERATOR, '!=');
+  static const TokenType BANG_EQ = fasta.BANG_EQ_INFO;
 
-  static const TokenType BAR =
-      const TokenType._('BAR', TokenClass.BITWISE_OR_OPERATOR, '|');
+  static const TokenType BAR = fasta.BAR_INFO;
 
-  static const TokenType BAR_BAR =
-      const TokenType._('BAR_BAR', TokenClass.LOGICAL_OR_OPERATOR, '||');
+  static const TokenType BAR_BAR = fasta.BAR_BAR_INFO;
 
   static const TokenType BAR_BAR_EQ =
-      const TokenType._('BAR_BAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, '||=');
+      const fasta.PrecedenceInfo('||=', 'BAR_BAR_EQ', 1, -1);
 
-  static const TokenType BAR_EQ =
-      const TokenType._('BAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, '|=');
+  static const TokenType BAR_EQ = fasta.BAR_EQ_INFO;
 
-  static const TokenType COLON =
-      const TokenType._('COLON', TokenClass.NO_CLASS, ':');
+  static const TokenType COLON = fasta.COLON_INFO;
 
-  static const TokenType COMMA =
-      const TokenType._('COMMA', TokenClass.NO_CLASS, ',');
+  static const TokenType COMMA = fasta.COMMA_INFO;
 
-  static const TokenType CARET =
-      const TokenType._('CARET', TokenClass.BITWISE_XOR_OPERATOR, '^');
+  static const TokenType CARET = fasta.CARET_INFO;
 
-  static const TokenType CARET_EQ =
-      const TokenType._('CARET_EQ', TokenClass.ASSIGNMENT_OPERATOR, '^=');
+  static const TokenType CARET_EQ = fasta.CARET_EQ_INFO;
 
-  static const TokenType CLOSE_CURLY_BRACKET =
-      const TokenType._('CLOSE_CURLY_BRACKET', TokenClass.NO_CLASS, '}');
+  static const TokenType CLOSE_CURLY_BRACKET = fasta.CLOSE_CURLY_BRACKET_INFO;
 
-  static const TokenType CLOSE_PAREN =
-      const TokenType._('CLOSE_PAREN', TokenClass.NO_CLASS, ')');
+  static const TokenType CLOSE_PAREN = fasta.CLOSE_PAREN_INFO;
 
-  static const TokenType CLOSE_SQUARE_BRACKET =
-      const TokenType._('CLOSE_SQUARE_BRACKET', TokenClass.NO_CLASS, ']');
+  static const TokenType CLOSE_SQUARE_BRACKET = fasta.CLOSE_SQUARE_BRACKET_INFO;
 
-  static const TokenType EQ =
-      const TokenType._('EQ', TokenClass.ASSIGNMENT_OPERATOR, '=');
+  static const TokenType EQ = fasta.EQ_INFO;
 
-  static const TokenType EQ_EQ =
-      const TokenType._('EQ_EQ', TokenClass.EQUALITY_OPERATOR, '==');
+  static const TokenType EQ_EQ = fasta.EQ_EQ_INFO;
 
-  static const TokenType FUNCTION =
-      const TokenType._('FUNCTION', TokenClass.NO_CLASS, '=>');
+  static const TokenType FUNCTION = fasta.FUNCTION_INFO;
 
-  static const TokenType GT =
-      const TokenType._('GT', TokenClass.RELATIONAL_OPERATOR, '>');
+  static const TokenType GT = fasta.GT_INFO;
 
-  static const TokenType GT_EQ =
-      const TokenType._('GT_EQ', TokenClass.RELATIONAL_OPERATOR, '>=');
+  static const TokenType GT_EQ = fasta.GT_EQ_INFO;
 
-  static const TokenType GT_GT =
-      const TokenType._('GT_GT', TokenClass.SHIFT_OPERATOR, '>>');
+  static const TokenType GT_GT = fasta.GT_GT_INFO;
 
-  static const TokenType GT_GT_EQ =
-      const TokenType._('GT_GT_EQ', TokenClass.ASSIGNMENT_OPERATOR, '>>=');
+  static const TokenType GT_GT_EQ = fasta.GT_GT_EQ_INFO;
 
-  static const TokenType HASH =
-      const TokenType._('HASH', TokenClass.NO_CLASS, '#');
+  static const TokenType HASH = fasta.HASH_INFO;
 
-  static const TokenType INDEX =
-      const TokenType._('INDEX', TokenClass.UNARY_POSTFIX_OPERATOR, '[]');
+  static const TokenType INDEX = fasta.INDEX_INFO;
 
-  static const TokenType INDEX_EQ =
-      const TokenType._('INDEX_EQ', TokenClass.UNARY_POSTFIX_OPERATOR, '[]=');
+  static const TokenType INDEX_EQ = fasta.INDEX_EQ_INFO;
 
-  static const TokenType IS =
-      const TokenType._('IS', TokenClass.RELATIONAL_OPERATOR, 'is');
+  static const TokenType LT = fasta.LT_INFO;
 
-  static const TokenType LT =
-      const TokenType._('LT', TokenClass.RELATIONAL_OPERATOR, '<');
+  static const TokenType LT_EQ = fasta.LT_EQ_INFO;
 
-  static const TokenType LT_EQ =
-      const TokenType._('LT_EQ', TokenClass.RELATIONAL_OPERATOR, '<=');
+  static const TokenType LT_LT = fasta.LT_LT_INFO;
 
-  static const TokenType LT_LT =
-      const TokenType._('LT_LT', TokenClass.SHIFT_OPERATOR, '<<');
+  static const TokenType LT_LT_EQ = fasta.LT_LT_EQ_INFO;
 
-  static const TokenType LT_LT_EQ =
-      const TokenType._('LT_LT_EQ', TokenClass.ASSIGNMENT_OPERATOR, '<<=');
+  static const TokenType MINUS = fasta.MINUS_INFO;
 
-  static const TokenType MINUS =
-      const TokenType._('MINUS', TokenClass.ADDITIVE_OPERATOR, '-');
+  static const TokenType MINUS_EQ = fasta.MINUS_EQ_INFO;
 
-  static const TokenType MINUS_EQ =
-      const TokenType._('MINUS_EQ', TokenClass.ASSIGNMENT_OPERATOR, '-=');
+  static const TokenType MINUS_MINUS = fasta.MINUS_MINUS_INFO;
 
-  static const TokenType MINUS_MINUS =
-      const TokenType._('MINUS_MINUS', TokenClass.UNARY_PREFIX_OPERATOR, '--');
+  static const TokenType OPEN_CURLY_BRACKET = fasta.OPEN_CURLY_BRACKET_INFO;
 
-  static const TokenType OPEN_CURLY_BRACKET =
-      const TokenType._('OPEN_CURLY_BRACKET', TokenClass.NO_CLASS, '{');
+  static const TokenType OPEN_PAREN = fasta.OPEN_PAREN_INFO;
 
-  static const TokenType OPEN_PAREN =
-      const TokenType._('OPEN_PAREN', TokenClass.UNARY_POSTFIX_OPERATOR, '(');
+  static const TokenType OPEN_SQUARE_BRACKET = fasta.OPEN_SQUARE_BRACKET_INFO;
 
-  static const TokenType OPEN_SQUARE_BRACKET = const TokenType._(
-      'OPEN_SQUARE_BRACKET', TokenClass.UNARY_POSTFIX_OPERATOR, '[');
+  static const TokenType PERCENT = fasta.PERCENT_INFO;
 
-  static const TokenType PERCENT =
-      const TokenType._('PERCENT', TokenClass.MULTIPLICATIVE_OPERATOR, '%');
+  static const TokenType PERCENT_EQ = fasta.PERCENT_EQ_INFO;
 
-  static const TokenType PERCENT_EQ =
-      const TokenType._('PERCENT_EQ', TokenClass.ASSIGNMENT_OPERATOR, '%=');
+  static const TokenType PERIOD = fasta.PERIOD_INFO;
 
-  static const TokenType PERIOD =
-      const TokenType._('PERIOD', TokenClass.UNARY_POSTFIX_OPERATOR, '.');
+  static const TokenType PERIOD_PERIOD = fasta.PERIOD_PERIOD_INFO;
 
-  static const TokenType PERIOD_PERIOD =
-      const TokenType._('PERIOD_PERIOD', TokenClass.CASCADE_OPERATOR, '..');
+  static const TokenType PLUS = fasta.PLUS_INFO;
 
-  static const TokenType PLUS =
-      const TokenType._('PLUS', TokenClass.ADDITIVE_OPERATOR, '+');
+  static const TokenType PLUS_EQ = fasta.PLUS_EQ_INFO;
 
-  static const TokenType PLUS_EQ =
-      const TokenType._('PLUS_EQ', TokenClass.ASSIGNMENT_OPERATOR, '+=');
+  static const TokenType PLUS_PLUS = fasta.PLUS_PLUS_INFO;
 
-  static const TokenType PLUS_PLUS =
-      const TokenType._('PLUS_PLUS', TokenClass.UNARY_PREFIX_OPERATOR, '++');
+  static const TokenType QUESTION = fasta.QUESTION_INFO;
 
-  static const TokenType QUESTION =
-      const TokenType._('QUESTION', TokenClass.CONDITIONAL_OPERATOR, '?');
+  static const TokenType QUESTION_PERIOD = fasta.QUESTION_PERIOD_INFO;
 
-  static const TokenType QUESTION_PERIOD = const TokenType._(
-      'QUESTION_PERIOD', TokenClass.UNARY_POSTFIX_OPERATOR, '?.');
+  static const TokenType QUESTION_QUESTION = fasta.QUESTION_QUESTION_INFO;
 
-  static const TokenType QUESTION_QUESTION =
-      const TokenType._('QUESTION_QUESTION', TokenClass.IF_NULL_OPERATOR, '??');
+  static const TokenType QUESTION_QUESTION_EQ = fasta.QUESTION_QUESTION_EQ_INFO;
 
-  static const TokenType QUESTION_QUESTION_EQ = const TokenType._(
-      'QUESTION_QUESTION_EQ', TokenClass.ASSIGNMENT_OPERATOR, '??=');
+  static const TokenType SEMICOLON = fasta.SEMICOLON_INFO;
 
-  static const TokenType SEMICOLON =
-      const TokenType._('SEMICOLON', TokenClass.NO_CLASS, ';');
+  static const TokenType SLASH = fasta.SLASH_INFO;
 
-  static const TokenType SLASH =
-      const TokenType._('SLASH', TokenClass.MULTIPLICATIVE_OPERATOR, '/');
+  static const TokenType SLASH_EQ = fasta.SLASH_EQ_INFO;
 
-  static const TokenType SLASH_EQ =
-      const TokenType._('SLASH_EQ', TokenClass.ASSIGNMENT_OPERATOR, '/=');
+  static const TokenType STAR = fasta.STAR_INFO;
 
-  static const TokenType STAR =
-      const TokenType._('STAR', TokenClass.MULTIPLICATIVE_OPERATOR, '*');
+  static const TokenType STAR_EQ = fasta.STAR_EQ_INFO;
 
-  static const TokenType STAR_EQ =
-      const TokenType._('STAR_EQ', TokenClass.ASSIGNMENT_OPERATOR, "*=");
+  static const TokenType STRING_INTERPOLATION_EXPRESSION =
+      fasta.STRING_INTERPOLATION_INFO;
 
-  static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType._(
-      'STRING_INTERPOLATION_EXPRESSION', TokenClass.NO_CLASS, '\${');
+  static const TokenType STRING_INTERPOLATION_IDENTIFIER =
+      fasta.STRING_INTERPOLATION_IDENTIFIER_INFO;
 
-  static const TokenType STRING_INTERPOLATION_IDENTIFIER = const TokenType._(
-      'STRING_INTERPOLATION_IDENTIFIER', TokenClass.NO_CLASS, '\$');
+  static const TokenType TILDE = fasta.TILDE_INFO;
 
-  static const TokenType TILDE =
-      const TokenType._('TILDE', TokenClass.UNARY_PREFIX_OPERATOR, '~');
+  static const TokenType TILDE_SLASH = fasta.TILDE_SLASH_INFO;
 
-  static const TokenType TILDE_SLASH = const TokenType._(
-      'TILDE_SLASH', TokenClass.MULTIPLICATIVE_OPERATOR, '~/');
+  static const TokenType TILDE_SLASH_EQ = fasta.TILDE_SLASH_EQ_INFO;
 
-  static const TokenType TILDE_SLASH_EQ = const TokenType._(
-      'TILDE_SLASH_EQ', TokenClass.ASSIGNMENT_OPERATOR, '~/=');
+  static const TokenType BACKPING = fasta.BACKPING_INFO;
 
-  static const TokenType BACKPING =
-      const TokenType._('BACKPING', TokenClass.NO_CLASS, '`');
+  static const TokenType BACKSLASH = fasta.BACKSLASH_INFO;
 
-  static const TokenType BACKSLASH =
-      const TokenType._('BACKSLASH', TokenClass.NO_CLASS, '\\');
-
-  static const TokenType PERIOD_PERIOD_PERIOD =
-      const TokenType._('PERIOD_PERIOD_PERIOD', TokenClass.NO_CLASS, '...');
+  static const TokenType PERIOD_PERIOD_PERIOD = fasta.PERIOD_PERIOD_PERIOD_INFO;
 
   static const TokenType GENERIC_METHOD_TYPE_LIST =
-      const TokenType._('GENERIC_METHOD_TYPE_LIST');
+      const fasta.PrecedenceInfo(null, 'GENERIC_METHOD_TYPE_LIST', 0, -1);
 
   static const TokenType GENERIC_METHOD_TYPE_ASSIGN =
-      const TokenType._('GENERIC_METHOD_TYPE_ASSIGN');
-
-  /**
-   * The class of the token.
-   */
-  final TokenClass _tokenClass;
+      const fasta.PrecedenceInfo(null, 'GENERIC_METHOD_TYPE_ASSIGN', 0, -1);
 
   /**
    * The name of the token type.
    */
-  final String name;
+  String get name;
 
   /**
    * The lexeme that defines this type of token, or `null` if there is more than
    * one possible lexeme for this type of token.
    */
-  final String lexeme;
-
-  /**
-   * Initialize a newly created token type to have the given [name],
-   * [_tokenClass] and [lexeme].
-   */
-  const TokenType._(this.name,
-      [this._tokenClass = TokenClass.NO_CLASS, this.lexeme = null]);
+  String get lexeme;
 
   /**
    * Return `true` if this type of token represents an additive operator.
    */
-  bool get isAdditiveOperator => _tokenClass == TokenClass.ADDITIVE_OPERATOR;
+  bool get isAdditiveOperator;
 
   /**
    * Return `true` if this type of token represents an assignment operator.
    */
-  bool get isAssignmentOperator =>
-      _tokenClass == TokenClass.ASSIGNMENT_OPERATOR;
+  bool get isAssignmentOperator;
 
   /**
    * Return `true` if this type of token represents an associative operator. An
@@ -1157,94 +1074,59 @@ class TokenType {
    * operators can have an effect because evaluation of the right-hand operand
    * is conditional.
    */
-  bool get isAssociativeOperator =>
-      this == AMPERSAND ||
-      this == AMPERSAND_AMPERSAND ||
-      this == BAR ||
-      this == BAR_BAR ||
-      this == CARET ||
-      this == PLUS ||
-      this == STAR;
+  bool get isAssociativeOperator;
 
   /**
    * Return `true` if this type of token represents an equality operator.
    */
-  bool get isEqualityOperator => _tokenClass == TokenClass.EQUALITY_OPERATOR;
+  bool get isEqualityOperator;
 
   /**
    * Return `true` if this type of token represents an increment operator.
    */
-  bool get isIncrementOperator =>
-      identical(lexeme, '++') || identical(lexeme, '--');
+  bool get isIncrementOperator;
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.
    */
-  bool get isMultiplicativeOperator =>
-      _tokenClass == TokenClass.MULTIPLICATIVE_OPERATOR;
+  bool get isMultiplicativeOperator;
 
   /**
    * Return `true` if this token type represents an operator.
    */
-  bool get isOperator =>
-      _tokenClass != TokenClass.NO_CLASS &&
-      this != OPEN_PAREN &&
-      this != OPEN_SQUARE_BRACKET &&
-      this != PERIOD;
+  bool get isOperator;
 
   /**
    * Return `true` if this type of token represents a relational operator.
    */
-  bool get isRelationalOperator =>
-      _tokenClass == TokenClass.RELATIONAL_OPERATOR;
+  bool get isRelationalOperator;
 
   /**
    * Return `true` if this type of token represents a shift operator.
    */
-  bool get isShiftOperator => _tokenClass == TokenClass.SHIFT_OPERATOR;
+  bool get isShiftOperator;
 
   /**
    * Return `true` if this type of token represents a unary postfix operator.
    */
-  bool get isUnaryPostfixOperator =>
-      _tokenClass == TokenClass.UNARY_POSTFIX_OPERATOR;
+  bool get isUnaryPostfixOperator;
 
   /**
    * Return `true` if this type of token represents a unary prefix operator.
    */
-  bool get isUnaryPrefixOperator =>
-      _tokenClass == TokenClass.UNARY_PREFIX_OPERATOR;
+  bool get isUnaryPrefixOperator;
 
   /**
    * Return `true` if this token type represents an operator that can be defined
    * by users.
    */
-  bool get isUserDefinableOperator =>
-      identical(lexeme, '==') ||
-      identical(lexeme, '~') ||
-      identical(lexeme, '[]') ||
-      identical(lexeme, '[]=') ||
-      identical(lexeme, '*') ||
-      identical(lexeme, '/') ||
-      identical(lexeme, '%') ||
-      identical(lexeme, '~/') ||
-      identical(lexeme, '+') ||
-      identical(lexeme, '-') ||
-      identical(lexeme, '<<') ||
-      identical(lexeme, '>>') ||
-      identical(lexeme, '>=') ||
-      identical(lexeme, '>') ||
-      identical(lexeme, '<=') ||
-      identical(lexeme, '<') ||
-      identical(lexeme, '&') ||
-      identical(lexeme, '^') ||
-      identical(lexeme, '|');
+  bool get isUserDefinableOperator;
 
   /**
    * Return the precedence of the token, or `0` if the token does not represent
    * an operator.
    */
-  int get precedence => _tokenClass.precedence;
+  int get precedence;
 
   @override
   String toString() => name;
@@ -1280,18 +1162,4 @@ class TokenWithComment extends SimpleToken {
   @override
   Token copy() =>
       new TokenWithComment(type, offset, copyComments(precedingComments));
-}
-
-/**
- * A token representing the end (either the head or the tail) of a stream of
- * tokens.
- */
-class _EndOfFileTokenType extends TokenType {
-  /**
-   * Initialize a newly created token.
-   */
-  const _EndOfFileTokenType() : super._('EOF', TokenClass.NO_CLASS, '');
-
-  @override
-  String toString() => '-eof-';
 }

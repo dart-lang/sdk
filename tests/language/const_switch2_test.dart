@@ -5,10 +5,10 @@
 import 'package:expect/expect.dart';
 
 int main() {
-  var a = [1,2,3][2];
+  var a = [1, 2, 3][2];
   switch (a) {
-    case 0.0:            /// 01: compile-time error
-      print("illegal");  /// 01: continued
+    case 0.0: //           //# 01: compile-time error
+      print("illegal"); // //# 01: continued
     case 1:
       print("OK");
   }

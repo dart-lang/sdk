@@ -33,10 +33,21 @@ testUri(String uriText, bool isAbsolute) {
                   Uri.parse(uriText + "#fragment").removeFragment());
   }
 
-  // Test uri.replace on uri with fragment
-  uri = Uri.parse('http://hello.com/fake#fragment');
-  uri = uri.replace(path: "D/E/E");
-  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
+  Expect.isTrue(uri.isScheme(uri.scheme));
+  Expect.isTrue(uri.isScheme(uri.scheme.toLowerCase()));
+  Expect.isTrue(uri.isScheme(uri.scheme.toUpperCase()));
+  if (uri.hasScheme) {
+    // Capitalize
+    Expect.isTrue(uri.isScheme(
+        uri.scheme[0].toUpperCase()+uri.scheme.substring(1)));
+    Expect.isFalse(uri.isScheme(
+        uri.scheme.substring(0, uri.scheme.length - 1)));
+    Expect.isFalse(uri.isScheme(uri.scheme + ":"));
+    Expect.isFalse(uri.isScheme(uri.scheme + "\x00"));
+  } else {
+    Expect.isTrue(uri.isScheme(null));
+    Expect.isFalse(uri.isScheme(":"));
+  }
 }
 
 testEncodeDecode(String orig, String encoded) {
@@ -487,16 +498,16 @@ void testInvalidUrls() {
       // Success.
     }
   }
-  checkInvalid("s%41://x.x/");      // No escapes in scheme,
-                                    // and no colon before slash in path.
-  checkInvalid("1a://x.x/");        // Scheme must start with letter,
-                                    // and no colon before slash in path.
-  checkInvalid(".a://x.x/");        // Scheme must start with letter,
-                                    // and no colon before slash in path.
-  checkInvalid("_:");               // Character not valid in scheme,
-                                    // and no colon before slash in path.
-  checkInvalid(":");                // Scheme must start with letter,
-                                    // and no colon before slash in path.
+  checkInvalid("s%41://x.x/"); //      No escapes in scheme,
+  //                                   and no colon before slash in path.
+  checkInvalid("1a://x.x/"); //        Scheme must start with letter,
+  //                                   and no colon before slash in path.
+  checkInvalid(".a://x.x/"); //        Scheme must start with letter,
+  //                                   and no colon before slash in path.
+  checkInvalid("_:"); //               Character not valid in scheme,
+  //                                   and no colon before slash in path.
+  checkInvalid(":"); //                Scheme must start with letter,
+  //                                   and no colon before slash in path.
 
   void checkInvalidReplaced(uri, invalid, replacement) {
     var source = uri.replaceAll('{}', invalid);
@@ -514,20 +525,20 @@ void testInvalidUrls() {
   // the input would cause them to be valid (normalization happens after
   // validation).
   var invalidCharsAndReplacements = [
-    "\xe7",      "%C3%A7",       // Arbitrary non-ASCII letter
-    " ",         "%20",          // Space, not allowed anywhere.
-    '"',         "%22",          // Quote, not allowed anywhere
-    "<>",        "%3C%3E",       // Less/greater-than, not allowed anywhere.
-    "\x7f",      "%7F",          // DEL, not allowed anywhere
-    "\xdf",      "%C3%9F",       // German lower-case scharf-S.
-                                 // Becomes ASCII when upper-cased.
-    "\u0130",    "%C4%B0",       // Latin capital dotted I,
-                                 // becomes ASCII lower-case in Turkish.
-    "%\uFB03",   "%25%EF%AC%83", // % + Ligature ffi,
-                                 // becomes ASCII when upper-cased,
-                                 // should not be read as "%FFI".
-    "\u212a",    "%E2%84%AA",    // Kelvin sign. Becomes ASCII when lower-cased.
-    "%1g",       "%251g",        // Invalid escape.
+    "\xe7", "%C3%A7", //            Arbitrary non-ASCII letter
+    " ", "%20", //                  Space, not allowed anywhere.
+    '"', "%22", //                  Quote, not allowed anywhere
+    "<>", "%3C%3E", //              Less/greater-than, not allowed anywhere.
+    "\x7f", "%7F", //               DEL, not allowed anywhere
+    "\xdf", "%C3%9F", //            German lower-case scharf-S.
+    //                              Becomes ASCII when upper-cased.
+    "\u0130", "%C4%B0", //          Latin capital dotted I,
+    //                              becomes ASCII lower-case in Turkish.
+    "%\uFB03", "%25%EF%AC%83", //   % + Ligature ffi,
+    //                              becomes ASCII when upper-cased,
+    //                              should not be read as "%FFI".
+    "\u212a", "%E2%84%AA", //       Kelvin sign. Becomes ASCII when lower-cased.
+    "%1g", "%251g", //              Invalid escape.
     "\u{10000}", "%F0%90%80%80", // Non-BMP character as surrogate pair.
   ];
   for (int i = 0; i < invalidCharsAndReplacements.length; i += 2) {
@@ -753,6 +764,11 @@ void testReplace() {
   Expect.equals("s://a:1/b/c?#e", uri.replace(query: "").toString());
   Expect.equals("s://a:1?d#e", uri.replace(path: "").toString());
   Expect.equals("s://:1/b/c?d#e", uri.replace(host: "").toString());
+
+  // Test uri.replace on uri with fragment
+  uri = Uri.parse('http://hello.com/fake#fragment');
+  uri = uri.replace(path: "D/E/E");
+  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
 }
 
 void testRegression28359() {

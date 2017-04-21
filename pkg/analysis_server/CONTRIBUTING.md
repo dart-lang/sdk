@@ -1,33 +1,40 @@
-Want to contribute? Great! First, read this page (including the small print at
-the end).
+## Contributing
 
-### Before you contribute
-Before we can use your code, you must sign the
-[Google Individual Contributor License Agreement](https://cla.developers.google.com/about/google-individual)
-(CLA), which you can do online. The CLA is necessary mainly because you own the
-copyright to your changes, even after your contribution becomes part of our
-codebase, so we need your permission to use and distribute your code. We also
-need to be sure of various other things—for instance that you'll tell us if you
-know that your code infringes on other people's patents. You don't have to sign
-the CLA until after you've submitted your code for review and a member has
-approved it, but you must do it before we can put your code into our codebase.
+Contributions welcome! Please follow the guide in [Contributing][contributing].
 
-Before you start working on a larger contribution, you should get in touch with
-us first through the issue tracker with your idea so that we can help out and
-possibly guide you. Coordinating up front makes it much easier to avoid
-frustration later on.
+## Building
 
-### Code reviews
-All submissions, including submissions by project members, require review.
+If you want to build Dart yourself, here is a guide to
+[getting the source, preparing your machine to build the SDK, and
+building][building].
 
-### File headers
-All files in the project must start with the following header.
+There are more documents on our [wiki](https://github.com/dart-lang/sdk/wiki).
+Once set up to build the SDK, run:
 
-    // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
-    // for details. All rights reserved. Use of this source code is governed by a
-    // BSD-style license that can be found in the LICENSE file.
+```
+./tools/build.py -mrelease create_sdk
+```
 
-### The small print
-Contributions made by corporations are covered by a different agreement than the
-one above, the
-[Software Grant and Corporate Contributor License Agreement](https://developers.google.com/open-source/cla/corporate).
+## Running tests
+
+To run analyzer tests:
+
+```
+./tools/test.py -mrelease pkg/analyzer/test/
+```
+
+To run all analysis server tests:
+
+```
+./tools/test.py -mrelease pkg/analysis_server/test/
+```
+
+To run just the analysis server integration tests:
+
+```
+./tools/test.py -mrelease pkg/analysis_server/test/integration/
+```
+
+
+[building]: https://github.com/dart-lang/sdk/wiki/Building
+[contributing]: https://github.com/dart-lang/sdk/wiki/Contributing

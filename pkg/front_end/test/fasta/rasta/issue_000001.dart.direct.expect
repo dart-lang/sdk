@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test0(dynamic x) → dynamic {
+  core::print("test0");
+}
+static method main() → dynamic {
+  throw new core::NoSuchMethodError::•(null, #test0, <dynamic>[0, 1], <dynamic, dynamic>{}, null);
+}

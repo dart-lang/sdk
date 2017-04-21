@@ -4,8 +4,8 @@
 
 part of mocks;
 
-typedef Future<M.PersistentHandles>
-        PersistentHandlesRepositoryMockGetter(M.IsolateRef i);
+typedef Future<M.PersistentHandles> PersistentHandlesRepositoryMockGetter(
+    M.IsolateRef i);
 
 class PersistentHandlesRepositoryMock implements M.PersistentHandlesRepository {
   final PersistentHandlesRepositoryMockGetter _getter;
@@ -19,5 +19,5 @@ class PersistentHandlesRepositoryMock implements M.PersistentHandlesRepository {
 
   PersistentHandlesRepositoryMock(
       {PersistentHandlesRepositoryMockGetter getter})
-    : _getter = getter;
+      : _getter = getter;
 }

@@ -5,6 +5,7 @@
 library analysis_server.starter;
 
 import 'package:analysis_server/src/server/driver.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:plugin/plugin.dart';
@@ -47,6 +48,10 @@ abstract class ServerStarter {
 
   /**
    * Use the given command-line [arguments] to start this server.
+   *
+   * At least temporarily returns AnalysisServer so that consumers of the
+   * starter API can then use the server, this is done as a stopgap for the
+   * angular plugin until the official plugin API is finished.
    */
-  void start(List<String> arguments);
+  AnalysisServer start(List<String> arguments);
 }

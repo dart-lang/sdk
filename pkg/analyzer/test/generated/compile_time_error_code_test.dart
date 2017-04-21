@@ -624,6 +624,16 @@ class as = A with B;''');
     verify([source]);
   }
 
+  test_builtInIdentifierAsPrefixName() async {
+    Source source = addSource("import 'dart:async' as abstract;");
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
+      HintCode.UNUSED_IMPORT
+    ]);
+    verify([source]);
+  }
+
   test_builtInIdentifierAsType_formalParameter_field() async {
     Source source = addSource(r'''
 class A {
@@ -2438,6 +2448,51 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
       CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypedParameter() async {
+    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
+    // error.
+    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
+    // NonErrorResolverTest.
+    Source source = addSource('void g(T f<T>(T x)) {}');
+    await computeAnalysisResult(source);
+    var expectedErrorCodes = <ErrorCode>[
+      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
+    ];
+    if (enableNewAnalysisDriver) {
+      // Due to dartbug.com/28515, some additional errors appear when using the
+      // new analysis driver.
+      expectedErrorCodes.addAll([
+        StaticWarningCode.UNDEFINED_CLASS,
+        StaticWarningCode.UNDEFINED_CLASS
+      ]);
+    }
+    assertErrors(source, expectedErrorCodes);
+    verify([source]);
+  }
+
+  test_genericFunctionTypedParameter_commentSyntax() async {
+    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
+    // error.
+    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
+    // NonErrorResolverTest.
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}');
+    await computeAnalysisResult(source);
+    var expectedErrorCodes = <ErrorCode>[
+      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
+    ];
+    if (enableNewAnalysisDriver) {
+      // Due to dartbug.com/28515, some additional errors appear when using the
+      // new analysis driver.
+      expectedErrorCodes.addAll([
+        StaticWarningCode.UNDEFINED_CLASS,
+        StaticWarningCode.UNDEFINED_CLASS
+      ]);
+    }
+    assertErrors(source, expectedErrorCodes);
     verify([source]);
   }
 
@@ -5215,6 +5270,99 @@ f() {
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends Object with A, B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends Object with A {}
+class D extends C with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin_same() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends A with A {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
     verify([source]);
   }
 

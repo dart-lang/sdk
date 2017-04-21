@@ -14,7 +14,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -120,7 +119,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
   final InternalAnalysisContext context;
   final SummaryDataStore _dataStore;
 
-  _FileBasedSummaryResynthesizer _resynthesizer;
+  StoreBasedSummaryResynthesizer _resynthesizer;
 
   ResynthesizerResultProvider(this.context, this._dataStore);
 
@@ -267,7 +266,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * Subclasses must call this method in their constructors.
    */
   void createResynthesizer() {
-    _resynthesizer = new _FileBasedSummaryResynthesizer(context,
+    _resynthesizer = new StoreBasedSummaryResynthesizer(context,
         context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
   }
 
@@ -277,6 +276,33 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * every bundle that would be required to provide results for the [source].
    */
   bool hasResultsForSource(Source source);
+}
+
+/**
+ * A concrete resynthesizer that serves summaries from [SummaryDataStore].
+ */
+class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
+  final SummaryDataStore _dataStore;
+
+  StoreBasedSummaryResynthesizer(AnalysisContext context,
+      SourceFactory sourceFactory, bool strongMode, this._dataStore)
+      : super(context, sourceFactory, strongMode);
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return _dataStore.linkedMap[uri];
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return _dataStore.unlinkedMap[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
+    return linkedLibrary != null;
+  }
 }
 
 /**
@@ -322,10 +348,10 @@ class SummaryDataStore {
    * [dependencies].
    */
   SummaryDataStore(Iterable<String> summaryPaths,
-      {bool recordDependencyInfo: false})
+      {bool recordDependencyInfo: false, ResourceProvider resourceProvider})
       : dependencies =
             recordDependencyInfo ? <PackageDependencyInfoBuilder>[] : null {
-    summaryPaths.forEach(_fillMaps);
+    summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
   }
 
   /**
@@ -338,7 +364,7 @@ class SummaryDataStore {
       bool includesDartUris = false;
       bool includesFileUris = false;
       for (String uriString in bundle.unlinkedUnitUris) {
-        Uri uri = FastUri.parse(uriString);
+        Uri uri = Uri.parse(uriString);
         String scheme = uri.scheme;
         if (scheme == 'package') {
           List<String> pathSegments = uri.pathSegments;
@@ -393,9 +419,9 @@ class SummaryDataStore {
     // Check every unlinked unit whether it uses [unitUri] as a part.
     List<String> libraryUriStrings = <String>[];
     unlinkedMap.forEach((unlinkedUnitUriString, unlinkedUnit) {
-      Uri libraryUri = FastUri.parse(unlinkedUnitUriString);
+      Uri libraryUri = Uri.parse(unlinkedUnitUriString);
       for (String partUriString in unlinkedUnit.publicNamespace.parts) {
-        Uri partUri = FastUri.parse(partUriString);
+        Uri partUri = Uri.parse(partUriString);
         String partAbsoluteUriString =
             resolveRelativeUri(libraryUri, partUri).toString();
         if (partAbsoluteUriString == unitUriString) {
@@ -406,37 +432,16 @@ class SummaryDataStore {
     return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
   }
 
-  void _fillMaps(String path) {
-    io.File file = new io.File(path);
-    List<int> buffer = file.readAsBytesSync();
+  void _fillMaps(String path, ResourceProvider resourceProvider) {
+    List<int> buffer;
+    if (resourceProvider != null) {
+      var file = resourceProvider.getFile(path);
+      buffer = file.readAsBytesSync();
+    } else {
+      io.File file = new io.File(path);
+      buffer = file.readAsBytesSync();
+    }
     PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
     addBundle(path, bundle);
-  }
-}
-
-/**
- * A concrete resynthesizer that serves summaries from given file paths.
- */
-class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
-  final SummaryDataStore _dataStore;
-
-  _FileBasedSummaryResynthesizer(AnalysisContext context,
-      SourceFactory sourceFactory, bool strongMode, this._dataStore)
-      : super(context, sourceFactory, strongMode);
-
-  @override
-  LinkedLibrary getLinkedSummary(String uri) {
-    return _dataStore.linkedMap[uri];
-  }
-
-  @override
-  UnlinkedUnit getUnlinkedSummary(String uri) {
-    return _dataStore.unlinkedMap[uri];
-  }
-
-  @override
-  bool hasLibrarySummary(String uri) {
-    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
-    return linkedLibrary != null;
   }
 }

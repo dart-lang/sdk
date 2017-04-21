@@ -9,7 +9,8 @@ import 'elements/resolution_types.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'elements/elements.dart' show ClassElement;
 import 'util/util.dart' show Link, LinkBuilder;
-import 'util/util_implementation.dart' show LinkEntry;
+import 'package:front_end/src/fasta/util/link_implementation.dart'
+    show LinkEntry;
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are

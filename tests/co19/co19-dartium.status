@@ -467,6 +467,7 @@ LayoutTests/fast/dom/shadow/shadow-content-crash_t01: RuntimeError # co19-roll r
 LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/shadow/shadow-removechild-and-blur-event_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/shadowroot-keyframes_t01: RuntimeError, Pass # Issue 29018
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/Window/window-resize_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -543,6 +544,7 @@ LayoutTests/fast/forms/formmethod-attribute-input-2_t01: Skip # Test reloads its
 LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/formmethod-attribute-input-html_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/HTMLOptionElement_selected2_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: Pass, RuntimeError # Issue 28710
 LayoutTests/fast/forms/input-hit-test-border_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Experimental feature not exposed in Chrome yet
 LayoutTests/fast/forms/input-value-sanitization_t01: RuntimeError # 45 roll issue
@@ -1007,6 +1009,7 @@ LibTest/isolate/SendPort/send_A02_t01: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: Pass, Slow
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -1210,13 +1213,15 @@ WebPlatformTest/custom-elements/concepts/type_A07_t01: Skip # Timing out on the 
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/css/MarqueeLayoutTest_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
+LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: Pass, RuntimeError # Gardening: please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # Timesout sporadically
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # Timesout sporadically
 
-[ $compiler == none && $runtime == dartium && $system != windows ]
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
+[ $compiler == none && $runtime == dartium ]
+LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Issue 28724
 
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43

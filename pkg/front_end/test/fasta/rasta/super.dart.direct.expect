@@ -1,0 +1,259 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic a;
+  field dynamic b;
+  field dynamic c;
+  field dynamic d;
+  final field dynamic f;
+  constructor •() → self::A
+    : super core::Object::•();
+  get e() → dynamic
+    return null;
+  set g(dynamic _) → dynamic {}
+  get h() → dynamic
+    return null;
+  set h(dynamic _) → dynamic {}
+  get i() → dynamic
+    return null;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic a, dynamic b) → dynamic {}
+  operator ~() → dynamic
+    return 117;
+  operator unary-() → dynamic
+    return 117;
+  operator ==(dynamic other) → dynamic
+    return true;
+  method m() → void {}
+  method n() → void {}
+  set n(dynamic _) → dynamic {}
+}
+class B extends self::A {
+  final field dynamic d;
+  constructor •() → self::B
+    : super self::A::•();
+  get b() → dynamic
+    return null;
+  set c(dynamic x) → dynamic {}
+  set i(dynamic x) → dynamic {}
+}
+class C extends self::B {
+  constructor •() → self::C
+    : super self::B::•();
+  method test() → dynamic {
+    super.{self::A::~}();
+    self::use(super.{self::A::~}());
+    super.{self::A::unary-}();
+    self::use(super.{self::A::unary-}());
+    invalid-expression;
+    self::use(invalid-expression);
+    super.{self::A::==}(87);
+    self::use(super.{self::A::==}(87));
+    !super.{self::A::==}(87);
+    self::use(!super.{self::A::==}(87));
+    super.{self::A::a};
+    self::use(super.{self::A::a});
+    super.{self::B::b};
+    self::use(super.{self::B::b});
+    super.{self::A::c};
+    self::use(super.{self::A::c});
+    super.{self::B::d};
+    self::use(super.{self::B::d});
+    super.{self::A::e};
+    self::use(super.{self::A::e});
+    super.{self::A::f};
+    self::use(super.{self::A::f});
+    super.g;
+    self::use(super.g);
+    super.{self::A::h};
+    self::use(super.{self::A::h});
+    super.{self::A::i};
+    self::use(super.{self::A::i});
+    super.{self::A::[]}(87);
+    self::use(super.{self::A::[]}(87));
+    super.{self::A::m};
+    self::use(super.{self::A::m});
+    throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::a} = super.{self::A::a}.+(1);
+    self::use(let final dynamic #t1 = super.{self::A::a} in let final dynamic #t2 = super.{self::A::a} = #t1.+(1) in #t1);
+    super.{self::A::b} = super.{self::B::b}.+(1);
+    self::use(let final dynamic #t3 = super.{self::B::b} in let final dynamic #t4 = super.{self::A::b} = #t3.+(1) in #t3);
+    super.{self::B::c} = super.{self::A::c}.+(1);
+    self::use(let final dynamic #t5 = super.{self::A::c} in let final dynamic #t6 = super.{self::B::c} = #t5.+(1) in #t5);
+    super.d = super.{self::B::d}.+(1);
+    self::use(let final dynamic #t7 = super.{self::B::d} in let final dynamic #t8 = super.d = #t7.+(1) in #t7);
+    super.e = super.{self::A::e}.+(1);
+    self::use(let final dynamic #t9 = super.{self::A::e} in let final dynamic #t10 = super.e = #t9.+(1) in #t9);
+    super.f = super.{self::A::f}.+(1);
+    self::use(let final dynamic #t11 = super.{self::A::f} in let final dynamic #t12 = super.f = #t11.+(1) in #t11);
+    throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::h} = super.{self::A::h}.+(1);
+    self::use(let final dynamic #t13 = super.{self::A::h} in let final dynamic #t14 = super.{self::A::h} = #t13.+(1) in #t13);
+    super.{self::B::i} = super.{self::A::i}.+(1);
+    self::use(let final dynamic #t15 = super.{self::A::i} in let final dynamic #t16 = super.{self::B::i} = #t15.+(1) in #t15);
+    let final dynamic #t17 = 87 in super.{self::A::[]=}(#t17, super.{self::A::[]}(#t17).+(1));
+    self::use(let final dynamic #t18 = 87 in let final dynamic #t19 = super.{self::A::[]}(#t18) in let final dynamic #t20 = super.{self::A::[]=}(#t18, #t19.+(1)) in #t19);
+    super.m = super.{self::A::m}.+(1);
+    self::use(let final dynamic #t21 = super.{self::A::m} in let final dynamic #t22 = super.m = #t21.+(1) in #t21);
+    throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::a} = super.{self::A::a}.+(1);
+    self::use(super.{self::A::a} = super.{self::A::a}.+(1));
+    super.{self::A::b} = super.{self::B::b}.+(1);
+    self::use(super.{self::A::b} = super.{self::B::b}.+(1));
+    super.{self::B::c} = super.{self::A::c}.+(1);
+    self::use(super.{self::B::c} = super.{self::A::c}.+(1));
+    super.d = super.{self::B::d}.+(1);
+    self::use(super.d = super.{self::B::d}.+(1));
+    super.e = super.{self::A::e}.+(1);
+    self::use(super.e = super.{self::A::e}.+(1));
+    super.f = super.{self::A::f}.+(1);
+    self::use(super.f = super.{self::A::f}.+(1));
+    throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::h} = super.{self::A::h}.+(1);
+    self::use(super.{self::A::h} = super.{self::A::h}.+(1));
+    super.{self::B::i} = super.{self::A::i}.+(1);
+    self::use(super.{self::B::i} = super.{self::A::i}.+(1));
+    let final dynamic #t23 = 87 in super.{self::A::[]=}(#t23, super.{self::A::[]}(#t23).+(1));
+    self::use(let final dynamic #t24 = 87 in let final dynamic #t25 = super.{self::A::[]}(#t24).+(1) in let final dynamic #t26 = super.{self::A::[]=}(#t24, #t25) in #t25);
+    super.m = super.{self::A::m}.+(1);
+    self::use(super.m = super.{self::A::m}.+(1));
+    throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::a}.call();
+    self::use(super.{self::A::a}.call());
+    super.{self::B::b}.call();
+    self::use(super.{self::B::b}.call());
+    super.{self::A::c}.call();
+    self::use(super.{self::A::c}.call());
+    super.{self::B::d}.call();
+    self::use(super.{self::B::d}.call());
+    super.{self::A::e}.call();
+    self::use(super.{self::A::e}.call());
+    super.{self::A::f}.call();
+    self::use(super.{self::A::f}.call());
+    super.g.call();
+    self::use(super.g.call());
+    super.{self::A::h}.call();
+    self::use(super.{self::A::h}.call());
+    super.{self::A::i}.call();
+    self::use(super.{self::A::i}.call());
+    super.{self::A::[]}(87).call();
+    self::use(super.{self::A::[]}(87).call());
+    super.{self::A::m}();
+    self::use(super.{self::A::m}());
+    super.{self::A::m}(87);
+    self::use(super.{self::A::m}(87));
+    throw core::_unresolvedSuperMethodError(this, #n, <dynamic>[87], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperMethodError(this, #n, <dynamic>[87], <dynamic, dynamic>{}, null));
+    super.{self::A::a} = 42;
+    self::use(super.{self::A::a} = 42);
+    super.{self::A::b} = 42;
+    self::use(super.{self::A::b} = 42);
+    super.{self::B::c} = 42;
+    self::use(super.{self::B::c} = 42);
+    super.d = 42;
+    self::use(super.d = 42);
+    super.e = 42;
+    self::use(super.e = 42);
+    super.f = 42;
+    self::use(super.f = 42);
+    super.{self::A::g} = 42;
+    self::use(super.{self::A::g} = 42);
+    super.{self::A::h} = 42;
+    self::use(super.{self::A::h} = 42);
+    super.{self::B::i} = 42;
+    self::use(super.{self::B::i} = 42);
+    super.{self::A::[]=}(87, 42);
+    self::use(let final dynamic #t27 = 87 in let final dynamic #t28 = 42 in let final dynamic #t29 = super.{self::A::[]=}(#t27, #t28) in #t28);
+    super.m = 42;
+    self::use(super.m = 42);
+    throw core::_unresolvedSuperSetterError(this, #n, <dynamic>[42], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperSetterError(this, #n, <dynamic>[42], <dynamic, dynamic>{}, null));
+    super.{self::A::a}.==(null) ? super.{self::A::a} = 42 : null;
+    self::use(let final dynamic #t30 = super.{self::A::a} in #t30.==(null) ? super.{self::A::a} = 42 : #t30);
+    super.{self::B::b}.==(null) ? super.{self::A::b} = 42 : null;
+    self::use(let final dynamic #t31 = super.{self::B::b} in #t31.==(null) ? super.{self::A::b} = 42 : #t31);
+    super.{self::A::c}.==(null) ? super.{self::B::c} = 42 : null;
+    self::use(let final dynamic #t32 = super.{self::A::c} in #t32.==(null) ? super.{self::B::c} = 42 : #t32);
+    super.{self::B::d}.==(null) ? super.d = 42 : null;
+    self::use(let final dynamic #t33 = super.{self::B::d} in #t33.==(null) ? super.d = 42 : #t33);
+    super.{self::A::e}.==(null) ? super.e = 42 : null;
+    self::use(let final dynamic #t34 = super.{self::A::e} in #t34.==(null) ? super.e = 42 : #t34);
+    super.{self::A::f}.==(null) ? super.f = 42 : null;
+    self::use(let final dynamic #t35 = super.{self::A::f} in #t35.==(null) ? super.f = 42 : #t35);
+    throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::h}.==(null) ? super.{self::A::h} = 42 : null;
+    self::use(let final dynamic #t36 = super.{self::A::h} in #t36.==(null) ? super.{self::A::h} = 42 : #t36);
+    super.{self::A::i}.==(null) ? super.{self::B::i} = 42 : null;
+    self::use(let final dynamic #t37 = super.{self::A::i} in #t37.==(null) ? super.{self::B::i} = 42 : #t37);
+    let final dynamic #t38 = 87 in super.{self::A::[]}(#t38).==(null) ? super.{self::A::[]=}(#t38, 42) : null;
+    self::use(let final dynamic #t39 = 87 in let final dynamic #t40 = super.{self::A::[]}(#t39) in #t40.==(null) ? let final dynamic #t41 = 42 in let final dynamic #t42 = super.{self::A::[]=}(#t39, #t41) in #t41 : #t40);
+    super.{self::A::m}.==(null) ? super.m = 42 : null;
+    self::use(let final dynamic #t43 = super.{self::A::m} in #t43.==(null) ? super.m = 42 : #t43);
+    throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::a} = super.{self::A::a}.+(42);
+    self::use(super.{self::A::a} = super.{self::A::a}.+(42));
+    super.{self::A::b} = super.{self::B::b}.+(42);
+    self::use(super.{self::A::b} = super.{self::B::b}.+(42));
+    super.{self::B::c} = super.{self::A::c}.+(42);
+    self::use(super.{self::B::c} = super.{self::A::c}.+(42));
+    super.d = super.{self::B::d}.+(42);
+    self::use(super.d = super.{self::B::d}.+(42));
+    super.e = super.{self::A::e}.+(42);
+    self::use(super.e = super.{self::A::e}.+(42));
+    super.f = super.{self::A::f}.+(42);
+    self::use(super.f = super.{self::A::f}.+(42));
+    throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::h} = super.{self::A::h}.+(42);
+    self::use(super.{self::A::h} = super.{self::A::h}.+(42));
+    super.{self::B::i} = super.{self::A::i}.+(42);
+    self::use(super.{self::B::i} = super.{self::A::i}.+(42));
+    let final dynamic #t44 = 87 in super.{self::A::[]=}(#t44, super.{self::A::[]}(#t44).+(42));
+    self::use(let final dynamic #t45 = 87 in let final dynamic #t46 = super.{self::A::[]}(#t45).+(42) in let final dynamic #t47 = super.{self::A::[]=}(#t45, #t46) in #t46);
+    super.m = super.{self::A::m}.+(42);
+    self::use(super.m = super.{self::A::m}.+(42));
+    throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::a} = super.{self::A::a}.-(42);
+    self::use(super.{self::A::a} = super.{self::A::a}.-(42));
+    super.{self::A::b} = super.{self::B::b}.-(42);
+    self::use(super.{self::A::b} = super.{self::B::b}.-(42));
+    super.{self::B::c} = super.{self::A::c}.-(42);
+    self::use(super.{self::B::c} = super.{self::A::c}.-(42));
+    super.d = super.{self::B::d}.-(42);
+    self::use(super.d = super.{self::B::d}.-(42));
+    super.e = super.{self::A::e}.-(42);
+    self::use(super.e = super.{self::A::e}.-(42));
+    super.f = super.{self::A::f}.-(42);
+    self::use(super.f = super.{self::A::f}.-(42));
+    throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #g, <dynamic>[], <dynamic, dynamic>{}, null));
+    super.{self::A::h} = super.{self::A::h}.-(42);
+    self::use(super.{self::A::h} = super.{self::A::h}.-(42));
+    super.{self::B::i} = super.{self::A::i}.-(42);
+    self::use(super.{self::B::i} = super.{self::A::i}.-(42));
+    let final dynamic #t48 = 87 in super.{self::A::[]=}(#t48, super.{self::A::[]}(#t48).-(42));
+    self::use(let final dynamic #t49 = 87 in let final dynamic #t50 = super.{self::A::[]}(#t49).-(42) in let final dynamic #t51 = super.{self::A::[]=}(#t49, #t50) in #t50);
+    super.m = super.{self::A::m}.-(42);
+    self::use(super.m = super.{self::A::m}.-(42));
+    throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null);
+    self::use(throw core::_unresolvedSuperGetterError(this, #n, <dynamic>[], <dynamic, dynamic>{}, null));
+  }
+}
+static method use(dynamic x) → dynamic {
+  if(x.==(new core::DateTime::now().millisecondsSinceEpoch))
+    throw "Shouldn't happen";
+}
+static method main() → dynamic {
+  new self::C::•().test();
+}

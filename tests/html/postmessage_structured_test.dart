@@ -68,7 +68,7 @@ main() {
       subscription = window.onMessage.listen(expectAsyncUntil(
         (e) {
           var data = e.data;
-          if (data is String) return;    // Messages from unit test protocol.
+          if (data is String) return; //    Messages from unit test protocol.
           completed = true;
           subscription.cancel();
           expect(data, isMap);
@@ -98,7 +98,7 @@ main() {
       subscription = window.onMessage.listen(expectAsyncUntil(
         (e) {
           var data = e.data;
-          if (data is String) return;    // Messages from unit test protocol.
+          if (data is String) return; //    Messages from unit test protocol.
           if (data['recipient'] != 'DART') return;  // Hearing the sent message.
           completed = true;
           subscription.cancel();
@@ -154,7 +154,7 @@ main() {
       subscription = window.on['stuff'].listen(expectAsyncUntil(
           (MessageEvent e) {
             var data = e.data;
-            if (data is String) return;    // Messages from unit test protocol.
+            if (data is String) return; //    Messages from unit test protocol.
             completed = true;
             subscription.cancel();
             expect(data, isMap);

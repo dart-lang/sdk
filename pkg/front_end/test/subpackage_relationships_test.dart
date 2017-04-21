@@ -16,10 +16,8 @@ main() async {
 /// Map from subpackage name to the rules for what the subpackage is allowed to
 /// depend directly on.
 ///
-/// Each subdirectory of `lib/src` is considered a subpackage.  Files in
-/// `lib/src` but not in a subdirectory are considered to be in the `lib/src`
-/// subpackage.  Files outside of `lib/src` (but still in `lib`) are considered
-/// to be in the `lib` subpackage.
+/// Each listed directory is considered a subpackage.  Each package contains all
+/// of its descendant files that are not in a more deeply nested subpackage.
 ///
 /// TODO(paulberry): stuff in lib/src shouldn't depend on lib; lib should just
 /// re-export stuff in lib/src.
@@ -33,7 +31,81 @@ final subpackageRules = {
       allowedDependencies: ['lib', 'lib/src/base', 'lib/src/scanner']),
   'lib/src/base': new SubpackageRules(
       mayImportAnalyzer: true, allowedDependencies: ['lib']),
-  'lib/src/scanner': new SubpackageRules(allowedDependencies: ['lib/src/base']),
+  'lib/src/codegen': new SubpackageRules(),
+  'lib/src/fasta':
+      new SubpackageRules(mayImportAnalyzer: false, allowedDependencies: [
+    'lib/src/fasta/builder',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel',
+    'lib/src/fasta/parser',
+    'lib/src/fasta/scanner',
+    'lib/src/fasta/testing',
+    'lib/src/fasta/util',
+  ]),
+  'lib/src/fasta/analyzer':
+      new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/builder',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel',
+    'lib/src/fasta/source',
+  ]),
+  'lib/src/fasta/builder': new SubpackageRules(allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/parser',
+    'lib/src/fasta/source',
+    'lib/src/fasta/util',
+  ]),
+  'lib/src/fasta/dill': new SubpackageRules(allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/kernel',
+  ]),
+  'lib/src/fasta/kernel': new SubpackageRules(allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/builder',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/parser',
+    'lib/src/fasta/scanner',
+    'lib/src/fasta/source',
+    'lib/src/fasta/util',
+  ]),
+  'lib/src/fasta/parser': new SubpackageRules(allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/scanner',
+    'lib/src/fasta/util',
+  ]),
+  'lib/src/fasta/scanner': new SubpackageRules(allowedDependencies: [
+    'lib/src/fasta',
+    // fasta scanner produces analyzer scanner tokens
+    'lib/src/scanner',
+    'lib/src/fasta/util',
+  ]),
+  'lib/src/fasta/source': new SubpackageRules(allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/builder',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel',
+    'lib/src/fasta/parser',
+    'lib/src/fasta/scanner',
+    'lib/src/fasta/util',
+  ]),
+  'lib/src/fasta/testing':
+      new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+    'lib/src/fasta',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel',
+    'lib/src/fasta/analyzer',
+    'lib/src/fasta/scanner',
+  ]),
+  'lib/src/fasta/util': new SubpackageRules(),
+  'lib/src/scanner': new SubpackageRules(allowedDependencies: [
+    'lib/src/base',
+    // For error codes.
+    'lib/src/fasta',
+    // fasta scanner produces analyzer scanner tokens
+    'lib/src/fasta/scanner',
+  ]),
 };
 
 /// Rules for what a subpackage may depend directly on.
@@ -41,12 +113,29 @@ class SubpackageRules {
   /// Indicates whether the subpackage may directly depend on analyzer.
   final bool mayImportAnalyzer;
 
+  /// Indicates whether dart files may exist in subdirectories of this
+  /// subpackage.
+  ///
+  /// If `false`, any subdirectory of this subpackage must be a separate
+  /// subpackage.
+  final bool allowSubdirs;
+
   /// Indicates which other subpackages a given subpackage may directly depend
   /// on.
   final List<String> allowedDependencies;
 
+  var actuallyContainsFiles = false;
+
+  var actuallyImportsAnalyzer = false;
+
+  var actuallyHasSubdirs = false;
+
+  var actualDependencies = new Set<String>();
+
   SubpackageRules(
-      {this.mayImportAnalyzer: false, this.allowedDependencies: const []});
+      {this.mayImportAnalyzer: false,
+      this.allowSubdirs: false,
+      this.allowedDependencies: const []});
 }
 
 class _SubpackageRelationshipsTest {
@@ -72,15 +161,21 @@ class _SubpackageRelationshipsTest {
           'subpackageRules');
       return;
     }
-    if (!srcSubpackageRules.mayImportAnalyzer &&
-        dst.pathSegments[0] == 'analyzer') {
-      problem('$src depends on $dst, but subpackage "$srcSubpackage" may not '
-          'import analyzer');
+    srcSubpackageRules.actuallyContainsFiles = true;
+    if (dst.pathSegments[0] == 'analyzer') {
+      if (srcSubpackageRules.mayImportAnalyzer) {
+        srcSubpackageRules.actuallyImportsAnalyzer = true;
+      } else {
+        problem('$src depends on $dst, but subpackage "$srcSubpackage" may not '
+            'import analyzer');
+      }
     }
     var dstSubPackage = subpackageForUri(dst);
     if (dstSubPackage == null) return;
     if (dstSubPackage == srcSubpackage) return;
-    if (!srcSubpackageRules.allowedDependencies.contains(dstSubPackage)) {
+    if (srcSubpackageRules.allowedDependencies.contains(dstSubPackage)) {
+      srcSubpackageRules.actualDependencies.add(dstSubPackage);
+    } else {
       problem('$src depends on $dst, but subpackage "$srcSubpackage" is not '
           'allowed to depend on subpackage "$dstSubPackage"');
     }
@@ -125,6 +220,22 @@ class _SubpackageRelationshipsTest {
         }
       }
     }
+    subpackageRules.forEach((subpackage, rule) {
+      if (!rule.actuallyContainsFiles) {
+        problem("$subpackage contains no files");
+      }
+      if (rule.mayImportAnalyzer && !rule.actuallyImportsAnalyzer) {
+        problem("$subpackage is allowed to import analyzer, but doesn't");
+      }
+      if (rule.allowSubdirs && !rule.actuallyHasSubdirs) {
+        problem("$subpackage is allowed to have subdirectories, but doesn't");
+      }
+      for (var dep in rule.allowedDependencies
+          .toSet()
+          .difference(rule.actualDependencies)) {
+        problem("$subpackage lists $dep as a dependency, but doesn't use it");
+      }
+    });
     return problemsReported ? 1 : 0;
   }
 
@@ -134,8 +245,29 @@ class _SubpackageRelationshipsTest {
   String subpackageForUri(Uri src) {
     if (src.scheme != 'package') return null;
     if (src.pathSegments[0] != 'front_end') return null;
-    if (src.pathSegments[1] != 'src') return 'lib';
-    if (src.pathSegments.length == 3) return 'lib/src';
-    return 'lib/src/${src.pathSegments[2]}';
+    var pathWithLib = 'lib/${src.pathSegments.skip(1).join('/')}';
+    String subpackage;
+    String pathWithinSubpackage;
+    for (var subpackagePath in subpackageRules.keys) {
+      var subpackagePathWithSlash = '$subpackagePath/';
+      if (pathWithLib.startsWith(subpackagePathWithSlash) &&
+          (subpackage == null || subpackage.length < subpackagePath.length)) {
+        subpackage = subpackagePath;
+        pathWithinSubpackage =
+            pathWithLib.substring(subpackagePathWithSlash.length);
+      }
+    }
+    if (subpackage == null) {
+      problem('Uri $src is inside package:front_end but is not in any known '
+          'subpackage');
+    } else if (pathWithinSubpackage.contains('/')) {
+      if (subpackageRules[subpackage].allowSubdirs) {
+        subpackageRules[subpackage].actuallyHasSubdirs = true;
+      } else {
+        problem('Uri $src is in a subfolder of $subpackage, but that '
+            'subpackage does not allow dart files in subdirectories.');
+      }
+    }
+    return subpackage;
   }
 }

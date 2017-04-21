@@ -1714,7 +1714,7 @@ main(bool p, bool p2, bool p3) {
   void _createRefactoring(String search) {
     int offset = findOffset(search);
     refactoring = new InlineMethodRefactoring(
-        searchEngine, getResolvedUnitWithElement, testUnit, offset);
+        searchEngine, astProvider, testUnit, offset);
   }
 }
 

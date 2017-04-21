@@ -95,8 +95,8 @@ class Symbol implements core.Symbol {
    * The empty symbol is handled before this regexp is used, and is not
    * accepted.
    */
-  static final RegExp symbolPattern = new RegExp(
-      '^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
+  static final RegExp symbolPattern =
+      new RegExp('^(?:$operatorRE\$|$identifierRE(?:=?\$|[.](?!\$)))+?\$');
 
   external const Symbol(String name);
 
@@ -107,8 +107,7 @@ class Symbol implements core.Symbol {
   const Symbol.unvalidated(this._name);
 
   // This is called by dart2js.
-  Symbol.validated(String name)
-      : this._name = validatePublicSymbol(name);
+  Symbol.validated(String name) : this._name = validatePublicSymbol(name);
 
   bool operator ==(other) => other is Symbol && _name == other._name;
 
@@ -127,8 +126,7 @@ class Symbol implements core.Symbol {
       // message.
       throw new ArgumentError('"$name" is a private identifier');
     }
-    throw new ArgumentError(
-        '"$name" is not a valid (qualified) symbol name');
+    throw new ArgumentError('"$name" is not a valid (qualified) symbol name');
   }
 
   /**

@@ -434,6 +434,24 @@ class SimulatorHelpers {
     return true;
   }
 
+  static bool ClearAsyncThreadStack(Thread* thread,
+                                    RawObject** FP,
+                                    RawObject** result) {
+    thread->clear_async_stack_trace();
+    *result = Object::null();
+    return true;
+  }
+
+  static bool SetAsyncThreadStackTrace(Thread* thread,
+                                       RawObject** FP,
+                                       RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    thread->set_raw_async_stack_trace(
+        reinterpret_cast<RawStackTrace*>(args[0]));
+    *result = Object::null();
+    return true;
+  }
+
   DART_FORCE_INLINE static RawCode* FrameCode(RawObject** FP) {
     ASSERT(GetClassId(FP[kPcMarkerSlotFromFp]) == kCodeCid);
     return static_cast<RawCode*>(FP[kPcMarkerSlotFromFp]);
@@ -504,6 +522,10 @@ void Simulator::InitOnce() {
   intrinsics_[kDouble_equalIntrinsic] = SimulatorHelpers::Double_equal;
   intrinsics_[kDouble_lessEqualThanIntrinsic] =
       SimulatorHelpers::Double_lessEqualThan;
+  intrinsics_[kClearAsyncThreadStackTraceIntrinsic] =
+      SimulatorHelpers::ClearAsyncThreadStack;
+  intrinsics_[kSetAsyncThreadStackTraceIntrinsic] =
+      SimulatorHelpers::SetAsyncThreadStackTrace;
 }
 
 
@@ -786,9 +808,6 @@ void Simulator::InlineCacheMiss(int checked_args,
       break;
     case 2:
       handler = DRT_InlineCacheMissHandlerTwoArgs;
-      break;
-    case 3:
-      handler = DRT_InlineCacheMissHandlerThreeArgs;
       break;
     default:
       UNREACHABLE();
@@ -1084,6 +1103,64 @@ static DART_NOINLINE bool InvokeNativeWrapper(Thread* thread,
   }
 
 #define LOAD_CONSTANT(index) (pp->data()[(index)].raw_obj_)
+
+
+// Returns true if deoptimization succeeds.
+DART_FORCE_INLINE bool Simulator::Deoptimize(Thread* thread,
+                                             RawObjectPool** pp,
+                                             uint32_t** pc,
+                                             RawObject*** FP,
+                                             RawObject*** SP,
+                                             bool is_lazy) {
+  // Note: frame translation will take care of preserving result at the
+  // top of the stack. See CompilerDeoptInfo::CreateDeoptInfo.
+
+  // Make sure we preserve SP[0] when entering synthetic frame below.
+  (*SP)++;
+
+  // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
+  // The code in this frame may not cause GC.
+  // DeoptimizeCopyFrame and DeoptimizeFillFrame are leaf runtime calls.
+  EnterSyntheticFrame(FP, SP, *pc - (is_lazy ? 1 : 0));
+  const intptr_t frame_size_in_bytes =
+      DLRT_DeoptimizeCopyFrame(reinterpret_cast<uword>(*FP), is_lazy ? 1 : 0);
+  LeaveSyntheticFrame(FP, SP);
+
+  *SP = *FP + (frame_size_in_bytes / kWordSize);
+  EnterSyntheticFrame(FP, SP, *pc - (is_lazy ? 1 : 0));
+  DLRT_DeoptimizeFillFrame(reinterpret_cast<uword>(*FP));
+
+  // We are now inside a valid frame.
+  {
+    *++(*SP) = 0;  // Space for the result: number of materialization args.
+    Exit(thread, *FP, *SP + 1, /*pc=*/0);
+    NativeArguments native_args(thread, 0, *SP, *SP);
+    if (!InvokeRuntime(thread, this, DRT_DeoptimizeMaterialize, native_args)) {
+      return false;
+    }
+  }
+  const intptr_t materialization_arg_count =
+      Smi::Value(RAW_CAST(Smi, *(*SP)--)) / kWordSize;
+
+  // Restore caller PC.
+  *pc = SavedCallerPC(*FP);
+  pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
+
+  // Check if it is a fake PC marking the entry frame.
+  ASSERT((reinterpret_cast<uword>(*pc) & 2) == 0);
+
+  // Restore SP, FP and PP.
+  // Unoptimized frame SP is one below FrameArguments(...) because
+  // FrameArguments(...) returns a pointer to the first argument.
+  *SP = FrameArguments(*FP, materialization_arg_count) - 1;
+  *FP = SavedCallerFP(*FP);
+
+  // Restore pp.
+  *pp = SimulatorHelpers::FrameCode(*FP)->ptr()->object_pool_->ptr();
+
+  return true;
+}
+
 
 RawObject* Simulator::Call(const Code& code,
                            const Array& arguments_descriptor,
@@ -1777,6 +1854,28 @@ RawObject* Simulator::Call(const Code& code,
       }
     }
     pc += 2 * cids_length;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(PushPolymorphicInstanceCallByRange, A_D);
+    const uint8_t argc = rA;
+    const intptr_t cids_length = rD;
+    RawObject** args = SP - argc + 1;
+    const intptr_t receiver_cid = SimulatorHelpers::GetClassId(args[0]);
+    for (intptr_t i = 0; i < 3 * cids_length; i += 3) {
+      // Note unsigned types to get an unsigned range compare.
+      const uintptr_t cid_start = Bytecode::DecodeD(*(pc + i));
+      const uintptr_t cids = Bytecode::DecodeD(*(pc + i + 1));
+      if (receiver_cid - cid_start < cids) {
+        RawFunction* target =
+            RAW_CAST(Function, LOAD_CONSTANT(Bytecode::DecodeD(*(pc + i + 2))));
+        *++SP = target;
+        pc++;
+        break;
+      }
+    }
+    pc += 3 * cids_length;
     DISPATCH();
   }
 
@@ -2847,7 +2946,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(InstanceOf, A);  // Stack: instance, type args, type, cache
+    BYTECODE(InstanceOf, 0);  // Stack: instance, type args, type, cache
     RawInstance* instance = static_cast<RawInstance*>(SP[-3]);
     RawTypeArguments* instantiator_type_arguments =
         static_cast<RawTypeArguments*>(SP[-2]);
@@ -2862,7 +2961,7 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* instance_cid_or_function;
       if (cid == kClosureCid) {
         RawClosure* closure = static_cast<RawClosure*>(instance);
-        instance_type_arguments = closure->ptr()->type_arguments_;
+        instance_type_arguments = closure->ptr()->instantiator_;
         instance_cid_or_function = closure->ptr()->function_;
       } else {
         instance_cid_or_function = Smi::New(cid);
@@ -2907,9 +3006,6 @@ RawObject* Simulator::Call(const Code& code,
 
   InstanceOfOk:
     SP -= 3;
-    if (rA) {  // Negate result.
-      SP[0] = (SP[0] == true_value) ? false_value : true_value;
-    }
     DISPATCH();
   }
 
@@ -2951,7 +3047,7 @@ RawObject* Simulator::Call(const Code& code,
         RawObject* instance_cid_or_function;
         if (cid == kClosureCid) {
           RawClosure* closure = static_cast<RawClosure*>(instance);
-          instance_type_arguments = closure->ptr()->type_arguments_;
+          instance_type_arguments = closure->ptr()->instantiator_;
           instance_cid_or_function = closure->ptr()->function_;
         } else {
           instance_cid_or_function = Smi::New(cid);
@@ -3118,6 +3214,31 @@ RawObject* Simulator::Call(const Code& code,
       for (intptr_t i = 0; i < cids_length; i++) {
         const intptr_t desired_cid = Bytecode::DecodeD(*(pc + i));
         if (cid == desired_cid) {
+          pc++;
+          break;
+        }
+      }
+      pc += cids_length;
+    } else {
+      pc += cids_length;
+      pc += (may_be_smi ? 1 : 0);
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckCidsByRange, A_B_C);
+    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
+    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
+    const bool may_be_smi = (rB == 1);
+    const intptr_t cids_length = rC;
+    if (LIKELY(!is_smi)) {
+      const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+      for (intptr_t i = 0; i < cids_length; i += 2) {
+        // Note unsigned type to get unsigned range check below.
+        const uintptr_t cid_start = Bytecode::DecodeD(*(pc + i));
+        const uintptr_t cids = Bytecode::DecodeD(*(pc + i + 1));
+        if (cid - cid_start < cids) {
           pc++;
           break;
         }
@@ -3554,50 +3675,25 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(Deopt, A_D);
-
-    // Note: frame translation will take care of preserving result at the
-    // top of the stack. See CompilerDeoptInfo::CreateDeoptInfo.
     const bool is_lazy = rD == 0;
-
-    // Make sure we preserve SP[0] when entering synthetic frame below.
-    SP++;
-
-    // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
-    // The code in this frame may not cause GC.
-    // DeoptimizeCopyFrame and DeoptimizeFillFrame are leaf runtime calls.
-    EnterSyntheticFrame(&FP, &SP, pc - (is_lazy ? 1 : 0));
-    const intptr_t frame_size_in_bytes =
-        DLRT_DeoptimizeCopyFrame(reinterpret_cast<uword>(FP), is_lazy ? 1 : 0);
-    LeaveSyntheticFrame(&FP, &SP);
-
-    SP = FP + (frame_size_in_bytes / kWordSize);
-    EnterSyntheticFrame(&FP, &SP, pc - (is_lazy ? 1 : 0));
-    DLRT_DeoptimizeFillFrame(reinterpret_cast<uword>(FP));
-
-    // We are now inside a valid frame.
-    {
-      *++SP = 0;  // Space for the result: number of materialization args.
-      Exit(thread, FP, SP + 1, /*pc=*/0);
-      NativeArguments native_args(thread, 0, SP, SP);
-      INVOKE_RUNTIME(DRT_DeoptimizeMaterialize, native_args);
+    if (!Deoptimize(thread, &pp, &pc, &FP, &SP, is_lazy)) {
+      HANDLE_EXCEPTION;
     }
-    const intptr_t materialization_arg_count =
-        Smi::Value(RAW_CAST(Smi, *SP--)) / kWordSize;
+    DISPATCH();
+  }
 
-    // Restore caller PC.
-    pc = SavedCallerPC(FP);
-    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
-
-    // Check if it is a fake PC marking the entry frame.
-    ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);
-
-    // Restore SP, FP and PP.
-    // Unoptimized frame SP is one below FrameArguments(...) because
-    // FrameArguments(...) returns a pointer to the first argument.
-    SP = FrameArguments(FP, materialization_arg_count) - 1;
-    FP = SavedCallerFP(FP);
-    pp = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_->ptr();
-
+  {
+    BYTECODE(DeoptRewind, 0);
+    pc = reinterpret_cast<uint32_t*>(thread->resume_pc());
+    if (!Deoptimize(thread, &pp, &pc, &FP, &SP, false /* eager */)) {
+      HANDLE_EXCEPTION;
+    }
+    {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_RewindPostDeopt, args);
+    }
+    UNREACHABLE();  // DRT_RewindPostDeopt does not exit normally.
     DISPATCH();
   }
 
@@ -3680,7 +3776,7 @@ RawObject* Simulator::Call(const Code& code,
 
 void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
-  // and try to find the setjmp associated with the simulated stack pointer.
+  // and try to find the setjmp associated with the simulated frame pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
   while ((buf->link() != NULL) && (buf->link()->fp() > fp)) {
     buf = buf->link();
@@ -3709,17 +3805,6 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     special_[kExceptionSpecialIndex] = raw_exception;
     special_[kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
-  } else if (pc == StubCode::DeoptForRewind_entry()->EntryPoint()) {
-    // The DeoptForRewind stub is a placeholder.  We will eventually
-    // implement its behavior here.
-    //
-    // TODO(turnidge): Refactor the Deopt bytecode so that we can use
-    // the implementation here too.  The deopt pc is stored in
-    // Thread::resume_pc().  After invoking deoptimization, we usually
-    // call into Debugger::RewindPostDeopt(), but I need to figure out
-    // if that makes any sense (it would JumpToFrame during a
-    // JumpToFrame, which seems wrong).
-    UNIMPLEMENTED();
   } else {
     pc_ = pc;
   }

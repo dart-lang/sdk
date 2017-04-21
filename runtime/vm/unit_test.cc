@@ -32,7 +32,8 @@ TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
 
 
-TestCaseBase::TestCaseBase(const char* name) : next_(NULL), name_(name) {
+TestCaseBase::TestCaseBase(const char* name)
+    : raw_test_(false), next_(NULL), name_(name) {
   if (first_ == NULL) {
     first_ = this;
   } else {
@@ -42,10 +43,23 @@ TestCaseBase::TestCaseBase(const char* name) : next_(NULL), name_(name) {
 }
 
 
+void TestCaseBase::RunAllRaw() {
+  TestCaseBase* test = first_;
+  while (test != NULL) {
+    if (test->raw_test_) {
+      test->RunTest();
+    }
+    test = test->next_;
+  }
+}
+
+
 void TestCaseBase::RunAll() {
   TestCaseBase* test = first_;
   while (test != NULL) {
-    test->RunTest();
+    if (!test->raw_test_) {
+      test->RunTest();
+    }
     test = test->next_;
   }
 }
@@ -431,7 +445,6 @@ void CodeGenTest::Compile() {
   ParsedFunction* parsed_function =
       new ParsedFunction(Thread::Current(), function_);
   parsed_function->SetNodeSequence(node_sequence_);
-  parsed_function->set_instantiator(NULL);
   parsed_function->set_default_parameter_values(default_parameter_values_);
   node_sequence_->scope()->AddVariable(parsed_function->current_context_var());
   parsed_function->EnsureExpressionTemp();

@@ -20,28 +20,31 @@ class HeapSnapshotLoadingProgressMock implements M.HeapSnapshotLoadingProgress {
   final Duration loadingTime;
   final M.HeapSnapshot snapshot;
 
-  const HeapSnapshotLoadingProgressMock({
-      this.status : M.HeapSnapshotLoadingStatus.fetching, this.progress: 0.0,
-      this.stepDescription: '', this.fetchingTime, this.loadingTime,
+  const HeapSnapshotLoadingProgressMock(
+      {this.status: M.HeapSnapshotLoadingStatus.fetching,
+      this.progress: 0.0,
+      this.stepDescription: '',
+      this.fetchingTime,
+      this.loadingTime,
       this.snapshot});
 }
 
-typedef Stream<M.HeapSnapshotLoadingProgressEvent>
-    HeapSnapshotRepositoryMockCallback(M.IsolateRef cls, bool gc);
+typedef Stream<
+    M
+        .HeapSnapshotLoadingProgressEvent> HeapSnapshotRepositoryMockCallback(
+    M.IsolateRef cls, bool gc);
 
-class HeapSnapshotRepositoryMock
-    implements M.HeapSnapshotRepository {
+class HeapSnapshotRepositoryMock implements M.HeapSnapshotRepository {
   final HeapSnapshotRepositoryMockCallback _get;
 
   Stream<M.HeapSnapshotLoadingProgressEvent> get(M.IsolateRef isolate,
-                                               {bool gc: false}) {
+      {M.HeapSnapshotRoots roots: M.HeapSnapshotRoots.vm, bool gc: false}) {
     if (_get != null) {
       return _get(isolate, gc);
     }
     return null;
   }
 
-  HeapSnapshotRepositoryMock(
-      {HeapSnapshotRepositoryMockCallback getter})
-    : _get = getter;
+  HeapSnapshotRepositoryMock({HeapSnapshotRepositoryMockCallback getter})
+      : _get = getter;
 }

@@ -4,16 +4,15 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show
-    patch,
-    Primitives;
-import 'dart:_isolate_helper' show
-    IsolateNatives,
-    TimerImpl,
-    global,
-    leaveJsAsync,
-    enterJsAsync,
-    isWorker;
+import 'dart:_js_helper' show patch, Primitives;
+import 'dart:_isolate_helper'
+    show
+        IsolateNatives,
+        TimerImpl,
+        global,
+        leaveJsAsync,
+        enterJsAsync,
+        isWorker;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -49,11 +48,13 @@ class _AsyncRun {
         var f = storedCallback;
         storedCallback = null;
         f();
-      };
+      }
 
-      var observer = JS('', 'new #.MutationObserver(#)', global, internalCallback);
-      JS('', '#.observe(#, { childList: true })',
-          observer, div);
+      ;
+
+      var observer =
+          JS('', 'new #.MutationObserver(#)', global, internalCallback);
+      JS('', '#.observe(#, { childList: true })', observer, div);
 
       return (void callback()) {
         assert(storedCallback == null);
@@ -62,8 +63,8 @@ class _AsyncRun {
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
         // See https://github.com/Polymer/ShadowDOM/issues/468
-        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
-            div, div, span, div, span);
+        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div,
+            span, div, span);
       };
     } else if (JS('', '#.setImmediate', global) != null) {
       return _scheduleImmediateWithSetImmediate;
@@ -76,7 +77,9 @@ class _AsyncRun {
     internalCallback() {
       leaveJsAsync();
       callback();
-    };
+    }
+
+    ;
     enterJsAsync();
     JS('void', '#.scheduleImmediate(#)', global, internalCallback);
   }
@@ -85,7 +88,9 @@ class _AsyncRun {
     internalCallback() {
       leaveJsAsync();
       callback();
-    };
+    }
+
+    ;
     enterJsAsync();
     JS('void', '#.setImmediate(#)', global, internalCallback);
   }
@@ -100,7 +105,7 @@ class DeferredLibrary {
   @patch
   Future<Null> load() {
     throw 'DeferredLibrary not supported. '
-          'please use the `import "lib.dart" deferred as lib` syntax.';
+        'please use the `import "lib.dart" deferred as lib` syntax.';
   }
 }
 
@@ -114,8 +119,8 @@ class Timer {
   }
 
   @patch
-  static Timer _createPeriodicTimer(Duration duration,
-                             void callback(Timer timer)) {
+  static Timer _createPeriodicTimer(
+      Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return new TimerImpl.periodic(milliseconds, callback);

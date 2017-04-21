@@ -16,12 +16,12 @@ class AnalysisStatus {
   const AnalysisStatus._(this._analyzing);
 
   /**
-   * Return `true` is the driver is analyzing.
+   * Return `true` if the scheduler is analyzing.
    */
   bool get isAnalyzing => _analyzing;
 
   /**
-   * Return `true` is the driver is idle.
+   * Return `true` if the scheduler is idle.
    */
   bool get isIdle => !_analyzing;
 
@@ -89,25 +89,37 @@ class StatusSupport {
   Stream<AnalysisStatus> get stream => _statusController.stream;
 
   /**
-   * Send a notifications to the [stream] that the driver started analyzing.
+   * Prepare for the scheduler to start analyzing, but do not notify the
+   * [stream] yet.
+   *
+   * A call to [preTransitionToAnalyzing] has the same effect on [waitForIdle]
+   * as a call to [transitionToAnalyzing], but it has no effect on the [stream].
+   */
+  void preTransitionToAnalyzing() {
+    _idleCompleter ??= new Completer<Null>();
+  }
+
+  /**
+   * Send a notification to the [stream] that the scheduler started analyzing.
    */
   void transitionToAnalyzing() {
     if (_currentStatus != AnalysisStatus.ANALYZING) {
+      preTransitionToAnalyzing();
       _currentStatus = AnalysisStatus.ANALYZING;
       _statusController.add(AnalysisStatus.ANALYZING);
     }
   }
 
   /**
-   * Send a notifications to the [stream] stream that the driver is idle.
+   * Send a notification to the [stream] stream that the scheduler is idle.
    */
   void transitionToIdle() {
     if (_currentStatus != AnalysisStatus.IDLE) {
       _currentStatus = AnalysisStatus.IDLE;
       _statusController.add(AnalysisStatus.IDLE);
-      _idleCompleter?.complete();
-      _idleCompleter = null;
     }
+    _idleCompleter?.complete();
+    _idleCompleter = null;
   }
 
   /**
@@ -117,11 +129,6 @@ class StatusSupport {
    * immediately.
    */
   Future<Null> waitForIdle() {
-    if (_currentStatus == AnalysisStatus.IDLE) {
-      return new Future.value();
-    } else {
-      _idleCompleter ??= new Completer<Null>();
-      return _idleCompleter.future;
-    }
+    return _idleCompleter?.future ?? new Future.value();
   }
 }

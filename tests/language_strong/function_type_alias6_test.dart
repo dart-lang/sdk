@@ -5,23 +5,24 @@
 
 import "package:expect/expect.dart";
 
-typedef F(List
-              <F>  /// 00: compile-time error
-                  x);
+typedef F(
+    List
+              <F> // //# 00: compile-time error
+    x);
 
 typedef D C();
 
 class D {
-  C foo() { }
-  D bar() { }
+  C foo() {}
+  D bar() {}
 }
 
 main() {
-  var f = (List x) { };
+  var f = (List x) {};
   Expect.isTrue(f is F);
-  var g = (List<F> x) { };
+  var g = (List<F> x) {};
   Expect.isTrue(g is F);
   var d = new D();
-  Expect.isTrue(d.foo is !C);
+  Expect.isTrue(d.foo is! C);
   Expect.isTrue(d.bar is C);
 }

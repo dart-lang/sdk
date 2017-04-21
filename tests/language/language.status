@@ -5,6 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+[ ($runtime == vm || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
+abstract_beats_arguments2_test/01: Crash # Issue 29171
+
 # These test entries will be valid for vm/dartium (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 async_star_cancel_while_paused_test: RuntimeError
@@ -44,7 +47,7 @@ least_upper_bound_expansive_test/*: Fail, OK
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
 
-deferred_redirecting_factory_test: Fail # Issue 23408
+deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
@@ -68,8 +71,10 @@ vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 type_variable_bounds4_test/01: Fail # Issue 14006
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
-dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dartk || $compiler == dartkp) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
+dynamic_prefix_core_test/none: Fail # Issue 12478
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
 assertion_test: Fail # Issue 14651.
@@ -85,6 +90,7 @@ type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+abstract_beats_arguments2_test/01: Skip # Issue 29171
 # Other issues.
 issue13474_test: Pass, Fail # Issue 14651.
 config_import_test: Fail # Issue 14651.
@@ -152,18 +158,6 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 
-[ $runtime == dart_precompiled ]
-# Stacktraces in precompilation omit inlined frames.
-full_stacktrace1_test: Pass, RuntimeError
-full_stacktrace2_test: Pass, RuntimeError
-full_stacktrace3_test: Pass, RuntimeError
-stack_trace_test: Pass, RuntimeError
-stacktrace_rethrow_error_test: Pass, RuntimeError
-stacktrace_rethrow_nonerror_test: Pass, RuntimeError
-stacktrace_test: Pass, RuntimeError
-vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
-
-
 [ $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
@@ -187,21 +181,26 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 regress_28255_test: SkipByDesign
+# Causal async stacks are not supported in product mode
+vm/causal_async_exception_stack_test: SkipByDesign
+vm/causal_async_exception_stack2_test: SkipByDesign
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
 
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash
+
 [ $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 deferred_global_test: Fail
 vm/regress_27201_test: Fail
+regress_23408_test: RuntimeError
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
@@ -248,6 +247,8 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 
 [ $hot_reload || $hot_reload_rollback ]
+issue21159_test: Pass, Crash # Issue 29094
+issue_22780_test/01: Pass, Crash # Issue 29094
 static_closure_identical_test: Pass, Fail # Closure identity
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
@@ -312,10 +313,14 @@ vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 # Use package:unittest
 async_await_test: RuntimeError
 async_star_test: RuntimeError
+vm/causal_async_exception_stack_test: RuntimeError
 # TODO(zra): Investigate
 vm/regress_28325_test: RuntimeError
-closure_cycles_test: Crash
+closure_cycles_test: Pass, Crash
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dartium || $runtime == drt) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
+await_for_test: RuntimeError # issue 28974

@@ -315,6 +315,5 @@ abstract class int extends num {
    * not invoked if the [source] is, for example, `null`.
    */
   external static int parse(String source,
-                            { int radix,
-                              int onError(String source) });
+      {int radix, int onError(String source)});
 }

@@ -19,20 +19,20 @@ never() {
 main() {
   if (never()) {
     // These should not produce errors because the calls are never executed.
-    new A();         /// 01: static type warning
-    new A.foo();     /// 02: static type warning
-    new lib.A();     /// 03: static type warning
+    new A(); //        //# 01: static type warning
+    new A.foo(); //    //# 02: static type warning
+    new lib.A(); //    //# 03: static type warning
   }
 
-  new A();         /// 04: static type warning, runtime error
-  new A.foo();     /// 05: static type warning, runtime error
-  new lib.A();     /// 06: static type warning, runtime error
+  new A(); //        //# 04: static type warning, runtime error
+  new A.foo(); //    //# 05: static type warning, runtime error
+  new lib.A(); //    //# 06: static type warning, runtime error
 
-  var ex;                    /// 07: static type warning
-  try {                      /// 07: continued
-    new A();                 /// 07: continued
-  } catch (e) {              /// 07: continued
-    ex = e;                  /// 07: continued
-  }                          /// 07: continued
-  Expect.isTrue(ex != null); /// 07: continued
+  var ex; //                   //# 07: static type warning
+  try { //                     //# 07: continued
+    new A(); //                //# 07: continued
+  } catch (e) { //             //# 07: continued
+    ex = e; //                 //# 07: continued
+  } //                         //# 07: continued
+  Expect.isTrue(ex != null); //# 07: continued
 }

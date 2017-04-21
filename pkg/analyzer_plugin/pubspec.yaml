@@ -1,0 +1,16 @@
+name: analyzer_plugin
+description: A framework for building plugins for the analysis server.
+version: 0.0.1-alpha.0
+author: Dart Team <misc@dartlang.org>
+
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+
+dependencies:
+  analyzer: 0.30.0-alpha.0
+  html: any
+  path: any
+
+dev_dependencies:
+  test_reflective_loader: ^0.1.0
+  test: ^0.12.17

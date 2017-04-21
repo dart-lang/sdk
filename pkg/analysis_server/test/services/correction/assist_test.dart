@@ -15,6 +15,8 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -23,6 +25,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import 'flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1012,6 +1015,129 @@ class A {
   /// BBBBBBBB BBBB BBBB
   /// CCC [A] CCCCCCCCCCC
   mmm() {}
+}
+''');
+  }
+
+  test_convertFlutterChild_OK_multiLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/child: new Container(
+        width: 200.0,
+        height: 300.0,
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.CONVERT_FLUTTER_CHILD,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/children: <Widget>[
+        new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ],
+      key: null,
+    ),
+// end
+  );
+}
+''');
+  }
+
+  test_convertFlutterChild_OK_newlineChild() async {
+    // This case could occur with deeply nested constructors, common in Flutter.
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/child:
+          new Container(
+        width: 200.0,
+        height: 300.0,
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.CONVERT_FLUTTER_CHILD,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/children: <Widget>[
+        new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ],
+      key: null,
+    ),
+// end
+  );
+}
+''');
+  }
+
+  test_convertFlutterChild_OK_singleLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/child: new GestureDetector(),
+      key: null,
+    ),
+// end
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.CONVERT_FLUTTER_CHILD,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      /*caret*/children: <Widget>[new GestureDetector()],
+      key: null,
+    ),
+// end
+  );
 }
 ''');
   }
@@ -3482,6 +3608,104 @@ main() {
 ''');
   }
 
+  test_moveFlutterWidgetDown_OK() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new /*caret*/GestureDetector(
+      onTap: () => startResize(),
+      child: new Center(
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+        key: null,
+      ),
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      child: new /*caret*/GestureDetector(
+        onTap: () => startResize(),
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+  }
+
+  test_moveFlutterWidgetUp_OK() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new Center(
+      child: new /*caret*/GestureDetector(
+        onTap: () => startResize(),
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ),
+      key: null,
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.MOVE_FLUTTER_WIDGET_UP,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+// start
+    body: new /*caret*/GestureDetector(
+      onTap: () => startResize(),
+      child: new Center(
+        child: new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+        key: null,
+      ),
+    ),
+// end
+  );
+}
+startResize() {}
+''');
+  }
+
   test_removeTypeAnnotation_classField_OK() async {
     await resolveTestUnit('''
 class A {
@@ -3600,6 +3824,231 @@ final int V = 1;
         DartAssistKind.REMOVE_TYPE_ANNOTATION,
         '''
 final V = 1;
+''');
+  }
+
+  test_reparentFlutterList_BAD_multiLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+      children: [/*caret*/
+// start
+        new Transform(),
+        new Object(),
+        new AspectRatio(),
+// end
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_LIST);
+  }
+
+  test_reparentFlutterList_BAD_singleLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+  var obj;
+// start
+    return new Row(children: [/*caret*/ new Transform()]);
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_LIST);
+  }
+
+  test_reparentFlutterList_OK_multiLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+// start
+      children: [/*caret*/
+        new Transform(),
+        new Transform(),
+        new AspectRatio(),
+      ],
+// end
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_LIST,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+// start
+      children: [
+        new widget(
+          children: [/*caret*/
+            new Transform(),
+            new Transform(),
+            new AspectRatio(),
+          ],
+        ),
+      ],
+// end
+    ),
+  );
+}
+''');
+  }
+
+  test_reparentFlutterWidget_BAD_minimal() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+/*caret*/x(){}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
+  }
+
+  test_reparentFlutterWidget_BAD_singleLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+  var obj;
+// start
+    return new Container(child: obj.xyz./*caret*/abc);
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
+  }
+
+  test_reparentFlutterWidget_OK_multiLines() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: new /*caret*/DefaultTextStyle(
+        child: new Row(
+          children: <Widget>[
+            new Container(
+            ),
+          ],
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: new widget(
+        child: new /*caret*/DefaultTextStyle(
+          child: new Row(
+            children: <Widget>[
+              new Container(
+              ),
+            ],
+          ),
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidget_OK_singleLine1() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/new Container();
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/new widget(child: new Container());
+// end
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidget_OK_singleLine2() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return new ClipRect./*caret*/rect();
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return new widget(child: new ClipRect./*caret*/rect());
+// end
+  }
+}
 ''');
   }
 
@@ -4208,6 +4657,34 @@ main() {
     return await processor.compute();
   }
 
+  /**
+   * Configures the [SourceFactory] to have the `flutter` package in
+   * `/packages/flutter/lib` folder.
+   */
+  void _configureFlutterPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('$flutterPkgLibPath/$path', code);
+    });
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'flutter': [myPkgFolder]
+    });
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      context.sourceFactory = sourceFactory;
+    }
+    // force 'flutter' resolution
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:flutter/$path';")
+            .join('\n'));
+  }
+
   List<Position> _findResultPositions(List<String> searchStrings) {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
@@ -4215,6 +4692,11 @@ main() {
       positions.add(new Position(testFile, offset));
     }
     return positions;
+  }
+
+  void _setCaretLocation() {
+    offset = findOffset('/*caret*/') + '/*caret*/'.length;
+    length = 0;
   }
 
   void _setStartEndSelection() {

@@ -7,7 +7,7 @@
 *: SkipByDesign
 
 # Skip tests that are not yet strong-mode clean.
-[ $strong == true ]
+[ $strong ]
 convert/chunked_conversion1_test: Skip
 convert/chunked_conversion_json_encode1_test: Skip
 convert/chunked_conversion_utf84_test: Skip
@@ -15,6 +15,7 @@ convert/chunked_conversion_utf88_test: Skip
 convert/chunked_conversion_utf8_test: Skip
 convert/line_splitter_test: Skip
 html/cross_frame_test: Skip
+html/element_dimensions_test: Skip
 html/element_test: Skip
 html/events_test: Skip
 html/fileapi_test: Skip
@@ -130,3 +131,13 @@ mirrors/variable_is_const_test: Skip
 typed_data/float32x4_test: Skip
 typed_data/float64x2_functional_test: Skip
 typed_data/int32x4_test: Skip
+
+[ $compiler == dart2analyzer && $strong ]
+html/custom/created_callback_test: CompileTimeError # Issue 28969
+html/custom/document_register_basic_test: CompileTimeError # Issue 28969
+html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
+html/custom/element_upgrade_test: CompileTimeError # Issue 28969
+html/debugger_test: CompileTimeError # Issue 28969
+# html/input_element_test: CompileTimeError
+html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
+mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969

@@ -176,13 +176,11 @@ class RootCommand extends _CommandBase {
     var args = _splitLine(line);
     var commands = _match(args, true);
     if (commands.isEmpty) {
-      // TODO(turnidge): Add a proper exception class for this.
-      return new Future.error('No such command');
+      return new Future.error(new NoSuchCommandException(line));
     } else if (commands.length == 1) {
       return commands[0].run(args.sublist(commands[0]._depth));
     } else {
-      // TODO(turnidge): Add a proper exception class for this.
-      return new Future.error('Ambiguous command');
+      return new Future.error(new AmbiguousCommandException(line, commands));
     }
   }
 
@@ -253,4 +251,29 @@ abstract class Command extends _CommandBase {
   }
 
   toString() => 'Command(${name})';
+}
+
+abstract class CommandException implements Exception {}
+
+class AmbiguousCommandException extends CommandException {
+  AmbiguousCommandException(this.command, this.matches);
+
+  final String command;
+  final List<Command> matches;
+
+  @override
+  String toString() {
+    List<String> matchNames =
+        matches.map((Command command) => '${command.fullName}').toList();
+    return "Command '$command' is ambiguous: $matchNames";
+  }
+}
+
+class NoSuchCommandException extends CommandException {
+  NoSuchCommandException(this.command);
+
+  final String command;
+
+  @override
+  String toString() => "No such command: '$command'";
 }

@@ -30,20 +30,19 @@ import 'package:js_runtime/shared/embedded_names.dart'
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
+import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
-import '../../io/line_column_provider.dart'
-    show LineColumnCollector, LineColumnProvider;
+import '../../io/line_column_provider.dart' show LineColumnCollector;
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
-import '../../util/uri_extras.dart' show relativize;
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;
@@ -194,7 +193,7 @@ class ModelEmitter {
     writeMainFragment(mainFragment, mainCode,
         isSplit: program.deferredFragments.isNotEmpty);
 
-    if (backend.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
@@ -251,7 +250,7 @@ class ModelEmitter {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js'), codeOutputListeners);
+        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
     js.Program program = new js.Program([
@@ -265,15 +264,20 @@ class ModelEmitter {
         js.createCodeBuffer(program, compiler, monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
-      mainOutput.add(generateSourceMapTag(
+      mainOutput.add(SourceMapBuilder.generateSourceMapTag(
           compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (shouldGenerateSourceMap) {
-      outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.options.sourceMapUri, compiler.options.outputUri);
+      SourceMapBuilder.outputSourceMap(
+          mainOutput,
+          lineColumnCollector,
+          '',
+          compiler.options.sourceMapUri,
+          compiler.options.outputUri,
+          compiler.outputProvider);
     }
   }
 
@@ -296,7 +300,8 @@ class ModelEmitter {
     String hunkPrefix = fragment.outputFileName;
 
     CodeOutput output = new StreamCodeOutput(
-        compiler.outputProvider(hunkPrefix, deferredExtension),
+        compiler.outputProvider(
+            hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
     outputBuffers[fragment] = output;
@@ -350,40 +355,15 @@ class ModelEmitter {
             compiler.options.outputUri.replace(pathSegments: partSegments);
       }
 
-      output.add(generateSourceMapTag(mapUri, partUri));
+      output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
       output.close();
-      outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
+      SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+          mapUri, partUri, compiler.outputProvider);
     } else {
       output.close();
     }
 
     return hash;
-  }
-
-  String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
-    if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
-      return '''
-
-//# sourceMappingURL=$sourceMapFileName
-''';
-    }
-    return '';
-  }
-
-  void outputSourceMap(
-      CodeOutput output, LineColumnProvider lineColumnProvider, String name,
-      [Uri sourceMapUri, Uri fileUri]) {
-    if (!shouldGenerateSourceMap) return;
-    // Create a source file for the compilation output. This allows using
-    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
-    SourceMapBuilder sourceMapBuilder =
-        new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
-    output.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build();
-    compiler.outputProvider(name, 'js.map')
-      ..add(sourceMap)
-      ..close();
   }
 
   /// Writes a mapping from library-name to hunk files.
@@ -398,7 +378,7 @@ class ModelEmitter {
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
     compiler.outputProvider(
-        compiler.options.deferredMapUri.path, 'deferred_map')
+        compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

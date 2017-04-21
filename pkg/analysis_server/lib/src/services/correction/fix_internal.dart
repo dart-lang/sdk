@@ -15,10 +15,12 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart'
     as rf;
 import 'package:analysis_server/src/services/correction/strings.dart';
@@ -34,6 +36,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,10 +46,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
 
 /**
@@ -61,10 +62,11 @@ typedef bool ElementPredicate(Element argument);
  */
 class DartFixContextImpl extends FixContextImpl implements DartFixContext {
   final GetTopLevelDeclarations getTopLevelDeclarations;
+  final AstProvider astProvider;
   final CompilationUnit unit;
 
-  DartFixContextImpl(
-      FixContext fixContext, this.getTopLevelDeclarations, this.unit)
+  DartFixContextImpl(FixContext fixContext, this.getTopLevelDeclarations,
+      this.astProvider, this.unit)
       : super.from(fixContext);
 }
 
@@ -76,7 +78,8 @@ class DefaultFixContributor extends DartFixContributor {
   Future<List<Fix>> internalComputeFixes(DartFixContext context) async {
     try {
       FixProcessor processor = new FixProcessor(context);
-      return processor.compute();
+      List<Fix> fixes = await processor.compute();
+      return fixes;
     } on CancelCorrectionException {
       return Fix.EMPTY_LIST;
     }
@@ -90,6 +93,7 @@ class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
   ResourceProvider resourceProvider;
+  AstProvider astProvider;
   GetTopLevelDeclarations getTopLevelDeclarations;
   CompilationUnit unit;
   AnalysisError error;
@@ -120,6 +124,7 @@ class FixProcessor {
 
   FixProcessor(DartFixContext dartContext) {
     resourceProvider = dartContext.resourceProvider;
+    astProvider = dartContext.astProvider;
     getTopLevelDeclarations = dartContext.getTopLevelDeclarations;
     context = dartContext.analysisContext;
     // unit
@@ -254,14 +259,18 @@ class FixProcessor {
       _addFix_replaceVarWithDynamic();
     }
     if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL) {
-      _addFix_makeFieldNotFinal();
+      await _addFix_makeFieldNotFinal();
     }
     if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
       _addFix_makeEnclosingClassAbstract();
     }
     if (errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS) {
       _addFix_createConstructor_insteadOfSyntheticDefault();
-      _addFix_addMissingParameter();
+      await _addFix_addMissingParameter();
+    }
+    if (errorCode == HintCode.MISSING_REQUIRED_PARAM ||
+        errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
+      _addFix_addMissingRequiredArgument();
     }
     if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
       _addFix_addMissingMethodCall();
@@ -359,6 +368,11 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
       _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
+    }
+    if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
+        errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
+      _addFix_convertFlutterChild();
+      _addFix_convertFlutterChildren();
     }
     // lints
     if (errorCode is LintCode) {
@@ -458,7 +472,7 @@ class FixProcessor {
     _addFix(DartFixKind.CREATE_MISSING_METHOD_CALL, []);
   }
 
-  void _addFix_addMissingParameter() {
+  Future<Null> _addFix_addMissingParameter() async {
     if (node is ArgumentList && node.parent is MethodInvocation) {
       ArgumentList argumentList = node;
       MethodInvocation invocation = node.parent;
@@ -481,19 +495,26 @@ class FixProcessor {
         // prepare target
         int targetOffset;
         if (numRequired != 0) {
-          AstNode parameterNode = requiredParameters.last.computeNode();
-          targetOffset = parameterNode.end;
+          SimpleIdentifier lastName = await astProvider
+              .getParsedNameForElement(requiredParameters.last);
+          if (lastName != null) {
+            targetOffset = lastName.end;
+          } else {
+            return;
+          }
         } else {
-          AstNode targetNode = targetElement.computeNode();
-          if (targetNode is FunctionDeclaration) {
-            FunctionExpression function = targetNode.functionExpression;
-            Token paren = function.parameters.leftParenthesis;
+          SimpleIdentifier targetName =
+              await astProvider.getParsedNameForElement(targetElement);
+          AstNode targetDeclaration = targetName?.parent;
+          if (targetDeclaration is FunctionDeclaration) {
+            FunctionExpression function = targetDeclaration.functionExpression;
+            Token paren = function.parameters?.leftParenthesis;
             if (paren == null) {
               return;
             }
             targetOffset = paren.end;
-          } else if (targetNode is MethodDeclaration) {
-            Token paren = targetNode.parameters.leftParenthesis;
+          } else if (targetDeclaration is MethodDeclaration) {
+            Token paren = targetDeclaration.parameters?.leftParenthesis;
             if (paren == null) {
               return;
             }
@@ -535,6 +556,55 @@ class FixProcessor {
           _addFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, []);
         }
       }
+    }
+  }
+
+  void _addFix_addMissingRequiredArgument() {
+    Element targetElement;
+    ArgumentList argumentList;
+
+    if (node is SimpleIdentifier) {
+      AstNode invocation = node.parent;
+      if (invocation is MethodInvocation) {
+        targetElement = invocation.methodName.bestElement;
+        argumentList = invocation.argumentList;
+      } else {
+        AstNode ancestor =
+            invocation.getAncestor((p) => p is InstanceCreationExpression);
+        if (ancestor is InstanceCreationExpression) {
+          targetElement = ancestor.staticElement;
+          argumentList = ancestor.argumentList;
+        }
+      }
+    }
+
+    if (targetElement is ExecutableElement) {
+      // Format: "Missing required argument 'foo"
+      List<String> parts = error.message.split("'");
+      if (parts.length < 2) {
+        return;
+      }
+
+      // Grab just the name.
+      String paramName = parts[1];
+
+      // add proposal
+
+      SourceBuilder sb;
+
+      final List<Expression> args = argumentList.arguments;
+      if (args.isEmpty) {
+        sb = new SourceBuilder(file, argumentList.leftParenthesis.end);
+      } else {
+        sb = new SourceBuilder(file, args.last.end);
+        sb.append(', ');
+      }
+
+      // In the future consider better values than null for specific element types.
+      sb.append('$paramName: null');
+
+      _insertBuilder(sb, null);
+      _addFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, [paramName]);
     }
   }
 
@@ -584,6 +654,43 @@ class FixProcessor {
         }
       }
     }
+  }
+
+  void _addFix_convertFlutterChild() {
+    NamedExpression namedExp = findFlutterNamedExpression(node, 'child');
+    if (namedExp == null) {
+      return;
+    }
+    InstanceCreationExpression childArg = getChildWidget(namedExp, false);
+    if (childArg != null) {
+      convertFlutterChildToChildren(
+          childArg,
+          namedExp,
+          eol,
+          utils.getNodeText,
+          utils.getLinePrefix,
+          utils.getIndent,
+          utils.getText,
+          _addInsertEdit,
+          _addRemoveEdit,
+          _addReplaceEdit,
+          rangeStartLength,
+          rangeNode);
+      _addFix(DartFixKind.CONVERT_FLUTTER_CHILD, []);
+      return;
+    }
+    ListLiteral listArg = getChildList(namedExp);
+    if (listArg != null) {
+      _addInsertEdit(namedExp.offset + 'child'.length, 'ren');
+      if (listArg.typeArguments == null) {
+        _addInsertEdit(listArg.offset, '<Widget>');
+      }
+      _addFix(DartFixKind.CONVERT_FLUTTER_CHILD, []);
+    }
+  }
+
+  void _addFix_convertFlutterChildren() {
+    // TODO(messick) Implement _addFix_convertFlutterChildren()
   }
 
   void _addFix_createClass() {
@@ -1508,42 +1615,7 @@ class FixProcessor {
         _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
       }
     }
-    // check SDK libraries
-    {
-      DartSdk sdk = context.sourceFactory.dartSdk;
-      List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
-      for (SdkLibrary sdkLibrary in sdkLibraries) {
-        SourceFactory sdkSourceFactory = context.sourceFactory;
-        String libraryUri = sdkLibrary.shortName;
-        Source librarySource =
-            sdkSourceFactory.resolveUri(unitSource, libraryUri);
-        // maybe already imported
-        if (alreadyImportedWithPrefix.contains(librarySource)) {
-          continue;
-        }
-        // prepare LibraryElement
-        LibraryElement libraryElement =
-            context.getResult(librarySource, LIBRARY_ELEMENT1);
-        if (libraryElement == null) {
-          continue;
-        }
-        // prepare exported Element
-        Element element = getExportedElement(libraryElement, name);
-        if (element == null) {
-          continue;
-        }
-        if (element is PropertyAccessorElement) {
-          element = (element as PropertyAccessorElement).variable;
-        }
-        if (!elementKinds.contains(element.kind)) {
-          continue;
-        }
-        // add import
-        _addFix_importLibrary(
-            DartFixKind.IMPORT_LIBRARY_SDK, libraryElement.source);
-      }
-    }
-    // check project libraries
+    // Find new top-level declarations.
     {
       List<TopLevelDeclarationInSource> declarations =
           await getTopLevelDeclarations(name);
@@ -1554,15 +1626,14 @@ class FixProcessor {
         }
         // Check the source.
         Source librarySource = declaration.source;
-        if (librarySource.isInSystemLibrary) {
-          continue;
-        }
         if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
         // Compute the fix kind.
         FixKind fixKind;
-        if (_isLibSrcPath(librarySource.fullName)) {
+        if (librarySource.isInSystemLibrary) {
+          fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
+        } else if (_isLibSrcPath(librarySource.fullName)) {
           // Bad: non-API.
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
         } else if (declaration.isExported) {
@@ -1649,7 +1720,7 @@ class FixProcessor {
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
   }
 
-  void _addFix_makeFieldNotFinal() {
+  Future<Null> _addFix_makeFieldNotFinal() async {
     AstNode node = this.node;
     if (node is SimpleIdentifier &&
         node.bestElement is PropertyAccessorElement) {
@@ -1659,7 +1730,9 @@ class FixProcessor {
           !getter.variable.isSynthetic &&
           getter.variable.setter == null &&
           getter.enclosingElement is ClassElement) {
-        AstNode variable = getter.variable.computeNode();
+        AstNode name =
+            await astProvider.getParsedNameForElement(getter.variable);
+        AstNode variable = name?.parent;
         if (variable is VariableDeclaration &&
             variable.parent is VariableDeclarationList &&
             variable.parent.parent is FieldDeclaration) {

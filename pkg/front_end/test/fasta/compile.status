@@ -1,0 +1,77 @@
+# Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the compile_test.dart (notice c, not k) test suite. This is
+# testing generating Kernel ASTs directly, that is, code in
+# pkg/fasta/lib/src/kernel/.
+
+await: Fail
+cycles: Fail # Compile-time error handling destroys program.
+function_type_recovery: Fail
+invocations: Fail
+statements: Fail # Make async tranformer optional for golden file testing.
+type_variable_as_super: Fail
+
+rasta/abstract_constructor: Fail
+rasta/bad_constructor_redirection: Fail
+rasta/bad_continue: Fail
+rasta/bad_default_constructor: Fail # Compile-time error destroys program.
+rasta/bad_explicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: Fail
+rasta/bad_interpolation: Fail
+rasta/bad_redirection: Fail
+rasta/bad_setter_initializer: Fail
+rasta/bad_unicode: Fail
+rasta/breaking_bad: Fail
+rasta/class_hierarchy: Fail
+rasta/class_member: Fail
+rasta/constant_get_and_invoke: Fail
+rasta/deferred_lib: Fail
+rasta/deferred_load: Fail
+rasta/duplicated_mixin: Fail
+rasta/export: Fail
+rasta/foo: Fail
+rasta/for_loop: Fail
+rasta/generic_factory: Fail
+rasta/issue_000001: Fail
+rasta/issue_000031: Fail
+rasta/issue_000032: Fail
+rasta/issue_000034: Fail
+rasta/issue_000035: Fail
+rasta/issue_000035a: Fail
+rasta/issue_000036: Fail
+rasta/issue_000039: Fail
+rasta/issue_000041: Fail
+rasta/issue_000042: Fail
+rasta/issue_000043: Fail
+rasta/issue_000044: Fail
+rasta/issue_000045: Fail
+rasta/issue_000046: Fail
+rasta/issue_000047: Fail
+rasta/issue_000067: Fail
+rasta/issue_000069: Fail
+rasta/issue_000070: Fail
+rasta/issue_000081: Fail
+rasta/malformed_const_constructor: Fail
+rasta/malformed_function: Fail
+rasta/malformed_function_type: Fail
+rasta/mandatory_parameter_initializer: Fail
+rasta/mixin_library: Fail
+rasta/native_is_illegal: Fail
+rasta/parser_error: Fail
+rasta/super: Fail
+rasta/super_initializer: Fail
+rasta/super_mixin: Fail
+rasta/super_operator: Fail
+rasta/switch_execution_case_t02: Fail
+rasta/switch_fall_through: Fail
+rasta/try_label: Fail
+rasta/type_literals: VerificationError
+rasta/type_with_parse_error: Fail
+rasta/typedef: VerificationError
+rasta/unresolved: Fail
+rasta/unresolved_constructor: Fail
+rasta/unresolved_for_in: Fail
+rasta/unresolved_recovery: Fail
+rasta/unsupported_platform_library: Fail

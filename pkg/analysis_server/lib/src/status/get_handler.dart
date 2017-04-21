@@ -2186,7 +2186,7 @@ class GetHandler implements AbstractGetHandler {
         }
         buffer.write('<p>element count: ');
         buffer.write(counter.counts.values
-            .fold(0, (int prev, int element) => prev + element));
+            .fold<int>(0, (int prev, int element) => prev + element));
         buffer.write('</p>');
         buffer.write('<p>  (w/docs): ');
         buffer.write(counter.elementsWithDocs);
@@ -2202,7 +2202,7 @@ class GetHandler implements AbstractGetHandler {
     buffer.write('</h3></p>');
     buffer.write('<p>element count: ');
     buffer.write(sdkCounter.counts.values
-        .fold(0, (int prev, int element) => prev + element));
+        .fold<int>(0, (int prev, int element) => prev + element));
     buffer.write('</p>');
     buffer.write('<p>  (w/docs): ');
     buffer.write(sdkCounter.elementsWithDocs);
@@ -2527,8 +2527,11 @@ class GetHandler implements AbstractGetHandler {
         buffer.write('Inactive');
       }
       buffer.write('<br>');
-      buffer.write('Version: ');
+      buffer.write('Server version: ');
       buffer.write(AnalysisServer.VERSION);
+      buffer.write('<br>');
+      buffer.write('SDK: ');
+      buffer.write(Platform.version);
       buffer.write('<br>');
       buffer.write('Process ID: ');
       buffer.write(pid);

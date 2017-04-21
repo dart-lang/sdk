@@ -11,10 +11,11 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 
+import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
@@ -22,7 +23,6 @@ import '../../elements/elements.dart'
         ClassElement,
         Element,
         Elements,
-        Entity,
         FieldElement,
         FunctionElement,
         FunctionSignature,
@@ -30,6 +30,7 @@ import '../../elements/elements.dart'
         MethodElement,
         TypedefElement,
         VariableElement;
+import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/line_column_provider.dart'
@@ -45,7 +46,7 @@ import '../../js_backend/js_backend.dart'
         JavaScriptConstantCompiler,
         Namer,
         SetterName,
-        TypeVariableHandler;
+        TypeVariableCodegenAnalysis;
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -110,10 +111,7 @@ class Emitter implements js_emitter.Emitter {
   final InterceptorEmitter interceptorEmitter;
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
-  final Set<ConstantValue> cachedEmittedConstants;
   final List<jsAst.Statement> cachedEmittedConstantsAst = <jsAst.Statement>[];
-  final Map<Element, ClassBuilder> cachedClassBuilders;
-  final Set<Element> cachedElements;
 
   bool needsClassSupport = false;
   bool needsMixinSupport = false;
@@ -141,7 +139,8 @@ class Emitter implements js_emitter.Emitter {
   final Set<jsAst.Name> recordedMangledNames = new Set<jsAst.Name>();
 
   JavaScriptBackend get backend => compiler.backend;
-  TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
+  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis =>
+      backend.typeVariableCodegenAnalysis;
 
   String get _ => space;
   String get space => compiler.options.enableMinification ? "" : " ";
@@ -180,9 +179,6 @@ class Emitter implements js_emitter.Emitter {
       this.generateSourceMap, this.task)
       : this.compiler = compiler,
         this.namer = namer,
-        cachedEmittedConstants = compiler.cacheStrategy.newSet(),
-        cachedClassBuilders = compiler.cacheStrategy.newMap(),
-        cachedElements = compiler.cacheStrategy.newSet(),
         classEmitter = new ClassEmitter(closedWorld),
         interceptorEmitter = new InterceptorEmitter(closedWorld),
         nsmEmitter = new NsmEmitter(closedWorld) {
@@ -192,14 +188,6 @@ class Emitter implements js_emitter.Emitter {
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
     interceptorEmitter.emitter = this;
-    if (compiler.options.hasIncrementalSupport) {
-      // Much like a scout, an incremental compiler is always prepared. For
-      // mixins, classes, and lazy statics, at least.
-      needsClassSupport = true;
-      needsMixinSupport = true;
-      needsLazyInitializer = true;
-      needsStructuredMemberInfo = true;
-    }
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -213,13 +201,6 @@ class Emitter implements js_emitter.Emitter {
       OutputUnit outputUnit) {
     return _cspPrecompiledConstructorNames.putIfAbsent(
         outputUnit, () => new List<jsAst.Expression>());
-  }
-
-  /// Erases the precompiled information for csp mode for all output units.
-  /// Used by the incremental compiler.
-  void clearCspPrecompiledNodes() {
-    _cspPrecompiledFunctions.clear();
-    _cspPrecompiledConstructorNames.clear();
   }
 
   @override
@@ -468,12 +449,13 @@ class Emitter implements js_emitter.Emitter {
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, jsAst.Name mangledName) {
     String name = elementOrSelector.name;
-    if (backend.shouldRetainName(name) ||
+    if (backend.mirrorsData.shouldRetainName(name) ||
         elementOrSelector is Element &&
             // Make sure to retain names of unnamed constructors, and
             // for common native types.
             ((name == '' &&
-                    backend.isAccessibleByReflection(elementOrSelector)) ||
+                    backend.mirrorsData
+                        .isAccessibleByReflection(elementOrSelector)) ||
                 _isNativeTypeNeedingReflectionName(elementOrSelector))) {
       // TODO(ahe): Enable the next line when I can tell the difference between
       // an instance method and a global.  They may have the same mangled name.
@@ -596,21 +578,7 @@ class Emitter implements js_emitter.Emitter {
       Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
     ClassElement classElement = cls.element;
     reporter.withCurrentElement(classElement, () {
-      if (compiler.options.hasIncrementalSupport) {
-        ClassBuilder cachedBuilder =
-            cachedClassBuilders.putIfAbsent(classElement, () {
-          ClassBuilder builder = new ClassBuilder.forClass(classElement, namer);
-          classEmitter.emitClass(cls, builder, fragment);
-          return builder;
-        });
-        invariant(classElement, cachedBuilder.fields.isEmpty);
-        invariant(classElement, cachedBuilder.superName == null);
-        invariant(classElement, cachedBuilder.functionType == null);
-        invariant(classElement, cachedBuilder.fieldMetadata == null);
-        enclosingBuilder.properties.addAll(cachedBuilder.properties);
-      } else {
-        classEmitter.emitClass(cls, enclosingBuilder, fragment);
-      }
+      classEmitter.emitClass(cls, enclosingBuilder, fragment);
     });
   }
 
@@ -625,7 +593,7 @@ class Emitter implements js_emitter.Emitter {
       if (element == null) continue;
       ClassBuilder builder = new ClassBuilder.forStatics(element, namer);
       containerBuilder.addMemberMethod(method, builder);
-      getElementDescriptor(element, fragment)
+      getStaticMethodDescriptor(element, fragment)
           .properties
           .addAll(builder.properties);
     }
@@ -741,50 +709,6 @@ class Emitter implements js_emitter.Emitter {
     return laziesInfo;
   }
 
-  // TODO(sra): Remove this unused function.
-  jsAst.Expression buildLazilyInitializedStaticField(VariableElement element,
-      {String isolateProperties}) {
-    jsAst.Expression code = backend.generatedCode[element];
-    // The code is null if we ended up not needing the lazily
-    // initialized field after all because of constant folding
-    // before code generation.
-    if (code == null) return null;
-    // The code only computes the initial value. We build the lazy-check
-    // here:
-    //   lazyInitializer(fieldName, getterName, initial, name, prototype);
-    // The name is used for error reporting. The 'initial' must be a
-    // closure that constructs the initial value.
-    if (isolateProperties != null) {
-      // This is currently only used in incremental compilation to patch
-      // in new lazy values.
-      return js('#(#,#,#,#,#)', [
-        js(lazyInitializerName),
-        js.quoteName(namer.globalPropertyName(element)),
-        js.quoteName(namer.lazyInitializerName(element)),
-        code,
-        js.string(element.name),
-        isolateProperties
-      ]);
-    }
-
-    if (compiler.options.enableMinification) {
-      return js('#(#,#,#)', [
-        js(lazyInitializerName),
-        js.quoteName(namer.globalPropertyName(element)),
-        js.quoteName(namer.lazyInitializerName(element)),
-        code
-      ]);
-    } else {
-      return js('#(#,#,#,#)', [
-        js(lazyInitializerName),
-        js.quoteName(namer.globalPropertyName(element)),
-        js.quoteName(namer.lazyInitializerName(element)),
-        code,
-        js.string(element.name)
-      ]);
-    }
-  }
-
   jsAst.Statement buildMetadata(Program program, OutputUnit outputUnit) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
@@ -811,15 +735,8 @@ class Emitter implements js_emitter.Emitter {
 
     if (constants.isEmpty) return js.comment("No constants in program.");
     List<jsAst.Statement> parts = <jsAst.Statement>[];
-    if (compiler.options.hasIncrementalSupport && isMainFragment) {
-      parts = cachedEmittedConstantsAst;
-    }
     for (Constant constant in constants) {
       ConstantValue constantValue = constant.value;
-      if (compiler.options.hasIncrementalSupport && isMainFragment) {
-        if (cachedEmittedConstants.contains(constantValue)) continue;
-        cachedEmittedConstants.add(constantValue);
-      }
       parts.add(buildConstantInitializer(constantValue));
     }
 
@@ -1017,10 +934,6 @@ class Emitter implements js_emitter.Emitter {
           }
           Isolate.#functionThatReturnsNullProperty =
               oldIsolate.#functionThatReturnsNullProperty;
-          if (#hasIncrementalSupport) {
-            Isolate.#lazyInitializerProperty =
-                oldIsolate.#lazyInitializerProperty;
-          }
           return Isolate;
       }
 
@@ -1039,8 +952,6 @@ class Emitter implements js_emitter.Emitter {
           'makeConstListProperty': makeConstListProperty,
           'functionThatReturnsNullProperty':
               backend.rtiEncoder.getFunctionThatReturnsNullName,
-          'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
-          'lazyInitializerProperty': lazyInitializerProperty,
         });
   }
 
@@ -1088,40 +999,34 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildSupportsDirectProtoAccess() {
     jsAst.Statement supportsDirectProtoAccess;
 
-    if (compiler.options.hasIncrementalSupport) {
-      supportsDirectProtoAccess = js.statement(r'''
-        var supportsDirectProtoAccess = false;
-      ''');
-    } else {
-      supportsDirectProtoAccess = js.statement(r'''
-        var supportsDirectProtoAccess = (function () {
-          var cls = function () {};
-          cls.prototype = {'p': {}};
-          var object = new cls();
-          if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
-            return false;
-    
-          try {
-            // Are we running on a platform where the performance is good?
-            // (i.e. Chrome or d8).
-
-            // Chrome userAgent?
-            if (typeof navigator != "undefined" &&
-                typeof navigator.userAgent == "string" &&
-                navigator.userAgent.indexOf("Chrome/") >= 0) return true;
-
-            // d8 version() looks like "N.N.N.N", jsshell version() like "N".
-            if (typeof version == "function" &&
-                version.length == 0) {
-              var v = version();
-              if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) return true;
-            }
-          } catch(_) {}
-          
+    supportsDirectProtoAccess = js.statement(r'''
+      var supportsDirectProtoAccess = (function () {
+        var cls = function () {};
+        cls.prototype = {'p': {}};
+        var object = new cls();
+        if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
           return false;
-        })();
-      ''');
-    }
+
+        try {
+          // Are we running on a platform where the performance is good?
+          // (i.e. Chrome or d8).
+
+          // Chrome userAgent?
+          if (typeof navigator != "undefined" &&
+              typeof navigator.userAgent == "string" &&
+              navigator.userAgent.indexOf("Chrome/") >= 0) return true;
+
+          // d8 version() looks like "N.N.N.N", jsshell version() like "N".
+          if (typeof version == "function" &&
+              version.length == 0) {
+            var v = version();
+            if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) return true;
+          }
+        } catch(_) {}
+
+        return false;
+      })();
+    ''');
 
     return supportsDirectProtoAccess;
   }
@@ -1129,7 +1034,8 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Expression generateLibraryDescriptor(
       LibraryElement library, Fragment fragment) {
     var uri = "";
-    if (!compiler.options.enableMinification || backend.mustPreserveUris) {
+    if (!compiler.options.enableMinification ||
+        backend.mirrorsData.mustPreserveUris) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.options.outputUri != null) {
         uri =
@@ -1137,10 +1043,10 @@ class Emitter implements js_emitter.Emitter {
       }
     }
 
-    String libraryName =
-        (!compiler.options.enableMinification || backend.mustRetainLibraryNames)
-            ? library.libraryName
-            : "";
+    String libraryName = (!compiler.options.enableMinification ||
+            backend.mirrorsData.mustRetainLibraryNames)
+        ? library.libraryName
+        : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
@@ -1183,7 +1089,7 @@ class Emitter implements js_emitter.Emitter {
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = backend.hasIsolateSupport;
+    bool hasIsolateSupport = backend.backendUsage.isIsolateInUse;
     jsAst.Node fieldNamesArray;
     if (hasIsolateSupport) {
       fieldNamesArray =
@@ -1246,7 +1152,7 @@ class Emitter implements js_emitter.Emitter {
       jsAst.Node declaration = builder.toObjectInitializer();
       jsAst.Name mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
-      getElementDescriptor(library, mainFragment)
+      getLibraryDescriptor(library, mainFragment)
         ..addProperty(mangledName, declaration)
         ..addPropertyByName("+$reflectionName", js.string(''));
       // Also emit a trivial constructor for CSP mode.
@@ -1379,14 +1285,11 @@ class Emitter implements js_emitter.Emitter {
   }
 
   void checkEverythingEmitted(Iterable<Element> elements) {
-    List<Element> pendingStatics;
-    if (!compiler.options.hasIncrementalSupport) {
-      pendingStatics =
-          Elements.sortedByPosition(elements.where((e) => !e.isLibrary));
+    List<Element> pendingStatics =
+        Elements.sortedByPosition(elements.where((e) => !e.isLibrary));
 
-      pendingStatics.forEach((element) => reporter.reportInfo(
-          element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
-    }
+    pendingStatics.forEach((element) => reporter.reportInfo(
+        element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
 
     if (pendingStatics != null && !pendingStatics.isEmpty) {
       reporter.internalError(
@@ -1400,7 +1303,7 @@ class Emitter implements js_emitter.Emitter {
     assembleStaticFunctions(library.statics, fragment);
 
     ClassBuilder libraryBuilder =
-        getElementDescriptor(libraryElement, fragment);
+        getLibraryDescriptor(libraryElement, fragment);
     for (Class cls in library.classes) {
       assembleClass(cls, libraryBuilder, fragment);
     }
@@ -1465,8 +1368,7 @@ class Emitter implements js_emitter.Emitter {
       // The program builder does not collect libraries that only
       // contain typedefs that are used for reflection.
       for (LibraryElement element in remainingLibraries) {
-        assert(element is LibraryElement ||
-            compiler.options.hasIncrementalSupport);
+        assert(element is LibraryElement);
         if (element is LibraryElement) {
           parts.add(generateLibraryDescriptor(element, mainFragment));
           descriptors.remove(element);
@@ -1485,19 +1387,6 @@ class Emitter implements js_emitter.Emitter {
        // comment into a hole as the parser strips out comments right away.
        #disableVariableRenaming;
        #supportsDirectProtoAccess;
-
-       if (#hasIncrementalSupport) {
-         #helper = #helper || Object.create(null);
-         #helper.patch = function(a) { eval(a)};
-         #helper.schemaChange = #schemaChange;
-         #helper.addMethod = #addMethod;
-         #helper.extractStubs =
-           function(array, name, isStatic, originalDescriptor) {
-             var descriptor = Object.create(null);
-             this.addStubs(descriptor, array, name, isStatic, []);
-             return descriptor;
-            };
-       }
 
        if (#isProgramSplit) {
          /// We collect all the global state, so it can be passed to the
@@ -1591,10 +1480,6 @@ class Emitter implements js_emitter.Emitter {
     """,
         {
           "disableVariableRenaming": js.comment("/* ::norenaming:: */"),
-          "hasIncrementalSupport": compiler.options.hasIncrementalSupport,
-          "helper": js('this.#', [namer.incrementalHelperName]),
-          "schemaChange": buildSchemaChangeFunction(),
-          "addMethod": buildIncrementalAddMethod(),
           "isProgramSplit": isProgramSplit,
           "supportsDirectProtoAccess": buildSupportsDirectProtoAccess(),
           "globalsHolder": globalsHolder,
@@ -1647,7 +1532,7 @@ class Emitter implements js_emitter.Emitter {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js'), codeOutputListeners);
+        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
     mainOutput.addBuffer(jsAst.createCodeBuffer(program, compiler,
@@ -1658,133 +1543,21 @@ class Emitter implements js_emitter.Emitter {
     }
 
     if (generateSourceMap) {
-      mainOutput.add(generateSourceMapTag(
+      mainOutput.add(SourceMapBuilder.generateSourceMapTag(
           compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (generateSourceMap) {
-      outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.options.sourceMapUri, compiler.options.outputUri);
+      SourceMapBuilder.outputSourceMap(
+          mainOutput,
+          lineColumnCollector,
+          '',
+          compiler.options.sourceMapUri,
+          compiler.options.outputUri,
+          compiler.outputProvider);
     }
-  }
-
-  /// Used by incremental compilation to patch up the prototype of
-  /// [oldConstructor] for use as prototype of [newConstructor].
-  jsAst.Fun buildSchemaChangeFunction() {
-    if (!compiler.options.hasIncrementalSupport) return null;
-    return js('''
-function(newConstructor, oldConstructor, superclass) {
-  // Invariant: newConstructor.prototype has no interesting properties besides
-  // generated accessors. These are copied to oldPrototype which will be
-  // updated by other incremental changes.
-  if (superclass != null) {
-    this.inheritFrom(newConstructor, superclass);
-  }
-  var oldPrototype = oldConstructor.prototype;
-  var newPrototype = newConstructor.prototype;
-  var hasOwnProperty = Object.prototype.hasOwnProperty;
-  for (var property in newPrototype) {
-    if (hasOwnProperty.call(newPrototype, property)) {
-      // Copy generated accessors.
-      oldPrototype[property] = newPrototype[property];
-    }
-  }
-  oldPrototype.__proto__ = newConstructor.prototype.__proto__;
-  oldPrototype.constructor = newConstructor;
-  newConstructor.prototype = oldPrototype;
-  return newConstructor;
-}''');
-  }
-
-  /// Used by incremental compilation to patch up an object ([holder]) with a
-  /// new (or updated) method.  [arrayOrFunction] is either the new method, or
-  /// an array containing the method (see
-  /// [ContainerBuilder.addMemberMethodFromInfo]). [name] is the name of the
-  /// new method. [isStatic] tells if method is static (or
-  /// top-level). [globalFunctionsAccess] is a reference to
-  /// [embeddedNames.GLOBAL_FUNCTIONS].
-  jsAst.Fun buildIncrementalAddMethod() {
-    if (!compiler.options.hasIncrementalSupport) return null;
-    return js(r"""
-function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
-  var arrayOrFunction = originalDescriptor[name];
-  var method;
-  if (arrayOrFunction.constructor === Array) {
-    var existing = holder[name];
-    var array = arrayOrFunction;
-
-    // Each method may have a number of stubs associated. For example, if an
-    // instance method supports multiple arguments, a stub for each matching
-    // selector. There is also a getter stub for tear-off getters. For example,
-    // an instance method foo([a]) may have the following stubs: foo$0, foo$1,
-    // and get$foo (here exemplified using unminified names).
-    // [extractStubs] returns a JavaScript object whose own properties
-    // corresponds to the stubs.
-    var descriptor =
-        this.extractStubs(array, name, isStatic, originalDescriptor);
-    method = descriptor[name];
-
-    // Iterate through the properties of descriptor and copy the stubs to the
-    // existing holder (for instance methods, a prototype).
-    for (var property in descriptor) {
-      if (!Object.prototype.hasOwnProperty.call(descriptor, property)) continue;
-      var stub = descriptor[property];
-      var existingStub = holder[property];
-      if (stub === method || !existingStub || !stub.$getterStub) {
-        // Not replacing an existing getter stub.
-        holder[property] = stub;
-        continue;
-      }
-      if (!stub.$getterStub) {
-        var error = new Error('Unexpected stub.');
-        error.stub = stub;
-        throw error;
-      }
-
-      // Existing getter stubs need special treatment as they may already have
-      // been called and produced a closure.
-      this.pendingStubs = this.pendingStubs || [];
-      // It isn't safe to invoke the stub yet.
-      this.pendingStubs.push((function(holder, stub, existingStub, existing,
-                                       method) {
-        return function() {
-          var receiver = isStatic ? holder : new holder.constructor();
-          // Invoke the existing stub to obtain the tear-off closure.
-          existingStub = existingStub.call(receiver);
-          // Invoke the new stub to create a tear-off closure we can use as a
-          // prototype.
-          stub = stub.call(receiver);
-
-          // Copy the properties from the new tear-off's prototype to the
-          // prototype of the existing tear-off.
-          var newProto = stub.constructor.prototype;
-          var existingProto = existingStub.constructor.prototype;
-          for (var stubProperty in newProto) {
-            if (!Object.prototype.hasOwnProperty.call(newProto, stubProperty))
-              continue;
-            existingProto[stubProperty] = newProto[stubProperty];
-          }
-
-          // Update all the existing stub's references to [existing] to
-          // [method]. Instance tear-offs are call-by-name, so this isn't
-          // necessary for those.
-          if (!isStatic) return;
-          for (var reference in existingStub) {
-            if (existingStub[reference] === existing) {
-              existingStub[reference] = method;
-            }
-          }
-        }
-      })(holder, stub, existingStub, existing, method));
-    }
-  } else {
-    method = arrayOrFunction;
-    holder[name] = method;
-  }
-  if (isStatic) globalFunctionsAccess[name] = method;
-}""");
   }
 
   Map<OutputUnit, jsAst.Expression> buildDescriptorsForOutputUnits(
@@ -1867,41 +1640,38 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     });
     emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
-    if (backend.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.
     return outputBuffers.values.fold(0, (a, b) => a + b.length);
   }
 
-  String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
-    if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
-      return '''
-
-//# sourceMappingURL=$sourceMapFileName
-''';
-    }
-    return '';
-  }
-
-  ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
+  ClassBuilder getStaticMethodDescriptor(
+      MethodElement element, Fragment fragment) {
     Element owner = element.library;
-    if (!element.isLibrary &&
-        !element.isTopLevel &&
-        !backend.isNative(element)) {
+    if (!backend.nativeData.isNativeMember(element)) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
-      ClassElement cls = element.enclosingClassOrCompilationUnit.declaration;
+      ClassElement cls = element.enclosingClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
-          !backend.isNative(cls) &&
+          !backend.nativeData.isNativeClass(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
               compiler.deferredLoadTask.outputUnitForElement(cls)) {
         owner = cls;
       }
     }
+    return _getElementDescriptor(element, owner, fragment);
+  }
+
+  ClassBuilder getLibraryDescriptor(LibraryElement element, Fragment fragment) {
+    return _getElementDescriptor(element, element, fragment);
+  }
+
+  ClassBuilder _getElementDescriptor(
+      Element element, Element owner, Fragment fragment) {
     if (owner == null) {
       reporter.internalError(element, 'Owner is null.');
     }
@@ -2094,7 +1864,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       String partPrefix =
           backend.deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
-          compiler.outputProvider(partPrefix, 'part.js'), outputListeners);
+          compiler.outputProvider(partPrefix, 'part.js', OutputType.jsPart),
+          outputListeners);
 
       outputBuffers[outputUnit] = output;
 
@@ -2132,9 +1903,10 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
               compiler.options.outputUri.replace(pathSegments: partSegments);
         }
 
-        output.add(generateSourceMapTag(mapUri, partUri));
+        output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
+        SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+            mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();
       }
@@ -2151,21 +1923,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }
 
-  void outputSourceMap(
-      CodeOutput output, LineColumnProvider lineColumnProvider, String name,
-      [Uri sourceMapUri, Uri fileUri]) {
-    if (!generateSourceMap) return;
-    // Create a source file for the compilation output. This allows using
-    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
-    SourceMapBuilder sourceMapBuilder =
-        new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
-    output.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build();
-    compiler.outputProvider(name, 'js.map')
-      ..add(sourceMap)
-      ..close();
-  }
-
   void outputDeferredMap() {
     Map<String, dynamic> mapping = new Map<String, dynamic>();
     // Json does not support comments, so we embed the explanation in the
@@ -2174,18 +1931,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
     compiler.outputProvider(
-        compiler.options.deferredMapUri.path, 'deferred_map')
+        compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
-  }
-
-  void invalidateCaches() {
-    if (!compiler.options.hasIncrementalSupport) return;
-    if (cachedElements.isEmpty) return;
-    for (Element element in backend.codegenEnqueuer.newlyEnqueuedElements) {
-      if (element.isInstanceMember) {
-        cachedClassBuilders.remove(element.enclosingClass);
-      }
-    }
   }
 }

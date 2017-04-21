@@ -4,13 +4,12 @@
 
 library analyzer_cli.test.data.options_include_directive_test_project.test_file;
 
-
 int foo() {
-
   int x = baz(); // Undefined function.
   if (x == 0) {
     print('x is zero');
-  } else ; // Empty else statement
+  } else
+    ; // Empty else statement
 
   // Missing return
 }

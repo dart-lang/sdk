@@ -52,8 +52,8 @@ class Sort {
   /**
    * Sorts the list in the interval [:left:] to [:right:] (both inclusive).
    */
-  static void _doSort<E>(List<E> a, int left, int right,
-                         int compare(E a, E b)) {
+  static void _doSort<E>(
+      List<E> a, int left, int right, int compare(E a, E b)) {
     if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
       _insertionSort(a, left, right, compare);
     } else {
@@ -61,8 +61,8 @@ class Sort {
     }
   }
 
-  static void _insertionSort<E>(List<E> a, int left, int right,
-                                int compare(E a, E b)) {
+  static void _insertionSort<E>(
+      List<E> a, int left, int right, int compare(E a, E b)) {
     for (int i = left + 1; i <= right; i++) {
       var el = a[i];
       int j = i;
@@ -74,15 +74,15 @@ class Sort {
     }
   }
 
-  static void _dualPivotQuicksort<E>(List<E> a, int left, int right,
-                                     int compare(E a, E b)) {
+  static void _dualPivotQuicksort<E>(
+      List<E> a, int left, int right, int compare(E a, E b)) {
     assert(right - left > _INSERTION_SORT_THRESHOLD);
 
     // Compute the two pivots by looking at 5 elements.
     int sixth = (right - left + 1) ~/ 6;
     int index1 = left + sixth;
     int index5 = right - sixth;
-    int index3 = (left + right) ~/ 2;  // The midpoint.
+    int index3 = (left + right) ~/ 2; // The midpoint.
     int index2 = index3 - sixth;
     int index4 = index3 + sixth;
 
@@ -93,15 +93,51 @@ class Sort {
     var el5 = a[index5];
 
     // Sort the selected 5 elements using a sorting network.
-    if (compare(el1, el2) > 0) { var t = el1; el1 = el2; el2 = t; }
-    if (compare(el4, el5) > 0) { var t = el4; el4 = el5; el5 = t; }
-    if (compare(el1, el3) > 0) { var t = el1; el1 = el3; el3 = t; }
-    if (compare(el2, el3) > 0) { var t = el2; el2 = el3; el3 = t; }
-    if (compare(el1, el4) > 0) { var t = el1; el1 = el4; el4 = t; }
-    if (compare(el3, el4) > 0) { var t = el3; el3 = el4; el4 = t; }
-    if (compare(el2, el5) > 0) { var t = el2; el2 = el5; el5 = t; }
-    if (compare(el2, el3) > 0) { var t = el2; el2 = el3; el3 = t; }
-    if (compare(el4, el5) > 0) { var t = el4; el4 = el5; el5 = t; }
+    if (compare(el1, el2) > 0) {
+      var t = el1;
+      el1 = el2;
+      el2 = t;
+    }
+    if (compare(el4, el5) > 0) {
+      var t = el4;
+      el4 = el5;
+      el5 = t;
+    }
+    if (compare(el1, el3) > 0) {
+      var t = el1;
+      el1 = el3;
+      el3 = t;
+    }
+    if (compare(el2, el3) > 0) {
+      var t = el2;
+      el2 = el3;
+      el3 = t;
+    }
+    if (compare(el1, el4) > 0) {
+      var t = el1;
+      el1 = el4;
+      el4 = t;
+    }
+    if (compare(el3, el4) > 0) {
+      var t = el3;
+      el3 = el4;
+      el4 = t;
+    }
+    if (compare(el2, el5) > 0) {
+      var t = el2;
+      el2 = el5;
+      el5 = t;
+    }
+    if (compare(el2, el3) > 0) {
+      var t = el2;
+      el2 = el3;
+      el3 = t;
+    }
+    if (compare(el4, el5) > 0) {
+      var t = el4;
+      el4 = el5;
+      el5 = t;
+    }
 
     var pivot1 = el2;
     var pivot2 = el4;
@@ -115,8 +151,8 @@ class Sort {
     a[index2] = a[left];
     a[index4] = a[right];
 
-    int less = left + 1;    // First element in the middle partition.
-    int great = right - 1;  // Last element in the middle partition.
+    int less = left + 1; // First element in the middle partition.
+    int great = right - 1; // Last element in the middle partition.
 
     bool pivots_are_equal = (compare(pivot1, pivot2) == 0);
     if (pivots_are_equal) {
@@ -268,8 +304,12 @@ class Sort {
     // The Android source however removes the pivot elements from the recursive
     // call if the second partition is too large (more than 2/3 of the list).
     if (less < index1 && great > index5) {
-      while (compare(a[less], pivot1) == 0) { less++; }
-      while (compare(a[great], pivot2) == 0) { great--; }
+      while (compare(a[less], pivot1) == 0) {
+        less++;
+      }
+      while (compare(a[great], pivot2) == 0) {
+        great--;
+      }
 
       // Copy paste of the previous 3-way partitioning with adaptions.
       //

@@ -6,9 +6,10 @@ import 'graph_builder.dart';
 import 'nodes.dart';
 import '../closure.dart';
 import '../common.dart';
-import '../elements/resolution_types.dart';
 import '../types/types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../universe/use.dart' show TypeUse;
 
@@ -249,7 +250,12 @@ class TypeBuilder {
       return new HTypeConversion.withTypeRepresentation(
           type, kind, subtype, original, typeVariable);
     } else if (type.isFunctionType) {
-      return builder.buildFunctionTypeConversion(original, type, kind);
+      HInstruction reifiedType =
+          analyzeTypeArgument(type, builder.sourceElement);
+      // TypeMasks don't encode function types.
+      TypeMask refinedMask = original.instructionType;
+      return new HTypeConversion.withTypeRepresentation(
+          type, kind, refinedMask, original, reifiedType);
     } else {
       return original.convertType(builder.closedWorld, type, kind);
     }

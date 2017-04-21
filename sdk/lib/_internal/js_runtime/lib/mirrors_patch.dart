@@ -11,8 +11,8 @@ import 'dart:_js_mirrors' as js;
 class MirrorSystem {
   @patch
   LibraryMirror findLibrary(Symbol libraryName) {
-    return libraries.values.singleWhere(
-        (library) => library.simpleName == libraryName);
+    return libraries.values
+        .singleWhere((library) => library.simpleName == libraryName);
   }
 
   @patch

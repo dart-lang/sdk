@@ -24,24 +24,24 @@ void test() {
   Expect.equals(-0x10000000000000000, -1 << 64);
   Expect.equals(0x40000000, 0x04000000 << 4);
   Expect.equals(0x4000000000000000, 0x0400000000000000 << 4);
-  Expect.equals(0, ~-1);
+  Expect.equals(0, ~ -1);
   Expect.equals(-1, ~0);
 
   Expect.equals(0, 1 >> 160);
   Expect.equals(-1, -1 >> 160);
 
-  Expect.equals(0x100000000000000001,
-      0x100000000000000001 & 0x100000100F00000001);
+  Expect.equals(
+      0x100000000000000001, 0x100000000000000001 & 0x100000100F00000001);
   Expect.equals(0x1, 0x1 & 0x100000100F00000001);
   Expect.equals(0x1, 0x100000100F00000001 & 0x1);
 
-  Expect.equals(0x100000100F00000001,
-      0x100000000000000001 | 0x100000100F00000001);
+  Expect.equals(
+      0x100000100F00000001, 0x100000000000000001 | 0x100000100F00000001);
   Expect.equals(0x100000100F00000011, 0x11 | 0x100000100F00000001);
   Expect.equals(0x100000100F00000011, 0x100000100F00000001 | 0x11);
 
-  Expect.equals(0x0F000F00000000000000,
-      0x0F00F00000000000001 ^ 0xFF00000000000000001);
+  Expect.equals(
+      0x0F000F00000000000000, 0x0F00F00000000000001 ^ 0xFF00000000000000001);
   Expect.equals(0x31, 0xF00F00000000000001 ^ 0xF00F00000000000030);
   Expect.equals(0xF00F00000000000031, 0xF00F00000000000001 ^ 0x30);
   Expect.equals(0xF00F00000000000031, 0x30 ^ 0xF00F00000000000001);
@@ -67,8 +67,8 @@ void test() {
   }
 
   // Test precedence.
-  testPrecedence(4,5,3,1);
-  testPrecedence(3,4,5,9);
+  testPrecedence(4, 5, 3, 1);
+  testPrecedence(3, 4, 5, 9);
   testPrecedence(0x5c71, 0x6b92, 0x7654, 0x7d28);
 }
 
@@ -93,24 +93,24 @@ void testLeftShift64Bit() {
   Expect.equals(0xffffffff, t << 0);
   Expect.equals(0x1fffffffe, t << 1);
   Expect.equals(0x7fffffff80000000, t << 31);
-  Expect.equals(0x10000000000000000, 2*(t+1) << 31); /// 01: static type warning
-  Expect.equals(0x20000000000000000, 4*(t+1) << 31); /// 02: static type warning
-  Expect.equals(0x8000000000000000, (t+1) << 31);
+  Expect.equals(0x10000000000000000, 2*(t+1) << 31); //# 01: static type warning
+  Expect.equals(0x20000000000000000, 4*(t+1) << 31); //# 02: static type warning
+  Expect.equals(0x8000000000000000, (t + 1) << 31);
 }
 
 void testLeftShift64BitWithOverflow1() {
   var t = 0xffffffff;
-  Expect.equals(0x10000000000000000, 2*(t+1) << 31); /// 03: static type warning
+  Expect.equals(0x10000000000000000, 2*(t+1) << 31); //# 03: static type warning
 }
 
 void testLeftShift64BitWithOverflow2() {
   var t = 0xffffffff;
-  Expect.equals(0x20000000000000000, 4*(t+1) << 31); /// 04: static type warning
+  Expect.equals(0x20000000000000000, 4*(t+1) << 31); //# 04: static type warning
 }
 
 void testLeftShift64BitWithOverflow3() {
   var t = 0xffffffff;
-  Expect.equals(0x8000000000000000, (t+1) << 31);
+  Expect.equals(0x8000000000000000, (t + 1) << 31);
 }
 
 void testNegativeCountShifts() {
@@ -175,18 +175,23 @@ void testNoMaskingOfShiftCount() {
   }
 }
 
-int shiftLeft(int a, int b) { return a << b; }
-int shiftRight(int a, int b) { return a >> b; }
+int shiftLeft(int a, int b) {
+  return a << b;
+}
+
+int shiftRight(int a, int b) {
+  return a >> b;
+}
 
 void testPrecedence(int a, int b, int c, int d) {
   // & binds stronger than ^, which binds stronger than |.
   int result = a & b ^ c | d & b ^ c;
-  Expect.equals(((a & b) ^ c) | ((d & b) ^ c), result);     // &^|
-  Expect.notEquals((a & (b ^ c)) | (d & (b ^ c)), result);  // ^&|
-  Expect.notEquals((a & b) ^ (c | (d & b)) ^ c, result);    // &|^
-  Expect.notEquals((a & b) ^ ((c | d) & b) ^ c, result);    // |&^
-  Expect.notEquals(a & (b ^ (c | d)) & (b ^ c), result);    // |^&
-  Expect.notEquals(a & ((b ^ c) | d) & (b ^ c), result);    // ^|&
+  Expect.equals(((a & b) ^ c) | ((d & b) ^ c), result); //     &^|
+  Expect.notEquals((a & (b ^ c)) | (d & (b ^ c)), result); //  ^&|
+  Expect.notEquals((a & b) ^ (c | (d & b)) ^ c, result); //    &|^
+  Expect.notEquals((a & b) ^ ((c | d) & b) ^ c, result); //    |&^
+  Expect.notEquals(a & (b ^ (c | d)) & (b ^ c), result); //    |^&
+  Expect.notEquals(a & ((b ^ c) | d) & (b ^ c), result); //    ^|&
   // Binds stronger than relational operators.
   Expect.equals((a & b) < (c & d), a & b < c & d);
   // Binds weaker than shift operators.

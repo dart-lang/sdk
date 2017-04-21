@@ -12,11 +12,11 @@ library generic_methods_type_expression_test;
 
 import "package:expect/expect.dart";
 
-bool f1<T>(Object o) => o is T;   /// 01: static type warning
+bool f1<T>(Object o) => o is T; //  //# 01: static type warning
 
 bool f2<T>(Object o) => o is List<T>;
 
-bool f3<T>(Object o) => o is! T;   /// 03: static type warning
+bool f3<T>(Object o) => o is! T; //  //# 03: static type warning
 
 bool f4<T>(Object o) => o is! List<T>;
 
@@ -42,12 +42,12 @@ class IsMap<A> {
 main() {
   String s = "Hello!";
   List<String> ss = <String>[s];
-  Expect.throws(() => f1<int>(42), (e) => e is TypeError);  /// 01: continued
-  Expect.throws(() => f1<String>(42), (e) => e is TypeError);  /// 01: continued
+  Expect.throws(() => f1<int>(42), (e) => e is TypeError); // //# 01: continued
+  Expect.throws(() => f1<String>(42), (e) => e is TypeError); // //# 01: continued
   Expect.equals(f2<int>(<int>[42]), true);
   Expect.equals(f2<String>(<int>[42]), true); // `is List<dynamic>` is true.
-  Expect.throws(() => f3<int>(42), (e) => e is TypeError);  /// 03: continued
-  Expect.throws(() => f3<String>(42), (e) => e is TypeError);  /// 03: continued
+  Expect.throws(() => f3<int>(42), (e) => e is TypeError); // //# 03: continued
+  Expect.throws(() => f3<String>(42), (e) => e is TypeError); // //# 03: continued
   Expect.equals(f4<int>(<int>[42]), false);
   Expect.equals(f4<String>(<int>[42]), false); // `is! List<dynamic>` is false.
   Expect.equals(f5<String>(s), s); // `s as dynamic == s`
@@ -57,10 +57,11 @@ main() {
   Expect.throws(() => f7<int>(), (e) => e is TypeError);
   Expect.equals(f8<int>(), List); // Returns `List<dynamic>`.
 
-  Expect.isTrue(f9<int>(<int,String>{}));
-  Expect.isTrue(f9<int>(<bool,String>{})); // `is Map<dynamic, String>` is true.
-  Expect.isFalse(f9<int>(<int,int>{}));
+  Expect.isTrue(f9<int>(<int, String>{}));
+  Expect
+      .isTrue(f9<int>(<bool, String>{})); // `is Map<dynamic, String>` is true.
+  Expect.isFalse(f9<int>(<int, int>{}));
 
-  Expect.isTrue(new IsMap<int>().check<String>(<int,String>{}));
-  Expect.isTrue(new IsMap<int>().check<int>(<int,String>{}));
+  Expect.isTrue(new IsMap<int>().check<String>(<int, String>{}));
+  Expect.isTrue(new IsMap<int>().check<int>(<int, String>{}));
 }

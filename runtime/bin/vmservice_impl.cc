@@ -170,7 +170,8 @@ bool VmService::LoadForGenPrecompiled() {
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool running_precompiled,
-                      bool dev_mode_server) {
+                      bool dev_mode_server,
+                      bool trace_loading) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerAddress("");
@@ -238,7 +239,7 @@ bool VmService::Setup(const char* server_ip,
                          Dart_NewBoolean(dev_mode_server));
 
 // Are we running on Windows?
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();
 #else
   Dart_Handle is_windows = Dart_False();
@@ -248,7 +249,7 @@ bool VmService::Setup(const char* server_ip,
   SHUTDOWN_ON_ERROR(result);
 
 // Are we running on Fuchsia?
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
   Dart_Handle is_fuchsia = Dart_True();
 #else
   Dart_Handle is_fuchsia = Dart_False();
@@ -256,6 +257,12 @@ bool VmService::Setup(const char* server_ip,
   result =
       Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
   SHUTDOWN_ON_ERROR(result);
+
+  if (trace_loading) {
+    result = Dart_SetField(library, DartUtils::NewString("_traceLoading"),
+                           Dart_True());
+    SHUTDOWN_ON_ERROR(result);
+  }
 
   // Get _getWatchSignalInternal from dart:io.
   Dart_Handle dart_io_str = Dart_NewStringFromCString(DartUtils::kIOLibURL);

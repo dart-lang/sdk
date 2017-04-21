@@ -59,6 +59,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
@@ -118,6 +119,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
   CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+  CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED,
   CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
   CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
@@ -191,6 +193,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.PART_OF_NON_PART,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
   CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+  CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
   CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER,
   CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
   CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
@@ -245,6 +248,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_FACTORY_ANNOTATION,
   HintCode.INVALID_FACTORY_METHOD_DECL,
   HintCode.INVALID_FACTORY_METHOD_IMPL,
+  HintCode.INVALID_IMMUTABLE_ANNOTATION,
   HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
   HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
   HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
@@ -256,6 +260,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.MISSING_REQUIRED_PARAM,
   HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
   HintCode.MISSING_RETURN,
+  HintCode.MUST_BE_IMMUTABLE,
   HintCode.MUST_CALL_SUPER,
   HintCode.NULL_AWARE_IN_CONDITION,
   HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
@@ -365,6 +370,8 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.INVALID_AWAIT_IN_FOR,
   ParserErrorCode.INVALID_CODE_POINT,
   ParserErrorCode.INVALID_COMMENT_REFERENCE,
+  ParserErrorCode.INVALID_CONSTRUCTOR_NAME,
+  ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE,
   ParserErrorCode.INVALID_HEX_ESCAPE,
   ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
   ParserErrorCode.INVALID_OPERATOR,
@@ -632,6 +639,13 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.NO_DEFAULT_BOUNDS,
   StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
   StrongModeCode.NOT_INSTANTIATED_BOUND,
+  StrongModeCode.TOP_LEVEL_CYCLE,
+  StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
+  StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER,
+  StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
+  StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
+  StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
+  StrongModeCode.TOP_LEVEL_UNSUPPORTED,
   StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
   TodoCode.TODO,
 ];
@@ -805,12 +819,6 @@ class AnalysisError {
     return false;
   }
 
-  /**
-   * Return the value of the given [property], or `null` if the given property
-   * is not defined for this error.
-   */
-  Object/*=V*/ getProperty/*<V>*/(ErrorProperty/*<V>*/ property) => null;
-
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
@@ -836,76 +844,4 @@ class AnalysisError {
     }
     return errors.toList();
   }
-}
-
-/**
- * An [AnalysisError] that can have arbitrary properties associated with it.
- */
-class AnalysisErrorWithProperties extends AnalysisError {
-  /**
-   * The properties associated with this error.
-   */
-  HashMap<ErrorProperty, Object> _propertyMap =
-      new HashMap<ErrorProperty, Object>();
-
-  /**
-   * Initialize a newly created analysis error. The error is associated with the
-   * given [source] and is located at the given [offset] with the given
-   * [length]. The error will have the given [errorCode] and the list of
-   * [arguments] will be used to complete the message.
-   */
-  AnalysisErrorWithProperties(
-      Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : super(source, offset, length, errorCode, arguments);
-
-  @override
-  Object/*=V*/ getProperty/*<V>*/(ErrorProperty/*<V>*/ property) =>
-      _propertyMap[property] as Object/*=V*/;
-
-  /**
-   * Set the value of the given [property] to the given [value]. Using a value
-   * of `null` will effectively remove the property from this error.
-   */
-  void setProperty/*<V>*/(ErrorProperty/*<V>*/ property, Object/*=V*/ value) {
-    _propertyMap[property] = value;
-  }
-}
-
-/**
- * The properties that can be associated with an [AnalysisError].
- */
-class ErrorProperty<V> implements Comparable<ErrorProperty> {
-  /**
-   * A property whose value is the name of the library that is used by all
-   * of the "part of" directives, so should be used in the "library" directive.
-   * Is `null` if there is no a single name used by all of the parts.
-   */
-  static const ErrorProperty<String> PARTS_LIBRARY_NAME =
-      const ErrorProperty<String>('PARTS_LIBRARY_NAME', 1);
-
-  static const List<ErrorProperty> values = const [
-    PARTS_LIBRARY_NAME,
-  ];
-
-  /**
-   * The name of this property.
-   */
-  final String name;
-
-  /**
-   * The ordinal value of the property.
-   */
-  final int ordinal;
-
-  const ErrorProperty(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(ErrorProperty other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
 }

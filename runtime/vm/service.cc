@@ -16,6 +16,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -39,6 +40,7 @@
 #include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
+#include "vm/kernel_isolate.h"
 
 namespace dart {
 
@@ -59,6 +61,8 @@ DEFINE_FLAG(bool,
             false,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
+
+DECLARE_FLAG(bool, show_kernel_isolate);
 
 #ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
@@ -809,9 +813,9 @@ void Service::PostError(const String& method_name,
 }
 
 
-void Service::InvokeMethod(Isolate* I,
-                           const Array& msg,
-                           bool parameters_are_dart_objects) {
+RawError* Service::InvokeMethod(Isolate* I,
+                                const Array& msg,
+                                bool parameters_are_dart_objects) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
@@ -840,13 +844,18 @@ void Service::InvokeMethod(Isolate* I,
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
 
-    if (!reply_port.IsSendPort()) {
+    // We expect a reply port unless there is a null sequence id,
+    // which indicates that no reply should be sent.  We use this in
+    // tests.
+    if (!seq.IsNull() && !reply_port.IsSendPort()) {
       FATAL("SendPort expected.");
     }
 
     JSONStream js;
-    js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(), seq, method_name,
-             param_keys, param_values, parameters_are_dart_objects);
+    Dart_Port reply_port_id =
+        (reply_port.IsNull() ? ILLEGAL_PORT : SendPort::Cast(reply_port).Id());
+    js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
+             param_values, parameters_are_dart_objects);
 
     // RPC came in with a custom service id zone.
     const char* id_zone_param = js.LookupParam("_idZone");
@@ -868,7 +877,7 @@ void Service::InvokeMethod(Isolate* I,
         // For now, always return an error.
         PrintInvalidParamError(&js, "_idZone");
         js.PostReply();
-        return;
+        return T->get_and_clear_sticky_error();
       }
     }
     const char* c_method_name = method_name.ToCString();
@@ -877,7 +886,7 @@ void Service::InvokeMethod(Isolate* I,
     if (method != NULL) {
       if (!ValidateParameters(method->parameters, &js)) {
         js.PostReply();
-        return;
+        return T->get_and_clear_sticky_error();
       }
       if (method->entry(T, &js)) {
         js.PostReply();
@@ -886,7 +895,7 @@ void Service::InvokeMethod(Isolate* I,
         // so this case shouldn't be reached, at present.
         UNIMPLEMENTED();
       }
-      return;
+      return T->get_and_clear_sticky_error();
     }
 
     EmbedderServiceHandler* handler = FindIsolateEmbedderHandler(c_method_name);
@@ -896,7 +905,7 @@ void Service::InvokeMethod(Isolate* I,
 
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
-      return;
+      return T->get_and_clear_sticky_error();
     }
 
     const Instance& extension_handler =
@@ -906,32 +915,32 @@ void Service::InvokeMethod(Isolate* I,
                                param_values, reply_port, seq);
       // Schedule was successful. Extension code will post a reply
       // asynchronously.
-      return;
+      return T->get_and_clear_sticky_error();
     }
 
     PrintUnrecognizedMethodError(&js);
     js.PostReply();
-    return;
+    return T->get_and_clear_sticky_error();
   }
 }
 
 
-void Service::HandleRootMessage(const Array& msg_instance) {
+RawError* Service::HandleRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
-  InvokeMethod(isolate, msg_instance);
+  return InvokeMethod(isolate, msg_instance);
 }
 
 
-void Service::HandleObjectRootMessage(const Array& msg_instance) {
+RawError* Service::HandleObjectRootMessage(const Array& msg_instance) {
   Isolate* isolate = Isolate::Current();
-  InvokeMethod(isolate, msg_instance, true);
+  return InvokeMethod(isolate, msg_instance, true);
 }
 
 
-void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
+RawError* Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
-  InvokeMethod(isolate, msg);
-  MaybePause(isolate);
+  const Error& error = Error::Handle(InvokeMethod(isolate, msg));
+  return MaybePause(isolate, error);
 }
 
 
@@ -1334,6 +1343,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
   ASSERT(isolate->compilation_allowed());
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  DebuggerStackTrace* async_causal_stack =
+      isolate->debugger()->AsyncCausalStackTrace();
+  DebuggerStackTrace* awaiter_stack = isolate->debugger()->AwaiterStackTrace();
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
   const bool full = BoolParameter::Parse(js->LookupParam("_full"), false);
@@ -1345,6 +1357,28 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
+      JSONObject jsobj(&jsarr);
+      frame->PrintToJSONObject(&jsobj, full);
+      jsobj.AddProperty("index", i);
+    }
+  }
+
+  if (async_causal_stack != NULL) {
+    JSONArray jsarr(&jsobj, "asyncCausalFrames");
+    intptr_t num_frames = async_causal_stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = async_causal_stack->FrameAt(i);
+      JSONObject jsobj(&jsarr);
+      frame->PrintToJSONObject(&jsobj, full);
+      jsobj.AddProperty("index", i);
+    }
+  }
+
+  if (awaiter_stack != NULL) {
+    JSONArray jsarr(&jsobj, "awaiterFrames");
+    intptr_t num_frames = awaiter_stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = awaiter_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
       frame->PrintToJSONObject(&jsobj, full);
       jsobj.AddProperty("index", i);
@@ -1496,16 +1530,23 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
   ASSERT(!libs.IsNull());
-  intptr_t id = 0;
-  if (!GetIntegerId(parts[1], &id)) {
-    return Object::sentinel().raw();
-  }
-  if ((id < 0) || (id >= libs.Length())) {
-    return Object::sentinel().raw();
-  }
+  const String& id = String::Handle(String::New(parts[1]));
+  // Scan for private key.
+  String& private_key = String::Handle();
   Library& lib = Library::Handle();
-  lib ^= libs.At(id);
-  ASSERT(!lib.IsNull());
+  bool lib_found = false;
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    private_key ^= lib.private_key();
+    if (private_key.Equals(id)) {
+      lib_found = true;
+      break;
+    }
+  }
+  if (!lib_found) {
+    return Object::sentinel().raw();
+  }
   if (num_parts == 2) {
     return lib.raw();
   }
@@ -2509,14 +2550,20 @@ void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
 }
 
 
-void Service::MaybePause(Isolate* isolate) {
+RawError* Service::MaybePause(Isolate* isolate, const Error& error) {
   // Don't pause twice.
   if (!isolate->IsPaused()) {
     if (isolate->should_pause_post_service_request()) {
       isolate->set_should_pause_post_service_request(false);
-      isolate->PausePostRequest();
+      if (!error.IsNull()) {
+        // Before pausing, restore the sticky error. The debugger will return it
+        // from PausePostRequest.
+        Thread::Current()->set_sticky_error(error);
+      }
+      return isolate->PausePostRequest();
     }
   }
+  return error.raw();
 }
 
 
@@ -3015,13 +3062,6 @@ static bool Resume(Thread* thread, JSONStream* js) {
   if (step_param != NULL) {
     step = EnumMapper(step_param, step_enum_names, step_enum_values);
   }
-#if defined(TARGET_ARCH_DBC)
-  if (step == Debugger::kStepRewind) {
-    js->PrintError(kCannotResume,
-                   "Rewind not yet implemented on this architecture");
-    return true;
-  }
-#endif
   intptr_t frame_index = 1;
   const char* frame_index_param = js->LookupParam("frameIndex");
   if (frame_index_param != NULL) {
@@ -3205,6 +3245,28 @@ static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
   } else {
     PrintInvalidParamError(js, "classId");
   }
+  return true;
+}
+
+
+static const MethodParameter* get_native_allocation_samples_params[] = {
+    NO_ISOLATE_PARAMETER,
+    new EnumParameter("tags", true, tags_enum_names),
+    new Int64Parameter("timeOriginMicros", false),
+    new Int64Parameter("timeExtentMicros", false),
+    NULL,
+};
+
+
+static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  ProfilerService::PrintNativeAllocationJSON(js, tag_order, time_origin_micros,
+                                             time_extent_micros);
   return true;
 }
 
@@ -3763,7 +3825,12 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsVMInternalIsolate(isolate)) {
+    bool is_kernel_isolate = false;
+#ifndef DART_PRECOMPILED_RUNTIME
+    is_kernel_isolate =
+        KernelIsolate::IsKernelIsolate(isolate) && !FLAG_show_kernel_isolate;
+#endif
+    if (!IsVMInternalIsolate(isolate) && !is_kernel_isolate) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -3790,10 +3857,13 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
+  jsobj.AddProperty64("_nativeZoneMemoryUsage",
+                      ApiNativeScope::current_memory_usage());
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
+  MallocHooks::PrintToJSONObject(&jsobj);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");
@@ -3805,18 +3875,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
 
 static bool GetVM(Thread* thread, JSONStream* js) {
   Service::PrintJSONForVM(js, false);
-  return true;
-}
-
-
-static const MethodParameter* restart_vm_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
-};
-
-
-static bool RestartVM(Thread* thread, JSONStream* js) {
-  Isolate::KillAllIsolates(Isolate::kVMRestartMsg);
-  PrintSuccess(js);
   return true;
 }
 
@@ -4028,6 +4086,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },
+  { "_getNativeAllocationSamples", GetNativeAllocationSamples,
+      get_native_allocation_samples_params },
   { "getClassList", GetClassList,
     get_class_list_params },
   { "_getCpuProfile", GetCpuProfile,
@@ -4088,8 +4148,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
-  { "_restartVM", RestartVM,
-    restart_vm_params },
   { "reloadSources", ReloadSources,
     reload_sources_params },
   { "_reloadSources", ReloadSources,

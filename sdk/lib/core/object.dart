@@ -32,7 +32,7 @@ class Object {
    * The equality operator.
    *
    * The default behavior for all [Object]s is to return true if and
-   * only if [:this:] and [other] are the same object.
+   * only if `this` and [other] are the same object.
    *
    * Override this method to specify a different equality relation on
    * a class. The overriding method must still be an equivalence relation.
@@ -49,26 +49,44 @@ class Object {
    *  * Transitive: For all objects `o1`, `o2`, and `o3`, if `o1 == o2` and
    *    `o2 == o3` are true, then `o1 == o3` must be true.
    *
-   * The method should also be consistent over time, so equality of two objects
-   * should not change over time, or at least only change if one of the objects
-   * was modified.
+   * The method should also be consistent over time, 
+   * so whether two objects are equal should only change
+   * if at least one of the objects was modified.
    *
    * If a subclass overrides the equality operator it should override
    * the [hashCode] method as well to maintain consistency.
    */
-  external bool operator==(other);
+  external bool operator ==(other);
 
   /**
-   * Get a hash code for this object.
+   * The hash code for this object.
    *
-   * All objects have hash codes. Hash codes are guaranteed to be the
-   * same for objects that are equal when compared using the equality
-   * operator [:==:]. Other than that there are no guarantees about
-   * the hash codes. They will not be consistent between runs and
-   * there are no distribution guarantees.
-   *
-   * If a subclass overrides [hashCode] it should override the
-   * equality operator as well to maintain consistency.
+   * A hash code is a single integer which represents the state of the object
+   * that affects [==] comparisons.
+   * 
+   * All objects have hash codes. 
+   * The default hash code represents only the identity of the object, 
+   * the same way as the default [==] implementation only considers objects
+   * equal if they are identical (see [identityHashCode]).
+   * 
+   * If [==] is overridden to use the object state instead, 
+   * the hash code must also be changed to represent that state. 
+   * 
+   * Hash codes must be the same for objects that are equal to each other
+   * according to [==].
+   * The hash code of an object should only change if the object changes
+   * in a way that affects equality.
+   * There are no further requirements for the hash codes.
+   * They need not be consistent between executions of the same program
+   * and there are no distribution guarantees.
+   * 
+   * Objects that are not equal are allowed to have the same hash code,
+   * it is even technically allowed that all instances have the same hash code,
+   * but if clashes happen too often, it may reduce the efficiency of hash-based
+   * data structures like [HashSet] or [HashMap].
+   * 
+   * If a subclass overrides [hashCode], it should override the
+   * [==] operator as well to maintain consistency.
    */
   external int get hashCode;
 

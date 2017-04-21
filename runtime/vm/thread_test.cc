@@ -13,7 +13,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(Mutex) {
+VM_UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
                      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
@@ -35,7 +35,7 @@ UNIT_TEST_CASE(Mutex) {
 }
 
 
-UNIT_TEST_CASE(Monitor) {
+VM_UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
                      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
@@ -173,7 +173,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
 };
 
 
-VM_TEST_CASE(ManyTasksWithZones) {
+ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   const int kTaskCount = 100;
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
@@ -291,11 +291,10 @@ TEST_CASE(ManySimpleTasksWithZones) {
   const int kTaskCount = 10;
   Monitor monitor;
   Monitor sync;
-  Thread* threads[kTaskCount + 1];
+  Thread* threads[kTaskCount];
   Isolate* isolate = Thread::Current()->isolate();
   intptr_t done_count = 0;
   bool wait = true;
-  threads[kTaskCount] = Thread::Current();
 
   EXPECT(isolate->heap()->GrowthControlState());
   isolate->heap()->DisableGrowthControl();
@@ -323,38 +322,24 @@ TEST_CASE(ManySimpleTasksWithZones) {
   Thread* current_thread = Thread::Current();
 
   // Confirm all expected entries are in the JSON output.
-  for (intptr_t i = 0; i < kTaskCount + 1; i++) {
+  for (intptr_t i = 0; i < kTaskCount; i++) {
     Thread* thread = threads[i];
-    Zone* top_zone = thread->zone();
-
     StackZone stack_zone(current_thread);
     Zone* current_zone = current_thread->zone();
 
-    // Check that all zones are present with correct sizes.
-    while (top_zone != NULL) {
-      char* zone_info_buf =
-          OS::SCreate(current_zone,
-                      "\"type\":\"_Zone\","
-                      "\"capacity\":%" Pd
-                      ","
-                      "\"used\":%" Pd "",
-                      top_zone->CapacityInBytes(), top_zone->SizeInBytes());
-      EXPECT_SUBSTRING(zone_info_buf, json);
-      top_zone = top_zone->previous();
-    }
-
     // Check the thread exists and is the correct size.
-    char* thread_info_buf =
-        OS::SCreate(current_zone,
-                    "\"type\":\"_Thread\","
-                    "\"id\":\"threads\\/%" Pd
-                    "\","
-                    "\"kind\":\"%s\","
-                    "\"_memoryHighWatermark\":\"%" Pu "\"",
-                    OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
-                    Thread::TaskKindToCString(thread->task_kind()),
-                    thread->memory_high_watermark());
-
+    char* thread_info_buf = OS::SCreate(
+        current_zone,
+        "\"type\":\"_Thread\","
+        "\"id\":\"threads\\/%" Pd
+        "\","
+        "\"kind\":\"%s\","
+        "\"_zoneHighWatermark\":\"%" Pu
+        "\","
+        "\"_zoneCapacity\":\"%" Pu "\"",
+        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
+        Thread::TaskKindToCString(thread->task_kind()),
+        thread->zone_high_watermark(), thread->current_zone_capacity());
     EXPECT_SUBSTRING(thread_info_buf, json);
   }
 
@@ -554,7 +539,7 @@ TEST_CASE(SafepointTestDart) {
 // - main thread in VM code,
 // organized by
 // - helpers.
-VM_TEST_CASE(SafepointTestVM) {
+ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
   Isolate* isolate = thread->isolate();
   Monitor monitor;
   intptr_t expected_count = 0;
@@ -575,7 +560,7 @@ VM_TEST_CASE(SafepointTestVM) {
 
 
 // Test case for recursive safepoint operations.
-VM_TEST_CASE(RecursiveSafepointTest1) {
+ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest1) {
   intptr_t count = 0;
   {
     SafepointOperationScope safepoint_scope(thread);
@@ -593,7 +578,7 @@ VM_TEST_CASE(RecursiveSafepointTest1) {
 }
 
 
-VM_TEST_CASE(ThreadIterator_Count) {
+ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_0 = 0;
   intptr_t thread_count_1 = 0;
 
@@ -621,7 +606,7 @@ VM_TEST_CASE(ThreadIterator_Count) {
 }
 
 
-VM_TEST_CASE(ThreadIterator_FindSelf) {
+ISOLATE_UNIT_TEST_CASE(ThreadIterator_FindSelf) {
   OSThread* current = OSThread::Current();
   EXPECT(OSThread::IsThreadInList(current->id()));
 }
@@ -682,7 +667,7 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
 // organized by
 // - main thread, and
 // - helpers.
-VM_TEST_CASE(SafepointTestVM2) {
+ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
   Isolate* isolate = thread->isolate();
   Monitor monitor;
   intptr_t expected_count = 0;
@@ -714,7 +699,7 @@ VM_TEST_CASE(SafepointTestVM2) {
 
 // Test recursive safepoint operation scopes with other threads trying
 // to also start a safepoint operation scope.
-VM_TEST_CASE(RecursiveSafepointTest2) {
+ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   Isolate* isolate = thread->isolate();
   Monitor monitor;
   intptr_t expected_count = 0;
@@ -785,7 +770,7 @@ class AllocAndGCTask : public ThreadPool::Task {
 };
 
 
-VM_TEST_CASE(HelperAllocAndGC) {
+ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
   Isolate* isolate = thread->isolate();

@@ -15,7 +15,7 @@ String getPlatformExecutableExtension() {
 String getProcessTestFileName() {
   var extension = getPlatformExecutableExtension();
   var executable = Platform.executable;
-  var dirIndex = executable.lastIndexOf('dart$extension');
+  var dirIndex = executable.lastIndexOf('dart');
   var buffer = new StringBuffer(executable.substring(0, dirIndex));
   buffer.write('process_test$extension');
   return buffer.toString();

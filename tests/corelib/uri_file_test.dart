@@ -88,6 +88,8 @@ testFileUriWindowsSlash() {
     ["file:///C:/", "C:/", "C:\\"],
     ["file:///C:/a/b", "C:/a/b", "C:\\a\\b"],
     ["file:///C:/a/b/", "C:/a/b/", "C:\\a\\b\\"],
+
+    ["file:///C:/xxx/yyy", "C:\\xxx\\yyy", "C:\\xxx\\yyy"],
   ];
 
   for (var test in tests) {

@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  static const field dynamic staticConstant;
+  static field dynamic staticField;
+  constructor •() → void
+    ;
+  static method staticFunction() → dynamic
+    ;
+  static get staticGetter() → dynamic
+    ;
+  static set staticSetter(dynamic _) → dynamic
+    ;
+}
+static method use(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;

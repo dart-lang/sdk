@@ -16,18 +16,17 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show Message, MessageTemplate;
+import 'package:compiler/src/enqueue.dart' show ResolutionEnqueuer;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/parser/element_listener.dart' show ScannerOptions;
-import 'package:compiler/src/parser/listener.dart';
 import 'package:compiler/src/parser/node_listener.dart' show NodeListener;
-import 'package:compiler/src/parser/parser.dart' show Parser;
-import 'package:compiler/src/parser/partial_parser.dart';
+import 'package:compiler/src/parser/diet_parser_task.dart' show PartialParser;
 import 'package:compiler/src/platform_configuration.dart' as platform;
-import 'package:compiler/src/scanner/scanner.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import 'package:compiler/src/tokens/token.dart' show Token;
 import 'package:compiler/src/universe/world_impact.dart' show WorldImpact;
+import 'package:front_end/src/fasta/parser.dart' show Listener, Parser;
+import 'package:front_end/src/fasta/scanner.dart' show Token, scan;
 import 'package:package_config/discovery.dart' show findPackages;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/src/util.dart' show checkValidPackageUri;
@@ -175,7 +174,7 @@ parseFull(SourceFile source) {
 /// Scan [source] and return the first token produced by the scanner.
 Token tokenize(SourceFile source) {
   scanTimer.start();
-  var token = new Scanner(source).tokenize();
+  var token = scan(source.slowUtf8ZeroTerminatedBytes()).tokens;
   scanTimer.stop();
   return token;
 }
@@ -211,7 +210,7 @@ class DirectiveListener extends Listener {
 
   void beginLiteralString(Token token) {
     if (inDirective) {
-      var quotedString = token.value;
+      var quotedString = token.lexeme;
       targets.add(quotedString.substring(1, quotedString.length - 1));
     }
   }
@@ -234,6 +233,7 @@ class FakeReporter extends DiagnosticReporter {
   log(m) => print(m);
   internalError(_, m) => print(m);
   spanFromSpannable(_) => null;
+  spanFromToken(_) => null;
 
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
@@ -347,6 +347,7 @@ class MyCompiler extends CompilerImpl {
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
       selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
+        ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpact mainImpact = computeMain();
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
@@ -357,22 +358,21 @@ class MyCompiler extends CompilerImpl {
             supportSerialization: serialization.supportSerialization);
 
         phase = Compiler.PHASE_RESOLVING;
-        enqueuer.resolution.applyImpact(mainImpact);
+        resolutionEnqueuer.applyImpact(mainImpact);
         // Note: we enqueue everything in the program so we measure generating
         // kernel for the entire code, not just what's reachable from main.
         libraryLoader.libraries.forEach((LibraryElement library) {
-          enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
+          resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
         if (deferredLoadTask.isProgramSplit) {
-          enqueuer.resolution
+          resolutionEnqueuer
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
-        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
-        processQueue(enqueuer.resolution, mainFunction);
-        enqueuer.resolution.logSummary(reporter.log);
+        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
+        resolutionEnqueuer.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)
             .reportSuppressedMessagesSummary();

@@ -16,4 +16,5 @@ abstract class TargetRepository {
   void add(String);
   void setCurrent(Target);
   void delete(Target);
+  Target find(String networkAddress);
 }

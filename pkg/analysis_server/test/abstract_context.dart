@@ -76,6 +76,20 @@ class AbstractContextTest {
    */
   bool get enableNewAnalysisDriver => false;
 
+  Source addMetaPackageSource() => addPackageSource(
+      'meta',
+      'meta.dart',
+      r'''
+library meta;
+
+const Required required = const Required();
+
+class Required {
+  final String reason;
+  const Required([this.reason]);
+}
+''');
+
   Source addPackageSource(String packageName, String filePath, String content) {
     packageMap[packageName] = [(newFolder('/pubcache/$packageName'))];
     File file = newFile('/pubcache/$packageName/$filePath', content);
@@ -86,6 +100,7 @@ class AbstractContextTest {
     File file = newFile(path, content);
     if (enableNewAnalysisDriver) {
       driver.addFile(path);
+      driver.changeFile(path);
       _fileContentOverlay[path] = content;
       return null;
     } else {
@@ -168,6 +183,7 @@ class AbstractContextTest {
   void tearDown() {
     _context = null;
     provider = null;
+    AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
   }
 }

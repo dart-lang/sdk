@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'json_unicode_tests.dart';
 import "package:async_helper/async_helper.dart";
 
-final JSON_UTF8 = JSON.fuse(UTF8);
+final JSON_UTF8 = JSON.fuse<List<int>>(UTF8);
 
 
 Stream<List<int>> encode(Object o) {

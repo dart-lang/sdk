@@ -6,7 +6,7 @@ library analyzer.tool.summary.check_test;
 
 import 'dart:io';
 
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'generate.dart';

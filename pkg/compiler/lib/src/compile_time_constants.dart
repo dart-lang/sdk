@@ -4,18 +4,21 @@
 
 library dart2js.compile_time_constant_evaluator;
 
+import 'common/backend_api.dart' show BackendClasses;
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
+import 'constants/constructors.dart';
 import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CommonElements;
+import 'common_elements.dart' show CommonElements;
 import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'resolution/operators.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
@@ -353,16 +356,6 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       MetadataAnnotation metadata, Node node, TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
   }
-
-  void forgetElement(Element element) {
-    initialVariableValues.remove(element);
-    if (element is ScopeContainerElement) {
-      element.forEachLocalMember(initialVariableValues.remove);
-    }
-    if (element is FunctionElement && element.hasFunctionSignature) {
-      element.functionSignature.forEachParameter(this.forgetElement);
-    }
-  }
 }
 
 /// [ConstantCompiler] that uses the Dart semantics for the compile-time
@@ -470,7 +463,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       argumentExpressions.add(argument.expression);
       argumentValues.add(argument.value);
     }
-    ResolutionDartType type = elements.getType(node);
+    ResolutionInterfaceType type = elements.getType(node);
     return new AstConstant(
         context,
         node,
@@ -514,7 +507,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         node,
         new MapConstantExpression(type, keyExpressions, valueExpressions),
         constantSystem.createMap(
-            compiler, type, keyValues, map.values.toList()));
+            compiler.commonElements,
+            compiler.backend.backendClasses,
+            type,
+            keyValues,
+            map.values.toList()));
   }
 
   AstConstant visitLiteralNull(LiteralNull node) {
@@ -609,7 +606,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   ConstantValue makeTypeConstant(ResolutionDartType elementType) {
-    return constantSystem.createType(compiler, elementType);
+    return constantSystem.createType(
+        compiler.commonElements, compiler.backend.backendClasses, elementType);
   }
 
   /// Returns true if the prefix of the send resolves to a deferred import
@@ -625,7 +623,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (Elements.isClass(element) || Elements.isTypedef(element)) {
       TypeDeclarationElement typeDeclarationElement = element;
       ResolutionDartType type = typeDeclarationElement.rawType;
-      return new AstConstant(element, node, new TypeConstantExpression(type),
+      return new AstConstant(
+          element,
+          node,
+          new TypeConstantExpression(type, typeDeclarationElement.name),
           makeTypeConstant(type));
     }
     return signalNotCompileTimeConstant(node);
@@ -642,7 +643,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         result = new AstConstant(
             context,
             send,
-            new FunctionConstantExpression(function),
+            new FunctionConstantExpression(function, function.type),
             new FunctionConstantValue(function, function.type));
       } else if (Elements.isStaticOrTopLevelField(element)) {
         ConstantExpression elementExpression;
@@ -652,10 +653,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           elementExpression = handler.compileVariable(element);
         }
         if (elementExpression != null) {
+          FieldElement field = element;
           result = new AstConstant(
               context,
               send,
-              new VariableConstantExpression(element),
+              new FieldConstantExpression(field),
               handler.getConstantValue(elementExpression));
         }
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
@@ -664,7 +666,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         result = new AstConstant(
             context,
             send,
-            new TypeConstantExpression(elementType),
+            new TypeConstantExpression(elementType, element.name),
             makeTypeConstant(elementType));
       } else if (send.receiver != null) {
         if (send.selector.asIdentifier().source == "length") {
@@ -681,13 +683,13 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       } else if (!Elements.isUnresolved(element) &&
           element.isVariable &&
           element.isConst) {
-        ConstantExpression variableExpression =
-            handler.compileConstant(element);
+        LocalVariableElement local = element;
+        ConstantExpression variableExpression = handler.compileConstant(local);
         if (variableExpression != null) {
           result = new AstConstant(
               context,
               send,
-              new VariableConstantExpression(element),
+              new LocalVariableConstantExpression(local),
               handler.getConstantValue(variableExpression));
         }
       }
@@ -1264,8 +1266,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           new ConstructedConstantExpression(
               type, targetConstructor, callStructure, arguments);
 
-      Map<FieldElement, ConstantExpression> fields =
-          expression.computeInstanceFields();
+      Map<FieldEntity, ConstantExpression> fields =
+          expression.computeInstanceFields(new _CompilerEnvironment(compiler));
       fields.forEach((FieldElement field, ConstantExpression expression) {
         ConstantValue value = expression.evaluate(
             new _CompilerEnvironment(compiler), constantSystem);
@@ -1294,7 +1296,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       Function compileArgument = (element) => definitions[element];
       Function compileConstant = handler.compileConstant;
       FunctionElement target = constructor.definingConstructor.implementation;
-      Elements.addForwardingElementArgumentsToList<AstConstant>(constructor,
+      Elements.addForwardingElementArgumentsToList(constructor,
           compiledArguments, target, compileArgument, compileConstant);
       CallStructure callStructure = new CallStructure(
           target.functionSignature.parameterCount, target.type.namedParameters);
@@ -1446,12 +1448,39 @@ class ErroneousAstConstant extends AstConstant {
 }
 
 class _CompilerEnvironment implements Environment {
-  final Compiler compiler;
+  final Compiler _compiler;
 
-  _CompilerEnvironment(this.compiler);
+  _CompilerEnvironment(this._compiler);
+
+  @override
+  BackendClasses get backendClasses => _compiler.backend.backendClasses;
+
+  @override
+  CommonElements get commonElements => _compiler.commonElements;
 
   @override
   String readFromEnvironment(String name) {
-    return compiler.fromEnvironment(name);
+    return _compiler.fromEnvironment(name);
+  }
+
+  @override
+  ResolutionInterfaceType substByContext(
+      ResolutionInterfaceType base, ResolutionInterfaceType target) {
+    return base.substByContext(target);
+  }
+
+  @override
+  ConstantConstructor getConstructorConstant(ConstructorElement constructor) {
+    return constructor.constantConstructor;
+  }
+
+  @override
+  ConstantExpression getFieldConstant(FieldElement field) {
+    return field.constant;
+  }
+
+  @override
+  ConstantExpression getLocalConstant(LocalVariableElement local) {
+    return local.constant;
   }
 }

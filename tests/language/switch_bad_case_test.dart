@@ -19,18 +19,18 @@ caesarSays(n) {
       return "I";
     case 4:
       return "IV";
-    case "M":         /// 01: compile-time error
-      return 1000;    /// 01: continued
+    case "M": //        //# 01: compile-time error
+      return 1000; //   //# 01: continued
   }
   return null;
 }
 
 archimedesSays(n) {
-  switch (n) {        /// 02: continued
-    case 3.14:        /// 02: compile-time error
-      return "Pi";    /// 02: continued
-    case 2.71828:     /// 02: continued
-      return "Huh?";  /// 02: continued
-  }                   /// 02: continued
+  switch (n) { //       //# 02: continued
+    case 3.14: //       //# 02: compile-time error
+      return "Pi"; //   //# 02: continued
+    case 2.71828: //    //# 02: continued
+      return "Huh?"; // //# 02: continued
+  } //                  //# 02: continued
   return null;
 }

@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+class A extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::foo];
+  constructor •() → void
+    : super core::Object::•() {}
+  static factory foo() → self::A
+    let final dynamic #t1 = self::C::bar in invalid-expression;
+  method m() → core::int {}
+}
+class C extends self::A {
+  static field dynamic _redirecting# = <dynamic>[self::C::bar];
+  constructor •() → void
+    : super self::A::•() {}
+  static factory bar() → self::D
+    let final dynamic #t2 = self::D::• in invalid-expression;
+  method m() → core::int {
+    return 1;
+  }
+}
+class D extends self::C {
+  constructor •() → void
+    : super self::C::•()
+    ;
+  method m() → core::int {
+    return 2;
+  }
+}
+static method main() → dynamic {
+  self::A a = self::C::bar();
+  exp::Expect::equals(2, a.m(), null);
+}

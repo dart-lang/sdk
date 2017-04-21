@@ -120,8 +120,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitJump(Statement node) => visitStatement(node);
 
   T visitBlock(Block node) => visitStatement(node);
-  T visitExpressionStatement(ExpressionStatement node)
-      => visitStatement(node);
+  T visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   T visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   T visitIf(If node) => visitStatement(node);
   T visitFor(For node) => visitLoop(node);
@@ -135,8 +134,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitThrow(Throw node) => visitJump(node);
   T visitTry(Try node) => visitStatement(node);
   T visitSwitch(Switch node) => visitStatement(node);
-  T visitFunctionDeclaration(FunctionDeclaration node)
-      => visitStatement(node);
+  T visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
   T visitLabeledStatement(LabeledStatement node) => visitStatement(node);
   T visitLiteralStatement(LiteralStatement node) => visitStatement(node);
 
@@ -147,8 +145,8 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitExpression(Expression node) => visitNode(node);
 
   T visitLiteralExpression(LiteralExpression node) => visitExpression(node);
-  T visitVariableDeclarationList(VariableDeclarationList node)
-      => visitExpression(node);
+  T visitVariableDeclarationList(VariableDeclarationList node) =>
+      visitExpression(node);
   T visitAssignment(Assignment node) => visitExpression(node);
   T visitVariableInitialization(VariableInitialization node) {
     if (node.value != null) {
@@ -157,6 +155,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
       return visitExpression(node);
     }
   }
+
   T visitConditional(Conditional node) => visitExpression(node);
   T visitNew(New node) => visitExpression(node);
   T visitCall(Call node) => visitExpression(node);
@@ -206,20 +205,20 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
-  T visitInterpolatedExpression(InterpolatedExpression node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedLiteral(InterpolatedLiteral node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedParameter(InterpolatedParameter node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedSelector(InterpolatedSelector node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedStatement(InterpolatedStatement node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedMethod(InterpolatedMethod node)
-      => visitInterpolatedNode(node);
-  T visitInterpolatedIdentifier(InterpolatedIdentifier node)
-      => visitInterpolatedNode(node);
+  T visitInterpolatedExpression(InterpolatedExpression node) =>
+      visitInterpolatedNode(node);
+  T visitInterpolatedLiteral(InterpolatedLiteral node) =>
+      visitInterpolatedNode(node);
+  T visitInterpolatedParameter(InterpolatedParameter node) =>
+      visitInterpolatedNode(node);
+  T visitInterpolatedSelector(InterpolatedSelector node) =>
+      visitInterpolatedNode(node);
+  T visitInterpolatedStatement(InterpolatedStatement node) =>
+      visitInterpolatedNode(node);
+  T visitInterpolatedMethod(InterpolatedMethod node) =>
+      visitInterpolatedNode(node);
+  T visitInterpolatedIdentifier(InterpolatedIdentifier node) =>
+      visitInterpolatedNode(node);
 
   // Ignore comments by default.
   T visitComment(Comment node) => null;
@@ -229,10 +228,10 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitDartYield(DartYield node) => visitStatement(node);
 
   T visitBindingPattern(BindingPattern node) => visitNode(node);
-  T visitArrayBindingPattern(ArrayBindingPattern node)
-      => visitBindingPattern(node);
-  T visitObjectBindingPattern(ObjectBindingPattern node)
-      => visitBindingPattern(node);
+  T visitArrayBindingPattern(ArrayBindingPattern node) =>
+      visitBindingPattern(node);
+  T visitObjectBindingPattern(ObjectBindingPattern node) =>
+      visitBindingPattern(node);
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
   T visitSimpleBindingPattern(SimpleBindingPattern node) => visitNode(node);
 
@@ -254,6 +253,7 @@ abstract class Node {
   Object sourceInformation;
 
   ClosureAnnotation _closureAnnotation;
+
   /// Closure annotation of this node.
   ClosureAnnotation get closureAnnotation => _closureAnnotation;
 
@@ -268,9 +268,10 @@ abstract class Node {
     if (this.closureAnnotation == closureAnnotation) return this;
 
     return _clone()
-        ..sourceInformation = sourceInformation
-        .._closureAnnotation = closureAnnotation;
+      ..sourceInformation = sourceInformation
+      .._closureAnnotation = closureAnnotation;
   }
+
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
   Node withSourceInformation(sourceInformation) {
@@ -289,6 +290,7 @@ abstract class Node {
   Statement toStatement() {
     throw new UnsupportedError('toStatement');
   }
+
   Statement toReturn() {
     throw new UnsupportedError('toReturn');
   }
@@ -323,6 +325,7 @@ class Program extends Node {
   void visitChildren(NodeVisitor visitor) {
     for (ModuleItem statement in body) statement.accept(visitor);
   }
+
   Program _clone() => new Program(body);
 }
 
@@ -340,12 +343,15 @@ class Block extends Statement {
   Block(this.statements, {this.isScope: false}) {
     assert(!statements.any((s) => s is! Statement));
   }
-  Block.empty() : statements = <Statement>[], isScope = false;
+  Block.empty()
+      : statements = <Statement>[],
+        isScope = false;
 
   accept(NodeVisitor visitor) => visitor.visitBlock(this);
   void visitChildren(NodeVisitor visitor) {
     for (Statement statement in statements) statement.accept(visitor);
   }
+
   Block _clone() => new Block(statements);
 }
 
@@ -354,7 +360,10 @@ class ExpressionStatement extends Statement {
   ExpressionStatement(this.expression);
 
   accept(NodeVisitor visitor) => visitor.visitExpressionStatement(this);
-  void visitChildren(NodeVisitor visitor) { expression.accept(visitor); }
+  void visitChildren(NodeVisitor visitor) {
+    expression.accept(visitor);
+  }
+
   ExpressionStatement _clone() => new ExpressionStatement(expression);
 }
 
@@ -480,7 +489,7 @@ class Do extends Loop {
 }
 
 class Continue extends Statement {
-  final String targetLabel;  // Can be null.
+  final String targetLabel; // Can be null.
 
   Continue(this.targetLabel);
 
@@ -491,7 +500,7 @@ class Continue extends Statement {
 }
 
 class Break extends Statement {
-  final String targetLabel;  // Can be null.
+  final String targetLabel; // Can be null.
 
   Break(this.targetLabel);
 
@@ -502,7 +511,7 @@ class Break extends Statement {
 }
 
 class Return extends Statement {
-  final Expression value;  // Can be null.
+  final Expression value; // Can be null.
 
   Return([this.value = null]);
 
@@ -524,16 +533,17 @@ class Return extends Statement {
 }
 
 final _returnFinder = new _ReturnFinder();
+
 class _ReturnFinder extends BaseVisitor {
   bool found = false;
   visitReturn(Return node) {
     found = true;
   }
+
   visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
 }
-
 
 class Throw extends Statement {
   final Expression expression;
@@ -551,8 +561,8 @@ class Throw extends Statement {
 
 class Try extends Statement {
   final Block body;
-  final Catch catchPart;  // Can be null if [finallyPart] is non-null.
-  final Block finallyPart;  // Can be null if [catchPart] is non-null.
+  final Catch catchPart; // Can be null if [finallyPart] is non-null.
+  final Block finallyPart; // Can be null if [catchPart] is non-null.
 
   Try(this.body, this.catchPart, this.finallyPart) {
     assert(catchPart != null || finallyPart != null);
@@ -671,7 +681,7 @@ class LiteralStatement extends Statement {
   LiteralStatement(this.code);
 
   accept(NodeVisitor visitor) => visitor.visitLiteralStatement(this);
-  void visitChildren(NodeVisitor visitor) { }
+  void visitChildren(NodeVisitor visitor) {}
 
   LiteralStatement _clone() => new LiteralStatement(code);
 }
@@ -715,8 +725,8 @@ abstract class Expression extends Node {
   Expression toVoidExpression() => this;
   Expression toAssignExpression(Expression left) => new Assignment(left, this);
   Statement toVariableDeclaration(Identifier name) =>
-      new VariableDeclarationList('let',
-          [new VariableInitialization(name, this)]).toStatement();
+      new VariableDeclarationList(
+          'let', [new VariableInitialization(name, this)]).toStatement();
 }
 
 class LiteralExpression extends Expression {
@@ -772,11 +782,10 @@ class VariableDeclarationList extends Expression {
 
 class Assignment extends Expression {
   final Expression leftHandSide;
-  final String op;         // Null, if the assignment is not compound.
-  final Expression value;  // May be null, for [VariableInitialization]s.
+  final String op; // Null, if the assignment is not compound.
+  final Expression value; // May be null, for [VariableInitialization]s.
 
-  Assignment(leftHandSide, value)
-      : this.compound(leftHandSide, null, value);
+  Assignment(leftHandSide, value) : this.compound(leftHandSide, null, value);
   Assignment.compound(this.leftHandSide, this.op, this.value);
 
   int get precedenceLevel => ASSIGNMENT;
@@ -790,8 +799,7 @@ class Assignment extends Expression {
     if (value != null) value.accept(visitor);
   }
 
-  Assignment _clone() =>
-      new Assignment.compound(leftHandSide, op, value);
+  Assignment _clone() => new Assignment.compound(leftHandSide, op, value);
 }
 
 class VariableInitialization extends Assignment {
@@ -807,8 +815,7 @@ class VariableInitialization extends Assignment {
       new VariableInitialization(declaration, value);
 }
 
-abstract class VariableBinding extends Expression {
-}
+abstract class VariableBinding extends Expression {}
 
 class DestructuredVariable extends Expression implements Parameter {
   /// [LiteralString] or [Identifier].
@@ -816,7 +823,8 @@ class DestructuredVariable extends Expression implements Parameter {
   final BindingPattern structure;
   final Expression defaultValue;
   final TypeRef type;
-  DestructuredVariable({this.name, this.structure, this.defaultValue, this.type}) {
+  DestructuredVariable(
+      {this.name, this.structure, this.defaultValue, this.type}) {
     assert(name != null || structure != null);
   }
 
@@ -828,10 +836,11 @@ class DestructuredVariable extends Expression implements Parameter {
   }
 
   /// Avoid parenthesis when pretty-printing.
-  @override int get precedenceLevel => PRIMARY;
-  @override Node _clone() =>
-      new DestructuredVariable(
-          name: name, structure: structure, defaultValue: defaultValue);
+  @override
+  int get precedenceLevel => PRIMARY;
+  @override
+  Node _clone() => new DestructuredVariable(
+      name: name, structure: structure, defaultValue: defaultValue);
 }
 
 abstract class BindingPattern extends Expression implements VariableBinding {
@@ -852,28 +861,32 @@ class SimpleBindingPattern extends BindingPattern {
   accept(NodeVisitor visitor) => visitor.visitSimpleBindingPattern(this);
 
   /// Avoid parenthesis when pretty-printing.
-  @override int get precedenceLevel => PRIMARY;
-  @override Node _clone() => new SimpleBindingPattern(name);
+  @override
+  int get precedenceLevel => PRIMARY;
+  @override
+  Node _clone() => new SimpleBindingPattern(name);
 }
 
 class ObjectBindingPattern extends BindingPattern {
-  ObjectBindingPattern(List<DestructuredVariable> variables)
-      : super(variables);
+  ObjectBindingPattern(List<DestructuredVariable> variables) : super(variables);
   accept(NodeVisitor visitor) => visitor.visitObjectBindingPattern(this);
 
   /// Avoid parenthesis when pretty-printing.
-  @override int get precedenceLevel => PRIMARY;
-  @override Node _clone() => new ObjectBindingPattern(variables);
+  @override
+  int get precedenceLevel => PRIMARY;
+  @override
+  Node _clone() => new ObjectBindingPattern(variables);
 }
 
 class ArrayBindingPattern extends BindingPattern {
-  ArrayBindingPattern(List<DestructuredVariable> variables)
-      : super(variables);
+  ArrayBindingPattern(List<DestructuredVariable> variables) : super(variables);
   accept(NodeVisitor visitor) => visitor.visitArrayBindingPattern(this);
 
   /// Avoid parenthesis when pretty-printing.
-  @override int get precedenceLevel => PRIMARY;
-  @override Node _clone() => new ObjectBindingPattern(variables);
+  @override
+  int get precedenceLevel => PRIMARY;
+  @override
+  Node _clone() => new ObjectBindingPattern(variables);
 }
 
 class Conditional extends Expression {
@@ -1087,8 +1100,7 @@ class Identifier extends Expression implements Parameter, VariableBinding {
   }
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
-  Identifier _clone() =>
-      new Identifier(name, allowRename: allowRename);
+  Identifier _clone() => new Identifier(name, allowRename: allowRename);
   accept(NodeVisitor visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
@@ -1106,6 +1118,7 @@ class RestParameter extends Expression implements Parameter {
   void visitChildren(NodeVisitor visitor) {
     parameter.accept(visitor);
   }
+
   int get precedenceLevel => PRIMARY;
 }
 
@@ -1123,16 +1136,17 @@ class This extends Expression {
 }
 
 final _thisFinder = new _ThisFinder();
+
 class _ThisFinder extends BaseVisitor {
   bool found = false;
   visitThis(This node) {
     found = true;
   }
+
   visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
 }
-
 
 // `super` is more restricted in the ES6 spec, but for simplicity we accept
 // it anywhere that `this` is accepted.
@@ -1146,8 +1160,12 @@ class Super extends Expression {
 class NamedFunction extends Expression {
   final Identifier name;
   final Fun function;
+  // A heuristic to force extra parens around this function.  V8 and other
+  // engines use this IIFE (immediately invoked function expression) heuristic
+  // to eagerly parse a function.
+  final bool immediatelyInvoked;
 
-  NamedFunction(this.name, this.function);
+  NamedFunction(this.name, this.function, [this.immediatelyInvoked = false]);
 
   accept(NodeVisitor visitor) => visitor.visitNamedFunction(this);
 
@@ -1155,9 +1173,12 @@ class NamedFunction extends Expression {
     name.accept(visitor);
     function.accept(visitor);
   }
-  NamedFunction _clone() => new NamedFunction(name, function);
 
-  int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
+  NamedFunction _clone() =>
+      new NamedFunction(name, function, immediatelyInvoked);
+
+  int get precedenceLevel =>
+      immediatelyInvoked ? EXPRESSION : PRIMARY_LOW_PRECEDENCE;
 }
 
 abstract class FunctionExpression extends Expression {
@@ -1167,6 +1188,7 @@ abstract class FunctionExpression extends Expression {
   /// Type parameters passed to this generic function, if any. `null` otherwise.
   // TODO(ochafik): Support type bounds.
   List<Identifier> get typeParams;
+
   /// Return type of this function, if any. `null` otherwise.
   TypeRef get returnType;
 }
@@ -1174,17 +1196,21 @@ abstract class FunctionExpression extends Expression {
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
-  @override final List<Identifier> typeParams;
-  @override final TypeRef returnType;
+  @override
+  final List<Identifier> typeParams;
+  @override
+  final TypeRef returnType;
 
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
 
   final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body, {this.isGenerator: false,
+  Fun(this.params, this.body,
+      {this.isGenerator: false,
       this.asyncModifier: const AsyncModifier.sync(),
-      this.typeParams, this.returnType});
+      this.typeParams,
+      this.returnType});
 
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
@@ -1202,8 +1228,10 @@ class Fun extends FunctionExpression {
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
-  @override final List<Identifier> typeParams;
-  @override final TypeRef returnType;
+  @override
+  final List<Identifier> typeParams;
+  @override
+  final TypeRef returnType;
 
   ArrowFun(this.params, this.body, {this.typeParams, this.returnType});
 
@@ -1317,7 +1345,7 @@ class LiteralString extends Literal {
 }
 
 class LiteralNumber extends Literal {
-  final String value;  // Must be a valid JavaScript number literal.
+  final String value; // Must be a valid JavaScript number literal.
 
   LiteralNumber(this.value);
 
@@ -1492,9 +1520,11 @@ class ClassExpression extends Expression {
   final Identifier name;
   final Expression heritage; // Can be null.
   final List<Method> methods;
+
   /// Type parameters of this class, if any. `null` otherwise.
   // TODO(ochafik): Support type bounds.
   final List<Identifier> typeParams;
+
   /// Field declarations of this class (TypeScript / ES6_TYPED).
   final List<VariableDeclarationList> fields;
 
@@ -1519,8 +1549,8 @@ class ClassExpression extends Expression {
     }
   }
 
-  ClassExpression _clone() => new ClassExpression(
-      name, heritage, methods, typeParams: typeParams, fields: fields);
+  ClassExpression _clone() => new ClassExpression(name, heritage, methods,
+      typeParams: typeParams, fields: fields);
 
   int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
 }
@@ -1566,8 +1596,7 @@ class InterpolatedExpression extends Expression with InterpolatedNode {
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedExpression(this);
   void visitChildren(NodeVisitor visitor) {}
-  InterpolatedExpression _clone() =>
-      new InterpolatedExpression(nameOrPosition);
+  InterpolatedExpression _clone() => new InterpolatedExpression(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1582,12 +1611,16 @@ class InterpolatedLiteral extends Literal with InterpolatedNode {
   InterpolatedLiteral _clone() => new InterpolatedLiteral(nameOrPosition);
 }
 
-class InterpolatedParameter extends Expression with InterpolatedNode
+class InterpolatedParameter extends Expression
+    with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
   TypeRef get type => null;
 
-  String get name { throw "InterpolatedParameter.name must not be invoked"; }
+  String get name {
+    throw "InterpolatedParameter.name must not be invoked";
+  }
+
   bool get allowRename => false;
 
   InterpolatedParameter(this.nameOrPosition);
@@ -1622,7 +1655,8 @@ class InterpolatedStatement extends Statement with InterpolatedNode {
 }
 
 // TODO(jmesserly): generalize this to InterpolatedProperty?
-class InterpolatedMethod extends Expression with InterpolatedNode
+class InterpolatedMethod extends Expression
+    with InterpolatedNode
     implements Method {
   final nameOrPosition;
 
@@ -1642,15 +1676,15 @@ class InterpolatedMethod extends Expression with InterpolatedNode
   get _unsupported => throw '$runtimeType does not support this member.';
 }
 
-class InterpolatedIdentifier extends Expression with InterpolatedNode
+class InterpolatedIdentifier extends Expression
+    with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
   TypeRef get type => null;
 
   InterpolatedIdentifier(this.nameOrPosition);
 
-  accept(NodeVisitor visitor) =>
-      visitor.visitInterpolatedIdentifier(this);
+  accept(NodeVisitor visitor) => visitor.visitInterpolatedIdentifier(this);
   void visitChildren(NodeVisitor visitor) {}
   InterpolatedIdentifier _clone() => new InterpolatedIdentifier(nameOrPosition);
 
@@ -1754,7 +1788,8 @@ class ImportDeclaration extends ModuleItem {
 
   /** If this import has `* as name` returns the name, otherwise null. */
   Identifier get importStarAs {
-    if (namedImports != null && namedImports.length == 1 &&
+    if (namedImports != null &&
+        namedImports.length == 1 &&
         namedImports[0].isStar) {
       return namedImports[0].asName;
     }
@@ -1768,6 +1803,7 @@ class ImportDeclaration extends ModuleItem {
     }
     from.accept(visitor);
   }
+
   ImportDeclaration _clone() => new ImportDeclaration(
       defaultBinding: defaultBinding, namedImports: namedImports, from: from);
 }
@@ -1787,11 +1823,10 @@ class ExportDeclaration extends ModuleItem {
 
   ExportDeclaration(this.exported, {this.isDefault: false}) {
     assert(exported is ClassDeclaration ||
-        exported is FunctionDeclaration ||
-        isDefault
-            ? exported is Expression
-            : exported is VariableDeclarationList ||
-              exported is ExportClause);
+            exported is FunctionDeclaration ||
+            isDefault
+        ? exported is Expression
+        : exported is VariableDeclarationList || exported is ExportClause);
   }
 
   /// Gets the list of names exported by this export declaration, or `null`
@@ -1838,6 +1873,7 @@ class ExportClause extends Node {
     for (NameSpecifier name in exports) name.accept(visitor);
     if (from != null) from.accept(visitor);
   }
+
   ExportClause _clone() => new ExportClause(exports, from: from);
 }
 
@@ -1871,5 +1907,6 @@ class Module extends Node {
   void visitChildren(NodeVisitor visitor) {
     for (ModuleItem item in body) item.accept(visitor);
   }
+
   Module _clone() => new Module(body);
 }

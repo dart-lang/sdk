@@ -1422,7 +1422,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   List<String> _excludePatterns;
 
   @override
-  bool enableUriInPartOf = false;
+  bool enableUriInPartOf = true;
 
   @override
   bool generateImplicitErrors = true;
@@ -1686,7 +1686,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableStrictCallChecks = false;
     enableSuperMixins = false;
     enableTiming = false;
-    enableUriInPartOf = false;
+    enableUriInPartOf = true;
     _errorProcessors = null;
     _excludePatterns = null;
     finerGrainedInvalidation = false;

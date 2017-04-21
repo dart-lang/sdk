@@ -23,8 +23,8 @@ class BuildingTranslationHelper : public TranslationHelper {
       : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
-  virtual RawClass* LookupClassByKernelClass(Class* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
+  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
 
  private:
   KernelReader* reader_;
@@ -78,6 +78,8 @@ class KernelReader {
                      Procedure* procedure,
                      Class* kernel_klass = NULL);
 
+  RawArray* MakeFunctionsArray();
+
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
@@ -92,8 +94,8 @@ class KernelReader {
   void SetupFieldAccessorFunction(const dart::Class& klass,
                                   const dart::Function& function);
 
-  dart::Library& LookupLibrary(Library* library);
-  dart::Class& LookupClass(Class* klass);
+  dart::Library& LookupLibrary(CanonicalName* library);
+  dart::Class& LookupClass(CanonicalName* klass);
 
   dart::RawFunction::Kind GetFunctionType(Procedure* kernel_procedure);
 
@@ -107,8 +109,11 @@ class KernelReader {
   BuildingTranslationHelper translation_helper_;
   DartTypeTranslator type_translator_;
 
-  Mapping<Library, dart::Library> libraries_;
-  Mapping<Class, dart::Class> classes_;
+  Mapping<CanonicalName, dart::Library> libraries_;
+  Mapping<CanonicalName, dart::Class> classes_;
+
+  GrowableArray<const dart::Function*> functions_;
+  GrowableArray<const dart::Field*> fields_;
 };
 
 }  // namespace kernel

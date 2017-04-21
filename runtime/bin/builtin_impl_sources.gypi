@@ -53,6 +53,7 @@
     'hashmap_test.cc',
     'io_buffer.cc',
     'io_buffer.h',
+    'isolate_data.cc',
     'isolate_data.h',
     'loader.cc',
     'loader.h',

@@ -8,48 +8,79 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 validSymbol(String string) {
-  Expect.equals(string,
-                MirrorSystem.getName(new Symbol(string)),
-                'Valid symbol "$string" should be invertable');
-  Expect.equals(string,
-                MirrorSystem.getName(MirrorSystem.getSymbol(string)),
-                'Valid symbol "$string" should be invertable');
+  Expect.equals(string, MirrorSystem.getName(new Symbol(string)),
+      'Valid symbol "$string" should be invertable');
+  Expect.equals(string, MirrorSystem.getName(MirrorSystem.getSymbol(string)),
+      'Valid symbol "$string" should be invertable');
 }
 
 invalidSymbol(String string) {
-  Expect.throws(() => new Symbol(string),
-                (e) => e is ArgumentError,
-                'Invalid symbol "$string" should be rejected');
-  Expect.throws(() => MirrorSystem.getSymbol(string),
-                (e) => e is ArgumentError,
-                'Invalid symbol "$string" should be rejected');
+  Expect.throws(() => new Symbol(string), (e) => e is ArgumentError,
+      'Invalid symbol "$string" should be rejected');
+  Expect.throws(() => MirrorSystem.getSymbol(string), (e) => e is ArgumentError,
+      'Invalid symbol "$string" should be rejected');
 }
 
 validPrivateSymbol(String string) {
   ClosureMirror closure = reflect(main);
   LibraryMirror library = closure.function.owner;
-  Expect.equals(string,
-                MirrorSystem.getName(MirrorSystem.getSymbol(string, library)),
-                'Valid private symbol "$string" should be invertable');
+  Expect.equals(
+      string,
+      MirrorSystem.getName(MirrorSystem.getSymbol(string, library)),
+      'Valid private symbol "$string" should be invertable');
 }
 
 main() {
   // Operators that can be declared as class member operators.
   // These are all valid as symbols.
   var operators = [
-    '%', '&', '*', '+', '-', '/', '<', '<<', '<=', '==', '>',
-    '>=', '>>', '[]', '[]=', '^', 'unary-', '|', '~', '~/'
+    '%',
+    '&',
+    '*',
+    '+',
+    '-',
+    '/',
+    '<',
+    '<<',
+    '<=',
+    '==',
+    '>',
+    '>=',
+    '>>',
+    '[]',
+    '[]=',
+    '^',
+    'unary-',
+    '|',
+    '~',
+    '~/'
   ];
   operators.expand((op) => [op, "x.$op"]).forEach(validSymbol);
-  operators.expand((op) => [".$op", "$op.x", "x$op", "_x.$op"])
-           .forEach(invalidSymbol);
-  operators.expand((op) => operators.contains("$op=") ? [] : ["x.$op=", "$op="])
-           .forEach(invalidSymbol);
+  operators
+      .expand((op) => [".$op", "$op.x", "x$op", "_x.$op"])
+      .forEach(invalidSymbol);
+  operators
+      .expand((op) => operators.contains("$op=") ? [] : ["x.$op=", "$op="])
+      .forEach(invalidSymbol);
 
   var simpleSymbols = [
-    'foo', 'bar_', 'baz.quz', 'fisk1', 'hest2fisk', 'a.b.c.d.e',
-    r'$', r'foo$', r'bar$bar', r'$.$', r'x6$_', r'$6_', r'x.$$6_',
-    'x_', 'x_.x_', 'unary', 'x.unary'
+    'foo',
+    'bar_',
+    'baz.quz',
+    'fisk1',
+    'hest2fisk',
+    'a.b.c.d.e',
+    r'$',
+    r'foo$',
+    r'bar$bar',
+    r'$.$',
+    r'x6$_',
+    r'$6_',
+    r'x.$$6_',
+    'x_',
+    'x_.x_',
+    'unary',
+    'x.unary'
   ];
   simpleSymbols.expand((s) => [s, "s="]).forEach(validSymbol);
 
@@ -101,10 +132,12 @@ main() {
     "while",
     "with"
   ];
-  reservedWords.expand((w) => [w, "$w=", "x.$w" , "$w.x", "x.$w.x"])
-               .forEach(invalidSymbol);
-  reservedWords.expand((w) => ["${w}_", "${w}\$", "${w}q"])
-               .forEach(validSymbol);
+  reservedWords
+      .expand((w) => [w, "$w=", "x.$w", "$w.x", "x.$w.x"])
+      .forEach(invalidSymbol);
+  reservedWords
+      .expand((w) => ["${w}_", "${w}\$", "${w}q"])
+      .forEach(validSymbol);
 
   // Built-in identifiers are valid identifiers that are restricted from being
   // used in some cases, but they are all valid symbols.
@@ -125,13 +158,11 @@ main() {
     "static",
     "typedef"
   ];
-  builtInIdentifiers.expand((w) => [w, "$w=", "x.$w" , "$w.x", "x.$w.x",
-                                    "$w=", "x.$w="])
-                    .forEach(validSymbol);
+  builtInIdentifiers
+      .expand((w) => [w, "$w=", "x.$w", "$w.x", "x.$w.x", "$w=", "x.$w="])
+      .forEach(validSymbol);
 
-  var privateSymbols = [
-    '_', '_x', 'x._y', 'x._', 'x.y._', 'x._.y', '_true'
-  ];
+  var privateSymbols = ['_', '_x', 'x._y', 'x._', 'x.y._', 'x._.y', '_true'];
   privateSymbols.forEach(invalidSymbol);
-  privateSymbols.forEach(validPrivateSymbol);   /// 01: ok
+  privateSymbols.forEach(validPrivateSymbol); //  //# 01: ok
 }

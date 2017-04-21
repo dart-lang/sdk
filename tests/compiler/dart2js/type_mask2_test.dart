@@ -217,7 +217,7 @@ Future testStringSubtypes() async {
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement String_ = env.getElement("String");
-  ClassElement JSString = closedWorld.backendClasses.stringImplementation;
+  ClassElement JSString = closedWorld.backendClasses.stringClass;
 
   List<ClassElement> allClasses = <ClassElement>[Object_, String_];
 

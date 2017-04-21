@@ -198,7 +198,7 @@ DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
 }
 
 
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 // MAC OSX math library produces old style cast warning.
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif

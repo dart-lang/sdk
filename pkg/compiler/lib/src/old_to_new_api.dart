@@ -40,14 +40,38 @@ class LegacyCompilerDiagnostics implements CompilerDiagnostics {
 
 /// Implementation of [CompilerOutput] using an optional
 /// [CompilerOutputProvider].
+// TODO(johnniwinther): Change Pub to use the new interface and remove this.
 class LegacyCompilerOutput implements CompilerOutput {
   final CompilerOutputProvider _outputProvider;
 
   LegacyCompilerOutput([this._outputProvider]);
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    if (_outputProvider != null) return _outputProvider(name, extension);
-    return NullSink.outputProvider(name, extension);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    if (_outputProvider != null) {
+      switch (type) {
+        case OutputType.info:
+          if (extension == '') {
+            // Needed to make Pub generate the same output name.
+            extension = 'deferred_map';
+          }
+          break;
+        default:
+      }
+      return new LegacyOutputSink(_outputProvider(name, extension));
+    }
+    return NullSink.outputProvider(name, extension, type);
   }
+}
+
+class LegacyOutputSink implements OutputSink {
+  final EventSink<String> sink;
+
+  LegacyOutputSink(this.sink);
+
+  @override
+  void add(String event) => sink.add(event);
+
+  @override
+  void close() => sink.close();
 }

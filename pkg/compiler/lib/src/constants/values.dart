@@ -5,8 +5,7 @@
 library dart2js.constants.values;
 
 import '../common.dart';
-import '../core_types.dart';
-import '../elements/elements.dart' show Entity;
+import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../tree/dartstring.dart';

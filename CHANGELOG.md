@@ -1,3 +1,187 @@
+## 1.23.0 - 2017-04-21
+
+#### Strong Mode
+
+* Breaking change - it is now a strong mode error if a mixin causes a name
+  conflict between two private members (field/getter/setter/method) from a
+  different library. (SDK
+  issue [28809](https://github.com/dart-lang/sdk/issues/28809)).
+
+lib1.dart:
+
+
+```dart
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+```
+
+lib2.dart:
+
+
+```dart
+import 'lib1.dart';
+
+class C extends A with B {}
+```
+
+```
+    error • The private name _x, defined by B, conflicts with the same name defined by A at tmp/lib2.dart:3:24 • private_collision_in_mixin_application
+```
+
+
+* Breaking change - strong mode will prefer the expected type to infer generic
+  types, functions, and methods (SDK
+  issue [27586](https://github.com/dart-lang/sdk/issues/27586)).
+
+  ```dart
+  main() {
+    List<Object> foo = /*infers: <Object>*/['hello', 'world'];
+    var bar = /*infers: <String>*/['hello', 'world'];
+  }
+  ```
+
+* Strong mode inference error messages are improved
+  (SDK issue [29108](https://github.com/dart-lang/sdk/issues/29108)).
+
+  ```dart
+  import 'dart:math';
+  test(Iterable/* fix is to add <num> here */ values) {
+    num n = values.fold(values.first as num, max);
+  }
+  ```
+  Now produces the error on the generic function "max":
+  ```
+  Couldn't infer type parameter 'T'.
+
+  Tried to infer 'dynamic' for 'T' which doesn't work:
+    Function type declared as '<T extends num>(T, T) → T'
+                  used where  '(num, dynamic) → num' is required.
+
+  Consider passing explicit type argument(s) to the generic.
+  ```
+
+* Strong mode supports overriding fields, `@virtual` is no longer required
+    (SDK issue [28120](https://github.com/dart-lang/sdk/issues/28120)).
+
+    ```dart
+    class C {
+      int x = 42;
+    }
+    class D extends C {
+      int x = 123;
+      get y => super.x;
+    }
+    main() {
+      print(new D().x);
+      print(new D().y);
+    }
+    ```
+
+* Strong mode down cast composite warnings are no longer issued by default.
+  (SDK issue [28588](https://github.com/dart-lang/sdk/issues/28588)).
+
+```dart
+void test() {
+  List untyped = [];
+  List<int> typed = untyped; // No down cast composite warning
+}
+```
+
+To opt back into the warnings, add the following to
+the
+[.analysis_options](https://www.dartlang.org/guides/language/analysis-options)
+file for your project.
+
+```
+analyzer:
+  errors:
+    strong_mode_down_cast_composite: warning
+```
+
+
+### Core library changes
+
+* `dart:core`
+  * Added `Uri.isScheme` function to check the scheme of a URI.
+    Example: `uri.isScheme("http")`. Ignores case when comparing.
+  * Make `UriData.parse` validate its input better.
+    If the data is base-64 encoded, the data is normalized wrt.
+    alphabet and padding, and it contains invalid base-64 data,
+    parsing fails. Also normalizes non-base-64 data.
+* `dart:io`
+  * Added functions `File.lastAccessed`, `File.lastAccessedSync`,
+    `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
+    and `File.setLastAccessedSync`.
+  * Added `{Stdin,Stdout}.supportsAnsiEscapes`.
+
+### Dart VM
+
+* Calls to `print()` and `Stdout.write*()` now correctly print unicode
+  characters to the console on Windows. Calls to `Stdout.add*()` behave as
+  before.
+
+### Tool changes
+
+* Analysis
+  * `dartanalyzer` now follows the same rules as the analysis server to find
+    an analysis options file, stopping when an analysis options file is found:
+    * Search up the directory hierarchy looking for an analysis options file.
+    * If analyzing a project referencing the [Flutter](https://flutter.io/)
+      package, then use the
+      [default Flutter analysis options](https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml)
+      found in `package:flutter`.
+    * If in a Bazel workspace, then use the analysis options in
+      `package:dart.analysis_options/default.yaml` if it exists.
+    * Use the default analysis options rules.
+  * In addition, specific to `dartanalyzer`:
+    * an analysis options file can be specified on the command line via
+      `--options` and that file will be used instead of searching for an
+      analysis options file.
+    * any analysis option specified on the command line
+      (e.g. `--strong` or `--no-strong`) takes precedence over any corresponding
+      value specified in the analysis options file.
+
+* Dartium, dart2js, and DDC
+
+  * Imports to `dart:io` are allowed, but the imported library is not supported
+    and will likely fail on most APIs at runtime. This change was made as a
+    stopgap measure to make it easier to write libraries that share code between
+    platforms (like package `http`). This might change again when configuration
+    specific imports are supported.
+
+* Pub
+  * Now sends telemetry data to `pub.dartlang.org` to allow better understanding
+    of why a particular package is being accessed.
+  * `pub publish`
+    * Warns if a package imports a package that's not a dependency from within
+      `lib/` or `bin/`, or a package that's not a dev dependency from within
+      `benchmark/`, `example/`, `test/` or `tool/`.
+    * No longer produces "UID too large" errors on OS X. All packages are now
+      uploaded with the user and group names set to "pub".
+    * No longer fails with a stack overflow when uploading a package that uses
+      Git submodules.
+  * `pub get` and `pub upgrade`
+    * Produce more informative error messages if they're run directly in a
+      package that uses Flutter.
+    * Properly unlock SDK and path dependencies if they have a new version
+      that's also valid according to the user's pubspec.
+
+* dartfmt
+  * Support new generic function typedef syntax.
+  * Make the precedence of cascades more visible.
+  * Fix a couple of places where spurious newlines were inserted.
+  * Correctly report unchanged formatting when reading from stdin.
+  * Ensure space between `-` and `--`. Code that does this is pathological, but
+    it technically meant dartfmt could change the semantics of the code.
+  * Preserve a blank line between enum cases.
+  * Other small formatting tweaks.
+
+
 ## 1.22.1 - 2017-02-22
 
 Patch release, resolves two issues:
@@ -10,14 +194,16 @@ Patch release, resolves two issues:
 
 ### Language
 
-  * Breaking change: ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
+  * Breaking change:
+    ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
     are no longer supported, and will cause errors. We updated the language spec
     and added warnings in 1.21, and are now taking the last step to fully
     de-support them. They were previously only supported in the VM, and there
     are almost no known uses of them in the wild.
 
   * The `assert()` statement has been expanded to support an optional second
-    `message` argument (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
+    `message` argument
+    (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
 
     The message is displayed if the assert fails. It can be any object, and it
     is accessible as `AssertionError.message`. It can be used to provide more
@@ -84,7 +270,7 @@ Patch release, resolves two issues:
 
     ```dart
     Predator predator = new Cat(); // Upcast.
-    predator(new Seal()); // Cats can't eat seals!
+    predator.chaseAndEat(new Seal()); // Cats can't eat seals!
     ```
 
     To preserve soundness in strong mode, in the body of a method that uses a

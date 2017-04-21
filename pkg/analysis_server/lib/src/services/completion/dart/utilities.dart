@@ -7,12 +7,16 @@
  */
 import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -27,6 +31,68 @@ const DYNAMIC = 'dynamic';
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
     astFactory.simpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
+
+/**
+ * Add default argument list text and ranges based on the given [requiredParams]
+ * and [namedParams].
+ */
+void addDefaultArgDetails(
+    CompletionSuggestion suggestion,
+    Element element,
+    Iterable<ParameterElement> requiredParams,
+    Iterable<ParameterElement> namedParams,
+    IdeOptions options) {
+  StringBuffer sb = new StringBuffer();
+  List<int> ranges = <int>[];
+
+  int offset;
+
+  for (ParameterElement param in requiredParams) {
+    if (sb.isNotEmpty) {
+      sb.write(', ');
+    }
+    offset = sb.length;
+    String name = param.name;
+    sb.write(name);
+    ranges.addAll([offset, name.length]);
+  }
+
+  for (ParameterElement param in namedParams) {
+    if (param.isRequired) {
+      if (sb.isNotEmpty) {
+        sb.write(', ');
+      }
+      String name = param.name;
+      sb.write('$name: ');
+      offset = sb.length;
+      String defaultValue = _getDefaultValue(param);
+      sb.write(defaultValue);
+      ranges.addAll([offset, defaultValue.length]);
+    }
+  }
+
+  if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
+    if (element is ConstructorElement) {
+      if (isFlutterWidget(element.enclosingElement)) {
+        for (ParameterElement param in element.parameters) {
+          if (param.name == 'children') {
+            String defaultValue = getDefaultStringParameterValue(param);
+            if (sb.isNotEmpty) {
+              sb.write(', ');
+            }
+            sb.write('children: ');
+            offset = sb.length;
+            sb.write(defaultValue);
+            ranges.addAll([offset, defaultValue.length]);
+          }
+        }
+      }
+    }
+  }
+
+  suggestion.defaultArgumentListString = sb.isNotEmpty ? sb.toString() : null;
+  suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty ? ranges : null;
+}
 
 /**
  * Create a new protocol Element for inclusion in a completion suggestion.
@@ -111,6 +177,31 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
   return suggestion;
 }
 
+String getDefaultStringParameterValue(ParameterElement param) {
+  DartType type = param.type;
+  if (type is InterfaceType && isDartList(type)) {
+    List<DartType> typeArguments = type.typeArguments;
+    StringBuffer sb = new StringBuffer();
+    if (typeArguments.length == 1) {
+      DartType typeArg = typeArguments.first;
+      if (!typeArg.isDynamic) {
+        sb.write('<${typeArg.name}>');
+      }
+      sb.write('[]');
+      return sb.toString();
+    }
+  }
+  return null;
+}
+
+bool isDartList(DartType type) {
+  ClassElement element = type.element;
+  if (element != null) {
+    return element.name == "List" && element.library.isDartCore;
+  }
+  return false;
+}
+
 /**
  * Return `true` if the @deprecated annotation is present on the given [node].
  */
@@ -155,3 +246,5 @@ String nameForType(TypeAnnotation type) {
   }
   return DYNAMIC;
 }
+
+String _getDefaultValue(ParameterElement param) => 'null';

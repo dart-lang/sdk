@@ -15,6 +15,8 @@ import 'package:compiler/compiler_new.dart'
         Diagnostic,
         PackagesDiscoveryProvider;
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
+import 'package:compiler/src/elements/elements.dart' show LibraryElement;
+import 'package:compiler/src/enqueue.dart' show ResolutionEnqueuer;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
 import 'package:compiler/src/options.dart' show CompilerOptions;
@@ -165,19 +167,11 @@ CompilerImpl compilerFor(
       if (library.isPlatformLibrary) {
         var libraryLoader = compiler.libraryLoader;
         libraryLoader.mapLibrary(library);
-        compiler.onLibraryCreated(library);
-        compiler.onLibraryScanned(library, null);
-        if (library.isPatched) {
-          var patchLibrary = library.patch;
-          compiler.onLibraryCreated(patchLibrary);
-          compiler.onLibraryScanned(patchLibrary, null);
-        }
         copiedLibraries[library.canonicalUri] = library;
       }
     });
-    // TODO(johnniwinther): Assert that no libraries are loaded lazily from
-    // this call.
-    compiler.onLibrariesLoaded(new MemoryLoadedLibraries(copiedLibraries));
+    compiler.processLoadedLibraries(new MemoryLoadedLibraries(copiedLibraries));
+    ResolutionEnqueuer resolutionEnqueuer = compiler.startResolution();
 
     compiler.backend.constantCompilerTask
         .copyConstantValues(cachedCompiler.backend.constantCompilerTask);
@@ -186,7 +180,7 @@ CompilerImpl compilerFor(
         cachedCompiler.enqueuer.resolution.processedEntities;
     cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.registerProcessedElementInternal(element);
+        resolutionEnqueuer.registerProcessedElementInternal(element);
       }
     });
 
@@ -221,16 +215,18 @@ class MemoryLoadedLibraries implements LoadedLibraries {
   bool containsLibrary(Uri uri) => copiedLibraries.containsKey(uri);
 
   @override
-  void forEachImportChain(f, {callback}) {}
+  void forEachImportChain(f, {callback}) {
+    throw new UnimplementedError();
+  }
 
   @override
-  void forEachLibrary(f) {}
+  void forEachLibrary(f) => copiedLibraries.values.forEach(f);
 
   @override
   getLibrary(Uri uri) => copiedLibraries[uri];
 
   @override
-  Uri get rootUri => null;
+  LibraryElement get rootLibrary => copiedLibraries.values.first;
 }
 
 DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,

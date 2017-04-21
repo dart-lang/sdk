@@ -17,11 +17,14 @@
                   '|runtime/vm/service/' \
                   '|runtime/vm/service*'
     },
+    'front_end': {
+      'filepath': '^pkg/front_end',
+    }
   },
 
   'WATCHLISTS': {
     'runtime': ['vm-dev@dartlang.org'],
     'observatory': ['johnmccutchan@google.com', 'turnidge@google.com', 'rmacnak@google.com'],
+    'front_end': ['dart-fe-team+reviews@google.com'],
   },
 }
-

@@ -47,9 +47,8 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
 }
 
 
-// Not executed, but used as a sentinel in Simulator::JumpToFrame.
 void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
-  __ Trap();
+  __ DeoptRewind();
 }
 
 
@@ -91,6 +90,11 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
 
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
+void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ Trap();
 }
 

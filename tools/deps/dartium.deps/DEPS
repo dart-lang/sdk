@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 
 vars.update({
   "dartium_chromium_commit": "7558afb6379171d7f96b2db68ae9d2b64b2c5544",
-  "dartium_webkit_commit": "8c167a4ffeaa5402dde4d9e113bb272b2e4640d2",
+  "dartium_webkit_commit": "058cbb040bc877febf93074c3c0a3e649613a466",
   "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
@@ -32,7 +32,7 @@ vars.update({
   "collection_tag": "@1.9.1",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_tag" : "@0.5.0",
+  "dart2js_info_tag" : "@0.5.3+1",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
@@ -67,9 +67,9 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
-  "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
+  "WebCore_rev": "@2fe910c049be42bcef58f205debd4440e8139863",
 
-  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
+  "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
 })
 
 deps.update({

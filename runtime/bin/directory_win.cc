@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/directory.h"
 #include "bin/file.h"
@@ -510,4 +510,4 @@ bool Directory::Rename(const char* path, const char* new_path) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

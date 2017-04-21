@@ -142,7 +142,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
                 ..innerHtml = 'Perhaps the <b>profile</b> '
                     'flag has been disabled for this VM.',
               new BRElement(),
-              new SpanElement()..text = 'See all',
+              new SpanElement()..text = 'See all ',
               new AnchorElement(href: Uris.flags())..text = 'vm flags'
             ]
         ]

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benchmark/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/context/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/dart/ast/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/dart/element/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/dart/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/file_system/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/generated/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/instrumentation/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/source/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/command_line/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/context/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/analysis/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/ast/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/constant/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/element/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/sdk/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/lint/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/source/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/summary/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/task/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/task/strong/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/util/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/stress/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/summary/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/task_dependency_graph/packages" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Dart SDK" level="application" />
+    <orderEntry type="library" name="Dart SDK" level="project" />
+  </component>
+</module>

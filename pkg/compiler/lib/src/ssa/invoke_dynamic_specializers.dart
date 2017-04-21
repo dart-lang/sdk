@@ -8,6 +8,8 @@ import '../constants/values.dart';
 import '../elements/elements.dart' show Name;
 import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/backend_helpers.dart';
+import '../options.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -25,13 +27,21 @@ class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
-    return TypeMaskFactory.inferredTypeForSelector(instruction.selector,
-        instruction.mask, compiler.globalInference.results);
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        instruction.selector, instruction.mask, results);
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return null;
   }
 
@@ -39,6 +49,13 @@ class InvokeDynamicSpecializer {
     instruction.sideEffects.clearAllSideEffects();
     instruction.sideEffects.clearAllDependencies();
     instruction.setUseGvn();
+  }
+
+  Selector renameToOptimizedSelector(
+      String name, Selector selector, BackendHelpers helpers) {
+    if (selector.name == name) return selector;
+    return new Selector.call(new Name(name, helpers.interceptorsLibrary),
+        new CallStructure(selector.argumentCount));
   }
 
   Operation operation(ConstantSystem constantSystem) => null;
@@ -99,10 +116,14 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
   const IndexAssignSpecializer();
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (instruction.inputs[1].isMutableIndexable(closedWorld)) {
       if (!instruction.inputs[2].isInteger(closedWorld) &&
-          compiler.options.enableTypeAssertions) {
+          options.enableTypeAssertions) {
         // We want the right checked mode error.
         return null;
       }
@@ -117,17 +138,21 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   const IndexSpecializer();
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (!instruction.inputs[1].isIndexablePrimitive(closedWorld)) return null;
     if (!instruction.inputs[2].isInteger(closedWorld) &&
-        compiler.options.enableTypeAssertions) {
+        options.enableTypeAssertions) {
       // We want the right checked mode error.
       return null;
     }
     TypeMask receiverType =
         instruction.getDartReceiver(closedWorld).instructionType;
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-        instruction.selector, receiverType, compiler.globalInference.results);
+        instruction.selector, receiverType, results);
     return new HIndex(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, type);
   }
@@ -141,21 +166,33 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     if (instruction.inputs[1].isPrimitiveOrNull(closedWorld)) {
       return closedWorld.commonMasks.uint32Type;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld)) {
-      return new HBitNot(input, instruction.selector,
-          computeTypeFromInputTypes(instruction, compiler, closedWorld));
+      return new HBitNot(
+          input,
+          instruction.selector,
+          computeTypeFromInputTypes(
+              instruction, results, options, helpers, closedWorld));
     }
     return null;
   }
@@ -169,14 +206,23 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     TypeMask operandType = instruction.inputs[1].instructionType;
     if (instruction.inputs[1].isNumberOrNull(closedWorld)) return operandType;
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(closedWorld)) {
       return new HNegate(input, instruction.selector, input.instructionType);
@@ -189,7 +235,11 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   const BinaryArithmeticSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isIntegerOrNull(closedWorld) &&
@@ -203,7 +253,8 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       }
       return closedWorld.commonMasks.numType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   bool isBuiltin(HInvokeDynamic instruction, ClosedWorld closedWorld) {
@@ -212,10 +263,14 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (isBuiltin(instruction, closedWorld)) {
-      HInstruction builtin =
-          newBuiltinVariant(instruction, compiler, closedWorld);
+      HInstruction builtin = newBuiltinVariant(
+          instruction, results, options, helpers, closedWorld);
       if (builtin != null) return builtin;
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
@@ -240,30 +295,30 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld);
-
-  Selector renameToOptimizedSelector(
-      String name, Selector selector, Compiler compiler) {
-    if (selector.name == name) return selector;
-    JavaScriptBackend backend = compiler.backend;
-    return new Selector.call(
-        new Name(name, backend.helpers.interceptorsLibrary),
-        new CallStructure(selector.argumentCount));
-  }
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld);
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
   const AddSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (inputsAreUInt31(instruction, closedWorld)) {
       return closedWorld.commonMasks.uint32Type;
     }
     if (inputsArePositiveIntegers(instruction, closedWorld)) {
       return closedWorld.commonMasks.positiveIntType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
@@ -271,12 +326,17 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HAdd(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -288,16 +348,25 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInstruction instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInstruction instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     if (left.isNumberOrNull(closedWorld)) {
       return closedWorld.commonMasks.doubleType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HDivide(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, closedWorld.commonMasks.doubleType);
   }
@@ -307,11 +376,16 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
   const ModuloSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (inputsArePositiveIntegers(instruction, closedWorld)) {
       return closedWorld.commonMasks.positiveIntType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
@@ -319,7 +393,11 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     // Modulo cannot be mapped to the native operator (different semantics).
 
     // We can use HRemainder if both inputs are non-negative and the receiver
@@ -366,7 +444,8 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
           instruction.inputs[1],
           instruction.inputs[2],
           instruction.selector,
-          computeTypeFromInputTypes(instruction, compiler, closedWorld));
+          computeTypeFromInputTypes(
+              instruction, results, options, helpers, closedWorld));
     }
     // TODO(sra):
     //   a % N -->  a & (N-1), N=2^k, where a>=0, does not have -0.0 problem.
@@ -385,11 +464,16 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
   const RemainderSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (inputsArePositiveIntegers(instruction, closedWorld)) {
       return closedWorld.commonMasks.positiveIntType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
@@ -397,12 +481,17 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HRemainder(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -414,20 +503,30 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (inputsArePositiveIntegers(instruction, closedWorld)) {
       return closedWorld.commonMasks.positiveIntType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HMultiply(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -439,12 +538,17 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HSubtract(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -456,14 +560,19 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (hasUint31Result(instruction, closedWorld)) {
       return closedWorld.commonMasks.uint31Type;
     }
     if (inputsArePositiveIntegers(instruction, closedWorld)) {
       return closedWorld.commonMasks.positiveIntType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   bool isNotZero(HInstruction instruction) {
@@ -497,17 +606,22 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction right = instruction.inputs[2];
     if (isBuiltin(instruction, closedWorld)) {
       if (right.isPositiveInteger(closedWorld) && isNotZero(right)) {
         if (hasUint31Result(instruction, closedWorld)) {
-          return newBuiltinVariant(instruction, compiler, closedWorld);
+          return newBuiltinVariant(
+              instruction, results, options, helpers, closedWorld);
         }
         // We can call _tdivFast because the rhs is a 32bit integer
         // and not 0, nor -1.
         instruction.selector = renameToOptimizedSelector(
-            '_tdivFast', instruction.selector, compiler);
+            '_tdivFast', instruction.selector, helpers);
       }
       clearAllSideEffects(instruction);
     }
@@ -515,12 +629,17 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HTruncatingDivide(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -528,22 +647,39 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   const BinaryBitOpSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
     if (left.isPrimitiveOrNull(closedWorld)) {
       return closedWorld.commonMasks.uint32Type;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   bool argumentLessThan32(HInstruction instruction) {
-    if (!instruction.isConstantInteger()) return false;
-    HConstant rightConstant = instruction;
-    IntConstantValue intConstant = rightConstant.constant;
-    int count = intConstant.primitiveValue;
-    return count >= 0 && count <= 31;
+    return argumentInRange(instruction, 0, 31);
+  }
+
+  bool argumentInRange(HInstruction instruction, int low, int high) {
+    if (instruction.isConstantInteger()) {
+      HConstant rightConstant = instruction;
+      IntConstantValue intConstant = rightConstant.constant;
+      int value = intConstant.primitiveValue;
+      return value >= low && value <= high;
+    }
+    // TODO(sra): Integrate with the bit-width analysis in codegen.dart.
+    if (instruction is HBitAnd) {
+      return low == 0 &&
+          (argumentInRange(instruction.inputs[0], low, high) ||
+              argumentInRange(instruction.inputs[1], low, high));
+    }
+    return false;
   }
 
   bool isPositive(HInstruction instruction, ClosedWorld closedWorld) {
@@ -561,12 +697,17 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(closedWorld)) {
       if (argumentLessThan32(right)) {
-        return newBuiltinVariant(instruction, compiler, closedWorld);
+        return newBuiltinVariant(
+            instruction, results, options, helpers, closedWorld);
       }
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
@@ -574,19 +715,24 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
       clearAllSideEffects(instruction);
       if (isPositive(right, closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
-            '_shlPositive', instruction.selector, compiler);
+            '_shlPositive', instruction.selector, helpers);
       }
     }
     return null;
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HShiftLeft(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -594,19 +740,29 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     if (left.isUInt32(closedWorld)) return left.instructionType;
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(closedWorld)) {
       if (argumentLessThan32(right) && isPositive(left, closedWorld)) {
-        return newBuiltinVariant(instruction, compiler, closedWorld);
+        return newBuiltinVariant(
+            instruction, results, options, helpers, closedWorld);
       }
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
@@ -614,25 +770,30 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       clearAllSideEffects(instruction);
       if (isPositive(right, closedWorld) && isPositive(left, closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
-            '_shrBothPositive', instruction.selector, compiler);
+            '_shrBothPositive', instruction.selector, helpers);
       } else if (isPositive(left, closedWorld) && right.isNumber(closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
-            '_shrReceiverPositive', instruction.selector, compiler);
+            '_shrReceiverPositive', instruction.selector, helpers);
       } else if (isPositive(right, closedWorld)) {
         instruction.selector = renameToOptimizedSelector(
-            '_shrOtherPositive', instruction.selector, compiler);
+            '_shrOtherPositive', instruction.selector, helpers);
       }
     }
     return null;
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HShiftRight(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
@@ -648,22 +809,32 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isUInt31(closedWorld) && right.isUInt31(closedWorld)) {
       return closedWorld.commonMasks.uint31Type;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HBitOr(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -675,23 +846,33 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isPrimitiveOrNull(closedWorld) &&
         (left.isUInt31(closedWorld) || right.isUInt31(closedWorld))) {
       return closedWorld.commonMasks.uint31Type;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HBitAnd(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -703,22 +884,32 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
   }
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isUInt31(closedWorld) && right.isUInt31(closedWorld)) {
       return closedWorld.commonMasks.uint31Type;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction newBuiltinVariant(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     return new HBitXor(
         instruction.inputs[1],
         instruction.inputs[2],
         instruction.selector,
-        computeTypeFromInputTypes(instruction, compiler, closedWorld));
+        computeTypeFromInputTypes(
+            instruction, results, options, helpers, closedWorld));
   }
 }
 
@@ -726,15 +917,24 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
   TypeMask computeTypeFromInputTypes(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     if (instruction.inputs[1].isPrimitiveOrNull(closedWorld)) {
       return closedWorld.commonMasks.boolType;
     }
-    return super.computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return super.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
@@ -751,7 +951,11 @@ class EqualsSpecializer extends RelationalSpecializer {
   const EqualsSpecializer();
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     TypeMask instructionType = left.instructionType;
@@ -845,7 +1049,11 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
@@ -854,6 +1062,10 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       // String.codeUnitAt does not have any side effect (other than throwing),
       // and that it can be GVN'ed.
       clearAllSideEffects(instruction);
+      if (instruction.inputs.last.isPositiveInteger(closedWorld)) {
+        instruction.selector = renameToOptimizedSelector(
+            '_codeUnitAt', instruction.selector, helpers);
+      }
     }
     return null;
   }
@@ -863,7 +1075,11 @@ class IdempotentStringOperationSpecializer extends InvokeDynamicSpecializer {
   const IdempotentStringOperationSpecializer();
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver.isStringOrNull(closedWorld)) {
       // String.xxx does not have any side effect (other than throwing), and it
@@ -886,7 +1102,11 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
   const PatternMatchSpecializer();
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     HInstruction pattern = instruction.inputs[2];
     if (receiver.isStringOrNull(closedWorld) &&
@@ -907,7 +1127,11 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
   }
 
   HInstruction tryConvertToBuiltin(
-      HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld) {
+      HInvokeDynamic instruction,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (receiver.isNumberOrNull(closedWorld)) {
       // Even if there is no builtin equivalent instruction, we know the

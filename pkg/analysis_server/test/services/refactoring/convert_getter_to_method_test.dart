@@ -157,7 +157,8 @@ main() {
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
-    refactoring = new ConvertGetterToMethodRefactoring(searchEngine, element);
+    refactoring = new ConvertGetterToMethodRefactoring(
+        searchEngine, astProvider, element);
   }
 
   void _createRefactoringForString(String search) {

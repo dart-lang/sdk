@@ -14,7 +14,7 @@ const String TEST1 = r'''
 class W {
   final Function _fun;
   W(this._fun);
-  foo(zzz) => _fun(zzz);   // this._fun$1(zzz) -->  this._fun.call$1(zzz)
+  foo(zzz) => _fun(zzz); //   this._fun$1(zzz) -->  this._fun.call$1(zzz)
 }
 add1(x) => x + 1;
 main() {
@@ -28,7 +28,7 @@ class W {
   final Function __fun;
   Function get _fun => __fun;
   W(this.__fun);
-  foo(zzz) => _fun(zzz);   // this._fun$1(zzz) stays same.
+  foo(zzz) => _fun(zzz); //   this._fun$1(zzz) stays same.
 }
 add1(x) => x + 1;
 main() {

@@ -10,8 +10,7 @@ import 'dart:_foreign_helper' show JS;
 @patch
 class Symbol implements core.Symbol {
   @patch
-  const Symbol(String name)
-      : this._name = name;
+  const Symbol(String name) : this._name = name;
 
   @patch
   int get hashCode {

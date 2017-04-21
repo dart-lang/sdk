@@ -153,14 +153,21 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];
-    for (String relativeUri
+    for (String relativeUriStr
         in linkerInputs.unlinkedDefiningUnit.publicNamespace.parts) {
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        unlinkedUnits.add(new UnlinkedUnitBuilder());
+        continue;
+      }
+
       UnlinkedUnit unit = uriToUnit[
-          resolveRelativeUri(linkerInputs.testDartUri, Uri.parse(relativeUri))
-              .toString()];
+          resolveRelativeUri(linkerInputs.testDartUri, relativeUri).toString()];
       if (unit == null) {
         if (!allowMissingFiles) {
-          fail('Test referred to unknown unit $relativeUri');
+          fail('Test referred to unknown unit $relativeUriStr');
         }
       } else {
         unlinkedUnits.add(unit);
@@ -217,6 +224,9 @@ class LinkerInputs {
   }
 
   UnlinkedUnit getUnit(String absoluteUri) {
+    if (absoluteUri == null) {
+      return null;
+    }
     UnlinkedUnit unit = _uriToUnit[absoluteUri] ??
         SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri] ??
         _dependentUnlinkedUnits[absoluteUri];

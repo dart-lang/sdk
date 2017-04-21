@@ -9,10 +9,10 @@ library stringvalidator;
 import 'dart:collection';
 
 import 'common.dart';
-import 'tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/dartstring.dart' show DartString;
 import 'tree/nodes.dart' show StringQuoting;
-import 'util/characters.dart';
+import 'package:front_end/src/fasta/scanner/characters.dart';
 
 class StringValidator {
   final DiagnosticReporter reporter;
@@ -21,7 +21,7 @@ class StringValidator {
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
       {bool isFirst: false, bool isLast: false}) {
-    String source = token.value;
+    String source = token.lexeme;
     int leftQuote = 0;
     int rightQuote = 0;
     if (isFirst) leftQuote = quoting.leftQuoteLength;
@@ -99,8 +99,8 @@ class StringValidator {
   }
 
   void stringParseError(String message, Token token, int offset) {
-    reporter.reportErrorMessage(
-        token, MessageKind.GENERIC, {'text': "$message @ $offset"});
+    reporter.reportErrorMessage(reporter.spanFromToken(token),
+        MessageKind.GENERIC, {'text': "$message @ $offset"});
   }
 
   /**

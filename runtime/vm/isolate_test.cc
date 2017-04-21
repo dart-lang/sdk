@@ -13,7 +13,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(IsolateCurrent) {
+VM_UNIT_TEST_CASE(IsolateCurrent) {
   Dart_Isolate isolate = Dart_CreateIsolate(
       NULL, NULL, bin::core_isolate_snapshot_data,
       bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);

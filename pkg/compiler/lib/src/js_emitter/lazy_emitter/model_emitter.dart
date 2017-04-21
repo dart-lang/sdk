@@ -20,9 +20,10 @@ import 'package:js_runtime/shared/embedded_names.dart'
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
+import '../../../compiler_new.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
@@ -153,13 +154,13 @@ class ModelEmitter {
       String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
       totalSize += code.length;
       compiler.outputProvider(
-          fragments[i + 1].outputFileName, deferredExtension)
+          fragments[i + 1].outputFileName, deferredExtension, OutputType.jsPart)
         ..add(code)
         ..close();
     }
 
     String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
-    compiler.outputProvider(mainFragment.outputFileName, 'js')
+    compiler.outputProvider(mainFragment.outputFileName, 'js', OutputType.js)
       ..add(buildGeneratedBy(compiler))
       ..add(mainCode)
       ..close();
@@ -626,7 +627,7 @@ class ModelEmitter {
     if (cls.isDirectlyInstantiated && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
       if (cls.hasRtiField) {
-        fieldNames.add(namer.rtiFieldName);
+        fieldNames.add(namer.rtiFieldJsName);
       }
     }
     js.Name name = cls.name;
@@ -714,14 +715,12 @@ class ModelEmitter {
     Iterable<Method> methods = cls.methods;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
-    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods = [
       methods,
       isChecks,
       callStubs,
-      typeVariableReaderStubs,
       noSuchMethodStubs,
       gettersSetters
     ].expand((x) => x);
@@ -861,7 +860,8 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
         if (method.needsTearOff) {
           MethodElement element = method.element;
-          bool isIntercepted = backend.isInterceptedMethod(element);
+          bool isIntercepted =
+              backend.interceptorData.isInterceptedMethod(element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));

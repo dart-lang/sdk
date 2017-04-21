@@ -14,12 +14,15 @@ class Helper1 {
   static int func1() {
     return func2();
   }
+
   static int func2() {
     return func3();
   }
+
   static int func3() {
     return func4();
   }
+
   static int func4() {
     var i = 0;
     try {
@@ -31,6 +34,7 @@ class Helper1 {
     }
     return i;
   }
+
   static void func5() {
     // Throw an Error.
     throw new ArgumentError("ArgumentError in func5");
@@ -41,12 +45,15 @@ class Helper2 {
   static int func1() {
     return func2();
   }
+
   static int func2() {
     return func3();
   }
+
   static int func3() {
     return func4();
   }
+
   static int func4() {
     var i = 0;
     try {
@@ -59,6 +66,7 @@ class Helper2 {
     }
     return i;
   }
+
   static List func5() {
     // Throw an Error.
     throw new ArgumentError("ArgumentError in func5");
@@ -69,12 +77,15 @@ class Helper3 {
   static int func1() {
     return func2();
   }
+
   static int func2() {
     return func3();
   }
+
   static int func3() {
     return func4();
   }
+
   static int func4() {
     var i = 0;
     try {
@@ -85,13 +96,14 @@ class Helper3 {
       try {
         // There should be no stackTrace in this normal exception object.
         // We should get a NoSuchMethodError.
-        var trace = e.stackTrace; /// static type warning
+        var trace = e.stackTrace; //# static type warning
       } on NoSuchMethodError catch (e) {
         Expect.isNotNull(e.stackTrace, "Error needs a stackTrace on throw");
       }
     }
     return i;
   }
+
   static List func5() {
     // Throw an Exception (any random object).
     throw new MyException("MyException in func5");

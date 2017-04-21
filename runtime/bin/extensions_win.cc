@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/extensions.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/assert.h"
 
 namespace dart {
 namespace bin {
@@ -32,10 +33,19 @@ void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return ext;
 }
 
+
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   SetLastError(0);
   return GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol);
 }
+
+
+void Extensions::UnloadLibrary(void* lib_handle) {
+  SetLastError(0);
+  BOOL result = FreeLibrary(reinterpret_cast<HMODULE>(lib_handle));
+  ASSERT(result);
+}
+
 
 Dart_Handle Extensions::GetError() {
   int last_error = GetLastError();
@@ -49,4 +59,4 @@ Dart_Handle Extensions::GetError() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

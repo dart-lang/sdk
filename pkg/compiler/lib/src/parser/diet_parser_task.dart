@@ -5,18 +5,26 @@
 library dart2js.parser.diet.task;
 
 import '../common.dart';
-import '../common/backend_api.dart' show Backend;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../elements/elements.dart' show CompilationUnitElement;
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../id_generator.dart';
-import '../tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
-import 'listener.dart' show ParserError;
-import 'partial_parser.dart' show PartialParser;
+import 'package:front_end/src/fasta/parser.dart'
+    show Listener, ParserError, TopLevelParser;
+
+class PartialParser extends TopLevelParser {
+  PartialParser(Listener listener) : super(listener);
+
+  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
+    return skipFormalParameters(token);
+  }
+}
 
 class DietParserTask extends CompilerTask {
   final IdGenerator _idGenerator;
-  final Backend _backend;
+  final JavaScriptBackend _backend;
   final DiagnosticReporter _reporter;
 
   DietParserTask(

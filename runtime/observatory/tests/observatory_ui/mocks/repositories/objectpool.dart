@@ -4,8 +4,8 @@
 
 part of mocks;
 
-typedef Future<M.ObjectPool>
-        ObjectPoolRepositoryMockGetter(M.IsolateRef i, String id);
+typedef Future<M.ObjectPool> ObjectPoolRepositoryMockGetter(
+    M.IsolateRef i, String id);
 
 class ObjectPoolRepositoryMock implements M.ObjectPoolRepository {
   final ObjectPoolRepositoryMockGetter _getter;
@@ -18,5 +18,5 @@ class ObjectPoolRepositoryMock implements M.ObjectPoolRepository {
   }
 
   ObjectPoolRepositoryMock({ObjectPoolRepositoryMockGetter getter})
-    : _getter = getter;
+      : _getter = getter;
 }

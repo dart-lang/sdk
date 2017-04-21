@@ -7,59 +7,86 @@
 /// This is currently designed as an offline tool, but we could automate it.
 
 import 'dart:io';
+import 'dart:isolate' show RawReceivePort;
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
-void main(List<String> argv) {
+import 'package:front_end/src/fasta/fasta.dart'
+    show compilePlatform, writeDepsFile;
+
+/// Set of input files that were read by this script to generate patched SDK.
+/// We will dump it out into the depfile for ninja to use.
+///
+/// For more information see GN and Ninja references:
+///    https://chromium.googlesource.com/chromium/src/+/56807c6cb383140af0c03da8f6731d77785d7160/tools/gn/docs/reference.md#depfile_string_File-name-for-input-dependencies-for-actions
+///    https://ninja-build.org/manual.html#_depfile
+///
+final deps = new Set<Uri>();
+
+/// Create [File] object from the given path and register it as a dependency.
+File getInputFile(String path, {canBeMissing: false}) {
+  final file = new File(path);
+  if (!file.existsSync()) {
+    if (!canBeMissing) throw "patch_sdk.dart expects all inputs to exist";
+    return null;
+  }
+  deps.add(Uri.base.resolveUri(file.uri));
+  return file;
+}
+
+/// Read the given file synchronously as a string and register this path as
+/// a dependency.
+String readInputFile(String path, {canBeMissing: false}) =>
+    getInputFile(path, canBeMissing: canBeMissing)?.readAsStringSync();
+
+Future main(List<String> argv) async {
+  var port = new RawReceivePort();
+  try {
+    await _main(argv);
+  } finally {
+    port.close();
+  }
+}
+
+Future _main(List<String> argv) async {
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
-  if (argv.length != 4 ||
-      !argv.isEmpty && argv.first != 'vm' && argv.first != 'ddc') {
-    var self = path.relative(base);
-    print('Usage: $self MODE SDK_DIR PATCH_DIR OUTPUT_DIR');
-    print('MODE must be one of ddc or vm.');
+  if (argv.length != 5 || argv.first != 'vm') {
+    final self = path.relative(base);
+    print('Usage: $self vm SDK_DIR PATCH_DIR OUTPUT_DIR PACKAGES');
 
-    var toolDir = path.relative(path.dirname(base));
-    var sdkExample = path.join(toolDir, 'input_sdk');
-    var patchExample = path.join(sdkExample, 'patch');
-    var outExample =
-        path.relative(path.normalize(path.join('gen', 'patched_sdk')));
+    final repositoryDir = path.relative(path.dirname(path.dirname(base)));
+    final sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
+    final patchExample = path.relative(
+        path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patch'));
+    final outExample = path.relative(path.join(
+        repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patched_sdk'));
     print('For example:');
-    print('\$ $self ddc $sdkExample $patchExample $outExample');
-
-    var repositoryDir = path.relative(path.dirname(path.dirname(base)));
-    sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
-    patchExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
-                                           'obj', 'gen', 'patch'));
-    outExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
-                                         'obj', 'gen', 'patched_sdk'));
-    print('or:');
     print('\$ $self vm $sdkExample $patchExample $outExample');
 
     exit(1);
   }
 
   var mode = argv[0];
+  assert(mode == "vm");
   var input = argv[1];
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
-  var sdkOut = path.join(argv[3], 'lib');
-
-  var privateIn = path.join(input, 'private');
-  var INTERNAL_PATH = '_internal/compiler/js_lib/';
+  var outDir = argv[3];
+  var sdkOut = path.join(outDir, 'lib');
+  var packagesFile = argv[4];
 
   // Copy and patch libraries.dart and version
-  var libContents = new File(path.join(sdkLibIn, '_internal',
-      'sdk_library_metadata', 'lib', 'libraries.dart')).readAsStringSync();
-  var patchedLibContents = libContents;
-  if (mode == 'vm') {
-    libContents = libContents.replaceAll(
-        ' libraries = const {',
-        ''' libraries = const {
+  var libContents = readInputFile(path.join(
+      sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
+  libContents = libContents.replaceAll(
+      ' libraries = const {',
+      ''' libraries = const {
 
   "_builtin": const LibraryInfo(
       "_builtin/_builtin.dart",
@@ -86,39 +113,25 @@ void main(List<String> argv) {
       platforms: VM_PLATFORM),
 
 ''');
-  }
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
-  if (mode == 'ddc') {
-    _writeSync(path.join(sdkOut, '..', 'version'),
-        new File(path.join(sdkLibIn, '..', 'version')).readAsStringSync());
-  }
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
-    // TODO(jmesserly): analyzer does not handle the default case of
-    // "both platforms" correctly, and treats it as being supported on neither.
-    // So instead we skip explicitly marked as either VM or dart2js libs.
-    if (mode == 'ddc' ? libary.isVmLibrary : library.isDart2JsLibrary) {
+    if (library.isDart2JsLibrary) {
       continue;
     }
 
     var libraryOut = path.join(sdkLibIn, library.path);
-    var libraryIn;
-    if (mode == 'ddc' && library.path.contains(INTERNAL_PATH)) {
-      libraryIn =
-          path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
-    } else {
-      libraryIn = libraryOut;
-    }
+    var libraryIn = libraryOut;
 
-    var libraryFile = new File(libraryIn);
-    if (libraryFile.existsSync()) {
+    var libraryFile = getInputFile(libraryIn, canBeMissing: true);
+    if (libraryFile != null) {
       var outPaths = <String>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
 
@@ -130,7 +143,8 @@ void main(List<String> argv) {
           var partPath = part.uri.stringValue;
           outPaths.add(path.join(path.dirname(libraryOut), partPath));
 
-          var partFile = new File(path.join(path.dirname(libraryIn), partPath));
+          var partFile =
+              getInputFile(path.join(path.dirname(libraryIn), partPath));
           partFiles.add(partFile);
           inputModifyTime = math.max(inputModifyTime,
               partFile.lastModifiedSync().millisecondsSinceEpoch);
@@ -141,9 +155,8 @@ void main(List<String> argv) {
       var patchPath = path.join(
           patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
-      var patchFile = new File(patchPath);
-      bool patchExists = patchFile.existsSync();
-      if (patchExists) {
+      var patchFile = getInputFile(patchPath, canBeMissing: true);
+      if (patchFile != null) {
         inputModifyTime = math.max(inputModifyTime,
             patchFile.lastModifiedSync().millisecondsSinceEpoch);
       }
@@ -168,10 +181,9 @@ void main(List<String> argv) {
       if (needsUpdate) {
         var contents = <String>[libraryContents];
         contents.addAll(partFiles.map((f) => f.readAsStringSync()));
-        if (patchExists) {
+        if (patchFile != null) {
           var patchContents = patchFile.readAsStringSync();
-          contents = _patchLibrary(
-              patchFile.path, contents, patchContents);
+          contents = _patchLibrary(patchFile.path, contents, patchContents);
         }
 
         for (var i = 0; i < outPaths.length; i++) {
@@ -180,24 +192,43 @@ void main(List<String> argv) {
       }
     }
   }
-  if (mode == 'vm') {
 
-    for (var tuple in [['_builtin', 'builtin.dart']]) {
-      var vmLibrary = tuple[0];
-      var dartFile = tuple[1];
+  for (var tuple in [
+    ['_builtin', 'builtin.dart']
+  ]) {
+    var vmLibrary = tuple[0];
+    var dartFile = tuple[1];
 
-      // The "dart:_builtin" library is only available for the DartVM.
-      var builtinLibraryIn  = path.join(dartDir, 'runtime', 'bin', dartFile);
-      var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
-      _writeSync(builtinLibraryOut, new File(builtinLibraryIn).readAsStringSync());
-    }
-
-    for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
-      var libraryIn  = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
-      var libraryOut = path.join(sdkOut, 'vmservice_io', file);
-      _writeSync(libraryOut, new File(libraryIn).readAsStringSync());
-    }
+    // The "dart:_builtin" library is only available for the DartVM.
+    var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', dartFile);
+    var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
+    _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
   }
+
+  for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
+    var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
+    var libraryOut = path.join(sdkOut, 'vmservice_io', file);
+    _writeSync(libraryOut, readInputFile(libraryIn));
+  }
+
+  Uri platform = Uri.base
+      .resolveUri(new Uri.directory(outDir).resolve('platform.dill.tmp'));
+  Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  await compilePlatform(
+      Uri.base.resolveUri(new Uri.directory(outDir)), platform,
+      packages: packages, verbose: false);
+
+  Uri platformFinalLocation =
+      Uri.base.resolveUri(new Uri.directory(outDir).resolve('platform.dill'));
+
+  await writeDepsFile(Platform.script,
+      Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
+      packages: packages,
+      platform: platform,
+      extraDependencies: deps,
+      verbose: false);
+
+  await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
 }
 
 /// Writes a file, creating the directory if needed.
@@ -227,9 +258,8 @@ void _writeSync(String filePath, String contents) {
 /// in the Dart language. Since this feature is only for the convenience of
 /// writing the dart:* libraries, and not a tool given to Dart developers, it
 /// seems like a non-ideal situation. Instead we keep the preprocessing simple.
-List<String> _patchLibrary(String name,
-                           List<String> partsContents,
-                           String patchContents) {
+List<String> _patchLibrary(
+    String name, List<String> partsContents, String patchContents) {
   var results = <StringEditBuffer>[];
 
   // Parse the patch first. We'll need to extract bits of this as we go through
@@ -257,6 +287,16 @@ List<String> _patchLibrary(String name,
   return new List<String>.from(results.map((e) => e.toString()));
 }
 
+final String injectedCidFields = [
+  'Array',
+  'ExternalOneByteString',
+  'GrowableObjectArray',
+  'ImmutableArray',
+  'OneByteString',
+  'TwoByteString',
+  'Bigint'
+].map((name) => "static final int cid${name} = 0;").join('\n');
+
 /// Merge `@patch` declarations into `external` declarations.
 class PatchApplier extends GeneralizingAstVisitor {
   final StringEditBuffer edits;
@@ -274,6 +314,14 @@ class PatchApplier extends GeneralizingAstVisitor {
 
   void _merge(AstNode node, int pos) {
     var code = patch.contents.substring(node.offset, node.end);
+
+    // We inject a number of static fields into dart:internal.ClassID class.
+    // These fields represent various VM class ids and are only used to
+    // make core libraries compile. Kernel reader will actually ignore these
+    // fields and instead inject concrete constants into this class.
+    if (node is ClassDeclaration && node.name.name == 'ClassID') {
+      code = code.replaceFirst(new RegExp(r'}$'), injectedCidFields + '}');
+    }
     edits.insert(pos, '\n' + code);
   }
 
@@ -418,7 +466,8 @@ String _qualifiedName(Declaration node) {
 
   var accessor = '';
   if (node is MethodDeclaration) {
-    if (node.isGetter) accessor = 'get:';
+    if (node.isGetter)
+      accessor = 'get:';
     else if (node.isSetter) accessor = 'set:';
   }
   return className + accessor + name;

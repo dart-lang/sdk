@@ -4153,4 +4153,21 @@ class LocalConstructorContributorTest_Driver
     extends LocalConstructorContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_cons_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  A(int bar, {bool boo, @required int baz});
+  baz() {
+    new A^
+  }
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+  }
 }

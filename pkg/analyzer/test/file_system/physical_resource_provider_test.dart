@@ -44,6 +44,18 @@ class FileTest extends _BaseTest {
     file = PhysicalResourceProvider.INSTANCE.getResource(path);
   }
 
+  void test_copy() {
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String contents = 'contents';
+    new io.File(path).writeAsStringSync(contents);
+    Folder destination = provider.getFolder(join(tempPath, 'destination'));
+
+    File copy = file.copyTo(destination);
+    expect(copy.parent, destination);
+    expect(copy.shortName, file.shortName);
+    expect(copy.readAsStringSync(), contents);
+  }
+
   void test_createSource() {
     new io.File(path).writeAsStringSync('contents');
     Source source = file.createSource();
@@ -300,6 +312,22 @@ class FolderTest extends _BaseTest {
     expect(folder.contains(path), isFalse);
   }
 
+  void test_copy() {
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String sourcePath = join(tempPath, 'source');
+    String subdirPath = join(sourcePath, 'subdir');
+    new io.Directory(sourcePath).createSync();
+    new io.Directory(subdirPath).createSync();
+    new io.File(join(sourcePath, 'file1.txt')).writeAsStringSync('file1');
+    new io.File(join(subdirPath, 'file2.txt')).writeAsStringSync('file2');
+    Folder source = provider.getFolder(sourcePath);
+    Folder destination = provider.getFolder(join(tempPath, 'destination'));
+
+    Folder copy = source.copyTo(destination);
+    expect(copy.parent, destination);
+    _verifyStructure(copy, source);
+  }
+
   void test_delete() {
     new io.File(join(path, 'myFile')).createSync();
     var child = folder.getChild('myFile');
@@ -448,6 +476,52 @@ class FolderTest extends _BaseTest {
     String path = '/foo/directory';
     Folder folder = PhysicalResourceProvider.INSTANCE.getFolder(path);
     expect(folder.toUri(), new Uri.directory(path));
+  }
+
+  /**
+   * Verify that the [copy] has the same name and content as the [source].
+   */
+  void _verifyStructure(Folder copy, Folder source) {
+    expect(copy.shortName, source.shortName);
+    Map<String, File> sourceFiles = <String, File>{};
+    Map<String, Folder> sourceFolders = <String, Folder>{};
+    for (Resource child in source.getChildren()) {
+      if (child is File) {
+        sourceFiles[child.shortName] = child;
+      } else if (child is Folder) {
+        sourceFolders[child.shortName] = child;
+      } else {
+        fail('Unknown class of resource: ${child.runtimeType}');
+      }
+    }
+    Map<String, File> copyFiles = <String, File>{};
+    Map<String, Folder> copyFolders = <String, Folder>{};
+    for (Resource child in source.getChildren()) {
+      if (child is File) {
+        copyFiles[child.shortName] = child;
+      } else if (child is Folder) {
+        copyFolders[child.shortName] = child;
+      } else {
+        fail('Unknown class of resource: ${child.runtimeType}');
+      }
+    }
+    for (String fileName in sourceFiles.keys) {
+      File sourceChild = sourceFiles[fileName];
+      File copiedChild = copyFiles[fileName];
+      if (copiedChild == null) {
+        fail('Failed to copy file ${sourceChild.path}');
+      }
+      expect(copiedChild.readAsStringSync(), sourceChild.readAsStringSync(),
+          reason: 'Incorrectly copied file ${sourceChild.path}');
+    }
+    for (String fileName in sourceFolders.keys) {
+      Folder sourceChild = sourceFolders[fileName];
+      Folder copiedChild = copyFolders[fileName];
+      if (copiedChild == null) {
+        fail('Failed to copy folder ${sourceChild.path}');
+      }
+      _verifyStructure(copiedChild, sourceChild);
+    }
   }
 }
 

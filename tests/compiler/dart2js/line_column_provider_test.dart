@@ -11,7 +11,7 @@ import 'package:compiler/src/io/line_column_provider.dart';
 import 'output_collector.dart';
 
 test(List events, Map<int, List<int>> expectedPositions) {
-  BufferedEventSink sink = new BufferedEventSink();
+  BufferedOutputSink sink = new BufferedOutputSink();
   LineColumnProvider lineColumnProvider = new LineColumnCollector();
   CodeOutput output = new StreamCodeOutput(sink, [lineColumnProvider]);
   for (var event in events) {

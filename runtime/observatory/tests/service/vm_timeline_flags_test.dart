@@ -63,6 +63,7 @@ var tests = [
     print(flags);
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Get the timeline.
     Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
@@ -72,16 +73,14 @@ var tests = [
     // Confirm that Dart events are added.
     expect(filterEvents(result['traceEvents'], isDart).length, greaterThan(0));
     // Confirm that zero non-Dart events are added.
-    expect(
-        filterEvents(result['traceEvents'], isNotDartAndMetaData).length,
+    expect(filterEvents(result['traceEvents'], isNotDartAndMetaData).length,
         equals(0));
   },
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Disable the Dart category.
-    await isolate.vm.invokeRpcNoUpgrade('_setVMTimelineFlags', {
-      "recordedStreams": []
-    });
+    await isolate.vm
+        .invokeRpcNoUpgrade('_setVMTimelineFlags', {"recordedStreams": []});
     // Grab the timeline and remember the number of Dart events.
     Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
     expect(result['type'], equals('_Timeline'));
@@ -96,6 +95,7 @@ var tests = [
     expect(flags['recordedStreams'].length, equals(0));
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Grab the timeline and verify that we haven't added any new Dart events.
     Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
@@ -103,12 +103,10 @@ var tests = [
     expect(result['traceEvents'], new isInstanceOf<List>());
     expect(filterEvents(result['traceEvents'], isDart).length, dartEventCount);
     // Confirm that zero non-Dart events are added.
-    expect(
-        filterEvents(result['traceEvents'], isNotDartAndMetaData).length,
+    expect(filterEvents(result['traceEvents'], isNotDartAndMetaData).length,
         equals(0));
   },
 ];
 
-main(args) async => runIsolateTests(args,
-                                    tests,
-                                    testeeConcurrent: primeDartTimeline);
+main(args) async =>
+    runIsolateTests(args, tests, testeeConcurrent: primeDartTimeline);

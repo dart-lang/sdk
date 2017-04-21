@@ -122,6 +122,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitElement(element);
 
   @override
+  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
+      visitElement(element);
+
+  @override
   R visitImportElement(ImportElement element) => visitElement(element);
 
   @override
@@ -241,6 +245,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitImportElement(ImportElement element) {
     element.visitChildren(this);
     return null;
@@ -342,6 +352,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
 
   @override
+  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) => null;
+
+  @override
   R visitImportElement(ImportElement element) => null;
 
   @override
@@ -410,6 +423,10 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
+      _throw(element);
+
+  @override
+  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       _throw(element);
 
   @override

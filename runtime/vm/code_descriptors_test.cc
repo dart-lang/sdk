@@ -31,7 +31,6 @@ CODEGEN_TEST_GENERATE(StackMapCodegen, test) {
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   parsed_function->SetNodeSequence(test->node_sequence());
-  parsed_function->set_instantiator(NULL);
   parsed_function->EnsureExpressionTemp();
   test->node_sequence()->scope()->AddVariable(
       parsed_function->expression_temp_var());
@@ -310,54 +309,6 @@ TEST_CASE(DescriptorList_TokenPositions) {
 
   intptr_t i = 0;
   while (it.MoveNext()) {
-    if (token_positions[i] != it.TokenPos().value()) {
-      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
-                token_positions[i], it.TokenPos().value());
-    }
-    EXPECT(token_positions[i] == it.TokenPos().value());
-    i++;
-  }
-}
-
-
-TEST_CASE(CodeSourceMap_TokenPositions) {
-  const intptr_t token_positions[] = {
-      kMinInt32,
-      5,
-      13,
-      13,
-      13,
-      13,
-      31,
-      23,
-      23,
-      23,
-      33,
-      33,
-      5,
-      5,
-      TokenPosition::kMinSourcePos,
-      TokenPosition::kMaxSourcePos,
-  };
-  const intptr_t num_token_positions =
-      sizeof(token_positions) / sizeof(token_positions[0]);
-
-  CodeSourceMapBuilder* builder = new CodeSourceMapBuilder();
-  ASSERT(builder != NULL);
-
-  for (intptr_t i = 0; i < num_token_positions; i++) {
-    builder->AddEntry(i, TokenPosition(token_positions[i]));
-  }
-
-  const CodeSourceMap& code_Source_map =
-      CodeSourceMap::Handle(builder->Finalize());
-
-  ASSERT(!code_Source_map.IsNull());
-  CodeSourceMap::Iterator it(code_Source_map);
-
-  uintptr_t i = 0;
-  while (it.MoveNext()) {
-    EXPECT(it.PcOffset() == i);
     if (token_positions[i] != it.TokenPos().value()) {
       OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
                 token_positions[i], it.TokenPos().value());

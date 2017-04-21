@@ -69,6 +69,16 @@ void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Stdin_AnsiSupported)(Dart_NativeArguments args) {
+  bool supported = false;
+  if (Stdin::AnsiSupported(&supported)) {
+    Dart_SetBooleanReturnValue(args, supported);
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+}
+
+
 void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
   if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
@@ -87,6 +97,26 @@ void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
     Dart_ListSetAt(list, 0, Dart_NewInteger(size[0]));
     Dart_ListSetAt(list, 1, Dart_NewInteger(size[1]));
     Dart_SetReturnValue(args, list);
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+}
+
+
+void FUNCTION_NAME(Stdout_AnsiSupported)(Dart_NativeArguments args) {
+  if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return;
+  }
+  intptr_t fd = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  if ((fd != 1) && (fd != 2)) {
+    Dart_SetReturnValue(args, Dart_NewApiError("Terminal fd must be 1 or 2"));
+    return;
+  }
+  bool supported = false;
+  if (Stdout::AnsiSupported(fd, &supported)) {
+    Dart_SetBooleanReturnValue(args, supported);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }

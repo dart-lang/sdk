@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
- * that handles requests in the search domain.
+ * that handles requests in the completion domain.
  */
 class CompletionDomainHandler implements RequestHandler {
   /**
@@ -185,7 +185,8 @@ class CompletionDomainHandler implements RequestHandler {
         server.searchEngine,
         source,
         params.offset,
-        performance);
+        performance,
+        server.ideOptions);
     String completionId = (_nextCompletionId++).toString();
 
     _abortCurrentRequest();

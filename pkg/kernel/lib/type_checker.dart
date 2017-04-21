@@ -680,6 +680,57 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitLoadLibrary(LoadLibrary node) {
+    return environment.futureType(const DynamicType());
+  }
+
+  @override
+  DartType visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    return environment.objectType;
+  }
+
+  @override
+  DartType visitVectorGet(VectorGet node) {
+    var type = visitExpression(node.vectorExpression);
+    if (type is! VectorType) {
+      fail(
+          node.vectorExpression,
+          'The type of vector-expression in vector-get node is expected to be '
+          'VectorType, but $type found');
+    }
+    return const DynamicType();
+  }
+
+  @override
+  visitVectorSet(VectorSet node) {
+    var type = visitExpression(node.vectorExpression);
+    if (type is! VectorType) {
+      fail(
+          node.vectorExpression,
+          'The type of vector-expression in vector-set node is expected to be '
+          'VectorType, but $type found');
+    }
+    return visitExpression(node.value);
+  }
+
+  @override
+  visitVectorCopy(VectorCopy node) {
+    var type = visitExpression(node.vectorExpression);
+    if (type is! VectorType) {
+      fail(
+          node.vectorExpression,
+          'The type of vector-expression in vector-copy node is exected to be '
+          'VectorType, but $type found');
+    }
+    return const VectorType();
+  }
+
+  @override
+  DartType visitVectorCreation(VectorCreation node) {
+    return const VectorType();
+  }
+
+  @override
   visitAssertStatement(AssertStatement node) {
     visitExpression(node.condition);
     if (node.message != null) {

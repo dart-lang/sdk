@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
+import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -51,10 +52,12 @@ class BaseAnalysisDriverTest {
   final StringBuffer logBuffer = new StringBuffer();
   PerformanceLog logger;
 
+  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
   final List<AnalysisResult> allResults = <AnalysisResult>[];
+  final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   String testProject;
   String testFile;
@@ -113,15 +116,19 @@ class BaseAnalysisDriverTest {
         'test',
         new SourceFactory([
           new DartUriResolver(sdk),
+          generatedUriResolver,
           new PackageMapUriResolver(provider, <String, List<Folder>>{
             'test': [provider.getFolder(testProject)]
           }),
           new ResourceUriResolver(provider)
         ], null, provider),
-        new AnalysisOptionsImpl()..strongMode = true);
+        new AnalysisOptionsImpl()
+          ..strongMode = true
+          ..enableUriInPartOf = true);
     scheduler.start();
-    driver.status.listen(allStatuses.add);
+    scheduler.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);
+    driver.exceptions.listen(allExceptions.add);
   }
 
   String _p(String path) => provider.convertPath(path);
@@ -140,3 +147,5 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
     super.visitElement(element);
   }
 }
+
+class _GeneratedUriResolverMock extends TypedMock implements UriResolver {}

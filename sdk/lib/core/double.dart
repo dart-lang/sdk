@@ -201,6 +201,5 @@ abstract class double extends num {
    *     "+.12e-9"
    *     "-NaN"
    */
-  external static double parse(String source,
-                               [double onError(String source)]);
+  external static double parse(String source, [double onError(String source)]);
 }

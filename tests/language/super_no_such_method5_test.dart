@@ -9,9 +9,9 @@ class A {
 }
 
 class B extends Object with A {
-  foo() => super.foo(); /// 01: static type warning
+  foo() => super.foo(); //# 01: static type warning
 }
 
 main() {
-  Expect.equals(42, new B().foo()); /// 01: continued
+  Expect.equals(42, new B().foo()); //# 01: continued
 }

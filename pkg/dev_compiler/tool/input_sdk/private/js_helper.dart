@@ -6,15 +6,13 @@ library dart._js_helper;
 
 import 'dart:collection';
 
-import 'dart:_foreign_helper' show
-    JS,
-    JS_STRING_CONCAT;
+import 'dart:_debugger' show stackTraceMapper;
+
+import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT;
 
 import 'dart:_interceptors';
-import 'dart:_internal' show
-    EfficientLength,
-    MappedIterable,
-    IterableElementError;
+import 'dart:_internal'
+    show EfficientLengthIterable, MappedIterable, IterableElementError;
 
 import 'dart:_native_typed_data';
 
@@ -24,6 +22,8 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
+
+final _identityHashCode = JS('', 'Symbol("_identityHashCode")');
 
 class _Patch {
   const _Patch();
@@ -57,10 +57,10 @@ class Primitives {
   }
 
   static int objectHashCode(object) {
-    int hash = JS('int|Null', r'#.$identityHash', object);
+    int hash = JS('int|Null', r'#[#]', object, _identityHashCode);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
-      JS('void', r'#.$identityHash = #', object, hash);
+      JS('void', r'#[#] = #', object, _identityHashCode, hash);
     }
     return JS('int', '#', hash);
   }
@@ -71,12 +71,12 @@ class Primitives {
     return handleError(source);
   }
 
-  static int parseInt(String source,
-                      int radix,
-                      int handleError(String source)) {
+  static int parseInt(
+      String source, int radix, int handleError(String source)) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    var/*=JSArray<String>*/ match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
+    var/*=JSArray<String>*/ match =
+        JS('JSExtendableArray|Null', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -146,8 +146,8 @@ class Primitives {
   }
 
   @NoInline()
-  static double _parseDoubleError(String source,
-                                  double handleError(String source)) {
+  static double _parseDoubleError(
+      String source, double handleError(String source)) {
     if (handleError == null) {
       throw new FormatException('Invalid double', source);
     }
@@ -162,10 +162,11 @@ class Primitives {
     // - [+/-]Infinity
     // - a Dart double literal
     // We do allow leading or trailing whitespace.
-    if (!JS('bool',
-            r'/^\s*[+-]?(?:Infinity|NaN|'
-                r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
-            source)) {
+    if (!JS(
+        'bool',
+        r'/^\s*[+-]?(?:Infinity|NaN|'
+        r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+        source)) {
       return _parseDoubleError(source, handleError);
     }
     var result = JS('num', r'parseFloat(#)', source);
@@ -217,14 +218,15 @@ class Primitives {
   static Function timerTicks;
 
   static bool get isD8 {
-    return JS('bool',
-              'typeof version == "function"'
-              ' && typeof os == "object" && "system" in os');
+    return JS(
+        'bool',
+        'typeof version == "function"'
+        ' && typeof os == "object" && "system" in os');
   }
 
   static bool get isJsshell {
-    return JS('bool',
-              'typeof version == "function" && typeof system == "function"');
+    return JS(
+        'bool', 'typeof version == "function" && typeof system == "function"');
   }
 
   static String currentUri() {
@@ -247,9 +249,13 @@ class Primitives {
     String result = '';
     for (int i = 0; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
-      result = JS('String',
+      result = JS(
+          'String',
           r'# + String.fromCharCode.apply(null, #.slice(#, #))',
-          result, array, i, chunkEnd);
+          result,
+          array,
+          i,
+          chunkEnd);
     }
     return result;
   }
@@ -257,7 +263,7 @@ class Primitives {
   static String stringFromCodePoints(/*=JSArray<int>*/ codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
-      if (i is !int) throw argumentErrorValue(i);
+      if (i is! int) throw argumentErrorValue(i);
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
@@ -272,7 +278,7 @@ class Primitives {
 
   static String stringFromCharCodes(/*=JSArray<int>*/ charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw argumentErrorValue(i);
+      if (i is! int) throw argumentErrorValue(i);
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
@@ -289,13 +295,16 @@ class Primitives {
     String result = '';
     for (int i = start; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
-      result = JS('String',
+      result = JS(
+          'String',
           r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
-          result, charCodes, i, chunkEnd);
+          result,
+          charCodes,
+          i,
+          chunkEnd);
     }
     return result;
   }
-
 
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
@@ -306,7 +315,7 @@ class Primitives {
         var bits = charCode - 0x10000;
         var low = 0xDC00 | (bits & 0x3ff);
         var high = 0xD800 | (bits >> 10);
-        return  JS('String', 'String.fromCharCode(#, #)', high, low);
+        return JS('String', 'String.fromCharCode(#, #)', high, low);
       }
     }
     throw new RangeError.range(charCode, 0, 0x10ffff);
@@ -330,19 +339,20 @@ class Primitives {
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
     // Example: Thu Oct 31 14:07:44 PDT 2013
-    match = JS('JSArray|Null',
-                // Thu followed by a space.
-                r'/^[A-Z,a-z]{3}\s'
-                // Oct 31 followed by space.
-                r'[A-Z,a-z]{3}\s\d+\s'
-                // Time followed by a space.
-                r'\d{2}:\d{2}:\d{2}\s'
-                // The time zone name followed by a space.
-                r'([A-Z]{3,5})\s'
-                // The year.
-                r'\d{4}$/'
-                '.exec(#.toString())',
-                d);
+    match = JS(
+        'JSArray|Null',
+        // Thu followed by a space.
+        r'/^[A-Z,a-z]{3}\s'
+        // Oct 31 followed by space.
+        r'[A-Z,a-z]{3}\s\d+\s'
+        // Time followed by a space.
+        r'\d{2}:\d{2}:\d{2}\s'
+        // The time zone name followed by a space.
+        r'([A-Z]{3,5})\s'
+        // The year.
+        r'\d{4}$/'
+        '.exec(#.toString())',
+        d);
     if (match != null) return match[1];
 
     // IE 9 and Opera don't provide the zone name. We fall back to emitting the
@@ -360,7 +370,7 @@ class Primitives {
   }
 
   static num valueFromDecomposedDate(int years, int month, int day, int hours,
-        int minutes, int seconds, int milliseconds, bool isUtc) {
+      int minutes, int seconds, int milliseconds, bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -373,11 +383,11 @@ class Primitives {
     var jsMonth = month - 1;
     num value;
     if (isUtc) {
-      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)',
-                 years, jsMonth, day, hours, minutes, seconds, milliseconds);
+      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
+          hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()',
-                 years, jsMonth, day, hours, minutes, seconds, milliseconds);
+      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
+          jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
@@ -402,7 +412,7 @@ class Primitives {
   static lazyAsJsDate(DateTime receiver) {
     if (JS('bool', r'#.date === (void 0)', receiver)) {
       JS('void', r'#.date = new Date(#)', receiver,
-         receiver.millisecondsSinceEpoch);
+          receiver.millisecondsSinceEpoch);
     }
     return JS('var', r'#.date', receiver);
   }
@@ -413,56 +423,56 @@ class Primitives {
 
   static getYear(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMonth(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
-      : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
+        ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
+        : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
   static getDay(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
   static getHours(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
   static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
-      ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-      : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
+        ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+        : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
 
   static valueFromDateString(str) {
-    if (str is !String) throw argumentErrorValue(str);
+    if (str is! String) throw argumentErrorValue(str);
     var value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN) throw argumentErrorValue(str);
     return value;
@@ -486,13 +496,14 @@ class Primitives {
     return getTraceFromException(JS('', r'#.$thrownJsError', error));
   }
 }
+
 /**
  * Diagnoses an indexing error. Returns the ArgumentError or RangeError that
  * describes the problem.
  */
 @NoInline()
 Error diagnoseIndexError(indexable, index) {
-  if (index is !int) return new ArgumentError.value(index, 'index');
+  if (index is! int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
@@ -527,9 +538,8 @@ Error diagnoseRangeError(start, end, length) {
   return new ArgumentError.value(end, "end");
 }
 
-stringLastIndexOfUnchecked(receiver, element, start)
-  => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
-
+stringLastIndexOfUnchecked(receiver, element, start) =>
+    JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
@@ -543,22 +553,22 @@ checkNull(object) {
 }
 
 checkNum(value) {
-  if (value is !num) throw argumentErrorValue(value);
+  if (value is! num) throw argumentErrorValue(value);
   return value;
 }
 
 checkInt(value) {
-  if (value is !int) throw argumentErrorValue(value);
+  if (value is! int) throw argumentErrorValue(value);
   return value;
 }
 
 checkBool(value) {
-  if (value is !bool) throw argumentErrorValue(value);
+  if (value is! bool) throw argumentErrorValue(value);
   return value;
 }
 
 checkString(value) {
-  if (value is !String) throw argumentErrorValue(value);
+  if (value is! String) throw argumentErrorValue(value);
   return value;
 }
 
@@ -569,7 +579,6 @@ throwRuntimeError(message) {
 throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
-
 
 @NoInline()
 throwConcurrentModificationError(collection) {
@@ -626,15 +635,19 @@ StackTrace getTraceFromException(exception) => new _StackTrace(exception);
 class _StackTrace implements StackTrace {
   var _exception;
   String _trace;
+
   _StackTrace(this._exception);
 
   String toString() {
-    if (_trace != null) return JS('String', '#', _trace);
+    if (_trace != null) return _trace;
 
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS("String|Null", r"#.stack", _exception);
+      if (trace != null && stackTraceMapper != null) {
+        trace = stackTraceMapper(trace);
+      }
     }
     return _trace = (trace == null) ? '' : trace;
   }
@@ -768,8 +781,7 @@ class JSName {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior {
-}
+abstract class JavaScriptIndexingBehavior {}
 
 // TODO(lrn): These exceptions should be implemented in core.
 // When they are, remove the 'Implementation' here.
@@ -784,7 +796,7 @@ class TypeErrorImplementation extends Error implements TypeError {
   // TODO(sra): Include [value] in message.
   TypeErrorImplementation(Object value, Object actualType, Object expectedType)
       : message = "Type '${actualType}' is not a subtype "
-                  "of type '${expectedType}'";
+            "of type '${expectedType}'";
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -802,7 +814,7 @@ class CastErrorImplementation extends Error implements CastError {
   // TODO(sra): Include [value] in message.
   CastErrorImplementation(Object value, Object actualType, Object expectedType)
       : message = "CastError: Casting value of type '$actualType' to"
-                  " incompatible type '$expectedType'";
+            " incompatible type '$expectedType'";
 
   String toString() => message;
 }
@@ -814,7 +826,7 @@ class StrongModeTypeError extends Error implements TypeError, StrongModeError {
   // TODO(sra): Include [value] in message.
   StrongModeTypeError(Object value, Object actualType, Object expectedType)
       : message = "Type '${actualType}' is not a subtype "
-                  "of type '${expectedType}' in strong mode";
+            "of type '${expectedType}' in strong mode";
   String toString() => message;
 }
 
@@ -825,7 +837,7 @@ class StrongModeCastError extends Error implements CastError, StrongModeError {
   // TODO(sra): Include [value] in message.
   StrongModeCastError(Object value, Object actualType, Object expectedType)
       : message = "CastError: Casting value of type '$actualType' to"
-                  " type '$expectedType' which is incompatible in strong mode";
+            " type '$expectedType' which is incompatible in strong mode";
   String toString() => message;
 }
 
@@ -876,7 +888,6 @@ int random64() {
 String jsonEncodeNative(String string) {
   return JS("String", "JSON.stringify(#)", string);
 }
-
 
 // TODO(jmesserly): this adapter is to work around
 // https://github.com/dart-lang/sdk/issues/28320

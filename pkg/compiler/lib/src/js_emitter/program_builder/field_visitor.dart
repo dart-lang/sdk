@@ -58,10 +58,18 @@ class FieldVisitor {
   void visitFields(Element element, bool visitStatics, AcceptField f) {
     assert(invariant(element, element.isDeclaration));
 
-    bool isClass = false;
+    ClassElement cls;
+    bool isNativeClass = false;
     bool isLibrary = false;
+    bool isInstantiated = false;
     if (element.isClass) {
-      isClass = true;
+      cls = element;
+      isNativeClass = backend.nativeData.isNativeClass(cls);
+
+      // If the class is never instantiated we still need to set it up for
+      // inheritance purposes, but we can simplify its JavaScript constructor.
+      isInstantiated = compiler.codegenWorldBuilder.directlyInstantiatedClasses
+          .contains(cls);
     } else if (element.isLibrary) {
       isLibrary = true;
       assert(invariant(element, visitStatics));
@@ -70,19 +78,10 @@ class FieldVisitor {
           element, 'Expected a ClassElement or a LibraryElement.');
     }
 
-    // If the class is never instantiated we still need to set it up for
-    // inheritance purposes, but we can simplify its JavaScript constructor.
-    bool isInstantiated = compiler
-        .codegenWorldBuilder.directlyInstantiatedClasses
-        .contains(element);
-
     void visitField(Element holder, FieldElement field) {
       assert(invariant(element, field.isDeclaration));
 
-      // Keep track of whether or not we're dealing with a field mixin
-      // into a native class.
-      bool isMixinNativeField =
-          isClass && backend.isNative(element) && holder.isMixinApplication;
+      bool isMixinNativeField = isNativeClass && holder.isMixinApplication;
 
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [element] since
@@ -95,7 +94,7 @@ class FieldVisitor {
         needsSetter = fieldNeedsSetter(field);
       }
 
-      if ((isInstantiated && !backend.isNative(holder)) ||
+      if ((isInstantiated && !backend.nativeData.isNativeClass(cls)) ||
           needsGetter ||
           needsSetter) {
         js.Name accessorName = namer.fieldAccessorName(field);
@@ -119,10 +118,8 @@ class FieldVisitor {
         if (member.isField) visitField(library, member);
       });
     } else if (visitStatics) {
-      ClassElement cls = element;
       cls.implementation.forEachStaticField(visitField);
     } else {
-      ClassElement cls = element;
       // TODO(kasperl): We should make sure to only emit one version of
       // overridden fields. Right now, we rely on the ordering so the
       // fields pulled in from mixins are replaced with the fields from
@@ -140,7 +137,7 @@ class FieldVisitor {
   bool fieldNeedsGetter(VariableElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (backend.shouldRetainGetter(field)) return true;
+    if (backend.mirrorsData.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
         compiler.codegenWorldBuilder.hasInvokedGetter(field, closedWorld);
   }
@@ -149,7 +146,7 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (field.isFinal || field.isConst) return false;
-    if (backend.shouldRetainSetter(field)) return true;
+    if (backend.mirrorsData.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
         compiler.codegenWorldBuilder.hasInvokedSetter(field, closedWorld);
   }

@@ -5,9 +5,8 @@
 import "package:expect/expect.dart";
 import "package:compiler/src/parser/element_listener.dart";
 import "package:compiler/src/parser/node_listener.dart";
-import "package:compiler/src/parser/parser.dart";
-import "package:compiler/src/scanner/string_scanner.dart";
-import "package:compiler/src/tokens/token.dart";
+import "package:front_end/src/fasta/parser.dart";
+import "package:front_end/src/fasta/scanner.dart";
 import "package:compiler/src/tree/tree.dart";
 
 import "package:compiler/src/diagnostics/diagnostic_listener.dart";
@@ -16,8 +15,6 @@ import "package:compiler/src/elements/elements.dart"
 import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, LibraryElementX;
 import "package:compiler/src/script.dart";
-
-import "options_helper.dart";
 
 main() {
   testClassDef();
@@ -89,7 +86,7 @@ String doUnparse(String source) {
   Script script = new Script(null, null, null);
   LibraryElement lib = new LibraryElementX(script);
   CompilationUnitElement element = new CompilationUnitElementX(script, lib);
-  StringScanner scanner = new StringScanner.fromString(source);
+  StringScanner scanner = new StringScanner(source);
   Token beginToken = scanner.tokenize();
   NodeListener listener =
       new NodeListener(const ScannerOptions(), diagnosticListener, element);

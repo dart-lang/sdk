@@ -3,17 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/scanner/string_scanner.dart';
-import 'package:compiler/src/tokens/token.dart';
-import 'package:compiler/src/tokens/token_constants.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 
 Token scan(String text) =>
-    new StringScanner.fromString(text, includeComments: true).tokenize();
+    new StringScanner(text, includeComments: true).tokenize();
 
 check(String text) {
   Token token = scan(text);
   while (token.kind != EOF_TOKEN) {
-    Expect.equals(token.value.length, token.charCount);
+    Expect.equals(token.lexeme.length, token.charCount);
 
     var start = token.charOffset;
     var end = token.charOffset + token.charCount;
@@ -29,9 +27,9 @@ check(String text) {
     var substring = text.substring(start, end);
 
     Expect.stringEquals(
-        token.value,
+        token.lexeme,
         substring,
-        'token.value=${token.value} == '
+        'token.value=${token.lexeme} == '
         'text.substring(start,end)=${substring}: $text');
 
     print('$text: [$start,$end]:$token');

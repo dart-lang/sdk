@@ -241,6 +241,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R9, 0);
   __ blx(R2);
   compiler->RecordSafepoint(locs());
+  compiler->EmitCatchEntryState();
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
@@ -2373,8 +2374,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R0);  // Value.
   ASSERT(locs()->in(1).reg() == R1);  // Instantiator type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), negate_result(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == R0);
 }
 
@@ -2476,8 +2476,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(compiler->zone(),
                                       StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
-  compiler->GenerateCall(token_pos(), *StubCode::AllocateArray_entry(),
-                         RawPcDescriptors::kOther, locs());
+  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                  *StubCode::AllocateArray_entry(),
+                                  RawPcDescriptors::kOther, locs());
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
@@ -2874,6 +2875,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(), try_index(),
                                 compiler->assembler()->CodeSize(),
+                                handler_token_pos(), is_generated(),
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
@@ -2948,7 +2950,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
+    if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
@@ -2967,7 +2969,8 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
         instruction_->token_pos(), instruction_->deopt_id(),
         kStackOverflowRuntimeEntry, 0, instruction_->locs());
 
-    if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
+    if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
+        instruction_->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
@@ -2979,7 +2982,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   }
 
   Label* osr_entry_label() {
-    ASSERT(FLAG_use_osr);
+    ASSERT(Isolate::Current()->use_osr());
     return &osr_entry_label_;
   }
 
@@ -3125,6 +3128,10 @@ class CheckedSmiSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
+    if (instruction_->env() != NULL) {
+      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+      compiler->pending_deoptimization_env_ = env;
+    }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     compiler->EmitMegamorphicInstanceCall(
@@ -3135,6 +3142,7 @@ class CheckedSmiSlowPath : public SlowPathCode {
     __ mov(result, Operand(R0));
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
+    compiler->pending_deoptimization_env_ = NULL;
   }
 
  private:
@@ -3259,6 +3267,10 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
+    if (instruction_->env() != NULL) {
+      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+      compiler->pending_deoptimization_env_ = env;
+    }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     compiler->EmitMegamorphicInstanceCall(
@@ -3268,6 +3280,7 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
         /* slow_path_argument_count = */ 2);
     __ mov(result, Operand(R0));
     compiler->RestoreLiveRegisters(locs);
+    compiler->pending_deoptimization_env_ = NULL;
     if (merged_) {
       __ CompareObject(result, Bool::True());
       __ b(
@@ -5819,7 +5832,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Push(value_obj);
   ASSERT(instance_call()->HasICData());
   const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT((ic_data.NumberOfChecks() == 1));
+  ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
 
   const intptr_t kNumberOfArguments = 1;
@@ -6298,12 +6311,17 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ tst(value, Operand(kSmiTagMask));
     __ b(deopt, EQ);
   }
-  __ LoadClassId(temp, value);
+  Register biased_cid = temp;
+  __ LoadClassId(biased_cid, value);
+
+  GrowableArray<CidRangeTarget> sorted_ic_data;
+  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
+                                       /* drop_smi = */ true);
 
   if (IsDenseSwitch()) {
     ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ AddImmediate(temp, -cids_[0]);
-    __ CompareImmediate(temp, cids_[cids_.length() - 1] - cids_[0]);
+    __ AddImmediate(biased_cid, -cids_[0]);
+    __ CompareImmediate(biased_cid, cids_[cids_.length() - 1] - cids_[0]);
     __ b(deopt, HI);
 
     intptr_t mask = ComputeCidMask();
@@ -6312,23 +6330,35 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(cids_.length() > 2);
       Register mask_reg = locs()->temp(1).reg();
       __ LoadImmediate(mask_reg, 1);
-      __ Lsl(mask_reg, mask_reg, temp);
+      __ Lsl(mask_reg, mask_reg, biased_cid);
       __ TestImmediate(mask_reg, mask);
       __ b(deopt, EQ);
     }
   } else {
-    GrowableArray<CidTarget> sorted_ic_data;
-    FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                         /* drop_smi = */ true);
     const intptr_t num_checks = sorted_ic_data.length();
+    int bias = 0;
     for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid = sorted_ic_data[i].cid;
-      ASSERT(cid != kSmiCid);
-      __ CompareImmediate(temp, cid);
-      if (i == (num_checks - 1)) {
-        __ b(deopt, NE);
+      const intptr_t cid_start = sorted_ic_data[i].cid_start;
+      const intptr_t cid_end = sorted_ic_data[i].cid_end;
+      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
+      Condition no_match, match;
+      if (cid_start == cid_end) {
+        __ CompareImmediate(biased_cid, cid_start - bias);
+        no_match = NE;
+        match = EQ;
       } else {
-        __ b(&is_ok, EQ);
+        // For class ID ranges use a subtract followed by an unsigned
+        // comparison to check both ends of the ranges with one comparison.
+        __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
+        bias = cid_start;
+        __ CompareImmediate(biased_cid, cid_end - cid_start);
+        no_match = HI;  // Unsigned higher.
+        match = LS;     // Unsigned lower or same.
+      }
+      if (i == (num_checks - 1)) {
+        __ b(deopt, no_match);
+      } else {
+        __ b(&is_ok, match);
       }
     }
   }
@@ -6397,13 +6427,16 @@ class RangeErrorSlowPath : public SlowPathCode {
     }
     __ Bind(entry_label());
     LocationSummary* locs = instruction_->locs();
+    compiler->SaveLiveRegisters(locs);
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     __ CallRuntime(kRangeErrorRuntimeEntry, 2);
-    compiler->pc_descriptors_list()->AddDescriptor(
+    compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
         instruction_->deopt_id(), instruction_->token_pos(), try_index_);
     compiler->RecordSafepoint(locs, 2);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    compiler->EmitCatchEntryState(env, try_index_);
     __ bkpt(0);
   }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Conversions for IDBKey.
 //
 // Per http://www.w3.org/TR/IndexedDB/#key-construct
@@ -39,7 +38,6 @@ convertNativeToDart_SerializedScriptValue(object) {
   return convertNativeToDart_AcceptStructuredClone(object, mustCopy: true);
 }
 
-
 /**
  * Converts a Dart value into a JavaScript SerializedScriptValue.  Returns the
  * original input or a functional 'copy'.  Does not mutate the original.
@@ -57,10 +55,9 @@ convertNativeToDart_SerializedScriptValue(object) {
  * its output, the result may share structure with the input [value].
  */
 abstract class _StructuredClone {
-
   // TODO(sra): Replace slots with identity hash table.
   var values = [];
-  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
+  var copies = []; // initially 'null', 'true' during initial DFS, then a copy.
 
   int findSlot(value) {
     int length = values.length;
@@ -71,9 +68,13 @@ abstract class _StructuredClone {
     copies.add(null);
     return length;
   }
+
   readSlot(int i) => copies[i];
-  writeSlot(int i, x) { copies[i] = x; }
-  cleanupSlots() {}  // Will be needed if we mark objects with a property.
+  writeSlot(int i, x) {
+    copies[i] = x;
+  }
+
+  cleanupSlots() {} // Will be needed if we mark objects with a property.
   bool cloneNotRequired(object);
   newJsMap();
   newJsList(length);
@@ -141,7 +142,7 @@ abstract class _StructuredClone {
     int length = e.length;
     var copy = newJsList(length);
     writeSlot(slot, copy);
-    for ( ; i < length; i++) {
+    for (; i < length; i++) {
       copy[i] = walk(e[i]);
     }
     return copy;
@@ -173,10 +174,9 @@ abstract class _StructuredClone {
  * the value as seen from the JavaScript listeners.
  */
 abstract class _AcceptStructuredClone {
-
   // TODO(sra): Replace slots with identity hash table.
   var values = [];
-  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
+  var copies = []; // initially 'null', 'true' during initial DFS, then a copy.
   bool mustCopy = false;
 
   int findSlot(value) {
@@ -193,7 +193,9 @@ abstract class _AcceptStructuredClone {
   /// wrappers may not be identical, but their underlying Js Object might be.
   bool identicalInJs(a, b);
   readSlot(int i) => copies[i];
-  writeSlot(int i, x) { copies[i] = x; }
+  writeSlot(int i, x) {
+    copies[i] = x;
+  }
 
   /// Iterate over the JS properties.
   forEachJsField(object, action);
@@ -275,9 +277,14 @@ class ContextAttributes {
   bool stencil;
   bool failIfMajorPerformanceCaveat;
 
-  ContextAttributes(this.alpha, this.antialias, this.depth,
-      this.failIfMajorPerformanceCaveat, this.premultipliedAlpha,
-      this.preserveDrawingBuffer, this.stencil);
+  ContextAttributes(
+      this.alpha,
+      this.antialias,
+      this.depth,
+      this.failIfMajorPerformanceCaveat,
+      this.premultipliedAlpha,
+      this.preserveDrawingBuffer,
+      this.stencil);
 }
 
 convertNativeToDart_ContextAttributes(nativeContextAttributes) {
@@ -307,7 +314,6 @@ class _TypedImageData implements ImageData {
 }
 
 ImageData convertNativeToDart_ImageData(nativeImageData) {
-
   // None of the native getters that return ImageData are declared as returning
   // [ImageData] since that is incorrect for FireFox, which returns a plain
   // Object.  So we need something that tells the compiler that the ImageData
@@ -317,7 +323,6 @@ ImageData convertNativeToDart_ImageData(nativeImageData) {
   JS('ImageData', '0');
 
   if (nativeImageData is ImageData) {
-
     // Fix for Issue 16069: on IE, the `data` field is a CanvasPixelArray which
     // has Array as the constructor property.  This interferes with finding the
     // correct interceptor.  Fix it by overwriting the constructor property.
@@ -346,8 +351,8 @@ ImageData convertNativeToDart_ImageData(nativeImageData) {
 // with native names.
 convertDartToNative_ImageData(ImageData imageData) {
   if (imageData is _TypedImageData) {
-    return JS('', '{data: #, height: #, width: #}',
-        imageData.data, imageData.height, imageData.width);
+    return JS('', '{data: #, height: #, width: #}', imageData.data,
+        imageData.height, imageData.width);
   }
   return imageData;
 }

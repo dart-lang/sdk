@@ -2088,6 +2088,19 @@ include: package:boo/other_options.yaml
     // No error means success.
   }
 
+  test_deleteRoot_hasAnalysisOptions() async {
+    newFile([projPath, optionsFileName], '');
+
+    // Add the root.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Remove the root, with the analysis options file.
+    // No exceptions.
+    resourceProvider.deleteFolder(projPath);
+    await pumpEventQueue();
+  }
+
   test_embedder_options() async {
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
@@ -2318,10 +2331,9 @@ analyzer:
       AnalysisContext sdkContext = sourceFactory.dartSdk.context;
       expect(analysisOptions.strongMode, isTrue);
       expect(sdkContext.analysisOptions.strongMode, isTrue);
-      // The code is strong-mode clean, but we're using a Mock SDK that isn't
-      // configured correctly for strong mode so we get an error.
+      // The code is strong-mode clean.
       // Verify that TypeSystem was reset.
-      expect(context.computeErrors(testSource), hasLength(1));
+      expect(context.computeErrors(testSource), isEmpty);
     }
   }
 

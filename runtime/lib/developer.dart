@@ -3,73 +3,67 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
-import 'dart:_internal';
+import 'dart:_internal' hide Symbol;
 
-@patch bool debugger({bool when: true,
-                     String message}) native "Developer_debugger";
+@patch
+bool debugger({bool when: true, String message}) native "Developer_debugger";
 
-@patch Object inspect(Object object) native "Developer_inspect";
+@patch
+Object inspect(Object object) native "Developer_inspect";
 
-@patch void log(String message,
-                {DateTime time,
-                 int sequenceNumber,
-                 int level: 0,
-                 String name: '',
-                 Zone zone,
-                 Object error,
-                 StackTrace stackTrace}) {
+@patch
+void log(String message,
+    {DateTime time,
+    int sequenceNumber,
+    int level: 0,
+    String name: '',
+    Zone zone,
+    Object error,
+    StackTrace stackTrace}) {
   if (message is! String) {
-    throw new ArgumentError(message, "message", "Must be a String");
+    throw new ArgumentError.value(message, "message", "Must be a String");
   }
   if (time == null) {
     time = new DateTime.now();
   }
   if (time is! DateTime) {
-    throw new ArgumentError(time, "time", "Must be a DateTime");
+    throw new ArgumentError.value(time, "time", "Must be a DateTime");
   }
   if (sequenceNumber == null) {
     sequenceNumber = _nextSequenceNumber++;
   } else {
     _nextSequenceNumber = sequenceNumber + 1;
   }
-  _log(message,
-       time.millisecondsSinceEpoch,
-       sequenceNumber,
-       level,
-       name,
-       zone,
-       error,
-       stackTrace);
+  _log(message, time.millisecondsSinceEpoch, sequenceNumber, level, name, zone,
+      error, stackTrace);
 }
 
 int _nextSequenceNumber = 0;
 
-_log(String message,
-     int timestamp,
-     int sequenceNumber,
-     int level,
-     String name,
-     Zone zone,
-     Object error,
-     StackTrace stackTrace) native "Developer_log";
+_log(String message, int timestamp, int sequenceNumber, int level, String name,
+    Zone zone, Object error, StackTrace stackTrace) native "Developer_log";
 
-@patch void _postEvent(String eventKind, String eventData)
+@patch
+void _postEvent(String eventKind, String eventData)
     native "Developer_postEvent";
 
-@patch ServiceExtensionHandler _lookupExtension(String method)
+@patch
+ServiceExtensionHandler _lookupExtension(String method)
     native "Developer_lookupExtension";
 
-@patch _registerExtension(String method, ServiceExtensionHandler handler)
+@patch
+_registerExtension(String method, ServiceExtensionHandler handler)
     native "Developer_registerExtension";
 
 // This code is only invoked when there is no other Dart code on the stack.
-_runExtension(ServiceExtensionHandler handler,
-              String method,
-              List<String> parameterKeys,
-              List<String> parameterValues,
-              SendPort replyPort,
-              Object id,
-              bool trace_service) {
+_runExtension(
+    ServiceExtensionHandler handler,
+    String method,
+    List<String> parameterKeys,
+    List<String> parameterValues,
+    SendPort replyPort,
+    Object id,
+    bool trace_service) {
   var parameters = {};
   for (var i = 0; i < parameterKeys.length; i++) {
     parameters[parameterKeys[i]] = parameterValues[i];
@@ -80,15 +74,14 @@ _runExtension(ServiceExtensionHandler handler,
   } catch (e, st) {
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
+        ServiceExtensionResponse.kExtensionError, errorDetails);
     _postResponse(replyPort, id, response, trace_service);
     return;
   }
   if (response is! Future) {
     response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          "Extension handler must return a Future");
+        ServiceExtensionResponse.kExtensionError,
+        "Extension handler must return a Future");
     _postResponse(replyPort, id, response, trace_service);
     return;
   }
@@ -96,8 +89,7 @@ _runExtension(ServiceExtensionHandler handler,
     // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
+        ServiceExtensionResponse.kExtensionError, errorDetails);
   }).then((response) {
     // Post the valid response or the wrapped error after verifying that
     // the response is a ServiceExtensionResponse.
@@ -114,10 +106,8 @@ _runExtension(ServiceExtensionHandler handler,
 }
 
 // This code is only invoked by _runExtension.
-_postResponse(SendPort replyPort,
-              Object id,
-              ServiceExtensionResponse response,
-              bool trace_service) {
+_postResponse(SendPort replyPort, Object id, ServiceExtensionResponse response,
+    bool trace_service) {
   assert(replyPort != null);
   if (id == null) {
     if (trace_service) {
@@ -150,14 +140,19 @@ _postResponse(SendPort replyPort,
   replyPort.send(sb.toString());
 }
 
-@patch int _getServiceMajorVersion() native "Developer_getServiceMajorVersion";
+@patch
+int _getServiceMajorVersion() native "Developer_getServiceMajorVersion";
 
-@patch int _getServiceMinorVersion() native "Developer_getServiceMinorVersion";
+@patch
+int _getServiceMinorVersion() native "Developer_getServiceMinorVersion";
 
-@patch void _getServerInfo(SendPort sendPort) native "Developer_getServerInfo";
+@patch
+void _getServerInfo(SendPort sendPort) native "Developer_getServerInfo";
 
-@patch void _webServerControl(SendPort sendPort, bool enable)
+@patch
+void _webServerControl(SendPort sendPort, bool enable)
     native "Developer_webServerControl";
 
-@patch String _getIsolateIDFromSendPort(SendPort sendPort)
+@patch
+String _getIsolateIDFromSendPort(SendPort sendPort)
     native "Developer_getIsolateIDFromSendPort";

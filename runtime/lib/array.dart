@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // TODO(srdjan): Use shared array implementation.
 class _List<E> extends FixedLengthListBase<E> {
-
   factory _List(length) native "List_allocate";
 
   E operator [](int index) native "List_getIndexed";
@@ -16,8 +14,7 @@ class _List<E> extends FixedLengthListBase<E> {
 
   List _slice(int start, int count, bool needsTypeArgument) {
     if (count <= 64) {
-      final result = needsTypeArgument ? new _List<E>(count)
-                                       : new _List(count);
+      final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
       for (int i = 0; i < result.length; i++) {
         result[i] = this[start + i];
       }
@@ -60,10 +57,9 @@ class _List<E> extends FixedLengthListBase<E> {
   }
 
   List<E> sublist(int start, [int end]) {
-    Lists.indicesCheck(this, start, end);
-    if (end == null) end = this.length;
+    end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
-    if (start == end) return <E>[];
+    if (length == 0) return <E>[];
     var result = new _GrowableList<E>.withData(_slice(start, length, false));
     result._setLength(length);
     return result;
@@ -98,7 +94,7 @@ class _List<E> extends FixedLengthListBase<E> {
     throw IterableElementError.tooMany();
   }
 
-  List<E> toList({ bool growable: true }) {
+  List<E> toList({bool growable: true}) {
     var length = this.length;
     if (length > 0) {
       var result = _slice(0, length, !growable);
@@ -113,7 +109,6 @@ class _List<E> extends FixedLengthListBase<E> {
   }
 }
 
-
 // This is essentially the same class as _List, but it does not
 // permit any modification of array elements from Dart code. We use
 // this class for arrays constructed from Dart array literals.
@@ -122,7 +117,6 @@ class _List<E> extends FixedLengthListBase<E> {
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
 class _ImmutableList<E> extends UnmodifiableListBase<E> {
-
   factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(
         "ImmutableArray can only be allocated by the VM");
@@ -136,8 +130,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   int get length native "List_getLength";
 
   List<E> sublist(int start, [int end]) {
-    Lists.indicesCheck(this, start, end);
-    if (end == null) end = this.length;
+    end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return <E>[];
     List list = new _List(length);
@@ -178,7 +171,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
     throw IterableElementError.tooMany();
   }
 
-  List<E> toList({ bool growable: true }) {
+  List<E> toList({bool growable: true}) {
     var length = this.length;
     if (length > 0) {
       List list = growable ? new _List(length) : new _List<E>(length);
@@ -194,16 +187,17 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   }
 }
 
-
 // Iterator for arrays with fixed size.
 class _FixedSizeArrayIterator<E> implements Iterator<E> {
   final List<E> _array;
-  final int _length;  // Cache array length for faster access.
+  final int _length; // Cache array length for faster access.
   int _index;
   E _current;
 
   _FixedSizeArrayIterator(List array)
-      : _array = array, _length = array.length, _index = 0 {
+      : _array = array,
+        _length = array.length,
+        _index = 0 {
     assert(array is _List || array is _ImmutableList);
   }
 

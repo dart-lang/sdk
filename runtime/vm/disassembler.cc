@@ -20,6 +20,7 @@ namespace dart {
 #ifndef PRODUCT
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
+DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
 
 void DisassembleToStdout::ConsumeInstruction(const Code& code,
                                              char* hex_buffer,
@@ -112,7 +113,8 @@ void Disassembler::Disassemble(uword start,
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
   intptr_t comment_finger = 0;
-  GrowableArray<Function*> inlined_functions;
+  GrowableArray<const Function*> inlined_functions;
+  GrowableArray<TokenPosition> token_positions;
   while (pc < end) {
     const intptr_t offset = pc - start;
     const intptr_t old_comment_finger = comment_finger;
@@ -127,10 +129,11 @@ void Disassembler::Disassemble(uword start,
       char str[4000];
       BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
-      code.GetInlinedFunctionsAt(offset, &inlined_functions);
+      code.GetInlinedFunctionsAtInstruction(offset, &inlined_functions,
+                                            &token_positions);
       // Skip top scope function printing (last entry in 'inlined_functions').
       bool first = true;
-      for (intptr_t i = inlined_functions.length() - 2; i >= 0; i--) {
+      for (intptr_t i = 1; i < inlined_functions.length(); i++) {
         const char* name = inlined_functions[i]->ToQualifiedCString();
         if (first) {
           f.Print("        ;; Inlined [%s", name);
@@ -290,7 +293,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("}\n");
   }
   if (optimized && FLAG_trace_inlining_intervals) {
-    code.DumpInlinedIntervals();
+    code.DumpInlineIntervals();
+  }
+  if (FLAG_trace_source_positions) {
+    code.DumpSourcePositions();
   }
 }
 

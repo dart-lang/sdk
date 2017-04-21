@@ -4,6 +4,11 @@
 //
 // Dart test program for testing native extensions.
 
+// OtherResources=../sample_synchronous_extension.dart
+// OtherResources=../sample_asynchronous_extension.dart
+// OtherResources=../test_sample_synchronous_extension.dart
+// OtherResources=../test_sample_asynchronous_extension.dart
+
 import 'sample_extension_test_helper.dart';
 
 void main() {

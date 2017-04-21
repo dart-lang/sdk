@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:core' hide Symbol;
+
 // A print-closure gets a String that should be printed. In general the
 // string is a line, but it may contain "\n" characters.
 typedef void _PrintClosure(String line);
 
-@patch void printToConsole(String line) {
+@patch
+void printToConsole(String line) {
   _printClosure(line);
 }
 

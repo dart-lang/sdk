@@ -2,15 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
+import '../common/backend_api.dart';
+import '../common/resolution.dart';
+import '../common_elements.dart';
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer;
-import '../universe/use.dart' show StaticUse;
+import '../universe/call_structure.dart';
+import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
-import 'backend.dart';
+import 'backend_usage.dart' show BackendUsageBuilder;
+import 'backend_helpers.dart';
+import 'native_data.dart';
 
 /**
  * Support for Custom Elements.
@@ -49,41 +54,58 @@ import 'backend.dart';
  *
  * In these cases we conservatively generate all viable entries in the table.
  */
-class CustomElementsAnalysis {
-  final JavaScriptBackend backend;
-  final Compiler compiler;
-  final CustomElementsAnalysisJoin resolutionJoin;
-  final CustomElementsAnalysisJoin codegenJoin;
-  bool fetchedTableAccessorMethod = false;
-  Element tableAccessorMethod;
+abstract class CustomElementsAnalysisBase {
+  final NativeBasicData _nativeData;
+  final BackendHelpers _helpers;
+  final Resolution _resolution;
 
-  CustomElementsAnalysis(JavaScriptBackend backend)
-      : this.backend = backend,
-        this.compiler = backend.compiler,
-        resolutionJoin = new CustomElementsAnalysisJoin(backend),
-        codegenJoin = new CustomElementsAnalysisJoin(backend) {
+  CustomElementsAnalysisBase(this._resolution, this._helpers, this._nativeData);
+
+  CustomElementsAnalysisJoin get join;
+
+  void registerInstantiatedClass(ClassElement classElement) {
+    classElement.ensureResolved(_resolution);
+    if (!_nativeData.isNativeOrExtendsNative(classElement)) return;
+    if (classElement.isMixinApplication) return;
+    if (classElement.isAbstract) return;
+    // JsInterop classes are opaque interfaces without a concrete
+    // implementation.
+    if (_nativeData.isJsInteropClass(classElement)) return;
+    join.instantiatedClasses.add(classElement);
+  }
+
+  void registerStaticUse(Element element) {
+    assert(element != null);
+    if (element == _helpers.findIndexForNativeSubclassType) {
+      join.demanded = true;
+    }
+  }
+
+  /// Computes the [WorldImpact] of the classes registered since last flush.
+  WorldImpact flush() => join.flush();
+}
+
+class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
+  final CustomElementsAnalysisJoin join;
+
+  CustomElementsResolutionAnalysis(
+      Resolution resolution,
+      ConstantSystem constantSystem,
+      CommonElements commonElements,
+      BackendClasses backendClasses,
+      BackendHelpers helpers,
+      NativeBasicData nativeData,
+      BackendUsageBuilder backendUsageBuilder)
+      : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
+            commonElements, backendClasses, nativeData,
+            backendUsageBuilder: backendUsageBuilder),
+        super(resolution, helpers, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the work-around
     // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
     // TODO(12607): Match on [ClassMirror.reflectedType]
-    resolutionJoin.allClassesSelected = true;
-    codegenJoin.allClassesSelected = true;
-  }
-
-  CustomElementsAnalysisJoin joinFor({bool forResolution}) =>
-      forResolution ? resolutionJoin : codegenJoin;
-
-  void registerInstantiatedClass(ClassElement classElement,
-      {bool forResolution}) {
-    classElement.ensureResolved(compiler.resolution);
-    if (!backend.isNativeOrExtendsNative(classElement)) return;
-    if (classElement.isMixinApplication) return;
-    if (classElement.isAbstract) return;
-    // JsInterop classes are opaque interfaces without a concrete
-    // implementation.
-    if (backend.isJsInterop(classElement)) return;
-    joinFor(forResolution: forResolution).instantiatedClasses.add(classElement);
+    join.allClassesSelected = true;
   }
 
   void registerTypeLiteral(ResolutionDartType type) {
@@ -91,48 +113,60 @@ class CustomElementsAnalysis {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
       // literal is really a demand for the metadata.
-      resolutionJoin.selectedClasses.add(type.element);
+      join.selectedClasses.add(type.element);
     } else if (type.isTypeVariable) {
       // This is a type parameter of a parameterized class.
       // TODO(sra): Is there a way to determine which types are bound to the
       // parameter?
-      resolutionJoin.allClassesSelected = true;
+      join.allClassesSelected = true;
     }
   }
+}
 
-  void registerTypeConstant(Element element) {
+class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
+  final CustomElementsAnalysisJoin join;
+
+  CustomElementsCodegenAnalysis(
+      Resolution resolution,
+      ConstantSystem constantSystem,
+      CommonElements commonElements,
+      BackendClasses backendClasses,
+      BackendHelpers helpers,
+      NativeBasicData nativeData)
+      : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
+            commonElements, backendClasses, nativeData),
+        super(resolution, helpers, nativeData) {
+    // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
+    // both joins only when we see a construct generating an unknown [Type] but
+    // we can't currently recognize all cases.  In particular, the work-around
+    // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
+    // TODO(12607): Match on [ClassMirror.reflectedType]
+    join.allClassesSelected = true;
+  }
+
+  void registerTypeConstant(ClassElement element) {
     assert(element.isClass);
-    codegenJoin.selectedClasses.add(element);
+    join.selectedClasses.add(element);
   }
 
-  void registerStaticUse(Element element, {bool forResolution}) {
-    assert(element != null);
-    if (!fetchedTableAccessorMethod) {
-      fetchedTableAccessorMethod = true;
-      tableAccessorMethod = backend.helpers.findIndexForNativeSubclassType;
-    }
-    if (element == tableAccessorMethod) {
-      joinFor(forResolution: forResolution).demanded = true;
-    }
-  }
-
-  /// Computes the [WorldImpact] of the classes registered since last flush.
-  WorldImpact flush({bool forResolution}) {
-    return joinFor(forResolution: forResolution).flush();
-  }
-
-  bool get needsTable => codegenJoin.demanded;
+  bool get needsTable => join.demanded;
 
   bool needsClass(ClassElement classElement) =>
-      codegenJoin.activeClasses.contains(classElement);
+      join.activeClasses.contains(classElement);
 
   List<ConstructorElement> constructors(ClassElement classElement) =>
-      codegenJoin.computeEscapingConstructors(classElement);
+      join.computeEscapingConstructors(classElement);
 }
 
 class CustomElementsAnalysisJoin {
-  final JavaScriptBackend backend;
-  Compiler get compiler => backend.compiler;
+  final Resolution _resolution;
+  final ConstantSystem _constantSystem;
+  final CommonElements _commonElements;
+  final BackendClasses _backendClasses;
+  final NativeBasicData _nativeData;
+  final BackendUsageBuilder _backendUsageBuilder;
+
+  final bool forResolution;
 
   final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
 
@@ -152,15 +186,19 @@ class CustomElementsAnalysisJoin {
   // ClassesOutput: classes requiring metadata.
   final activeClasses = new Set<ClassElement>();
 
-  CustomElementsAnalysisJoin(this.backend);
+  CustomElementsAnalysisJoin(this._resolution, this._constantSystem,
+      this._commonElements, this._backendClasses, this._nativeData,
+      {BackendUsageBuilder backendUsageBuilder})
+      : this._backendUsageBuilder = backendUsageBuilder,
+        this.forResolution = backendUsageBuilder != null;
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
     var newActiveClasses = new Set<ClassElement>();
     for (ClassElement classElement in instantiatedClasses) {
-      bool isNative = backend.isNative(classElement);
+      bool isNative = _nativeData.isNativeClass(classElement);
       bool isExtension =
-          !isNative && backend.isNativeOrExtendsNative(classElement);
+          !isNative && _nativeData.isNativeOrExtendsNative(classElement);
       // Generate table entries for native classes that are explicitly named and
       // extensions that fix our criteria.
       if ((isNative && selectedClasses.contains(classElement)) ||
@@ -170,17 +208,18 @@ class CustomElementsAnalysisJoin {
         Iterable<ConstructorElement> escapingConstructors =
             computeEscapingConstructors(classElement);
         for (ConstructorElement constructor in escapingConstructors) {
-          impactBuilder
-              .registerStaticUse(new StaticUse.foreignUse(constructor));
+          impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
+              constructor, CallStructure.NO_ARGS));
         }
-        escapingConstructors
-            .forEach(compiler.globalDependencies.registerDependency);
+        if (forResolution) {
+          escapingConstructors
+              .forEach(_backendUsageBuilder.registerGlobalFunctionDependency);
+        }
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
-        ConstantValue constant = makeTypeConstant(classElement);
-        backend.computeImpactForCompileTimeConstant(
-            constant, impactBuilder, false);
-        backend.addCompileTimeConstantForEmission(constant);
+        ConstantValue constant = _makeTypeConstant(classElement);
+        impactBuilder
+            .registerConstantUse(new ConstantUse.customElements(constant));
       }
     }
     activeClasses.addAll(newActiveClasses);
@@ -188,9 +227,10 @@ class CustomElementsAnalysisJoin {
     return impactBuilder.flush();
   }
 
-  TypeConstantValue makeTypeConstant(ClassElement element) {
+  TypeConstantValue _makeTypeConstant(ClassElement element) {
     ResolutionDartType elementType = element.rawType;
-    return backend.constantSystem.createType(compiler, elementType);
+    return _constantSystem.createType(
+        _commonElements, _backendClasses, elementType);
   }
 
   List<ConstructorElement> computeEscapingConstructors(
@@ -199,13 +239,13 @@ class CustomElementsAnalysisJoin {
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
     // the tests and there is no sane reason to subclass other native classes.
-    if (backend.isNative(classElement)) return result;
+    if (_nativeData.isNativeClass(classElement)) return result;
 
     void selectGenerativeConstructors(ClassElement enclosing, Element member) {
       if (member.isGenerativeConstructor) {
         // Ignore constructors that cannot be called with zero arguments.
         ConstructorElement constructor = member;
-        constructor.computeType(compiler.resolution);
+        constructor.computeType(_resolution);
         FunctionSignature parameters = constructor.functionSignature;
         if (parameters.requiredParameterCount == 0) {
           result.add(member);

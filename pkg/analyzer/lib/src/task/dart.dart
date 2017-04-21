@@ -1037,6 +1037,11 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static const String PARSED_UNIT_INPUT_NAME = 'PARSED_UNIT_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the source line info.
+   */
+  static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -1068,6 +1073,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit librarySpecificUnit = target;
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
+    LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
     //
     // Try to get the existing CompilationUnitElement.
     //
@@ -1091,6 +1097,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
       CompilationUnitBuilder builder = new CompilationUnitBuilder();
       element = builder.buildCompilationUnit(
           source, unit, librarySpecificUnit.library);
+      (element as CompilationUnitElementImpl).lineInfo = lineInfo;
     } else {
       new DeclarationResolver().resolve(unit, element);
     }
@@ -1118,7 +1125,8 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit, flushOnAccess: true)
+      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit, flushOnAccess: true),
+      LINE_INFO_INPUT_NAME: LINE_INFO.of(unit.unit)
     };
   }
 
@@ -1618,18 +1626,11 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         }
       }
     }
-    if (hasPartDirective && libraryNameNode == null) {
-      AnalysisError error;
-      if (partsLibraryName != _UNKNOWN_LIBRARY_NAME &&
-          partsLibraryName != null) {
-        error = new AnalysisErrorWithProperties(librarySource, 0, 0,
-            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART)
-          ..setProperty(ErrorProperty.PARTS_LIBRARY_NAME, partsLibraryName);
-      } else {
-        error = new AnalysisError(librarySource, 0, 0,
-            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
-      }
-      errors.add(error);
+    if (hasPartDirective &&
+        libraryNameNode == null &&
+        !context.analysisOptions.enableUriInPartOf) {
+      errors.add(new AnalysisError(librarySource, 0, 0,
+          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
     //
     // Create and populate the library element.
@@ -3461,6 +3462,30 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+
+    //
+    // Prepare fields for which inference should be disabled.
+    //
+    Set<FieldElement> fieldsWithDisabledInference = new Set<FieldElement>();
+    for (CompilationUnitMember classDeclaration in unit.declarations) {
+      if (classDeclaration is ClassDeclaration) {
+        for (ClassMember fieldDeclaration in classDeclaration.members) {
+          if (fieldDeclaration is FieldDeclaration) {
+            if (!fieldDeclaration.isStatic) {
+              for (VariableDeclaration field
+                  in fieldDeclaration.fields.variables) {
+                Expression initializer = field.initializer;
+                if (initializer != null &&
+                    !isValidForTypeInference(initializer)) {
+                  fieldsWithDisabledInference.add(field.element);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     //
     // Infer instance members.
     //
@@ -3469,6 +3494,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
           typeProvider,
           new InheritanceManager(
               resolutionMap.elementDeclaredByCompilationUnit(unit).library),
+          fieldsWithDisabledInference,
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
@@ -3729,25 +3755,31 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       //
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
-      ResolutionContext resolutionContext =
-          ResolutionContextBuilder.contextFor(initializer);
-      ResolverVisitor visitor = new ResolverVisitor(
-          variable.library, variable.source, typeProvider, errorListener,
-          nameScope: resolutionContext.scope);
-      if (resolutionContext.enclosingClassDeclaration != null) {
-        visitor.prepareToResolveMembersInClass(
-            resolutionContext.enclosingClassDeclaration);
+
+      DartType newType;
+      if (!isValidForTypeInference(initializer)) {
+        newType = typeProvider.dynamicType;
+      } else {
+        ResolutionContext resolutionContext =
+            ResolutionContextBuilder.contextFor(initializer);
+        ResolverVisitor visitor = new ResolverVisitor(
+            variable.library, variable.source, typeProvider, errorListener,
+            nameScope: resolutionContext.scope);
+        if (resolutionContext.enclosingClassDeclaration != null) {
+          visitor.prepareToResolveMembersInClass(
+              resolutionContext.enclosingClassDeclaration);
+        }
+        visitor.initForIncrementalResolution();
+        initializer.accept(visitor);
+        newType = initializer.staticType;
+        if (newType == null || newType.isBottom || newType.isDartCoreNull) {
+          newType = typeProvider.dynamicType;
+        }
       }
-      visitor.initForIncrementalResolution();
-      initializer.accept(visitor);
 
       //
       // Record the type of the variable.
       //
-      DartType newType = initializer.staticType;
-      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
-        newType = typeProvider.dynamicType;
-      }
       setFieldType(variable, newType);
       errors = getUniqueErrors(errorListener.errors);
     } else {
@@ -4258,8 +4290,12 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     UriValidationCode code =
         UriBasedDirectiveImpl.validateUri(isImport, uriLiteral, uriContent);
     if (code == null) {
-      String encodedUriContent = Uri.encodeFull(uriContent);
-      return context.sourceFactory.resolveUri(_source, encodedUriContent);
+      try {
+        Uri.parse(uriContent);
+      } on FormatException {
+        return null;
+      }
+      return context.sourceFactory.resolveUri(_source, uriContent);
     } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
       return null;
     } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {

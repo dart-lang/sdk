@@ -59,11 +59,11 @@ _convertDataTree(data) {
 newObject() => JS('=Object', '{}');
 
 hasProperty(o, name) => JS('bool', '# in #', name, o);
-getProperty(o, name) => JS('Object', '#[#]', o, name);
+getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
-    JS('Object', '#[#].apply(#, #)', o, method, o, args);
+    JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
 instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
 callConstructor(Function constr, List arguments) {

@@ -4,10 +4,11 @@
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../types/types.dart';
 import '../tree/tree.dart';
-import 'backend.dart';
+import 'backend_helpers.dart';
 
 /**
  * Categorizes `noSuchMethod` implementations.
@@ -48,39 +49,35 @@ import 'backend.dart';
  */
 class NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
-  final Set<FunctionElement> defaultImpls = new Set<FunctionElement>();
+  final Set<MethodElement> defaultImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category B, described above.
-  final Set<FunctionElement> throwingImpls = new Set<FunctionElement>();
+  final Set<MethodElement> throwingImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category C, described above.
-  final Set<FunctionElement> notApplicableImpls = new Set<FunctionElement>();
+  final Set<MethodElement> notApplicableImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category D, described above.
-  final Set<FunctionElement> otherImpls = new Set<FunctionElement>();
+  final Set<MethodElement> otherImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category D1
-  final Set<FunctionElement> complexNoReturnImpls = new Set<FunctionElement>();
+  final Set<MethodElement> complexNoReturnImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category D2
-  final Set<FunctionElement> complexReturningImpls = new Set<FunctionElement>();
+  final Set<MethodElement> complexReturningImpls = new Set<MethodElement>();
 
   /// The implementations that have not yet been categorized.
-  final Set<FunctionElement> _uncategorizedImpls = new Set<FunctionElement>();
+  final Set<MethodElement> _uncategorizedImpls = new Set<MethodElement>();
 
-  final JavaScriptBackend _backend;
-  final Compiler _compiler;
+  final BackendHelpers _helpers;
+  final NoSuchMethodResolver _resolver;
 
-  NoSuchMethodRegistry(JavaScriptBackend backend)
-      : this._backend = backend,
-        this._compiler = backend.compiler;
-
-  DiagnosticReporter get reporter => _compiler.reporter;
+  NoSuchMethodRegistry(this._helpers, this._resolver);
 
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
-  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {
+  void registerNoSuchMethod(MethodElement noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
@@ -92,24 +89,30 @@ class NoSuchMethodRegistry {
   /// Now that type inference is complete, split category D into two
   /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
-  void onTypeInferenceComplete() {
-    otherImpls.forEach(_subcategorizeOther);
+  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
+    otherImpls.forEach((MethodElement element) {
+      if (results.resultOf(element).throwsAlways) {
+        complexNoReturnImpls.add(element);
+      } else {
+        complexReturningImpls.add(element);
+      }
+    });
   }
 
   /// Emits a diagnostic
-  void emitDiagnostic() {
+  void emitDiagnostic(DiagnosticReporter reporter) {
     throwingImpls.forEach((e) {
-      if (!_hasForwardingSyntax(e)) {
+      if (!_resolver.hasForwardingSyntax(e)) {
         reporter.reportHintMessage(e, MessageKind.DIRECTLY_THROWING_NSM);
       }
     });
     complexNoReturnImpls.forEach((e) {
-      if (!_hasForwardingSyntax(e)) {
+      if (!_resolver.hasForwardingSyntax(e)) {
         reporter.reportHintMessage(e, MessageKind.COMPLEX_THROWING_NSM);
       }
     });
     complexReturningImpls.forEach((e) {
-      if (!_hasForwardingSyntax(e)) {
+      if (!_resolver.hasForwardingSyntax(e)) {
         reporter.reportHintMessage(e, MessageKind.COMPLEX_RETURNING_NSM);
       }
     });
@@ -118,20 +121,12 @@ class NoSuchMethodRegistry {
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
-  bool isComplex(FunctionElement element) {
+  bool isComplex(MethodElement element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return otherImpls.contains(element);
   }
 
-  _subcategorizeOther(FunctionElement element) {
-    if (_compiler.globalInference.results.resultOf(element).throwsAlways) {
-      complexNoReturnImpls.add(element);
-    } else {
-      complexReturningImpls.add(element);
-    }
-  }
-
-  NsmCategory _categorizeImpl(FunctionElement element) {
+  NsmCategory _categorizeImpl(MethodElement element) {
     assert(element.name == Identifiers.noSuchMethod_);
     if (defaultImpls.contains(element)) {
       return NsmCategory.DEFAULT;
@@ -149,10 +144,10 @@ class NoSuchMethodRegistry {
       notApplicableImpls.add(element);
       return NsmCategory.NOT_APPLICABLE;
     }
-    if (isDefaultNoSuchMethodImplementation(element)) {
+    if (_helpers.isDefaultNoSuchMethodImplementation(element)) {
       defaultImpls.add(element);
       return NsmCategory.DEFAULT;
-    } else if (_hasForwardingSyntax(element)) {
+    } else if (_resolver.hasForwardingSyntax(element)) {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
       Element superCall =
@@ -176,7 +171,7 @@ class NoSuchMethodRegistry {
           break;
       }
       return category;
-    } else if (_hasThrowingSyntax(element)) {
+    } else if (_resolver.hasThrowingSyntax(element)) {
       throwingImpls.add(element);
       return NsmCategory.THROWING;
     } else {
@@ -184,15 +179,33 @@ class NoSuchMethodRegistry {
       return NsmCategory.OTHER;
     }
   }
+}
 
-  bool isDefaultNoSuchMethodImplementation(FunctionElement element) {
-    ClassElement classElement = element.enclosingClass;
-    return classElement == _compiler.commonElements.objectClass ||
-        classElement == _backend.helpers.jsInterceptorClass ||
-        classElement == _backend.helpers.jsNullClass;
-  }
+enum NsmCategory {
+  DEFAULT,
+  THROWING,
+  NOT_APPLICABLE,
+  OTHER,
+}
 
-  bool _hasForwardingSyntax(FunctionElement element) {
+/// Interface for determining the form of a `noSuchMethod` implementation.
+abstract class NoSuchMethodResolver {
+  /// Computes whether [method] is of the form
+  ///
+  ///     noSuchMethod(i) => super.noSuchMethod(i);
+  ///
+  bool hasForwardingSyntax(MethodElement method);
+
+  /// Computes whether [method] is of the form
+  ///
+  ///     noSuchMethod(i) => throw new Error();
+  ///
+  bool hasThrowingSyntax(MethodElement method);
+}
+
+/// AST-based implementation of [NoSuchMethodResolver].
+class NoSuchMethodResolverImpl implements NoSuchMethodResolver {
+  bool hasForwardingSyntax(MethodElement element) {
     // At this point we know that this is signature-compatible with
     // Object.noSuchMethod, but it may have more than one argument as long as
     // it only has one required argument.
@@ -219,7 +232,8 @@ class NoSuchMethodRegistry {
     }
     if (expr is Send && expr.isTypeCast) {
       Send sendExpr = expr;
-      var typeName = sendExpr.typeAnnotationFromIsCheckOrCast.typeName;
+      var typeAnnotation = sendExpr.typeAnnotationFromIsCheckOrCast;
+      var typeName = typeAnnotation.asNominalTypeAnnotation()?.typeName;
       if (typeName is Identifier && typeName.source == "dynamic") {
         expr = sendExpr.receiver;
       }
@@ -241,7 +255,7 @@ class NoSuchMethodRegistry {
     return false;
   }
 
-  bool _hasThrowingSyntax(FunctionElement element) {
+  bool hasThrowingSyntax(MethodElement element) {
     if (!element.hasResolvedAst) {
       // TODO(johnniwinther): Why do we see unresolved elements here?
       return false;
@@ -265,11 +279,4 @@ class NoSuchMethodRegistry {
     }
     return false;
   }
-}
-
-enum NsmCategory {
-  DEFAULT,
-  THROWING,
-  NOT_APPLICABLE,
-  OTHER,
 }

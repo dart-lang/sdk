@@ -91,7 +91,8 @@ abstract class AbstractDartSdk implements DartSdk {
       if (_useSummary) {
         PackageBundle sdkBundle = getLinkedBundle();
         if (sdkBundle != null) {
-          SummaryDataStore dataStore = new SummaryDataStore([]);
+          SummaryDataStore dataStore =
+              new SummaryDataStore([], resourceProvider: resourceProvider);
           dataStore.addBundle(null, sdkBundle);
           _analysisContext.resultProvider =
               new InputPackagesResultProvider(_analysisContext, dataStore);

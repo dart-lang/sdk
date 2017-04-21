@@ -137,6 +137,11 @@ dput(obj, field, value) {
 _checkApply(type, actuals) => JS(
     '',
     '''(() => {
+  // TODO(vsm): Remove when we no longer need mirrors metadata.
+  // An array is used to encode annotations attached to the type.
+  if ($type instanceof Array) {
+    $type = type[0];
+  }
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {
@@ -203,7 +208,7 @@ _toDisplayName(name) => JS(
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('', '#(new #.es6(#, #))', const_, _internal.Symbol,
+      ? JS('', '#(new #(#, #))', const_, _internal.PrivateSymbol,
           _toSymbolName(name), name)
       : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }
@@ -238,7 +243,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     // Grab the `call` method if it's not a function.
     if ($f != null) {
       $ftype = $getMethodType($getType($f), 'call');
-      $f = $f.call;
+      $f = f.call ? $bind($f, 'call') : void 0;
     }
     if (!($f instanceof Function)) {
       return callNSM();
@@ -465,6 +470,14 @@ final _ignoreTypeFailure = JS(
       // TODO(vsm): Remove this hack ...
       // This is primarily due to the lack of generic methods,
       // but we need to triage all the types.
+    if ($_isFutureOr(type)) {
+      // Ignore if we would ignore either side of union.
+      let typeArg = $getGenericArgs(type)[0];
+      let typeFuture = ${getGenericClass(Future)}(typeArg);
+      return $_ignoreTypeFailure(actual, typeFuture) ||
+        $_ignoreTypeFailure(actual, typeArg);
+    }
+
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
         !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
@@ -491,9 +504,9 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
   if (result || actual == $jsobject ||
-      actual == $int && type == $double) return true;
+      (actual == $int && $isSubtype($double, $type))) return true;
   if (result === false) return false;
-  if ($ignoreFromWhiteList == void 0) return result;
+  if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
   if ($_ignoreTypeFailure(actual, $type)) return true;
   return result;
 })()''');
@@ -617,11 +630,13 @@ addTypeTests(ctor) => JS(
   };
 })()''');
 
+// TODO(vsm): Consider optimizing this.  We may be able to statically
+// determine which == operation to invoke given the static types.
 equals(x, y) => JS(
     '',
     '''(() => {
   if ($x == null || $y == null) return $x == $y;
-  let eq = $x['=='];
+  let eq = $x[dartx['==']] || $x['=='];
   return eq ? eq.call($x, $y) : $x === $y;
 })()''');
 
@@ -877,6 +892,12 @@ String _toString(obj) {
     return JS('String', '#[dartx.toString]()', obj);
   }
   if (JS('bool', 'typeof # == "function"', obj)) {
+    // If the function is a Type object, we should just display the type name.
+    // Regular Dart code should typically get wrapped type objects instead of
+    // raw type (aka JS constructor) objects however raw type objects can be
+    // exposed to Dart code via JS interop or debugging tools.
+    if (isType(obj)) return typeName(obj);
+
     return JS(
         'String', r'"Closure: " + # + " from: " + #', getReifiedType(obj), obj);
   }

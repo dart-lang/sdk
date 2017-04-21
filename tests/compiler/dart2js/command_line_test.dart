@@ -15,6 +15,7 @@ import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
 main() {
+  entry.enableWriteString = false;
   asyncTest(() async {
     await test([], exitCode: 1);
     await test(['foo.dart']);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "vm/flags.h"
 #include "vm/os.h"
@@ -63,8 +63,8 @@ class ThreadInterrupterWin : public AllStatic {
     DWORD result = SuspendThread(handle);
     if (result == kThreadError) {
       if (FLAG_trace_thread_interrupter) {
-        OS::Print("ThreadInterrupter failed to suspend thread %p\n",
-                  reinterpret_cast<void*>(os_thread->id()));
+        OS::PrintErr("ThreadInterrupter failed to suspend thread %p\n",
+                     reinterpret_cast<void*>(os_thread->id()));
       }
       CloseHandle(handle);
       return;
@@ -74,8 +74,8 @@ class ThreadInterrupterWin : public AllStatic {
       // Failed to get thread registers.
       ResumeThread(handle);
       if (FLAG_trace_thread_interrupter) {
-        OS::Print("ThreadInterrupter failed to get registers for %p\n",
-                  reinterpret_cast<void*>(os_thread->id()));
+        OS::PrintErr("ThreadInterrupter failed to get registers for %p\n",
+                     reinterpret_cast<void*>(os_thread->id()));
       }
       CloseHandle(handle);
       return;
@@ -93,15 +93,20 @@ class ThreadInterrupterWin : public AllStatic {
 };
 
 
+bool ThreadInterrupter::IsDebuggerAttached() {
+  return false;
+}
+
+
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
-    OS::Print("ThreadInterrupter suspending %p\n",
-              reinterpret_cast<void*>(thread->id()));
+    OS::PrintErr("ThreadInterrupter suspending %p\n",
+                 reinterpret_cast<void*>(thread->id()));
   }
   ThreadInterrupterWin::Interrupt(thread);
   if (FLAG_trace_thread_interrupter) {
-    OS::Print("ThreadInterrupter resuming %p\n",
-              reinterpret_cast<void*>(thread->id()));
+    OS::PrintErr("ThreadInterrupter resuming %p\n",
+                 reinterpret_cast<void*>(thread->id()));
   }
 }
 
@@ -119,4 +124,4 @@ void ThreadInterrupter::RemoveSignalHandler() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

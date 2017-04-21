@@ -161,8 +161,8 @@ class InheritanceManager {
     ExecutableElement executable = _computeClassChainLookupMap(
         classElt, new HashSet<ClassElement>())[memberName];
     if (executable == null) {
-      return _computeInterfaceLookupMap(classElt, new HashSet<ClassElement>())[
-          memberName];
+      return _computeInterfaceLookupMap(
+          classElt, new HashSet<ClassElement>())[memberName];
     }
     return executable;
   }

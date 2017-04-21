@@ -33,31 +33,52 @@ abstract class CompilerInput {
   /// scanner is more efficient in this case. In either case, the data structure
   /// is expected to hold a zero element at the last position. If this is not
   /// the case, the entire data structure is copied before scanning.
-  Future/*<String | List<int>>*/ readFromUri(Uri uri);
+  Future /* <String | List<int>> */ readFromUri(Uri uri);
+}
+
+/// Output types used in `CompilerOutput.createOutputSink`.
+enum OutputType {
+  /// The main JavaScript output.
+  js,
+
+  /// A deferred JavaScript output part.
+  jsPart,
+
+  /// A source map for a JavaScript output.
+  sourceMap,
+
+  /// Serialization data output.
+  serializationData,
+
+  /// Additional information requested by the user, such dump info or a deferred
+  /// map.
+  info,
+
+  /// Implementation specific output used for debugging the compiler.
+  debug,
+}
+
+/// Sink interface used for generating output from the compiler.
+abstract class OutputSink {
+  /// Adds [text] to the sink.
+  void add(String text);
+
+  /// Closes the sink.
+  void close();
 }
 
 /// Interface for producing output from the compiler. That is, JavaScript target
 /// files, source map files, dump info files, etc.
 abstract class CompilerOutput {
-  /// Returns an [EventSink] that will serve as compiler output for the given
+  /// Returns an [OutputSink] that will serve as compiler output for the given
   /// component.
   ///
-  /// Components are identified by [name] and [extension]. By convention,
-  /// the empty string [:"":] will represent the main script
-  /// (corresponding to the script parameter of [compile]) even if the
-  /// main script is a library. For libraries that are compiled
-  /// separately, the library name is used.
-  ///
-  /// At least the following extensions can be expected:
-  ///
-  /// * "js" for JavaScript output.
-  /// * "js.map" for source maps.
-  /// * "dart" for Dart output.
-  /// * "dart.map" for source maps.
-  ///
-  /// As more features are added to the compiler, new names and
-  /// extensions may be introduced.
-  EventSink<String> createEventSink(String name, String extension);
+  /// Components are identified by [name], [extension], and [type]. By
+  /// convention, the empty string `""` will represent the main output of the
+  /// provided [type]. [name] and [extension] are otherwise suggestive.
+  // TODO(johnniwinther): Replace [name] and [extension] with something like
+  // [id] and [uri].
+  OutputSink createOutputSink(String name, String extension, OutputType type);
 }
 
 /// Interface for receiving diagnostic message from the compiler. That is,

@@ -102,15 +102,23 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end, const Code& code) {
+#ifndef PRODUCT
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
+#else
+    UNREACHABLE();
+#endif
   }
 
   static void Disassemble(uword start, uword end) {
+#ifndef PRODUCT
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter);
+#else
+    UNREACHABLE();
+#endif
   }
 
   // Decodes one instruction.

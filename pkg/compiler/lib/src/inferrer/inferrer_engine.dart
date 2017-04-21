@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/js_backend.dart';
 import '../native/behavior.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -26,6 +30,7 @@ import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'builder.dart';
+import 'builder_kernel.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -39,8 +44,6 @@ import 'type_system.dart';
 class InferrerEngine {
   final Map<Element, TypeInformation> defaultTypeOfParameter =
       new Map<Element, TypeInformation>();
-  final List<CallSiteTypeInformation> allocatedCalls =
-      <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
   final Element mainElement;
   final Set<Element> analyzedElements = new Set<Element>();
@@ -62,6 +65,12 @@ class InferrerEngine {
   final TypeSystem types;
   final Map<ast.Node, TypeInformation> concreteTypes =
       new Map<ast.Node, TypeInformation>();
+
+  /// Parallel structure for concreteTypes.
+  // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
+  // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
+  final Map<ir.Node, TypeInformation> concreteKernelTypes =
+      new Map<ir.Node, TypeInformation>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
   /// Data computed internally within elements, like the type-mask of a send a
@@ -198,8 +207,9 @@ class InferrerEngine {
     }
   }
 
-  bool isNativeElement(Element element) {
-    return compiler.backend.isNative(element);
+  bool isNativeMember(Element element) {
+    return element is MemberElement &&
+        compiler.backend.nativeData.isNativeMember(element);
   }
 
   bool checkIfExposesThis(Element element) {
@@ -372,7 +382,7 @@ class InferrerEngine {
             info.selector.isCall) {
           // This is a constructor call to a class with a call method. So we
           // need to trace the call method here.
-          assert(info.calledElement.isConstructor);
+          assert(info.calledElement.isGenerativeConstructor);
           ClassElement cls = info.calledElement.enclosingClass;
           FunctionElement callMethod = cls.lookupMember(Identifiers.call);
           assert(invariant(cls, callMethod != null));
@@ -464,8 +474,9 @@ class InferrerEngine {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    ElementGraphBuilder visitor =
-        new ElementGraphBuilder(element, resolvedAst, compiler, this);
+    var visitor = compiler.options.kernelGlobalInference
+        ? new KernelTypeGraphBuilder(element, resolvedAst, compiler, this)
+        : new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
       type = visitor.run();
@@ -542,7 +553,7 @@ class InferrerEngine {
   }
 
   void processLoopInformation() {
-    allocatedCalls.forEach((info) {
+    types.allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
         closedWorldRefiner.addFunctionCalledInLoop(info.calledElement);
@@ -591,7 +602,7 @@ class InferrerEngine {
     workQueue.addAll(types.typeInformations.values);
     workQueue.addAll(types.allocatedTypes);
     workQueue.addAll(types.allocatedClosures);
-    workQueue.addAll(allocatedCalls);
+    workQueue.addAll(types.allocatedCalls);
   }
 
   /**
@@ -833,14 +844,17 @@ class InferrerEngine {
         inLoop);
     // If this class has a 'call' method then we have essentially created a
     // closure here. Register it as such so that it is traced.
-    if (selector != null && selector.isCall && callee.isConstructor) {
+    // Note: we exclude factory constructors because they don't always create an
+    // instance of the type. They are static methods that delegate to some other
+    // generative constructor to do the actual creation of the object.
+    if (selector != null && selector.isCall && callee.isGenerativeConstructor) {
       ClassElement cls = callee.enclosingClass;
       if (cls.callType != null) {
         types.allocatedClosures.add(info);
       }
     }
     info.addToGraph(this);
-    allocatedCalls.add(info);
+    types.allocatedCalls.add(info);
     updateSideEffects(sideEffects, selector, callee);
     return info;
   }
@@ -883,7 +897,7 @@ class InferrerEngine {
         inLoop);
 
     info.addToGraph(this);
-    allocatedCalls.add(info);
+    types.allocatedCalls.add(info);
     return info;
   }
 
@@ -928,7 +942,7 @@ class InferrerEngine {
         arguments,
         inLoop);
     info.addToGraph(this);
-    allocatedCalls.add(info);
+    types.allocatedCalls.add(info);
     return info;
   }
 
@@ -976,8 +990,8 @@ class InferrerEngine {
   void clear() {
     void cleanup(TypeInformation info) => info.cleanup();
 
-    allocatedCalls.forEach(cleanup);
-    allocatedCalls.clear();
+    types.allocatedCalls.forEach(cleanup);
+    types.allocatedCalls.clear();
 
     defaultTypeOfParameter.clear();
 

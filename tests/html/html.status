@@ -78,6 +78,7 @@ native_gc_test: Pass, Slow
 worker_test/functional: Pass, Crash # Issue 9929.
 
 [ $compiler == dart2js && $runtime == chrome ]
+element_types_test/supported_keygen: RuntimeError # Issue 29055
 fileapi_test/entry: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
@@ -138,78 +139,6 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
 
-[$runtime == ie10 || $runtime == ie11]
-indexeddb_5_test: Fail # Issue 12893
-js_test/transferrables: RuntimeError # Issue 14246
-element_test/click: Fail # IE does not support firing this event.
-serialized_script_value_test: Fail
-websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
-canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
-no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
-scripts_htmltest: Skip # Times out on IE.  Issue 21537
-two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
-deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
-localstorage_test: Pass, RuntimeError # Issue 22166
-storage_test: Pass, RuntimeError # Issue 22166
-postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
-notification_test/supported_notification: Fail # Notification not supported on IE
-event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
-wheelevent_test: RuntimeError # Issue 23437
-text_event_test: RuntimeError # Issue 23437
-transition_event_test/functional: Skip # Times out. Issue 22167
-request_animation_frame_test: Skip # Times out. Issue 22167
-js_util_test/callConstructor: RuntimeError # Issue 26978
-element_animate_test: Fail # Element.animate not supported on these browsers.
-gamepad_test: Fail # IE does not support Navigator.getGamepads()
-
-[$runtime == ie10 ]
-# IE10 Feature support statuses-
-# All changes should be accompanied by platform support annotation changes.
-audiobuffersourcenode_test/supported: Fail
-audiocontext_test/supported: Fail
-crypto_test/supported: Fail
-css_test/supportsPointConversions: Fail
-element_types_test/supported_content: Fail
-element_types_test/supported_details: Fail
-element_types_test/supported_keygen: Fail
-element_types_test/supported_meter: Fail
-element_types_test/supported_output: Fail
-element_types_test/supported_shadow: Fail
-element_types_test/supported_template: Fail
-fileapi_test/supported: Fail
-history_test/supported_HashChangeEvent: Fail
-indexeddb_1_test/supportsDatabaseNames: Fail
-input_element_test/supported_date: Fail
-input_element_test/supported_datetime-local: Fail
-input_element_test/supported_month: Fail
-input_element_test/supported_time: Fail
-input_element_test/supported_week: Fail
-js_util_test/hasProperty: RuntimeError # Issue 26978
-js_util_test/getProperty: RuntimeError # Issue 26978
-media_stream_test/supported_MediaStreamEvent: Fail
-media_stream_test/supported_MediaStreamTrackEvent: Fail
-media_stream_test/supported_media: Fail
-mediasource_test/supported: Fail
-mutationobserver_test/supported: Fail
-rtc_test/supported: Fail
-shadow_dom_test/supported: Fail
-speechrecognition_test/supported: Fail
-svgelement_test/supported_altGlyph: Fail
-svgelement_test/supported_animate: Fail
-svgelement_test/supported_animateMotion: Fail
-svgelement_test/supported_animateTransform: Fail
-svgelement_test/supported_foreignObject: Fail
-svgelement_test/supported_set: Fail
-touchevent_test/supported: Fail # IE does not support TouchEvents
-webgl_1_test/supported: Fail
-websql_test/supported: Fail
-xhr_test/json: Fail # IE10 returns string, not JSON object
-xhr_test/supported_overrideMimeType: Fail
-xsltprocessor_test/supported: Fail
-worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
-transferables_test: Fail # Issue 9846
-
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
@@ -218,10 +147,33 @@ css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710
 
 [ $runtime == ie11 ]
-custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
-worker_test/functional: Pass, Fail # Issues 20659.
+canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
+deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
+element_animate_test: Fail # Element.animate not supported on these browsers.
+element_test/click: Fail # IE does not support firing this event.
+event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
+gamepad_test: Fail # IE does not support Navigator.getGamepads()
+indexeddb_5_test: Fail # Issue 12893
+js_test/transferrables: RuntimeError # Issue 14246
+js_util_test/callConstructor: RuntimeError # Issue 26978
+localstorage_test: Pass, RuntimeError # Issue 22166
+no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
+notification_test/supported_notification: Fail # Notification not supported on IE
+postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
+request_animation_frame_test: Skip # Times out. Issue 22167
+scripts_htmltest: Skip # Times out on IE.  Issue 21537
+serialized_script_value_test: Fail
+storage_test: Pass, RuntimeError # Issue 22166
+text_event_test: RuntimeError # Issue 23437
 transferables_test: Pass, Fail # Issues 20659.
+transition_event_test/functional: Skip # Times out. Issue 22167
+two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
+websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
+wheelevent_test: RuntimeError # Issue 23437
+worker_test/functional: Pass, Fail # Issues 20659.
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.
@@ -264,11 +216,6 @@ webgl_1_test/functional: Fail
 websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
 xsltprocessor_test/supported: Fail
-
-[ $runtime == ie10 ]
-custom/document_register_type_extensions_test/construction: Fail # Issue 13193
-custom/element_upgrade_test: Fail # Issue 18247
-worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
 audiocontext_test/functional: Pass, Fail
@@ -320,8 +267,6 @@ indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
-
-
 indexeddb_3_test: Skip # Times out 1 out of 10.
 
 [  $compiler == dart2js && $runtime == ff ]
@@ -331,6 +276,10 @@ dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTE
 webgl_1_test: Pass, Fail   # Issue 8219
 text_event_test: Fail # Issue 17893
 element_animate_test/timing_dict: RuntimeError # Issue 26730
+messageevent_test: Pass, RuntimeError # Issue 28983
+serialized_script_value_test: Pass, RuntimeError # Issue 28983
+element_types_test/supported_content: Pass, RuntimeError # Issue 28983
+element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -422,24 +371,11 @@ webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $compiler == dart2js && $fast_startup ]
 custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
 custom/js_custom_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $cps_ir && $browser ]
-js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).
-js_typed_interop_test/static_method_tearoff_1: RuntimeError # Tree-shaking a used tear-off (#24978, #25720).
-js_typed_interop_default_arg_test/explicit_argument: RuntimeError # Tree-shaking a used tear-off (#24978, #25720).
-
-# These are raw dart:js tests that fail due to bugs in the CPS IR:
-js_test/Dart_functions: RuntimeError # Tree-shaking an escaping closure #25720
-
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-js_typed_interop_default_arg_test/none: Crash # Issue 25911
-js_typed_interop_default_arg_test/default_value: Crash # Issue 25911
-js_typed_interop_default_arg_test/explicit_argument: Crash # Issue 25911
-
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented

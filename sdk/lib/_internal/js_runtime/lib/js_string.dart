@@ -13,9 +13,14 @@ part of _interceptors;
 class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
+  @NoInline()
   int codeUnitAt(int index) {
-    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index is! int) throw diagnoseIndexError(this, index);
     if (index < 0) throw diagnoseIndexError(this, index);
+    return _codeUnitAt(index);
+  }
+
+  int _codeUnitAt(int index) {
     if (index >= length) throw diagnoseIndexError(this, index);
     return JS('JSUInt31', r'#.charCodeAt(#)', this, index);
   }
@@ -44,7 +49,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String operator +(String other) {
-    if (other is !String) throw new ArgumentError.value(other);
+    if (other is! String) throw new ArgumentError.value(other);
     return JS('String', r'# + #', this, other);
   }
 
@@ -65,8 +70,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String splitMapJoin(Pattern from,
-                      {String onMatch(Match match),
-                       String onNonMatch(String nonMatch)}) {
+      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
@@ -78,7 +82,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String replaceFirstMapped(Pattern from, String replace(Match match),
-                            [int startIndex = 0]) {
+      [int startIndex = 0]) {
     checkNull(replace);
     checkInt(startIndex);
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
@@ -152,31 +156,28 @@ class JSString extends Interceptor implements String, JSIndexable {
     checkInt(startIndex);
     if (endIndex == null) endIndex = length;
     checkInt(endIndex);
-    if (startIndex < 0 ) throw new RangeError.value(startIndex);
+    if (startIndex < 0) throw new RangeError.value(startIndex);
     if (startIndex > endIndex) throw new RangeError.value(startIndex);
     if (endIndex > length) throw new RangeError.value(endIndex);
     return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
   }
 
   String toLowerCase() {
-    return JS(
-        'returns:String;effects:none;depends:none;throws:null(1)',
+    return JS('returns:String;effects:none;depends:none;throws:null(1)',
         r'#.toLowerCase()', this);
   }
 
   String toUpperCase() {
-    return JS(
-        'returns:String;effects:none;depends:none;throws:null(1)',
+    return JS('returns:String;effects:none;depends:none;throws:null(1)',
         r'#.toUpperCase()', this);
   }
 
-  // Characters with Whitespace property (Unicode 6.2).
+  // Characters with Whitespace property (Unicode 6.3).
   // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
   // 0020          ; White_Space # Zs       SPACE
   // 0085          ; White_Space # Cc       <control-0085>
   // 00A0          ; White_Space # Zs       NO-BREAK SPACE
   // 1680          ; White_Space # Zs       OGHAM SPACE MARK
-  // 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
   // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
   // 2028          ; White_Space # Zl       LINE SEPARATOR
   // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
@@ -205,7 +206,6 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
     switch (codeUnit) {
       case 0x1680:
-      case 0x180E:
       case 0x2000:
       case 0x2001:
       case 0x2002:
@@ -347,8 +347,8 @@ class JSString extends Interceptor implements String, JSIndexable {
     return JS('String', r'#.substring(#, #)', result, 0, endIndex);
   }
 
-  String operator*(int times) {
-    if (0 >= times) return '';  // Unnecessary but hoists argument type check.
+  String operator *(int times) {
+    if (0 >= times) return ''; // Unnecessary but hoists argument type check.
     if (times == 1 || this.length == 0) return this;
     if (times != JS('JSUInt32', '# >>> 0', times)) {
       // times >= 2^32. We can't create a string that big.
@@ -436,9 +436,8 @@ class JSString extends Interceptor implements String, JSIndexable {
   bool get isNotEmpty => !isEmpty;
 
   int compareTo(String other) {
-    if (other is !String) throw argumentErrorValue(other);
-    return this == other ? 0
-        : JS('bool', r'# < #', this, other) ? -1 : 1;
+    if (other is! String) throw argumentErrorValue(other);
+    return this == other ? 0 : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
   // Note: if you change this, also change the function [S].
@@ -459,7 +458,7 @@ class JSString extends Interceptor implements String, JSIndexable {
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = JS('int', '# ^ (# >> 6)', hash, hash);
     }
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
     hash = JS('int', '# ^ (# >> 11)', hash, hash);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
@@ -469,7 +468,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   int get length => JS('int', r'#.length', this);
 
   String operator [](int index) {
-    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index is! int) throw diagnoseIndexError(this, index);
     if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     return JS('String', '#[#]', this, index);
   }

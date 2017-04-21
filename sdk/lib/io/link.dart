@@ -101,7 +101,7 @@ abstract class Link implements FileSystemEntity {
    */
   Future<Link> rename(String newPath);
 
-   /**
+  /**
    * Synchronously renames this link. Returns a [Link]
    * instance for the renamed link.
    *
@@ -143,14 +143,13 @@ abstract class Link implements FileSystemEntity {
   String targetSync();
 }
 
-
 class _Link extends FileSystemEntity implements Link {
   final String path;
 
   _Link(this.path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
-                              'is not a String');
+          'is not a String');
     }
   }
 
@@ -162,25 +161,21 @@ class _Link extends FileSystemEntity implements Link {
 
   Link get absolute => new Link(_absolutePath);
 
-  Future<FileStat> stat() => FileStat.stat(path);
-
-  FileStat statSync() => FileStat.statSync(path);
-
   Future<Link> create(String target, {bool recursive: false}) {
     if (Platform.isWindows) {
       target = _makeWindowsLinkTarget(target);
     }
-    var result = recursive ? parent.create(recursive: true)
-                           : new Future.value(null);
+    var result =
+        recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-      .then((_) => _IOService._dispatch(_FILE_CREATE_LINK, [path, target]))
-      .then((response) {
-        if (_isErrorResponse(response)) {
-          throw _exceptionFromResponse(
-              response, "Cannot create link to target '$target'", path);
-        }
-        return this;
-      });
+        .then((_) => _IOService._dispatch(_FILE_CREATE_LINK, [path, target]))
+        .then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(
+            response, "Cannot create link to target '$target'", path);
+      }
+      return this;
+    });
   }
 
   void createSync(String target, {bool recursive: false}) {
@@ -205,7 +200,7 @@ class _Link extends FileSystemEntity implements Link {
     } else {
       throw new FileSystemException(
           'Target $result of Link.create on Windows cannot be converted' +
-          ' to start with a drive letter.  Unexpected error.');
+              ' to start with a drive letter.  Unexpected error.');
     }
   }
 
@@ -247,14 +242,14 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> rename(String newPath) {
-    return _IOService._dispatch(_FILE_RENAME_LINK, [path, newPath])
-        .then((response) {
-          if (_isErrorResponse(response)) {
-            throw _exceptionFromResponse(
-                response, "Cannot rename link to '$newPath'", path);
-          }
-          return new Link(newPath);
-        });
+    return _IOService
+        ._dispatch(_FILE_RENAME_LINK, [path, newPath]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(
+            response, "Cannot rename link to '$newPath'", path);
+      }
+      return new Link(newPath);
+    });
   }
 
   Link renameSync(String newPath) {
@@ -296,7 +291,7 @@ class _Link extends FileSystemEntity implements Link {
         return new ArgumentError();
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-                              response[_OSERROR_RESPONSE_ERROR_CODE]);
+            response[_OSERROR_RESPONSE_ERROR_CODE]);
         return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");

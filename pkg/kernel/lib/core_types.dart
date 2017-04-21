@@ -1,13 +1,13 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library kernel.class_table;
+library kernel.core_types;
 
 import 'ast.dart';
+import 'library_index.dart';
 
 /// Provides access to the classes and libraries in the core libraries.
-class CoreTypes {
-  final Map<String, _LibraryIndex> _dartLibraries = <String, _LibraryIndex>{};
+class CoreTypes extends LibraryIndex {
   Class objectClass;
   Class nullClass;
   Class boolClass;
@@ -27,72 +27,51 @@ class CoreTypes {
   Class functionClass;
   Class invocationClass;
 
-  Library getCoreLibrary(String uri) => _dartLibraries[uri]?.library;
+  static final Map<String, List<String>> requiredClasses = {
+    'dart:core': [
+      'Object',
+      'Null',
+      'bool',
+      'int',
+      'num',
+      'double',
+      'String',
+      'List',
+      'Map',
+      'Iterable',
+      'Iterator',
+      'Symbol',
+      'Type',
+      'Function',
+      'Invocation',
+    ],
+    'dart:_internal': [
+      'Symbol',
+    ],
+    'dart:async': [
+      'Future',
+      'Stream',
+    ]
+  };
 
-  Class getCoreClass(String libraryUri, String className) {
-    return _dartLibraries[libraryUri].require(className);
-  }
-
-  Procedure getCoreProcedure(String libraryUri, String topLevelMemberName) {
-    Library library = getCoreLibrary(libraryUri);
-    for (Procedure procedure in library.procedures) {
-      if (procedure.name.name == topLevelMemberName) return procedure;
-    }
-    throw 'Missing procedure ${topLevelMemberName} from $libraryUri';
-  }
-
-  CoreTypes(Program program) {
-    for (var library in program.libraries) {
-      if (library.importUri.scheme == 'dart') {
-        _dartLibraries['${library.importUri}'] = new _LibraryIndex(library);
-      }
-    }
-    _LibraryIndex dartCore = _dartLibraries['dart:core'];
-    _LibraryIndex dartAsync = _dartLibraries['dart:async'];
-    _LibraryIndex dartInternal = _dartLibraries['dart:_internal'];
-    objectClass = dartCore.require('Object');
-    nullClass = dartCore.require('Null');
-    boolClass = dartCore.require('bool');
-    intClass = dartCore.require('int');
-    numClass = dartCore.require('num');
-    doubleClass = dartCore.require('double');
-    stringClass = dartCore.require('String');
-    listClass = dartCore.require('List');
-    mapClass = dartCore.require('Map');
-    iterableClass = dartCore.require('Iterable');
-    iteratorClass = dartCore.require('Iterator');
-    symbolClass = dartCore.require('Symbol');
-    typeClass = dartCore.require('Type');
-    functionClass = dartCore.require('Function');
-    invocationClass = dartCore.require('Invocation');
-    futureClass = dartAsync.require('Future');
-    streamClass = dartAsync.require('Stream');
-    internalSymbolClass = dartInternal.require('Symbol');
-  }
-}
-
-/// Provides by-name lookup of classes in a library.
-class _LibraryIndex {
-  final Library library;
-  final Map<String, Class> classes = <String, Class>{};
-
-  _LibraryIndex(this.library) {
-    for (Class classNode in library.classes) {
-      if (classNode.name != null) {
-        classes[classNode.name] = classNode;
-      }
-    }
-  }
-
-  Class require(String name) {
-    Class result = classes[name];
-    if (result == null) {
-      if (library.isExternal) {
-        throw 'Missing class $name from external library ${library.name}';
-      } else {
-        throw 'Missing class $name from ${library.name}';
-      }
-    }
-    return result;
+  CoreTypes(Program program) : super.coreLibraries(program) {
+    objectClass = getClass('dart:core', 'Object');
+    nullClass = getClass('dart:core', 'Null');
+    boolClass = getClass('dart:core', 'bool');
+    intClass = getClass('dart:core', 'int');
+    numClass = getClass('dart:core', 'num');
+    doubleClass = getClass('dart:core', 'double');
+    stringClass = getClass('dart:core', 'String');
+    listClass = getClass('dart:core', 'List');
+    mapClass = getClass('dart:core', 'Map');
+    iterableClass = getClass('dart:core', 'Iterable');
+    iteratorClass = getClass('dart:core', 'Iterator');
+    symbolClass = getClass('dart:core', 'Symbol');
+    typeClass = getClass('dart:core', 'Type');
+    functionClass = getClass('dart:core', 'Function');
+    invocationClass = getClass('dart:core', 'Invocation');
+    futureClass = getClass('dart:async', 'Future');
+    streamClass = getClass('dart:async', 'Stream');
+    internalSymbolClass = getClass('dart:_internal', 'Symbol');
   }
 }

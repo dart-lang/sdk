@@ -7,7 +7,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/loader.dart';
 import 'package:kernel/kernel.dart';
 
 const String usage = '''
@@ -26,8 +25,8 @@ void main(List<String> args) {
 }
 
 void testRoundTrip(List<int> bytes) {
-  var loader = new BinaryLoader(new Repository());
-  var program = new BinaryBuilder(loader, bytes).readProgramFile();
+  var program = new Program();
+  new BinaryBuilder(bytes).readSingleFileProgram(program);
   new BinaryPrinterWithExpectedOutput(bytes).writeProgramFile(program);
 }
 

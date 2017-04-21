@@ -339,6 +339,14 @@ class Response {
       : _result = result;
 
   /**
+   * Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
+   */
+  Response.debugPortCouldNotBeOpened(Request request, dynamic error)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.DEBUG_PORT_COULD_NOT_BE_OPENED, '$error'));
+
+  /**
    * Initialize a newly created instance to represent the FILE_NOT_ANALYZED
    * error condition.
    */

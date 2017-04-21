@@ -9,13 +9,28 @@ library dart2js.kernel.closed_world_test;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend_helpers.dart';
+import 'package:compiler/src/js_backend/backend_impact.dart';
+import 'package:compiler/src/js_backend/backend_usage.dart';
+import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
+import 'package:compiler/src/js_backend/native_data.dart';
+import 'package:compiler/src/js_backend/interceptor_data.dart';
+import 'package:compiler/src/js_backend/lookup_map_analysis.dart';
+import 'package:compiler/src/js_backend/mirrors_analysis.dart';
+import 'package:compiler/src/js_backend/mirrors_data.dart';
+import 'package:compiler/src/js_backend/no_such_method_registry.dart';
+import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
+import 'package:compiler/src/native/enqueue.dart';
+import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/options.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -75,9 +90,7 @@ main(List<String> args) {
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
-    ResolutionWorldBuilderImpl worldBuilder =
-        compiler.enqueuer.resolution.worldBuilder;
-    worldBuilder.useInstantiationMap = true;
+    ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
@@ -88,36 +101,17 @@ main(List<String> args) {
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
-        compiler.resolution,
+        compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
-        compiler.globalDependencies,
-        backend,
-        compiler.cacheStrategy,
+        createResolutionEnqueuerListener(compiler),
+        new ElementResolutionWorldBuilder(
+            backend, compiler.resolution, const OpenWorldStrategy()),
+        new ResolutionWorkItemBuilder(compiler.resolution),
         'enqueuer from kernel');
-    // TODO(johnniwinther): Store backend info separately. This replacement is
-    // made to reset a field in [TypeVariableHandler] that prevents it from
-    // enqueuing twice.
-    backend.typeVariableHandler = new TypeVariableHandler(compiler);
-
-    if (compiler.deferredLoadTask.isProgramSplit) {
-      enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
-    }
-    enqueuer.applyImpact(backend.computeHelpersImpact());
-    enqueuer.applyImpact(enqueuer.nativeEnqueuer
-        .processNativeClasses(compiler.libraryLoader.libraries));
-    enqueuer.applyImpact(
-        backend.computeMainImpact(compiler.mainFunction, forResolution: true));
-    enqueuer.forEach((work) {
-      AstElement element = work.element;
-      ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
-      WorldImpact worldImpact = compiler.backend.impactTransformer
-          .transformResolutionImpact(enqueuer, resolutionImpact);
-      enqueuer.applyImpact(worldImpact, impactSource: element);
-    });
-    ClosedWorld closedWorld =
-        enqueuer.worldBuilder.closeWorld(compiler.reporter);
-
-    checkResolutionEnqueuers(compiler.enqueuer.resolution, enqueuer,
+    ClosedWorld closedWorld = computeClosedWorld(compiler, enqueuer);
+    BackendUsage backendUsage = compiler.backend.backendUsageBuilder.close();
+    checkResolutionEnqueuers(
+        backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: (Element element) {
@@ -140,4 +134,92 @@ main(List<String> args) {
         compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);
   });
+}
+
+EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
+  JavaScriptBackend backend = compiler.backend;
+  return new ResolutionEnqueuerListener(
+      compiler.options,
+      compiler.elementEnvironment,
+      compiler.commonElements,
+      backend.helpers,
+      backend.impacts,
+      backend.backendClasses,
+      backend.nativeBasicData,
+      backend.interceptorDataBuilder,
+      backend.backendUsageBuilder,
+      backend.rtiNeedBuilder,
+      backend.mirrorsDataBuilder,
+      backend.noSuchMethodRegistry,
+      backend.customElementsResolutionAnalysis,
+      backend.lookupMapResolutionAnalysis,
+      backend.mirrorsResolutionAnalysis,
+      new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
+          backend.impacts, backend.backendUsageBuilder),
+      backend.nativeResolutionEnqueuer,
+      backend.kernelTask);
+}
+
+EnqueuerListener createKernelResolutionEnqueuerListener(
+    CompilerOptions options, KernelWorldBuilder worldBuilder) {
+  ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
+  CommonElements commonElements = worldBuilder.commonElements;
+  BackendHelpers helpers =
+      new BackendHelpers(elementEnvironment, commonElements);
+  BackendImpacts impacts = new BackendImpacts(options, commonElements, helpers);
+
+  // TODO(johnniwinther): Create Kernel based implementations for these:
+  NativeBasicData nativeBasicData;
+  RuntimeTypesNeedBuilder rtiNeedBuilder;
+  MirrorsDataBuilder mirrorsDataBuilder;
+  NoSuchMethodRegistry noSuchMethodRegistry;
+  CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
+  LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
+  MirrorsResolutionAnalysis mirrorsResolutionAnalysis;
+  NativeResolutionEnqueuer nativeResolutionEnqueuer;
+
+  InterceptorDataBuilder interceptorDataBuilder =
+      new InterceptorDataBuilderImpl(
+          nativeBasicData, helpers, elementEnvironment, commonElements);
+  BackendUsageBuilder backendUsageBuilder =
+      new BackendUsageBuilderImpl(commonElements, helpers);
+
+  return new ResolutionEnqueuerListener(
+      options,
+      elementEnvironment,
+      commonElements,
+      helpers,
+      impacts,
+      new JavaScriptBackendClasses(
+          elementEnvironment, helpers, nativeBasicData),
+      nativeBasicData,
+      interceptorDataBuilder,
+      backendUsageBuilder,
+      rtiNeedBuilder,
+      mirrorsDataBuilder,
+      noSuchMethodRegistry,
+      customElementsResolutionAnalysis,
+      lookupMapResolutionAnalysis,
+      mirrorsResolutionAnalysis,
+      new TypeVariableResolutionAnalysis(
+          elementEnvironment, impacts, backendUsageBuilder),
+      nativeResolutionEnqueuer);
+}
+
+ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
+  JavaScriptBackend backend = compiler.backend;
+
+  if (compiler.deferredLoadTask.isProgramSplit) {
+    enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
+  }
+  enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
+      compiler.libraryLoader.libraries);
+  enqueuer.forEach((work) {
+    MemberElement element = work.element;
+    ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
+    WorldImpact worldImpact = compiler.backend.impactTransformer
+        .transformResolutionImpact(enqueuer, resolutionImpact);
+    enqueuer.applyImpact(worldImpact, impactSource: element);
+  });
+  return enqueuer.worldBuilder.closeWorld(compiler.reporter);
 }

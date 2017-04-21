@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 
 #include "bin/process.h"
 
@@ -997,6 +997,6 @@ void Process::ClearSignalHandler(intptr_t signal) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)
 
 #endif  // !defined(DART_IO_DISABLED)

@@ -11,7 +11,9 @@ class C {
   final int foo = 42;
 
   int val = 0;
-  void inc() { ++val; }
+  void inc() {
+    ++val;
+  }
 }
 
 class D extends C {
@@ -22,7 +24,7 @@ main() {
   C oc = new C();
   D od = new D();
 
-  (oc as dynamic).bar;  /// 01: runtime error
+  (oc as dynamic).bar; // //# 01: runtime error
 
   // Casts should always evaluate the left-hand side, if only for its effects.
   oc.inc() as dynamic;

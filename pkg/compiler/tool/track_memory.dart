@@ -66,8 +66,12 @@ _resumeMainIsolateIfPaused() async {
 Future _sendMessage(String method, [Map args = const {}]) {
   var id = _requestId++;
   _pendingResponses[id] = new Completer();
-  socket.add(JSON.encode(
-      {'jsonrpc': '2.0', 'id': '$id', 'method': '$method', 'params': args,}));
+  socket.add(JSON.encode({
+    'jsonrpc': '2.0',
+    'id': '$id',
+    'method': '$method',
+    'params': args,
+  }));
   return _pendingResponses[id].future;
 }
 

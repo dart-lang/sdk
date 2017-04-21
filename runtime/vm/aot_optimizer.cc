@@ -287,33 +287,6 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
-const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
-                                                intptr_t cid) {
-  ASSERT(ic_data.NumArgsTested() == 1);
-
-  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
-    return ic_data;  // Nothing to do
-  }
-
-  const Function& function =
-      Function::Handle(Z, ic_data.GetTargetForReceiverClassId(cid));
-  // TODO(fschneider): Try looking up the function on the class if it is
-  // not found in the ICData.
-  if (!function.IsNull()) {
-    const ICData& new_ic_data = ICData::ZoneHandle(
-        Z, ICData::New(Function::Handle(Z, ic_data.Owner()),
-                       String::Handle(Z, ic_data.target_name()),
-                       Object::empty_array(),  // Dummy argument descriptor.
-                       ic_data.deopt_id(), ic_data.NumArgsTested(), false));
-    new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
-    new_ic_data.AddReceiverCheck(cid, function);
-    return new_ic_data;
-  }
-
-  return ic_data;
-}
-
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -528,7 +501,7 @@ bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   if (!call->HasICData()) return false;
   const ICData& ic_data =
       ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (ic_data.NumberOfChecks() != 1) {
+  if (!ic_data.NumberOfChecksIs(1)) {
     return false;
   }
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
@@ -1079,7 +1052,7 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   }
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
       new (Z) Value(call->ArgumentAt(0)), &field,
-      AbstractType::ZoneHandle(Z, field.type()), call->token_pos());
+      AbstractType::ZoneHandle(Z, field.type()), call->token_pos(), NULL);
   load->set_is_immutable(field.is_final());
 
   // Discard the environment from the original instruction because the load
@@ -1330,7 +1303,8 @@ RawBool* AotOptimizer::InstanceOfAsBool(
   Class& cls = Class::Handle(Z);
 
   bool results_differ = false;
-  for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
+  const intptr_t number_of_checks = ic_data.NumberOfChecks();
+  for (int i = 0; i < number_of_checks; i++) {
     cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
     if (cls.NumTypeArguments() > 0) {
       return Bool::null();
@@ -1433,8 +1407,8 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
     const Class& cls = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
     const bool smi_is_subtype =
-        cls.IsSubtypeOf(TypeArguments::Handle(), type_class,
-                        TypeArguments::Handle(), NULL, NULL, Heap::kOld);
+        cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
+                        Object::null_type_arguments(), NULL, NULL, Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1469,10 +1443,6 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
   return true;  // May deoptimize since we have not identified all 'true' tests.
 }
 
-// Tells whether the function of the call matches the core private name.
-static bool matches_core(InstanceCallInstr* call, const String& name) {
-  return call->function_name().raw() == Library::PrivateCoreLibName(name).raw();
-}
 
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
@@ -1480,39 +1450,13 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
-  bool negate = false;
   if (call->ArgumentCount() == 2) {
     type_args = flow_graph()->constant_null();
-    if (matches_core(call, Symbols::_simpleInstanceOf())) {
-      type =
-          AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
-      negate = false;  // Just to be sure.
-    } else {
-      if (matches_core(call, Symbols::_instanceOfNum())) {
-        type = Type::Number();
-      } else if (matches_core(call, Symbols::_instanceOfInt())) {
-        type = Type::IntType();
-      } else if (matches_core(call, Symbols::_instanceOfSmi())) {
-        type = Type::SmiType();
-      } else if (matches_core(call, Symbols::_instanceOfDouble())) {
-        type = Type::Double();
-      } else if (matches_core(call, Symbols::_instanceOfString())) {
-        type = Type::StringType();
-      } else {
-        UNIMPLEMENTED();
-      }
-      negate =
-          Bool::Cast(
-              call->ArgumentAt(1)->OriginalDefinition()->AsConstant()->value())
-              .value();
-    }
+    ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
+    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
     type_args = call->ArgumentAt(1);
     type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
-    negate =
-        Bool::Cast(
-            call->ArgumentAt(3)->OriginalDefinition()->AsConstant()->value())
-            .value();
   }
 
   if (TypeCheckAsClassEquality(type)) {
@@ -1522,10 +1466,10 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
-        call->token_pos(), negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
-        new (Z) Value(left_cid), new (Z) Value(cid),
-        false);  // No number check.
+    StrictCompareInstr* check_cid =
+        new (Z) StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+                                   new (Z) Value(left_cid), new (Z) Value(cid),
+                                   false);  // No number check.
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1561,8 +1505,7 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
       const Library& dart_internal =
           Library::Handle(Z, Library::InternalLibrary());
-      const String& target_name = negate ? Symbols::_classRangeCheckNegative()
-                                         : Symbols::_classRangeCheck();
+      const String& target_name = Symbols::_classRangeCheck();
       const Function& target = Function::ZoneHandle(
           Z, dart_internal.LookupFunctionAllowPrivate(target_name));
       ASSERT(!target.IsNull());
@@ -1586,30 +1529,30 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) &&
-      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
+  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+  if (number_of_checks > 0 && number_of_checks <= FLAG_max_polymorphic_checks) {
     ZoneGrowableArray<intptr_t>* results =
-        new (Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+        new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
     InstanceOfAsBool(unary_checks, type, results);
-    if (results->length() == unary_checks.NumberOfChecks() * 2) {
+    if (results->length() == number_of_checks * 2) {
       const bool can_deopt = TryExpandTestCidsResult(results, type);
       if (can_deopt && !IsAllowedForInlining(call->deopt_id())) {
         // Guard against repeated speculative inlining.
         return;
       }
-      TestCidsInstr* test_cids = new (Z)
-          TestCidsInstr(call->token_pos(), negate ? Token::kISNOT : Token::kIS,
-                        new (Z) Value(left), *results,
-                        can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
+      TestCidsInstr* test_cids = new (Z) TestCidsInstr(
+          call->token_pos(), Token::kIS, new (Z) Value(left), *results,
+          can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
       // Remove type.
       ReplaceCall(call, test_cids);
       return;
     }
   }
 
-  InstanceOfInstr* instance_of = new (Z)
-      InstanceOfInstr(call->token_pos(), new (Z) Value(left),
-                      new (Z) Value(type_args), type, negate, call->deopt_id());
+  InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
+      NULL,  // TODO(regis): Pass function type args.
+      type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1624,10 +1567,10 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) &&
-      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
+  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+  if (number_of_checks > 0 && number_of_checks <= FLAG_max_polymorphic_checks) {
     ZoneGrowableArray<intptr_t>* results =
-        new (Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
+        new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
     const Bool& as_bool =
         Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.raw() == Bool::True().raw()) {
@@ -1650,8 +1593,9 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args), type,
-      Symbols::InTypeCast(), call->deopt_id());
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
+      NULL,  // TODO(regis): Pass function type arguments.
+      type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
 
@@ -1692,7 +1636,7 @@ bool AotOptimizer::TryInlineFieldAccess(InstanceCallInstr* call) {
 
   const ICData& unary_checks =
       ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) && (op_kind == Token::kSET) &&
+  if (!unary_checks.NumberOfChecksIs(0) && (op_kind == Token::kSET) &&
       TryInlineInstanceSetter(call, unary_checks)) {
     return true;
   }
@@ -1733,8 +1677,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  if (IsAllowedForInlining(instr->deopt_id()) &&
-      (unary_checks.NumberOfChecks() > 0)) {
+  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+  if (IsAllowedForInlining(instr->deopt_id()) && number_of_checks > 0) {
     if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
       return;
     }
@@ -1764,8 +1708,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  bool has_one_target =
-      (unary_checks.NumberOfChecks() > 0) && unary_checks.HasOneTarget();
+  bool has_one_target = number_of_checks > 0 && unary_checks.HasOneTarget();
   if (has_one_target) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
@@ -1860,11 +1803,24 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   Definition* callee_receiver = instr->ArgumentAt(0);
   const Function& function = flow_graph_->function();
+  Class& receiver_class = Class::Handle(Z);
+
   if (function.IsDynamicFunction() &&
       flow_graph_->IsReceiver(callee_receiver)) {
     // Call receiver is method receiver.
-    Class& receiver_class = Class::Handle(Z, function.Owner());
-
+    receiver_class = function.Owner();
+  } else {
+    // Check if we have an non-nullable compile type for the receiver.
+    CompileType* type = instr->ArgumentAt(0)->Type();
+    if (type->ToAbstractType()->IsType() &&
+        !type->ToAbstractType()->IsDynamicType() && !type->is_nullable()) {
+      receiver_class = type->ToAbstractType()->type_class();
+      if (receiver_class.is_implemented()) {
+        receiver_class = Class::null();
+      }
+    }
+  }
+  if (!receiver_class.IsNull()) {
     GrowableArray<intptr_t> class_ids(6);
     if (thread()->cha()->ConcreteSubclasses(receiver_class, &class_ids)) {
       // First check if all subclasses end up calling the same method.
@@ -1959,7 +1915,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         instr->ReplaceWith(call, current_iterator());
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
-                 (ic_data.NumberOfChecks() > 0)) {
+                 !ic_data.NumberOfChecksIs(0)) {
         PolymorphicInstanceCallInstr* call =
             new (Z) PolymorphicInstanceCallInstr(instr, ic_data,
                                                  /* with_checks = */ true,
@@ -2048,7 +2004,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       // We can handle only monomorphic min/max call sites with both arguments
       // being either doubles or smis.
       if (CanUnboxDouble() && call->HasICData() &&
-          (call->ic_data()->NumberOfChecks() == 1)) {
+          call->ic_data()->NumberOfChecksIs(1)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
         if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
@@ -2074,7 +2030,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
     }
     case MethodRecognizer::kDoubleFromInteger: {
-      if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+      if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1)) {
         const ICData& ic_data = *call->ic_data();
         if (CanUnboxDouble()) {
           if (ArgIsAlways(kSmiCid, ic_data, 1)) {
@@ -2117,7 +2073,7 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   ASSERT(instr->HasICData());
-  if (unary_ic_data.NumberOfChecks() == 0) {
+  if (unary_ic_data.NumberOfChecksIs(0)) {
     // No type feedback collected.
     return false;
   }

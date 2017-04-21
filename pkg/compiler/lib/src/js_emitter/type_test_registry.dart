@@ -15,7 +15,7 @@ import '../elements/resolution_types.dart'
 import '../elements/elements.dart'
     show ClassElement, Element, ElementKind, FunctionElement;
 import '../js_backend/js_backend.dart'
-    show JavaScriptBackend, RuntimeTypes, TypeChecks;
+    show JavaScriptBackend, RuntimeTypesSubstitutions, TypeChecks;
 import '../world.dart' show ClosedWorld;
 
 class TypeTestRegistry {
@@ -66,7 +66,7 @@ class TypeTestRegistry {
    * from type substitutions.
    */
   Set<ClassElement> computeClassesModifiedByEmitRuntimeTypeSupport() {
-    TypeChecks typeChecks = backend.rti.requiredChecks;
+    TypeChecks typeChecks = backend.rtiChecks.requiredChecks;
     Set<ClassElement> result = new Set<ClassElement>();
     for (ClassElement cls in typeChecks.classes) {
       if (typeChecks[cls].isNotEmpty) result.add(cls);
@@ -94,15 +94,17 @@ class TypeTestRegistry {
     //     argument checks.
     // TODO(karlklose): merge this case with 2 when unifying argument and
     // object checks.
-    RuntimeTypes rti = backend.rti;
-    rti.getRequiredArgumentClasses(backend).forEach(addClassWithSuperclasses);
+    RuntimeTypesSubstitutions rtiSubstitutions = backend.rtiSubstitutions;
+    backend.rtiChecks
+        .getRequiredArgumentClasses()
+        .forEach(addClassWithSuperclasses);
 
     // 2.  Add classes that are referenced by substitutions in object checks and
     //     their superclasses.
     TypeChecks requiredChecks =
-        rti.computeChecks(rtiNeededClasses, checkedClasses);
+        rtiSubstitutions.computeChecks(rtiNeededClasses, checkedClasses);
     Set<ClassElement> classesUsedInSubstitutions =
-        rti.getClassesUsedInSubstitutions(backend, requiredChecks);
+        rtiSubstitutions.getClassesUsedInSubstitutions(requiredChecks);
     addClassesWithSuperclasses(classesUsedInSubstitutions);
 
     // 3.  Add classes that contain checked generic function types. These are
@@ -136,7 +138,8 @@ class TypeTestRegistry {
     }
 
     bool canBeReified(Element element) {
-      return (canTearOff(element) || backend.isAccessibleByReflection(element));
+      return (canTearOff(element) ||
+          backend.mirrorsData.isAccessibleByReflection(element));
     }
 
     // Find all types referenced from the types of elements that can be
@@ -145,7 +148,7 @@ class TypeTestRegistry {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((FunctionElement function) {
       ResolutionDartType type = function.type;
-      for (ClassElement cls in backend.rti.getReferencedClasses(type)) {
+      for (ClassElement cls in backend.rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
           rtiNeededClasses.add(cls);
           cls = cls.superclass;
@@ -159,8 +162,9 @@ class TypeTestRegistry {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null && checkedFunctionTypes == null);
 
-    backend.rti.addImplicitChecks(
+    backend.rtiChecksBuilder.registerImplicitChecks(
         compiler.codegenWorldBuilder, classesUsingTypeVariableTests);
+    backend.finalizeRti();
 
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<ResolutionFunctionType>();

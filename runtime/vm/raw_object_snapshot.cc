@@ -872,7 +872,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                      kAsReference);
   field.StorePointer(&field.raw_ptr()->dependent_code_, Array::null());
 
-  if (!FLAG_use_field_guards) {
+  if (!reader->isolate()->use_field_guards()) {
     field.set_guarded_cid(kDynamicCid);
     field.set_is_nullable(true);
     field.set_guarded_list_length(Field::kNoFixedLength);

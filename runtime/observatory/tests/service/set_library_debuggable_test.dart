@@ -23,19 +23,21 @@ testMain() async {
 }
 
 var tests = [
+  hasStoppedAtBreakpoint,
+  markDartColonLibrariesDebuggable,
   (Isolate isolate) async {
     await isolate.reload();
     Library dartCore = isolate.libraries.firstWhere(
       (Library library) => library.uri == 'dart:core');
-    await dartCore.load();
+    await dartCore.reload();
     expect(dartCore.debuggable, equals(true));
   },
-  stoppedInFunction('testMain', contains:true),
+  stoppedInFunction('testMain', contains:true, includeOwner: true),
   stoppedAtLine(LINE_A),
   stepInto,
   stoppedInFunction('print'),
   stepOut,
-  stoppedInFunction('testMain', contains:true),
+  stoppedInFunction('testMain', contains:true, includeOwner: true),
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
     // Mark 'dart:core' as not debuggable.
@@ -55,10 +57,10 @@ var tests = [
     await dartCore.reload();
     expect(dartCore.debuggable, equals(false));
   },
-  stoppedInFunction('testMain', contains:true),
+  stoppedInFunction('testMain', contains:true, includeOwner: true),
   stoppedAtLine(LINE_B),
   stepInto,
-  stoppedInFunction('testMain', contains:true),
+  stoppedInFunction('testMain', contains:true, includeOwner: true),
   stoppedAtLine(LINE_C),
 ];
 

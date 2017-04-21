@@ -12,7 +12,7 @@ const int LINE_A = 19;
 const int LINE_B = 20;
 const int LINE_C = 21;
 
-foo() async { }
+foo() async {}
 
 doAsync(stop) async {
   if (stop) debugger();
@@ -27,11 +27,6 @@ testMain() {
   // us to stop in the run we started in.
   doAsync(false);
   doAsync(true);
-}
-
-asyncNext(Isolate isolate) async {
-  print('asyncNext');
-  return asyncStepOver(isolate);
 }
 
 var tests = [

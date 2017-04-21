@@ -98,10 +98,10 @@ class NamedParametersWithConversionsTest {
 
     Expect.equals(7, a.calls);
 
-    checkException(() => a.foo());                 // Too few arguments.
-    checkException(() => a.foo('abc', 1, 2, 3));   // Too many arguments.
-    checkException(() => a.foo2('c', c: 1));       // Bad name.
-    checkException(() => a.foo2('c', a:111, c: 1));  // Bad name.
+    checkException(() => a.foo()); //                  Too few arguments.
+    checkException(() => a.foo('abc', 1, 2, 3)); //    Too many arguments.
+    checkException(() => a.foo2('c', c: 1)); //        Bad name.
+    checkException(() => a.foo2('c', a:111, c: 1)); // Bad name.
 
     Expect.equals(7, a.calls);
   }
@@ -119,10 +119,10 @@ class NamedParametersWithConversionsTest {
 
     Expect.equals(7, a.calls);
 
-    checkException(() => f());                 // Too few arguments.
-    checkException(() => f('abc', 1, 2, 3));   // Too many arguments.
-    checkException(() => f2('c', c: 1));       // Bad name.
-    checkException(() => f2('c', a: 111, c: 1));  // Bad name.
+    checkException(() => f()); //                   Too few arguments.
+    checkException(() => f('abc', 1, 2, 3)); //     Too many arguments.
+    checkException(() => f2('c', c: 1)); //         Bad name.
+    checkException(() => f2('c', a: 111, c: 1)); // Bad name.
 
     Expect.equals(7, a.calls);
   }

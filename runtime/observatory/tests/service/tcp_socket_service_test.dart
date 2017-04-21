@@ -31,7 +31,7 @@ var tcpTests = [
   // Initial.
   (Isolate isolate) async {
     var result =
-            await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenSockets', {});
+        await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenSockets', {});
     expect(result['type'], equals('_opensockets'));
     // We expect 3 sockets to be open (in this order):
     //   The server socket accepting connections, on port X
@@ -49,7 +49,7 @@ var tcpTests = [
     expect(result['data'][2]['name'].startsWith('127.0.0.1:'), isTrue);
 
     var listening = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', { 'id' : result['data'][0]['id'] });
+        'ext.dart.io.getSocketByID', {'id': result['data'][0]['id']});
     expect(listening['id'], equals(result['data'][0]['id']));
     expect(listening['listening'], isTrue);
     expect(listening['socketType'], equals('TCP'));
@@ -65,11 +65,11 @@ var tcpTests = [
     expect(listening['remotePort'], equals('NA'));
 
     var client = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', { 'id' : result['data'][1]['id'] });
+        'ext.dart.io.getSocketByID', {'id': result['data'][1]['id']});
     expect(client['id'], equals(result['data'][1]['id']));
 
     var server = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', { 'id' : result['data'][2]['id'] });
+        'ext.dart.io.getSocketByID', {'id': result['data'][2]['id']});
     expect(server['id'], equals(result['data'][2]['id']));
 
     // We expect the client to be connected on the port and
@@ -116,10 +116,10 @@ var tcpTests = [
     }
 
     var secondClient = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', { 'id' : result['data'][3]['id'] });
+        'ext.dart.io.getSocketByID', {'id': result['data'][3]['id']});
     expect(secondClient['id'], equals(result['data'][3]['id']));
     var secondServer = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', { 'id' : result['data'][4]['id'] });
+        'ext.dart.io.getSocketByID', {'id': result['data'][4]['id']});
     expect(secondServer['id'], equals(result['data'][4]['id']));
 
     // We expect the client to be connected on the port and
@@ -167,4 +167,4 @@ var tcpTests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, tcpTests, testeeBefore:setupTCP);
+main(args) async => runIsolateTests(args, tcpTests, testeeBefore: setupTCP);

@@ -108,7 +108,7 @@ a:focus, a:hover {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.17.0</h1>
+    <h1 style="color:#999999">Version 1.18.0</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -143,9 +143,9 @@ a:focus, a:hover {
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
-      any instance of “<tt>{}</tt>” or “<tt>[]</tt>” with null. The
+      any instance of "<tt>{}</tt>" or "<tt>[]</tt>" with null. The
       server will always properly represent empty lists as
-      “<tt>[]</tt>” and empty maps as “<tt>{}</tt>”.
+      "<tt>[]</tt>" and empty maps as "<tt>{}</tt>".
     </p>
     <h3>Communication Structure</h3>
     <p>
@@ -281,9 +281,10 @@ a:focus, a:hover {
     <dl>
       <dt>--no-error-notification</dt>
       <dd>
-      Disable notifications about errors (see analysis.error). If this
-      flag is not specified then notifications will be sent for all
-      errors produced for all files in the actual analysis roots.
+        <p><b>Deprecated</b></p>
+        Disable notifications about errors (see analysis.error). If this
+        flag is not specified then notifications will be sent for all
+        errors produced for all files in the actual analysis roots.
       </dd>
     </dl>
     <dl>
@@ -1025,6 +1026,8 @@ a:focus, a:hover {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
+        <p><b><i>Deprecated</i></b>: all of the options can be set by users in
+          an analysis options file.</p>
         <p>
           Update the options controlling analysis based on the given
           set of options. Any options that are not included in the
@@ -1069,10 +1072,6 @@ a:focus, a:hover {
           Reports the errors associated with a given file. The set of
           errors included in the notification is always a complete
           list that supersedes any previously reported errors.
-        </p>
-        <p>
-          It is only possible to unsubscribe from this notification by
-          using the command-line flag --no-error-notification.
         </p>
         
       <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>
@@ -2062,7 +2061,7 @@ a:focus, a:hover {
               structure of the data is dependent on the kind of
               refactoring being performed. The data that is expected is
               documented in the section titled <a href="#refactorings">Refactorings</a>, labeled as
-              “Options”. This field can be omitted if the refactoring
+              "Options". This field can be omitted if the refactoring
               does not require any options or if the values of those
               options are not known.
             </p>
@@ -2096,7 +2095,7 @@ a:focus, a:hover {
               of the data is dependent on the kind of refactoring
               being created. The data that is returned is documented
               in the section titled <a href="#refactorings">Refactorings</a>, labeled as
-              “Feedback”.
+              "Feedback".
             </p>
           </dd><dt class="field"><b>change (<span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>)</b></dt><dd>
             
@@ -2350,6 +2349,10 @@ a:focus, a:hover {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
+          <b><i>Deprecated</i></b>: the analysis server no longer fires
+          <tt>LAUNCH_DATA</tt> events.
+        </p>
+        <p>
           Subscribe for services. All previous subscriptions are replaced by the
           given set of services.
         </p>
@@ -2405,6 +2408,7 @@ a:focus, a:hover {
         The diagnostic domain contains server diagnostics APIs.
       </p>
       
+      
     <h3>Requests</h3><dl><dt class="request"><a name="request_diagnostic.getDiagnostics">diagnostic.getDiagnostics</a> (<a href="#request_diagnostic.getDiagnostics">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "diagnostic.getDiagnostics"
@@ -2420,6 +2424,25 @@ a:focus, a:hover {
       <h4>returns:</h4><dl><dt class="field"><b>contexts (List&lt;<a href="#type_ContextData">ContextData</a>&gt;)</b></dt><dd>
             
             <p>The list of analysis contexts.</p>
+          </dd></dl></dd><dt class="request"><a name="request_diagnostic.getServerPort">diagnostic.getServerPort</a> (<a href="#request_diagnostic.getServerPort">#</a>)</dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "diagnostic.getServerPort"
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>port</b>": int
+  }
+}</pre></div>
+        <p>
+          Return the port of the diagnostic web server. If the server is not running
+          this call will start the server. If unable to start the diagnostic web server,
+          this call will return an error of <tt>DEBUG_PORT_COULD_NOT_BE_OPENED</tt>.
+        </p>
+        
+      <h4>returns:</h4><dl><dt class="field"><b>port (int)</b></dt><dd>
+            
+            <p>The diagnostic server port.</p>
           </dd></dl></dd></dl>
     
       <h2 class="domain"><a name="types">Types</a></h2>
@@ -2585,6 +2608,8 @@ a:focus, a:hover {
         </p>
         
       <dl><dt class="value">CHECKED_MODE_COMPILE_TIME_ERROR</dt><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">LINT</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
+        <p><b><i>Deprecated</i></b>: the only reference to this type has been
+          deprecated.</p>
         <p>
           A set of options controlling what kind of analysis is to be
           performed. If the value of a field is omitted the value of the
@@ -2772,6 +2797,23 @@ a:focus, a:hover {
               The class that declares the element being suggested. This
               field is omitted if the suggested element is not a member
               of a class.
+            </p>
+          </dd><dt class="field"><b>defaultArgumentListString (<span style="color:#999999">optional</span> String)</b></dt><dd>
+            
+            <p>
+              A default String for use in generating argument list
+              source contents on the client side.
+            </p>
+          </dd><dt class="field"><b>defaultArgumentListTextRanges (<span style="color:#999999">optional</span> List&lt;int&gt;)</b></dt><dd>
+            
+            <p>
+              Pairs of offsets and lengths describing 'defaultArgumentListString'
+              text ranges suitable for use by clients to set up linked edits of
+              default argument source contents. For example, given an argument
+              list string 'x, y', the corresponding text range [0, 1, 3, 1],
+              indicates two text ranges of length 1, starting at offsets 0 and 3.
+              Clients can use these ranges to treat the 'x' and 'y' values
+              specially for linked edits.
             </p>
           </dd><dt class="field"><b>element (<span style="color:#999999">optional</span> <a href="#type_Element">Element</a>)</b></dt><dd>
             
@@ -3290,8 +3332,8 @@ a:focus, a:hover {
             
             <p>
               A human-readable description of the kind of element being
-              referenced (such as “class” or “function type
-              alias”). This data is omitted if there is no referenced
+              referenced (such as "class" or "function type
+              alias"). This data is omitted if there is no referenced
               element.
             </p>
           </dd><dt class="field"><b>isDeprecated (<span style="color:#999999">optional</span> bool)</b></dt><dd>
@@ -3477,12 +3519,12 @@ a:focus, a:hover {
           </dd><dt class="field"><b>offset (int)</b></dt><dd>
             
             <p>
-              The offset of the region from which the user can navigate.
+              The offset of the region to which the user can navigate.
             </p>
           </dd><dt class="field"><b>length (int)</b></dt><dd>
             
             <p>
-              The length of the region from which the user can navigate.
+              The length of the region to which the user can navigate.
             </p>
           </dd><dt class="field"><b>startLine (int)</b></dt><dd>
             
@@ -3780,6 +3822,11 @@ a:focus, a:hover {
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </dd><dt class="value">DEBUG_PORT_COULD_NOT_BE_OPENED</dt><dd>
+            
+            <p>
+              The server was unable to open a port for the diagnostic server.
             </p>
           </dd><dt class="value">FILE_NOT_ANALYZED</dt><dd>
             
@@ -4480,8 +4527,8 @@ a:focus, a:hover {
             
             <p>
               The human-readable description of the kind of element being
-              renamed (such as “class” or “function type
-              alias”).
+              renamed (such as "class" or "function type
+              alias").
             </p>
           </dd><dt class="field"><b>oldName (String)</b></dt><dd>
             
@@ -4504,7 +4551,7 @@ a:focus, a:hover {
       TODO: TBD
     </p>
     <h2 class="domain"><a name="index">Index</a></h2>
-    <h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+    <h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
   
 
 </body></html>

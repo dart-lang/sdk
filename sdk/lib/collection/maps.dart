@@ -22,7 +22,6 @@ part of dart.collection;
  */
 abstract class MapBase<K, V> = Object with MapMixin<K, V>;
 
-
 /**
  * Mixin implementing a [Map].
  *
@@ -41,7 +40,7 @@ abstract class MapBase<K, V> = Object with MapMixin<K, V>;
  */
 abstract class MapMixin<K, V> implements Map<K, V> {
   Iterable<K> get keys;
-  V operator[](Object key);
+  V operator [](Object key);
   operator []=(K key, V value);
   V remove(Object key);
   // The `clear` operation should not be based on `remove`.
@@ -101,8 +100,8 @@ abstract class MapMixin<K, V> implements Map<K, V> {
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
  */
-abstract class UnmodifiableMapBase<K, V> =
-    MapBase<K, V> with _UnmodifiableMapMixin<K, V>;
+abstract class UnmodifiableMapBase<K, V> = MapBase<K, V>
+    with _UnmodifiableMapMixin<K, V>;
 
 /**
  * Implementation of [Map.values] based on the map and its [Map.keys] iterable.
@@ -156,18 +155,27 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
  * Mixin that overrides mutating map operations with implementations that throw.
  */
 abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
-  void operator[]=(K key, V value) {
+  /** This operation is not supported by an unmodifiable map. */
+  void operator []=(K key, V value) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+
+  /** This operation is not supported by an unmodifiable map. */
   void addAll(Map<K, V> other) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+
+  /** This operation is not supported by an unmodifiable map. */
   void clear() {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+
+  /** This operation is not supported by an unmodifiable map. */
   V remove(Object key) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+
+  /** This operation is not supported by an unmodifiable map. */
   V putIfAbsent(K key, V ifAbsent()) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
@@ -185,14 +193,26 @@ class MapView<K, V> implements Map<K, V> {
   final Map<K, V> _map;
   const MapView(Map<K, V> map) : _map = map;
 
-  V operator[](Object key) => _map[key];
-  void operator[]=(K key, V value) { _map[key] = value; }
-  void addAll(Map<K, V> other) { _map.addAll(other); }
-  void clear() { _map.clear(); }
+  V operator [](Object key) => _map[key];
+  void operator []=(K key, V value) {
+    _map[key] = value;
+  }
+
+  void addAll(Map<K, V> other) {
+    _map.addAll(other);
+  }
+
+  void clear() {
+    _map.clear();
+  }
+
   V putIfAbsent(K key, V ifAbsent()) => _map.putIfAbsent(key, ifAbsent);
   bool containsKey(Object key) => _map.containsKey(key);
   bool containsValue(Object value) => _map.containsValue(value);
-  void forEach(void action(K key, V value)) { _map.forEach(action); }
+  void forEach(void action(K key, V value)) {
+    _map.forEach(action);
+  }
+
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
   int get length => _map.length;
@@ -209,8 +229,8 @@ class MapView<K, V> implements Map<K, V> {
  * the constructor, except for operations that modify the map.
  * Modifying operations throw instead.
  */
-class UnmodifiableMapView<K, V> =
-    MapView<K, V> with _UnmodifiableMapMixin<K, V>;
+class UnmodifiableMapView<K, V> = MapView<K, V>
+    with _UnmodifiableMapMixin<K, V>;
 
 /**
  * Helper class which implements complex [Map] operations
@@ -286,7 +306,9 @@ class Maps {
    */
   static String mapToString(Map m) {
     // Reuse the list in IterableBase for detecting toString cycles.
-    if (_isToStringVisiting(m)) { return '{...}'; }
+    if (_isToStringVisiting(m)) {
+      return '{...}';
+    }
 
     var result = new StringBuffer();
     try {
@@ -294,7 +316,7 @@ class Maps {
       result.write('{');
       bool first = true;
       m.forEach((k, v) {
-        if(!first) {
+        if (!first) {
           result.write(', ');
         }
         first = false;
@@ -318,8 +340,8 @@ class Maps {
    *
    * This method is used by Map classes in the named constructor fromIterable.
    */
-  static void _fillMapWithMappedIterable(Map map, Iterable iterable,
-                                         key(element), value(element)) {
+  static void _fillMapWithMappedIterable(
+      Map map, Iterable iterable, key(element), value(element)) {
     if (key == null) key = _id;
     if (value == null) value = _id;
 
@@ -333,8 +355,7 @@ class Maps {
    *
    * This method is used by Map classes in the named constructor fromIterables.
    */
-  static void _fillMapWithIterables(Map map, Iterable keys,
-                                    Iterable values) {
+  static void _fillMapWithIterables(Map map, Iterable keys, Iterable values) {
     Iterator keyIterator = keys.iterator;
     Iterator valueIterator = values.iterator;
 

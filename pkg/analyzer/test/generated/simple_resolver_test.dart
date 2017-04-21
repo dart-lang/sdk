@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
@@ -127,7 +128,7 @@ class A {
   }
 
   test_argumentResolution_setter_propagated() async {
-    Source source = addSource(r'''
+    CompilationUnit unit = await resolveSource(r'''
 main() {
   var a = new A();
   a.sss = 0;
@@ -135,17 +136,12 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve2(source);
-    CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.sss = 0"
     AssignmentExpression assignment;
     {
-      FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
-      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
-      ExpressionStatement expressionStatement =
-          statement as ExpressionStatement;
-      assignment = expressionStatement.expression as AssignmentExpression;
+      var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+      var statement = statements[1] as ExpressionStatement;
+      assignment = statement.expression as AssignmentExpression;
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
@@ -154,13 +150,13 @@ class A {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classA = unit.types[0];
+    ClassElement classA = unit.element.types[0];
     PropertyAccessorElement setter = classA.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
-    Source source = addSource(r'''
+    CompilationUnit unit = await resolveSource(r'''
 main() {
   var a = new A();
   a.b.sss = 0;
@@ -171,17 +167,12 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve2(source);
-    CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.b.sss = 0"
     AssignmentExpression assignment;
     {
-      FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
-      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
-      ExpressionStatement expressionStatement =
-          statement as ExpressionStatement;
-      assignment = expressionStatement.expression as AssignmentExpression;
+      var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+      var statement = statements[1] as ExpressionStatement;
+      assignment = statement.expression as AssignmentExpression;
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
@@ -190,13 +181,13 @@ class B {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classB = unit.types[1];
+    ClassElement classB = unit.element.types[1];
     PropertyAccessorElement setter = classB.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
 
   test_argumentResolution_setter_static() async {
-    Source source = addSource(r'''
+    CompilationUnit unit = await resolveSource(r'''
 main() {
   A a = new A();
   a.sss = 0;
@@ -204,17 +195,12 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve2(source);
-    CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.sss = 0"
     AssignmentExpression assignment;
     {
-      FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
-      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
-      ExpressionStatement expressionStatement =
-          statement as ExpressionStatement;
-      assignment = expressionStatement.expression as AssignmentExpression;
+      var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+      var statement = statements[1] as ExpressionStatement;
+      assignment = statement.expression as AssignmentExpression;
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
@@ -222,13 +208,13 @@ class A {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classA = unit.types[0];
+    ClassElement classA = unit.element.types[0];
     PropertyAccessorElement setter = classA.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
 
   test_argumentResolution_setter_static_propertyAccess() async {
-    Source source = addSource(r'''
+    CompilationUnit unit = await resolveSource(r'''
 main() {
   A a = new A();
   a.b.sss = 0;
@@ -239,17 +225,12 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve2(source);
-    CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.b.sss = 0"
     AssignmentExpression assignment;
     {
-      FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
-      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
-      ExpressionStatement expressionStatement =
-          statement as ExpressionStatement;
-      assignment = expressionStatement.expression as AssignmentExpression;
+      var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+      var statement = statements[1] as ExpressionStatement;
+      assignment = statement.expression as AssignmentExpression;
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
@@ -257,7 +238,7 @@ class B {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classB = unit.types[1];
+    ClassElement classB = unit.element.types[1];
     PropertyAccessorElement setter = classB.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
@@ -741,17 +722,15 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that both the getter and setter for "x" in C.f() refer to the
     // accessors defined in M2.
-    ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration f = classC.getMethod('f').computeNode();
-    BlockFunctionBody body = f.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    AssignmentExpression assignment = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInMethod(analysisResult.unit, 'C', 'f');
+    var statement = statements[0] as ExpressionStatement;
+    AssignmentExpression assignment = statement.expression;
     SimpleIdentifier leftHandSide = assignment.leftHandSide;
     expect(
         resolutionMap
@@ -768,7 +747,7 @@ class C extends B with M1, M2 {
     // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
     // a SimpleIdentifier that's inside a property access.  This bug should be
     // fixed.
-    Source source = addSource('''
+    Source source = addSource(r'''
 class B {}
 class M1 {
   get x => null;
@@ -783,17 +762,15 @@ void main() {
   new C().x += 1;
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that both the getter and setter for "x" in "new C().x" refer to
     // the accessors defined in M2.
-    FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    AssignmentExpression assignment = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(analysisResult.unit, 'main');
+    var statement = statements[0] as ExpressionStatement;
+    AssignmentExpression assignment = statement.expression;
     PropertyAccess propertyAccess = assignment.leftHandSide;
     expect(
         resolutionMap
@@ -822,17 +799,15 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
-    ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration f = classC.getMethod('f').computeNode();
-    BlockFunctionBody body = f.body;
-    ReturnStatement stmt = body.block.statements[0];
-    SimpleIdentifier x = stmt.expression;
+    var statements =
+        AstFinder.getStatementsInMethod(analysisResult.unit, 'C', 'f');
+    var statement = statements[0] as ReturnStatement;
+    SimpleIdentifier x = statement.expression;
     expect(resolutionMap.staticElementForIdentifier(x).enclosingElement.name,
         'M2');
   }
@@ -851,17 +826,16 @@ void main() {
   var y = new C().x;
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    VariableDeclarationStatement stmt = body.block.statements[0];
-    PropertyAccess propertyAccess = stmt.variables.variables[0].initializer;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(analysisResult.unit, 'main');
+    var statement = statements[0] as VariableDeclarationStatement;
+    PropertyAccess propertyAccess =
+        statement.variables.variables[0].initializer;
     expect(
         resolutionMap
             .staticElementForIdentifier(propertyAccess.propertyName)
@@ -1571,16 +1545,14 @@ void main() {
   new C().f();
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
-    FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    MethodInvocation expr = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(analysisResult.unit, 'main');
+    var statement = statements[0] as ExpressionStatement;
+    MethodInvocation expr = statement.expression;
     expect(
         resolutionMap
             .staticElementForIdentifier(expr.methodName)
@@ -1604,16 +1576,14 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the call to f() in C.g() refers to the method defined in M2.
-    ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration g = classC.getMethod('g').computeNode();
-    BlockFunctionBody body = g.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    MethodInvocation invocation = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInMethod(analysisResult.unit, 'C', 'g');
+    var statement = statements[0] as ExpressionStatement;
+    MethodInvocation invocation = statement.expression;
     SimpleIdentifier methodName = invocation.methodName;
     expect(
         resolutionMap
@@ -1623,7 +1593,7 @@ class C extends B with M1, M2 {
         'M2');
   }
 
-  test_method_fromMixins_invked_from_outside_class() async {
+  test_method_fromMixins_invoked_from_outside_class() async {
     Source source = addSource('''
 class B {}
 class M1 {
@@ -1637,17 +1607,15 @@ void main() {
   new C().f();
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the call to f() in "new C().f()" refers to the method
     // defined in M2.
-    FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    MethodInvocation invocation = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(analysisResult.unit, 'main');
+    var statement = statements[0] as ExpressionStatement;
+    MethodInvocation invocation = statement.expression;
     expect(
         resolutionMap
             .staticElementForIdentifier(invocation.methodName)
@@ -1732,17 +1700,15 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the setter for "x" in C.f() refers to the setter defined in
     // M2.
-    ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration f = classC.getMethod('f').computeNode();
-    BlockFunctionBody body = f.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    AssignmentExpression assignment = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInMethod(analysisResult.unit, 'C', 'f');
+    var statement = statements[0] as ExpressionStatement;
+    AssignmentExpression assignment = statement.expression;
     SimpleIdentifier leftHandSide = assignment.leftHandSide;
     expect(
         resolutionMap
@@ -1766,17 +1732,15 @@ void main() {
   new C().x = 1;
 }
 ''');
-    LibraryElement library = resolve2(source);
-    await computeAnalysisResult(source);
+    var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the setter for "x" in "new C().x" refers to the setter
     // defined in M2.
-    FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].computeNode();
-    BlockFunctionBody body = main.functionExpression.body;
-    ExpressionStatement stmt = body.block.statements[0];
-    AssignmentExpression assignment = stmt.expression;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(analysisResult.unit, 'main');
+    var statement = statements[0] as ExpressionStatement;
+    AssignmentExpression assignment = statement.expression;
     PropertyAccess propertyAccess = assignment.leftHandSide;
     expect(
         resolutionMap

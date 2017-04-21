@@ -53,7 +53,6 @@ abstract class HttpStatus {
   static const int NETWORK_CONNECT_TIMEOUT_ERROR = 599;
 }
 
-
 /**
  * A server that delivers content, such as web pages, using the HTTP protocol.
  *
@@ -181,7 +180,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    */
   HttpHeaders get defaultResponseHeaders;
 
-   /**
+  /**
    * Whether the [HttpServer] should compress the content, if possible.
    *
    * The content can only be compressed when the response is using
@@ -206,7 +205,6 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * To disable, set [idleTimeout] to `null`.
    */
   Duration idleTimeout;
-
 
   /**
    * Starts listening for HTTP requests on the specified [address] and
@@ -244,12 +242,9 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * distributed among all the bound `HttpServer`s. Connections can be
    * distributed over multiple isolates this way.
    */
-  static Future<HttpServer> bind(address,
-                                 int port,
-                                 {int backlog: 0,
-                                  bool v6Only: false,
-                                  bool shared: false})
-      => _HttpServer.bind(address, port, backlog, v6Only, shared);
+  static Future<HttpServer> bind(address, int port,
+          {int backlog: 0, bool v6Only: false, bool shared: false}) =>
+      _HttpServer.bind(address, port, backlog, v6Only, shared);
 
   /**
    * The [address] can either be a [String] or an
@@ -291,28 +286,22 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * distributed over multiple isolates this way.
    */
 
-  static Future<HttpServer> bindSecure(address,
-                                       int port,
-                                       SecurityContext context,
-                                       {int backlog: 0,
-                                        bool v6Only: false,
-                                        bool requestClientCertificate: false,
-                                        bool shared: false})
-      => _HttpServer.bindSecure(address,
-                                port,
-                                context,
-                                backlog,
-                                v6Only,
-                                requestClientCertificate,
-                                shared);
+  static Future<HttpServer> bindSecure(
+          address, int port, SecurityContext context,
+          {int backlog: 0,
+          bool v6Only: false,
+          bool requestClientCertificate: false,
+          bool shared: false}) =>
+      _HttpServer.bindSecure(address, port, context, backlog, v6Only,
+          requestClientCertificate, shared);
 
   /**
    * Attaches the HTTP server to an existing [ServerSocket]. When the
    * [HttpServer] is closed, the [HttpServer] will just detach itself,
    * closing current connections but not closing [serverSocket].
    */
-  factory HttpServer.listenOn(ServerSocket serverSocket)
-      => new _HttpServer.listenOn(serverSocket);
+  factory HttpServer.listenOn(ServerSocket serverSocket) =>
+      new _HttpServer.listenOn(serverSocket);
 
   /**
    * Permanently stops this [HttpServer] from listening for new
@@ -352,7 +341,6 @@ abstract class HttpServer implements Stream<HttpRequest> {
   HttpConnectionsInfo connectionsInfo();
 }
 
-
 /**
  * Summary statistics about an [HttpServer]s current socket connections.
  */
@@ -380,7 +368,6 @@ class HttpConnectionsInfo {
    */
   int closing = 0;
 }
-
 
 /**
  * Headers for HTTP requests and responses.
@@ -464,57 +451,64 @@ abstract class HttpHeaders {
   static const COOKIE = "cookie";
   static const SET_COOKIE = "set-cookie";
 
-  static const GENERAL_HEADERS = const [CACHE_CONTROL,
-                                        CONNECTION,
-                                        DATE,
-                                        PRAGMA,
-                                        TRAILER,
-                                        TRANSFER_ENCODING,
-                                        UPGRADE,
-                                        VIA,
-                                        WARNING];
+  static const GENERAL_HEADERS = const [
+    CACHE_CONTROL,
+    CONNECTION,
+    DATE,
+    PRAGMA,
+    TRAILER,
+    TRANSFER_ENCODING,
+    UPGRADE,
+    VIA,
+    WARNING
+  ];
 
-  static const ENTITY_HEADERS = const [ALLOW,
-                                       CONTENT_ENCODING,
-                                       CONTENT_LANGUAGE,
-                                       CONTENT_LENGTH,
-                                       CONTENT_LOCATION,
-                                       CONTENT_MD5,
-                                       CONTENT_RANGE,
-                                       CONTENT_TYPE,
-                                       EXPIRES,
-                                       LAST_MODIFIED];
+  static const ENTITY_HEADERS = const [
+    ALLOW,
+    CONTENT_ENCODING,
+    CONTENT_LANGUAGE,
+    CONTENT_LENGTH,
+    CONTENT_LOCATION,
+    CONTENT_MD5,
+    CONTENT_RANGE,
+    CONTENT_TYPE,
+    EXPIRES,
+    LAST_MODIFIED
+  ];
 
+  static const RESPONSE_HEADERS = const [
+    ACCEPT_RANGES,
+    AGE,
+    ETAG,
+    LOCATION,
+    PROXY_AUTHENTICATE,
+    RETRY_AFTER,
+    SERVER,
+    VARY,
+    WWW_AUTHENTICATE
+  ];
 
-  static const RESPONSE_HEADERS = const [ACCEPT_RANGES,
-                                         AGE,
-                                         ETAG,
-                                         LOCATION,
-                                         PROXY_AUTHENTICATE,
-                                         RETRY_AFTER,
-                                         SERVER,
-                                         VARY,
-                                         WWW_AUTHENTICATE];
-
-  static const REQUEST_HEADERS = const [ACCEPT,
-                                        ACCEPT_CHARSET,
-                                        ACCEPT_ENCODING,
-                                        ACCEPT_LANGUAGE,
-                                        AUTHORIZATION,
-                                        EXPECT,
-                                        FROM,
-                                        HOST,
-                                        IF_MATCH,
-                                        IF_MODIFIED_SINCE,
-                                        IF_NONE_MATCH,
-                                        IF_RANGE,
-                                        IF_UNMODIFIED_SINCE,
-                                        MAX_FORWARDS,
-                                        PROXY_AUTHORIZATION,
-                                        RANGE,
-                                        REFERER,
-                                        TE,
-                                        USER_AGENT];
+  static const REQUEST_HEADERS = const [
+    ACCEPT,
+    ACCEPT_CHARSET,
+    ACCEPT_ENCODING,
+    ACCEPT_LANGUAGE,
+    AUTHORIZATION,
+    EXPECT,
+    FROM,
+    HOST,
+    IF_MATCH,
+    IF_MODIFIED_SINCE,
+    IF_NONE_MATCH,
+    IF_RANGE,
+    IF_UNMODIFIED_SINCE,
+    MAX_FORWARDS,
+    PROXY_AUTHORIZATION,
+    RANGE,
+    REFERER,
+    TE,
+    USER_AGENT
+  ];
 
   /**
    * Gets and sets the date. The value of this property will
@@ -573,7 +567,7 @@ abstract class HttpHeaders {
    * Returns the list of values for the header named [name]. If there
    * is no header with the provided name, [:null:] will be returned.
    */
-  List<String> operator[](String name);
+  List<String> operator [](String name);
 
   /**
    * Convenience method for the value for a single valued header. If
@@ -638,7 +632,6 @@ abstract class HttpHeaders {
   void clear();
 }
 
-
 /**
  * Representation of a header value in the form:
  *
@@ -682,13 +675,13 @@ abstract class HeaderValue {
    * string with both value and optional parameters.
    */
   static HeaderValue parse(String value,
-                           {String parameterSeparator: ";",
-                            String valueSeparator: null,
-                            bool preserveBackslash: false}) {
+      {String parameterSeparator: ";",
+      String valueSeparator: null,
+      bool preserveBackslash: false}) {
     return _HeaderValue.parse(value,
-                              parameterSeparator: parameterSeparator,
-                              valueSeparator: valueSeparator,
-                              preserveBackslash: preserveBackslash);
+        parameterSeparator: parameterSeparator,
+        valueSeparator: valueSeparator,
+        preserveBackslash: preserveBackslash);
   }
 
   /**
@@ -735,7 +728,6 @@ abstract class HttpSession implements Map {
   bool get isNew;
 }
 
-
 /**
  * Representation of a content type. An instance of [ContentType] is
  * immutable.
@@ -778,9 +770,8 @@ abstract class ContentType implements HeaderValue {
    * converted to lower case. The `charset` entry, whether passed as `charset`
    * or in `parameters`, will have its value converted to lower-case.
    */
-  factory ContentType(String primaryType,
-                      String subType,
-                      {String charset, Map<String, String> parameters}) {
+  factory ContentType(String primaryType, String subType,
+      {String charset, Map<String, String> parameters}) {
     return new _ContentType(primaryType, subType, charset, parameters);
   }
 
@@ -819,7 +810,6 @@ abstract class ContentType implements HeaderValue {
    */
   String get charset;
 }
-
 
 /**
  * Representation of a cookie. For cookies received by the server as
@@ -892,7 +882,6 @@ abstract class Cookie {
    */
   String toString();
 }
-
 
 /**
  * A server-side object
@@ -1039,7 +1028,6 @@ abstract class HttpRequest implements Stream<List<int>> {
    */
   HttpResponse get response;
 }
-
 
 /**
  * An HTTP response, which returns the headers and data
@@ -1198,7 +1186,6 @@ abstract class HttpResponse implements IOSink {
    */
   HttpConnectionInfo get connectionInfo;
 }
-
 
 /**
  * A client that receives content, such as web pages, from
@@ -1368,10 +1355,8 @@ abstract class HttpClient {
    * HTTP transaction, and the objects returned by the futures, see
    * the overall documentation for the class [HttpClient].
    */
-  Future<HttpClientRequest> open(String method,
-                                 String host,
-                                 int port,
-                                 String path);
+  Future<HttpClientRequest> open(
+      String method, String host, int port, String path);
 
   /**
    * Opens a HTTP connection.
@@ -1609,7 +1594,7 @@ abstract class HttpClient {
    * to set credentials for proxies which require authentication.
    */
   static String findProxyFromEnvironment(Uri url,
-                                         {Map<String, String> environment}) {
+      {Map<String, String> environment}) {
     return _HttpClient._findProxyFromEnvironment(url, environment);
   }
 
@@ -1636,10 +1621,8 @@ abstract class HttpClient {
   /**
    * Add credentials to be used for authorizing HTTP proxies.
    */
-  void addProxyCredentials(String host,
-                           int port,
-                           String realm,
-                           HttpClientCredentials credentials);
+  void addProxyCredentials(
+      String host, int port, String realm, HttpClientCredentials credentials);
 
   /**
    * Sets a callback that will decide whether to accept a secure connection
@@ -1663,9 +1646,8 @@ abstract class HttpClient {
    * the request is made, even if the value of badCertificateCallback
    * has changed since then.
    */
-  set badCertificateCallback(bool callback(X509Certificate cert,
-                                           String host,
-                                           int port));
+  set badCertificateCallback(
+      bool callback(X509Certificate cert, String host, int port));
 
   /**
    * Shut down the HTTP client. If [force] is [:false:] (the default)
@@ -1679,7 +1661,6 @@ abstract class HttpClient {
    */
   void close({bool force: false});
 }
-
 
 /**
  * HTTP request for a client connection.
@@ -1808,7 +1789,6 @@ abstract class HttpClientRequest implements IOSink {
   HttpConnectionInfo get connectionInfo;
 }
 
-
 /**
  * HTTP response for a client connection.
  *
@@ -1893,10 +1873,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    *
    * [redirect] will ignore [maxRedirects] and will always perform the redirect.
    */
-  Future<HttpClientResponse> redirect([String method,
-                                       Uri url,
-                                       bool followLoops]);
-
+  Future<HttpClientResponse> redirect(
+      [String method, Uri url, bool followLoops]);
 
   /**
    * Returns the client response headers.
@@ -1933,9 +1911,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   HttpConnectionInfo get connectionInfo;
 }
 
-
-abstract class HttpClientCredentials { }
-
+abstract class HttpClientCredentials {}
 
 /**
  * Represents credentials for basic authentication.
@@ -1944,7 +1920,6 @@ abstract class HttpClientBasicCredentials extends HttpClientCredentials {
   factory HttpClientBasicCredentials(String username, String password) =>
       new _HttpClientBasicCredentials(username, password);
 }
-
 
 /**
  * Represents credentials for digest authentication. Digest
@@ -1957,7 +1932,6 @@ abstract class HttpClientDigestCredentials extends HttpClientCredentials {
       new _HttpClientDigestCredentials(username, password);
 }
 
-
 /**
  * Information about an [HttpRequest], [HttpResponse], [HttpClientRequest], or
  * [HttpClientResponse] connection.
@@ -1967,7 +1941,6 @@ abstract class HttpConnectionInfo {
   int get remotePort;
   int get localPort;
 }
-
 
 /**
  * Redirect information.
@@ -1989,7 +1962,6 @@ abstract class RedirectInfo {
   Uri get location;
 }
 
-
 /**
  * When detaching a socket from either the [:HttpServer:] or the
  * [:HttpClient:] due to a HTTP connection upgrade there might be
@@ -2002,24 +1974,20 @@ abstract class DetachedSocket {
   List<int> get unparsedData;
 }
 
-
 class HttpException implements IOException {
   final String message;
   final Uri uri;
 
-  const HttpException(String this.message, {Uri this.uri});
+  const HttpException(this.message, {this.uri});
 
   String toString() {
-    var b = new StringBuffer()
-        ..write('HttpException: ')
-        ..write(message);
+    var b = new StringBuffer()..write('HttpException: ')..write(message);
     if (uri != null) {
       b.write(', uri = $uri');
     }
     return b.toString();
   }
 }
-
 
 class RedirectException implements HttpException {
   final String message;

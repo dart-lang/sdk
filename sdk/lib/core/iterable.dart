@@ -192,8 +192,8 @@ abstract class Iterable<E> {
    *     print(duplicated); // => [1, 1, 2, 2, 3, 3]
    *
    */
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      new ExpandIterable<E, T>(this, f);
+  Iterable<T>
+      expand<T>(Iterable<T> f(E element)) => new ExpandIterable<E, T>(this, f);
 
   /**
    * Returns true if the collection contains an element equal to [element].

@@ -41,7 +41,19 @@ void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Stdin_AnsiSupported)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewDartArgumentError("Stdin unsupported on this platform"));
+}
+
+
 void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewDartArgumentError("Stdout unsupported on this platform"));
+}
+
+
+void FUNCTION_NAME(Stdout_AnsiSupported)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Stdout unsupported on this platform"));
 }

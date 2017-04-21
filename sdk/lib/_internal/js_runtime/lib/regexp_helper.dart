@@ -49,18 +49,15 @@ class JSSyntaxRegExp implements RegExp {
   String toString() => 'RegExp/$pattern/';
 
   JSSyntaxRegExp(String source,
-                 { bool multiLine: false,
-                   bool caseSensitive: true })
+      {bool multiLine: false, bool caseSensitive: true})
       : this.pattern = source,
         this._nativeRegExp =
             makeNative(source, multiLine, caseSensitive, false);
 
   get _nativeGlobalVersion {
     if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp;
-    return _nativeGlobalRegExp = makeNative(pattern,
-                                            _isMultiLine,
-                                            _isCaseSensitive,
-                                            true);
+    return _nativeGlobalRegExp =
+        makeNative(pattern, _isMultiLine, _isCaseSensitive, true);
   }
 
   get _nativeAnchoredVersion {
@@ -70,10 +67,8 @@ class JSSyntaxRegExp implements RegExp {
     // that it tries, and you can see if the original regexp matched, or it
     // was the added zero-width match that matched, by looking at the last
     // capture. If it is a String, the match participated, otherwise it didn't.
-    return _nativeAnchoredRegExp = makeNative('$pattern|()',
-                                              _isMultiLine,
-                                              _isCaseSensitive,
-                                              true);
+    return _nativeAnchoredRegExp =
+        makeNative('$pattern|()', _isMultiLine, _isCaseSensitive, true);
   }
 
   bool get _isMultiLine => JS('bool', '#.multiline', _nativeRegExp);
@@ -87,7 +82,8 @@ class JSSyntaxRegExp implements RegExp {
     String g = global ? 'g' : '';
     // We're using the JavaScript's try catch instead of the Dart one to avoid
     // dragging in Dart runtime support just because of using RegExp.
-    var regexp = JS('',
+    var regexp = JS(
+        '',
         r'''
           (function(source, modifiers) {
             try {
@@ -96,20 +92,20 @@ class JSSyntaxRegExp implements RegExp {
               return e;
             }
           })(#, # + # + #)''',
-        source, m, i, g);
+        source,
+        m,
+        i,
+        g);
     if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
     String errorMessage = JS('String', r'String(#)', regexp);
-    throw new FormatException(
-        'Illegal RegExp pattern ($errorMessage)', source);
+    throw new FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 
   Match firstMatch(String string) {
-    List<String> m = JS('JSExtendableArray|Null',
-                        r'#.exec(#)',
-                        _nativeRegExp,
-                        checkString(string));
+    List<String> m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp,
+        checkString(string));
     if (m == null) return null;
     return new _MatchImplementation(this, m);
   }
@@ -232,7 +228,7 @@ class _AllMatchesIterator implements Iterator<Match> {
       }
     }
     _current = null;
-    _string = null;  // Marks iteration as ended.
+    _string = null; // Marks iteration as ended.
     return false;
   }
 }

@@ -14,7 +14,6 @@
 #include "vm/os_thread.h"
 #include "vm/store_buffer.h"
 #include "vm/runtime_entry_list.h"
-
 namespace dart {
 
 class AbstractType;
@@ -44,10 +43,12 @@ class RawObject;
 class RawCode;
 class RawError;
 class RawGrowableObjectArray;
+class RawStackTrace;
 class RawString;
 class RuntimeEntry;
 class Smi;
 class StackResource;
+class StackTrace;
 class String;
 class TimelineStream;
 class TypeArguments;
@@ -264,21 +265,23 @@ class Thread : public BaseThread {
 
   bool ZoneIsOwnedByThread(Zone* zone) const;
 
-  void IncrementMemoryUsage(uintptr_t value) {
-    current_thread_memory_ += value;
-    if (current_thread_memory_ > memory_high_watermark_) {
-      memory_high_watermark_ = current_thread_memory_;
+  void IncrementMemoryCapacity(uintptr_t value) {
+    current_zone_capacity_ += value;
+    if (current_zone_capacity_ > zone_high_watermark_) {
+      zone_high_watermark_ = current_zone_capacity_;
     }
   }
 
-  void DecrementMemoryUsage(uintptr_t value) {
-    ASSERT(current_thread_memory_ >= value);
-    current_thread_memory_ -= value;
+  void DecrementMemoryCapacity(uintptr_t value) {
+    ASSERT(current_zone_capacity_ >= value);
+    current_zone_capacity_ -= value;
   }
 
-  uintptr_t memory_high_watermark() const { return memory_high_watermark_; }
+  uintptr_t current_zone_capacity() { return current_zone_capacity_; }
 
-  void ResetHighWatermark() { memory_high_watermark_ = current_thread_memory_; }
+  uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
+
+  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -504,6 +507,15 @@ class Thread : public BaseThread {
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
   void clear_sticky_error();
+  RawError* get_and_clear_sticky_error();
+
+  RawStackTrace* async_stack_trace() const;
+  void set_async_stack_trace(const StackTrace& stack_trace);
+  void set_raw_async_stack_trace(RawStackTrace* raw_stack_trace);
+  void clear_async_stack_trace();
+  static intptr_t async_stack_trace_offset() {
+    return OFFSET_OF(Thread, async_stack_trace_);
+  }
 
   CompilerStats* compiler_stats() { return compiler_stats_; }
 
@@ -673,7 +685,12 @@ class Thread : public BaseThread {
   template <class T>
   T* AllocateReusableHandle();
 
-  // Accessed from generated code:
+  // Accessed from generated code.
+  // ** This block of fields must come first! **
+  // For AOT cross-compilation, we rely on these members having the same offsets
+  // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
+  // We use only word-sized fields to avoid differences in struct packing on the
+  // different architectures. See also CheckOffsets in dart.cc.
   uword stack_limit_;
   uword stack_overflow_flags_;
   Isolate* isolate_;
@@ -682,6 +699,7 @@ class Thread : public BaseThread {
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;
   TaskKind task_kind_;
+  RawStackTrace* async_stack_trace_;
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -700,8 +718,8 @@ class Thread : public BaseThread {
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
-  uintptr_t current_thread_memory_;
-  uintptr_t memory_high_watermark_;
+  uintptr_t current_zone_capacity_;
+  uintptr_t zone_high_watermark_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
   StackResource* top_resource_;
@@ -786,12 +804,11 @@ class Thread : public BaseThread {
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
-
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
 
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 // Clears the state of the current thread and frees the allocation.
 void WindowsThreadCleanUp();
 #endif

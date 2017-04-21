@@ -6,8 +6,7 @@
 /// access to JavaScript features.
 library dart2js._js_primitives;
 
-import 'dart:_foreign_helper' show
-    JS;
+import 'dart:_foreign_helper' show JS;
 
 /**
  * This is the low-level method that is used to implement [print].  It is

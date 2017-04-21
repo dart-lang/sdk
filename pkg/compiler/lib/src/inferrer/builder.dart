@@ -14,6 +14,7 @@ import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
@@ -936,7 +937,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (compiler.backend.isNative(analyzedElement)) {
+    if (inferrer.isNativeMember(analyzedElement)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;
@@ -1214,7 +1215,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         (element != null && element.isInstanceMember);
   }
 
-  @override
   TypeInformation handleSendSet(ast.SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType) {
@@ -2279,7 +2279,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     return inferrer.registerAwait(node, futureType);
   }
 
-  @override
   TypeInformation handleTypeLiteralInvoke(ast.NodeList arguments) {
     // This is reached when users forget to put a `new` in front of a type
     // literal. The emitter will generate an actual call (even though it is
@@ -2913,7 +2912,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
     js.JavaScriptBackend backend = compiler.backend;
-    Element ctor = backend.helpers.streamIteratorConstructor;
+    ConstructorElement ctor = backend.helpers.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     TypeInformation iteratorType = handleStaticSend(

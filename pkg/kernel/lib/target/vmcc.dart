@@ -16,8 +16,8 @@ class VmClosureConvertedTarget extends vm_target.VmTarget {
   String get name => "vmcc";
 
   @override
-  void transformProgram(Program program) {
-    super.transformProgram(program);
+  void performGlobalTransformations(Program program) {
+    super.performGlobalTransformations(program);
     cc.transformProgram(program);
   }
 }

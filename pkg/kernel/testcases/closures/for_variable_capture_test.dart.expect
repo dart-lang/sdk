@@ -1,29 +1,27 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:mock" as mock;
 
 class Closure#main#function extends core::Object implements core::Function {
   field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field mock::Context context;
-  constructor •(final mock::Context context) → dynamic
+  field Vector context;
+  constructor •(final Vector context) → dynamic
     : self::Closure#main#function::context = context
     ;
   method call() → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final mock::Context #contextParameter = this.{self::Closure#main#function::context};
-    return #contextParameter.[](0);
+    final Vector #contextParameter = this.{self::Closure#main#function::context};
+    return #contextParameter[1];
   }
 }
 static method main() → dynamic {
   dynamic closure;
   {
-    mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
-    #context.[]=(0, 0);
+    Vector #context = MakeVector(2);
+    #context[1] = 0;
     dynamic fn = new self::Closure#main#function::•(#context);
-    for (; #context.[](0).<(3); #context = #context.copy(), #context.[]=(0, #context.[](0).+(1))) {
-      #context.[]=(0, #context.[](0).+(1));
+    for (; (#context[1]).<(3); #context = CopyVector(#context), #context[1] = (#context[1]).+(1)) {
+      #context[1] = (#context[1]).+(1);
       closure = fn;
     }
   }

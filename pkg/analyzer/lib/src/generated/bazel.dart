@@ -8,9 +8,10 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:analyzer/src/generated/workspace.dart';
 import 'package:path/path.dart';
 
 /**
@@ -97,21 +98,20 @@ class BazelPackageUriResolver extends UriResolver {
       if (root != null && context.isWithin(root, path)) {
         String relative = context.relative(path, from: root);
         List<String> components = context.split(relative);
-        if (components.length >= 1 && components[0] == 'third_party') {
-          if (components.length > 4 &&
-              components[1] == 'dart' &&
-              components[3] == 'lib') {
-            String packageName = components[2];
-            String pathInLib = components.skip(4).join('/');
-            return FastUri.parse('package:$packageName/$pathInLib');
-          }
+        if (components.length > 4 &&
+            components[0] == 'third_party' &&
+            components[1] == 'dart' &&
+            components[3] == 'lib') {
+          String packageName = components[2];
+          String pathInLib = components.skip(4).join('/');
+          return Uri.parse('package:$packageName/$pathInLib');
         } else {
           for (int i = 2; i < components.length - 1; i++) {
             String component = components[i];
             if (component == 'lib') {
               String packageName = components.getRange(0, i).join('.');
               String pathInLib = components.skip(i + 1).join('/');
-              return FastUri.parse('package:$packageName/$pathInLib');
+              return Uri.parse('package:$packageName/$pathInLib');
             }
           }
         }
@@ -139,7 +139,7 @@ class BazelPackageUriResolver extends UriResolver {
 /**
  * Information about a Bazel workspace.
  */
-class BazelWorkspace {
+class BazelWorkspace extends Workspace {
   static const String _WORKSPACE = 'WORKSPACE';
   static const String _READONLY = 'READONLY';
 
@@ -177,6 +177,23 @@ class BazelWorkspace {
 
   BazelWorkspace._(
       this.provider, this.root, this.readonly, this.bin, this.genfiles);
+
+  @override
+  Map<String, List<Folder>> get packageMap => null;
+
+  @override
+  UriResolver get packageUriResolver => new BazelPackageUriResolver(this);
+
+  @override
+  SourceFactory createSourceFactory(DartSdk sdk) {
+    List<UriResolver> resolvers = <UriResolver>[];
+    if (sdk != null) {
+      resolvers.add(new DartUriResolver(sdk));
+    }
+    resolvers.add(packageUriResolver);
+    resolvers.add(new BazelFileUriResolver(this));
+    return new SourceFactory(resolvers, null, provider);
+  }
 
   /**
    * Return the file with the given [absolutePath], looking first into

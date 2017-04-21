@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
 
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/application_root.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -24,7 +24,9 @@ abstract class TestTarget extends Target {
   /// Annotations to apply on the textual output.
   Annotator get annotator => null;
 
-  List<String> transformProgram(Program program);
+  // Return a list of strings so that we can accumulate errors.
+  List<String> performModularTransformations(Program program);
+  List<String> performGlobalTransformations(Program program);
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
@@ -42,17 +44,20 @@ void runBaselineTests(String folderName, TestTarget target) {
         String filenameOfBaseline = '$outputDirectory/$shortName.baseline.txt';
         String filenameOfCurrent = '$outputDirectory/$shortName.current.txt';
 
-        var repository = new Repository();
+        var program = new Program();
         var loader = await batch.getLoader(
-            repository,
+            program,
             new DartOptions(
                 strongMode: target.strongMode,
                 sdk: sdkDirectory,
                 declaredVariables: target.extraDeclaredVariables,
                 applicationRoot: applicationRoot));
-        var program = loader.loadProgram(dartPath, target: target);
+        loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
-        var errors = target.transformProgram(program);
+        var errors = <String>[];
+        errors.addAll(target.performModularTransformations(program));
+        verifyProgram(program);
+        errors.addAll(target.performGlobalTransformations(program));
         verifyProgram(program);
 
         var buffer = new StringBuffer();

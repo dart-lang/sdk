@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_macos.h"
@@ -222,9 +222,13 @@ void EventHandlerImplementation::HandleInterruptFd() {
       shutdown_ = true;
     } else {
       ASSERT((msg[i].data & COMMAND_MASK) != 0);
-
+      Socket* socket = reinterpret_cast<Socket*>(msg[i].id);
+      RefCntReleaseScope<Socket> rs(socket);
+      if (socket->fd() == -1) {
+        continue;
+      }
       DescriptorInfo* di =
-          GetDescriptorInfo(msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
+          GetDescriptorInfo(socket->fd(), IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!di->IsListeningSocket());
         // Close the socket for reading.
@@ -252,18 +256,20 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
           MutexLocker locker(registry->mutex());
 
-          if (registry->CloseSafe(fd)) {
+          if (registry->CloseSafe(socket)) {
             ASSERT(new_mask == 0);
             socket_map_.Remove(GetHashmapKeyFromFd(fd),
                                GetHashmapHashFromFd(fd));
             di->Close();
             delete di;
+            socket->SetClosedFd();
           }
         } else {
           ASSERT(new_mask == 0);
           socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
+          socket->SetClosedFd();
         }
 
         DartUtils::PostInt32(port, 1 << kDestroyedEvent);
@@ -469,6 +475,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       handler_impl->HandleEvents(events, result);
     }
   }
+  DEBUG_ASSERT(ReferenceCounted<Socket>::instances() == 0);
   handler->NotifyShutdownDone();
 }
 
@@ -508,6 +515,6 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)
 
 #endif  // !defined(DART_IO_DISABLED)

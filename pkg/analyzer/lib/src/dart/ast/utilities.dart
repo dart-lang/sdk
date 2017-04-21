@@ -432,25 +432,27 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
-      astFactory.fieldDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.staticKeyword),
-          cloneNode(node.fields),
-          cloneToken(node.semicolon));
+      astFactory.fieldDeclaration2(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          covariantKeyword: cloneToken(node.covariantKeyword),
+          staticKeyword: cloneToken(node.staticKeyword),
+          fieldList: cloneNode(node.fields),
+          semicolon: cloneToken(node.semicolon));
 
   @override
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) =>
-      astFactory.fieldFormalParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.type),
-          cloneToken(node.thisKeyword),
-          cloneToken(node.period),
-          cloneNode(node.identifier),
-          cloneNode(node.typeParameters),
-          cloneNode(node.parameters));
+      astFactory.fieldFormalParameter2(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          covariantKeyword: cloneToken(node.covariantKeyword),
+          keyword: cloneToken(node.keyword),
+          type: cloneNode(node.type),
+          thisKeyword: cloneToken(node.thisKeyword),
+          period: cloneToken(node.period),
+          identifier: cloneNode(node.identifier),
+          typeParameters: cloneNode(node.typeParameters),
+          parameters: cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
@@ -542,13 +544,14 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   FunctionTypedFormalParameter visitFunctionTypedFormalParameter(
           FunctionTypedFormalParameter node) =>
-      astFactory.functionTypedFormalParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneNode(node.returnType),
-          cloneNode(node.identifier),
-          cloneNode(node.typeParameters),
-          cloneNode(node.parameters));
+      astFactory.functionTypedFormalParameter2(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          covariantKeyword: cloneToken(node.covariantKeyword),
+          returnType: cloneNode(node.returnType),
+          identifier: cloneNode(node.identifier),
+          typeParameters: cloneNode(node.typeParameters),
+          parameters: cloneNode(node.parameters));
 
   @override
   AstNode visitGenericFunctionType(GenericFunctionType node) =>
@@ -815,12 +818,13 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   SimpleFormalParameter visitSimpleFormalParameter(
           SimpleFormalParameter node) =>
-      astFactory.simpleFormalParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.keyword),
-          cloneNode(node.type),
-          cloneNode(node.identifier));
+      astFactory.simpleFormalParameter2(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          covariantKeyword: cloneToken(node.covariantKeyword),
+          keyword: cloneToken(node.keyword),
+          type: cloneNode(node.type),
+          identifier: cloneNode(node.identifier));
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) =>
@@ -3168,25 +3172,27 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
-      astFactory.fieldDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.staticKeyword),
-          _cloneNode(node.fields),
-          _mapToken(node.semicolon));
+      astFactory.fieldDeclaration2(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          covariantKeyword: _mapToken(node.covariantKeyword),
+          staticKeyword: _mapToken(node.staticKeyword),
+          fieldList: _cloneNode(node.fields),
+          semicolon: _mapToken(node.semicolon));
 
   @override
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) =>
-      astFactory.fieldFormalParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.type),
-          _mapToken(node.thisKeyword),
-          _mapToken(node.period),
-          _cloneNode(node.identifier),
-          _cloneNode(node.typeParameters),
-          _cloneNode(node.parameters));
+      astFactory.fieldFormalParameter2(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          covariantKeyword: _mapToken(node.covariantKeyword),
+          keyword: _mapToken(node.keyword),
+          type: _cloneNode(node.type),
+          thisKeyword: _mapToken(node.thisKeyword),
+          period: _mapToken(node.period),
+          identifier: _cloneNode(node.identifier),
+          typeParameters: _cloneNode(node.typeParameters),
+          parameters: _cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
@@ -3293,13 +3299,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   FunctionTypedFormalParameter visitFunctionTypedFormalParameter(
           FunctionTypedFormalParameter node) =>
-      astFactory.functionTypedFormalParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _cloneNode(node.returnType),
-          _cloneNode(node.identifier),
-          _cloneNode(node.typeParameters),
-          _cloneNode(node.parameters));
+      astFactory.functionTypedFormalParameter2(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          covariantKeyword: _mapToken(node.covariantKeyword),
+          returnType: _cloneNode(node.returnType),
+          identifier: _cloneNode(node.identifier),
+          typeParameters: _cloneNode(node.typeParameters),
+          parameters: _cloneNode(node.parameters));
 
   @override
   AstNode visitGenericFunctionType(GenericFunctionType node) =>
@@ -3660,12 +3667,13 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   SimpleFormalParameter visitSimpleFormalParameter(
           SimpleFormalParameter node) =>
-      astFactory.simpleFormalParameter(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.type),
-          _cloneNode(node.identifier));
+      astFactory.simpleFormalParameter2(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          covariantKeyword: _mapToken(node.covariantKeyword),
+          keyword: _mapToken(node.keyword),
+          type: _cloneNode(node.type),
+          identifier: _cloneNode(node.identifier));
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
@@ -6420,12 +6428,16 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
-    return _and(
+    if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.type, toNode.type),
-        _isEqualNodes(node.identifier, toNode.identifier));
+        _isEqualNodes(node.identifier, toNode.identifier))) {
+      (toNode as SimpleFormalParameterImpl).element = node.element;
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -7525,7 +7537,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
     _visitNode(node.returnType);
-    _writer.print(' Function ');
+    _writer.print(' Function');
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     return null;
@@ -7868,7 +7880,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     _visitTokenWithSuffix(node.covariantKeyword, ' ');
     _visitTokenWithSuffix(node.keyword, " ");
-    _visitNodeWithSuffix(node.type, " ");
+    _visitNode(node.type);
+    if (node.type != null && node.identifier != null) {
+      _writer.print(' ');
+    }
     _visitNode(node.identifier);
     return null;
   }
@@ -8835,7 +8850,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
     safelyVisitNode(node.returnType);
-    sink.write(' Function ');
+    sink.write(' Function');
     safelyVisitNode(node.typeParameters);
     safelyVisitNode(node.parameters);
     return null;
@@ -9178,7 +9193,10 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNodeWithSuffix(node.type, " ");
+    safelyVisitNode(node.type);
+    if (node.type != null && node.identifier != null) {
+      sink.write(' ');
+    }
     safelyVisitNode(node.identifier);
     return null;
   }

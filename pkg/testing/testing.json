@@ -1,0 +1,24 @@
+{ "Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file":0,
+  "for details. All rights reserved. Use of this source code is governed by a":0,
+  "BSD-style license that can be found in the LICENSE.md file.":0,
+  "suites": [
+    {
+      "name": "dart_vm",
+      "kind": "Chain",
+      "source": "package:testing/dart_vm_suite.dart",
+      "path": "test/",
+      "status": "test/dart_vm_suite.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+      ]
+    }
+  ],
+  "analyze": {
+    "uris": [
+      "lib/",
+      "bin/run_tests.dart"
+    ]
+  }
+}

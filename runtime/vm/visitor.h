@@ -14,6 +14,7 @@ namespace dart {
 // Forward declarations.
 class Isolate;
 class RawObject;
+class RawFunction;
 
 // An object pointer visitor interface.
 class ObjectPointerVisitor {

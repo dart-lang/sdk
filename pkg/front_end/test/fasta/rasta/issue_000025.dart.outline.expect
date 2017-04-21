@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static set x(dynamic val) → dynamic
+  ;
+static get x() → dynamic
+  ;
+static method main() → dynamic
+  ;

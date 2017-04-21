@@ -87,6 +87,27 @@ class StackMapKeyValueTrait {
 typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
 
 
+class CodeSourceMapKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const CodeSourceMap* Key;
+  typedef const CodeSourceMap* Value;
+  typedef const CodeSourceMap* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Length(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+typedef DirectChainedHashMap<CodeSourceMapKeyValueTrait> CodeSourceMapSet;
+
+
 class ArrayKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -160,6 +181,9 @@ class UnlinkedCallKeyValueTrait {
 
 typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
 
+static inline intptr_t SimplePointerHash(void* ptr) {
+  return reinterpret_cast<intptr_t>(ptr) * 2654435761UL;
+}
 
 class FunctionKeyValueTrait {
  public:
@@ -172,7 +196,15 @@ class FunctionKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) {
+    // We are using pointer hash for objects originating from Kernel because
+    // Fasta currently does not assign any position information to them.
+    if (key->kernel_function() != NULL) {
+      return SimplePointerHash(key->kernel_function());
+    } else {
+      return key->token_pos().value();
+    }
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -193,7 +225,15 @@ class FieldKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) {
+    // We are using pointer hash for objects originating from Kernel because
+    // Fasta currently does not assign any position information to them.
+    if (key->kernel_field() != NULL) {
+      return SimplePointerHash(key->kernel_field());
+    } else {
+      return key->token_pos().value();
+    }
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -424,7 +464,6 @@ class Precompiler : public ValueObject {
   ParsedJSONObject* LookupFeedback(const Function& function);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
-  void ClearAllCode();
   void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
   void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
@@ -461,6 +500,7 @@ class Precompiler : public ValueObject {
   void SwitchICCalls();
   void ShareMegamorphicBuckets();
   void DedupStackMaps();
+  void DedupCodeSourceMaps();
   void DedupLists();
   void DedupInstructions();
   void ResetPrecompilerState();
@@ -471,9 +511,6 @@ class Precompiler : public ValueObject {
   void PrecompileConstructors();
 
   void FinalizeAllClasses();
-  void SortClasses();
-  void RemapClassIds(intptr_t* old_to_new_cid);
-  void RehashTypes();
   void VerifyJITFeedback();
   RawScript* LookupScript(const char* uri);
   intptr_t MapCid(intptr_t feedback_cid);

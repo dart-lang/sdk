@@ -37,7 +37,7 @@ main() {
   var nothing7 = callable.call.call();
   var nothing8 = callable.call.call.call();
 
-  var nothing9  = callableGetter();
+  var nothing9 = callableGetter();
   var nothing10 = callableGetter.call();
   var nothing11 = callableGetter.call.call();
   var nothing12 = callableGetter.call.call.call();

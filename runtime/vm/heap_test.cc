@@ -313,27 +313,27 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
 }
 
 
-VM_TEST_CASE(BecomeFowardOldToOld) {
+ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToOld) {
   TestBecomeForward(Heap::kOld, Heap::kOld);
 }
 
 
-VM_TEST_CASE(BecomeFowardNewToNew) {
+ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToNew) {
   TestBecomeForward(Heap::kNew, Heap::kNew);
 }
 
 
-VM_TEST_CASE(BecomeFowardOldToNew) {
+ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToNew) {
   TestBecomeForward(Heap::kOld, Heap::kNew);
 }
 
 
-VM_TEST_CASE(BecomeFowardNewToOld) {
+ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
   TestBecomeForward(Heap::kNew, Heap::kOld);
 }
 
 
-VM_TEST_CASE(BecomeForwardRememberedObject) {
+ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 

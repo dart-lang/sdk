@@ -11,7 +11,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(DirectoryCurrentNoScope) {
+VM_UNIT_TEST_CASE(DirectoryCurrentNoScope) {
   char* current_dir = dart::bin::Directory::CurrentNoScope();
   EXPECT_NOTNULL(current_dir);
   free(current_dir);

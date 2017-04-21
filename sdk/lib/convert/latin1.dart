@@ -50,7 +50,7 @@ class Latin1Codec extends Encoding {
    * If [allowInvalid] is not provided, it defaults to the value used to create
    * this [Latin1Codec].
    */
-  String decode(List<int> bytes, { bool allowInvalid }) {
+  String decode(List<int> bytes, {bool allowInvalid}) {
     if (allowInvalid == null) allowInvalid = _allowInvalid;
     if (allowInvalid) {
       return const Latin1Decoder(allowInvalid: true).convert(bytes);
@@ -61,9 +61,9 @@ class Latin1Codec extends Encoding {
 
   Latin1Encoder get encoder => const Latin1Encoder();
 
-  Latin1Decoder get decoder =>
-      _allowInvalid ? const Latin1Decoder(allowInvalid: true)
-                    : const Latin1Decoder(allowInvalid: false);
+  Latin1Decoder get decoder => _allowInvalid
+      ? const Latin1Decoder(allowInvalid: true)
+      : const Latin1Decoder(allowInvalid: false);
 }
 
 /**
@@ -88,7 +88,7 @@ class Latin1Decoder extends _UnicodeSubsetDecoder {
    * Replacement character `U+FFFD` (�).
    * Otherwise it throws a [FormatException].
    */
-  const Latin1Decoder({ bool allowInvalid: false })
+  const Latin1Decoder({bool allowInvalid: false})
       : super(allowInvalid, _LATIN1_MASK);
 
   /**
@@ -152,17 +152,16 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
     if (mask >= 0 && mask <= _LATIN1_MASK) {
       return;
     }
-    _reportInvalidLatin1(source, start, end);  // Always throws.
+    _reportInvalidLatin1(source, start, end); // Always throws.
   }
-
 
   static void _reportInvalidLatin1(List<int> source, int start, int end) {
     // Find the index of the first non-Latin-1 character code.
     for (int i = start; i < end; i++) {
       int char = source[i];
       if (char < 0 || char > _LATIN1_MASK) {
-        throw new FormatException("Source contains non-Latin-1 characters.",
-                                  source, i);
+        throw new FormatException(
+            "Source contains non-Latin-1 characters.", source, i);
       }
     }
     // Unreachable - we only call the function if the loop above throws.
@@ -171,7 +170,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
 }
 
 class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
-  _Latin1AllowInvalidDecoderSink(StringConversionSink sink): super(sink);
+  _Latin1AllowInvalidDecoderSink(StringConversionSink sink) : super(sink);
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
     RangeError.checkValidRange(start, end, source.length);
@@ -180,7 +179,7 @@ class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
       if (char > _LATIN1_MASK || char < 0) {
         if (i > start) _addSliceToSink(source, start, i, false);
         // Add UTF-8 encoding of U+FFFD.
-        _addSliceToSink(const[0xFFFD], 0, 1, false);
+        _addSliceToSink(const [0xFFFD], 0, 1, false);
         start = i + 1;
       }
     }

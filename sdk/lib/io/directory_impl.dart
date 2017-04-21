@@ -10,7 +10,7 @@ class _Directory extends FileSystemEntity implements Directory {
   _Directory(this.path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
-                              'is not a String');
+          'is not a String');
     }
   }
 
@@ -22,9 +22,8 @@ class _Directory extends FileSystemEntity implements Directory {
   external static _create(String path);
   external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);
-  external static void _fillWithDirectoryListing(
-      List<FileSystemEntity> list, String path, bool recursive,
-      bool followLinks);
+  external static void _fillWithDirectoryListing(List<FileSystemEntity> list,
+      String path, bool recursive, bool followLinks);
 
   static Directory get current {
     var result = _current();
@@ -68,10 +67,6 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Directory get absolute => new Directory(_absolutePath);
 
-  Future<FileStat> stat() => FileStat.stat(path);
-
-  FileStat statSync() => FileStat.statSync(path);
-
   Future<Directory> create({bool recursive: false}) {
     if (recursive) {
       return exists().then((exists) {
@@ -112,8 +107,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Future<Directory> createTemp([String prefix]) {
     if (prefix == null) prefix = '';
     if (path == '') {
-      throw new ArgumentError(
-          "Directory.createTemp called with an empty path. "
+      throw new ArgumentError("Directory.createTemp called with an empty path. "
           "To use the system temp directory, use Directory.systemTemp");
     }
     String fullPrefix;
@@ -122,8 +116,8 @@ class _Directory extends FileSystemEntity implements Directory {
     } else {
       fullPrefix = "$path${Platform.pathSeparator}$prefix";
     }
-    return _IOService._dispatch(_DIRECTORY_CREATE_TEMP, [fullPrefix])
-        .then((response) {
+    return _IOService
+        ._dispatch(_DIRECTORY_CREATE_TEMP, [fullPrefix]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
             response, "Creation of temporary directory failed");
@@ -135,8 +129,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Directory createTempSync([String prefix]) {
     if (prefix == null) prefix = '';
     if (path == '') {
-      throw new ArgumentError(
-          "Directory.createTemp called with an empty path. "
+      throw new ArgumentError("Directory.createTemp called with an empty path. "
           "To use the system temp directory, use Directory.systemTemp");
     }
     String fullPrefix;
@@ -147,21 +140,20 @@ class _Directory extends FileSystemEntity implements Directory {
     }
     var result = _createTemp(fullPrefix);
     if (result is OSError) {
-      throw new FileSystemException("Creation of temporary directory failed",
-                                   fullPrefix,
-                                   result);
+      throw new FileSystemException(
+          "Creation of temporary directory failed", fullPrefix, result);
     }
     return new Directory(result);
   }
 
   Future<Directory> _delete({bool recursive: false}) {
-    return _IOService._dispatch(_DIRECTORY_DELETE, [path, recursive])
-        .then((response) {
-          if (_isErrorResponse(response)) {
-            throw _exceptionOrErrorFromResponse(response, "Deletion failed");
-          }
-          return this;
-        });
+    return _IOService
+        ._dispatch(_DIRECTORY_DELETE, [path, recursive]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionOrErrorFromResponse(response, "Deletion failed");
+      }
+      return this;
+    });
   }
 
   void _deleteSync({bool recursive: false}) {
@@ -172,17 +164,17 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> rename(String newPath) {
-    return _IOService._dispatch(_DIRECTORY_RENAME, [path, newPath])
-        .then((response) {
-          if (_isErrorResponse(response)) {
-            throw _exceptionOrErrorFromResponse(response, "Rename failed");
-          }
-          return new Directory(newPath);
-        });
+    return _IOService
+        ._dispatch(_DIRECTORY_RENAME, [path, newPath]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionOrErrorFromResponse(response, "Rename failed");
+      }
+      return new Directory(newPath);
+    });
   }
 
   Directory renameSync(String newPath) {
-    if (newPath is !String) {
+    if (newPath is! String) {
       throw new ArgumentError();
     }
     var result = _rename(path, newPath);
@@ -192,12 +184,13 @@ class _Directory extends FileSystemEntity implements Directory {
     return new Directory(newPath);
   }
 
-  Stream<FileSystemEntity> list({bool recursive: false,
-                                 bool followLinks: true}) {
+  Stream<FileSystemEntity> list(
+      {bool recursive: false, bool followLinks: true}) {
     return new _AsyncDirectoryLister(
-        FileSystemEntity._ensureTrailingPathSeparators(path),
-        recursive,
-        followLinks).stream;
+            FileSystemEntity._ensureTrailingPathSeparators(path),
+            recursive,
+            followLinks)
+        .stream;
   }
 
   List<FileSystemEntity> listSync(
@@ -226,7 +219,7 @@ class _Directory extends FileSystemEntity implements Directory {
         return new ArgumentError();
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-                              response[_OSERROR_RESPONSE_ERROR_CODE]);
+            response[_OSERROR_RESPONSE_ERROR_CODE]);
         return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");
@@ -264,10 +257,8 @@ class _AsyncDirectoryLister {
   Completer closeCompleter = new Completer();
 
   _AsyncDirectoryLister(this.path, this.recursive, this.followLinks) {
-    controller = new StreamController<FileSystemEntity>(onListen: onListen,
-                                                        onResume: onResume,
-                                                        onCancel: onCancel,
-                                                        sync: true);
+    controller = new StreamController<FileSystemEntity>(
+        onListen: onListen, onResume: onResume, onCancel: onCancel, sync: true);
   }
 
   // Calling this function will increase the reference count on the native
@@ -281,19 +272,19 @@ class _AsyncDirectoryLister {
   Stream<FileSystemEntity> get stream => controller.stream;
 
   void onListen() {
-    _IOService._dispatch(_DIRECTORY_LIST_START, [path, recursive, followLinks])
-        .then((response) {
-          if (response is int) {
-            _ops = new _AsyncDirectoryListerOps(response);
-            next();
-          } else if (response is Error) {
-            controller.addError(response, response.stackTrace);
-            close();
-          } else {
-            error(response);
-            close();
-          }
-        });
+    _IOService._dispatch(
+        _DIRECTORY_LIST_START, [path, recursive, followLinks]).then((response) {
+      if (response is int) {
+        _ops = new _AsyncDirectoryListerOps(response);
+        next();
+      } else if (response is Error) {
+        controller.addError(response, response.stackTrace);
+        close();
+      } else {
+        error(response);
+        close();
+      }
+    });
   }
 
   void onResume() {
@@ -375,30 +366,25 @@ class _AsyncDirectoryLister {
     if (pointer == null) {
       _cleanup();
     } else {
-      _IOService._dispatch(_DIRECTORY_LIST_STOP, [pointer])
-                .whenComplete(_cleanup);
+      _IOService
+          ._dispatch(_DIRECTORY_LIST_STOP, [pointer]).whenComplete(_cleanup);
     }
   }
 
   void error(message) {
-    var errorType =
-        message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
+    var errorType = message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
     if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
       controller.addError(new ArgumentError());
     } else if (errorType == _OSERROR_RESPONSE) {
       var responseError = message[RESPONSE_ERROR];
-      var err = new OSError(
-          responseError[_OSERROR_RESPONSE_MESSAGE],
+      var err = new OSError(responseError[_OSERROR_RESPONSE_MESSAGE],
           responseError[_OSERROR_RESPONSE_ERROR_CODE]);
       var errorPath = message[RESPONSE_PATH];
       if (errorPath == null) errorPath = path;
       controller.addError(
-          new FileSystemException("Directory listing failed",
-                                  errorPath,
-                                  err));
+          new FileSystemException("Directory listing failed", errorPath, err));
     } else {
-      controller.addError(
-          new FileSystemException("Internal error"));
+      controller.addError(new FileSystemException("Internal error"));
     }
   }
 }

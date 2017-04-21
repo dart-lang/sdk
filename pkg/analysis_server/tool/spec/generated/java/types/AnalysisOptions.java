@@ -32,6 +32,8 @@ import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Deprecated: the only reference to this type has been deprecated.
+ *
  * A set of options controlling what kind of analysis is to be performed. If the value of a field
  * is omitted the value of the option will not be changed.
  *

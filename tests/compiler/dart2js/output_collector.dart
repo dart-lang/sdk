@@ -9,16 +9,12 @@ library output_collector;
 import 'dart:async';
 import 'package:compiler/compiler_new.dart';
 
-class BufferedEventSink implements EventSink<String> {
+class BufferedOutputSink implements OutputSink {
   StringBuffer sb = new StringBuffer();
   String text;
 
   void add(String event) {
     sb.write(event);
-  }
-
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    // Do not support this.
   }
 
   void close() {
@@ -27,41 +23,38 @@ class BufferedEventSink implements EventSink<String> {
   }
 }
 
-class CloningEventSink implements EventSink<String> {
-  final List<EventSink<String>> sinks;
+class CloningOutputSink implements OutputSink {
+  final List<OutputSink> sinks;
 
-  CloningEventSink(this.sinks);
+  CloningOutputSink(this.sinks);
 
   @override
   void add(String event) {
-    sinks.forEach((EventSink<String> sink) => sink.add(event));
-  }
-
-  @override
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    sinks.forEach((EventSink<String> sink) {
-      sink.addError(errorEvent, stackTrace);
-    });
+    sinks.forEach((OutputSink sink) => sink.add(event));
   }
 
   @override
   void close() {
-    sinks.forEach((EventSink<String> sink) => sink.close());
+    sinks.forEach((OutputSink sink) => sink.close());
   }
 }
 
 class OutputCollector implements CompilerOutput {
-  Map<String, Map<String, BufferedEventSink>> outputMap = {};
+  Map<OutputType, Map<String, BufferedOutputSink>> outputMap = {};
 
-  EventSink<String> call(String name, String extension) {
-    return createEventSink(name, extension);
-  }
-
-  String getOutput(String name, String extension) {
-    Map<String, BufferedEventSink> sinkMap = outputMap[extension];
-    if (sinkMap == null) return null;
-    BufferedEventSink sink = sinkMap[name];
-    return sink != null ? sink.text : null;
+  String getOutput(String name, OutputType type) {
+    Map<String, BufferedOutputSink> sinkMap = outputMap[type];
+    if (sinkMap == null) {
+      print("No output available for $type.");
+      return null;
+    }
+    BufferedOutputSink sink = sinkMap[name];
+    if (sink == null) {
+      print("Output '$name' not found for $type. Available: ${sinkMap.keys}");
+      return null;
+    } else {
+      return sink.text;
+    }
   }
 
   /// `true` if any output has been collected.
@@ -69,8 +62,8 @@ class OutputCollector implements CompilerOutput {
 
   /// `true` if any output other than main output has been collected.
   bool get hasExtraOutput {
-    for (String extension in outputMap.keys) {
-      for (String name in outputMap[extension].keys) {
+    for (OutputType type in outputMap.keys) {
+      for (String name in outputMap[type].keys) {
         if (name != '') return true;
       }
     }
@@ -78,9 +71,9 @@ class OutputCollector implements CompilerOutput {
   }
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    Map<String, BufferedEventSink> sinkMap =
-        outputMap.putIfAbsent(extension, () => {});
-    return sinkMap.putIfAbsent(name, () => new BufferedEventSink());
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    Map<String, BufferedOutputSink> sinkMap =
+        outputMap.putIfAbsent(type, () => {});
+    return sinkMap.putIfAbsent(name, () => new BufferedOutputSink());
   }
 }

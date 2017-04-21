@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.utilities.change_builder_core;
+import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A builder used to build a [SourceChange].
@@ -44,9 +43,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  void addFileEdit(Source source, int fileStamp,
-      void buildFileEdit(FileEditBuilder builder)) {
-    FileEditBuilderImpl builder = createFileEditBuilder(source, fileStamp);
+  Future<Null> addFileEdit(String path, int fileStamp,
+      void buildFileEdit(FileEditBuilder builder)) async {
+    FileEditBuilderImpl builder = await createFileEditBuilder(path, fileStamp);
     try {
       buildFileEdit(builder);
     } finally {
@@ -56,10 +55,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /**
    * Create and return a [FileEditBuilder] that can be used to build edits to
-   * the given [source].
+   * the file with the given [path] and [timeStamp].
    */
-  FileEditBuilderImpl createFileEditBuilder(Source source, int fileStamp) {
-    return new FileEditBuilderImpl(this, source, fileStamp);
+  Future<FileEditBuilderImpl> createFileEditBuilder(
+      String path, int timeStamp) async {
+    return new FileEditBuilderImpl(this, path, timeStamp);
   }
 
   /**
@@ -181,10 +181,10 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
-   * the given [timeStamp] and [timeStamp].
+   * the given absolute [path] and [timeStamp].
    */
-  FileEditBuilderImpl(this.changeBuilder, Source source, int timeStamp)
-      : fileEdit = new SourceFileEdit(source.fullName, timeStamp);
+  FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp)
+      : fileEdit = new SourceFileEdit(path, timeStamp);
 
   @override
   void addInsertion(int offset, void buildEdit(EditBuilder builder)) {
@@ -209,6 +209,26 @@ class FileEditBuilderImpl implements FileEditBuilder {
     EditBuilderImpl builder = createEditBuilder(offset, length);
     try {
       buildEdit(builder);
+    } finally {
+      fileEdit.add(builder.sourceEdit);
+    }
+  }
+
+  @override
+  void addSimpleInsertion(int offset, String text) {
+    EditBuilderImpl builder = createEditBuilder(offset, 0);
+    try {
+      builder.write(text);
+    } finally {
+      fileEdit.add(builder.sourceEdit);
+    }
+  }
+
+  @override
+  void addSimpleReplacement(int offset, int length, String text) {
+    EditBuilderImpl builder = createEditBuilder(offset, length);
+    try {
+      builder.write(text);
     } finally {
       fileEdit.add(builder.sourceEdit);
     }

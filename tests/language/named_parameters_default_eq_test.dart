@@ -7,38 +7,38 @@
 import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
-typedef int F1({x = 3, y}); /// 01: compile-time error
+typedef int F1({x = 3, y}); //# 01: compile-time error
 
 typedef int functype({x, y, z});
 
-int topF({x = 3, y : 5, z}) => x * y * (z ?? 2);
+int topF({x = 3, y: 5, z}) => x * y * (z ?? 2);
 
 class A {
   int x;
   int y;
   int z;
-  A({this.x = 3, this.y : 5, z }) : z = z ?? 2;
-  A.redirect({x = 3, y : 5, z}) : this(x: x, y: y, z: z);
-  factory A.factory({x = 3, y : 5, z}) => new A(x: x, y: y, z: z ?? 2);
+  A({this.x = 3, this.y: 5, z}) : z = z ?? 2;
+  A.redirect({x = 3, y: 5, z}) : this(x: x, y: y, z: z);
+  factory A.factory({x = 3, y: 5, z}) => new A(x: x, y: y, z: z ?? 2);
   factory A.redirectFactory({x, y, z}) = A;
 
   // Default values are not allowed on redirecting factory constructors.
-  factory A.badRedirectFactory({x = 3, y}) = A; /// 02: compile-time error
+  factory A.badRedirectFactory({x = 3, y}) = A; //# 02: compile-time error
 
   int get value => x * y * z;
 
-  static int staticF({x = 3, y : 5, z}) => x * y * (z ?? 2);
-  int instanceF({x = 3, y : 5, z}) => x * y * (z ?? 2);
+  static int staticF({x = 3, y: 5, z}) => x * y * (z ?? 2);
+  int instanceF({x = 3, y: 5, z}) => x * y * (z ?? 2);
 }
 
 main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-  F1 _ = null;  /// 01: continued
+  F1 _ = null; // //# 01: continued
 
   var a = new A();
 
-  int local({x = 3, y : 5, z}) => x * y * (z ?? 2);
-  var expr = ({x = 3, y : 5, z}) => x * y * (z ?? 2);
+  int local({x = 3, y: 5, z}) => x * y * (z ?? 2);
+  var expr = ({x = 3, y: 5, z}) => x * y * (z ?? 2);
   var tearOff = a.instanceF;
 
   test(function) {

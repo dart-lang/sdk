@@ -13,12 +13,12 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/file_repository.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/dependency_grapher_impl.dart';
 import 'package:path/src/context.dart';
@@ -69,7 +69,7 @@ class IncrementalResolvedAstGeneratorImpl
         await graphForProgram([_source], _options, fileReader: _fileReader);
     // TODO(paulberry): collect no-longer-referenced files from _fileState and
     // _fileRepository.
-    var libraries = <Uri, ResolvedLibrary>{};
+    var libraries = <Uri, Map<Uri, CompilationUnit>>{};
     if (!_schedulerStarted) {
       _scheduler.start();
       _schedulerStarted = true;
@@ -87,8 +87,7 @@ class IncrementalResolvedAstGeneratorImpl
         var result =
             await _driver.getResult(_fileRepository.pathForUri(libraryUri));
         // TODO(paulberry): handle errors.
-        var definingCompilationUnit = result.unit;
-        var partUnits = <Uri, CompilationUnit>{};
+        var units = {libraryUri: result.unit};
         for (var partUri in libraryNode.parts) {
           // Really we ought to have a driver API that lets us request a
           // specific part of a given library.  Otherwise we will run into
@@ -97,10 +96,9 @@ class IncrementalResolvedAstGeneratorImpl
           var partResult =
               await _driver.getResult(_fileRepository.pathForUri(partUri));
           // TODO(paulberry): handle errors.
-          partUnits[partUri] = partResult.unit;
+          units[partUri] = partResult.unit;
         }
-        libraries[libraryUri] =
-            new ResolvedLibrary(definingCompilationUnit, partUnits);
+        libraries[libraryUri] = units;
       }
     }
     _driver.addFile(_fileRepository.pathForUri(_source));
@@ -268,8 +266,13 @@ class _SourceFactoryProxy implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     Uri uri = Uri.parse(absoluteUri);
+    return forUri2(uri);
+  }
+
+  @override
+  Source forUri2(Uri absoluteUri) {
     return new _SourceProxy(
-        uri, _fileRepository.pathForUri(uri, allocate: true));
+        absoluteUri, _fileRepository.pathForUri(absoluteUri, allocate: true));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();

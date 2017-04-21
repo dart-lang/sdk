@@ -11,8 +11,11 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/kernel/element_adapter.dart';
+import 'package:compiler/src/kernel/world_builder.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -21,13 +24,24 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:expect/expect.dart';
+import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../serialization/test_helper.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
-  'main.dart': r'''
-import 'helper.dart';
+  // Pretend this is a dart2js_native test to allow use of 'native' keyword.
+  'sdk/tests/compiler/dart2js_native/main.dart': r'''
+import 'dart:_foreign_helper';
+import 'dart:_js_helper';
+import 'dart:_interceptors';
+import 'dart:_native_typed_data';
+import 'dart:indexed_db';
 import 'dart:html';
+import 'dart:html_common';
+import 'dart:math';
+import 'dart:typed_data';
+import 'dart:web_sql';
+import 'helper.dart';
 
 main() {
   testEmpty();
@@ -170,6 +184,16 @@ main() {
   testEnum();
   testStaticGenericMethod();
   testInstanceGenericMethod();
+  testDynamicPrivateMethodInvoke();
+  testJSCall();
+  testNativeMethod();
+  testNativeMethodCreates();
+  testNativeMethodReturns();
+  testNativeField(null);
+  testMixinInstantiation();
+  testNamedMixinInstantiation();
+  testGenericMixinInstantiation();
+  testGenericNamedMixinInstantiation();
 }
 
 testEmpty() {}
@@ -594,8 +618,33 @@ testStaticGenericMethod() {
 testInstanceGenericMethod() {
   new GenericClass<int, String>.generative().genericMethod<bool>(false);
 }
+
+testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
+testJSCall() => JS('int|bool|NativeUint8List|Rectangle|IdbFactory|'
+    'SqlDatabase|TypedData|ContextAttributes', '#', null);
+@JSName('foo')
+@SupportedBrowser(SupportedBrowser.CHROME)
+testNativeMethod() native;
+@Creates('int|Null|JSArray')
+testNativeMethodCreates() native;
+@Returns('String|Null|JSArray')
+testNativeMethodReturns() native;
+
+@Native("NativeClass")
+class NativeClass {
+  @annotation_Creates_SerializedScriptValue
+  final Object field;
+
+  factory NativeClass._() { throw new UnsupportedError("Not supported"); }
+}
+testNativeField(NativeClass c) => c.field;
+testMixinInstantiation() => new Sub();
+testNamedMixinInstantiation() => new NamedMixin();
+testGenericMixinInstantiation() => new GenericSub<int, String>();
+testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
 ''',
-  'helper.dart': '''
+  'sdk/tests/compiler/dart2js_native/helper.dart': '''
+import 'dart:_js_helper';
 class Class {
   const Class.generative();
   factory Class.fact() => null;
@@ -610,6 +659,20 @@ class GenericClass<X, Y> {
 }
 typedef Typedef();
 typedef X GenericTypedef<X, Y>(Y y);
+
+class Super {}
+class Mixin1 {}
+class Mixin2 {}
+class Sub extends Super with Mixin1, Mixin2 {}
+class NamedMixin = Super with Mixin1, Mixin2;
+
+class GenericSuper<X1, Y1> {}
+class GenericMixin1<X2, Y2> {}
+class GenericMixin2<X3, Y3> {}
+class GenericSub<X4, Y4> extends GenericSuper<X4, Y4>
+    with GenericMixin1<X4, Y4>, GenericMixin2<X4, Y4> {}
+class GenericNamedMixin<X5, Y5> = GenericSuper<X5, Y5>
+    with GenericMixin1<X5, Y5>, GenericMixin2<X5, Y5>;
 ''',
 };
 
@@ -617,7 +680,8 @@ main(List<String> args) {
   bool fullTest = args.contains('--full');
   asyncTest(() async {
     enableDebugMode();
-    Uri entryPoint = Uri.parse('memory:main.dart');
+    Uri entryPoint =
+        Uri.parse('memory:sdk/tests/compiler/dart2js_native/main.dart');
     Compiler compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: SOURCE,
@@ -627,63 +691,43 @@ main(List<String> args) {
           Flags.enableAssertMessage
         ]);
     compiler.resolution.retainCachesForTesting = true;
-    await compiler.run(entryPoint);
-    checkLibrary(compiler, compiler.mainApp, fullTest: fullTest);
-    if (fullTest) {
-      // TODO(johnniwinther): Handle all libraries for `!fullTest`.
-      compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-        if (library == compiler.mainApp) return;
-        checkLibrary(compiler, library, fullTest: fullTest);
-      });
-    }
+    Expect.isTrue(await compiler.run(entryPoint));
+    JavaScriptBackend backend = compiler.backend;
+    KernelElementAdapter kernelElementAdapter =
+        new KernelWorldBuilder(compiler.reporter, backend.kernelTask.program);
+
+    checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
+        fullTest: fullTest);
+    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+      if (library == compiler.mainApp) return;
+      checkLibrary(compiler, kernelElementAdapter, library, fullTest: fullTest);
+    });
   });
 }
 
-void checkLibrary(Compiler compiler, LibraryElement library,
+void checkLibrary(Compiler compiler, KernelElementAdapter kernelElementAdapter,
+    LibraryElement library,
     {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, member, fullTest: fullTest);
+        checkElement(compiler, kernelElementAdapter, member,
+            fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, element, fullTest: fullTest);
+      checkElement(compiler, kernelElementAdapter, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, AstElement element,
+void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
+    AstElement element,
     {bool fullTest: false}) {
-  if (!fullTest) {
-    if (element.library.isPlatformLibrary) {
-      // TODO(johnniwinther): Enqueue these elements for `!fullTest`.
-      // Test only selected elements in web-related platform libraries since
-      // this unittest otherwise takes too long to run.
-      switch (element.library.canonicalUri.path) {
-        case 'html':
-          if ('$element' ==
-              'function(_ValidatingTreeSanitizer#_sanitizeUntrustedElement)') {
-            break;
-          }
-          return;
-        case 'web_gl':
-          if ('$element' ==
-              'function(RenderingContext#getFramebufferAttachmentParameter)') {
-            break;
-          }
-          return;
-        case 'indexed_db':
-          if ('$element' == 'field(ObjectStore#keyPath)') {
-            break;
-          }
-          return;
-        case 'web_audio':
-          return;
-      }
-    }
+  if (!fullTest && element.library.isPlatformLibrary) {
+    return;
   }
   if (element.isConstructor) {
     ConstructorElement constructor = element;
@@ -695,12 +739,24 @@ void checkElement(Compiler compiler, AstElement element,
   if (!fullTest && !compiler.resolution.hasResolutionImpact(element)) {
     return;
   }
-  ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
-  astImpact = laxImpact(compiler, element, astImpact);
-  ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
-  Expect.isNotNull(kernelImpact, 'No impact computed for $element');
-  testResolutionImpactEquivalence(
-      astImpact, kernelImpact, const CheckStrategy());
+  compiler.reporter.withCurrentElement(element.implementation, () {
+    ResolutionImpact astImpact =
+        compiler.resolution.getResolutionImpact(element);
+    astImpact = laxImpact(compiler, element, astImpact);
+    ResolutionImpact kernelImpact1 = build(compiler, element.resolvedAst);
+    ir.Member member = getIrMember(compiler, element.resolvedAst);
+    Expect.isNotNull(kernelImpact1, 'No impact computed for $element');
+    ResolutionImpact kernelImpact2 =
+        buildKernelImpact(member, kernelElementAdapter);
+    Expect.isNotNull(kernelImpact2, 'No impact computed for $member');
+    testResolutionImpactEquivalence(astImpact, kernelImpact1,
+        strategy: const CheckStrategy());
+    KernelEquivalence equivalence = new KernelEquivalence(kernelElementAdapter);
+    testResolutionImpactEquivalence(astImpact, kernelImpact2,
+        strategy: new CheckStrategy(
+            elementEquivalence: equivalence.entityEquivalence,
+            typeEquivalence: equivalence.typeEquivalence));
+  });
 }
 
 /// Lax the precision of [impact] to meet expectancy of the corresponding impact

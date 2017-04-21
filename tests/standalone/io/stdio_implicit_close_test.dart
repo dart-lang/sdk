@@ -17,7 +17,7 @@ void test({bool closeStdout, bool closeStderr}) {
   // is brittle, but otherwise we would need to add our own flag.
   var arguments = [
       "--print-metrics",  // Prints on stderr.
-      "--timing",         // Prints on stdout.
+      "--timing", //         Prints on stdout.
       script,
   ];
   if (closeStdout) arguments.add("stdout");

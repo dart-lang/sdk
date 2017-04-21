@@ -20,11 +20,10 @@ convertDartToNative_Dictionary(Map dict, [void postCreate(dynamic)]) {
     postCreate(object);
   }
   dict.forEach((String key, value) {
-      JS('void', '#[#] = #', object, key, value);
-    });
+    JS('void', '#[#] = #', object, key, value);
+  });
   return object;
 }
-
 
 /**
  * Ensures that the input is a JavaScript Array.
@@ -46,10 +45,12 @@ convertDartToNative_DateTime(DateTime date) {
 }
 
 convertDartToNative_PrepareForStructuredClone(value) =>
-    new _StructuredCloneDart2Js().convertDartToNative_PrepareForStructuredClone(value);
+    new _StructuredCloneDart2Js()
+        .convertDartToNative_PrepareForStructuredClone(value);
 
 convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) =>
-    new _AcceptStructuredCloneDart2Js().convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
+    new _AcceptStructuredCloneDart2Js()
+        .convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
 
 class _StructuredCloneDart2Js extends _StructuredClone {
   newJsMap() => JS('var', '{}');
@@ -59,15 +60,14 @@ class _StructuredCloneDart2Js extends _StructuredClone {
 }
 
 class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {
+  List newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
+  List newDartList(length) => newJsList(length);
+  bool identicalInJs(a, b) => identical(a, b);
 
-  newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
-  newDartList(length) => newJsList(length);
-  identicalInJs(a, b) => identical(a, b);
-
-  void forEachJsField(object, action) {
-      for (final key in JS('JSExtendableArray', 'Object.keys(#)', object)) {
-        action(key, JS('var', '#[#]', object, key));
-      }
+  void forEachJsField(object, action(key, value)) {
+    for (final key in JS('JSExtendableArray', 'Object.keys(#)', object)) {
+      action(key, JS('var', '#[#]', object, key));
+    }
   }
 }
 
@@ -79,6 +79,7 @@ bool isJavaScriptSimpleObject(value) {
   return JS('bool', '# === Object.prototype', proto) ||
       JS('bool', '# === null', proto);
 }
+
 bool isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
 bool isJavaScriptPromise(value) =>
@@ -87,7 +88,8 @@ bool isJavaScriptPromise(value) =>
 Future convertNativePromiseToDartFuture(promise) {
   var completer = new Completer();
   var then = convertDartClosureToJS((result) => completer.complete(result), 1);
-  var error = convertDartClosureToJS((result) => completer.completeError(result), 1);
+  var error =
+      convertDartClosureToJS((result) => completer.completeError(result), 1);
   var newPromise = JS('', '#.then(#)["catch"](#)', promise, then, error);
   return completer.future;
 }

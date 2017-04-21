@@ -8,11 +8,15 @@ import 'dart:collection';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/kernel/elements.dart';
+import 'package:compiler/src/kernel/world_builder.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
-import 'package:compiler/src/tree/nodes.dart';
+import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import 'test_data.dart';
 
@@ -55,8 +59,25 @@ class Check {
 ///
 /// Use this strategy to fail early with contextual information in the event of
 /// inequivalence.
-class CheckStrategy implements TestStrategy {
-  const CheckStrategy();
+class CheckStrategy extends TestStrategy {
+  const CheckStrategy(
+      {Equivalence<Entity> elementEquivalence: areElementsEquivalent,
+      Equivalence<DartType> typeEquivalence: areTypesEquivalent,
+      Equivalence<ConstantExpression> constantEquivalence:
+          areConstantsEquivalent,
+      Equivalence<ConstantValue> constantValueEquivalence:
+          areConstantValuesEquivalent})
+      : super(
+            elementEquivalence: elementEquivalence,
+            typeEquivalence: typeEquivalence,
+            constantEquivalence: constantEquivalence,
+            constantValueEquivalence: constantValueEquivalence);
+
+  TestStrategy get testOnly => new TestStrategy(
+      elementEquivalence: elementEquivalence,
+      typeEquivalence: typeEquivalence,
+      constantEquivalence: constantEquivalence,
+      constantValueEquivalence: constantValueEquivalence);
 
   @override
   bool test(var object1, var object2, String property, var value1, var value2,
@@ -92,56 +113,6 @@ class CheckStrategy implements TestStrategy {
       bool valueEquivalence(a, b) = equality]) {
     return checkMapEquivalence(object1, object2, property, map1, map2,
         keyEquivalence, valueEquivalence);
-  }
-
-  @override
-  bool testElements(Object object1, Object object2, String property,
-      Element element1, Element element2) {
-    return checkElementIdentities(
-        object1, object2, property, element1, element2);
-  }
-
-  @override
-  bool testTypes(Object object1, Object object2, String property,
-      ResolutionDartType type1, ResolutionDartType type2) {
-    return checkTypes(object1, object2, property, type1, type2);
-  }
-
-  @override
-  bool testConstants(Object object1, Object object2, String property,
-      ConstantExpression exp1, ConstantExpression exp2) {
-    return checkConstants(object1, object2, property, exp1, exp2);
-  }
-
-  @override
-  bool testConstantValues(Object object1, Object object2, String property,
-      ConstantValue value1, ConstantValue value2) {
-    return areConstantValuesEquivalent(value1, value2);
-  }
-
-  @override
-  bool testTypeLists(Object object1, Object object2, String property,
-      List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
-    return checkTypeLists(object1, object2, property, list1, list2);
-  }
-
-  @override
-  bool testConstantLists(Object object1, Object object2, String property,
-      List<ConstantExpression> list1, List<ConstantExpression> list2) {
-    return checkConstantLists(object1, object2, property, list1, list2);
-  }
-
-  @override
-  bool testConstantValueLists(Object object1, Object object2, String property,
-      List<ConstantValue> list1, List<ConstantValue> list2) {
-    return checkConstantValueLists(object1, object2, property, list1, list2);
-  }
-
-  @override
-  bool testNodes(
-      Object object1, Object object2, String property, Node node1, Node node2) {
-    return new NodeEquivalenceVisitor(this)
-        .testNodes(object1, object2, property, node1, node2);
   }
 }
 
@@ -465,7 +436,8 @@ void checkImpacts(
     throw 'Missing impact for $member2. $member1 has $impact1';
   }
 
-  testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());
+  testResolutionImpactEquivalence(impact1, impact2,
+      strategy: const CheckStrategy());
 }
 
 void checkSets(
@@ -659,5 +631,200 @@ List<String> testSegment(int index, int count, int skip) {
     return [segmentNumber(index - 1)];
   } else {
     return [segmentNumber(index - 1), segmentNumber(index)];
+  }
+}
+
+class KernelEquivalence {
+  final WorldDeconstructionForTesting testing;
+
+  /// Set of mixin applications assumed to be equivalent.
+  ///
+  /// We need co-inductive reasoning because mixin applications are compared
+  /// structurally and therefore, in the case of generic mixin applications,
+  /// meet themselves through the equivalence check of their type variables.
+  Set<Pair<ClassEntity, ClassEntity>> assumedMixinApplications =
+      new Set<Pair<ClassEntity, ClassEntity>>();
+
+  KernelEquivalence(KernelWorldBuilder builder)
+      : testing = new WorldDeconstructionForTesting(builder);
+
+  TestStrategy get defaultStrategy => new TestStrategy(
+      elementEquivalence: entityEquivalence, typeEquivalence: typeEquivalence);
+
+  bool entityEquivalence(Element a, Entity b, {TestStrategy strategy}) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    strategy ??= defaultStrategy;
+    switch (a.kind) {
+      case ElementKind.GENERATIVE_CONSTRUCTOR:
+        if (b is KGenerativeConstructor) {
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
+        }
+        return false;
+      case ElementKind.FACTORY_CONSTRUCTOR:
+        if (b is KFactoryConstructor) {
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
+        }
+        return false;
+      case ElementKind.CLASS:
+        if (b is KClass) {
+          List<InterfaceType> aMixinTypes = [];
+          List<InterfaceType> bMixinTypes = [];
+          ClassElement aClass = a;
+          while (aClass.isMixinApplication) {
+            MixinApplicationElement aMixinApplication = aClass;
+            aMixinTypes.add(aMixinApplication.mixinType);
+            aClass = aMixinApplication.superclass;
+          }
+          KClass bClass = b;
+          while (bClass != null) {
+            InterfaceType mixinType = testing.getMixinTypeForClass(bClass);
+            if (mixinType == null) break;
+            bMixinTypes.add(mixinType);
+            bClass = testing.getSuperclassForClass(bClass);
+          }
+          if (aMixinTypes.isNotEmpty || aMixinTypes.isNotEmpty) {
+            if (aClass.isNamedMixinApplication &&
+                !strategy.test(a, b, 'name', a.name, b.name)) {
+              return false;
+            }
+            Pair<ClassEntity, ClassEntity> pair =
+                new Pair<ClassEntity, ClassEntity>(aClass, bClass);
+            if (assumedMixinApplications.contains(pair)) {
+              return true;
+            } else {
+              assumedMixinApplications.add(pair);
+              bool result = strategy.testTypeLists(
+                  a, b, 'mixinTypes', aMixinTypes, bMixinTypes);
+              assumedMixinApplications.remove(pair);
+              return result;
+            }
+          }
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'library', a.library, testing.getLibraryForClass(b));
+        }
+        return false;
+      case ElementKind.LIBRARY:
+        if (b is KLibrary) {
+          LibraryElement libraryA = a;
+          return libraryA.canonicalUri == testing.getLibraryUri(b);
+        }
+        return false;
+      case ElementKind.FUNCTION:
+        if (b is KMethod) {
+          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
+          if (b.enclosingClass != null) {
+            return strategy.testElements(
+                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
+          } else {
+            return strategy.testElements(
+                a, b, 'library', a.library, testing.getLibraryForFunction(b));
+          }
+        } else if (b is KLocalFunction) {
+          LocalFunctionElement aLocalFunction = a;
+          return strategy.test(a, b, 'name', a.name, b.name ?? '') &&
+              strategy.testElements(a, b, 'executableContext',
+                  aLocalFunction.executableContext, b.executableContext) &&
+              strategy.testElements(a, b, 'memberContext',
+                  aLocalFunction.memberContext, b.memberContext);
+        }
+        return false;
+      case ElementKind.GETTER:
+        if (b is KGetter) {
+          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
+          if (b.enclosingClass != null) {
+            return strategy.testElements(
+                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
+          } else {
+            return strategy.testElements(
+                a, b, 'library', a.library, testing.getLibraryForFunction(b));
+          }
+        }
+        return false;
+      case ElementKind.SETTER:
+        if (b is KSetter) {
+          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
+          if (b.enclosingClass != null) {
+            return strategy.testElements(
+                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
+          } else {
+            return strategy.testElements(
+                a, b, 'library', a.library, testing.getLibraryForFunction(b));
+          }
+        }
+        return false;
+      case ElementKind.FIELD:
+        if (b is KField) {
+          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
+          if (b.enclosingClass != null) {
+            return strategy.testElements(
+                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
+          } else {
+            return strategy.testElements(
+                a, b, 'library', a.library, testing.getLibraryForField(b));
+          }
+        }
+        return false;
+      case ElementKind.TYPE_VARIABLE:
+        if (b is KTypeVariable) {
+          TypeVariableElement aElement = a;
+          return strategy.test(a, b, 'index', aElement.index, b.index) &&
+              strategy.testElements(a, b, 'typeDeclaration',
+                  aElement.typeDeclaration, b.typeDeclaration);
+        }
+        return false;
+      default:
+        throw new UnsupportedError('Unsupported equivalence: '
+            '$a (${a.runtimeType}) vs $b (${b.runtimeType})');
+    }
+  }
+
+  bool typeEquivalence(ResolutionDartType a, DartType b,
+      {TestStrategy strategy}) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    strategy ??= defaultStrategy;
+    switch (a.kind) {
+      case ResolutionTypeKind.DYNAMIC:
+        return b is DynamicType;
+      case ResolutionTypeKind.VOID:
+        return b is VoidType;
+      case ResolutionTypeKind.INTERFACE:
+        if (b is InterfaceType) {
+          ResolutionInterfaceType aType = a;
+          return strategy.testElements(a, b, 'element', a.element, b.element) &&
+              strategy.testTypeLists(
+                  a, b, 'typeArguments', aType.typeArguments, b.typeArguments);
+        }
+        return false;
+      case ResolutionTypeKind.TYPE_VARIABLE:
+        if (b is TypeVariableType) {
+          return strategy.testElements(a, b, 'element', a.element, b.element);
+        }
+        return false;
+      case ResolutionTypeKind.FUNCTION:
+        if (b is FunctionType) {
+          ResolutionFunctionType aType = a;
+          return strategy.testTypes(
+                  a, b, 'returnType', aType.returnType, b.returnType) &&
+              strategy.testTypeLists(a, b, 'parameterTypes',
+                  aType.parameterTypes, b.parameterTypes) &&
+              strategy.testTypeLists(a, b, 'optionalParameterTypes',
+                  aType.optionalParameterTypes, b.optionalParameterTypes) &&
+              strategy.testLists(a, b, 'namedParameters', aType.namedParameters,
+                  b.namedParameters) &&
+              strategy.testTypeLists(a, b, 'namedParameterTypes',
+                  aType.namedParameterTypes, b.namedParameterTypes);
+        }
+        return false;
+      default:
+        throw new UnsupportedError('Unsupported equivalence: '
+            '$a (${a.runtimeType}) vs $b (${b.runtimeType})');
+    }
   }
 }

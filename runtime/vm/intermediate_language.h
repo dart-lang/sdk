@@ -47,7 +47,7 @@ class UnboxIntegerInstr;
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
 // operation for the lattice.
-class CompileType : public ValueObject {
+class CompileType : public ZoneAllocated {
  public:
   static const bool kNullable = true;
   static const bool kNonNullable = false;
@@ -56,7 +56,7 @@ class CompileType : public ValueObject {
       : is_nullable_(is_nullable), cid_(cid), type_(type) {}
 
   CompileType(const CompileType& other)
-      : ValueObject(),
+      : ZoneAllocated(),
         is_nullable_(other.is_nullable_),
         cid_(other.cid_),
         type_(other.type_) {}
@@ -173,23 +173,6 @@ class CompileType : public ValueObject {
   bool is_nullable_;
   intptr_t cid_;
   const AbstractType* type_;
-};
-
-
-// Zone allocated wrapper for the CompileType value.
-class ZoneCompileType : public ZoneAllocated {
- public:
-  static CompileType* Wrap(const CompileType& type) {
-    ZoneCompileType* zone_type = new ZoneCompileType(type);
-    return zone_type->ToCompileType();
-  }
-
-  CompileType* ToCompileType() { return &type_; }
-
- protected:
-  explicit ZoneCompileType(const CompileType& type) : type_(type) {}
-
-  CompileType type_;
 };
 
 
@@ -1469,7 +1452,9 @@ class IndirectEntryInstr : public JoinEntryInstr {
 
 class CatchBlockEntryInstr : public BlockEntryInstr {
  public:
-  CatchBlockEntryInstr(intptr_t block_id,
+  CatchBlockEntryInstr(TokenPosition handler_token_pos,
+                       bool is_generated,
+                       intptr_t block_id,
                        intptr_t try_index,
                        GraphEntryInstr* graph_entry,
                        const Array& handler_types,
@@ -1487,7 +1472,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
         needs_stacktrace_(needs_stacktrace),
-        should_restore_closure_context_(should_restore_closure_context) {
+        should_restore_closure_context_(should_restore_closure_context),
+        handler_token_pos_(handler_token_pos),
+        is_generated_(is_generated) {
     deopt_id_ = deopt_id;
   }
 
@@ -1507,6 +1494,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
 
   bool needs_stacktrace() const { return needs_stacktrace_; }
+
+  bool is_generated() const { return is_generated_; }
+  TokenPosition handler_token_pos() const { return handler_token_pos_; }
 
   // Returns try index for the try block to which this catch handler
   // corresponds.
@@ -1541,6 +1531,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const LocalVariable& stacktrace_var_;
   const bool needs_stacktrace_;
   const bool should_restore_closure_context_;
+  TokenPosition handler_token_pos_;
+  bool is_generated_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
@@ -1635,7 +1627,7 @@ class Definition : public Instruction {
   // propagation during graph building.
   CompileType* Type() {
     if (type_ == NULL) {
-      type_ = ZoneCompileType::Wrap(ComputeType());
+      type_ = new CompileType(ComputeType());
     }
     return type_;
   }
@@ -1661,7 +1653,7 @@ class Definition : public Instruction {
 
   bool UpdateType(CompileType new_type) {
     if (type_ == NULL) {
-      type_ = ZoneCompileType::Wrap(new_type);
+      type_ = new CompileType(new_type);
       return true;
     }
 
@@ -2417,7 +2409,9 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) { SetInputAt(0, value); }
+  explicit RedefinitionInstr(Value* value) : constrained_type_(NULL) {
+    SetInputAt(0, value);
+  }
 
   DECLARE_INSTRUCTION(Redefinition)
 
@@ -2426,11 +2420,17 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  void set_constrained_type(CompileType* type) { constrained_type_ = type; }
+  CompileType* constrained_type() const { return constrained_type_; }
+
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
+  CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
@@ -2534,6 +2534,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
                         Value* instantiator_type_arguments,
+                        Value* function_type_arguments,
                         const AbstractType& dst_type,
                         const String& dst_name,
                         intptr_t deopt_id)
@@ -2546,6 +2547,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -2742,6 +2744,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual bool CanDeoptimize() const { return true; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Instance calls that are specialized by the optimizer need a
     // deoptimization descriptor before the call.
@@ -2751,6 +2755,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
   PRINT_OPERANDS_TO_SUPPORT
+
+  bool MatchesCoreName(const String& name);
 
  protected:
   friend class JitOptimizer;
@@ -2782,7 +2788,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
         with_checks_(with_checks),
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
-    ASSERT(ic_data.NumberOfChecks() > 0);
+    ASSERT(!ic_data.NumberOfChecksIs(0));
+    total_call_count_ = CallCount();
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
@@ -2806,6 +2813,17 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
+  // If this polymophic call site was created to cover the remaining cids after
+  // inlinng then we need to keep track of the total number of calls including
+  // the ones that wer inlined. This is different from the CallCount above:  Eg
+  // if there  were 100 calls originally, distributed across three class-ids in
+  // the ratio 50, 40, 7, 3.  The first two were inlined, so now we have only
+  // 10 calls in the CallCount above, but the heuristics need to know that the
+  // last two cids cover 7% and 3% of the calls, not 70% and 30%.
+  intptr_t total_call_count() { return total_call_count_; }
+
+  void set_total_call_count(intptr_t count) { total_call_count_ = count; }
+
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
   const ICData& ic_data() const { return ic_data_; }
@@ -2825,6 +2843,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   const ICData& ic_data_;
   bool with_checks_;
   const bool complete_;
+  intptr_t total_call_count_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };
@@ -3944,16 +3963,14 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
   InstanceOfInstr(TokenPosition token_pos,
                   Value* value,
                   Value* instantiator_type_arguments,
+                  Value* function_type_arguments,
                   const AbstractType& type,
-                  bool negate_result,
                   intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
-        type_(type),
-        negate_result_(negate_result) {
+      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -3962,7 +3979,6 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
   Value* value() const { return inputs_[0]; }
   Value* instantiator_type_arguments() const { return inputs_[1]; }
 
-  bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -3977,7 +3993,6 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
   Value* value_;
   Value* type_arguments_;
   const AbstractType& type_;
-  const bool negate_result_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfInstr);
 };
@@ -4289,7 +4304,8 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   LoadFieldInstr(Value* instance,
                  const Field* field,
                  const AbstractType& type,
-                 TokenPosition token_pos)
+                 TokenPosition token_pos,
+                 const ParsedFunction* parsed_function)
       : offset_in_bytes_(field->Offset()),
         type_(type),
         result_cid_(kDynamicCid),
@@ -4301,6 +4317,13 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
     // May be null if field is not an instance.
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
+
+    if (parsed_function != NULL && field->guarded_cid() != kIllegalCid) {
+      if (!field->is_nullable() || (field->guarded_cid() == kNullCid)) {
+        set_result_cid(field->guarded_cid());
+      }
+      parsed_function->AddToGuardedFields(field);
+    }
   }
 
   void set_is_immutable(bool value) { immutable_ = value; }
@@ -4366,21 +4389,20 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
  public:
   InstantiateTypeInstr(TokenPosition token_pos,
                        const AbstractType& type,
-                       const Class& instantiator_class,
-                       Value* instantiator)
+                       Value* instantiator_type_arguments,
+                       Value* function_type_arguments)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
-        type_(type),
-        instantiator_class_(instantiator_class) {
+        type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
-    SetInputAt(0, instantiator);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(0, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateType)
 
-  Value* instantiator() const { return inputs_[0]; }
+  Value* instantiator_type_arguments() const { return inputs_[0]; }
   const AbstractType& type() const { return type_; }
-  const Class& instantiator_class() const { return instantiator_class_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return true; }
@@ -4392,7 +4414,6 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
  private:
   const TokenPosition token_pos_;
   const AbstractType& type_;
-  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
@@ -4403,18 +4424,20 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
-                                Value* instantiator)
+                                Value* instantiator_type_arguments,
+                                Value* function_type_arguments)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
     ASSERT(type_arguments.IsZoneHandle());
-    SetInputAt(0, instantiator);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(0, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
-  Value* instantiator() const { return inputs_[0]; }
+  Value* instantiator_type_arguments() const { return inputs_[0]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
   virtual TokenPosition token_pos() const { return token_pos_; }

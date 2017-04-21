@@ -97,6 +97,12 @@ const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
 const String EDITS = 'edits';
 
 //
+// Diagnostics methods
+//
+const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
+const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
+
+//
 // Analysis option names
 //
 const String ELEMENT = 'element'; // boolean

@@ -6,6 +6,7 @@ library services.completion.contributor.dart.inherited_ref;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
@@ -67,8 +68,8 @@ class InheritedReferenceContributor extends DartCompletionContributor
       return EMPTY_LIST;
     }
     containingLibrary = request.libraryElement;
-    return _computeSuggestionsForClass2(resolutionMap
-        .elementDeclaredByClassDeclaration(classDecl), request);
+    return _computeSuggestionsForClass2(
+        resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
   }
 
   List<CompletionSuggestion> _computeSuggestionsForClass2(
@@ -81,12 +82,12 @@ class InheritedReferenceContributor extends DartCompletionContributor
     OpType optype = request.opType;
 
     if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, optype,
+      _addSuggestionsForType(classElement.type, optype, request.ideOptions,
           isFunctionalArgument: isFunctionalArgument);
     }
 
     for (InterfaceType type in classElement.allSupertypes) {
-      _addSuggestionsForType(type, optype,
+      _addSuggestionsForType(type, optype, request.ideOptions,
           isFunctionalArgument: isFunctionalArgument);
     }
     return suggestions;
@@ -104,31 +105,32 @@ class InheritedReferenceContributor extends DartCompletionContributor
         skipChildClass: skipChildClass);
   }
 
-  _addSuggestionsForType(InterfaceType type, OpType optype,
+  _addSuggestionsForType(
+      InterfaceType type, OpType optype, IdeOptions ideOptions,
       {bool isFunctionalArgument: false}) {
     if (!isFunctionalArgument) {
       for (PropertyAccessorElement elem in type.accessors) {
         if (elem.isGetter) {
           if (optype.includeReturnValueSuggestions) {
-            addSuggestion(elem);
+            addSuggestion(elem, ideOptions);
           }
         } else {
           if (optype.includeVoidReturnSuggestions) {
-            addSuggestion(elem);
+            addSuggestion(elem, ideOptions);
           }
         }
       }
     }
     for (MethodElement elem in type.methods) {
       if (elem.returnType == null) {
-        addSuggestion(elem);
+        addSuggestion(elem, ideOptions);
       } else if (!elem.returnType.isVoid) {
         if (optype.includeReturnValueSuggestions) {
-          addSuggestion(elem);
+          addSuggestion(elem, ideOptions);
         }
       } else {
         if (optype.includeVoidReturnSuggestions) {
-          addSuggestion(elem);
+          addSuggestion(elem, ideOptions);
         }
       }
     }

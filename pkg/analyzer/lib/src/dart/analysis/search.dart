@@ -34,24 +34,26 @@ class Search {
   Search(this._driver);
 
   /**
-   * Returns class members with names matching the given [regExp].
+   * Returns class members with the given [name].
    */
-  Future<List<Element>> classMembers(RegExp regExp) async {
+  Future<List<Element>> classMembers(String name) async {
     List<Element> elements = <Element>[];
 
     void addElement(Element element) {
-      if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
+      if (!element.isSynthetic && element.displayName == name) {
         elements.add(element);
       }
     }
 
-    for (FileState file in _driver.fsState.knownFiles) {
-      CompilationUnitElement unitElement =
-          await _driver.getUnitElement(file.path);
-      for (ClassElement clazz in unitElement.types) {
-        clazz.accessors.forEach(addElement);
-        clazz.fields.forEach(addElement);
-        clazz.methods.forEach(addElement);
+    List<String> files = await _driver.getFilesDefiningClassMemberName(name);
+    for (String file in files) {
+      UnitElementResult unitResult = await _driver.getUnitElement(file);
+      if (unitResult != null) {
+        for (ClassElement clazz in unitResult.element.types) {
+          clazz.accessors.forEach(addElement);
+          clazz.fields.forEach(addElement);
+          clazz.methods.forEach(addElement);
+        }
       }
     }
     return elements;
@@ -130,14 +132,16 @@ class Search {
     }
 
     for (FileState file in _driver.fsState.knownFiles) {
-      CompilationUnitElement unitElement =
-          await _driver.getUnitElement(file.path);
-      unitElement.accessors.forEach(addElement);
-      unitElement.enums.forEach(addElement);
-      unitElement.functions.forEach(addElement);
-      unitElement.functionTypeAliases.forEach(addElement);
-      unitElement.topLevelVariables.forEach(addElement);
-      unitElement.types.forEach(addElement);
+      UnitElementResult unitResult = await _driver.getUnitElement(file.path);
+      if (unitResult != null) {
+        CompilationUnitElement unitElement = unitResult.element;
+        unitElement.accessors.forEach(addElement);
+        unitElement.enums.forEach(addElement);
+        unitElement.functions.forEach(addElement);
+        unitElement.functionTypeAliases.forEach(addElement);
+        unitElement.topLevelVariables.forEach(addElement);
+        unitElement.types.forEach(addElement);
+      }
     }
     return elements;
   }
@@ -157,17 +161,19 @@ class Search {
     List<SearchResult> results = [];
     for (String file in files) {
       AnalysisDriverUnitIndex index = await _driver.getIndex(file);
-      _IndexRequest request = new _IndexRequest(index);
-      var fileResults = await request.getUnresolvedMemberReferences(
-          name,
-          const {
-            IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
-            IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
-            IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
-            IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
-          },
-          () => _driver.getUnitElement(file));
-      results.addAll(fileResults);
+      if (index != null) {
+        _IndexRequest request = new _IndexRequest(index);
+        var fileResults = await request.getUnresolvedMemberReferences(
+            name,
+            const {
+              IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
+              IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+              IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
+              IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+            },
+            () => _getUnitElement(file));
+        results.addAll(fileResults);
+      }
     }
 
     return results;
@@ -217,13 +223,20 @@ class Search {
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       String file) async {
     AnalysisDriverUnitIndex index = await _driver.getIndex(file);
-    _IndexRequest request = new _IndexRequest(index);
-    int elementId = request.findElementId(element);
-    if (elementId != -1) {
-      List<SearchResult> fileResults = await request.getRelations(
-          elementId, relationToResultKind, () => _driver.getUnitElement(file));
-      results.addAll(fileResults);
+    if (index != null) {
+      _IndexRequest request = new _IndexRequest(index);
+      int elementId = request.findElementId(element);
+      if (elementId != -1) {
+        List<SearchResult> fileResults = await request.getRelations(
+            elementId, relationToResultKind, () => _getUnitElement(file));
+        results.addAll(fileResults);
+      }
     }
+  }
+
+  Future<CompilationUnitElement> _getUnitElement(String file) async {
+    UnitElementResult result = await _driver.getUnitElement(file);
+    return result?.element;
   }
 
   Future<List<SearchResult>> _searchReferences(Element element) async {
@@ -689,15 +702,17 @@ class _IndexRequest {
       if (resultKind != null) {
         int offset = index.usedElementOffsets[i];
         enclosingUnitElement ??= await getEnclosingUnitElement();
-        Element enclosingElement =
-            _getEnclosingElement(enclosingUnitElement, offset);
-        results.add(new SearchResult._(
-            enclosingElement,
-            resultKind,
-            offset,
-            index.usedElementLengths[i],
-            true,
-            index.usedElementIsQualifiedFlags[i]));
+        if (enclosingUnitElement != null) {
+          Element enclosingElement =
+              _getEnclosingElement(enclosingUnitElement, offset);
+          results.add(new SearchResult._(
+              enclosingElement,
+              resultKind,
+              offset,
+              index.usedElementLengths[i],
+              true,
+              index.usedElementIsQualifiedFlags[i]));
+        }
       }
     }
     return results;
@@ -763,10 +778,12 @@ class _IndexRequest {
       if (resultKind != null) {
         int offset = index.usedNameOffsets[i];
         enclosingUnitElement ??= await getEnclosingUnitElement();
-        Element enclosingElement =
-            _getEnclosingElement(enclosingUnitElement, offset);
-        results.add(new SearchResult._(enclosingElement, resultKind, offset,
-            name.length, false, index.usedNameIsQualifiedFlags[i]));
+        if (enclosingUnitElement != null) {
+          Element enclosingElement =
+              _getEnclosingElement(enclosingUnitElement, offset);
+          results.add(new SearchResult._(enclosingElement, resultKind, offset,
+              name.length, false, index.usedNameIsQualifiedFlags[i]));
+        }
       }
     }
 

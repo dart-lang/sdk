@@ -32,10 +32,10 @@ int testShadowingAfterUse() {
   var a = 1;
   {
     var b = 2;
-    var c = a;  // Use of 'a' prior to its shadow declaration below.
+    var c = a; // Use of 'a' prior to its shadow declaration below.
     var d = b + c;
     // Shadow declaration of 'a'.
-    var a = 5;  /// 01: compile-time error
+    var a = 5; //# 01: compile-time error
     return d + a;
   }
 }

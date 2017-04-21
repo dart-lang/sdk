@@ -64,10 +64,10 @@ class Zone {
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
-  intptr_t SizeInBytes() const;
+  uintptr_t SizeInBytes() const;
 
   // Computes the amount of space used in the zone.
-  intptr_t CapacityInBytes() const;
+  uintptr_t CapacityInBytes() const;
 
   // Structure for managing handles allocation.
   VMHandles* handles() { return &handles_; }
@@ -75,10 +75,6 @@ class Zone {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   Zone* previous() const { return previous_; }
-
-#ifndef PRODUCT
-  void PrintJSON(JSONStream* stream) const;
-#endif
 
  private:
   Zone();
@@ -180,7 +176,7 @@ class StackZone : public StackResource {
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
-  intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
+  uintptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
   // Computes the used space in the zone.
   intptr_t CapacityInBytes() const { return zone_.CapacityInBytes(); }
@@ -200,7 +196,6 @@ class StackZone : public StackResource {
 
 inline uword Zone::AllocUnsafe(intptr_t size) {
   ASSERT(size >= 0);
-
   // Round up the requested size to fit the alignment.
   if (size > (kIntptrMax - kAlignment)) {
     FATAL1("Zone::Alloc: 'size' is too large: size=%" Pd "", size);
@@ -252,6 +247,7 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
         reinterpret_cast<uword>(old_data) + (new_len * kElementSize);
     // ...and there is sufficient space.
     if (new_end <= limit_) {
+      ASSERT(new_len >= old_len);
       position_ = Utils::RoundUp(new_end, kAlignment);
       return old_data;
     }

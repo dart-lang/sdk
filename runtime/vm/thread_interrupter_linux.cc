@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 
 #include <errno.h>  // NOLINT
 
@@ -44,10 +44,15 @@ class ThreadInterrupterLinux : public AllStatic {
 };
 
 
+bool ThreadInterrupter::IsDebuggerAttached() {
+  return false;
+}
+
+
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
-    OS::Print("ThreadInterrupter interrupting %p\n",
-              reinterpret_cast<void*>(thread->id()));
+    OS::PrintErr("ThreadInterrupter interrupting %p\n",
+                 reinterpret_cast<void*>(thread->id()));
   }
   int result = pthread_kill(thread->id(), SIGPROF);
   ASSERT((result == 0) || (result == ESRCH));
@@ -67,4 +72,4 @@ void ThreadInterrupter::RemoveSignalHandler() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)

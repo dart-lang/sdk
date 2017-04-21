@@ -10,6 +10,8 @@
 #include "vm/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/exceptions.h"
+#include "vm/fixed_cache.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
@@ -124,6 +126,25 @@ class NoReloadScope : public StackResource {
 };
 
 
+// Fixed cache for exception handler lookup.
+typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
+// Fixed cache for catch entry state lookup.
+typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
+
+// List of Isolate flags with corresponding members of Dart_IsolateFlags and
+// corresponding global command line flags.
+//
+//       V(name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//
+#define ISOLATE_FLAG_LIST(V)                                                   \
+  V(type_checks, enable_type_checks, FLAG_enable_type_checks)                  \
+  V(asserts, enable_asserts, FLAG_enable_asserts)                              \
+  V(error_on_bad_type, enable_error_on_bad_type, FLAG_error_on_bad_type)       \
+  V(error_on_bad_override, enable_error_on_bad_override,                       \
+    FLAG_error_on_bad_override)                                                \
+  V(use_field_guards, use_field_guards, FLAG_use_field_guards)                 \
+  V(use_osr, use_osr, FLAG_use_osr)
+
 class Isolate : public BaseIsolate {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
@@ -142,7 +163,6 @@ class Isolate : public BaseIsolate {
     // Internal message ids.
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
-    kVMRestartMsg = 12,     // Sent to isolates when vm is restarting.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -393,6 +413,14 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
+  static void SetCleanupCallback(Dart_IsolateCleanupCallback cb) {
+    cleanup_callback_ = cb;
+  }
+  static Dart_IsolateCleanupCallback CleanupCallback() {
+    return cleanup_callback_;
+  }
+
+
   void set_object_id_ring(ObjectIdRing* ring) { object_id_ring_ = ring; }
   ObjectIdRing* object_id_ring() { return object_id_ring_; }
 
@@ -501,7 +529,7 @@ class Isolate : public BaseIsolate {
     should_pause_post_service_request_ = should_pause_post_service_request;
   }
 
-  void PausePostRequest();
+  RawError* PausePostRequest();
 
   uword user_tag() const { return user_tag_; }
   static intptr_t user_tag_offset() { return OFFSET_OF(Isolate, user_tag_); }
@@ -552,6 +580,8 @@ class Isolate : public BaseIsolate {
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const { return all_classes_finalized_; }
   void set_all_classes_finalized(bool value) { all_classes_finalized_ = value; }
+
+  void set_remapping_cids(bool value) { remapping_cids_ = value; }
 
   // True during top level parsing.
   bool IsTopLevelParsing() {
@@ -618,15 +648,17 @@ class Isolate : public BaseIsolate {
   void FlagsCopyFrom(const Dart_IsolateFlags& api_flags);
 
 #if defined(PRODUCT)
-  bool type_checks() const { return FLAG_enable_type_checks; }
-  bool asserts() const { return FLAG_enable_asserts; }
-  bool error_on_bad_type() const { return FLAG_error_on_bad_type; }
-  bool error_on_bad_override() const { return FLAG_error_on_bad_override; }
+#define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
+  bool name() const { return flag_name; }
+  ISOLATE_FLAG_LIST(DECLARE_GETTER)
+#undef DECLARE_GETTER
+  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
-  bool type_checks() const { return type_checks_; }
-  bool asserts() const { return asserts_; }
-  bool error_on_bad_type() const { return error_on_bad_type_; }
-  bool error_on_bad_override() const { return error_on_bad_override_; }
+#define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
+  bool name() const { return name##_; }
+  ISOLATE_FLAG_LIST(DECLARE_GETTER)
+#undef DECLARE_GETTER
+  void set_use_osr(bool use_osr) { use_osr_ = use_osr; }
 #endif  // defined(PRODUCT)
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -640,6 +672,12 @@ class Isolate : public BaseIsolate {
 
   intptr_t reload_every_n_stack_overflow_checks() const {
     return reload_every_n_stack_overflow_checks_;
+  }
+
+  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
+
+  CatchEntryStateCache* catch_entry_state_cache() {
+    return &catch_entry_state_cache_;
   }
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
@@ -696,7 +734,12 @@ class Isolate : public BaseIsolate {
     return mutator_thread()->zone();
   }
 
-  // Accessed from generated code:
+  // Accessed from generated code.
+  // ** This block of fields must come first! **
+  // For AOT cross-compilation, we rely on these members having the same offsets
+  // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
+  // We use only word-sized fields to avoid differences in struct packing on the
+  // different architectures. See also CheckOffsets in dart.cc.
   StoreBuffer* store_buffer_;
   Heap* heap_;
   uword user_tag_;
@@ -745,10 +788,9 @@ class Isolate : public BaseIsolate {
 
 // Isolate-specific flags.
 #if !defined(PRODUCT)
-  bool type_checks_;
-  bool asserts_;
-  bool error_on_bad_type_;
-  bool error_on_bad_override_;
+#define DECLARE_FIELD(name, isolate_flag_name, flag_name) bool name##_;
+  ISOLATE_FLAG_LIST(DECLARE_FIELD)
+#undef DECLARE_FIELD
 #endif  // !defined(PRODUCT)
 
   // Timestamps of last operation via service.
@@ -793,6 +835,7 @@ class Isolate : public BaseIsolate {
 
   bool compilation_allowed_;
   bool all_classes_finalized_;
+  bool remapping_cids_;
 
   // Isolate list next pointer.
   Isolate* next_;
@@ -831,8 +874,12 @@ class Isolate : public BaseIsolate {
   // Should we pause in the debug message loop after this request?
   bool should_pause_post_service_request_;
 
+  HandlerInfoCache handler_info_cache_;
+  CatchEntryStateCache catch_entry_state_cache_;
+
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
+  static Dart_IsolateCleanupCallback cleanup_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
 

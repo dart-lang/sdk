@@ -6,6 +6,7 @@ library test.services.completion.contributor.dart.imported_ref;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../correction/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
 main() {
@@ -4514,8 +4516,56 @@ class B extends A {
 @reflectiveTest
 class ImportedReferenceContributorTest_Driver
     extends ImportedReferenceContributorTest {
+  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
+    ..generateFlutterWidgetChildrenBoilerPlate = true;
+
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_ArgDefaults_Flutter_cons_with_children() async {
+    addMetaPackageSource();
+
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Container(
+    child: new Row^
+  );
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggestConstructor("Row",
+        defaultArgListString: "children: <Widget>[]",
+        defaultArgumentListTextRanges: [10, 10]);
+  }
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_function_with_required_named() async {
+    addMetaPackageSource();
+
+    resolveSource(
+        '/testB.dart',
+        '''
+lib B;
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+''');
+
+    addTestSource('''
+import "/testB.dart";
+
+void main() {f^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        defaultArgListString: 'bar, baz: null');
+  }
 
   @override
   test_enum_deprecated() {

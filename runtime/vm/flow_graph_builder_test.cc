@@ -215,10 +215,7 @@ class SourcePositionTest : public ValueObject {
       BlockEntryInstr* entry = (*blocks_)[i];
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* instr = it.Current();
-        TokenPosition token_pos = instr->token_pos();
-        if (token_pos.IsSynthetic()) {
-          token_pos = token_pos.FromSynthetic();
-        }
+        const TokenPosition token_pos = instr->token_pos().SourcePosition();
         if (!token_pos.IsReal()) {
           continue;
         }
@@ -772,7 +769,7 @@ static bool SyntheticRoundTripTest(TokenPosition token_pos) {
 }
 
 
-UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
+VM_UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
   EXPECT(TokenPosition::kNoSourcePos == -1);
   EXPECT(TokenPosition::kMinSourcePos == 0);
   EXPECT(TokenPosition::kMaxSourcePos > 0);

@@ -38,8 +38,6 @@ Thread::~Thread() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
-  // All zone allocated memory should be free by this point.
-  ASSERT(current_thread_memory_ == 0);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -50,7 +48,6 @@ Thread::~Thread() {
   delete thread_lock_;
   thread_lock_ = NULL;
 }
-
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
@@ -72,12 +69,13 @@ Thread::Thread(Isolate* isolate)
       store_buffer_block_(NULL),
       vm_tag_(0),
       task_kind_(kUnknownTask),
+      async_stack_trace_(StackTrace::null()),
       dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
-      current_thread_memory_(0),
-      memory_high_watermark_(0),
+      current_zone_capacity_(0),
+      zone_high_watermark_(0),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
       top_resource_(NULL),
@@ -134,6 +132,19 @@ Thread::Thread(Isolate* isolate)
     if (FLAG_compiler_benchmark) {
       compiler_stats_->EnableBenchmark();
     }
+  }
+  // This thread should not yet own any zones. If it does, we need to make sure
+  // we've accounted for any memory it has already allocated.
+  if (zone_ == NULL) {
+    ASSERT(current_zone_capacity_ == 0);
+  } else {
+    Zone* current = zone_;
+    uintptr_t total_zone_capacity = 0;
+    while (current != NULL) {
+      total_zone_capacity += current->CapacityInBytes();
+      current = current->previous();
+    }
+    ASSERT(current_zone_capacity_ == total_zone_capacity);
   }
 }
 
@@ -217,16 +228,8 @@ void Thread::PrintJSON(JSONStream* stream) const {
   jsobj.AddPropertyF("id", "threads/%" Pd "",
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
   jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
-  jsobj.AddPropertyF("_memoryHighWatermark", "%" Pu "", memory_high_watermark_);
-  Zone* zone = zone_;
-  {
-    JSONArray zone_info_array(&jsobj, "zones");
-    zone = zone_;
-    while (zone != NULL) {
-      zone_info_array.AddValue(zone);
-      zone = zone->previous();
-    }
-  }
+  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark_);
+  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity_);
 }
 #endif
 
@@ -271,6 +274,14 @@ void Thread::clear_sticky_error() {
 }
 
 
+RawError* Thread::get_and_clear_sticky_error() {
+  NoSafepointScope nss;
+  RawError* return_value = sticky_error_;
+  sticky_error_ = Error::null();
+  return return_value;
+}
+
+
 const char* Thread::TaskKindToCString(TaskKind kind) {
   switch (kind) {
     case kUnknownTask:
@@ -289,6 +300,27 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       UNREACHABLE();
       return "";
   }
+}
+
+
+RawStackTrace* Thread::async_stack_trace() const {
+  return async_stack_trace_;
+}
+
+
+void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
+  ASSERT(!stack_trace.IsNull());
+  async_stack_trace_ = stack_trace.raw();
+}
+
+
+void Thread::set_raw_async_stack_trace(RawStackTrace* raw_stack_trace) {
+  async_stack_trace_ = raw_stack_trace;
+}
+
+
+void Thread::clear_async_stack_trace() {
+  async_stack_trace_ = StackTrace::null();
 }
 
 
@@ -670,6 +702,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;

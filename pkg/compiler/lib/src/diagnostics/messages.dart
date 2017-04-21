@@ -2,67 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * The messages in this file should meet the following guide lines:
- *
- * 1. The message should be a complete sentence starting with an uppercase
- * letter, and ending with a period.
- *
- * 2. Reserved words and embedded identifiers should be in single quotes, so
- * prefer double quotes for the complete message. For example, "The
- * class '#{className}' can't use 'super'." Notice that the word 'class' in the
- * preceding message is not quoted as it refers to the concept 'class', not the
- * reserved word. On the other hand, 'super' refers to the reserved word. Do
- * not quote 'null' and numeric literals.
- *
- * 3. Do not try to compose messages, as it can make translating them hard.
- *
- * 4. Try to keep the error messages short, but informative.
- *
- * 5. Use simple words and terminology, assume the reader of the message
- * doesn't have an advanced degree in math, and that English is not the
- * reader's native language. Do not assume any formal computer science
- * training. For example, do not use Latin abbreviations (prefer "that is" over
- * "i.e.", and "for example" over "e.g."). Also avoid phrases such as "if and
- * only if" and "iff", that level of precision is unnecessary.
- *
- * 6. Prefer contractions when they are in common use, for example, prefer
- * "can't" over "cannot". Using "cannot", "must not", "shall not", etc. is
- * off-putting to people new to programming.
- *
- * 7. Use common terminology, preferably from the Dart Language
- * Specification. This increases the user's chance of finding a good
- * explanation on the web.
- *
- * 8. Do not try to be cute or funny. It is extremely frustrating to work on a
- * product that crashes with a "tongue-in-cheek" message, especially if you did
- * not want to use this product to begin with.
- *
- * 9. Do not lie, that is, do not write error messages containing phrases like
- * "can't happen".  If the user ever saw this message, it would be a
- * lie. Prefer messages like: "Internal error: This function should not be
- * called when 'x' is null.".
- *
- * 10. Prefer to not use imperative tone. That is, the message should not sound
- * accusing or like it is ordering the user around. The computer should
- * describe the problem, not criticize for violating the specification.
- *
- * Other things to keep in mind:
- *
- * An INFO message should always be preceded by a non-INFO message, and the
- * INFO messages are additional details about the preceding non-INFO
- * message. For example, consider duplicated elements. First report a WARNING
- * or ERROR about the duplicated element, and then report an INFO about the
- * location of the existing element.
- *
- * Generally, we want to provide messages that consists of three sentences:
- * 1. what is wrong, 2. why is it wrong, 3. how do I fix it. However, we
- * combine the first two in [template] and the last in [howToFix].
- */
-
+/// The messages in this file should follow the [Guide for Writing
+/// Diagnostics](../../../../front_end/lib/src/fasta/diagnostics.md).
+///
+/// Other things to keep in mind:
+///
+/// An INFO message should always be preceded by a non-INFO message, and the
+/// INFO messages are additional details about the preceding non-INFO
+/// message. For example, consider duplicated elements. First report a WARNING
+/// or ERROR about the duplicated element, and then report an INFO about the
+/// location of the existing element.
 library dart2js.messages;
 
-import '../tokens/token.dart' show ErrorToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'generated/shared_messages.dart' as shared_messages;
 import 'invariant.dart' show invariant;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
@@ -275,6 +227,7 @@ enum MessageKind {
   INVALID_RECEIVER_IN_INITIALIZER,
   INVALID_SOURCE_FILE_LOCATION,
   INVALID_SYMBOL,
+  INVALID_INLINE_FUNCTION_TYPE,
   INVALID_SYNC_MODIFIER,
   INVALID_TYPE_VARIABLE_BOUND,
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
@@ -291,6 +244,7 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
   LIBRARY_TAG_MUST_BE_FIRST,
+  LIBRARY_URI_MISMATCH,
   MAIN_HAS_PART_OF,
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
@@ -2076,6 +2030,26 @@ part of lib.bar;
             }
           ]),
 
+      MessageKind.LIBRARY_URI_MISMATCH: const MessageTemplate(
+          MessageKind.LIBRARY_URI_MISMATCH,
+          "Expected URI of library '#{libraryUri}'.",
+          howToFix: "Try changing the directive to 'part of "
+              "\"#{libraryUri}\";'.",
+          examples: const [
+            const {
+              'main.dart': """
+library lib.foo;
+
+part 'part.dart';
+
+main() {}
+""",
+              'part.dart': """
+part of 'not-main.dart';
+"""
+            }
+          ]),
+
       MessageKind.MISSING_LIBRARY_NAME: const MessageTemplate(
           MessageKind.MISSING_LIBRARY_NAME,
           "Library has no name. Part directive expected library name "
@@ -3090,7 +3064,9 @@ main() => r\"\"\"
           examples: const [
             "main(",
             "main(){",
-            "main(){]}",
+            "main(){[}",
+            // TODO(ahe): https://github.com/dart-lang/sdk/issues/28495
+            // "main(){]}",
           ]),
 
       MessageKind.UNTERMINATED_TOKEN: const MessageTemplate(
@@ -3316,6 +3292,17 @@ Please include the following information:
           "When run on the command-line, the compiled output might"
           " require a preamble file located in:\n"
           "  <sdk>/lib/_internal/js_runtime/lib/preambles."),
+
+      MessageKind.INVALID_INLINE_FUNCTION_TYPE: const MessageTemplate(
+        MessageKind.INVALID_INLINE_FUNCTION_TYPE,
+        "Invalid inline function type.",
+        howToFix: "Try changing the inline function type (as in 'int f()') to"
+            " a prefixed function type using the `Function` keyword (as in "
+            "'int Function() f').",
+        examples: const [
+          "typedef F = Function(int f(String x)); main() { F f; }"
+        ],
+      ),
 
       MessageKind.INVALID_SYNC_MODIFIER: const MessageTemplate(
           MessageKind.INVALID_SYNC_MODIFIER, "Invalid modifier 'sync'.",
@@ -3807,7 +3794,7 @@ class Message {
       // Shouldn't happen.
       return value.assertionMessage;
     } else if (value is Token) {
-      value = value.value;
+      value = value.lexeme;
     }
     return '$value';
   }

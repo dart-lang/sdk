@@ -23,7 +23,7 @@ Future<Compiler> applyPatch(String script, String patch,
     bool analyzeOnly: false,
     bool runCompiler: false,
     String main: "",
-    String patchVersion}) {
+    String patchVersion}) async {
   Map<String, String> core = <String, String>{'script': script};
   MockCompiler compiler = new MockCompiler.internal(
       coreSource: core,
@@ -33,13 +33,12 @@ Future<Compiler> applyPatch(String script, String patch,
   compiler.diagnosticHandler = createHandler(compiler, '');
   var uri = Uri.parse("patch:core");
   compiler.registerSource(uri, "$DEFAULT_PATCH_CORE_SOURCE\n$patch");
-  var future;
   if (runCompiler) {
-    future = compiler.run(null, main);
+    await compiler.run(null, main);
   } else {
-    future = compiler.init(main);
+    await compiler.init(main);
   }
-  return future.then((_) => compiler);
+  return compiler;
 }
 
 void expectHasBody(compiler, ElementX element) {

@@ -50,8 +50,11 @@ class FlutterTarget extends Target {
         'dart:vmservice_sky',
       ];
 
-  void transformProgram(Program program) {
+  void performModularTransformations(Program program) {
     new mix.MixinFullResolution().transform(program);
+  }
+
+  void performGlobalTransformations(Program program) {
     cont.transformProgram(program);
 
     // Repair `_getMainClosure()` function in dart:{_builtin,ui} libraries.

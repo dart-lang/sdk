@@ -4,18 +4,39 @@
 
 library dart2js.constants.evaluation;
 
-import '../compiler.dart' show Compiler;
+import '../common.dart';
+import '../common/backend_api.dart' show BackendClasses;
+import '../common_elements.dart' show CommonElements;
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import 'constructors.dart';
 import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
 abstract class Environment {
   // TODO(johnniwinther): Replace this with [CommonElements] and maybe
   // [Backend].
-  Compiler get compiler;
+  CommonElements get commonElements;
+
+  BackendClasses get backendClasses;
 
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
+
+  /// Returns the [ConstantExpression] for the value of the constant [local].
+  ConstantExpression getLocalConstant(Local local);
+
+  /// Returns the [ConstantExpression] for the value of the constant [field].
+  ConstantExpression getFieldConstant(FieldEntity field);
+
+  /// Returns the [ConstantConstructor] corresponding to the constant
+  /// [constructor].
+  ConstantConstructor getConstructorConstant(ConstructorEntity constructor);
+
+  /// Performs the substitution of the type arguments of [target] for their
+  /// corresponding type variables in [type].
+  InterfaceType substByContext(InterfaceType base, InterfaceType target);
 }
 
 /// The normalized arguments passed to a const constructor computed from the
@@ -32,17 +53,62 @@ class NormalizedArguments {
     int index = callStructure.namedArguments.indexOf(name);
     if (index == -1) {
       // The named argument is not provided.
+      invariant(CURRENT_ELEMENT_SPANNABLE, defaultValues[name] != null,
+          message: "No default value for named argument '$name' in $this.");
       return defaultValues[name];
     }
-    return arguments[index + callStructure.positionalArgumentCount];
+    ConstantExpression value =
+        arguments[index + callStructure.positionalArgumentCount];
+    invariant(CURRENT_ELEMENT_SPANNABLE, value != null,
+        message: "No value for named argument '$name' in $this.");
+    return value;
   }
 
   /// Returns the normalized [index]th positional argument.
   ConstantExpression getPositionalArgument(int index) {
     if (index >= callStructure.positionalArgumentCount) {
       // The positional argument is not provided.
+      invariant(CURRENT_ELEMENT_SPANNABLE, defaultValues[index] != null,
+          message: "No default value for positional argument $index in $this.");
       return defaultValues[index];
     }
-    return arguments[index];
+    ConstantExpression value = arguments[index];
+    invariant(CURRENT_ELEMENT_SPANNABLE, value != null,
+        message: "No value for positional argument $index in $this.");
+    return value;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('NormalizedArguments[');
+    sb.write('defaultValues={');
+    bool needsComma = false;
+    defaultValues.forEach((var key, ConstantExpression value) {
+      if (needsComma) {
+        sb.write(',');
+      }
+      if (key is String) {
+        sb.write('"');
+        sb.write(key);
+        sb.write('"');
+      } else {
+        sb.write(key);
+      }
+      sb.write(':');
+      sb.write(value.toStructuredText());
+      needsComma = true;
+    });
+    sb.write('},callStructure=');
+    sb.write(callStructure);
+    sb.write(',arguments=[');
+    arguments.forEach((ConstantExpression value) {
+      if (needsComma) {
+        sb.write(',');
+      }
+      sb.write(value.toStructuredText());
+      needsComma = true;
+    });
+    sb.write(']]');
+    return sb.toString();
   }
 }

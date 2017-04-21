@@ -17,10 +17,12 @@ class FileSystemEntityType {
   static const DIRECTORY = const FileSystemEntityType._internal(1);
   static const LINK = const FileSystemEntityType._internal(2);
   static const NOT_FOUND = const FileSystemEntityType._internal(3);
-  static const _typeList = const [FileSystemEntityType.FILE,
-                                  FileSystemEntityType.DIRECTORY,
-                                  FileSystemEntityType.LINK,
-                                  FileSystemEntityType.NOT_FOUND];
+  static const _typeList = const [
+    FileSystemEntityType.FILE,
+    FileSystemEntityType.DIRECTORY,
+    FileSystemEntityType.LINK,
+    FileSystemEntityType.NOT_FOUND
+  ];
   final int _type;
 
   const FileSystemEntityType._internal(this._type);
@@ -76,19 +78,18 @@ class FileStat {
    */
   final int size;
 
-  FileStat._internal(this.changed,
-                     this.modified,
-                     this.accessed,
-                     this.type,
-                     this.mode,
-                     this.size);
+  FileStat._internal(this.changed, this.modified, this.accessed, this.type,
+      this.mode, this.size);
 
-  const FileStat._internalNotFound() :
-      changed = null,  modified = null, accessed = null,
-      type = FileSystemEntityType.NOT_FOUND, mode = 0, size = -1;
+  const FileStat._internalNotFound()
+      : changed = null,
+        modified = null,
+        accessed = null,
+        type = FileSystemEntityType.NOT_FOUND,
+        mode = 0,
+        size = -1;
 
   external static _statSync(String path);
-
 
   /**
    * Calls the operating system's stat() function on [path].
@@ -163,13 +164,12 @@ FileStat: type $type
     if ((permissions & 0x400) != 0) result.add("(guid) ");
     if ((permissions & 0x200) != 0) result.add("(sticky) ");
     result
-        ..add(codes[(permissions >> 6) & 0x7])
-        ..add(codes[(permissions >> 3) & 0x7])
-        ..add(codes[permissions & 0x7]);
+      ..add(codes[(permissions >> 6) & 0x7])
+      ..add(codes[(permissions >> 3) & 0x7])
+      ..add(codes[permissions & 0x7]);
     return result.join();
   }
 }
-
 
 /**
  * The common super class for [File], [Directory], and [Link] objects.
@@ -264,7 +264,7 @@ abstract class FileSystemEntity {
    */
   Future<FileSystemEntity> rename(String newPath);
 
-   /**
+  /**
    * Synchronously renames this file system entity. Returns a [FileSystemEntity]
    * instance for the renamed entity.
    *
@@ -303,15 +303,14 @@ abstract class FileSystemEntity {
    * behavior.
    */
   Future<String> resolveSymbolicLinks() {
-    return _IOService._dispatch(_FILE_RESOLVE_SYMBOLIC_LINKS, [path])
-        .then((response) {
-          if (_isErrorResponse(response)) {
-            throw _exceptionFromResponse(response,
-                                         "Cannot resolve symbolic links",
-                                         path);
-          }
-          return response;
-        });
+    return _IOService
+        ._dispatch(_FILE_RESOLVE_SYMBOLIC_LINKS, [path]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(
+            response, "Cannot resolve symbolic links", path);
+      }
+      return response;
+    });
   }
 
   /**
@@ -347,7 +346,6 @@ abstract class FileSystemEntity {
     return result;
   }
 
-
   /**
    * Calls the operating system's stat() function on the [path] of this
    * [FileSystemEntity].  Identical to [:FileStat.stat(this.path):].
@@ -359,7 +357,7 @@ abstract class FileSystemEntity {
    * with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
-  Future<FileStat> stat();
+  Future<FileStat> stat() => FileStat.stat(path);
 
   /**
    * Synchronously calls the operating system's stat() function on the
@@ -371,7 +369,7 @@ abstract class FileSystemEntity {
    * If the call fails, returns a [FileStat] object with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
-  FileStat statSync();
+  FileStat statSync() => FileStat.statSync(path);
 
   /**
    * Deletes this [FileSystemEntity].
@@ -391,8 +389,8 @@ abstract class FileSystemEntity {
    * [FileSystemEntity] when the deletion is done. If the [FileSystemEntity]
    * cannot be deleted, the future completes with an exception.
    */
-  Future<FileSystemEntity> delete({bool recursive: false})
-      => _delete(recursive: recursive);
+  Future<FileSystemEntity> delete({bool recursive: false}) =>
+      _delete(recursive: recursive);
 
   /**
    * Synchronously deletes this [FileSystemEntity].
@@ -410,9 +408,7 @@ abstract class FileSystemEntity {
    *
    * Throws an exception if the [FileSystemEntity] cannot be deleted.
    */
-  void deleteSync({bool recursive: false})
-      => _deleteSync(recursive: recursive);
-
+  void deleteSync({bool recursive: false}) => _deleteSync(recursive: recursive);
 
   /**
    * Start watching the [FileSystemEntity] for changes.
@@ -433,7 +429,7 @@ abstract class FileSystemEntity {
    * being listened to, not when the call to [watch] is issued.
    *
    * The returned value is an endless broadcast [Stream], that only stops when
-   * one of the following happends:
+   * one of the following happens:
    *
    *   * The [Stream] is canceled, e.g. by calling `cancel` on the
    *      [StreamSubscription].
@@ -445,11 +441,10 @@ abstract class FileSystemEntity {
    *
    * A move event may be reported as seperate delete and create events.
    */
-  Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
-                                 bool recursive: false})
-     => _FileSystemWatcher._watch(_trimTrailingPathSeparators(path),
-                                 events,
-                                 recursive);
+  Stream<FileSystemEvent> watch(
+          {int events: FileSystemEvent.ALL, bool recursive: false}) =>
+      _FileSystemWatcher._watch(
+          _trimTrailingPathSeparators(path), events, recursive);
 
   Future<FileSystemEntity> _delete({bool recursive: false});
   void _deleteSync({bool recursive: false});
@@ -467,7 +462,8 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    return _IOService._dispatch(_FILE_IDENTICAL, [path1, path2]).then((response) {
+    return _IOService
+        ._dispatch(_FILE_IDENTICAL, [path1, path2]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
             "Error in FileSystemEntity.identical($path1, $path2)", "");
@@ -515,7 +511,6 @@ abstract class FileSystemEntity {
     }
   }
 
-
   /**
    * Synchronously checks whether two paths refer to the same object in the
    * file system.
@@ -554,8 +549,8 @@ abstract class FileSystemEntity {
    * caused by passing the wrong type of arguments to the function.
    */
   static Future<FileSystemEntityType> type(String path,
-                                           {bool followLinks: true})
-      => _getTypeAsync(path, followLinks).then(FileSystemEntityType._lookup);
+          {bool followLinks: true}) =>
+      _getTypeAsync(path, followLinks).then(FileSystemEntityType._lookup);
 
   /**
    * Synchronously finds the type of file system object that a path points to.
@@ -569,8 +564,8 @@ abstract class FileSystemEntity {
    * error or exception that may be thrown is ArgumentError,
    * caused by passing the wrong type of arguments to the function.
    */
-  static FileSystemEntityType typeSync(String path, {bool followLinks: true})
-      => FileSystemEntityType._lookup(_getTypeSync(path, followLinks));
+  static FileSystemEntityType typeSync(String path, {bool followLinks: true}) =>
+      FileSystemEntityType._lookup(_getTypeSync(path, followLinks));
 
   /**
    * Checks if type(path, followLinks: false) returns
@@ -617,9 +612,9 @@ abstract class FileSystemEntity {
   external static _resolveSymbolicLinks(String path);
 
   // Finds the next-to-last component when dividing at path separators.
-  static final RegExp _parentRegExp = Platform.isWindows ?
-     new RegExp(r'[^/\\][/\\]+[^/\\]') :
-     new RegExp(r'[^/]/+[^/]');
+  static final RegExp _parentRegExp = Platform.isWindows
+      ? new RegExp(r'[^/\\][/\\]+[^/\\]')
+      : new RegExp(r'[^/]/+[^/]');
 
   /**
    * Removes the final path component of a path, using the platform's
@@ -653,8 +648,7 @@ abstract class FileSystemEntity {
   }
 
   /**
-   * The directory containing [this].  If [this] is a root
-   * directory, returns [this].
+   * The directory containing [this].
    */
   Directory get parent => new Directory(parentOf(path));
 
@@ -665,13 +659,13 @@ abstract class FileSystemEntity {
   }
 
   static Future<int> _getTypeAsync(String path, bool followLinks) {
-    return _IOService._dispatch(_FILE_TYPE, [path, followLinks])
-      .then((response) {
-        if (_isErrorResponse(response)) {
-          throw _exceptionFromResponse(response, "Error getting type", path);
-        }
-        return response;
-      });
+    return _IOService
+        ._dispatch(_FILE_TYPE, [path, followLinks]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response, "Error getting type", path);
+      }
+      return response;
+    });
   }
 
   static _throwIfError(Object result, String msg, [String path]) {
@@ -687,8 +681,7 @@ abstract class FileSystemEntity {
     if (path is! String) return path;
     if (Platform.isWindows) {
       while (path.length > 1 &&
-             (path.endsWith(Platform.pathSeparator) ||
-              path.endsWith('/'))) {
+          (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
         path = path.substring(0, path.length - 1);
       }
     } else {
@@ -715,7 +708,6 @@ abstract class FileSystemEntity {
     return path;
   }
 }
-
 
 /**
  * Base event class emitted by [FileSystemEntity.watch].
@@ -770,7 +762,6 @@ class FileSystemEvent {
   FileSystemEvent._(this.type, this.path, this.isDirectory);
 }
 
-
 /**
  * File system event for newly created file system objects.
  */
@@ -780,7 +771,6 @@ class FileSystemCreateEvent extends FileSystemEvent {
 
   String toString() => "FileSystemCreateEvent('$path')";
 }
-
 
 /**
  * File system event for modifications of file system objects.
@@ -799,7 +789,6 @@ class FileSystemModifyEvent extends FileSystemEvent {
       "FileSystemModifyEvent('$path', contentChanged=$contentChanged)";
 }
 
-
 /**
  * File system event for deletion of file system objects.
  */
@@ -809,7 +798,6 @@ class FileSystemDeleteEvent extends FileSystemEvent {
 
   String toString() => "FileSystemDeleteEvent('$path')";
 }
-
 
 /**
  * File system event for moving of file system objects.
@@ -832,7 +820,6 @@ class FileSystemMoveEvent extends FileSystemEvent {
     return buffer.toString();
   }
 }
-
 
 class _FileSystemWatcher {
   external static Stream<FileSystemEvent> _watch(

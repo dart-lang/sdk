@@ -96,6 +96,7 @@ class ParsedFunction : public ZoneAllocated {
         node_sequence_(NULL),
         regexp_compile_data_(NULL),
         instantiator_(NULL),
+        function_instantiator_(NULL),
         current_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
@@ -130,8 +131,15 @@ class ParsedFunction : public ZoneAllocated {
 
   LocalVariable* instantiator() const { return instantiator_; }
   void set_instantiator(LocalVariable* instantiator) {
-    // May be NULL.
+    ASSERT(instantiator != NULL);
     instantiator_ = instantiator;
+  }
+  LocalVariable* function_instantiator() const {
+    return function_instantiator_;
+  }
+  void set_function_instantiator(LocalVariable* function_instantiator) {
+    ASSERT(function_instantiator != NULL);
+    function_instantiator_ = function_instantiator;
   }
 
   void set_default_parameter_values(ZoneGrowableArray<const Instance*>* list) {
@@ -224,6 +232,7 @@ class ParsedFunction : public ZoneAllocated {
   SequenceNode* node_sequence_;
   RegExpCompileData* regexp_compile_data_;
   LocalVariable* instantiator_;
+  LocalVariable* function_instantiator_;
   LocalVariable* current_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
@@ -403,6 +412,7 @@ class Parser : public ValueObject {
   bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
   void SkipType(bool allow_void);
+  void SkipTypeOrFunctionType(bool allow_void);
   void SkipInitializers();
   void SkipExpr();
   void SkipNestedExpr();
@@ -513,8 +523,9 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveType(ClassFinalizer::FinalizationKind finalization,
-                   AbstractType* type);
+  void ResolveSignature(const Function& signature);
+  void ResolveType(AbstractType* type);
+  RawAbstractType* CanonicalizeType(const AbstractType& type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
                              bool consume_unresolved_prefix = true);
@@ -522,7 +533,11 @@ class Parser : public ValueObject {
                              bool allow_deferred_type,
                              bool consume_unresolved_prefix,
                              LibraryPrefix* prefix);
-
+  RawType* ParseFunctionType(const AbstractType& result_type,
+                             ClassFinalizer::FinalizationKind finalization);
+  RawAbstractType* ParseTypeOrFunctionType(
+      bool allow_void,
+      ClassFinalizer::FinalizationKind finalization);
   void ParseTypeParameters(bool parameterizing_class);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
@@ -531,13 +546,16 @@ class Parser : public ValueObject {
   void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
   void ParseClassMemberDefinition(ClassDesc* members,
                                   TokenPosition metadata_pos);
+  void ParseParameterType(ParamList* params);
   void ParseFormalParameter(bool allow_explicit_default_value,
                             bool evaluate_metadata,
                             ParamList* params);
-  void ParseFormalParameters(bool allow_explicit_default_values,
+  void ParseFormalParameters(bool use_function_type_syntax,
+                             bool allow_explicit_default_values,
                              bool evaluate_metadata,
                              ParamList* params);
-  void ParseFormalParameterList(bool allow_explicit_default_values,
+  void ParseFormalParameterList(bool use_function_type_syntax,
+                                bool allow_explicit_default_values,
                                 bool evaluate_metadata,
                                 ParamList* params);
   void CheckFieldsInitialized(const Class& cls);
@@ -601,6 +619,7 @@ class Parser : public ValueObject {
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          TokenPosition token_pos,
                                          AstNode* receiver);
+  void FinalizeFormalParameterTypes(const ParamList* params);
   void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
@@ -647,8 +666,10 @@ class Parser : public ValueObject {
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
 
-  SequenceNode* CloseAsyncClosure(SequenceNode* body);
-  SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block);
+  SequenceNode* CloseAsyncClosure(SequenceNode* body,
+                                  TokenPosition func_end_pos);
+  SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block,
+                                   TokenPosition func_end_pos);
   SequenceNode* CloseAsyncGeneratorTryBlock(SequenceNode* body);
 
   void AddAsyncClosureParameters(ParamList* params);
@@ -660,7 +681,8 @@ class Parser : public ValueObject {
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);
   void CaptureInstantiator();
-  void CaptureFunctionInstantiator();
+  void CaptureFunctionInstantiators();
+  void CaptureAllInstantiators();
   AstNode* LoadReceiver(TokenPosition token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
@@ -749,15 +771,15 @@ class Parser : public ValueObject {
   bool IsIdentifier();
   bool IsSymbol(const String& symbol);
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
-  bool IsFunctionTypeAliasName();
+  bool IsFunctionTypeSymbol();
+  bool IsFunctionTypeAliasName(bool* use_function_type_syntax);
   bool TryParseQualIdent();
   bool TryParseTypeParameters();
   bool TryParseTypeArguments();
   bool IsTypeParameters();
   bool IsArgumentPart();
   bool IsParameterPart();
-  bool TryParseOptionalType();
-  bool TryParseReturnType();
+  bool TryParseType(bool allow_void);
   bool IsVariableDeclaration();
   bool IsFunctionReturnType();
   bool IsFunctionDeclaration();
@@ -824,6 +846,8 @@ class Parser : public ValueObject {
   bool ParsingStaticMember() const;
   const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
+  bool AreFunctionInstantiatorsRequired() const;
+  bool InGenericFunctionScope() const;
   bool ResolveIdentInLocalScope(TokenPosition ident_pos,
                                 const String& ident,
                                 AstNode** node,

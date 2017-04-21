@@ -4,6 +4,7 @@
 
 library analysis_server.src.services.completion.completion_core;
 
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -35,6 +36,9 @@ class CompletionRequestImpl implements CompletionRequest {
 
   @override
   final int offset;
+
+  @override
+  IdeOptions ideOptions;
 
   /**
    * The offset of the start of the text to be replaced.
@@ -74,7 +78,8 @@ class CompletionRequestImpl implements CompletionRequest {
       this.searchEngine,
       Source source,
       int offset,
-      this.performance)
+      this.performance,
+      this.ideOptions)
       : this.context = context,
         this.source = source,
         this.offset = offset,

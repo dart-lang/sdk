@@ -42,13 +42,34 @@ requirejs.config({
 // TODO(vsm): Factor out test framework code in test/browser/language_tests.js
 // and use here.  Async tests and unittests won't work without it.
 var sdk = requirejs('dart_sdk');
+sdk.dart.ignoreWhitelistedErrors(false);
+
+function finish(e) {
+  if (e) {
+    console.log('Test ' + test + ' failed:\n' + e.toString());
+    sdk.dart.stackPrint(e);
+  } else {
+    console.log('Test ' + test + ' passed.');
+  }
+}
+
+var async_helper = requirejs('async_helper').async_helper;
+async_helper.asyncTestInitialize(finish);
+
 var module = requirejs(test);
 var lib = test.split('/').slice(-1)[0];
 try {
-  sdk._isolate_helper.startRootIsolate(() => {}, []);
-  module[lib].main();
-  console.log('Test ' + test + ' passed.');
+  var result = sdk._isolate_helper.startRootIsolate(module[lib].main, []);
+  // async_helper tests call finish directly - call here for all other
+  // tests.
+  if (!async_helper.asyncTestStarted) {
+    if (!result || !(result instanceof dart_sdk.async.Future)) {
+      finish();
+    } else {
+      // Wait iff result is a future
+      result.then(dart_sdk.dart.dynamic)(() => finish());
+    }
+  }
 } catch (e) {
-  console.log('Test ' + test + ' failed:\n' + e.toString());
-  sdk.dart.stackPrint(e);
+  finish(e);
 }

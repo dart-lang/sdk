@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include <sys/syscall.h>  // NOLINT
 #include <errno.h>        // NOLINT
@@ -47,10 +47,15 @@ class ThreadInterrupterAndroid : public AllStatic {
 };
 
 
+bool ThreadInterrupter::IsDebuggerAttached() {
+  return false;
+}
+
+
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
-    OS::Print("ThreadInterrupter interrupting %p\n",
-              reinterpret_cast<void*>(thread->id()));
+    OS::PrintErr("ThreadInterrupter interrupting %p\n",
+                 reinterpret_cast<void*>(thread->id()));
   }
   int result = syscall(__NR_tgkill, getpid(), thread->id(), SIGPROF);
   ASSERT((result == 0) || (result == ESRCH));
@@ -71,4 +76,4 @@ void ThreadInterrupter::RemoveSignalHandler() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)

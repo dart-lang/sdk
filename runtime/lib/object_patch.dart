@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class Object {
-
+@patch
+class Object {
   // The VM has its own implementation of equals.
-  @patch bool operator ==(other) native "Object_equals";
+  @patch
+  bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
   // in a weak table in the VM. A new hashCode value is calculated using a
@@ -29,47 +30,42 @@
     return result;
   }
 
-  @patch int get hashCode => _objectHashCode(this);
+  @patch
+  int get hashCode => _objectHashCode(this);
   int get _identityHashCode => _objectHashCode(this);
 
-  @patch String toString() native "Object_toString";
+  @patch
+  String toString() native "Object_toString";
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
-  _noSuchMethod(bool isMethod,
-                String memberName,
-                int type,
-                List arguments,
-                Map<String, dynamic> namedArguments)
-      native "Object_noSuchMethod";
+  _noSuchMethod(bool isMethod, String memberName, int type, List arguments,
+      Map<String, dynamic> namedArguments) native "Object_noSuchMethod";
 
-  @patch noSuchMethod(Invocation invocation) {
-    return _noSuchMethod(invocation.isMethod,
-                         internal.Symbol.getName(invocation.memberName),
-                         invocation._type,
-                         invocation.positionalArguments,
-                         _symbolMapToStringMap(invocation.namedArguments));
+  @patch
+  dynamic noSuchMethod(Invocation invocation) {
+    return _noSuchMethod(
+        invocation.isMethod,
+        internal.Symbol.getName(invocation.memberName),
+        invocation._type,
+        invocation.positionalArguments,
+        _symbolMapToStringMap(invocation.namedArguments));
   }
 
-  @patch Type get runtimeType native "Object_runtimeType";
+  @patch
+  Type get runtimeType native "Object_runtimeType";
 
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  bool _instanceOf(instantiator_type_arguments, type, bool negate)
+  bool _instanceOf(instantiator_type_arguments, type)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
   bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
   bool _simpleInstanceOfTrue(type) => true;
   bool _simpleInstanceOfFalse(type) => false;
-
-  bool _instanceOfDouble(bool negate) native "Object_instanceOfDouble";
-  bool _instanceOfNum(bool negate) native "Object_instanceOfNum";
-  bool _instanceOfInt(bool negate) native "Object_instanceOfInt";
-  bool _instanceOfSmi(bool negate) native "Object_instanceOfSmi";
-  bool _instanceOfString(bool negate) native "Object_instanceOfString";
 
   // Call this function instead of inlining 'as', thus collecting type
   // feedback. Returns receiver.

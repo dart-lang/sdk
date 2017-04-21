@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -25,9 +26,15 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
+import 'package:analyzer/src/fasta/element_store.dart' as fasta;
+import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
+import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
+import 'package:front_end/src/fasta/builder/scope.dart' as fasta;
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:meta/meta.dart';
 
 /**
@@ -68,6 +75,8 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
+  static const bool USE_FASTA_PARSER = false;
+
   final FileSystemState _fsState;
 
   /**
@@ -86,9 +95,12 @@ class FileState {
   Source source;
 
   bool _exists;
+  List<int> _contentBytes;
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
+  Set<String> _definedTopLevelNames;
+  Set<String> _definedClassMemberNames;
   Set<String> _referencedNames;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
@@ -121,6 +133,16 @@ class FileState {
    * The MD5 hash of the [content].
    */
   String get contentHash => _contentHash;
+
+  /**
+   * The class member names defined by the file.
+   */
+  Set<String> get definedClassMemberNames => _definedClassMemberNames;
+
+  /**
+   * The top-level names defined by the file.
+   */
+  Set<String> get definedTopLevelNames => _definedTopLevelNames;
 
   /**
    * Return the set of all directly referenced files - imported, exported or
@@ -192,9 +214,10 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   /**
-   * Return `true` if the file has a `part of` directive, so is probably a part.
+   * Return `true` if the file does not have a `library` directive, and has a
+   * `part of` directive, so is probably a part.
    */
-  bool get isPart => _unlinked.isPartOf;
+  bool get isPart => _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
 
   /**
    * If the file [isPart], return a currently know library the file is a part
@@ -332,18 +355,44 @@ class FileState {
   CompilationUnit parse(AnalysisErrorListener errorListener) {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
 
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = analysisOptions.strongMode;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    if (USE_FASTA_PARSER) {
+      try {
+        fasta.ScannerResult scanResult =
+            fasta.scan(_contentBytes, includeComments: true);
 
-    Parser parser = new Parser(source, errorListener);
-    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
-    parser.parseGenericMethodComments = analysisOptions.strongMode;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
+        var astBuilder = new fasta.AstBuilder(
+            new ErrorReporter(errorListener, source),
+            null,
+            null,
+            new _FastaElementStoreProxy(),
+            new _FastaEmptyScope(),
+            uri);
+        var parser = new fasta.Parser(astBuilder);
+        parser.parseUnit(scanResult.tokens);
+        var unit = astBuilder.pop() as CompilationUnit;
+
+        LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+        unit.lineInfo = lineInfo;
+        return unit;
+      } catch (e, st) {
+        print(e);
+        print(st);
+        rethrow;
+      }
+    } else {
+      CharSequenceReader reader = new CharSequenceReader(content);
+      Scanner scanner = new Scanner(source, reader, errorListener);
+      scanner.scanGenericMethodComments = analysisOptions.strongMode;
+      Token token = scanner.tokenize();
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+      Parser parser = new Parser(source, errorListener);
+      parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
+      parser.parseGenericMethodComments = analysisOptions.strongMode;
+      CompilationUnit unit = parser.parseCompilationUnit(token);
+      unit.lineInfo = lineInfo;
+      return unit;
+    }
   }
 
   /**
@@ -363,6 +412,13 @@ class FileState {
       _exists = false;
     }
 
+    if (USE_FASTA_PARSER) {
+      var bytes = UTF8.encode(_content);
+      _contentBytes = new Uint8List(bytes.length + 1);
+      _contentBytes.setRange(0, bytes.length, bytes);
+      _contentBytes[_contentBytes.length - 1] = 0;
+    }
+
     // Compute the content hash.
     List<int> contentBytes = UTF8.encode(_content);
     {
@@ -375,7 +431,8 @@ class FileState {
     {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
-      signature.addBytes(contentBytes);
+      signature.addInt(contentBytes.length);
+      signature.addString(_contentHash);
       unlinkedKey = '${signature.toHex()}.unlinked';
     }
 
@@ -388,8 +445,13 @@ class FileState {
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           List<String> referencedNames = computeReferencedNames(unit).toList();
+          DefinedNames definedNames = computeDefinedNames(unit);
           bytes = new AnalysisDriverUnlinkedUnitBuilder(
-                  unit: unlinkedUnit, referencedNames: referencedNames)
+                  unit: unlinkedUnit,
+                  definedTopLevelNames: definedNames.topLevelNames.toList(),
+                  definedClassMemberNames:
+                      definedNames.classMemberNames.toList(),
+                  referencedNames: referencedNames)
               .toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
@@ -398,13 +460,16 @@ class FileState {
 
     // Read the unlinked bundle.
     var driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _referencedNames = new Set<String>.from(driverUnlinkedUnit.referencedNames);
+    _definedTopLevelNames = driverUnlinkedUnit.definedTopLevelNames.toSet();
+    _definedClassMemberNames =
+        driverUnlinkedUnit.definedClassMemberNames.toSet();
+    _referencedNames = driverUnlinkedUnit.referencedNames.toSet();
     _unlinked = driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
     _topLevelDeclarations = null;
 
     // Prepare API signature.
-    List<int> newApiSignature = _unlinked.apiSignature;
+    List<int> newApiSignature = new Uint8List.fromList(_unlinked.apiSignature);
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
@@ -489,10 +554,16 @@ class FileState {
   String toString() => path;
 
   /**
-   * Return the [FileState] for the given [relativeUri].
+   * Return the [FileState] for the given [relativeUri], or `null` if the URI
+   * cannot be parsed, cannot correspond any file, etc.
    */
   FileState _fileForRelativeUri(String relativeUri) {
-    Uri absoluteUri = resolveRelativeUri(uri, FastUri.parse(relativeUri));
+    Uri absoluteUri;
+    try {
+      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+    } on FormatException {
+      return null;
+    }
     return _fsState.getFileForUri(absoluteUri);
   }
 
@@ -540,6 +611,11 @@ class FileSystemState {
   final Set<String> knownFilePaths = new Set<String>();
 
   /**
+   * Mapping from a path to the flag whether there is a URI for the path.
+   */
+  final Map<String, bool> _hasUriForPath = {};
+
+  /**
    * Mapping from a path to the corresponding [FileState]s, canonical or not.
    */
   final Map<String, List<FileState>> _pathToFiles = {};
@@ -570,8 +646,8 @@ class FileSystemState {
   /**
    * Return the known files.
    */
-  Iterable<FileState> get knownFiles =>
-      _pathToFiles.values.map((files) => files.first);
+  List<FileState> get knownFiles =>
+      _pathToFiles.values.map((files) => files.first).toList();
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -592,7 +668,7 @@ class FileSystemState {
       // Try to get the existing instance.
       file = _uriToFile[uri];
       // If we have a file, call it the canonical one and return it.
-      if (file != null && file.path == path) {
+      if (file != null) {
         _pathToCanonicalFile[path] = file;
         return file;
       }
@@ -648,6 +724,26 @@ class FileSystemState {
   }
 
   /**
+   * Return `true` if there is a URI that can be resolved to the [path].
+   *
+   * When a file exists, but for the URI that corresponds to the file is
+   * resolved to another file, e.g. a generated one in Bazel, Gn, etc, we
+   * cannot analyze the original file.
+   */
+  bool hasUri(String path) {
+    bool flag = _hasUriForPath[path];
+    if (flag == null) {
+      File resource = _resourceProvider.getFile(path);
+      Source fileSource = resource.createSource();
+      Uri uri = _sourceFactory.restoreUri(fileSource);
+      Source uriSource = _sourceFactory.forUri2(uri);
+      flag = uriSource.fullName == path;
+      _hasUriForPath[path] = flag;
+    }
+    return flag;
+  }
+
+  /**
    * Remove the file with the given [path].
    */
   void removeFile(String path) {
@@ -686,4 +782,30 @@ class FileSystemStateTestView {
         .where((f) => f._transitiveSignature == null)
         .toSet();
   }
+}
+
+class _FastaElementProxy implements fasta.KernelClassElement {
+  @override
+  final fasta.KernelInterfaceType rawType = new _FastaInterfaceTypeProxy();
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FastaElementStoreProxy implements fasta.ElementStore {
+  final _elements = <fasta.Builder, _FastaElementProxy>{};
+
+  @override
+  _FastaElementProxy operator [](fasta.Builder builder) =>
+      _elements.putIfAbsent(builder, () => new _FastaElementProxy());
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FastaEmptyScope extends fasta.Scope {
+  _FastaEmptyScope() : super({}, null);
+}
+
+class _FastaInterfaceTypeProxy implements fasta.KernelInterfaceType {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

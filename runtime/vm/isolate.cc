@@ -314,8 +314,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case Isolate::kKillMsg:
-    case Isolate::kInternalKillMsg:
-    case Isolate::kVMRestartMsg: {
+    case Isolate::kInternalKillMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
       if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(zone, message.At(3));
@@ -336,16 +335,6 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
             const String& msg =
                 String::Handle(String::New("isolate terminated by vm"));
             return UnwindError::New(msg);
-          } else if (msg_type == Isolate::kVMRestartMsg) {
-            // If this is the main isolate, this request to restart
-            // will be caught and handled in the embedder.  Otherwise
-            // this unwind error will cause the isolate to exit.
-            const String& msg = String::Handle(
-                String::New("isolate terminated for vm restart"));
-            const UnwindError& error =
-                UnwindError::Handle(UnwindError::New(msg));
-            error.set_is_vm_restart(true);
-            return error.raw();
           } else {
             UNREACHABLE();
           }
@@ -531,7 +520,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
           switch (Smi::Cast(oob_tag).Value()) {
             case Message::kServiceOOBMsg: {
               if (FLAG_support_service) {
-                Service::HandleIsolateMessage(I, oob_msg);
+                const Error& error =
+                    Error::Handle(Service::HandleIsolateMessage(I, oob_msg));
+                if (!error.IsNull()) {
+                  status = ProcessUnhandledException(error);
+                }
               } else {
                 UNREACHABLE();
               }
@@ -650,11 +643,7 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
   if (error.IsUnwindError()) {
     const UnwindError& unwind = UnwindError::Cast(error);
     if (!unwind.is_user_initiated()) {
-      if (unwind.is_vm_restart()) {
-        return MessageHandler::kRestart;
-      } else {
-        return MessageHandler::kShutdown;
-      }
+      return MessageHandler::kShutdown;
     }
   }
   return MessageHandler::kError;
@@ -722,28 +711,27 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-  api_flags->enable_type_checks = FLAG_enable_type_checks;
-  api_flags->enable_asserts = FLAG_enable_asserts;
-  api_flags->enable_error_on_bad_type = FLAG_error_on_bad_type;
-  api_flags->enable_error_on_bad_override = FLAG_error_on_bad_override;
+#define INIT_FROM_FLAG(name, isolate_flag, flag) api_flags->isolate_flag = flag;
+  ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
+#undef INIT_FROM_FLAG
 }
 
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-  api_flags->enable_type_checks = type_checks();
-  api_flags->enable_asserts = asserts();
-  api_flags->enable_error_on_bad_type = error_on_bad_type();
-  api_flags->enable_error_on_bad_override = error_on_bad_override();
+#define INIT_FROM_FIELD(name, isolate_flag, flag)                              \
+  api_flags->isolate_flag = name();
+  ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
+#undef INIT_FROM_FIELD
 }
 
 
 #if !defined(PRODUCT)
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
-  type_checks_ = api_flags.enable_type_checks;
-  asserts_ = api_flags.enable_asserts;
-  error_on_bad_type_ = api_flags.enable_error_on_bad_type;
-  error_on_bad_override_ = api_flags.enable_error_on_bad_override;
+#define SET_FROM_FLAG(name, isolate_flag, flag)                                \
+  name##_ = api_flags.isolate_flag;
+  ISOLATE_FLAG_LIST(SET_FROM_FLAG)
+#undef SET_FROM_FLAG
   // Leave others at defaults.
 }
 #endif  // !defined(PRODUCT)
@@ -828,6 +816,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       metrics_list_head_(NULL),
       compilation_allowed_(true),
       all_classes_finalized_(false),
+      remapping_cids_(false),
       next_(NULL),
       pause_loop_monitor_(NULL),
       loading_invalidation_gen_(kInvalidGen),
@@ -845,7 +834,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL),
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
-      should_pause_post_service_request_(false) {
+      should_pause_post_service_request_(false),
+      handler_info_cache_() {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -1032,18 +1022,24 @@ bool Isolate::IsPaused() const {
 }
 
 
-void Isolate::PausePostRequest() {
+RawError* Isolate::PausePostRequest() {
   if (!FLAG_support_debugger) {
-    return;
+    return Error::null();
   }
   if (debugger_ == NULL) {
-    return;
+    return Error::null();
   }
   ASSERT(!IsPaused());
   const Error& error = Error::Handle(debugger_->PausePostRequest());
   if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
+    if (Thread::Current()->top_exit_frame_info() == 0) {
+      return error.raw();
+    } else {
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
   }
+  return Error::null();
 }
 
 
@@ -1142,9 +1138,12 @@ bool Isolate::MakeRunnable() {
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
-  if (FLAG_support_debugger && !ServiceIsolate::IsServiceIsolate(this)) {
-    if (FLAG_pause_isolates_on_unhandled_exceptions) {
-      debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
+  if (FLAG_support_debugger) {
+    if (!ServiceIsolate::IsServiceIsolate(this)) {
+      debugger()->OnIsolateRunnable();
+      if (FLAG_pause_isolates_on_unhandled_exceptions) {
+        debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
+      }
     }
   }
 #endif  // !PRODUCT
@@ -1168,6 +1167,16 @@ bool Isolate::MakeRunnable() {
     Service::HandleEvent(&runnableEvent);
   }
 #endif  // !PRODUCT
+  GetRunnableLatencyMetric()->set_value(UptimeMicros());
+  if (FLAG_print_benchmarking_metrics) {
+    {
+      StartIsolateScope scope(this);
+      heap()->CollectAllGarbage();
+    }
+    int64_t heap_size = (heap()->UsedInWords(Heap::kNew) * kWordSize) +
+                        (heap()->UsedInWords(Heap::kOld) * kWordSize);
+    GetRunnableHeapSizeMetric()->set_value(heap_size);
+  }
   return true;
 }
 
@@ -1665,13 +1674,12 @@ void Isolate::LowLevelShutdown() {
         "\tisolate:    %s\n",
         name());
   }
-  if (FLAG_print_metrics) {
+  if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
   OS::PrintErr("%s\n", metric_##variable##_.ToString());
-
-    ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT);
+    ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT)
 #undef ISOLATE_METRIC_PRINT
     OS::PrintErr("\n");
   }
@@ -1769,11 +1777,17 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
+
+  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+  if (cleanup != NULL) {
+    cleanup(init_callback_data());
+  }
 }
 
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
+Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
@@ -1899,10 +1913,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !PRODUCT
   ASSERT(raw_class != NULL);
-#if !defined(DART_PRECOMPILER)
-  // This is temporarily untrue during a class id remap.
-  ASSERT(raw_class->ptr()->id_ == cid);
-#endif
+  ASSERT(remapping_cids_ || raw_class->ptr()->id_ == cid);
   return raw_class;
 }
 

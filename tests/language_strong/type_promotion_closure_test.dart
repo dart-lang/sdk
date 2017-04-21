@@ -7,18 +7,26 @@
 import "package:meta/meta.dart" show virtual;
 
 class A {
-  @virtual var a = "a";
+  @virtual
+  var a = "a";
   A operator +(int i) => this;
 }
+
 class B extends A {
-  @virtual var b = "b";
+  @virtual
+  var b = "b";
 }
+
 class C extends B {
-  @virtual var c = "c";
+  @virtual
+  var c = "c";
 }
+
 class D extends A {
-  @virtual var d = "d";
+  @virtual
+  var d = "d";
 }
+
 class E extends D implements C {
   var a = "";
   var b = "";
@@ -49,7 +57,7 @@ void test1() {
   A a = new E();
   if (a is B) {
     print(a.a);
-    print(a.b); /// 01: static type warning
+    print(a.b); //# 01: static type warning
   }
   void foo() {
     a = new D();
@@ -61,9 +69,10 @@ void test2() {
   void foo() {
     a = new D();
   }
+
   if (a is B) {
     print(a.a);
-    print(a.b); /// 02: static type warning
+    print(a.b); //# 02: static type warning
   }
 }
 
@@ -72,14 +81,16 @@ void test3() {
   void foo() {
     a = new D();
   }
+
   if (a is B) {
     print(a.a);
-    print(a.b); /// 03: static type warning
+    print(a.b); //# 03: static type warning
     void foo() {
       a = new D();
     }
+
     print(a.a);
-    print(a.b); /// 04: static type warning
+    print(a.b); //# 04: static type warning
   }
 }
 
@@ -88,21 +99,23 @@ void test3a() {
   void foo() {
     a = new D();
   }
+
   if ((((a)) is B)) {
     print(a.a);
-    print(a.b); /// 15: static type warning
+    print(a.b); //# 15: static type warning
     void foo() {
       a = new D();
     }
+
     print(a.a);
-    print(a.b); /// 16: static type warning
+    print(a.b); //# 16: static type warning
   }
 }
 
 void test4() {
   A a = new E();
   if (a is B) {
-    func(() => a.b); /// 05: ok
+    func(() => a.b); //# 05: ok
     print(a.a);
     print(a.b);
   }
@@ -111,7 +124,7 @@ void test4() {
 void test5() {
   A a = new E();
   if (a is B) {
-    func(() => a.b); /// 06: static type warning
+    func(() => a.b); //# 06: static type warning
     print(a.a);
   }
   a = null;
@@ -122,7 +135,7 @@ void test6() {
   if (a is B) {
     func(() => a);
     print(a.a);
-    print(a.b); /// 07: static type warning
+    print(a.b); //# 07: static type warning
   }
   a = null;
 }
@@ -132,7 +145,7 @@ void test6a() {
   if (((a) is B)) {
     func(() => a);
     print(a.a);
-    print(a.b); /// 14: static type warning
+    print(a.b); //# 14: static type warning
   }
   a = null;
 }
@@ -141,7 +154,7 @@ void test7() {
   A a = new E();
   if (a is B && func(() => a)) {
     print(a.a);
-    print(a.b); /// 08: ok
+    print(a.b); //# 08: ok
   }
   a = null;
 }
@@ -149,8 +162,8 @@ void test7() {
 void test8() {
   A a = new E();
   if (a is B
-      && func(() => a.b) /// 09: static type warning
-                        ) {
+      && func(() => a.b) //# 09: static type warning
+      ) {
     print(a.a);
   }
   a = null;
@@ -158,7 +171,7 @@ void test8() {
 
 void test9() {
   A a = new E();
-  var b = a is B ? func(() => a.b) : false; /// 10: static type warning
+  var b = a is B ? func(() => a.b) : false; //# 10: static type warning
   a = null;
 }
 
@@ -166,7 +179,7 @@ void test10() {
   List<A> a = <E>[new E()];
   if (a is List<B>) {
     func(() => a[0]);
-    print(a[0].b); /// 11: static type warning
+    print(a[0].b); //# 11: static type warning
   }
   a = null;
 }
@@ -175,7 +188,7 @@ void test11() {
   List<A> a = <E>[new E()];
   if (a is List<B>) {
     func(() => a[0] = null);
-    print(a[0].b); /// 12: static type warning
+    print(a[0].b); //# 12: static type warning
   }
   a = null;
 }
@@ -185,7 +198,7 @@ void test12() {
   if (a is B) {
     func(() => a++);
     print(a.a);
-    print(a.b); /// 13: static type warning
+    print(a.b); //# 13: static type warning
   }
   a = null;
 }

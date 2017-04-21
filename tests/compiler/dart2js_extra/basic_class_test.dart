@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
-}
+class A {}
 
-class SubA extends A {
-}
+class SubA extends A {}
 
-class B {
-}
+class B {}
 
 void main() {
   A a;
@@ -17,11 +14,11 @@ void main() {
   B b;
   a = a;
   a = subA;
-  a = b; /// 01: static type warning
+  a = b; //# 01: static type warning
   subA = a;
   subA = subA;
-  subA = b; /// 02: static type warning
-  b = a; /// 03: static type warning
-  b = subA; /// 04: static type warning
+  subA = b; //# 02: static type warning
+  b = a; //# 03: static type warning
+  b = subA; //# 04: static type warning
   b = b;
 }

@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
+
 [ $browser ]
 # Skip tests that uses dart:io
 build_dart: Skip
@@ -17,11 +20,17 @@ sample_extension: Crash # Unable to compile UnsupportedError.message.
 [ $compiler == dart2analyzer ]
 build_dart: Skip
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $arch == arm ]
 sample_extension/test/*: Skip # Issue 14705
 
 [ $compiler == precompiler ]
 sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
-[ $compiler == app_jit ]
-sample_extension/test/*: Skip # Shared use of a temp directory
+[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
+sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
+
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+build_dart/test/build_dart_test: DartkCrash

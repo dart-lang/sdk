@@ -166,6 +166,7 @@ class ResponseOperation extends Operation {
         }
         return text.replaceAll('\n', '\n  ');
       }
+
       String message = 'Request:${format(requestJson)}\n'
           'expected result:${format(expectedResult)}\n'
           'expected error:${format(expectedError)}\n'

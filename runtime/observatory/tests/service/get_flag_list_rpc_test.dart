@@ -19,8 +19,8 @@ var tests = [
   (VM vm) async {
     // Modify a flag.
     var params = {
-      'name' : 'does_not_really_exist',
-      'value' : 'true',
+      'name': 'does_not_really_exist',
+      'value': 'true',
     };
     var result = await vm.invokeRpcNoUpgrade('_setFlag', params);
     expect(result['type'], equals('Error'));
@@ -31,8 +31,8 @@ var tests = [
   (VM vm) async {
     // Modify a flag.
     var params = {
-      'name' : 'trace_profiler',
-      'value' : '123',
+      'name': 'trace_profiler',
+      'value': '123',
     };
     var result = await vm.invokeRpcNoUpgrade('_setFlag', params);
     expect(result['type'], equals('Error'));

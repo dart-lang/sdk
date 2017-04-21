@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/stdio.h"
 
@@ -42,7 +42,19 @@ bool Stdin::SetLineMode(bool enabled) {
 }
 
 
+bool Stdin::AnsiSupported(bool* supported) {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
+bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
   UNIMPLEMENTED();
   return false;
 }
@@ -50,6 +62,6 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)
 
 #endif  // !defined(DART_IO_DISABLED)

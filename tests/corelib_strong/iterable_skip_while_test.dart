@@ -134,15 +134,15 @@ main() {
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
 
-  skipWhileTrue = set2.skipWhile((x) => true);
-  it = skipWhileTrue.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicSkipWhileTrue = set2.skipWhile((x) => true);
+  var dynamicIt = dynamicSkipWhileTrue.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 
-  skipWhileFalse = set2.skipWhile((x) => false);
-  it = skipWhileFalse.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicSkipWhileFalse = set2.skipWhile((x) => false);
+  dynamicIt = dynamicSkipWhileFalse.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 }

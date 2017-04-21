@@ -20,8 +20,8 @@ import '../resolution/scope.dart'
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
 import '../script.dart';
-import '../tokens/token.dart' show ErrorToken, Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import 'common.dart';
@@ -136,7 +136,7 @@ abstract class ElementX extends Element with ElementCommon {
     // The unary '-' operator has a special element name (specified).
     if (needle == 'unary-') needle = '-';
     for (Token t = token; Tokens.EOF_TOKEN != t.kind; t = t.next) {
-      if (t is! ErrorToken && needle == t.value) return t;
+      if (t is! ErrorToken && needle == t.lexeme) return t;
     }
     return token;
   }
@@ -314,7 +314,6 @@ class ErroneousConstructorElementX extends ErroneousElementX
   @override
   bool isRedirectingGenerativeInternal;
 
-  @override
   void set isRedirectingGenerative(_) {
     throw new UnsupportedError("isRedirectingGenerative");
   }
@@ -768,6 +767,20 @@ class CompilationUnitElementX extends ElementX
     }
     partTag = tag;
     LibraryName libraryTag = library.libraryTag;
+
+    Expression libraryReference = tag.name;
+    if (libraryReference is LiteralString) {
+      // Name is a URI. Resolve and compare to library's URI.
+      String content = libraryReference.dartString.slowToString();
+      Uri uri = this.script.readableUri.resolve(content);
+      Uri expectedUri = library.canonicalUri;
+      if (uri != expectedUri) {
+        // Consider finding a relative URI reference for the error message.
+        reporter.reportWarningMessage(tag.name,
+            MessageKind.LIBRARY_URI_MISMATCH, {'libraryUri': expectedUri});
+      }
+      return;
+    }
     String actualName = tag.name.toString();
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();
@@ -1224,16 +1237,6 @@ class LibraryElementX extends ElementX
     return libraryTag.name.toString();
   }
 
-  String get libraryOrScriptName {
-    if (libraryTag != null) {
-      return libraryTag.name.toString();
-    } else {
-      // Use the file name as script name.
-      String path = canonicalUri.path;
-      return path.substring(path.lastIndexOf('/') + 1);
-    }
-  }
-
   Scope buildScope() => new LibraryScope(this);
 
   String toString() {
@@ -1345,7 +1348,7 @@ class TypedefElementX extends ElementX
   ResolutionTypedefType computeType(Resolution resolution) {
     if (thisTypeCache != null) return thisTypeCache;
     Typedef node = parseNode(resolution.parsingContext);
-    setThisAndRawTypes(createTypeVariables(node.typeParameters));
+    setThisAndRawTypes(createTypeVariables(node.templateParameters));
     ensureResolved(resolution);
     return thisTypeCache;
   }
@@ -1742,6 +1745,14 @@ class FormalElementX extends ElementX
       this.definitions, Identifier identifier)
       : this.identifier = identifier,
         super(identifier.source, elementKind, enclosingElement);
+
+  FormalElementX.unnamed(ElementKind elementKind,
+      FunctionTypedElement enclosingElement, this.definitions)
+      : this.identifier = null,
+        super("<unnamed>", elementKind, enclosingElement);
+
+  /// Whether this is an unnamed parameter in a Function type.
+  bool get isUnnamed => identifier == null;
 
   FunctionTypedElement get functionDeclaration => enclosingElement;
 
@@ -3268,6 +3279,9 @@ class JumpTargetX implements JumpTarget {
   final int hashCode = ElementX.newHashCode();
 
   JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => "target";
 

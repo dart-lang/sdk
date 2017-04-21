@@ -4,8 +4,6 @@
 
 // VMOptions=--optimization_counter_threshold=10 --no-background-compilation
 
-import "package:expect/expect.dart";
-
 // This test tries to verify that we produce the correct stack trace when
 // throwing exceptions even when functions are inlined.
 // The test invokes a bunch of functions and then does a throw. There is a
@@ -26,10 +24,11 @@ class Test {
       }
       return "";
     } catch (e, stacktrace) {
-      var result = e + stacktrace.toString();
+      var result = e + "\n" + stacktrace.toString();
       return result;
     }
   }
+
   int func2(var i) {
     var result = 0;
     for (var k = 0; k <= 10; k++) {
@@ -37,6 +36,7 @@ class Test {
     }
     return result;
   }
+
   int func3(var i) {
     var result = 0;
     for (var l = 0; l <= 1; l++) {
@@ -44,6 +44,7 @@ class Test {
     }
     return result;
   }
+
   int func4(var i) {
     var result = 0;
     for (var j = 0; j <= 10; j++) {
@@ -51,28 +52,40 @@ class Test {
     }
     return result;
   }
+
   int func5(var i) {
     if (i >= 520) throw "show me inlined functions";
     return i;
   }
 }
 
+expectHasSubstring(String string, String substring) {
+  if (!string.contains(substring)) {
+    var sb = new StringBuffer();
+    sb.writeln("Expect string:");
+    sb.writeln(string);
+    sb.writeln("To have substring:");
+    sb.writeln(substring);
+    throw new Exception(sb.toString());
+  }
+}
+
 main() {
   var x = new Test();
   var result = x.func1(100000);
-  Expect.isTrue(result.contains("show me inlined functions"));
-  Expect.isTrue(result.contains("Test.func1"));
-  Expect.isTrue(result.contains("Test.func2"));
-  Expect.isTrue(result.contains("Test.func3"));
-  Expect.isTrue(result.contains("Test.func4"));
-  Expect.isTrue(result.contains("Test.func"));
+  expectHasSubstring(result, "show me inlined functions");
+  expectHasSubstring(result, "Test.func1");
+  expectHasSubstring(result, "Test.func2");
+  expectHasSubstring(result, "Test.func3");
+  expectHasSubstring(result, "Test.func4");
+  expectHasSubstring(result, "Test.func5");
   for (var i = 0; i <= 10; i++) {
     result = x.func1(i);
   }
-  Expect.isTrue(result.contains("show me inlined functions"));
-  Expect.isTrue(result.contains("Test.func1"));
-  Expect.isTrue(result.contains("Test.func2"));
-  Expect.isTrue(result.contains("Test.func3"));
-  Expect.isTrue(result.contains("Test.func4"));
-  Expect.isTrue(result.contains("Test.func5"));
+  expectHasSubstring(result, "show me inlined functions");
+  expectHasSubstring(result, "Test.func1");
+  expectHasSubstring(result, "Test.func2");
+  expectHasSubstring(result, "Test.func3");
+  expectHasSubstring(result, "Test.func4");
+  expectHasSubstring(result, "Test.func5");
 }

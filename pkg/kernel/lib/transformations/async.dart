@@ -417,7 +417,8 @@ class ExpressionLifter extends Transformer {
     Arguments arguments = new Arguments(<Expression>[
       expr.operand,
       new VariableGet(R.thenContinuationVariable),
-      new VariableGet(R.catchErrorContinuationVariable)
+      new VariableGet(R.catchErrorContinuationVariable),
+      new VariableGet(R.nestedClosureVariable),
     ]);
     statements.add(new ExpressionStatement(
         new StaticInvocation(R.helper.awaitHelper, arguments)

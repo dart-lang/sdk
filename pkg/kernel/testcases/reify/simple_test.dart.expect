@@ -1,0 +1,152 @@
+library simple_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class C extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+  get $is$A() → core::bool
+    return false;
+  get $is$B() → core::bool
+    return false;
+  get $is$C() → core::bool
+    return true;
+  get $is$D() → core::bool
+    return false;
+}
+class A extends core::Object implements self::C, int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+  get $is$A() → core::bool
+    return true;
+  get $is$B() → core::bool
+    return false;
+  get $is$C() → core::bool
+    return true;
+  get $is$D() → core::bool
+    return false;
+}
+class B extends self::C implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::C::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+  get $is$A() → core::bool
+    return false;
+  get $is$B() → core::bool
+    return true;
+  get $is$C() → core::bool
+    return true;
+  get $is$D() → core::bool
+    return false;
+}
+class D extends self::B implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::B::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](3));
+  get $is$A() → core::bool
+    return false;
+  get $is$B() → core::bool
+    return true;
+  get $is$C() → core::bool
+    return true;
+  get $is$D() → core::bool
+    return true;
+}
+class Closure#testIs extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic o) → dynamic
+    return self::testIs(o);
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](4));
+  get $is$A() → core::bool
+    return false;
+  get $is$B() → core::bool
+    return false;
+  get $is$C() → core::bool
+    return false;
+  get $is$D() → core::bool
+    return false;
+}
+class Closure#testIsNot extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic o) → dynamic
+    return self::testIsNot(o);
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](5));
+  get $is$A() → core::bool
+    return false;
+  get $is$B() → core::bool
+    return false;
+  get $is$C() → core::bool
+    return false;
+  get $is$D() → core::bool
+    return false;
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](20)));
+  dec::init(d, 1, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](0))]);
+  dec::init(d, 2, new typ::Interface::•(d.[](0)));
+  dec::init(d, 3, new typ::Interface::•(d.[](2)));
+  dec::init(d, 4, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](22))], new typ::FunctionType::•(new typ::Interface::•(d.[](22)), const typ::Dynamic::•(), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 5, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](22))], new typ::FunctionType::•(new typ::Interface::•(d.[](22)), const typ::Dynamic::•(), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 6, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](23), <dynamic>[d.[](6).variables.[](0)])]);
+  dec::init(d, 7, new typ::Interface::•(d.[](20)));
+  dec::init(d, 8, new typ::Interface::•(d.[](20)));
+  dec::init(d, 9, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](24), <dynamic>[new typ::Interface::•(d.[](9))]), new typ::Interface::•(d.[](25))]);
+  dec::init(d, 10, new typ::Interface::•(d.[](26)));
+  dec::init(d, 11, new typ::Interface::•(d.[](26)));
+  dec::init(d, 12, new typ::Interface::•(d.[](20)));
+  dec::init(d, 13, new typ::Interface::•(d.[](27)));
+  dec::init(d, 14, new typ::Interface::•(d.[](27)));
+  dec::init(d, 15, new typ::Interface::•(d.[](27)));
+  dec::init(d, 16, new typ::Interface::•(d.[](27)));
+  dec::init(d, 17, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](28))]);
+  dec::init(d, 18, new typ::Interface::•(d.[](19)));
+  dec::init(d, 19, new typ::Interface::•(d.[](27)));
+  dec::init(d, 20, null);
+  dec::init(d, 22, new typ::Interface::•(d.[](20)));
+  dec::init(d, 23, new typ::Interface::•(d.[](29), <dynamic>[d.[](23).variables.[](0)]));
+  dec::init(d, 24, new typ::Interface::•(d.[](20)));
+  dec::init(d, 25, new typ::Interface::•(d.[](20)));
+  dec::init(d, 26, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](24), <dynamic>[new typ::Interface::•(d.[](26))])]);
+  dec::init(d, 27, new typ::Interface::•(d.[](20)));
+  dec::init(d, 28, new typ::Interface::•(d.[](20)));
+  dec::init(d, 29, new typ::Interface::•(d.[](20)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["C", "A", "B", "D", "Closure#testIs", "Closure#testIsNot", "List", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Function", "EfficientLengthIterable", "Comparable", "Pattern", "num", "Error", "Exception", "Iterable"], <dynamic>[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1]));
+static method testIs(dynamic o) → dynamic {
+  tes::write(let dynamic #t1 = o in #t1 is int::HasRuntimeTypeGetter && #t1.$is$A);
+  tes::write(let dynamic #t2 = o in #t2 is int::HasRuntimeTypeGetter && #t2.$is$B);
+  tes::write(let dynamic #t3 = o in #t3 is int::HasRuntimeTypeGetter && #t3.$is$C);
+  tes::write(let dynamic #t4 = o in #t4 is int::HasRuntimeTypeGetter && #t4.$is$D);
+}
+static method testIsNot(dynamic o) → dynamic {
+  tes::write(!(let dynamic #t5 = o in #t5 is int::HasRuntimeTypeGetter && #t5.$is$A));
+  tes::write(!(let dynamic #t6 = o in #t6 is int::HasRuntimeTypeGetter && #t6.$is$B));
+  tes::write(!(let dynamic #t7 = o in #t7 is int::HasRuntimeTypeGetter && #t7.$is$C));
+  tes::write(!(let dynamic #t8 = o in #t8 is int::HasRuntimeTypeGetter && #t8.$is$D));
+}
+static method main() → dynamic {
+  core::List<self::C> objects = int::attachType(<self::C>[new self::A::•(), new self::B::•(), new self::C::•(), new self::D::•()], new typ::Interface::•(self::$declarations.[](6), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]));
+  objects.{core::Iterable::forEach}(new self::Closure#testIs::•());
+  objects.{core::Iterable::forEach}(new self::Closure#testIsNot::•());
+  tes::expectOutput("true\nfalse\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\ntrue\ntrue\ntrue\nfalse\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\nfalse");
+}

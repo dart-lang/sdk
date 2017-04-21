@@ -5,26 +5,23 @@
 
 import "package:expect/expect.dart";
 
-class Foo implements Bar {
-}
+class Foo implements Bar {}
 
-class C {
-}
+class C {}
 
 class Bar
-    extends Foo  /// 00: compile-time error
-    implements Foo  /// 01: compile-time error
-{
-}
+    extends Foo // //# 00: compile-time error
+    implements Foo // //# 01: compile-time error
+{}
 
 class ImplementsC implements C
-, C  /// 02: compile-time error
+, C // //# 02: compile-time error
 {}
 
 // Spec says: It is a compile-time error if the superclass
 // of a class C appears in the implements clause of C.
 class ExtendsC extends C
-implements C  /// 03: compile-time error
+implements C // //# 03: compile-time error
 {}
 
 main() {
@@ -32,4 +29,3 @@ main() {
   Expect.isTrue(new ImplementsC() is C);
   Expect.isTrue(new ExtendsC() is C);
 }
-

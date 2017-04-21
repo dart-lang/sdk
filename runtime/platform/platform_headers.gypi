@@ -6,11 +6,13 @@
 {
   'sources': [
     'address_sanitizer.h',
+    'allocation.h',
     'assert.h',
     'c99_support_win.h',
     'floating_point.h',
     'floating_point_win.h',
     'globals.h',
+    'growable_array.h',
     'hashmap.h',
     'inttypes_support_win.h',
     'memory_sanitizer.h',

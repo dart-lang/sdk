@@ -8,7 +8,7 @@
 import "package:expect/expect.dart";
 import "compiler_annotations.dart";
 
-abstract /// 01: static type warning
+abstract //# 01: static type warning
 class Foo {
   noSuchMethod(im) => 42;
 }
@@ -20,7 +20,7 @@ returnFoo() {
 }
 
 class Bar {
-  operator==(other) => false;
+  operator ==(other) => false;
 }
 
 var a = [false, true, new Object(), new Bar()];

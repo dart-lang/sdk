@@ -277,7 +277,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
-  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
+  ASSERT(!type_arguments.IsUninstantiatedIdentity());
   if (isolate->type_checks()) {
     Error& bound_error = Error::Handle(zone);
     type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
@@ -398,17 +398,16 @@ static void UpdateTypeTestCache(
   }
   const Class& instance_class = Class::Handle(instance.clazz());
   Object& instance_class_id_or_function = Object::Handle();
+  TypeArguments& instance_type_arguments = TypeArguments::Handle();
   if (instance_class.IsClosureClass()) {
     instance_class_id_or_function = Closure::Cast(instance).function();
+    instance_type_arguments = Closure::Cast(instance).instantiator();
   } else {
     instance_class_id_or_function = Smi::New(instance_class.id());
+    if (instance_class.NumTypeArguments() > 0) {
+      instance_type_arguments = instance.GetTypeArguments();
+    }
   }
-  TypeArguments& instance_type_arguments = TypeArguments::Handle();
-  if (instance_class.IsClosureClass() ||
-      (instance_class.NumTypeArguments() > 0)) {
-    instance_type_arguments = instance.GetTypeArguments();
-  }
-
   const intptr_t len = new_cache.NumberOfChecks();
   if (len >= FLAG_max_subtype_cache_entries) {
     return;
@@ -813,9 +812,9 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
                                            const ArgumentsDescriptor& desc) {
-  const TypeArguments& checked_type_arguments = TypeArguments::Handle();
   Error& error = Error::Handle();
-  bool result = receiver.IsInstanceOf(type, checked_type_arguments, &error);
+  bool result =
+      receiver.IsInstanceOf(type, Object::null_type_arguments(), &error);
   ASSERT(error.IsNull());
   ObjectStore* store = Isolate::Current()->object_store();
   const Function& target =
@@ -931,28 +930,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
 }
 
 
-// Handles inline cache misses by updating the IC data array of the call site.
-//   Arg0: Receiver object.
-//   Arg1: Argument after receiver.
-//   Arg2: Second argument after receiver.
-//   Arg3: IC data object.
-//   Returns: target function with compiled code or null.
-// Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
-  const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(3));
-  GrowableArray<const Instance*> args(3);
-  args.Add(&receiver);
-  args.Add(&arg1);
-  args.Add(&arg2);
-  const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data));
-  arguments.SetReturn(result);
-}
-
-
 // Handles a static call in unoptimized code that has one argument type not
 // seen before. Compile the target if necessary and update the ICData.
 // Arg0: argument.
@@ -961,7 +938,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   const Instance& arg = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   // IC data for static call is prepopulated with the statically known target.
-  ASSERT(ic_data.NumberOfChecks() == 1);
+  ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
     const Error& error =
@@ -993,7 +970,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
   // IC data for static call is prepopulated with the statically known target.
-  ASSERT(ic_data.NumberOfChecks() > 0);
+  ASSERT(!ic_data.NumberOfChecksIs(0));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
     const Error& error =
@@ -1333,9 +1310,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 
   if (ic_data_or_cache.IsICData()) {
     const ICData& ic_data = ICData::Cast(ic_data_or_cache);
+    const intptr_t number_of_checks = ic_data.NumberOfChecks();
 
-    if ((ic_data.NumberOfChecks() == 0) &&
-        !target_function.HasOptionalParameters() &&
+    if (number_of_checks == 0 && !target_function.HasOptionalParameters() &&
         !Isolate::Current()->compilation_allowed()) {
       // This call site is unlinked: transition to a monomorphic direct call.
       // Note we cannot do this if the target has optional parameters because
@@ -1368,7 +1345,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
                                          expected_cid, target_code);
     } else {
       ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
-      if (ic_data.NumberOfChecks() > FLAG_max_polymorphic_checks) {
+      if (number_of_checks > FLAG_max_polymorphic_checks) {
         // Switch to megamorphic call.
         const MegamorphicCache& cache = MegamorphicCache::Handle(
             zone, MegamorphicCacheTable::Lookup(isolate, name, descriptor));
@@ -1691,7 +1668,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   if ((stack_overflow_flags & Thread::kOsrRequest) != 0) {
-    ASSERT(FLAG_use_osr);
+    ASSERT(isolate->use_osr());
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
@@ -1971,7 +1948,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
     }
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
-    RawExceptionHandlers::HandlerInfo info;
+    ExceptionHandlerInfo info;
     for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
       handlers.GetHandlerInfo(i, &info);
       const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;

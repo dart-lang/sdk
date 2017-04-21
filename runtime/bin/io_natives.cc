@@ -50,6 +50,9 @@ namespace bin {
   V(File_LengthFromPath, 1)                                                    \
   V(File_Stat, 1)                                                              \
   V(File_LastModified, 1)                                                      \
+  V(File_SetLastModified, 2)                                                   \
+  V(File_LastAccessed, 1)                                                      \
+  V(File_SetLastAccessed, 2)                                                   \
   V(File_Flush, 1)                                                             \
   V(File_Lock, 4)                                                              \
   V(File_Create, 1)                                                            \
@@ -143,7 +146,9 @@ namespace bin {
   V(Stdin_SetEchoMode, 1)                                                      \
   V(Stdin_GetLineMode, 0)                                                      \
   V(Stdin_SetLineMode, 1)                                                      \
+  V(Stdin_AnsiSupported, 0)                                                    \
   V(Stdout_GetTerminalSize, 1)                                                 \
+  V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)                                                 \
   V(X509_Subject, 1)                                                           \

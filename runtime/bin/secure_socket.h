@@ -10,15 +10,15 @@
 #endif
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX) ||                  \
-    defined(TARGET_OS_WINDOWS) || defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX) ||                      \
+    defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
 #include "bin/secure_socket_boringssl.h"
-#elif defined(TARGET_OS_MACOS)
-#if TARGET_OS_IOS
+#elif defined(HOST_OS_MACOS)
+#if HOST_OS_IOS
 #include "bin/secure_socket_ios.h"
-#else  // TARGET_OS_IOS
+#else  // HOST_OS_IOS
 #include "bin/secure_socket_macos.h"
-#endif  // TARGET_OS_IOS
+#endif  // HOST_OS_IOS
 #else
 #error Unknown target os.
 #endif

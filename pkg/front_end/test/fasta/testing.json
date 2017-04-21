@@ -1,0 +1,171 @@
+{
+"":"Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
+"":"for details. All rights reserved. Use of this source code is governed by a",
+"":"BSD-style license that can be found in the LICENSE.md file.",
+
+  "packages": "../../../../.packages",
+
+  "suites": [
+
+    {
+      "name": "scanner",
+      "kind": "Chain",
+      "source": "scanner/scanner_suite.dart",
+      "path": "../../../../",
+      "status": "scanner/scanner.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+      ]
+    },
+
+    {
+      "name": "parser",
+      "kind": "Chain",
+      "source": "parser/parser_suite.dart",
+      "path": "../../../../",
+      "status": "parser/parser.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "README.dart",
+        "/sdk/xcodebuild/",
+        "/sdk/out/",
+        "/sdk/build/",
+        "/sdk/tools/sdks/",
+        "/sdk/generated/"
+      ]
+    },
+
+    {
+      "name": "outline",
+      "kind": "Chain",
+      "source": "outline_test.dart",
+      "path": "./",
+      "status": "outline.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$",
+        "/test/fasta/top_level_accessors_part\\.dart$"
+      ]
+    },
+
+    {
+      "name": "compile",
+      "kind": "Chain",
+      "source": "compile_test.dart",
+      "path": "./",
+      "status": "compile.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$",
+        "/test/fasta/top_level_accessors_part\\.dart$"
+      ]
+    },
+
+    {
+      "name": "kompile",
+      "kind": "Chain",
+      "source": "kompile_test.dart",
+      "path": "./",
+      "status": "kompile.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$",
+        "/test/fasta/top_level_accessors_part\\.dart$"
+      ]
+    },
+
+    {
+      "name": "language",
+      "kind": "Chain",
+      "source": "sdk_test.dart",
+      "path": "../../../../tests/language/",
+      "status": "language.status",
+      "process-multitests": true,
+      "pattern": [
+        "_test\\.dart$"
+      ],
+      "": "deep_nesting{1,2}_negative_test are ignored because they cause a",
+      "": "crash that we're ignoring for now (it was fixed in Rasta).",
+      "": "The other tests are excluded because they try to use 'none' as ",
+      "": "subtest name in multi test.",
+      "": "Tracked by: https://github.com/dart-lang/sdk/issues/28436",
+      "exclude": [
+        "/sdk/tests/language/deep_nesting1_negative_test\\.dart$",
+        "/sdk/tests/language/deep_nesting2_negative_test\\.dart$",
+        "/sdk/tests/language/async_switch_test\\.dart$",
+        "/sdk/tests/language/arg_param_trailing_comma_test\\.dart$",
+        "/sdk/tests/language/assert_initializer_test\\.dart$",
+        "/sdk/tests/language/deferred_type_dependency_test\\.dart$",
+        "/sdk/tests/language/mixin_of_mixin_test\\.dart$",
+        "/sdk/tests/language/regress_23996_test\\.dart$",
+        "/sdk/tests/language/round_test\\.dart$"
+      ]
+    },
+
+    {
+      "name": "dart2js",
+      "kind": "test_dart",
+      "arch": "x64",
+      "mode": "release",
+      "common": "--dart2js-batch --time -pcolor --report --failure-summary -ax64 -mrelease",
+      "command-lines": [
+        "--checked dart2js",
+        "-cdart2js -rd8 --exclude-suite=observatory_ui",
+        "-cdart2js -rd8 dart2js_extra dart2js_native"
+      ]
+    }
+  ],
+
+  "analyze": {
+
+    "options": "../../analysis_options.yaml",
+
+    "uris": [
+      "../../lib/src/fasta",
+      "../../lib/src/fasta/analyzer",
+      "../../lib/src/fasta/builder",
+      "../../lib/src/fasta/dill",
+      "../../lib/src/fasta/kernel",
+      "../../lib/src/fasta/parser",
+      "../../lib/src/fasta/scanner",
+      "../../lib/src/fasta/source",
+      "../../lib/src/fasta/testing",
+      "../../lib/src/fasta/util",
+      "../../tool",
+      "../../tool/_fasta",
+      "parser/parser_suite.dart",
+      "scanner/scanner_suite.dart",
+      "compile_test.dart",
+      "kompile_test.dart",
+      "outline_test.dart",
+      "sdk_test.dart",
+      "../../../analyzer/lib/src/fasta",
+      "../../../compiler/lib/src/parser",
+      "../../../compiler/lib/src/scanner",
+      "../../../../utils/kernel-service/kernel-service.dart",
+      "../../../../tools/patch_sdk.dart"
+    ],
+
+    "exclude": [
+      "/third_party/pkg/",
+      "/third_party/pkg_tested/",
+      "/pkg/analyzer/(?!.*/(fasta|kernel)/)",
+      "/pkg/compiler/lib/src/(?!(scanner|parser)/)",
+      "/pkg/compiler/lib/src/parser/partial_elements\\.dart$",
+      "/pkg/js_ast/"
+    ]
+  }
+}

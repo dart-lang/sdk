@@ -4,69 +4,68 @@
 
 library _js_helper;
 
-import 'dart:_js_embedded_names' show
-    DEFERRED_LIBRARY_URIS,
-    DEFERRED_LIBRARY_HASHES,
-    GET_TYPE_FROM_NAME,
-    GET_ISOLATE_TAG,
-    INITIALIZE_LOADED_HUNK,
-    INTERCEPTED_NAMES,
-    INTERCEPTORS_BY_TAG,
-    IS_HUNK_LOADED,
-    IS_HUNK_INITIALIZED,
-    JsBuiltin,
-    JsGetName,
-    LEAF_TAGS,
-    NATIVE_SUPERCLASS_TAG_NAME,
-    STATIC_FUNCTION_NAME_PROPERTY_NAME;
+import 'dart:_js_embedded_names'
+    show
+        DEFERRED_LIBRARY_URIS,
+        DEFERRED_LIBRARY_HASHES,
+        GET_TYPE_FROM_NAME,
+        GET_ISOLATE_TAG,
+        INITIALIZE_LOADED_HUNK,
+        INTERCEPTED_NAMES,
+        INTERCEPTORS_BY_TAG,
+        IS_HUNK_LOADED,
+        IS_HUNK_INITIALIZED,
+        JsBuiltin,
+        JsGetName,
+        LEAF_TAGS,
+        NATIVE_SUPERCLASS_TAG_NAME,
+        STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:collection';
 
-import 'dart:_isolate_helper' show
-    IsolateNatives,
-    enterJsAsync,
-    isWorker,
-    leaveJsAsync;
+import 'dart:_isolate_helper'
+    show IsolateNatives, enterJsAsync, isWorker, leaveJsAsync;
 
-import 'dart:async' show
-    Completer,
-    DeferredLoadException,
-    Future,
-    StreamController,
-    Stream,
-    StreamSubscription,
-    scheduleMicrotask,
-    Zone;
+import 'dart:async'
+    show
+        Completer,
+        DeferredLoadException,
+        Future,
+        StreamController,
+        Stream,
+        StreamSubscription,
+        scheduleMicrotask,
+        Zone;
 
-import 'dart:_foreign_helper' show
-    DART_CLOSURE_TO_JS,
-    JS,
-    JS_BUILTIN,
-    JS_CALL_IN_ISOLATE,
-    JS_CONST,
-    JS_CURRENT_ISOLATE_CONTEXT,
-    JS_EFFECT,
-    JS_EMBEDDED_GLOBAL,
-    JS_GET_FLAG,
-    JS_GET_NAME,
-    JS_INTERCEPTOR_CONSTANT,
-    JS_STRING_CONCAT,
-    RAW_DART_FUNCTION_REF;
+import 'dart:_foreign_helper'
+    show
+        DART_CLOSURE_TO_JS,
+        JS,
+        JS_BUILTIN,
+        JS_CALL_IN_ISOLATE,
+        JS_CONST,
+        JS_CURRENT_ISOLATE_CONTEXT,
+        JS_EFFECT,
+        JS_EMBEDDED_GLOBAL,
+        JS_GET_FLAG,
+        JS_GET_NAME,
+        JS_INTERCEPTOR_CONSTANT,
+        JS_STRING_CONCAT,
+        RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
-import 'dart:_internal' show
-    EfficientLengthIterable,
-    MappedIterable,
-    IterableElementError;
+import 'dart:_internal'
+    show EfficientLengthIterable, MappedIterable, IterableElementError;
 
 import 'dart:_native_typed_data';
 
-import 'dart:_js_names' show
-    extractKeys,
-    mangledNames,
-    unmangleGlobalNameIfPreservedAnyways,
-    unmangleAllIdentifiersIfPreservedAnyways;
+import 'dart:_js_names'
+    show
+        extractKeys,
+        mangledNames,
+        unmangleGlobalNameIfPreservedAnyways,
+        unmangleAllIdentifiersIfPreservedAnyways;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -78,33 +77,30 @@ part 'linked_hash_map.dart';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.
-abstract class InternalMap {
-}
+abstract class InternalMap {}
 
 /// Extracts the JavaScript-constructor name from the given isCheckProperty.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 String isCheckPropertyToJsConstructorName(String isCheckProperty) {
   return JS_BUILTIN('returns:String;depends:none;effects:none',
-                    JsBuiltin.isCheckPropertyToJsConstructorName,
-                    isCheckProperty);
+      JsBuiltin.isCheckPropertyToJsConstructorName, isCheckProperty);
 }
 
 /// Returns true if the given [type] is a function type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isDartFunctionType(Object type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isFunctionType, type);
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
 }
-
 
 /// Creates a function type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 createDartFunctionTypeRti() {
   return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-                    JsBuiltin.createFunctionTypeRti);
+      JsBuiltin.createFunctionTypeRti);
 }
 
 /// Retrieves the class name from type information stored on the constructor of
@@ -141,23 +137,25 @@ Object getRawRuntimeType(Object o) {
 @ForceInline()
 bool builtinIsSubtype(type, String other) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isSubtype, other, type);
+      JsBuiltin.isSubtype, other, type);
 }
 
 /// Returns true if the given [type] is _the_ `Function` type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isDartFunctionTypeRti(Object type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti,
-                    type,
-                    JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none',
+      JsBuiltin.isGivenTypeRti,
+      type,
+      JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
 
 /// Returns true if the given [type] is _the_ `Null` type.
 @ForceInline()
 bool isNullType(Object type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none',
       JsBuiltin.isGivenTypeRti,
       type,
       JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
@@ -167,36 +165,38 @@ bool isNullType(Object type) {
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isDartObjectTypeRti(type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti,
-                    type,
-                    JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none',
+      JsBuiltin.isGivenTypeRti,
+      type,
+      JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
 }
 
 /// Returns whether the given type is _the_ null type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isNullTypeRti(type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti,
-                    type,
-                    JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none',
+      JsBuiltin.isGivenTypeRti,
+      type,
+      JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }
 
 /// Returns the metadata of the given [index].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 getMetadata(int index) {
-  return JS_BUILTIN('returns:var;effects:none;depends:none',
-                    JsBuiltin.getMetadata, index);
+  return JS_BUILTIN(
+      'returns:var;effects:none;depends:none', JsBuiltin.getMetadata, index);
 }
 
 /// Returns the type of the given [index].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 getType(int index) {
-  return JS_BUILTIN('returns:var;effects:none;depends:none',
-                    JsBuiltin.getType, index);
+  return JS_BUILTIN(
+      'returns:var;effects:none;depends:none', JsBuiltin.getType, index);
 }
 
 /// Returns a Dart closure for the global function with the given [name].
@@ -206,7 +206,7 @@ getType(int index) {
 /// used when creating a tear-off (see [fromTearOff]).
 Function createDartClosureFromNameOfStaticFunction(String name) {
   return JS_BUILTIN('returns:Function',
-                    JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
+      JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
 }
 
 /// No-op method that is called to inform the compiler that preambles might
@@ -237,26 +237,20 @@ String S(value) {
     return 'null';
   }
   var res = value.toString();
-  if (res is !String) throw argumentErrorValue(value);
+  if (res is! String) throw argumentErrorValue(value);
   return res;
 }
 
-createInvocationMirror(String name, internalName, kind, arguments,
-                       argumentNames) {
-  return new JSInvocationMirror(name,
-                                internalName,
-                                kind,
-                                arguments,
-                                argumentNames);
+createInvocationMirror(
+    String name, internalName, kind, arguments, argumentNames) {
+  return new JSInvocationMirror(
+      name, internalName, kind, arguments, argumentNames);
 }
 
-createUnmangledInvocationMirror(Symbol symbol, internalName, kind, arguments,
-                                argumentNames) {
-  return new JSInvocationMirror(symbol,
-                                internalName,
-                                kind,
-                                arguments,
-                                argumentNames);
+createUnmangledInvocationMirror(
+    Symbol symbol, internalName, kind, arguments, argumentNames) {
+  return new JSInvocationMirror(
+      symbol, internalName, kind, arguments, argumentNames);
 }
 
 void throwInvalidReflectionError(String memberName) {
@@ -289,7 +283,9 @@ void postTraceHelper(int id, String name) {
   // skip the lazy field initialization logic.
   if (_traceBuffer == null) _traceBuffer = JS('JSArray', '[]');
   if (JS('bool', '#.length == 0', _traceBuffer)) {
-    JS('', r'''
+    JS(
+        '',
+        r'''
       window.setTimeout((function(buffer) {
         return function() {
           var xhr = new XMLHttpRequest();
@@ -297,7 +293,8 @@ void postTraceHelper(int id, String name) {
           xhr.send(JSON.stringify(buffer));
           buffer.length = 0;
         };
-      })(#), 1000)''', _traceBuffer);
+      })(#), 1000)''',
+        _traceBuffer);
   }
   JS('', '#.push([#, #])', _traceBuffer, id, name);
 }
@@ -317,11 +314,8 @@ class JSInvocationMirror implements Invocation {
   /** Map from argument name to index in _arguments. */
   Map<String, dynamic> _namedIndices = null;
 
-  JSInvocationMirror(this._memberName,
-                     this._internalName,
-                     this._kind,
-                     this._arguments,
-                     this._namedArgumentNames);
+  JSInvocationMirror(this._memberName, this._internalName, this._kind,
+      this._arguments, this._namedArgumentNames);
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
@@ -332,7 +326,7 @@ class JSInvocationMirror implements Invocation {
     } else {
       if (mangledNames[_internalName] == null) {
         print("Warning: '$name' is used reflectively but not in MirrorsUsed. "
-              "This will break minified code.");
+            "This will break minified code.");
       }
     }
     _memberName = new _symbol_dev.Symbol.unvalidated(name);
@@ -349,7 +343,7 @@ class JSInvocationMirror implements Invocation {
     var argumentCount = _arguments.length - _namedArgumentNames.length;
     if (argumentCount == 0) return const [];
     var list = [];
-    for (var index = 0 ; index < argumentCount ; index++) {
+    for (var index = 0; index < argumentCount; index++) {
       list.add(_arguments[index]);
     }
     return JSArray.markUnmodifiableList(list);
@@ -374,9 +368,8 @@ class JSInvocationMirror implements Invocation {
     var name = _internalName;
     var arguments = _arguments;
     var interceptedNames = JS_EMBEDDED_GLOBAL('', INTERCEPTED_NAMES);
-    bool isIntercepted =
-        JS("bool", 'Object.prototype.hasOwnProperty.call(#, #)',
-            interceptedNames, name);
+    bool isIntercepted = JS("bool",
+        'Object.prototype.hasOwnProperty.call(#, #)', interceptedNames, name);
     if (isIntercepted) {
       receiver = interceptor;
       if (JS('bool', '# === #', object, interceptor)) {
@@ -387,7 +380,7 @@ class JSInvocationMirror implements Invocation {
     }
     bool isCatchAll = false;
     var method = JS('var', '#[#]', receiver, name);
-    if (JS('bool', 'typeof # != "function"', method) ) {
+    if (JS('bool', 'typeof # != "function"', method)) {
       String baseName = _symbol_dev.Symbol.getName(memberName);
       method = JS('', '#[# + "*"]', receiver, baseName);
       if (method == null) {
@@ -446,10 +439,8 @@ class CachedInvocation {
   /// [Interceptor].
   Interceptor cachedInterceptor;
 
-  CachedInvocation(this.mangledName,
-                   this.jsFunction,
-                   this.isIntercepted,
-                   this.cachedInterceptor);
+  CachedInvocation(this.mangledName, this.jsFunction, this.isIntercepted,
+      this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
   bool get isGetterStub => JS("bool", "!!#.\$getterStub", jsFunction);
@@ -471,10 +462,8 @@ class CachedInvocation {
 class CachedCatchAllInvocation extends CachedInvocation {
   final ReflectionInfo info;
 
-  CachedCatchAllInvocation(String name,
-                           jsFunction,
-                           bool isIntercepted,
-                           Interceptor cachedInterceptor)
+  CachedCatchAllInvocation(String name, jsFunction, bool isIntercepted,
+      Interceptor cachedInterceptor)
       : info = new ReflectionInfo(jsFunction),
         super(name, jsFunction, isIntercepted, cachedInterceptor);
 
@@ -570,13 +559,14 @@ class ReflectionInfo {
 
   List cachedSortedIndices;
 
-  ReflectionInfo.internal(this.jsFunction,
-                          this.data,
-                          this.isAccessor,
-                          this.requiredParameterCount,
-                          this.optionalParameterCount,
-                          this.areOptionalParametersNamed,
-                          this.functionType);
+  ReflectionInfo.internal(
+      this.jsFunction,
+      this.data,
+      this.isAccessor,
+      this.requiredParameterCount,
+      this.optionalParameterCount,
+      this.areOptionalParametersNamed,
+      this.functionType);
 
   factory ReflectionInfo(jsFunction) {
     List data = JS('JSExtendableArray|Null', r'#.$reflectionInfo', jsFunction);
@@ -595,18 +585,23 @@ class ReflectionInfo {
 
     var functionType = JS('', '#[#]', data, FUNCTION_TYPE_INDEX);
     return new ReflectionInfo.internal(
-        jsFunction, data, isAccessor, requiredParameterCount,
-        optionalParameterCount, areOptionalParametersNamed, functionType);
+        jsFunction,
+        data,
+        isAccessor,
+        requiredParameterCount,
+        optionalParameterCount,
+        areOptionalParametersNamed,
+        functionType);
   }
 
   String parameterName(int parameter) {
     int metadataIndex;
     if (JS_GET_FLAG('MUST_RETAIN_METADATA')) {
-      metadataIndex = JS('int', '#[2 * # + # + #]', data,
-          parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+      metadataIndex = JS('int', '#[2 * # + # + #]', data, parameter,
+          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
     } else {
-      metadataIndex = JS('int', '#[# + # + #]', data,
-          parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+      metadataIndex = JS('int', '#[# + # + #]', data, parameter,
+          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
     }
     var name = getMetadata(metadataIndex);
     return JS('String', '#', name);
@@ -623,8 +618,8 @@ class ReflectionInfo {
 
   int defaultValue(int parameter) {
     if (parameter < requiredParameterCount) return null;
-    return JS('int', '#[# + # - #]', data,
-              FIRST_DEFAULT_ARGUMENT, parameter, requiredParameterCount);
+    return JS('int', '#[# + # - #]', data, FIRST_DEFAULT_ARGUMENT, parameter,
+        requiredParameterCount);
   }
 
   /// Returns the default value of the [parameter]th entry of the list of
@@ -645,8 +640,7 @@ class ReflectionInfo {
   String parameterNameInOrder(int parameter) {
     if (parameter < requiredParameterCount) return null;
 
-    if (!areOptionalParametersNamed ||
-        optionalParameterCount == 1) {
+    if (!areOptionalParametersNamed || optionalParameterCount == 1) {
       return parameterName(parameter);
     }
 
@@ -683,8 +677,8 @@ class ReflectionInfo {
         var fakeInstance = JS('', 'new #()', jsConstructor);
         setRuntimeTypeInfo(
             fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
-        return JS('=Object|Null', r'#.apply({$receiver:#})',
-                  functionType, fakeInstance);
+        return JS('=Object|Null', r'#.apply({$receiver:#})', functionType,
+            fakeInstance);
       }
       return functionType;
     } else {
@@ -731,9 +725,8 @@ class Primitives {
     return handleError(source);
   }
 
-  static int parseInt(String source,
-                      int radix,
-                      int handleError(String source)) {
+  static int parseInt(
+      String source, int radix, int handleError(String source)) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
@@ -806,8 +799,8 @@ class Primitives {
   }
 
   @NoInline()
-  static double _parseDoubleError(String source,
-                                  double handleError(String source)) {
+  static double _parseDoubleError(
+      String source, double handleError(String source)) {
     if (handleError == null) {
       throw new FormatException('Invalid double', source);
     }
@@ -822,10 +815,11 @@ class Primitives {
     // - [+/-]Infinity
     // - a Dart double literal
     // We do allow leading or trailing whitespace.
-    if (!JS('bool',
-            r'/^\s*[+-]?(?:Infinity|NaN|'
-                r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
-            source)) {
+    if (!JS(
+        'bool',
+        r'/^\s*[+-]?(?:Infinity|NaN|'
+        r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+        source)) {
       return _parseDoubleError(source, handleError);
     }
     var result = JS('num', r'parseFloat(#)', source);
@@ -850,8 +844,8 @@ class Primitives {
   /// The given [className] string generally contains the name of the JavaScript
   /// constructor of the given class.
   static String formatType(String className, List typeArguments) {
-    return unmangleAllIdentifiersIfPreservedAnyways
-        ('$className${joinArguments(typeArguments, 0)}');
+    return unmangleAllIdentifiersIfPreservedAnyways(
+        '$className${joinArguments(typeArguments, 0)}');
   }
 
   /// Returns the type of [object] as a string (including type arguments).
@@ -976,9 +970,13 @@ class Primitives {
     String result = '';
     for (int i = 0; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
-      result = JS('String',
+      result = JS(
+          'String',
           r'# + String.fromCharCode.apply(null, #.slice(#, #))',
-          result, array, i, chunkEnd);
+          result,
+          array,
+          i,
+          chunkEnd);
     }
     return result;
   }
@@ -986,7 +984,7 @@ class Primitives {
   static String stringFromCodePoints(codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
-      if (i is !int) throw argumentErrorValue(i);
+      if (i is! int) throw argumentErrorValue(i);
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
@@ -1001,7 +999,7 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw argumentErrorValue(i);
+      if (i is! int) throw argumentErrorValue(i);
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
@@ -1018,26 +1016,29 @@ class Primitives {
     String result = '';
     for (int i = start; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
-      result = JS('String',
+      result = JS(
+          'String',
           r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
-          result, charCodes, i, chunkEnd);
+          result,
+          charCodes,
+          i,
+          chunkEnd);
     }
     return result;
   }
-
 
   static String stringFromCharCode(charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('returns:String;effects:none;depends:none',
-                  'String.fromCharCode(#)', charCode);
+            'String.fromCharCode(#)', charCode);
       }
       if (charCode <= 0x10ffff) {
         var bits = charCode - 0x10000;
         var low = 0xDC00 | (bits & 0x3ff);
         var high = 0xD800 | (bits >> 10);
         return JS('returns:String;effects:none;depends:none',
-                  'String.fromCharCode(#, #)', high, low);
+            'String.fromCharCode(#, #)', high, low);
       }
     }
     throw new RangeError.range(charCode, 0, 0x10ffff);
@@ -1049,7 +1050,7 @@ class Primitives {
 
   static String flattenString(String str) {
     return JS('returns:String;depends:none;effects:none;throws:never;gvn:true',
-              "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+        "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
   static String getTimeZoneName(DateTime receiver) {
@@ -1062,19 +1063,20 @@ class Primitives {
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
     // Example: Thu Oct 31 14:07:44 PDT 2013
-    match = JS('JSArray|Null',
-                // Thu followed by a space.
-                r'/^[A-Z,a-z]{3}\s'
-                // Oct 31 followed by space.
-                r'[A-Z,a-z]{3}\s\d+\s'
-                // Time followed by a space.
-                r'\d{2}:\d{2}:\d{2}\s'
-                // The time zone name followed by a space.
-                r'([A-Z]{3,5})\s'
-                // The year.
-                r'\d{4}$/'
-                '.exec(#.toString())',
-                d);
+    match = JS(
+        'JSArray|Null',
+        // Thu followed by a space.
+        r'/^[A-Z,a-z]{3}\s'
+        // Oct 31 followed by space.
+        r'[A-Z,a-z]{3}\s\d+\s'
+        // Time followed by a space.
+        r'\d{2}:\d{2}:\d{2}\s'
+        // The time zone name followed by a space.
+        r'([A-Z]{3,5})\s'
+        // The year.
+        r'\d{4}$/'
+        '.exec(#.toString())',
+        d);
     if (match != null) return match[1];
 
     // IE 9 and Opera don't provide the zone name. We fall back to emitting the
@@ -1091,8 +1093,8 @@ class Primitives {
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
-                                 milliseconds, isUtc) {
+  static valueFromDecomposedDate(
+      years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -1105,11 +1107,11 @@ class Primitives {
     var jsMonth = month - 1;
     var value;
     if (isUtc) {
-      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)',
-                 years, jsMonth, day, hours, minutes, seconds, milliseconds);
+      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
+          hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()',
-                 years, jsMonth, day, hours, minutes, seconds, milliseconds);
+      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
+          jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
@@ -1134,7 +1136,7 @@ class Primitives {
   static lazyAsJsDate(DateTime receiver) {
     if (JS('bool', r'#.date === (void 0)', receiver)) {
       JS('void', r'#.date = new Date(#)', receiver,
-         receiver.millisecondsSinceEpoch);
+          receiver.millisecondsSinceEpoch);
     }
     return JS('var', r'#.date', receiver);
   }
@@ -1145,56 +1147,57 @@ class Primitives {
 
   static getYear(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
-      : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
+        ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
+        : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMonth(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
-      : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
+        ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
+        : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
   static getDay(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
-      : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
+        ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
+        : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
   static getHours(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
-      : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
+        ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
+        : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
-      : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
+        ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
+        : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
   static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
-      : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
+        ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
+        : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
-      ? JS('JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
-      : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
+        ? JS(
+            'JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
+        : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
-      ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-      : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
+        ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+        : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
 
   static valueFromDateString(str) {
-    if (str is !String) throw argumentErrorValue(str);
+    if (str is! String) throw argumentErrorValue(str);
     var value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN) throw argumentErrorValue(str);
     return value;
@@ -1214,9 +1217,8 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
-  static functionNoSuchMethod(function,
-                              List positionalArguments,
-                              Map<String, dynamic> namedArguments) {
+  static functionNoSuchMethod(
+      function, List positionalArguments, Map<String, dynamic> namedArguments) {
     int argumentCount = 0;
     List arguments = [];
     List namedArgumentList = [];
@@ -1237,15 +1239,10 @@ class Primitives {
     }
 
     String selectorName =
-      '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount$names';
+        '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount$names';
 
-    return function.noSuchMethod(
-        createUnmangledInvocationMirror(
-            #call,
-            selectorName,
-            JSInvocationMirror.METHOD,
-            arguments,
-            namedArgumentList));
+    return function.noSuchMethod(createUnmangledInvocationMirror(#call,
+        selectorName, JSInvocationMirror.METHOD, arguments, namedArgumentList));
   }
 
   /**
@@ -1281,9 +1278,8 @@ class Primitives {
    * "call$4", then the object's "call$4" property should be used as if it was
    * the value of the catch-all property.
    */
-  static applyFunction2(Function function,
-                        List positionalArguments,
-                        Map<String, dynamic> namedArguments) {
+  static applyFunction2(Function function, List positionalArguments,
+      Map<String, dynamic> namedArguments) {
     // Fast shortcut for the common case.
     if (JS('bool', '# instanceof Array', positionalArguments) &&
         (namedArguments == null || namedArguments.isEmpty)) {
@@ -1303,27 +1299,34 @@ class Primitives {
       } else if (argumentCount == 2) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX2);
         if (JS('bool', '!!#[#]', function, selectorName)) {
-          return JS('', '#[#](#[0],#[1])', function, selectorName,
-          arguments, arguments);
+          return JS('', '#[#](#[0],#[1])', function, selectorName, arguments,
+              arguments);
         }
       } else if (argumentCount == 3) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX3);
         if (JS('bool', '!!#[#]', function, selectorName)) {
           return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
-          arguments, arguments, arguments);
+              arguments, arguments, arguments);
         }
       } else if (argumentCount == 4) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
         if (JS('bool', '!!#[#]', function, selectorName)) {
           return JS('', '#[#](#[0],#[1],#[2],#[3])', function, selectorName,
-          arguments, arguments, arguments, arguments);
+              arguments, arguments, arguments, arguments);
         }
       } else if (argumentCount == 5) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX5);
         if (JS('bool', '!!#[#]', function, selectorName)) {
-          return JS('', '#[#](#[0],#[1],#[2],#[3],#[4])',
-          function, selectorName,
-          arguments, arguments, arguments, arguments, arguments);
+          return JS(
+              '',
+              '#[#](#[0],#[1],#[2],#[3],#[4])',
+              function,
+              selectorName,
+              arguments,
+              arguments,
+              arguments,
+              arguments,
+              arguments);
         }
       }
       String selectorName =
@@ -1338,9 +1341,8 @@ class Primitives {
         function, positionalArguments, namedArguments);
   }
 
-  static _genericApplyFunction2(Function function,
-                                List positionalArguments,
-                                Map<String, dynamic> namedArguments) {
+  static _genericApplyFunction2(Function function, List positionalArguments,
+      Map<String, dynamic> namedArguments) {
     List arguments;
     if (positionalArguments != null) {
       if (JS('bool', '# instanceof Array', positionalArguments)) {
@@ -1355,26 +1357,25 @@ class Primitives {
     int argumentCount = arguments.length;
 
     int requiredParameterCount = JS('int', r'#[#]', function,
-          JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY));
+        JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY));
 
     if (argumentCount < requiredParameterCount) {
       return functionNoSuchMethod(function, arguments, namedArguments);
     }
 
     var defaultValuesClosure = JS('var', r'#[#]', function,
-          JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY));
+        JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY));
 
     bool acceptsOptionalArguments = defaultValuesClosure != null;
 
     // Default values are stored inside a JavaScript closure to avoid
     // accessing them too early.
-    var defaultValues = acceptsOptionalArguments
-        ? JS('', '#()', defaultValuesClosure)
-        : null;
+    var defaultValues =
+        acceptsOptionalArguments ? JS('', '#()', defaultValuesClosure) : null;
 
     var interceptor = getInterceptor(function);
-    var jsFunction = JS('', '#[#]', interceptor,
-        JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
+    var jsFunction =
+        JS('', '#[#]', interceptor, JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
     if (jsFunction is String) {
       // Anonymous closures redirect to the catch-all property instead of
       // storing the catch-all method directly in the catch-all property.
@@ -1445,23 +1446,21 @@ class Primitives {
     }
   }
 
-  static applyFunction(Function function,
-                       List positionalArguments,
-                       Map<String, dynamic> namedArguments) {
+  static applyFunction(Function function, List positionalArguments,
+      Map<String, dynamic> namedArguments) {
     // Dispatch on presence of named arguments to improve tree-shaking.
     //
     // This dispatch is as simple as possible to help the compiler detect the
     // common case of `null` namedArguments, either via inlining or
     // specialization.
     return namedArguments == null
-        ? applyFunctionWithPositionalArguments(
-            function, positionalArguments)
+        ? applyFunctionWithPositionalArguments(function, positionalArguments)
         : applyFunctionWithNamedArguments(
             function, positionalArguments, namedArguments);
   }
 
-  static applyFunctionWithPositionalArguments(Function function,
-                                              List positionalArguments) {
+  static applyFunctionWithPositionalArguments(
+      Function function, List positionalArguments) {
     List arguments;
 
     if (positionalArguments != null) {
@@ -1487,14 +1486,14 @@ class Primitives {
     } else if (arguments.length == 2) {
       String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX2);
       if (JS('bool', '!!#[#]', function, selectorName)) {
-        return JS('', '#[#](#[0],#[1])', function, selectorName,
-            arguments, arguments);
+        return JS('', '#[#](#[0],#[1])', function, selectorName, arguments,
+            arguments);
       }
     } else if (arguments.length == 3) {
       String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX3);
       if (JS('bool', '!!#[#]', function, selectorName)) {
-        return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
-            arguments, arguments, arguments);
+        return JS('', '#[#](#[0],#[1],#[2])', function, selectorName, arguments,
+            arguments, arguments);
       }
     } else if (arguments.length == 4) {
       String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
@@ -1512,24 +1511,24 @@ class Primitives {
     return _genericApplyFunctionWithPositionalArguments(function, arguments);
   }
 
-  static _genericApplyFunctionWithPositionalArguments(Function function,
-                                                      List arguments) {
+  static _genericApplyFunctionWithPositionalArguments(
+      Function function, List arguments) {
     int argumentCount = arguments.length;
     String selectorName =
         '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
       var interceptor = getInterceptor(function);
-      jsFunction = JS('', '#[#]', interceptor,
-          JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
+      jsFunction =
+          JS('', '#[#]', interceptor, JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
 
       if (jsFunction == null) {
         return functionNoSuchMethod(function, arguments, null);
       }
       ReflectionInfo info = new ReflectionInfo(jsFunction);
       int requiredArgumentCount = info.requiredParameterCount;
-      int maxArgumentCount = requiredArgumentCount +
-          info.optionalParameterCount;
+      int maxArgumentCount =
+          requiredArgumentCount + info.optionalParameterCount;
       if (info.areOptionalParametersNamed ||
           requiredArgumentCount > argumentCount ||
           maxArgumentCount < argumentCount) {
@@ -1547,8 +1546,7 @@ class Primitives {
   }
 
   static applyFunctionWithNamedArguments(Function function,
-                                         List positionalArguments,
-                                         Map<String, dynamic> namedArguments) {
+      List positionalArguments, Map<String, dynamic> namedArguments) {
     if (namedArguments.isEmpty) {
       return applyFunctionWithPositionalArguments(
           function, positionalArguments);
@@ -1556,8 +1554,8 @@ class Primitives {
     // TODO(ahe): The following code can be shared with
     // JsInstanceMirror.invoke.
     var interceptor = getInterceptor(function);
-    var jsFunction = JS('', '#[#]', interceptor,
-        JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
+    var jsFunction =
+        JS('', '#[#]', interceptor, JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
 
     if (jsFunction == null) {
       return functionNoSuchMethod(
@@ -1660,7 +1658,7 @@ ioore(receiver, index) {
  */
 @NoInline()
 Error diagnoseIndexError(indexable, index) {
-  if (index is !int) return new ArgumentError.value(index, 'index');
+  if (index is! int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
@@ -1695,9 +1693,8 @@ Error diagnoseRangeError(start, end, length) {
   return new ArgumentError.value(end, "end");
 }
 
-stringLastIndexOfUnchecked(receiver, element, start)
-  => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
-
+stringLastIndexOfUnchecked(receiver, element, start) =>
+    JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
@@ -1711,22 +1708,22 @@ checkNull(object) {
 }
 
 checkNum(value) {
-  if (value is !num) throw argumentErrorValue(value);
+  if (value is! num) throw argumentErrorValue(value);
   return value;
 }
 
 checkInt(value) {
-  if (value is !int) throw argumentErrorValue(value);
+  if (value is! int) throw argumentErrorValue(value);
   return value;
 }
 
 checkBool(value) {
-  if (value is !bool) throw argumentErrorValue(value);
+  if (value is! bool) throw argumentErrorValue(value);
   return value;
 }
 
 checkString(value) {
-  if (value is !String) throw argumentErrorValue(value);
+  if (value is! String) throw argumentErrorValue(value);
   return value;
 }
 
@@ -1748,8 +1745,8 @@ wrapException(ex) {
     // (https://code.google.com/p/v8/issues/detail?id=2519).  The default
     // toString on Error returns the value of 'message' if 'name' is
     // empty. Setting toString directly doesn't work, see the bug.
-    JS('void', 'Object.defineProperty(#, "message", { get: # })',
-       wrapper, DART_CLOSURE_TO_JS(toStringWrapper));
+    JS('void', 'Object.defineProperty(#, "message", { get: # })', wrapper,
+        DART_CLOSURE_TO_JS(toStringWrapper));
     JS('void', '#.name = ""', wrapper);
   } else {
     // In the unlikely event the browser doesn't support Object.defineProperty,
@@ -1889,12 +1886,8 @@ class TypeErrorDecoder {
   static final TypeErrorDecoder undefinedLiteralPropertyPattern =
       extractPattern(provokePropertyErrorOnUndefined());
 
-  TypeErrorDecoder(this._arguments,
-                   this._argumentsExpr,
-                   this._expr,
-                   this._method,
-                   this._receiver,
-                   this._pattern);
+  TypeErrorDecoder(this._arguments, this._argumentsExpr, this._expr,
+      this._method, this._receiver, this._pattern);
 
   /// Returns a JavaScript object literal (map) with at most the
   /// following keys:
@@ -1918,8 +1911,8 @@ class TypeErrorDecoder {
   ///   JavaScript toString on receiver), but it has degenerated into
   ///   "[object Object]" in recent versions.
   matchTypeError(message) {
-    var match = JS('JSExtendableArray|Null',
-        'new RegExp(#).exec(#)', _pattern, message);
+    var match = JS(
+        'JSExtendableArray|Null', 'new RegExp(#).exec(#)', _pattern, message);
     if (match == null) return null;
     var result = JS('', 'Object.create(null)');
     if (_arguments != -1) {
@@ -1950,8 +1943,10 @@ class TypeErrorDecoder {
   /// Builds a JavaScript Object with a toString method saying
   /// r"$receiver$". The property "$method" is defined, but is not a function.
   static buildJavaScriptObjectWithNonClosure() {
-    return JS('', r'{ $method$: null, '
-              r'toString: function() { return "$receiver$"; } }');
+    return JS(
+        '',
+        r'{ $method$: null, '
+        r'toString: function() { return "$receiver$"; } }');
   }
 
   /// Extract a pattern from a JavaScript TypeError message.
@@ -1999,21 +1994,17 @@ class TypeErrorDecoder {
     String pattern = JS(
         'String',
         r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
-            r"'((?:x|[^x])*)')"
+        r"'((?:x|[^x])*)')"
         r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
-            r"'((?:x|[^x])*)')"
+        r"'((?:x|[^x])*)')"
         r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
         r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
         r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
-            r"'((?:x|[^x])*)')",
+        r"'((?:x|[^x])*)')",
         message);
 
-    return new TypeErrorDecoder(arguments,
-                                argumentsExpr,
-                                expr,
-                                method,
-                                receiver,
-                                pattern);
+    return new TypeErrorDecoder(
+        arguments, argumentsExpr, expr, method, receiver, pattern);
   }
 
   /// Provokes a TypeError and returns its message.
@@ -2063,7 +2054,9 @@ class TypeErrorDecoder {
     //
     // "(.*)\\.(.*) is not a function"
 
-    var function = JS('', r"""function($expr$) {
+    var function = JS(
+        '',
+        r"""function($expr$) {
   var $argumentsExpr$ = '$arguments$';
   try {
     $expr$.$method$($argumentsExpr$);
@@ -2078,7 +2071,9 @@ class TypeErrorDecoder {
   /// literal "null" expression.
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS('', r"""function() {
+    var function = JS(
+        '',
+        r"""function() {
   var $argumentsExpr$ = '$arguments$';
   try {
     null.$method$($argumentsExpr$);
@@ -2093,7 +2088,9 @@ class TypeErrorDecoder {
   /// (void 0), that is, "undefined".
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS('', r"""function() {
+    var function = JS(
+        '',
+        r"""function() {
   var $argumentsExpr$ = '$arguments$';
   try {
     (void 0).$method$($argumentsExpr$);
@@ -2108,7 +2105,9 @@ class TypeErrorDecoder {
   /// error.
   static String provokePropertyErrorOn(expression) {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS('', r"""function($expr$) {
+    var function = JS(
+        '',
+        r"""function($expr$) {
   try {
     $expr$.$method$;
   } catch (e) {
@@ -2122,7 +2121,9 @@ class TypeErrorDecoder {
   /// error directly on literal "null" expression.
   static String provokePropertyErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS('', r"""function() {
+    var function = JS(
+        '',
+        r"""function() {
   try {
     null.$method$;
   } catch (e) {
@@ -2136,7 +2137,9 @@ class TypeErrorDecoder {
   /// error directly on (void 0), that is, "undefined".
   static String provokePropertyErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS('', r"""function() {
+    var function = JS(
+        '',
+        r"""function() {
   try {
     (void 0).$method$;
   } catch (e) {
@@ -2239,8 +2242,8 @@ unwrapException(ex) {
 
   // Internet Explorer has an error number.  This is the most reliable way to
   // detect specific errors, so check for this first.
-  if (JS('bool', '"number" in #', ex)
-      && JS('bool', 'typeof #.number == "number"', ex)) {
+  if (JS('bool', '"number" in #', ex) &&
+      JS('bool', 'typeof #.number == "number"', ex)) {
     int number = JS('int', '#.number', ex);
 
     // From http://msdn.microsoft.com/en-us/library/ie/hc53e755(v=vs.94).aspx
@@ -2253,13 +2256,13 @@ unwrapException(ex) {
     // http://msdn.microsoft.com/en-us/library/ie/1dk3k160(v=vs.94).aspx
     if (ieFacilityNumber == 10) {
       switch (ieErrorCode) {
-      case 438:
-        return saveStackTrace(
-            new JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
-      case 445:
-      case 5007:
-        return saveStackTrace(
-            new NullError('$message (Error $ieErrorCode)', null));
+        case 438:
+          return saveStackTrace(
+              new JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
+        case 445:
+        case 5007:
+          return saveStackTrace(
+              new NullError('$message (Error $ieErrorCode)', null));
       }
     }
   }
@@ -2277,8 +2280,7 @@ unwrapException(ex) {
     var nullProperty = TypeErrorDecoder.nullPropertyPattern;
     var nullLiteralProperty = TypeErrorDecoder.nullLiteralPropertyPattern;
     var undefProperty = TypeErrorDecoder.undefinedPropertyPattern;
-    var undefLiteralProperty =
-        TypeErrorDecoder.undefinedLiteralPropertyPattern;
+    var undefLiteralProperty = TypeErrorDecoder.undefinedLiteralPropertyPattern;
     if ((match = nsme.matchTypeError(message)) != null) {
       return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = notClosure.matchTypeError(message)) != null) {
@@ -2289,13 +2291,13 @@ unwrapException(ex) {
       JS('', '#.method = "call"', match);
       return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = nullCall.matchTypeError(message)) != null ||
-               (match = nullLiteralCall.matchTypeError(message)) != null ||
-               (match = undefCall.matchTypeError(message)) != null ||
-               (match = undefLiteralCall.matchTypeError(message)) != null ||
-               (match = nullProperty.matchTypeError(message)) != null ||
-               (match = nullLiteralCall.matchTypeError(message)) != null ||
-               (match = undefProperty.matchTypeError(message)) != null ||
-               (match = undefLiteralProperty.matchTypeError(message)) != null) {
+        (match = nullLiteralCall.matchTypeError(message)) != null ||
+        (match = undefCall.matchTypeError(message)) != null ||
+        (match = undefLiteralCall.matchTypeError(message)) != null ||
+        (match = nullProperty.matchTypeError(message)) != null ||
+        (match = nullLiteralCall.matchTypeError(message)) != null ||
+        (match = undefProperty.matchTypeError(message)) != null ||
+        (match = undefLiteralProperty.matchTypeError(message)) != null) {
       return saveStackTrace(new NullError(message, match));
     }
 
@@ -2323,9 +2325,10 @@ unwrapException(ex) {
   }
 
   // Check for the Firefox specific stack overflow signal.
-  if (JS('bool',
-         r'typeof InternalError == "function" && # instanceof InternalError',
-         ex)) {
+  if (JS(
+      'bool',
+      r'typeof InternalError == "function" && # instanceof InternalError',
+      ex)) {
     if (message is String && message == 'too much recursion') {
       return new StackOverflowError();
     }
@@ -2341,14 +2344,17 @@ String tryStringifyException(ex) {
   // Since this function is called from [unwrapException] which is called from
   // code injected into a catch-clause, use JavaScript try-catch to avoid a
   // potential loop if stringifying crashes.
-  return JS('String|Null', r'''
+  return JS(
+      'String|Null',
+      r'''
     (function(ex) {
       try {
         return String(ex);
       } catch (e) {}
       return null;
     })(#)
-    ''', ex);
+    ''',
+      ex);
 }
 
 /**
@@ -2408,13 +2414,8 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
-invokeClosure(Function closure,
-              var isolate,
-              int numberOfArguments,
-              var arg1,
-              var arg2,
-              var arg3,
-              var arg4) {
+invokeClosure(Function closure, var isolate, int numberOfArguments, var arg1,
+    var arg2, var arg3, var arg4) {
   switch (numberOfArguments) {
     case 0:
       return JS_CALL_IN_ISOLATE(isolate, () => closure());
@@ -2456,9 +2457,11 @@ convertDartClosureToJS(closure, int arity) {
   return function;
 }
 
-/**
- * Super class for Dart closures.
- */
+/// Superclass for Dart closures.
+///
+/// All static, tear-off, function declaration and function expression closures
+/// extend this class, but classes that implement Function via a `call` method
+/// do not.
 abstract class Closure implements Function {
   // TODO(ahe): These constants must be in sync with
   // reflection_data_parser.dart.
@@ -2506,12 +2509,8 @@ abstract class Closure implements Function {
    * Caution: this function may be called when building constants.
    * TODO(ahe): Don't call this function when building constants.
    */
-  static fromTearOff(receiver,
-                     List functions,
-                     var reflectionInfo,
-                     bool isStatic,
-                     jsArguments,
-                     String propertyName) {
+  static fromTearOff(receiver, List functions, var reflectionInfo,
+      bool isStatic, jsArguments, String propertyName) {
     JS_EFFECT(() {
       // The functions are called here to model the calls from JS forms below.
       // The types in the JS forms in the arguments are propagated in type
@@ -2538,7 +2537,6 @@ abstract class Closure implements Function {
     } else {
       functionType = reflectionInfo;
     }
-
 
     // function tmp() {};
     // tmp.prototype = BC.prototype;
@@ -2568,19 +2566,21 @@ abstract class Closure implements Function {
     // TODO(sra): Perhaps cache the prototype to avoid the allocation.
     var prototype = isStatic
         ? JS('StaticClosure', 'Object.create(#.constructor.prototype)',
-             new StaticClosure())
+            new StaticClosure())
         : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
-             new BoundClosure(null, null, null, null));
+            new BoundClosure(null, null, null, null));
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
     var constructor = isStatic
         ? JS('', 'function(){this.\$initialize()}')
         : isCsp
             ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
-            : JS('',
-                 'new Function("a,b,c,d" + #,'
-                 ' "this.\$initialize(a,b,c,d" + # + ")")',
-                 functionCounter, functionCounter++);
+            : JS(
+                '',
+                'new Function("a,b,c,d" + #,'
+                ' "this.\$initialize(a,b,c,d" + # + ")")',
+                functionCounter,
+                functionCounter++);
 
     // It is necessary to set the constructor property, otherwise it will be
     // "Object".
@@ -2599,8 +2599,8 @@ abstract class Closure implements Function {
       trampoline = forwardCallTo(receiver, function, isIntercepted);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
-      JS('', '#[#] = #',
-          prototype, STATIC_FUNCTION_NAME_PROPERTY_NAME, propertyName);
+      JS('', '#[#] = #', prototype, STATIC_FUNCTION_NAME_PROPERTY_NAME,
+          propertyName);
     }
 
     var signatureFunction;
@@ -2612,13 +2612,13 @@ abstract class Closure implements Function {
       // Note that we cannot just textually inline the call
       // `getType(functionType)` since we cannot guarantee that the (then)
       // captured variable `functionType` isn't reused.
-      signatureFunction =
-          JS('',
-             '''(function(getType, t) {
+      signatureFunction = JS(
+          '',
+          '''(function(getType, t) {
                     return function(){ return getType(t); };
                 })(#, #)''',
-             RAW_DART_FUNCTION_REF(getType),
-             functionType);
+          RAW_DART_FUNCTION_REF(getType),
+          functionType);
     } else if (JS('bool', 'typeof # == "function"', functionType)) {
       if (isStatic) {
         signatureFunction = functionType;
@@ -2627,12 +2627,14 @@ abstract class Closure implements Function {
             ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
             : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
         signatureFunction = JS(
-          '',
-          'function(f,r){'
+            '',
+            'function(f,r){'
             'return function(){'
-              'return f.apply({\$receiver:r(this)},arguments)'
+            'return f.apply({\$receiver:r(this)},arguments)'
             '}'
-          '}(#,#)', functionType, getReceiver);
+            '}(#,#)',
+            functionType,
+            getReceiver);
       }
     } else {
       throw 'Error in reflectionInfo.';
@@ -2648,7 +2650,7 @@ abstract class Closure implements Function {
           JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
       if (stubCallName != null) {
         JS('', '#[#] = #', prototype, stubCallName,
-           isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
+            isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
       }
     }
 
@@ -2662,68 +2664,82 @@ abstract class Closure implements Function {
     return constructor;
   }
 
-  static cspForwardCall(int arity, bool isSuperCall, String stubName,
-                        function) {
+  static cspForwardCall(
+      int arity, bool isSuperCall, String stubName, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     // Handle intercepted stub-names with the default slow case.
     if (isSuperCall) arity = -1;
     switch (arity) {
-    case 0:
-      return JS(
-          '',
-          'function(n,S){'
+      case 0:
+        return JS(
+            '',
+            'function(n,S){'
             'return function(){'
-              'return S(this)[n]()'
+            'return S(this)[n]()'
             '}'
-          '}(#,#)', stubName, getSelf);
-    case 1:
-      return JS(
-          '',
-          'function(n,S){'
+            '}(#,#)',
+            stubName,
+            getSelf);
+      case 1:
+        return JS(
+            '',
+            'function(n,S){'
             'return function(a){'
-              'return S(this)[n](a)'
+            'return S(this)[n](a)'
             '}'
-          '}(#,#)', stubName, getSelf);
-    case 2:
-      return JS(
-          '',
-          'function(n,S){'
+            '}(#,#)',
+            stubName,
+            getSelf);
+      case 2:
+        return JS(
+            '',
+            'function(n,S){'
             'return function(a,b){'
-              'return S(this)[n](a,b)'
+            'return S(this)[n](a,b)'
             '}'
-          '}(#,#)', stubName, getSelf);
-    case 3:
-      return JS(
-          '',
-          'function(n,S){'
+            '}(#,#)',
+            stubName,
+            getSelf);
+      case 3:
+        return JS(
+            '',
+            'function(n,S){'
             'return function(a,b,c){'
-              'return S(this)[n](a,b,c)'
+            'return S(this)[n](a,b,c)'
             '}'
-          '}(#,#)', stubName, getSelf);
-    case 4:
-      return JS(
-          '',
-          'function(n,S){'
+            '}(#,#)',
+            stubName,
+            getSelf);
+      case 4:
+        return JS(
+            '',
+            'function(n,S){'
             'return function(a,b,c,d){'
-              'return S(this)[n](a,b,c,d)'
+            'return S(this)[n](a,b,c,d)'
             '}'
-          '}(#,#)', stubName, getSelf);
-    case 5:
-      return JS(
-          '',
-          'function(n,S){'
+            '}(#,#)',
+            stubName,
+            getSelf);
+      case 5:
+        return JS(
+            '',
+            'function(n,S){'
             'return function(a,b,c,d,e){'
-              'return S(this)[n](a,b,c,d,e)'
+            'return S(this)[n](a,b,c,d,e)'
             '}'
-          '}(#,#)', stubName, getSelf);
-    default:
-      return JS(
-          '',
-          'function(f,s){'
+            '}(#,#)',
+            stubName,
+            getSelf);
+      default:
+        return JS(
+            '',
+            'function(f,s){'
             'return function(){'
-              'return f.apply(s(this),arguments)'
+            'return f.apply(s(this),arguments)'
             '}'
-          '}(#,#)', function, getSelf);
+            '}(#,#)',
+            function,
+            getSelf);
     }
   }
 
@@ -2751,93 +2767,112 @@ abstract class Closure implements Function {
           '',
           '(new Function(#))()',
           'return function(){'
-            'var $selfName = this.${BoundClosure.selfFieldName()};'
-            'return $selfName.$stubName();'
+          'var $selfName = this.${BoundClosure.selfFieldName()};'
+          'return $selfName.$stubName();'
           '}');
     }
-    assert (1 <= arity && arity < 27);
-    String arguments = JS(
-        'String',
-        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
-        arity);
+    assert(1 <= arity && arity < 27);
+    String arguments = JS('String',
+        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")', arity);
     arguments += '${functionCounter++}';
     return JS(
         '',
         '(new Function(#))()',
         'return function($arguments){'
-          'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
+        'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
         '}');
   }
 
-  static cspForwardInterceptedCall(int arity, bool isSuperCall,
-                                   String name, function) {
+  static cspForwardInterceptedCall(
+      int arity, bool isSuperCall, String name, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
     // Handle intercepted stub-names with the default slow case.
     if (isSuperCall) arity = -1;
     switch (arity) {
-    case 0:
-      // Intercepted functions always takes at least one argument (the
-      // receiver).
-      throw new RuntimeError('Intercepted function with no arguments.');
-    case 1:
-      return JS(
-          '',
-          'function(n,s,r){'
+      case 0:
+        // Intercepted functions always takes at least one argument (the
+        // receiver).
+        throw new RuntimeError('Intercepted function with no arguments.');
+      case 1:
+        return JS(
+            '',
+            'function(n,s,r){'
             'return function(){'
-              'return s(this)[n](r(this))'
+            'return s(this)[n](r(this))'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
-    case 2:
-      return JS(
-          '',
-          'function(n,s,r){'
+            '}(#,#,#)',
+            name,
+            getSelf,
+            getReceiver);
+      case 2:
+        return JS(
+            '',
+            'function(n,s,r){'
             'return function(a){'
-              'return s(this)[n](r(this),a)'
+            'return s(this)[n](r(this),a)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
-    case 3:
-      return JS(
-          '',
-          'function(n,s,r){'
+            '}(#,#,#)',
+            name,
+            getSelf,
+            getReceiver);
+      case 3:
+        return JS(
+            '',
+            'function(n,s,r){'
             'return function(a,b){'
-              'return s(this)[n](r(this),a,b)'
+            'return s(this)[n](r(this),a,b)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
-    case 4:
-      return JS(
-          '',
-          'function(n,s,r){'
+            '}(#,#,#)',
+            name,
+            getSelf,
+            getReceiver);
+      case 4:
+        return JS(
+            '',
+            'function(n,s,r){'
             'return function(a,b,c){'
-              'return s(this)[n](r(this),a,b,c)'
+            'return s(this)[n](r(this),a,b,c)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
-    case 5:
-      return JS(
-          '',
-          'function(n,s,r){'
+            '}(#,#,#)',
+            name,
+            getSelf,
+            getReceiver);
+      case 5:
+        return JS(
+            '',
+            'function(n,s,r){'
             'return function(a,b,c,d){'
-              'return s(this)[n](r(this),a,b,c,d)'
+            'return s(this)[n](r(this),a,b,c,d)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
-    case 6:
-      return JS(
-          '',
-          'function(n,s,r){'
+            '}(#,#,#)',
+            name,
+            getSelf,
+            getReceiver);
+      case 6:
+        return JS(
+            '',
+            'function(n,s,r){'
             'return function(a,b,c,d,e){'
-              'return s(this)[n](r(this),a,b,c,d,e)'
+            'return s(this)[n](r(this),a,b,c,d,e)'
             '}'
-          '}(#,#,#)', name, getSelf, getReceiver);
-    default:
-      return JS(
-          '',
-          'function(f,s,r,a){'
+            '}(#,#,#)',
+            name,
+            getSelf,
+            getReceiver);
+      default:
+        return JS(
+            '',
+            'function(f,s,r,a){'
             'return function(){'
-              'a=[r(this)];'
-              'Array.prototype.push.apply(a,arguments);'
-              'return f.apply(s(this),a)'
+            'a=[r(this)];'
+            'Array.prototype.push.apply(a,arguments);'
+            'return f.apply(s(this),a)'
             '}'
-          '}(#,#,#)', function, getSelf, getReceiver);
+            '}(#,#,#)',
+            function,
+            getSelf,
+            getReceiver);
     }
   }
 
@@ -2855,16 +2890,15 @@ abstract class Closure implements Function {
     bool isSuperCall = !identical(function, lookedUpFunction);
 
     if (isCsp || isSuperCall || arity >= 28) {
-      return cspForwardInterceptedCall(arity, isSuperCall, stubName,
-                                       function);
+      return cspForwardInterceptedCall(arity, isSuperCall, stubName, function);
     }
     if (arity == 1) {
       return JS(
           '',
           '(new Function(#))()',
           'return function(){'
-            'return this.$selfField.$stubName(this.$receiverField);'
-            '${functionCounter++}'
+          'return this.$selfField.$stubName(this.$receiverField);'
+          '${functionCounter++}'
           '}');
     }
     assert(1 < arity && arity < 28);
@@ -2876,8 +2910,8 @@ abstract class Closure implements Function {
         '',
         '(new Function(#))()',
         'return function($arguments){'
-          'return this.$selfField.$stubName(this.$receiverField, $arguments);'
-          '${functionCounter++}'
+        'return this.$selfField.$stubName(this.$receiverField, $arguments);'
+        '${functionCounter++}'
         '}');
   }
 
@@ -2891,30 +2925,28 @@ abstract class Closure implements Function {
 
   String toString() {
     String name = Primitives.objectTypeName(this);
+    // Mirrors puts a space in front of some names, so remove it.
+    name = JS('String', '#.trim()', name);
     return "Closure '$name'";
   }
 }
 
 /// Called from implicit method getter (aka tear-off).
-closureFromTearOff(receiver,
-                   functions,
-                   reflectionInfo,
-                   isStatic,
-                   jsArguments,
-                   name) {
+closureFromTearOff(
+    receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
   return Closure.fromTearOff(
       receiver,
       JSArray.markFixedList(functions),
-      reflectionInfo is List ? JSArray.markFixedList(reflectionInfo)
-                             : reflectionInfo,
+      reflectionInfo is List
+          ? JSArray.markFixedList(reflectionInfo)
+          : reflectionInfo,
       JS('bool', '!!#', isStatic),
       jsArguments,
       JS('String', '#', name));
 }
 
 /// Represents an implicit closure of a function.
-abstract class TearOffClosure extends Closure {
-}
+abstract class TearOffClosure extends Closure {}
 
 class StaticClosure extends TearOffClosure {
   String toString() {
@@ -2944,12 +2976,12 @@ class BoundClosure extends TearOffClosure {
 
   BoundClosure(this._self, this._target, this._receiver, this._name);
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! BoundClosure) return false;
     return JS('bool', '# === #', _self, other._self) &&
-           JS('bool', '# === #', _target, other._target) &&
-           JS('bool', '# === #', _receiver, other._receiver);
+        JS('bool', '# === #', _target, other._target) &&
+        JS('bool', '# === #', _receiver, other._receiver);
   }
 
   int get hashCode {
@@ -3003,11 +3035,12 @@ class BoundClosure extends TearOffClosure {
     return receiverFieldNameCache;
   }
 
-  @NoInline() @NoSideEffects()
+  @NoInline()
+  @NoSideEffects()
   static String computeFieldNamed(String fieldName) {
     var template = new BoundClosure('self', 'target', 'receiver', 'name');
-    var names = JSArray.markFixedList(
-        JS('', 'Object.getOwnPropertyNames(#)', template));
+    var names = JSArray
+        .markFixedList(JS('', 'Object.getOwnPropertyNames(#)', template));
     for (int i = 0; i < names.length; i++) {
       var name = names[i];
       if (JS('bool', '#[#] === #', template, name, fieldName)) {
@@ -3137,8 +3170,7 @@ stringTypeCheck(value) {
 stringTypeCast(value) {
   if (value is String || value == null) return value;
   // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'String');
+  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
 }
 
 doubleTypeCheck(value) {
@@ -3149,8 +3181,7 @@ doubleTypeCheck(value) {
 
 doubleTypeCast(value) {
   if (value is double || value == null) return value;
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'double');
+  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
 }
 
 numTypeCheck(value) {
@@ -3161,8 +3192,7 @@ numTypeCheck(value) {
 
 numTypeCast(value) {
   if (value is num || value == null) return value;
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'num');
+  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
 }
 
 boolTypeCheck(value) {
@@ -3173,8 +3203,7 @@ boolTypeCheck(value) {
 
 boolTypeCast(value) {
   if (value is bool || value == null) return value;
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'bool');
+  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
 }
 
 intTypeCheck(value) {
@@ -3185,8 +3214,7 @@ intTypeCheck(value) {
 
 intTypeCast(value) {
   if (value is int || value == null) return value;
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'int');
+  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
 }
 
 void propertyTypeError(value, property) {
@@ -3230,7 +3258,7 @@ propertyTypeCast(value, property) {
 interceptedTypeCheck(value, property) {
   if (value == null) return value;
   if ((JS('bool', 'typeof # === "object"', value) ||
-              JS('bool', 'typeof # === "function"', value)) &&
+          JS('bool', 'typeof # === "function"', value)) &&
       JS('bool', '#[#]', getInterceptor(value), property)) {
     return value;
   }
@@ -3327,8 +3355,7 @@ listTypeCheck(value) {
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'List');
+  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
 }
 
 listSuperTypeCheck(value, property) {
@@ -3361,6 +3388,59 @@ voidTypeCheck(value) {
   throw new TypeErrorImplementation(value, 'void');
 }
 
+extractFunctionTypeObjectFrom(o) {
+  var interceptor = getInterceptor(o);
+  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+  return JS('bool', '# in #', signatureName, interceptor)
+      ? JS('', '#[#]()', interceptor, signatureName)
+      : null;
+}
+
+functionTypeTest(value, functionTypeRti) {
+  if (value == null) return false;
+  var functionTypeObject = extractFunctionTypeObjectFrom(value);
+  return functionTypeObject == null
+      ? false
+      : isFunctionSubtype(functionTypeObject, functionTypeRti);
+}
+
+// Declared as 'var' to avoid assignment checks.
+var _inTypeAssertion = false;
+
+functionTypeCheck(value, functionTypeRti) {
+  if (value == null) return value;
+
+  // The function type test code contains type assertions for function
+  // types. This leads to unbounded recursion, so disable the type checking of
+  // function types while checking function types.
+
+  if (true == _inTypeAssertion) return value;
+
+  _inTypeAssertion = true;
+  try {
+    if (functionTypeTest(value, functionTypeRti)) return value;
+    var self = runtimeTypeToString(functionTypeRti);
+    throw new TypeErrorImplementation(value, self);
+  } finally {
+    _inTypeAssertion = false;
+  }
+}
+
+functionTypeCast(value, functionTypeRti) {
+  if (value == null) return value;
+  if (functionTypeTest(value, functionTypeRti)) return value;
+
+  var self = runtimeTypeToString(functionTypeRti);
+  var functionTypeObject = extractFunctionTypeObjectFrom(value);
+  var pretty;
+  if (functionTypeObject != null) {
+    pretty = runtimeTypeToString(functionTypeObject);
+  } else {
+    pretty = Primitives.objectTypeName(value);
+  }
+  throw new CastErrorImplementation(pretty, self);
+}
+
 checkMalformedType(value, message) {
   if (value == null) return value;
   throw new TypeErrorImplementation.fromMessage(message);
@@ -3378,8 +3458,7 @@ void checkDeferredIsLoaded(String loadId, String uri) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {
-}
+abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 // TODO(lrn): These exceptions should be implemented in core.
 // When they are, remove the 'Implementation' here.
@@ -3393,7 +3472,7 @@ class TypeErrorImplementation extends Error implements TypeError {
    */
   TypeErrorImplementation(Object value, String type)
       : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-                  "of type '$type'";
+            "of type '$type'";
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -3410,7 +3489,7 @@ class CastErrorImplementation extends Error implements CastError {
    */
   CastErrorImplementation(Object actualType, Object expectedType)
       : message = "CastError: Casting value of type '$actualType' to"
-                  " incompatible type '$expectedType'";
+            " incompatible type '$expectedType'";
 
   String toString() => message;
 }
@@ -3458,8 +3537,7 @@ void assertHelper(condition) {
 void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
   Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
   throw new NoSuchMethodError(obj, memberName, arguments,
-                              new Map<Symbol, dynamic>(),
-                              expectedArgumentNames);
+      new Map<Symbol, dynamic>(), expectedArgumentNames);
 }
 
 /**
@@ -3486,338 +3564,6 @@ class DeferredNotLoadedError extends Error implements NoSuchMethodError {
 
   String toString() {
     return "Deferred library $libraryName was not loaded.";
-  }
-}
-
-abstract class RuntimeType {
-  const RuntimeType();
-
-  toRti();
-}
-
-class RuntimeFunctionType extends RuntimeType {
-  final RuntimeType returnType;
-  final List<RuntimeType> parameterTypes;
-  final List<RuntimeType> optionalParameterTypes;
-  final namedParameters;
-
-  static var /* bool */ inAssert = false;
-
-  RuntimeFunctionType(this.returnType,
-                      this.parameterTypes,
-                      this.optionalParameterTypes,
-                      this.namedParameters);
-
-  bool get isVoid => returnType is VoidRuntimeType;
-
-  /// Called from generated code. [expression] is a Dart object and this method
-  /// returns true if [this] is a supertype of [expression].
-  @NoInline() @NoSideEffects()
-  bool _isTest(expression) {
-    var functionTypeObject = extractFunctionTypeObjectFrom(expression);
-    return functionTypeObject == null
-        ? false
-        : isFunctionSubtype(functionTypeObject, toRti());
-  }
-
-  @NoInline() @NoSideEffects()
-  _asCheck(expression) {
-    // Type inferrer doesn't think this is called with dynamic arguments.
-    return _check(JS('', '#', expression), true);
-  }
-
-  @NoInline() @NoSideEffects()
-  _assertCheck(expression) {
-    if (inAssert) return null;
-    inAssert = true; // Don't try to check this library itself.
-    try {
-      // Type inferrer don't think this is called with dynamic arguments.
-      return _check(JS('', '#', expression), false);
-    } finally {
-      inAssert = false;
-    }
-  }
-
-  _check(expression, bool isCast) {
-    if (expression == null) return null;
-    if (_isTest(expression)) return expression;
-
-    var self = runtimeTypeToString(toRti());
-    if (isCast) {
-      var functionTypeObject = extractFunctionTypeObjectFrom(expression);
-      var pretty;
-      if (functionTypeObject != null) {
-        pretty = runtimeTypeToString(functionTypeObject);
-      } else {
-        pretty = Primitives.objectTypeName(expression);
-      }
-      throw new CastErrorImplementation(pretty, self);
-    } else {
-      // TODO(ahe): Pass "pretty" function-type to TypeErrorImplementation?
-      throw new TypeErrorImplementation(expression, self);
-    }
-  }
-
-  toRti() {
-    var result = createDartFunctionTypeRti();
-    if (isVoid) {
-      JS('', '#[#] = true', result,
-          JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG));
-    } else {
-      if (returnType is! DynamicRuntimeType) {
-        JS('', '#[#] = #', result,
-           JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG),
-           returnType.toRti());
-      }
-    }
-    if (parameterTypes != null && !parameterTypes.isEmpty) {
-      JS('', '#[#] = #', result,
-         JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG),
-         listToRti(parameterTypes));
-    }
-
-    if (optionalParameterTypes != null && !optionalParameterTypes.isEmpty) {
-      JS('', '#[#] = #', result,
-         JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG),
-         listToRti(optionalParameterTypes));
-    }
-
-    if (namedParameters != null) {
-      var namedRti = JS('=Object', 'Object.create(null)');
-      var keys = extractKeys(namedParameters);
-      for (var i = 0; i < keys.length; i++) {
-        var name = keys[i];
-        var rti = JS('', '#[#]', namedParameters, name).toRti();
-        JS('', '#[#] = #', namedRti, name, rti);
-      }
-      JS('', '#[#] = #', result,
-         JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG),
-         namedRti);
-    }
-
-    return result;
-  }
-
-  static listToRti(list) {
-    list = JS('JSFixedArray', '#', list);
-    var result = JS('JSExtendableArray', '[]');
-    for (var i = 0; i < list.length; i++) {
-      JS('', '#.push(#)', result, list[i].toRti());
-    }
-    return result;
-  }
-
-  String toString() {
-    String result = '(';
-    bool needsComma = false;
-    if (parameterTypes != null) {
-      for (var i = 0; i < parameterTypes.length; i++) {
-        RuntimeType type = parameterTypes[i];
-        if (needsComma) result += ', ';
-        result += '$type';
-        needsComma = true;
-      }
-    }
-    if (optionalParameterTypes != null && !optionalParameterTypes.isEmpty) {
-      if (needsComma) result += ', ';
-      needsComma = false;
-      result += '[';
-      for (var i = 0; i < optionalParameterTypes.length; i++) {
-        RuntimeType type = optionalParameterTypes[i];
-        if (needsComma) result += ', ';
-        result += '$type';
-        needsComma = true;
-      }
-      result += ']';
-    } else if (namedParameters != null) {
-      if (needsComma) result += ', ';
-      needsComma = false;
-      result += '{';
-      var keys = extractKeys(namedParameters);
-      for (var i = 0; i < keys.length; i++) {
-        var name = keys[i];
-        if (needsComma) result += ', ';
-        var rti = JS('', '#[#]', namedParameters, name).toRti();
-        result += '$rti ${JS("String", "#", name)}';
-        needsComma = true;
-      }
-      result += '}';
-    }
-
-    result += ') -> $returnType';
-    return result;
-  }
-}
-
-extractFunctionTypeObjectFrom(o) {
-  var interceptor = getInterceptor(o);
-  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-  return JS('bool', '# in #', signatureName, interceptor)
-      ? JS('', '#[#]()', interceptor, signatureName)
-      : null;
-}
-
-RuntimeFunctionType buildFunctionType(returnType,
-                                      parameterTypes,
-                                      optionalParameterTypes) {
-  return new RuntimeFunctionType(
-      returnType,
-      parameterTypes,
-      optionalParameterTypes,
-      null);
-}
-
-RuntimeFunctionType buildNamedFunctionType(returnType,
-                                           parameterTypes,
-                                           namedParameters) {
-  return new RuntimeFunctionType(
-      returnType,
-      parameterTypes,
-      null,
-      namedParameters);
-}
-
-RuntimeType buildInterfaceType(rti, typeArguments) {
-  String jsConstructorName = rawRtiToJsConstructorName(rti);
-  if (typeArguments == null || typeArguments.isEmpty) {
-    return new RuntimeTypePlain(jsConstructorName);
-  }
-  return new RuntimeTypeGeneric(jsConstructorName, typeArguments, null);
-}
-
-class DynamicRuntimeType extends RuntimeType {
-  const DynamicRuntimeType();
-
-  String toString() => 'dynamic';
-
-  toRti() => null;
-}
-
-RuntimeType getDynamicRuntimeType() => const DynamicRuntimeType();
-
-class VoidRuntimeType extends RuntimeType {
-  const VoidRuntimeType();
-
-  String toString() => 'void';
-
-  toRti() => throw 'internal error';
-}
-
-RuntimeType getVoidRuntimeType() => const VoidRuntimeType();
-
-/**
- * Meta helper for function type tests.
- *
- * A "meta helper" is a helper function that is never called but simulates how
- * generated code behaves as far as resolution and type inference is concerned.
- */
-functionTypeTestMetaHelper() {
-  var dyn = JS('', 'x');
-  var dyn2 = JS('', 'x');
-  List fixedListOrNull = JS('JSFixedArray|Null', 'x');
-  List fixedListOrNull2 = JS('JSFixedArray|Null', 'x');
-  List fixedList = JS('JSFixedArray', 'x');
-  // TODO(ahe): Can we use [UnknownJavaScriptObject] below?
-  var /* UnknownJavaScriptObject */ jsObject = JS('=Object', 'x');
-
-  buildFunctionType(dyn, fixedListOrNull, fixedListOrNull2);
-  buildNamedFunctionType(dyn, fixedList, jsObject);
-  buildInterfaceType(dyn, fixedListOrNull);
-  getDynamicRuntimeType();
-  getVoidRuntimeType();
-  convertRtiToRuntimeType(dyn);
-  dyn._isTest(dyn2);
-  dyn._asCheck(dyn2);
-  dyn._assertCheck(dyn2);
-}
-
-RuntimeType convertRtiToRuntimeType(rti) {
-  if (rti == null) {
-    return getDynamicRuntimeType();
-  } else if (JS('bool', 'typeof # == "function"', rti)) {
-    return new RuntimeTypePlain(JS('String', r'#.name', rti));
-  } else if (JS('bool', '#.constructor == Array', rti)) {
-    List list = JS('JSFixedArray', '#', rti);
-    String name = JS('String', r'#.name', list[0]);
-    List arguments = [];
-    for (int i = 1; i < list.length; i++) {
-      arguments.add(convertRtiToRuntimeType(list[i]));
-    }
-    return new RuntimeTypeGeneric(name, arguments, rti);
-  } else if (JS('bool', '"func" in #', rti)) {
-    return new FunctionTypeInfoDecoderRing(rti).toRuntimeType();
-  } else {
-    throw new RuntimeError(
-        "Cannot convert "
-        "'${JS('String', 'JSON.stringify(#)', rti)}' to RuntimeType.");
-  }
-}
-
-class RuntimeTypePlain extends RuntimeType {
-  /// The constructor name of this raw type.
-  final String _jsConstructorName;
-
-  RuntimeTypePlain(this._jsConstructorName);
-
-  toRti() {
-    var rti = jsConstructorNameToRti(_jsConstructorName);
-    if (rti == null) throw "no type for '$_jsConstructorName'";
-    return rti;
-  }
-
-  String toString() => _jsConstructorName;
-}
-
-class RuntimeTypeGeneric extends RuntimeType {
-  /// The constructor name of the raw type for this generic type.
-  final String _jsConstructorName;
-  final List<RuntimeType> arguments;
-  var rti;
-
-  RuntimeTypeGeneric(this._jsConstructorName, this.arguments, this.rti);
-
-  toRti() {
-    if (rti != null) return rti;
-    var result = [jsConstructorNameToRti(_jsConstructorName)];
-    if (result[0] == null) {
-      throw "no type for '$_jsConstructorName<...>'";
-    }
-    for (RuntimeType argument in arguments) {
-      result.add(argument.toRti());
-    }
-    return rti = result;
-  }
-
-  String toString() => '$_jsConstructorName<${arguments.join(", ")}>';
-}
-
-class FunctionTypeInfoDecoderRing {
-  final _typeData;
-  String _cachedToString;
-
-  FunctionTypeInfoDecoderRing(this._typeData);
-
-  bool get _hasReturnType => JS('bool', '"ret" in #', _typeData);
-  get _returnType => JS('', '#.ret', _typeData);
-
-  bool get _isVoid => JS('bool', '!!#.v', _typeData);
-
-  bool get _hasArguments => JS('bool', '"args" in #', _typeData);
-  List get _arguments => JS('JSExtendableArray', '#.args', _typeData);
-
-  bool get _hasOptionalArguments => JS('bool', '"opt" in #', _typeData);
-  List get _optionalArguments => JS('JSExtendableArray', '#.opt', _typeData);
-
-  bool get _hasNamedArguments => JS('bool', '"named" in #', _typeData);
-  get _namedArguments => JS('=Object', '#.named', _typeData);
-
-  RuntimeType toRuntimeType() {
-    // TODO(ahe): Implement this (and update return type).
-    return const DynamicRuntimeType();
-  }
-
-  String toString() {
-    return _cachedToString ??= runtimeTypeToString(_typeData);
   }
 }
 
@@ -3856,8 +3602,7 @@ String jsonEncodeNative(String string) {
  * The form of the name is '___dart_$name_$id'.
  */
 String getIsolateAffinityTag(String name) {
-  var isolateTagGetter =
-      JS_EMBEDDED_GLOBAL('', GET_ISOLATE_TAG);
+  var isolateTagGetter = JS_EMBEDDED_GLOBAL('', GET_ISOLATE_TAG);
   return JS('String', '#(#)', isolateTagGetter, name);
 }
 
@@ -3889,14 +3634,15 @@ Future<Null> loadDeferredLibrary(String loadId) {
   var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
   // Filter away indices for hunks that have already been loaded.
   List<int> indicesToLoad = indices
-      .where((int i) => !JS('bool','#(#)', isHunkLoaded, hashes[i]))
+      .where((int i) => !JS('bool', '#(#)', isHunkLoaded, hashes[i]))
       .toList();
-  return Future.wait(indicesToLoad
-      .map((int i) => _loadHunk(uris[i]))).then((_) {
+  return Future
+      .wait(indicesToLoad.map((int i) => _loadHunk(uris[i])))
+      .then((_) {
     // Now all hunks have been loaded, we run the needed initializers.
     List<int> indicesToInitialize = indices
-        .where((int i) => !JS('bool','#(#)', isHunkInitialized, hashes[i]))
-        .toList();  // Load the needed hunks.
+        .where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i]))
+        .toList(); // Load the needed hunks.
     for (int i in indicesToInitialize) {
       var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
       JS('void', '#(#)', initializer, hashes[i]);
@@ -3929,8 +3675,7 @@ Future<Null> _loadHunk(String hunkName) {
   void failure([error, StackTrace stackTrace]) {
     _loadingLibraries[hunkName] = null;
     completer.completeError(
-        new DeferredLoadException("Loading $uri failed: $error"),
-        stackTrace);
+        new DeferredLoadException("Loading $uri failed: $error"), stackTrace);
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
@@ -3940,8 +3685,8 @@ Future<Null> _loadHunk(String hunkName) {
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryLoader)) {
     try {
-      JS('void', '#(#, #, #)', deferredLibraryLoader, uri,
-          jsSuccess, jsFailure);
+      JS('void', '#(#, #, #)', deferredLibraryLoader, uri, jsSuccess,
+          jsFailure);
     } catch (error, stackTrace) {
       failure(error, stackTrace);
     }
@@ -3956,21 +3701,24 @@ Future<Null> _loadHunk(String hunkName) {
     uri = '${uri.substring(0, index + 1)}$hunkName';
     var xhr = JS('var', 'new XMLHttpRequest()');
     JS('void', '#.open("GET", #)', xhr, uri);
-    JS('void', '#.addEventListener("load", #, false)',
-       xhr, convertDartClosureToJS((event) {
-      if (JS('int', '#.status', xhr) != 200) {
-        failure("");
-      }
-      String code = JS('String', '#.responseText', xhr);
-      try {
-        // Create a new function to avoid getting access to current function
-        // context.
-        JS('void', '(new Function(#))()', code);
-        success();
-      } catch (error, stackTrace) {
-        failure(error, stackTrace);
-      }
-    }, 1));
+    JS(
+        'void',
+        '#.addEventListener("load", #, false)',
+        xhr,
+        convertDartClosureToJS((event) {
+          if (JS('int', '#.status', xhr) != 200) {
+            failure("");
+          }
+          String code = JS('String', '#.responseText', xhr);
+          try {
+            // Create a new function to avoid getting access to current function
+            // context.
+            JS('void', '(new Function(#))()', code);
+            success();
+          } catch (error, stackTrace) {
+            failure(error, stackTrace);
+          }
+        }, 1));
 
     JS('void', '#.addEventListener("error", #, false)', xhr, failure);
     JS('void', '#.addEventListener("abort", #, false)', xhr, failure);
@@ -4014,7 +3762,6 @@ class _AssertionError extends AssertionError {
 
   String toString() => "Assertion failed: " + Error.safeToString(message);
 }
-
 
 // [_UnreachableError] is a separate class because we always resolve
 // [assertUnreachable] and want to reduce the impact of resolving possibly

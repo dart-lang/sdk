@@ -195,7 +195,7 @@ class AnalysisContextFactory {
         ElementFactory.classElement2("Future", ["T"]);
     // FutureOr<T>
     ClassElementImpl futureOrElement =
-      ElementFactory.classElement2("FutureOr", ["T"]);
+        ElementFactory.classElement2("FutureOr", ["T"]);
     futureElement.enclosingElement = asyncUnit;
     //   factory Future.value([value])
     ConstructorElementImpl futureConstructor =
@@ -212,8 +212,8 @@ class AnalysisContextFactory {
       futureThenR = ElementFactory.typeParameterWithType('R');
       onValueReturnType = futureOrElement.type.instantiate([futureThenR.type]);
     }
-    FunctionElementImpl thenOnValue = ElementFactory.functionElement3('onValue',
-        onValueReturnType, [futureElement.typeParameters[0]], null);
+    FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
+        'onValue', onValueReturnType, [futureElement.typeParameters[0]], null);
     thenOnValue.isSynthetic = true;
 
     DartType futureRType = futureElement.type.instantiate([futureThenR.type]);

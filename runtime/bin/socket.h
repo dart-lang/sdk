@@ -11,15 +11,15 @@
 
 #include "platform/globals.h"
 // Declare the OS-specific types ahead of defining the generic class.
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 #include "bin/socket_android.h"
-#elif defined(TARGET_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
 #include "bin/socket_fuchsia.h"
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
 #include "bin/socket_linux.h"
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include "bin/socket_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 #include "bin/socket_win.h"
 #else
 #error Unknown target os.
@@ -27,6 +27,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/reference_counting.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
@@ -247,7 +248,11 @@ class AddressList {
 };
 
 
-class Socket {
+// We write Sockets into the native field of the _NativeSocket object
+// on the Dart side. They are allocated in SetSocketIdNativeField(), and are
+// deallocated either from the finalizer attached to _NativeSockets there, or
+// from the eventhandler, whichever drops the last reference.
+class Socket : public ReferenceCounted<Socket> {
  public:
   enum SocketRequest {
     kLookupRequest = 0,
@@ -255,6 +260,21 @@ class Socket {
     kReverseLookupRequest = 2,
   };
 
+  enum SocketFinalizer {
+    kFinalizerNormal,
+    kFinalizerListening,
+    kFinalizerStdio,
+  };
+
+  explicit Socket(intptr_t fd);
+
+  intptr_t fd() const { return fd_; }
+  void SetClosedFd();
+
+  Dart_Port port() const { return port_; }
+  void set_port(Dart_Port port) { port_ = port; }
+
+  // TODO(dart:io): Convert these to instance methods where possible.
   static bool Initialize();
   static intptr_t Available(intptr_t fd);
   static intptr_t Read(intptr_t fd, void* buffer, intptr_t num_bytes);
@@ -333,12 +353,24 @@ class Socket {
 
   static Dart_Port GetServicePort();
 
-  static void SetSocketIdNativeField(Dart_Handle socket, intptr_t id);
-  static intptr_t GetSocketIdNativeField(Dart_Handle socket);
+  static void SetSocketIdNativeField(Dart_Handle handle,
+                                     intptr_t id,
+                                     SocketFinalizer finalizer);
+  static void ReuseSocketIdNativeField(Dart_Handle handle,
+                                       Socket* socket,
+                                       SocketFinalizer finalizer);
+  static Socket* GetSocketIdNativeField(Dart_Handle socket);
 
  private:
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Socket);
+  ~Socket() { ASSERT(fd_ == kClosedFd); }
+
+  static const int kClosedFd = -1;
+
+  intptr_t fd_;
+  Dart_Port port_;
+
+  friend class ReferenceCounted<Socket>;
+  DISALLOW_COPY_AND_ASSIGN(Socket);
 };
 
 
@@ -405,7 +437,7 @@ class ListeningSocketRegistry {
   //
   // The caller is responsible for obtaining the mutex first, before calling
   // this function.
-  bool CloseSafe(intptr_t socketfd);
+  bool CloseSafe(Socket* socketfd);
 
   Mutex* mutex() { return mutex_; }
 
@@ -416,7 +448,7 @@ class ListeningSocketRegistry {
     bool v6_only;
     bool shared;
     int ref_count;
-    intptr_t socketfd;
+    Socket* socketfd;
 
     // Singly linked lists of OSSocket instances which listen on the same port
     // but on different addresses.
@@ -426,7 +458,7 @@ class ListeningSocketRegistry {
              int port,
              bool v6_only,
              bool shared,
-             intptr_t socketfd)
+             Socket* socketfd)
         : address(address),
           port(port),
           v6_only(v6_only),
@@ -438,7 +470,7 @@ class ListeningSocketRegistry {
 
   static const intptr_t kInitialSocketsCount = 8;
 
-  OSSocket* findOSSocketWithAddress(OSSocket* current, const RawAddr& addr) {
+  OSSocket* FindOSSocketWithAddress(OSSocket* current, const RawAddr& addr) {
     while (current != NULL) {
       if (SocketAddress::AreAddressesEqual(current->address, addr)) {
         return current;
@@ -465,9 +497,9 @@ class ListeningSocketRegistry {
   void InsertByPort(intptr_t port, OSSocket* socket);
   void RemoveByPort(intptr_t port);
 
-  OSSocket* LookupByFd(intptr_t fd);
-  void InsertByFd(intptr_t fd, OSSocket* socket);
-  void RemoveByFd(intptr_t fd);
+  OSSocket* LookupByFd(Socket* fd);
+  void InsertByFd(Socket* fd, OSSocket* socket);
+  void RemoveByFd(Socket* fd);
 
   bool CloseOneSafe(OSSocket* os_socket, bool update_hash_maps);
   void CloseAllSafe();

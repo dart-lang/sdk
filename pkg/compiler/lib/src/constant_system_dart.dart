@@ -4,10 +4,12 @@
 
 library dart2js.constant_system.dart;
 
-import 'compiler.dart' show Compiler;
+import 'common/backend_api.dart' show BackendClasses;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
-import 'elements/resolution_types.dart';
+import 'common_elements.dart' show CommonElements;
+import 'elements/types.dart';
+import 'elements/resolution_types.dart' show DartTypes;
 import 'tree/dartstring.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
@@ -442,31 +444,34 @@ class DartConstantSystem extends ConstantSystem {
   NullConstantValue createNull() => new NullConstantValue();
 
   @override
-  ListConstantValue createList(
-      ResolutionInterfaceType type, List<ConstantValue> values) {
+  ListConstantValue createList(InterfaceType type, List<ConstantValue> values) {
     return new ListConstantValue(type, values);
   }
 
   @override
-  MapConstantValue createMap(Compiler compiler, ResolutionInterfaceType type,
-      List<ConstantValue> keys, List<ConstantValue> values) {
+  MapConstantValue createMap(
+      CommonElements commonElements,
+      BackendClasses backendClasses,
+      InterfaceType type,
+      List<ConstantValue> keys,
+      List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);
   }
 
   @override
-  ConstantValue createType(Compiler compiler, ResolutionDartType type) {
+  ConstantValue createType(CommonElements commonElements,
+      BackendClasses backendClasses, DartType type) {
     // TODO(johnniwinther): Change the `Type` type to
     // `compiler.commonElements.typeType` and check the backend specific value
     // in [checkConstMapKeysDontOverrideEquals] in 'members.dart'.
-    ResolutionInterfaceType implementationType = compiler
-        .backend.backendClasses.typeImplementation
-        .computeType(compiler.resolution);
+    InterfaceType implementationType = backendClasses.typeType;
     return new TypeConstantValue(type, implementationType);
   }
 
   @override
-  ConstantValue createSymbol(Compiler compiler, String text) {
-    throw new UnsupportedError('DartConstantSystem.evaluate');
+  ConstantValue createSymbol(CommonElements commonElements,
+      BackendClasses backendClasses, String text) {
+    throw new UnsupportedError('DartConstantSystem.createSymbol');
   }
 
   bool isInt(ConstantValue constant) => constant.isInt;
@@ -475,7 +480,7 @@ class DartConstantSystem extends ConstantSystem {
   bool isBool(ConstantValue constant) => constant.isBool;
   bool isNull(ConstantValue constant) => constant.isNull;
 
-  bool isSubtype(DartTypes types, ResolutionDartType s, ResolutionDartType t) {
+  bool isSubtype(DartTypes types, DartType s, DartType t) {
     return types.isSubtype(s, t);
   }
 }

@@ -16,8 +16,8 @@ void main() {
     var numberType = new TypeRef.number();
     var stringType = new TypeRef.string();
     var booleanType = new TypeRef.boolean();
-    var fooType = new TypeRef.qualified(
-        [new Identifier("foo"), new Identifier("Foo")]);
+    var fooType =
+        new TypeRef.qualified([new Identifier("foo"), new Identifier("Foo")]);
     var barType = new TypeRef.named("Bar");
     var bazType = new TypeRef.named("Baz");
     var bamType = new TypeRef.named("Bam");
@@ -39,9 +39,10 @@ void main() {
     });
 
     test('gives multiple line comment when it it does not fit on one line', () {
-      expect(new ClosureAnnotation(
-                  returnType: stringType, paramTypes: {'foo': numberType})
-              .toString(),
+      expect(
+          new ClosureAnnotation(
+              returnType: stringType,
+              paramTypes: {'foo': numberType}).toString(),
           "/**\n"
           " * @param {number} foo\n"
           " * @return {string}\n"
@@ -49,9 +50,10 @@ void main() {
     });
 
     test('inserts indentation', () {
-      expect(new ClosureAnnotation(
-                  returnType: stringType, paramTypes: {'foo': numberType})
-              .toString("  "),
+      expect(
+          new ClosureAnnotation(
+              returnType: stringType,
+              paramTypes: {'foo': numberType}).toString("  "),
           "/**\n" // No indent on first line.
           "   * @param {number} foo\n"
           "   * @return {string}\n"
@@ -75,18 +77,21 @@ void main() {
       expect(
           new ClosureAnnotation(type: stringType, isProtected: true).toString(),
           "/** @protected {string} */");
-      expect(new ClosureAnnotation(
-              type: stringType,
-              isPrivate: true,
-              isConst: true,
-              isFinal: true,
-              isProtected: true,
-              isTypedef: true).toString(),
+      expect(
+          new ClosureAnnotation(
+                  type: stringType,
+                  isPrivate: true,
+                  isConst: true,
+                  isFinal: true,
+                  isProtected: true,
+                  isTypedef: true)
+              .toString(),
           "/** @private @protected @final @const @typedef {string} */");
     });
 
     test('supports a full constructor annotation', () {
-      expect(new ClosureAnnotation(
+      expect(
+          new ClosureAnnotation(
               returnType: booleanType,
               throwsType: bamType,
               thisType: fooType,

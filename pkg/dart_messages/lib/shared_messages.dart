@@ -2,62 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// An update to this file must be followed by regenerating the corresponding
-// json, dart2js and analyzer file. Use `publish.dart` in the bin directory.
-//
-// Every message in this file must have an id. Use `message_id.dart` in the
-// bin directory to generate a fresh one.
-
-// The messages in this file should meet the following guide lines:
-//
-// 1. The message should be a complete sentence starting with an uppercase
-// letter, and ending with a period.
-//
-// 2. Reserved words and embedded identifiers should be in single quotes, so
-// prefer double quotes for the complete message. For example, "The
-// class '#{className}' can't use 'super'." Notice that the word 'class' in the
-// preceding message is not quoted as it refers to the concept 'class', not the
-// reserved word. On the other hand, 'super' refers to the reserved word. Do
-// not quote 'null' and numeric literals.
-//
-// 3. Do not try to compose messages, as it can make translating them hard.
-//
-// 4. Try to keep the error messages short, but informative.
-//
-// 5. Use simple words and terminology, assume the reader of the message
-// doesn't have an advanced degree in math, and that English is not the
-// reader's native language. Do not assume any formal computer science
-// training. For example, do not use Latin abbreviations (prefer "that is" over
-// "i.e.", and "for example" over "e.g."). Also avoid phrases such as "if and
-// only if" and "iff", that level of precision is unnecessary.
-//
-// 6. Prefer contractions when they are in common use, for example, prefer
-// "can't" over "cannot". Using "cannot", "must not", "shall not", etc. is
-// off-putting to people new to programming.
-//
-// 7. Use common terminology, preferably from the Dart Language
-// Specification. This increases the user's chance of finding a good
-// explanation on the web.
-//
-// 8. Do not try to be cute or funny. It is extremely frustrating to work on a
-// product that crashes with a "tongue-in-cheek" message, especially if you did
-// not want to use this product to begin with.
-//
-// 9. Do not lie, that is, do not write error messages containing phrases like
-// "can't happen".  If the user ever saw this message, it would be a
-// lie. Prefer messages like: "Internal error: This function should not be
-// called when 'x' is null.".
-//
-// 10. Prefer to not use imperative tone. That is, the message should not sound
-// accusing or like it is ordering the user around. The computer should
-// describe the problem, not criticize for violating the specification.
-//
-// Other things to keep in mind:
-//
-// Generally, we want to provide messages that consists of three sentences:
-// 1. what is wrong, 2. why is it wrong, 3. how do I fix it. However, we
-// combine the first two in [template] and the last in [howToFix].
-
+/// An update to this file must be followed by regenerating the corresponding
+/// json, dart2js and analyzer file. Use `publish.dart` in the bin directory.
+///
+/// Every message in this file must have an id. Use `message_id.dart` in the
+/// bin directory to generate a fresh one.
+///
+/// The messages in this file should follow the [Guide for Writing
+/// Diagnostics](../../front_end/lib/src/fasta/diagnostics.md).
 import 'dart:convert';
 
 /// Encodes the category of the message.
@@ -88,7 +40,10 @@ class Category {
   Category(this.name);
 }
 
-enum Platform { dart2js, analyzer, }
+enum Platform {
+  dart2js,
+  analyzer,
+}
 const dart2js = Platform.dart2js;
 const analyzer = Platform.analyzer;
 
@@ -317,7 +272,9 @@ final Map<String, Message> MESSAGES = {
       template: "Enums can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
-      examples: const ["const enum Foo { x } main() {}",]),
+      examples: const [
+        "const enum Foo { x } main() {}",
+      ]),
 
   'CONST_TYPEDEF': new Message(
       id: 'GRKIQE',
@@ -329,7 +286,9 @@ final Map<String, Message> MESSAGES = {
       template: "Type aliases can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
-      examples: const ["const typedef void Foo(); main() {}",]),
+      examples: const [
+        "const typedef void Foo(); main() {}",
+      ]),
 
   'CONST_AND_FINAL': new Message(
       id: 'GRKIQE',
@@ -373,7 +332,9 @@ final Map<String, Message> MESSAGES = {
       template: "Classes can't be declared inside other classes.",
       howToFix: "Try moving the class to the top-level.",
       usedBy: [analyzer],
-      examples: const ["class A { class B {} } main() { new A(); }",]),
+      examples: const [
+        "class A { class B {} } main() { new A(); }",
+      ]),
 
   'CONSTRUCTOR_WITH_RETURN_TYPE': new Message(
       id: 'VOJBWY',
@@ -381,7 +342,9 @@ final Map<String, Message> MESSAGES = {
       template: "Constructors can't have a return type.",
       howToFix: "Try removing the return type.",
       usedBy: [analyzer, dart2js],
-      examples: const ["class A { int A() {} } main() { new A(); }",]),
+      examples: const [
+        "class A { int A() {} } main() { new A(); }",
+      ]),
 
   'MISSING_EXPRESSION_IN_THROW': new Message(
       id: 'FTGGMJ',
@@ -625,11 +588,15 @@ final Map<String, Message> MESSAGES = {
       id: 'ERUSKD',
       subId: 5,
       specializationOf: 'UNDEFINED_GETTER',
-      categories: [Category.staticTypeWarning,],
+      categories: [
+        Category.staticTypeWarning,
+      ],
       template: "The setter '#{memberName}' in class '#{className}' can"
           " not be used as a getter.",
       usedBy: [dart2js],
-      examples: const ["class A { set x(y) {} } main() { new A().x; }",]),
+      examples: const [
+        "class A { set x(y) {} } main() { new A().x; }",
+      ]),
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -654,7 +621,9 @@ final Map<String, Message> MESSAGES = {
       template: "The operator '#{memberName}' is not defined for the "
           "class '#{className}'.",
       usedBy: [dart2js, analyzer],
-      examples: const ["class A {} main() { new A() + 3; }",]),
+      examples: const [
+        "class A {} main() { new A() + 3; }",
+      ]),
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -684,7 +653,9 @@ final Map<String, Message> MESSAGES = {
       usedBy: [dart2js, analyzer],
       // TODO(eernst): When this.x access is available, add examples here,
       // e.g., "class A { var x; A(this.x) : x = 3; } main() => new A(2);"
-      examples: const ["class A {} main() { new A().x = 499; }",]),
+      examples: const [
+        "class A {} main() { new A().x = 499; }",
+      ]),
 
   'NO_SUCH_SUPER_MEMBER': new Message(
       id: 'ERUSKD',
@@ -801,7 +772,10 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning, Category.staticWarning],
       template: "The setter '#{memberName}' is not defined in a superclass "
           "of '#{className}'.",
-      usedBy: [analyzer, dart2js,],
+      usedBy: [
+        analyzer,
+        dart2js,
+      ],
       examples: const [
         """
         class A {}
@@ -840,7 +814,9 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning],
       template: "The function '#{memberName}' is not defined.",
       usedBy: [analyzer],
-      examples: const ["main() { foo(); }",]),
+      examples: const [
+        "main() { foo(); }",
+      ]),
 
   'UNDEFINED_STATIC_GETTER_BUT_SETTER': new Message(
       id: 'ERUSKD',
@@ -849,7 +825,9 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning],
       template: "Cannot resolve getter '#{name}'.",
       usedBy: [dart2js],
-      examples: const ["set foo(x) {}  main() { foo; }",]),
+      examples: const [
+        "set foo(x) {}  main() { foo; }",
+      ]),
 
   'UNDEFINED_STATIC_SETTER_BUT_GETTER': new Message(
       id: 'ERUSKD',

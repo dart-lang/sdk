@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/backend_helpers.dart';
+import '../options.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -17,12 +17,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final Map<HInstruction, Function> pendingOptimizations =
       new Map<HInstruction, Function>();
 
-  final Compiler compiler;
+  final GlobalTypeInferenceResults results;
+  final CompilerOptions options;
+  final BackendHelpers helpers;
   final ClosedWorld closedWorld;
-  JavaScriptBackend get backend => compiler.backend;
   String get name => 'type propagator';
 
-  SsaTypePropagator(this.compiler, this.closedWorld);
+  SsaTypePropagator(this.results, this.options, this.helpers, this.closedWorld);
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -284,7 +285,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         TypeMask type = new TypeMask.nonNullSubclass(cls, closedWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        if (!type.satisfies(backend.helpers.jsIndexableClass, closedWorld) &&
+        if (!type.satisfies(helpers.jsIndexableClass, closedWorld) &&
             !type.containsOnlyNum(closedWorld) &&
             !type.containsOnlyBool(closedWorld)) {
           return false;
@@ -304,7 +305,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   // Return true if the argument type check was added.
   bool checkArgument(HInvokeDynamic instruction) {
     // We want the right error in checked mode.
-    if (compiler.options.enableTypeAssertions) return false;
+    if (options.enableTypeAssertions) return false;
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
 
@@ -412,7 +413,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    return instruction.specializer
-        .computeTypeFromInputTypes(instruction, compiler, closedWorld);
+    return instruction.specializer.computeTypeFromInputTypes(
+        instruction, results, options, helpers, closedWorld);
   }
 }

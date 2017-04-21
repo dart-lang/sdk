@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function local(({a: dynamic}) → void f) → void {
+    f.call(a: "Hello, World");
+    f.call();
+  }
+  local.call(({dynamic a = "Default greeting!"}) → dynamic {
+    core::print(a);
+  });
+}

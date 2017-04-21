@@ -6,16 +6,15 @@
 
 class A {
   m() {
-  /* /// 01: compile-time error
+  /* //# 01: compile-time error
   }
   // */
 
-/* /// 02: compile-time error
+/* //# 02: compile-time error
 }
 // */
 
-class B {
-}
+class B {}
 
 main() {
   new A();

@@ -12,7 +12,6 @@ part of dart.core;
  * called.
  */
 class StringBuffer implements StringSink {
-
   /** Creates the string buffer with an initial content. */
   external StringBuffer([Object content = ""]);
 

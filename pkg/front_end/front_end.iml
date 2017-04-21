@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fasta/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fasta/parser/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fasta/rasta/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fasta/scanner/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/base/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/_fasta/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/packages" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Dart SDK" level="application" />
+    <orderEntry type="library" name="Dart SDK" level="project" />
+  </component>
+</module>

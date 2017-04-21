@@ -109,11 +109,8 @@ class HtmlEscapeMode {
   static const HtmlEscapeMode ELEMENT =
       const HtmlEscapeMode._('element', true, false, false, false);
 
-  const HtmlEscapeMode._(this._name,
-                         this.escapeLtGt,
-                         this.escapeQuot,
-                         this.escapeApos,
-                         this.escapeSlash);
+  const HtmlEscapeMode._(this._name, this.escapeLtGt, this.escapeQuot,
+      this.escapeApos, this.escapeSlash);
 
   /**
    * Create a custom escaping mode.
@@ -122,11 +119,13 @@ class HtmlEscapeMode {
    * The mode can further be set to escape `<` and `>` ([escapeLtGt]),
    * `"` ([escapeQuot]), `'` ([escapeApos]), and/or `/` ([escapeSlash]).
    */
-  const HtmlEscapeMode({String name: "custom",
-                        this.escapeLtGt: false,
-                        this.escapeQuot: false,
-                        this.escapeApos: false,
-                        this.escapeSlash: false}) : _name = name;
+  const HtmlEscapeMode(
+      {String name: "custom",
+      this.escapeLtGt: false,
+      this.escapeQuot: false,
+      this.escapeApos: false,
+      this.escapeSlash: false})
+      : _name = name;
 
   String toString() => _name;
 }
@@ -154,7 +153,6 @@ class HtmlEscapeMode {
  */
 class HtmlEscape extends Converter<String, String>
     implements ChunkedConverter<String, String, String, String> {
-
   /** The [HtmlEscapeMode] used by the converter. */
   final HtmlEscapeMode mode;
 
@@ -185,12 +183,24 @@ class HtmlEscape extends Converter<String, String>
       var ch = text[i];
       String replacement = null;
       switch (ch) {
-        case '&': replacement = '&amp;'; break;
-        case '"': if (mode.escapeQuot) replacement = '&quot;'; break;
-        case "'": if (mode.escapeApos) replacement = '&#39;'; break;
-        case '<': if (mode.escapeLtGt) replacement = '&lt;'; break;
-        case '>': if (mode.escapeLtGt) replacement = '&gt;'; break;
-        case '/': if (mode.escapeSlash) replacement = '&#47;'; break;
+        case '&':
+          replacement = '&amp;';
+          break;
+        case '"':
+          if (mode.escapeQuot) replacement = '&quot;';
+          break;
+        case "'":
+          if (mode.escapeApos) replacement = '&#39;';
+          break;
+        case '<':
+          if (mode.escapeLtGt) replacement = '&lt;';
+          break;
+        case '>':
+          if (mode.escapeLtGt) replacement = '&gt;';
+          break;
+        case '/':
+          if (mode.escapeSlash) replacement = '&#47;';
+          break;
       }
       if (replacement != null) {
         if (result == null) result = new StringBuffer();
@@ -220,7 +230,7 @@ class _HtmlEscapeSink extends StringConversionSinkBase {
 
   void addSlice(String chunk, int start, int end, bool isLast) {
     var val = _escape._convert(chunk, start, end);
-    if(val == null) {
+    if (val == null) {
       _sink.addSlice(chunk, start, end, isLast);
     } else {
       _sink.add(val);
@@ -228,5 +238,7 @@ class _HtmlEscapeSink extends StringConversionSinkBase {
     }
   }
 
-  void close() { _sink.close(); }
+  void close() {
+    _sink.close();
+  }
 }

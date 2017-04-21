@@ -10,6 +10,34 @@ void verifyProgram(Program program) {
   VerifyingVisitor.check(program);
 }
 
+class VerificationError {
+  final TreeNode context;
+
+  final TreeNode node;
+
+  final String details;
+
+  VerificationError(this.context, this.node, this.details);
+
+  toString() {
+    Location location;
+    try {
+      location = node?.location ?? context?.location;
+    } catch (_) {
+      // TODO(ahe): Fix the compiler instead.
+    }
+    if (location != null) {
+      String file = location.file ?? "";
+      return "$file:${location.line}:${location.column}: Verification error:"
+          " $details";
+    } else {
+      return "Verification error: $details\n"
+          "Context: '$context'.\n"
+          "Node: '$node'.";
+    }
+  }
+}
+
 /// Checks that a kernel program is well-formed.
 ///
 /// This does not include any kind of type checking.
@@ -18,6 +46,10 @@ class VerifyingVisitor extends RecursiveVisitor {
   final Set<TypeParameter> typeParameters = new Set<TypeParameter>();
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   bool classTypeParametersAreInScope = false;
+
+  /// If true, relax certain checks for *outline* mode. For example, don't
+  /// attempt to validate constructor initializers.
+  bool isOutline = false;
 
   Member currentMember;
   Class currentClass;
@@ -33,11 +65,16 @@ class VerifyingVisitor extends RecursiveVisitor {
     visitChildren(node);
   }
 
+  problem(TreeNode node, String details) {
+    throw new VerificationError(context, node, details);
+  }
+
   TreeNode enterParent(TreeNode node) {
     if (!identical(node.parent, currentParent)) {
-      throw 'Incorrect parent pointer on ${node.runtimeType} in $context. '
-          'Parent pointer is ${node.parent.runtimeType}, '
-          'actual parent is ${currentParent.runtimeType}.';
+      problem(
+          node,
+          "Incorrect parent pointer: expected '${node.parent.runtimeType}',"
+          " but found: '${currentParent.runtimeType}'.");
     }
     var oldParent = currentParent;
     currentParent = node;
@@ -71,7 +108,8 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   void declareMember(Member member) {
     if (member.transformerFlags & TransformerFlag.seenByVerifier != 0) {
-      throw '$member has been declared more than once (${member.location})';
+      problem(member.function,
+          "Member '$member' has been declared more than once.");
     }
     member.transformerFlags |= TransformerFlag.seenByVerifier;
   }
@@ -82,7 +120,7 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   void declareVariable(VariableDeclaration variable) {
     if (variable.flags & VariableDeclaration.FlagInScope != 0) {
-      throw '$variable declared more than once (${variable.location})';
+      problem(variable, "Variable '$variable' declared more than once.");
     }
     variable.flags |= VariableDeclaration.FlagInScope;
     variableStack.add(variable);
@@ -96,7 +134,7 @@ class VerifyingVisitor extends RecursiveVisitor {
     for (int i = 0; i < parameters.length; ++i) {
       var parameter = parameters[i];
       if (!typeParameters.add(parameter)) {
-        throw 'Type parameter $parameter redeclared in $context';
+        problem(parameter, "Type parameter '$parameter' redeclared.");
       }
     }
   }
@@ -107,29 +145,32 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
     if (variable.flags & VariableDeclaration.FlagInScope == 0) {
-      throw 'Variable $variable used out of scope in $context '
-          '(${where.location})';
+      problem(where, "Variable '$variable' used out of scope.");
     }
   }
 
   visitProgram(Program program) {
-    for (var library in program.libraries) {
-      for (var class_ in library.classes) {
-        if (!classes.add(class_)) {
-          throw 'Class $class_ declared more than once';
+    try {
+      for (var library in program.libraries) {
+        for (var class_ in library.classes) {
+          if (!classes.add(class_)) {
+            problem(class_, "Class '$class_' declared more than once.");
+          }
+        }
+        library.members.forEach(declareMember);
+        for (var class_ in library.classes) {
+          class_.members.forEach(declareMember);
         }
       }
-      library.members.forEach(declareMember);
-      for (var class_ in library.classes) {
-        class_.members.forEach(declareMember);
+      visitChildren(program);
+    } finally {
+      for (var library in program.libraries) {
+        library.members.forEach(undeclareMember);
+        for (var class_ in library.classes) {
+          class_.members.forEach(undeclareMember);
+        }
       }
-    }
-    visitChildren(program);
-    for (var library in program.libraries) {
-      library.members.forEach(undeclareMember);
-      for (var class_ in library.classes) {
-        class_.members.forEach(undeclareMember);
-      }
+      variableStack.forEach(undeclareVariable);
     }
   }
 
@@ -164,6 +205,9 @@ class VerifyingVisitor extends RecursiveVisitor {
     int stackHeight = enterLocalScope();
     visitChildren(node.function);
     visitList(node.initializers, this);
+    if (!isOutline) {
+      checkInitializers(node);
+    }
     exitLocalScope(stackHeight);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
@@ -197,8 +241,8 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitFunctionType(FunctionType node) {
     for (int i = 1; i < node.namedParameters.length; ++i) {
       if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
-        throw 'Named parameters are not sorted on function type found in '
-            '$context';
+        problem(currentParent,
+            "Named parameters are not sorted on function type ($node).");
       }
     }
     declareTypeParameters(node.typeParameters);
@@ -250,13 +294,13 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitStaticGet(StaticGet node) {
     visitChildren(node);
     if (node.target == null) {
-      throw 'StaticGet without target found in $context.';
+      problem(node, "StaticGet without target.");
     }
     if (!node.target.hasGetter) {
-      throw 'StaticGet to ${node.target} without getter found in $context';
+      problem(node, "StaticGet of '${node.target}' without getter.");
     }
     if (node.target.isInstanceMember) {
-      throw 'StaticGet to ${node.target} that is not static found in $context';
+      problem(node, "StaticGet of '${node.target}' that's an instance member.");
     }
   }
 
@@ -264,34 +308,54 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitStaticSet(StaticSet node) {
     visitChildren(node);
     if (node.target == null) {
-      throw 'StaticSet without target found in $context.';
+      problem(node, "StaticSet without target.");
     }
     if (!node.target.hasSetter) {
-      throw 'StaticSet to ${node.target} without setter found in $context';
+      problem(node, "StaticSet to '${node.target}' without setter.");
     }
     if (node.target.isInstanceMember) {
-      throw 'StaticSet to ${node.target} that is not static found in $context';
+      problem(node, "StaticSet to '${node.target}' that's an instance member.");
     }
   }
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    visitChildren(node);
-    if (node.target == null) {
-      throw 'StaticInvocation without target found in $context.';
-    }
+    checkTargetedInvocation(node.target, node);
     if (node.target.isInstanceMember) {
-      throw 'StaticInvocation to ${node.target} that is not static found in '
-          '$context';
+      problem(node,
+          "StaticInvocation of '${node.target}' that's an instance member.");
     }
-    if (!areArgumentsCompatible(node.arguments, node.target.function)) {
-      throw 'StaticInvocation with incompatible arguments to '
-          '${node.target} found in $context';
+    if (node.isConst &&
+        (!node.target.isConst ||
+            !node.target.isExternal ||
+            node.target.kind != ProcedureKind.Factory)) {
+      problem(
+          node,
+          "Constant StaticInvocation of '${node.target}' that isn't"
+          " a const external factory.");
     }
-    if (node.arguments.types.length !=
-        node.target.function.typeParameters.length) {
-      throw 'Wrong number of type arguments provided in StaticInvocation '
-          'to ${node.target} found in $context';
+  }
+
+  void checkTargetedInvocation(Member target, InvocationExpression node) {
+    visitChildren(node);
+    if (target == null) {
+      problem(node, "${node.runtimeType} without target.");
+    }
+    if (target.function == null) {
+      problem(node, "${node.runtimeType} without function.");
+    }
+    if (!areArgumentsCompatible(node.arguments, target.function)) {
+      problem(node,
+          "${node.runtimeType} with incompatible arguments for '${target}'.");
+    }
+    int expectedTypeParameters = target is Constructor
+        ? target.enclosingClass.typeParameters.length
+        : target.function.typeParameters.length;
+    if (node.arguments.types.length != expectedTypeParameters) {
+      problem(
+          node,
+          "${node.runtimeType} with wrong number of type arguments"
+          " for '${target}'.");
     }
   }
 
@@ -299,15 +363,16 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitDirectPropertyGet(DirectPropertyGet node) {
     visitChildren(node);
     if (node.target == null) {
-      throw 'DirectPropertyGet without target found in $context.';
+      problem(node, "DirectPropertyGet without target.");
     }
     if (!node.target.hasGetter) {
-      throw 'DirectPropertyGet to ${node.target} without getter found in '
-          '$context';
+      problem(node, "DirectPropertyGet of '${node.target}' without getter.");
     }
     if (!node.target.isInstanceMember) {
-      throw 'DirectPropertyGet to ${node.target} that is static found in '
-          '$context';
+      problem(
+          node,
+          "DirectPropertyGet of '${node.target}' that isn't an"
+          " instance member.");
     }
   }
 
@@ -315,56 +380,35 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitDirectPropertySet(DirectPropertySet node) {
     visitChildren(node);
     if (node.target == null) {
-      throw 'DirectPropertySet without target found in $context.';
+      problem(node, "DirectPropertySet without target.");
     }
     if (!node.target.hasSetter) {
-      throw 'DirectPropertyGet to ${node.target} without setter found in '
-          '$context';
+      problem(node, "DirectPropertySet of '${node.target}' without setter.");
     }
     if (!node.target.isInstanceMember) {
-      throw 'DirectPropertySet to ${node.target} that is static found in '
-          '$context';
+      problem(node, "DirectPropertySet of '${node.target}' that is static.");
     }
   }
 
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
-    visitChildren(node);
-    if (node.target == null) {
-      throw 'DirectMethodInvocation without target found in $context.';
-    }
-    if (!node.target.isInstanceMember) {
-      throw 'DirectMethodInvocation to ${node.target} that is static found in '
-          '$context';
-    }
-    if (!areArgumentsCompatible(node.arguments, node.target.function)) {
-      throw 'DirectMethodInvocation with incompatible arguments to '
-          '${node.target} found in $context';
-    }
-    if (node.arguments.types.length !=
-        node.target.function.typeParameters.length) {
-      throw 'Wrong number of type arguments provided in DirectMethodInvocation '
-          'to ${node.target} found in $context';
+    checkTargetedInvocation(node.target, node);
+    if (node.receiver == null) {
+      problem(node, "DirectMethodInvocation without receiver.");
     }
   }
 
   @override
   visitConstructorInvocation(ConstructorInvocation node) {
-    visitChildren(node);
-    if (node.target == null) {
-      throw 'ConstructorInvocation without target found in $context.';
-    }
+    checkTargetedInvocation(node.target, node);
     if (node.target.enclosingClass.isAbstract) {
-      throw 'ConstructorInvocation to abstract class found in $context';
+      problem(node, "ConstructorInvocation of abstract class.");
     }
-    if (!areArgumentsCompatible(node.arguments, node.target.function)) {
-      throw 'ConstructorInvocation with incompatible arguments to '
-          '${node.target} found in $context';
-    }
-    if (node.arguments.types.length !=
-        node.target.enclosingClass.typeParameters.length) {
-      throw 'Wrong number of type arguments provided in ConstructorInvocation '
-          'to ${node.target} found in $context';
+    if (node.isConst && !node.target.isConst) {
+      problem(
+          node,
+          "Constant ConstructorInvocation fo '${node.target}' that"
+          " isn't const.");
     }
   }
 
@@ -388,18 +432,33 @@ class VerifyingVisitor extends RecursiveVisitor {
   }
 
   @override
+  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    if (node.target == null) {
+      problem(node, "No target.");
+    } else if (node.target.parent == null) {
+      problem(node, "Target has no parent.");
+    } else {
+      SwitchStatement statement = node.target.parent;
+      for (SwitchCase switchCase in statement.cases) {
+        if (switchCase == node.target) return;
+      }
+      problem(node, "Switch case isn't child of parent.");
+    }
+  }
+
+  @override
   defaultMemberReference(Member node) {
     if (node.transformerFlags & TransformerFlag.seenByVerifier == 0) {
-      throw 'Dangling reference to $node found in $context.\n'
-          'Parent pointer is set to ${node.parent}';
+      problem(
+          node, "Dangling reference to '$node', parent is: '${node.parent}'.");
     }
   }
 
   @override
   visitClassReference(Class node) {
     if (!classes.contains(node)) {
-      throw 'Dangling reference to $node found in $context.\n'
-          'Parent pointer is set to ${node.parent}';
+      problem(
+          node, "Dangling reference to '$node', parent is: '${node.parent}'.");
     }
   }
 
@@ -407,13 +466,16 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitTypeParameterType(TypeParameterType node) {
     var parameter = node.parameter;
     if (!typeParameters.contains(parameter)) {
-      throw 'Type parameter $parameter referenced out of scope in $context.\n'
-          'Parent pointer is set to ${parameter.parent}';
+      problem(
+          currentParent,
+          "Type parameter '$parameter' referenced out of"
+          " scope, parent is: '${parameter.parent}'.");
     }
     if (parameter.parent is Class && !classTypeParametersAreInScope) {
-      throw 'Type parameter $parameter referenced from static context '
-          'in $context.\n'
-          'Parent pointer is set to ${parameter.parent}';
+      problem(
+          currentParent,
+          "Type parameter '$parameter' referenced from"
+          " static context, parent is '${parameter.parent}'.");
     }
   }
 
@@ -421,9 +483,11 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitInterfaceType(InterfaceType node) {
     node.visitChildren(this);
     if (node.typeArguments.length != node.classNode.typeParameters.length) {
-      throw 'Type $node provides ${node.typeArguments.length} type arguments '
-          'but the class declares ${node.classNode.typeParameters.length} '
-          'parameters. Found in $context.';
+      problem(
+          currentParent,
+          "Type $node provides ${node.typeArguments.length}"
+          " type arguments but the class declares"
+          " ${node.classNode.typeParameters.length} parameters.");
     }
   }
 }
@@ -439,13 +503,20 @@ class CheckParentPointers extends Visitor {
 
   defaultTreeNode(TreeNode node) {
     if (node.parent != parent) {
-      throw 'Parent pointer on ${node.runtimeType} '
-          'is ${node.parent.runtimeType} '
-          'but should be ${parent.runtimeType}';
+      throw new VerificationError(
+          parent,
+          node,
+          "Parent pointer on '${node.runtimeType}' "
+          "is '${node.parent.runtimeType}' "
+          "but should be '${parent.runtimeType}'.");
     }
     var oldParent = parent;
     parent = node;
     node.visitChildren(this);
     parent = oldParent;
   }
+}
+
+void checkInitializers(Constructor constructor) {
+  // TODO(ahe): I'll add more here in other CLs.
 }

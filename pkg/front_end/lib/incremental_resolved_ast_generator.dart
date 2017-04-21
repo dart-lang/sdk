@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/incremental_resolved_ast_generator_impl.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 
 import 'compiler_options.dart';
 
@@ -14,27 +14,19 @@ import 'compiler_options.dart';
 ///
 /// Not intended to be implemented or extended by clients.
 class DeltaLibraries {
-  /// The new state of the program, as a map from Uri to [ResolvedLibrary].
+  /// The new state of the program, as a two-layer map.
+  ///
+  /// The outer map key is the library URI.  The inner map key is the
+  /// compilation unit (part) URI.  The map values are the resolved compilation
+  /// units.
   ///
   /// Libraries whose resolved AST is known to be unchanged since the last
   /// [DeltaLibraries] are not included.
-  final Map<Uri, ResolvedLibrary> newState;
+  final Map<Uri, Map<Uri, CompilationUnit>> newState;
 
   DeltaLibraries(this.newState);
 
-/// TODO(paulberry): add information about libraries that were removed.
-}
-
-/// Represents the resolved ASTs for all the compilation units in a single
-/// library.
-///
-/// Not intended to be implemented or extended by clients.
-class ResolvedLibrary {
-  final CompilationUnit definingCompilationUnit;
-
-  final Map<Uri, CompilationUnit> partUnits;
-
-  ResolvedLibrary(this.definingCompilationUnit, this.partUnits);
+  /// TODO(paulberry): add information about libraries that were removed.
 }
 
 /// Interface for generating an initial resolved representation of a program and
@@ -67,8 +59,10 @@ abstract class IncrementalResolvedAstGenerator {
   /// "previous program state" is an empty program containing no code, and the
   /// initial set of valid sources is empty.  To obtain a resolved AST
   /// representation of the program, call [computeDelta].
-  factory IncrementalResolvedAstGenerator(Uri source, CompilerOptions options) =>
-      new IncrementalResolvedAstGeneratorImpl(source, new ProcessedOptions(options));
+  factory IncrementalResolvedAstGenerator(
+          Uri source, CompilerOptions options) =>
+      new IncrementalResolvedAstGeneratorImpl(
+          source, new ProcessedOptions(options));
 
   /// Generates a resolved AST representation of the changes to the program,
   /// assuming that all valid sources are unchanged since the last call to

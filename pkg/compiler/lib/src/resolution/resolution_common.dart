@@ -7,6 +7,7 @@ library dart2js.resolution.common;
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
 import '../elements/elements.dart';
+import '../enqueue.dart' show DeferredAction;
 import '../tree/tree.dart';
 import 'registry.dart' show ResolutionRegistry;
 import 'scope.dart' show Scope;
@@ -30,7 +31,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
   void addDeferredAction(Element element, void action()) {
-    resolution.enqueuer.addDeferredAction(element, action);
+    resolution.enqueuer.addDeferredAction(new DeferredAction(element, action));
   }
 }
 
@@ -56,6 +57,10 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
 
   /// Add [element] to the current scope and check for duplicate definitions.
   void addToScope(Element element) {
+    if (element is FormalElement && element.isUnnamed) {
+      // No duplicate names possible.
+      return;
+    }
     Element existing = scope.add(element);
     if (existing != element) {
       reportDuplicateDefinition(element.name, element, existing);

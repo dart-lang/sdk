@@ -225,8 +225,7 @@ const b = null;
   }
 
   test_metadata_libraryDirective_resynthesized() async {
-    CompilationUnit unit =
-        await resolveSource('@a library L; const a = null;');
+    CompilationUnit unit = await resolveSource('@a library L; const a = null;');
     expect(unit.directives.single.metadata.single.name.name, 'a');
     var unitElement = unit.element as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
@@ -272,6 +271,38 @@ const b = null;
     addNamedSource('/foo.dart', 'part of L;');
     await setupCode('library L; @a part "foo.dart";');
     checkMetadata('part');
+  }
+
+  test_metadata_partDirective_resynthesized() async {
+    addNamedSource('/part_a.dart', 'part of L;');
+    addNamedSource('/part_b.dart', 'part of L;');
+
+    CompilationUnit unit = await resolveSource(r'''
+library L;
+
+@a
+part "part_a.dart";
+
+@b
+part "part_b.dart";
+
+const a = null;
+const b = null;
+''');
+    expect(unit.directives[1].metadata.single.name.name, 'a');
+    expect(unit.directives[2].metadata.single.name.name, 'b');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The ImportElement(s) still have the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives[1].offset, []);
+    unitElement.setAnnotations(unit.directives[2].offset, []);
+    expect(unitElement.library.parts[0].metadata, hasLength(1));
+    expect(unitElement.library.parts[1].metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(unit.directives[1].metadata.single.name.name, 'a');
+    expect(unit.directives[2].metadata.single.name.name, 'b');
   }
 
   test_metadata_simpleFormalParameter() async {
@@ -437,6 +468,109 @@ void set zzz(_) {}
     expect(getterName.staticElement, same(setterElement));
   }
 
+  test_genericFunction_asFunctionReturnType() async {
+    String code = r'''
+Function(int, String) f() => null;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asGenericFunctionReturnType() async {
+    String code = r'''
+typedef F<T> = int Function(T t, S s) Function<S>(int);
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asMethodReturnType() async {
+    String code = r'''
+class C {
+  Function(int, String) m() => null;
+}
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asParameterReturnType() async {
+    String code = r'''
+f(Function(int, String) p) => null;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTopLevelVariableType() async {
+    String code = r'''
+int Function(int, String) v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument() async {
+    String code = r'''
+List<Function(int)> v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_lessNodes() async {
+    String code = r'''
+Map<Function<int>> v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_moreNodes() async {
+    String code = r'''
+List<Function<int>, Function<String>> v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_noNodes() async {
+    String code = r'''
+List v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_ofInitializer() async {
+    String code = r'''
+var v = <Function(int)>[];
+''';
+    CompilationUnit unit = await resolveSource(code);
+    CompilationUnit newUnit = _cloneResolveUnit(unit);
+    var v = newUnit.declarations[0] as TopLevelVariableDeclaration;
+    var initializer = v.variables.variables[0].initializer as ListLiteral;
+    expect(initializer.typeArguments.arguments[0].type, isNotNull);
+  }
+
   test_invalid_functionDeclaration_getter_inFunction() async {
     String code = r'''
 var v = (() {
@@ -496,6 +630,36 @@ export 'package:foo/bar.dart';
 main(List<String> items) {
   items.forEach((item) {});
 }
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_visitGenericTypeAlias_0() async {
+    String code = r'''
+typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_visitGenericTypeAlias_1() async {
+    String code = r'''
+typedef F = Function({int});
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_visitGenericTypeAlias_2() async {
+    String code = r'''
+typedef F = int;
 ''';
     CompilationUnit unit = await resolveSource(code);
     // re-resolve

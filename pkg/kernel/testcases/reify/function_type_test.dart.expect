@@ -1,0 +1,223 @@
+library function_type_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class A extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+  get $is$Function() → core::bool
+    return false;
+}
+class B extends self::A implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::A::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+  get $is$Function() → core::bool
+    return false;
+}
+class C extends self::A implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::A::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+  get $is$Function() → core::bool
+    return false;
+}
+class D extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a) → self::B {
+    return null;
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](3));
+  get $is$Function() → core::bool
+    return true;
+}
+class ER0P1 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call([self::A a]) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](4));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER1P0 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](5));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER1P1 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a, [self::B b]) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](6));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER1P2 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a, [self::B b, self::C c]) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](7));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER2P1 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a, self::B b, [self::C c]) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](8));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER0N1 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call({self::A a}) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](9));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER1N0 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](10));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER1N1 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a, {self::B b}) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](11));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER1N2 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a, {self::B b, self::C c}) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](12));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER2N1 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::A a, self::B b, {self::C c}) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](13));
+  get $is$Function() → core::bool
+    return false;
+}
+class ER0N8 extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call({dynamic kE, dynamic ii, dynamic oP, dynamic Ij, dynamic pA, dynamic zD, dynamic aZ, dynamic UU}) → void {}
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](14));
+  get $is$Function() → core::bool
+    return false;
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](17)));
+  dec::init(d, 1, new typ::Interface::•(d.[](0)));
+  dec::init(d, 2, new typ::Interface::•(d.[](0)));
+  dec::init(d, 3, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](15))], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Interface::•(d.[](1)), 0, <dynamic>[new typ::Interface::•(d.[](0))]));
+  dec::init(d, 4, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 2, <dynamic>[new typ::Interface::•(d.[](0))]));
+  dec::init(d, 5, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 0, <dynamic>[new typ::Interface::•(d.[](0))]));
+  dec::init(d, 6, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 2, <dynamic>[new typ::Interface::•(d.[](0)), new typ::Interface::•(d.[](1))]));
+  dec::init(d, 7, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 4, <dynamic>[new typ::Interface::•(d.[](0)), new typ::Interface::•(d.[](1)), new typ::Interface::•(d.[](2))]));
+  dec::init(d, 8, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 2, <dynamic>[new typ::Interface::•(d.[](0)), new typ::Interface::•(d.[](1)), new typ::Interface::•(d.[](2))]));
+  dec::init(d, 9, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 3, <dynamic>["a", new typ::Interface::•(d.[](0))]));
+  dec::init(d, 10, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 0, <dynamic>[new typ::Interface::•(d.[](0))]));
+  dec::init(d, 11, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 3, <dynamic>[new typ::Interface::•(d.[](0)), "b", new typ::Interface::•(d.[](1))]));
+  dec::init(d, 12, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 5, <dynamic>[new typ::Interface::•(d.[](0)), "b", new typ::Interface::•(d.[](1)), "c", new typ::Interface::•(d.[](2))]));
+  dec::init(d, 13, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 3, <dynamic>[new typ::Interface::•(d.[](0)), new typ::Interface::•(d.[](1)), "c", new typ::Interface::•(d.[](2))]));
+  dec::init(d, 14, new typ::Interface::•(d.[](17)), <dynamic>[], new typ::FunctionType::•(new typ::Interface::•(d.[](15)), new typ::Void::•(), 17, <dynamic>["kE", const typ::Dynamic::•(), "ii", const typ::Dynamic::•(), "oP", const typ::Dynamic::•(), "Ij", const typ::Dynamic::•(), "pA", const typ::Dynamic::•(), "zD", const typ::Dynamic::•(), "aZ", const typ::Dynamic::•(), "UU", const typ::Dynamic::•()]));
+  dec::init(d, 15, new typ::Interface::•(d.[](17)));
+  dec::init(d, 16, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](32), <dynamic>[d.[](16).variables.[](0)])]);
+  dec::init(d, 17, null);
+  dec::init(d, 18, new typ::Interface::•(d.[](17)));
+  dec::init(d, 19, new typ::Interface::•(d.[](17)));
+  dec::init(d, 20, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](33), <dynamic>[new typ::Interface::•(d.[](20))]), new typ::Interface::•(d.[](34))]);
+  dec::init(d, 21, new typ::Interface::•(d.[](35)));
+  dec::init(d, 22, new typ::Interface::•(d.[](35)));
+  dec::init(d, 23, new typ::Interface::•(d.[](17)));
+  dec::init(d, 24, new typ::Interface::•(d.[](36)));
+  dec::init(d, 25, new typ::Interface::•(d.[](36)));
+  dec::init(d, 26, new typ::Interface::•(d.[](36)));
+  dec::init(d, 27, new typ::Interface::•(d.[](36)));
+  dec::init(d, 28, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](37))]);
+  dec::init(d, 29, new typ::Interface::•(d.[](30)));
+  dec::init(d, 30, new typ::Interface::•(d.[](36)));
+  dec::init(d, 32, new typ::Interface::•(d.[](38), <dynamic>[d.[](32).variables.[](0)]));
+  dec::init(d, 33, new typ::Interface::•(d.[](17)));
+  dec::init(d, 34, new typ::Interface::•(d.[](17)));
+  dec::init(d, 35, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](33), <dynamic>[new typ::Interface::•(d.[](35))])]);
+  dec::init(d, 36, new typ::Interface::•(d.[](17)));
+  dec::init(d, 37, new typ::Interface::•(d.[](17)));
+  dec::init(d, 38, new typ::Interface::•(d.[](17)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["A", "B", "C", "D", "ER0P1", "ER1P0", "ER1P1", "ER1P2", "ER2P1", "ER0N1", "ER1N0", "ER1N1", "ER1N2", "ER2N1", "ER0N8", "Function", "List", "Object", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "HasRuntimeTypeGetter", "EfficientLengthIterable", "Comparable", "Pattern", "num", "Error", "Exception", "Iterable"], <dynamic>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1]));
+static method foo(self::A a) → self::C {
+  return null;
+}
+static method test(dynamic x) → void {
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::Interface::•(self::$declarations.[](15))));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Interface::•(self::$declarations.[](2)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](2))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 2, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 2, <dynamic>[new typ::Interface::•(self::$declarations.[](0)), new typ::Interface::•(self::$declarations.[](1))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 4, <dynamic>[new typ::Interface::•(self::$declarations.[](0)), new typ::Interface::•(self::$declarations.[](1)), new typ::Interface::•(self::$declarations.[](2))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 2, <dynamic>[new typ::Interface::•(self::$declarations.[](0)), new typ::Interface::•(self::$declarations.[](1)), new typ::Interface::•(self::$declarations.[](2))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 3, <dynamic>["a", new typ::Interface::•(self::$declarations.[](0))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 3, <dynamic>[new typ::Interface::•(self::$declarations.[](0)), "b", new typ::Interface::•(self::$declarations.[](1))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 5, <dynamic>[new typ::Interface::•(self::$declarations.[](0)), "b", new typ::Interface::•(self::$declarations.[](1)), "c", new typ::Interface::•(self::$declarations.[](2))])));
+  tes::write(typ::isSubtypeOf(int::type(x), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](15)), new typ::Void::•(), 3, <dynamic>[new typ::Interface::•(self::$declarations.[](0)), new typ::Interface::•(self::$declarations.[](1)), "c", new typ::Interface::•(self::$declarations.[](2))])));
+}
+static method main() → dynamic {
+  self::test(new self::D::•());
+  for (core::Object c in int::attachType(<core::Object>[new self::ER0P1::•(), new self::ER1P0::•(), new self::ER1P1::•(), new self::ER1P2::•(), new self::ER2P1::•(), new self::ER0N1::•(), new self::ER1N0::•(), new self::ER1N1::•(), new self::ER1N2::•(), new self::ER2N1::•()], new typ::Interface::•(self::$declarations.[](16), <dynamic>[new typ::Interface::•(self::$declarations.[](17))]))) {
+    self::test(c);
+  }
+  tes::expectOutput("true\ntrue\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\ntrue\ntrue\ntrue\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\ntrue\ntrue\ntrue\nfalse\ntrue\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\nfalse\ntrue");
+}

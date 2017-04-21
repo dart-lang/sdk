@@ -13,7 +13,6 @@ const TOP_LEVEL_NULL = null;
 var topLevel;
 
 class CallThroughGetterTest {
-
   static void testMain() {
     testTopLevel();
     testField();
@@ -31,10 +30,10 @@ class CallThroughGetterTest {
     Expect.equals(2, topLevel());
 
     expectThrowsNoSuchMethod(() {
-      TOP_LEVEL_CONST(); /// static type warning
+      TOP_LEVEL_CONST(); //# static type warning
     });
     expectThrowsNoSuchMethod(() {
-      (TOP_LEVEL_CONST)();  /// static type warning
+      (TOP_LEVEL_CONST)(); // //# static type warning
     });
   }
 
@@ -49,8 +48,12 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.field)());
 
     a.field = 99;
-    expectThrowsNoSuchMethod(() { a.field(); });
-    expectThrowsNoSuchMethod(() { (a.field)(); });
+    expectThrowsNoSuchMethod(() {
+      a.field();
+    });
+    expectThrowsNoSuchMethod(() {
+      (a.field)();
+    });
   }
 
   static void testGetter() {
@@ -64,8 +67,12 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.getter)());
 
     a.field = 99;
-    expectThrowsNoSuchMethod(() { a.getter(); });
-    expectThrowsNoSuchMethod(() { (a.getter)(); });
+    expectThrowsNoSuchMethod(() {
+      a.getter();
+    });
+    expectThrowsNoSuchMethod(() {
+      (a.getter)();
+    });
   }
 
   static void testMethod() {
@@ -122,7 +129,7 @@ class CallThroughGetterTest {
     var result = null;
     try {
       fn();
-      Expect.equals(true, false);  // Shouldn't reach this.
+      Expect.equals(true, false); // Shouldn't reach this.
     } catch (e) {
       caught = true;
       result = e;
@@ -130,36 +137,72 @@ class CallThroughGetterTest {
     Expect.equals(true, caught);
     return result;
   }
-
 }
-
 
 class A {
-
-  A() { }
+  A() {}
   var field;
-  get getter { return field; }
-  method() { return field; }
+  get getter {
+    return field;
+  }
 
+  method() {
+    return field;
+  }
 }
 
-
 class B {
+  B() : _order = new StringBuffer("") {}
 
-  B() : _order = new StringBuffer("") { }
+  get g0 {
+    _mark('g');
+    return () {
+      return _mark('f');
+    };
+  }
 
-  get g0 { _mark('g'); return () { return _mark('f'); }; }
-  get g1 { _mark('g'); return (x) { return _mark('f'); }; }
-  get g2 { _mark('g'); return (x, y) { return _mark('f'); }; }
-  get g3 { _mark('g'); return (x, y, z) { return _mark('f'); }; }
+  get g1 {
+    _mark('g');
+    return (x) {
+      return _mark('f');
+    };
+  }
 
-  get x { _mark('x'); return 0; }
-  get y { _mark('y'); return 1; }
-  get z { _mark('z'); return 2; }
+  get g2 {
+    _mark('g');
+    return (x, y) {
+      return _mark('f');
+    };
+  }
 
-  _mark(m) { _order.write(m); return _order.toString(); }
+  get g3 {
+    _mark('g');
+    return (x, y, z) {
+      return _mark('f');
+    };
+  }
+
+  get x {
+    _mark('x');
+    return 0;
+  }
+
+  get y {
+    _mark('y');
+    return 1;
+  }
+
+  get z {
+    _mark('z');
+    return 2;
+  }
+
+  _mark(m) {
+    _order.write(m);
+    return _order.toString();
+  }
+
   StringBuffer _order;
-
 }
 
 main() {

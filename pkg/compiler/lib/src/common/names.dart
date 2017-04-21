@@ -162,8 +162,19 @@ class Uris {
   /// The URI for 'dart:html'.
   static final Uri dart_html = new Uri(scheme: 'dart', path: 'html');
 
+  /// The URI for 'dart:html_common'.
+  static final Uri dart_html_common =
+      new Uri(scheme: 'dart', path: 'html_common');
+
+  /// The URI for 'dart:indexed_db'.
+  static final Uri dart_indexed_db =
+      new Uri(scheme: 'dart', path: 'indexed_db');
+
   /// The URI for 'dart:isolate'.
   static final Uri dart_isolate = new Uri(scheme: 'dart', path: 'isolate');
+
+  /// The URI for 'dart:math'.
+  static final Uri dart_math = new Uri(scheme: 'dart', path: 'math');
 
   /// The URI for 'dart:mirrors'.
   static final Uri dart_mirrors = new Uri(scheme: 'dart', path: 'mirrors');
@@ -175,6 +186,10 @@ class Uris {
   static final Uri dart__native_typed_data =
       new Uri(scheme: 'dart', path: '_native_typed_data');
 
+  /// The URI for 'dart:typed_data'.
+  static final Uri dart_typed_data =
+      new Uri(scheme: 'dart', path: 'typed_data');
+
   /// The URI for 'dart:svg'.
   static final Uri dart_svg = new Uri(scheme: 'dart', path: 'svg');
 
@@ -183,4 +198,7 @@ class Uris {
 
   /// The URI for 'dart:web_gl'.
   static final Uri dart_web_gl = new Uri(scheme: 'dart', path: 'web_gl');
+
+  /// The URI for 'dart:web_sql'.
+  static final Uri dart_web_sql = new Uri(scheme: 'dart', path: 'web_sql');
 }

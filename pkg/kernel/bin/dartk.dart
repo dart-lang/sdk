@@ -7,14 +7,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'batch_util.dart';
+import 'util.dart';
 
 import 'package:args/args.dart';
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/application_root.dart';
 import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/treeshaker.dart';
 import 'package:path/path.dart' as path;
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.
@@ -56,14 +58,16 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('url-mapping',
       allowMultiple: true,
       help: 'A custom url mapping of the form `<scheme>:<name>::<uri>`.')
+  ..addOption('embedder-entry-points-manifest',
+      allowMultiple: true,
+      help: 'A path to a file describing entrypoints '
+          '(lines of the form `<library>,<class>,<member>`).')
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
       help: 'Print internal warnings and diagnostics to stderr.')
   ..addFlag('print-metrics',
       negatable: false, help: 'Print performance metrics.')
-  ..addOption('write-dependencies',
-      help: 'Write all the .dart that were loaded to the given file.')
   ..addFlag('verify-ir', help: 'Perform slow internal correctness checks.')
   ..addFlag('tolerant',
       help: 'Generate kernel even if there are compile-time errors.',
@@ -77,7 +81,11 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       help: 'When printing a library as text, also print its dependencies\n'
           'on external libraries.')
   ..addFlag('show-offsets',
-      help: 'When printing a library as text, also print node offsets');
+      help: 'When printing a library as text, also print node offsets')
+  ..addFlag('include-sdk',
+      help: 'Include the SDK in the output. Implied by --link.')
+  ..addFlag('tree-shake',
+      defaultsTo: false, help: 'Enable tree-shaking if the target supports it');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -266,29 +274,50 @@ Future<CompilerOutcome> batchMain(
     });
   }
 
-  if (options.rest.length != 1) {
-    return fail('Exactly one FILE should be given.');
+  bool includeSdk = options['include-sdk'];
+
+  List<String> inputFiles = options.rest;
+  if (inputFiles.length < 1 && !includeSdk) {
+    return fail('At least one file should be given.');
   }
 
-  String file = options.rest.single;
-  checkIsFile(file, option: 'Input file');
-  file = new File(file).absolute.path;
-  Uri fileUri = new Uri(scheme: 'file', path: file);
+  bool hasBinaryInput = false;
+  bool hasDartInput = includeSdk;
+  for (String file in inputFiles) {
+    checkIsFile(file, option: 'Input file');
+    if (file.endsWith('.dill')) {
+      hasBinaryInput = true;
+    } else if (file.endsWith('.dart')) {
+      hasDartInput = true;
+    } else {
+      fail('Unrecognized file extension: $file');
+    }
+  }
+
+  if (hasBinaryInput && hasDartInput) {
+    fail('Mixed binary and dart input is not currently supported');
+  }
 
   String format = options['format'] ?? defaultFormat();
   String outputFile = options['out'] ?? defaultOutput();
 
   List<String> urlMapping = options['url-mapping'] as List<String>;
   var customUriMappings = parseCustomUriMappings(urlMapping);
-  var repository = new Repository();
 
-  Program program;
+  List<String> embedderEntryPointManifests =
+      options['embedder-entry-points-manifest'] as List<String>;
+  List<ProgramRoot> programRoots =
+      parseProgramRoots(embedderEntryPointManifests);
+
+  var program = new Program();
 
   var watch = new Stopwatch()..start();
-  List<String> loadedFiles;
-  Function getLoadedFiles;
   List errors = const [];
-  TargetFlags targetFlags = new TargetFlags(strongMode: options['strong']);
+  TargetFlags targetFlags = new TargetFlags(
+      strongMode: options['strong'],
+      treeShake: options['tree-shake'],
+      kernelRuntime: Platform.script.resolve('../runtime/'),
+      programRoots: programRoots);
   Target target = getTarget(options['target'], targetFlags);
 
   var declaredVariables = <String, String>{};
@@ -303,40 +332,54 @@ Future<CompilerOutcome> batchMain(
     declaredVariables[name] = value;
   }
 
-  if (file.endsWith('.dill')) {
-    program = loadProgramFromBinary(file, repository);
-    getLoadedFiles = () => [file];
-  } else {
-    DartOptions dartOptions = new DartOptions(
-        strongMode: target.strongMode,
-        strongModeSdk: target.strongModeSdk,
-        sdk: options['sdk'],
-        packagePath: packagePath,
-        customUriMappings: customUriMappings,
-        declaredVariables: declaredVariables,
-        applicationRoot: applicationRoot);
-    String packageDiscoveryPath = batchModeState.isBatchMode ? null : file;
-    DartLoader loader = await batchModeState.batch.getLoader(
-        repository, dartOptions,
+  DartLoader loader;
+  if (hasDartInput) {
+    String packageDiscoveryPath =
+        batchModeState.isBatchMode || inputFiles.isEmpty
+            ? null
+            : inputFiles.first;
+    loader = await batchModeState.batch.getLoader(
+        program,
+        new DartOptions(
+            strongMode: target.strongMode,
+            strongModeSdk: target.strongModeSdk,
+            sdk: options['sdk'],
+            packagePath: packagePath,
+            customUriMappings: customUriMappings,
+            declaredVariables: declaredVariables,
+            applicationRoot: applicationRoot),
         packageDiscoveryPath: packageDiscoveryPath);
-    if (options['link']) {
-      program = loader.loadProgram(fileUri, target: target);
-    } else {
-      var library = loader.loadLibrary(fileUri);
-      assert(library ==
-          repository.getLibraryReference(applicationRoot.relativeUri(fileUri)));
-      program = new Program(repository.libraries);
-    }
-    errors = loader.errors;
-    if (errors.isNotEmpty) {
-      const int errorLimit = 100;
-      stderr.writeln(errors.take(errorLimit).join('\n'));
-      if (errors.length > errorLimit) {
-        stderr
-            .writeln('[error] ${errors.length - errorLimit} errors not shown');
+    if (includeSdk) {
+      for (var uri in batchModeState.batch.dartSdk.uris) {
+        loader.loadLibrary(Uri.parse(uri));
       }
     }
-    getLoadedFiles = () => loadedFiles ??= loader.getLoadedFileNames();
+    loader.loadSdkInterface(program, target);
+  }
+
+  for (String file in inputFiles) {
+    Uri fileUri = Uri.base.resolve(file);
+
+    if (file.endsWith('.dill')) {
+      loadProgramFromBinary(file, program);
+    } else {
+      if (options['link']) {
+        loader.loadProgram(fileUri, target: target);
+      } else {
+        var library = loader.loadLibrary(fileUri);
+        program.mainMethod ??= library.procedures
+            .firstWhere((p) => p.name.name == 'main', orElse: () => null);
+      }
+      errors = loader.errors;
+      if (errors.isNotEmpty) {
+        const int errorLimit = 100;
+        stderr.writeln(errors.take(errorLimit).join('\n'));
+        if (errors.length > errorLimit) {
+          stderr.writeln(
+              '[error] ${errors.length - errorLimit} errors not shown');
+        }
+      }
+    }
   }
 
   bool canContinueCompilation = errors.isEmpty || options['tolerant'];
@@ -356,15 +399,18 @@ Future<CompilerOutcome> batchMain(
     runVerifier();
   }
 
-  String outputDependencies = options['write-dependencies'];
-  if (outputDependencies != null) {
-    new File(outputDependencies).writeAsStringSync(getLoadedFiles().join('\n'));
+  if (options['link'] && program.mainMethodName == null) {
+    fail('[error] The program has no main method.');
   }
 
   // Apply target-specific transformations.
-  if (target != null && options['link'] && canContinueCompilation) {
-    target.transformProgram(program);
+  if (target != null && canContinueCompilation) {
+    target.performModularTransformations(program);
     runVerifier();
+    if (options['link']) {
+      target.performGlobalTransformations(program);
+      runVerifier();
+    }
   }
 
   if (options['no-output']) {
@@ -398,6 +444,10 @@ Future<CompilerOutcome> batchMain(
   if (shouldReportMetrics) {
     int flushTime = watch.elapsedMilliseconds - time;
     print('writer.flush_time = $flushTime ms');
+  }
+
+  if (options['tolerant']) {
+    return CompilerOutcome.Ok;
   }
 
   return errors.length > 0 ? CompilerOutcome.Fail : CompilerOutcome.Ok;

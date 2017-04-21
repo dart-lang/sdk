@@ -7,35 +7,35 @@
 var $ = new Symbolize();
 
 main() {
-  testSymbol(#+, $+$, "+");
-  testSymbol(#-, $-$, "-");
-  testSymbol(#*, $*$, "*");
-  testSymbol(#/, $/$, "/");
-  testSymbol(#~/, $~/$, "~/");
-  testSymbol(#%, $%$, "%");
-  testSymbol(#<<, $<<$, "<<");
-  testSymbol(#>>, $>>$, ">>");
+  testSymbol(#+, $ + $, "+");
+  testSymbol(#-, $ - $, "-");
+  testSymbol(#*, $ * $, "*");
+  testSymbol(#/, $ / $, "/");
+  testSymbol(#~/, $ ~/ $, "~/");
+  testSymbol(#%, $ % $, "%");
+  testSymbol(#<<, $ << $, "<<");
+  testSymbol(#>>, $ >> $, ">>");
   testSymbol(#~, ~$, "~");
-  testSymbol(#|, $|$, "|");
-  testSymbol(#&, $&$, "&");
-  testSymbol(#^, $^$, "^");
-  testSymbol(#<, $<$, "<");
-  testSymbol(#<=, $<=$, "<=");
-  testSymbol(#>, $>$, ">");
-  testSymbol(#>=, $>=$, ">=");
-  testSymbol(#==, new Symbol("=="), "==");  // Can't hit noSuchMethod.
+  testSymbol(#|, $ | $, "|");
+  testSymbol(#&, $ & $, "&");
+  testSymbol(#^, $ ^ $, "^");
+  testSymbol(#<, $ < $, "<");
+  testSymbol(#<=, $ <= $, "<=");
+  testSymbol(#>, $ > $, ">");
+  testSymbol(#>=, $ >= $, ">=");
+  testSymbol(#==, new Symbol("=="), "=="); // Can't hit noSuchMethod.
   testSymbol(#[], $[$], "[]");
-  testSymbol(#[]=, ($[$]=$).lastMember, "[]=");
+  testSymbol(#[]=, ($[$] = $).lastMember, "[]=");
   testSymbol(const Symbol("unary-"), -$, "unary-");
 
-  testSymbolThrows(">>>");  /// 03: ok
-  testSymbolThrows("!");    /// 03: continued
-  testSymbolThrows("&&");   /// 03: continued
-  testSymbolThrows("||");   /// 03: continued
-  testSymbolThrows("?");    /// 03: continued
-  testSymbolThrows("?:");   /// 03: continued
-  testSymbolThrows("#");    /// 03: continued
-  testSymbolThrows("//");   /// 03: continued
+  testSymbolThrows(">>>"); // //# 03: ok
+  testSymbolThrows("!"); //   //# 03: continued
+  testSymbolThrows("&&"); //  //# 03: continued
+  testSymbolThrows("||"); //  //# 03: continued
+  testSymbolThrows("?"); //   //# 03: continued
+  testSymbolThrows("?:"); //  //# 03: continued
+  testSymbolThrows("#"); //   //# 03: continued
+  testSymbolThrows("//"); //  //# 03: continued
 }
 
 void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {
@@ -48,18 +48,18 @@ void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {
   }
   if (mirrorSymbol != dynamicSymbol) {
     throw "Not equal \$$name, new Symbol('$name'): "
-          "$mirrorSymbol, $dynamicSymbol";
+        "$mirrorSymbol, $dynamicSymbol";
   }
   if (constSymbol.hashCode != mirrorSymbol.hashCode) {
     throw "HashCode not equal #$name, \$$name: $constSymbol, $mirrorSymbol";
   }
   if (constSymbol.hashCode != dynamicSymbol.hashCode) {
     throw "HashCode not equal #$name, new Symbol('$name'): "
-          "$constSymbol, $dynamicSymbol";
+        "$constSymbol, $dynamicSymbol";
   }
   if (mirrorSymbol.hashCode != dynamicSymbol.hashCode) {
     throw "HashCode not equal \$$name, new Symbol('$name'): "
-          "$mirrorSymbol, $dynamicSymbol";
+        "$mirrorSymbol, $dynamicSymbol";
   }
 }
 

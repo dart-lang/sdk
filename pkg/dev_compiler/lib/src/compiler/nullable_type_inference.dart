@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'element_helpers.dart' show getStaticType, isInlineJS;
+import 'property_model.dart';
 
 /// An inference engine for nullable types.
 ///
@@ -23,6 +24,8 @@ import 'element_helpers.dart' show getStaticType, isInlineJS;
 // better non-nullability in the type system.
 abstract class NullableTypeInference {
   LibraryElement get dartCoreLibrary;
+  VirtualFieldModel get virtualFields;
+
   bool isPrimitiveType(DartType type);
   bool isObjectMember(String name);
 
@@ -81,7 +84,9 @@ abstract class NullableTypeInference {
 
       if (element is PropertyAccessorElement && element.isGetter) {
         PropertyInducingElement variable = element.variable;
-        return variable.constantValue?.isNull ?? true;
+        var isVirtual =
+            variable is FieldElement && virtualFields.isVirtual(variable);
+        return isVirtual || (variable.computeConstantValue()?.isNull ?? true);
       }
 
       // Other types of identifiers are nullable (parameters, fields).

@@ -216,8 +216,7 @@ external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
 external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
-                    [arg0, arg1, arg2, arg3, arg4, arg5, arg6,
-                     arg7, arg8, arg9, arg10, arg11]);
+    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]);
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
@@ -237,7 +236,9 @@ external bool JS_GET_FLAG(String name);
  * TODO(sra): Replace this hack with something to mark the volatile or
  * externally initialized elements.
  */
-void JS_EFFECT(Function code) { code(null); }
+void JS_EFFECT(Function code) {
+  code(null);
+}
 
 /**
  * Use this class for creating constants that hold JavaScript code.

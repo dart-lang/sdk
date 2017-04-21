@@ -11,6 +11,7 @@ import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'memory_compiler.dart';
+import 'constant_expression_evaluate_test.dart' show MemoryEnvironment;
 
 class TestData {
   /// Declarations needed for the [constants].
@@ -63,7 +64,7 @@ const List<TestData> DATA = const [
         text: '"ab"'),
     const ConstantData('identical', ConstantExpressionKind.FUNCTION),
     const ConstantData('true ? 0 : 1', ConstantExpressionKind.CONDITIONAL),
-    const ConstantData('proxy', ConstantExpressionKind.VARIABLE),
+    const ConstantData('proxy', ConstantExpressionKind.FIELD),
     const ConstantData('Object', ConstantExpressionKind.TYPE),
     const ConstantData('#name', ConstantExpressionKind.SYMBOL),
     const ConstantData('const [0, 1]', ConstantExpressionKind.LIST),
@@ -208,6 +209,7 @@ Future testData(TestData data) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
   Compiler compiler = result.compiler;
+  MemoryEnvironment environment = new MemoryEnvironment(compiler);
   var library = compiler.mainApp;
   constants.forEach((String name, ConstantData data) {
     FieldElement field = library.localLookup(name);
@@ -223,7 +225,8 @@ Future testData(TestData data) async {
         "Unexpected text '${constant.toDartText()}' for contant, "
         "expected '${data.text}'.");
     if (data.type != null) {
-      String instanceType = constant.computeInstanceType().toString();
+      String instanceType =
+          constant.computeInstanceType(environment).toString();
       Expect.equals(
           data.type,
           instanceType,
@@ -231,7 +234,7 @@ Future testData(TestData data) async {
           "`${constant.toDartText()}`, expected '${data.type}'.");
     }
     if (data.fields != null) {
-      Map instanceFields = constant.computeInstanceFields();
+      Map instanceFields = constant.computeInstanceFields(environment);
       Expect.equals(
           data.fields.length,
           instanceFields.length,

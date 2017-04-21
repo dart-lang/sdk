@@ -38,8 +38,8 @@ var blacklist = [
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.
-  'dart.io.SystemEncoding.decode',  // Windows only
-  'dart.io.SystemEncoding.encode',  // Windows only
+  'dart.io.SystemEncoding.decode', // Windows only
+  'dart.io.SystemEncoding.encode', // Windows only
 
   // These construct an object with an uninitialized native field.
   // TODO(23869): We could make this safer, but making the failure non-fatal
@@ -50,6 +50,8 @@ var blacklist = [
   // Don't call private methods in dart.async as they may circumvent the zoned
   // error handling below.
   new RegExp(r"^dart\.async\._.*$"),
+
+  'dart._internal.fatal',
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {
@@ -67,6 +69,7 @@ class Task {
   var name;
   var action;
 }
+
 var queue = new List();
 
 checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
@@ -76,20 +79,28 @@ checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   task.name = '${MirrorSystem.getName(m.qualifiedName)} from $origin';
 
   if (m.isRegularMethod) {
-    task.action =
-      () => target.invoke(m.simpleName,
-                          new List.filled(m.parameters.length, fuzzArgument));
+    task.action = () => target.invoke(
+        m.simpleName, new List.filled(m.parameters.length, fuzzArgument));
   } else if (m.isGetter) {
-    task.action =
-        () => target.getField(m.simpleName);
+    task.action = () => target.getField(m.simpleName);
   } else if (m.isSetter) {
-    task.action =
-        () => target.setField(m.simpleName, null);
+    task.action = () => target.setField(m.simpleName, null);
   } else if (m.isConstructor) {
     return;
   } else {
     throw "Unexpected method kind";
   }
+
+  queue.add(task);
+}
+
+checkField(VariableMirror v, ObjectMirror target, [origin]) {
+  if (isBlacklisted(v.qualifiedName)) return;
+
+  var task = new Task();
+  task.name = '${MirrorSystem.getName(v.qualifiedName)} from $origin';
+
+  task.action = () => target.getField(v.simpleName);
 
   queue.add(task);
 }
@@ -100,6 +111,9 @@ checkInstance(instanceMirror, origin) {
     instanceMirror.type.declarations.values
         .where((d) => d is MethodMirror && !d.isStatic)
         .forEach((m) => checkMethod(m, instanceMirror, origin));
+    instanceMirror.type.declarations.values
+        .where((d) => d is VariableMirror)
+        .forEach((v) => checkField(v, instanceMirror, origin));
     klass = klass.superclass;
   }
 }
@@ -117,8 +131,7 @@ checkClass(classMirror) {
     task.name = MirrorSystem.getName(m.qualifiedName);
 
     task.action = () {
-      var instance = classMirror.newInstance(
-          m.constructorName,
+      var instance = classMirror.newInstance(m.constructorName,
           new List.filled(m.parameters.length, fuzzArgument));
       checkInstance(instance, task.name);
     };
@@ -151,7 +164,7 @@ doOneTask() {
   print(task.name);
   try {
     task.action();
-  } catch(e) {}
+  } catch (e) {}
 
   // Register the next task in a timer callback so as to yield to async code
   // scheduled in the current task. This isn't necessary for the test itself,
@@ -164,24 +177,40 @@ var fuzzArgument;
 
 main() {
   fuzzArgument = null;
-  fuzzArgument = 1;  /// smi: ok
-  fuzzArgument = false;  /// false: ok
-  fuzzArgument = 'string';  /// string: ok
-  fuzzArgument = new List(0);  /// emptyarray: ok
+  fuzzArgument = 1; // //# smi: ok
+  fuzzArgument = false; // //# false: ok
+  fuzzArgument = 'string'; // //# string: ok
+  fuzzArgument = new List(0); // //# emptyarray: ok
 
   print('Fuzzing with $fuzzArgument');
 
   currentMirrorSystem().libraries.values.forEach(checkLibrary);
 
-  var valueObjects =
-    [true, false, null, [], {}, dynamic,
-     0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 3.14159,
-     "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ', "\u{1D11E}", #symbol];
+  var valueObjects = [
+    true,
+    false,
+    null,
+    [],
+    {},
+    dynamic,
+    0,
+    0xEFFFFFF,
+    0xFFFFFFFF,
+    0xFFFFFFFFFFFFFFFF,
+    3.14159,
+    () {},
+    "foo",
+    'blåbærgrød',
+    'Îñţérñåţîöñåļîžåţîờñ',
+    "\u{1D11E}",
+    #symbol
+  ];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
-  uncaughtErrorHandler(self, parent, zone, error, stack) {};
+  uncaughtErrorHandler(self, parent, zone, error, stack) {}
+  ;
   var zoneSpec =
-     new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
+      new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
   testZone = Zone.current.fork(specification: zoneSpec);
   testZone.createTimer(Duration.ZERO, doOneTask);
 }

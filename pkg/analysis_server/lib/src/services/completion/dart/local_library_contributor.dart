@@ -49,7 +49,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = optype.typeNameSuggestionsFilter(
           element.type, DART_RELEVANCE_DEFAULT);
       if (relevance != null) {
-        addSuggestion(element, prefix: prefix, relevance: relevance);
+        addSuggestion(element, request.ideOptions,
+            prefix: prefix, relevance: relevance);
       }
     }
     if (optype.includeConstructorSuggestions) {
@@ -86,11 +87,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     DartType returnType = element.returnType;
     if (returnType != null && returnType.isVoid) {
       if (optype.includeVoidReturnSuggestions) {
-        addSuggestion(element, prefix: prefix, relevance: relevance);
+        addSuggestion(element, request.ideOptions,
+            prefix: prefix, relevance: relevance);
       }
     } else {
       if (optype.includeReturnValueSuggestions) {
-        addSuggestion(element, prefix: prefix, relevance: relevance);
+        addSuggestion(element, request.ideOptions,
+            prefix: prefix, relevance: relevance);
       }
     }
   }
@@ -101,7 +104,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_FUNCTION
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, prefix: prefix, relevance: relevance);
+      addSuggestion(element, request.ideOptions,
+          prefix: prefix, relevance: relevance);
     }
   }
 
@@ -123,7 +127,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       } else {
         relevance = DART_RELEVANCE_DEFAULT;
       }
-      addSuggestion(element, prefix: prefix, relevance: relevance);
+      addSuggestion(element, request.ideOptions,
+          prefix: prefix, relevance: relevance);
     }
   }
 
@@ -133,7 +138,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, prefix: prefix, relevance: relevance);
+      addSuggestion(element, request.ideOptions,
+          prefix: prefix, relevance: relevance);
     }
   }
 
@@ -144,8 +150,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
       if (!constructor.isPrivate) {
-        CompletionSuggestion suggestion =
-            createSuggestion(constructor, relevance: relevance);
+        CompletionSuggestion suggestion = createSuggestion(
+            constructor, request.ideOptions,
+            relevance: relevance);
         if (suggestion != null) {
           String name = suggestion.completion;
           name = name.length > 0 ? '$className.$name' : className;

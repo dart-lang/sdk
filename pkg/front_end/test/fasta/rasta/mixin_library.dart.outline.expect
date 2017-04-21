@@ -1,0 +1,32 @@
+library test.mixin_library;
+import self as self;
+import "dart:core" as core;
+
+class Mixin<T extends core::Object> extends core::Object {
+  field dynamic x;
+  field dynamic y;
+  field dynamic z;
+  field self::Mixin::T t;
+  constructor •() → void
+    ;
+  method foo() → dynamic
+    ;
+  method g(self::Mixin::T a) → self::Mixin::T
+    ;
+  method h() → dynamic
+    ;
+  method l() → dynamic
+    ;
+  method _privateMethod() → dynamic
+    ;
+  method publicMethod() → dynamic
+    ;
+}
+static method f() → dynamic
+  ;
+static method V() → dynamic
+  ;
+static method _private() → dynamic
+  ;
+static method foo(dynamic m) → dynamic
+  ;

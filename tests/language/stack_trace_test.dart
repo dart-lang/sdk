@@ -121,6 +121,7 @@ class RethrowStacktraceTest {
       try {
         d();
       } catch (e, s) {
+        print(s);
         Expect.isTrue(s.toString().contains("issue12940"));
       }
     }

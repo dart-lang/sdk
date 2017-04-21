@@ -56,7 +56,7 @@ void testOperations() {
     for (int i = 0; i < list.length; i++) {
       mappedList[i] = rev(list[i]);
     }
-    Iterable reversed = list.map(rev);
+    Iterable<int> reversed = list.map(rev);
 
     void testEquals(v1, v2, path) {
       if (v1 is Iterable) {

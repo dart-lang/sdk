@@ -10,7 +10,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(Sleep) {
+VM_UNIT_TEST_CASE(Sleep) {
   // All times measured in microseconds.
   int64_t start_time = OS::GetCurrentMonotonicMicros();
   int64_t sleep_time = 702000;
@@ -22,7 +22,7 @@ UNIT_TEST_CASE(Sleep) {
 }
 
 
-UNIT_TEST_CASE(SNPrint) {
+VM_UNIT_TEST_CASE(SNPrint) {
   char buffer[256];
   int length;
   length = OS::SNPrint(buffer, 10, "%s", "foo");
@@ -40,14 +40,14 @@ UNIT_TEST_CASE(SNPrint) {
 
 
 // This test is expected to crash when it runs.
-UNIT_TEST_CASE(SNPrint_BadArgs) {
+VM_UNIT_TEST_CASE(SNPrint_BadArgs) {
   int width = kMaxInt32;
   int num = 7;
   OS::SNPrint(NULL, 0, "%*d%*d", width, num, width, num);
 }
 
 
-UNIT_TEST_CASE(OsFuncs) {
+VM_UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::ActivationFrameAlignment()));
   EXPECT(Utils::IsPowerOfTwo(OS::PreferredCodeAlignment()));
   int procs = OS::NumberOfAvailableProcessors();

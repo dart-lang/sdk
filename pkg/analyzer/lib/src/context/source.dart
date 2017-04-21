@@ -5,6 +5,7 @@
 library analyzer.src.context.source;
 
 import 'dart:collection';
+import 'dart:math' show min;
 
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:package_config/packages.dart';
 
 /**
@@ -112,7 +112,7 @@ class SourceFactoryImpl implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     try {
-      Uri uri = FastUri.parse(absoluteUri);
+      Uri uri = Uri.parse(absoluteUri);
       if (uri.isAbsolute) {
         return _internalResolveUri(null, uri);
       }
@@ -157,7 +157,7 @@ class SourceFactoryImpl implements SourceFactory {
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return _internalResolveUri(containingSource, FastUri.parse(containedUri));
+      return _internalResolveUri(containingSource, Uri.parse(containedUri));
     } on FormatException {
       return null;
     } catch (exception, stackTrace) {
@@ -203,8 +203,9 @@ class SourceFactoryImpl implements SourceFactory {
     _packages.asMap().forEach((String name, Uri uri) {
       if (packageUri == null) {
         if (utils.startsWith(sourceUri, uri)) {
-          packageUri = Uri.parse(
-              'package:$name/${sourceUri.path.substring(uri.path.length)}');
+          String relativePath = sourceUri.path
+              .substring(min(uri.path.length, sourceUri.path.length));
+          packageUri = Uri.parse('package:$name/$relativePath');
         }
       }
     });
@@ -255,7 +256,7 @@ class SourceFactoryImpl implements SourceFactory {
       }
     }
 
-    return _absoluteUriToSourceCache.putIfAbsent(containedUri, () {
+    return _absoluteUriToSourceCache.putIfAbsent(actualUri, () {
       for (UriResolver resolver in resolvers) {
         Source result = resolver.resolveAbsolute(containedUri, actualUri);
         if (result != null) {

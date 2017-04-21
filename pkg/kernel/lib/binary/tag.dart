@@ -7,8 +7,7 @@ class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
 
-  static const int NormalClass = 2;
-  static const int MixinClass = 3;
+  static const int Class = 2;
 
   static const int Field = 4;
   static const int Constructor = 5;
@@ -20,6 +19,8 @@ class Tag {
   static const int RedirectingInitializer = 10;
   static const int LocalInitializer = 11;
 
+  static const int CheckLibraryIsLoaded = 13;
+  static const int LoadLibrary = 14;
   static const int DirectPropertyGet = 15;
   static const int DirectPropertySet = 16;
   static const int DirectMethodInvocation = 17;
@@ -87,6 +88,7 @@ class Tag {
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
 
+  static const int VectorType = 88;
   static const int BottomType = 89;
   static const int InvalidType = 90;
   static const int DynamicType = 91;
@@ -98,14 +100,13 @@ class Tag {
   static const int SimpleFunctionType = 97;
 
   static const int NullReference = 99;
-  static const int NormalClassReference = 100;
-  static const int MixinClassReference = 101;
+  static const int ClassReference = 100;
+  static const int MemberReference = 101;
 
-  static const int LibraryFieldReference = 102;
-  static const int ClassFieldReference = 103;
-  static const int ClassConstructorReference = 104;
-  static const int LibraryProcedureReference = 105;
-  static const int ClassProcedureReference = 106;
+  static const int VectorCreation = 102;
+  static const int VectorGet = 103;
+  static const int VectorSet = 104;
+  static const int VectorCopy = 105;
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000

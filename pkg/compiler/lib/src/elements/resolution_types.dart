@@ -11,7 +11,7 @@ import 'dart:math' show min;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
 import 'elements.dart';
@@ -638,6 +638,16 @@ class ResolutionFunctionType extends ResolutionDartType
       List<String> namedParameters = const <String>[],
       List<ResolutionDartType> namedParameterTypes =
           const <ResolutionDartType>[]]) {
+    return new ResolutionFunctionType.internal(null, returnType, parameterTypes,
+        optionalParameterTypes, namedParameters, namedParameterTypes);
+  }
+
+  factory ResolutionFunctionType.generalized(
+      ResolutionDartType returnType,
+      List<ResolutionDartType> parameterTypes,
+      List<ResolutionDartType> optionalParameterTypes,
+      List<String> namedParameters,
+      List<ResolutionDartType> namedParameterTypes) {
     return new ResolutionFunctionType.internal(null, returnType, parameterTypes,
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }

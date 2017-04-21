@@ -117,22 +117,22 @@ class FlatTypeMask implements TypeMask {
     BackendClasses backendClasses = closedWorld.backendClasses;
     if (containsOnlyString(closedWorld)) {
       return cls == closedWorld.commonElements.stringClass ||
-          cls == backendClasses.stringImplementation;
+          cls == backendClasses.stringClass;
     }
     if (containsOnlyBool(closedWorld)) {
       return cls == closedWorld.commonElements.boolClass ||
-          cls == backendClasses.boolImplementation;
+          cls == backendClasses.boolClass;
     }
     if (containsOnlyInt(closedWorld)) {
       return cls == closedWorld.commonElements.intClass ||
-          cls == backendClasses.intImplementation ||
-          cls == backendClasses.positiveIntImplementation ||
-          cls == backendClasses.uint32Implementation ||
-          cls == backendClasses.uint31Implementation;
+          cls == backendClasses.intClass ||
+          cls == backendClasses.positiveIntClass ||
+          cls == backendClasses.uint32Class ||
+          cls == backendClasses.uint31Class;
     }
     if (containsOnlyDouble(closedWorld)) {
       return cls == closedWorld.commonElements.doubleClass ||
-          cls == backendClasses.doubleImplementation;
+          cls == backendClasses.doubleClass;
     }
     return false;
   }
@@ -177,16 +177,16 @@ class FlatTypeMask implements TypeMask {
   bool containsOnlyInt(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.intClass ||
-        base == backendClasses.intImplementation ||
-        base == backendClasses.positiveIntImplementation ||
-        base == backendClasses.uint31Implementation ||
-        base == backendClasses.uint32Implementation;
+        base == backendClasses.intClass ||
+        base == backendClasses.positiveIntClass ||
+        base == backendClasses.uint31Class ||
+        base == backendClasses.uint32Class;
   }
 
   bool containsOnlyDouble(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.doubleClass ||
-        base == backendClasses.doubleImplementation;
+        base == backendClasses.doubleClass;
   }
 
   bool containsOnlyNum(ClosedWorld closedWorld) {
@@ -194,19 +194,19 @@ class FlatTypeMask implements TypeMask {
     return containsOnlyInt(closedWorld) ||
         containsOnlyDouble(closedWorld) ||
         base == closedWorld.commonElements.numClass ||
-        base == backendClasses.numImplementation;
+        base == backendClasses.numClass;
   }
 
   bool containsOnlyBool(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.boolClass ||
-        base == backendClasses.boolImplementation;
+        base == backendClasses.boolClass;
   }
 
   bool containsOnlyString(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.stringClass ||
-        base == backendClasses.stringImplementation;
+        base == backendClasses.stringClass;
   }
 
   bool containsOnly(ClassEntity cls) {
@@ -501,11 +501,11 @@ class FlatTypeMask implements TypeMask {
     if (isEmpty) return false;
     if (isNull) {
       return closedWorld.hasElementIn(
-          backendClasses.nullImplementation, selector, element);
+          backendClasses.nullClass, selector, element);
     }
 
     ClassEntity other = element.enclosingClass;
-    if (other == backendClasses.nullImplementation) {
+    if (other == backendClasses.nullClass) {
       return isNullable;
     } else if (isExact) {
       return closedWorld.hasElementIn(base, selector, element);

@@ -471,12 +471,11 @@ class AstTestFactory {
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
           TypeAnnotation type, List<VariableDeclaration> variables) =>
-      astFactory.fieldDeclaration(
-          null,
-          null,
-          isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
-          variableDeclarationList(keyword, type, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      astFactory.fieldDeclaration2(
+          staticKeyword:
+              isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
+          fieldList: variableDeclarationList(keyword, type, variables),
+          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword,
           List<VariableDeclaration> variables) =>
@@ -485,16 +484,14 @@ class AstTestFactory {
   static FieldFormalParameter fieldFormalParameter(
           Keyword keyword, TypeAnnotation type, String identifier,
           [FormalParameterList parameterList]) =>
-      astFactory.fieldFormalParameter(
-          null,
-          null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type,
-          TokenFactory.tokenFromKeyword(Keyword.THIS),
-          TokenFactory.tokenFromType(TokenType.PERIOD),
-          identifier3(identifier),
-          null,
-          parameterList);
+      astFactory.fieldFormalParameter2(
+          keyword:
+              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type: type,
+          thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
+          period: TokenFactory.tokenFromType(TokenType.PERIOD),
+          identifier: identifier3(identifier),
+          parameters: parameterList);
 
   static FieldFormalParameter fieldFormalParameter2(String identifier) =>
       fieldFormalParameter(null, null, identifier);
@@ -610,8 +607,27 @@ class AstTestFactory {
   static FunctionTypedFormalParameter functionTypedFormalParameter(
           TypeAnnotation returnType, String identifier,
           [List<FormalParameter> parameters]) =>
-      astFactory.functionTypedFormalParameter(null, null, returnType,
-          identifier3(identifier), null, formalParameterList(parameters));
+      astFactory.functionTypedFormalParameter2(
+          returnType: returnType,
+          identifier: identifier3(identifier),
+          parameters: formalParameterList(parameters));
+
+  static GenericFunctionType genericFunctionType(TypeAnnotation returnType,
+          TypeParameterList typeParameters, FormalParameterList parameters) =>
+      astFactory.genericFunctionType(returnType,
+          TokenFactory.tokenFromString("Function"), typeParameters, parameters);
+
+  static GenericTypeAlias genericTypeAlias(String name,
+          TypeParameterList typeParameters, GenericFunctionType functionType) =>
+      astFactory.genericTypeAlias(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
+          identifier3(name),
+          typeParameters,
+          TokenFactory.tokenFromType(TokenType.EQ),
+          functionType,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) =>
       astFactory.hideCombinator(
@@ -1066,12 +1082,12 @@ class AstTestFactory {
 
   static SimpleFormalParameter simpleFormalParameter2(
           Keyword keyword, TypeAnnotation type, String parameterName) =>
-      astFactory.simpleFormalParameter(
-          null,
-          null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type,
-          identifier3(parameterName));
+      astFactory.simpleFormalParameter2(
+          keyword:
+              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type: type,
+          identifier:
+              parameterName == null ? null : identifier3(parameterName));
 
   static SimpleFormalParameter simpleFormalParameter3(String parameterName) =>
       simpleFormalParameter2(null, null, parameterName);

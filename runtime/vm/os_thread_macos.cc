@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "vm/os_thread.h"
 
@@ -206,6 +206,13 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 
 bool OSThread::Compare(ThreadId a, ThreadId b) {
   return pthread_equal(a, b) != 0;
+}
+
+
+bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+  *upper = reinterpret_cast<uword>(pthread_get_stackaddr_np(pthread_self()));
+  *lower = *upper - pthread_get_stacksize_np(pthread_self());
+  return true;
 }
 
 
@@ -429,4 +436,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

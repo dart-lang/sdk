@@ -13,7 +13,7 @@ DEFINE_FLAG(bool, basic_flag, true, "Testing of a basic boolean flag.");
 
 DECLARE_FLAG(bool, print_flags);
 
-UNIT_TEST_CASE(BasicFlags) {
+VM_UNIT_TEST_CASE(BasicFlags) {
   EXPECT_EQ(true, FLAG_basic_flag);
   EXPECT_EQ(false, FLAG_verbose_gc);
   EXPECT_EQ(false, FLAG_print_flags);
@@ -25,7 +25,7 @@ DEFINE_FLAG(charp, string_opt_test, NULL, "Testing: string option.");
 DEFINE_FLAG(charp, entrypoint_test, "main", "Testing: entrypoint");
 DEFINE_FLAG(int, counter, 100, "Testing: int flag");
 
-UNIT_TEST_CASE(ParseFlags) {
+VM_UNIT_TEST_CASE(ParseFlags) {
   EXPECT_EQ(true, FLAG_parse_flag_bool_test);
   Flags::Parse("no_parse_flag_bool_test");
   EXPECT_EQ(false, FLAG_parse_flag_bool_test);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/file.h"
 
@@ -15,6 +15,7 @@
 #include <sys/mman.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>    // NOLINT
+#include <utime.h>     // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
@@ -80,7 +81,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
   ASSERT(handle_->fd() >= 0);
   int prot = PROT_NONE;
   switch (type) {
@@ -97,7 +98,15 @@ void* File::Map(MapType type, int64_t position, int64_t length) {
   if (addr == MAP_FAILED) {
     return NULL;
   }
-  return addr;
+  return new MappedMemory(addr, length);
+}
+
+
+void MappedMemory::Unmap() {
+  int result = munmap(address_, size_);
+  ASSERT(result == 0);
+  address_ = 0;
+  size_ = 0;
 }
 
 
@@ -112,6 +121,26 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
   return TEMP_FAILURE_RETRY(write(handle_->fd(), buffer, num_bytes));
 }
 
+
+bool File::VPrint(const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  vsnprintf(buffer, len + 1, format, print_args);
+  va_end(print_args);
+
+  bool result = WriteFully(buffer, len);
+  free(buffer);
+  return result;
+}
 
 int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
@@ -344,18 +373,26 @@ bool File::Copy(const char* old_path, const char* new_path) {
 }
 
 
+static bool StatHelper(const char* name, struct stat* st) {
+  if (NO_RETRY_EXPECTED(stat(name, st)) != 0) {
+    return false;
+  }
+  // Signal an error if it's a directory.
+  if (S_ISDIR(st->st_mode)) {
+    errno = EISDIR;
+    return false;
+  }
+  // Otherwise assume the caller knows what it's doing.
+  return true;
+}
+
+
 int64_t File::LengthFromPath(const char* name) {
   struct stat st;
-  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
-    // Signal an error if it's a directory.
-    if (S_ISDIR(st.st_mode)) {
-      errno = EISDIR;
-      return -1;
-    }
-    // Otherwise assume the caller knows what it's doing.
-    return st.st_size;
+  if (!StatHelper(name, &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_size;
 }
 
 
@@ -393,16 +430,49 @@ void File::Stat(const char* name, int64_t* data) {
 
 time_t File::LastModified(const char* name) {
   struct stat st;
-  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
-    // Signal an error if it's a directory.
-    if (S_ISDIR(st.st_mode)) {
-      errno = EISDIR;
-      return -1;
-    }
-    // Otherwise assume the caller knows what it's doing.
-    return st.st_mtime;
+  if (!StatHelper(name, &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_mtime;
+}
+
+
+time_t File::LastAccessed(const char* name) {
+  struct stat st;
+  if (!StatHelper(name, &st)) {
+    return -1;
+  }
+  return st.st_atime;
+}
+
+
+bool File::SetLastAccessed(const char* name, int64_t millis) {
+  // First get the current times.
+  struct stat st;
+  if (!StatHelper(name, &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct utimbuf times;
+  times.actime = millis / kMillisecondsPerSecond;
+  times.modtime = st.st_mtime;
+  return utime(name, &times) == 0;
+}
+
+
+bool File::SetLastModified(const char* name, int64_t millis) {
+  // First get the current times.
+  struct stat st;
+  if (!StatHelper(name, &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct utimbuf times;
+  times.actime = st.st_atime;
+  times.modtime = millis / kMillisecondsPerSecond;
+  return utime(name, &times) == 0;
 }
 
 
@@ -470,10 +540,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
-    FATAL2("Failed stat on file descriptor %d: %s", fd, error_message);
+    return kOther;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
@@ -507,4 +574,4 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

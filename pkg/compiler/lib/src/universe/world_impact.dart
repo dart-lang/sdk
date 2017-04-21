@@ -4,9 +4,8 @@
 
 library dart2js.universe.world_impact;
 
-import '../elements/elements.dart' show Element;
 import '../util/util.dart' show Setlet;
-import 'use.dart' show DynamicUse, StaticUse, TypeUse;
+import 'use.dart';
 
 /// Describes how an element (e.g. a method) impacts the closed-world
 /// semantics of a program.
@@ -33,12 +32,15 @@ class WorldImpact {
 
   Iterable<TypeUse> get typeUses => const <TypeUse>[];
 
+  Iterable<ConstantUse> get constantUses => const <ConstantUse>[];
+
   bool get isEmpty => true;
 
   void apply(WorldImpactVisitor visitor) {
     staticUses.forEach(visitor.visitStaticUse);
     dynamicUses.forEach(visitor.visitDynamicUse);
     typeUses.forEach(visitor.visitTypeUse);
+    constantUses.forEach(visitor.visitConstantUse);
   }
 
   String toString() => dump(this);
@@ -60,6 +62,7 @@ class WorldImpact {
     add('dynamic uses', worldImpact.dynamicUses);
     add('static uses', worldImpact.staticUses);
     add('type uses', worldImpact.typeUses);
+    add('constant uses', worldImpact.constantUses);
   }
 }
 
@@ -67,6 +70,7 @@ abstract class WorldImpactBuilder {
   void registerDynamicUse(DynamicUse dynamicUse);
   void registerTypeUse(TypeUse typeUse);
   void registerStaticUse(StaticUse staticUse);
+  void registerConstantUse(ConstantUse constantUse);
 }
 
 class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
@@ -75,10 +79,14 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   Set<DynamicUse> _dynamicUses;
   Set<StaticUse> _staticUses;
   Set<TypeUse> _typeUses;
+  Set<ConstantUse> _constantUses;
 
   @override
   bool get isEmpty =>
-      _dynamicUses == null && _staticUses == null && _typeUses == null;
+      _dynamicUses == null &&
+      _staticUses == null &&
+      _typeUses == null &&
+      _constantUses == null;
 
   /// Copy uses in [impact] to this impact builder.
   void addImpact(WorldImpact impact) {
@@ -86,6 +94,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
     impact.dynamicUses.forEach(registerDynamicUse);
     impact.staticUses.forEach(registerStaticUse);
     impact.typeUses.forEach(registerTypeUse);
+    impact.constantUses.forEach(registerConstantUse);
   }
 
   void registerDynamicUse(DynamicUse dynamicUse) {
@@ -122,6 +131,18 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
   Iterable<StaticUse> get staticUses {
     return _staticUses != null ? _staticUses : const <StaticUse>[];
+  }
+
+  void registerConstantUse(ConstantUse constantUse) {
+    assert(constantUse != null);
+    if (_constantUses == null) {
+      _constantUses = new Setlet<ConstantUse>();
+    }
+    _constantUses.add(constantUse);
+  }
+
+  Iterable<ConstantUse> get constantUses {
+    return _constantUses != null ? _constantUses : const <ConstantUse>[];
   }
 }
 
@@ -161,6 +182,12 @@ class StagedWorldImpactBuilder implements WorldImpactBuilder {
     _currentBuilder.registerStaticUse(staticUse);
   }
 
+  @override
+  void registerConstantUse(ConstantUse constantUse) {
+    _ensureBuilder();
+    _currentBuilder.registerConstantUse(constantUse);
+  }
+
   /// Returns the [WorldImpact] built so far with this builder. The builder
   /// is reset, and if [collectImpacts] is `true` the impact is cached for
   /// [worldImpacts].
@@ -184,6 +211,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   Setlet<StaticUse> _staticUses;
   Setlet<TypeUse> _typeUses;
   Setlet<DynamicUse> _dynamicUses;
+  Setlet<ConstantUse> _constantUses;
 
   TransformedWorldImpact(this.worldImpact);
 
@@ -192,7 +220,8 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     return worldImpact.isEmpty &&
         _staticUses == null &&
         _typeUses == null &&
-        _dynamicUses == null;
+        _dynamicUses == null &&
+        _constantUses == null;
   }
 
   @override
@@ -234,10 +263,24 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     return _staticUses != null ? _staticUses : worldImpact.staticUses;
   }
 
+  @override
+  Iterable<ConstantUse> get constantUses {
+    return _constantUses != null ? _constantUses : worldImpact.constantUses;
+  }
+
+  void registerConstantUse(ConstantUse constantUse) {
+    if (_constantUses == null) {
+      _constantUses = new Setlet<ConstantUse>();
+      _constantUses.addAll(worldImpact.constantUses);
+    }
+    _constantUses.add(constantUse);
+  }
+
   void apply(WorldImpactVisitor visitor) {
     staticUses.forEach(visitor.visitStaticUse);
     dynamicUses.forEach(visitor.visitDynamicUse);
     typeUses.forEach(visitor.visitTypeUse);
+    constantUses.forEach(visitor.visitConstantUse);
   }
 
   String toString() {
@@ -280,6 +323,7 @@ abstract class WorldImpactVisitor {
   void visitStaticUse(StaticUse staticUse);
   void visitDynamicUse(DynamicUse dynamicUse);
   void visitTypeUse(TypeUse typeUse);
+  void visitConstantUse(ConstantUse typeUse);
 }
 
 // TODO(johnniwinther): Remove these when we get anonymous local classes.
@@ -289,14 +333,17 @@ class WorldImpactVisitorImpl implements WorldImpactVisitor {
   final VisitUse<StaticUse> _visitStaticUse;
   final VisitUse<DynamicUse> _visitDynamicUse;
   final VisitUse<TypeUse> _visitTypeUse;
+  final VisitUse<ConstantUse> _visitConstantUse;
 
   WorldImpactVisitorImpl(
       {VisitUse<StaticUse> visitStaticUse,
       VisitUse<DynamicUse> visitDynamicUse,
-      VisitUse<TypeUse> visitTypeUse})
+      VisitUse<TypeUse> visitTypeUse,
+      VisitUse<ConstantUse> visitConstantUse})
       : _visitStaticUse = visitStaticUse,
         _visitDynamicUse = visitDynamicUse,
-        _visitTypeUse = visitTypeUse;
+        _visitTypeUse = visitTypeUse,
+        _visitConstantUse = visitConstantUse;
 
   @override
   void visitStaticUse(StaticUse use) {
@@ -316,6 +363,13 @@ class WorldImpactVisitorImpl implements WorldImpactVisitor {
   void visitTypeUse(TypeUse use) {
     if (_visitTypeUse != null) {
       _visitTypeUse(use);
+    }
+  }
+
+  @override
+  void visitConstantUse(ConstantUse use) {
+    if (_visitConstantUse != null) {
+      _visitConstantUse(use);
     }
   }
 }

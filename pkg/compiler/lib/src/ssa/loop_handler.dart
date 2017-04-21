@@ -368,7 +368,7 @@ class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
 
   @override
   JumpTarget getTargetDefinition(ir.TreeNode node) =>
-      astAdapter.getJumpTarget(node.parent);
+      astAdapter.getJumpTarget(node);
 
   @override
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());

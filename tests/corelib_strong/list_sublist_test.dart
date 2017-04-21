@@ -53,6 +53,6 @@ main() {
   expectAE(() => [1].sublist(1, 0));
 }
 
-void expectAE(Function f) {
+void expectAE(void f()) {
   Expect.throws(f, (e) => e is ArgumentError);
 }

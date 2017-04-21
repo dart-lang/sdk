@@ -11,6 +11,18 @@
 #include "vm/port.h"
 #include "vm/service_event.h"
 
+DECLARE_FLAG(bool, verbose_debug);
+
+// 'Trace Debugger' TD_Print.
+#if defined(_MSC_VER)
+#define TD_Print(format, ...)                                                  \
+  if (FLAG_verbose_debug) Log::Current()->Print(format, __VA_ARGS__)
+#else
+#define TD_Print(format, ...)                                                  \
+  if (FLAG_verbose_debug) Log::Current()->Print(format, ##__VA_ARGS__)
+#endif
+
+
 namespace dart {
 
 class CodeBreakpoint;
@@ -192,7 +204,6 @@ class CodeBreakpoint {
   RawFunction* function() const;
   uword pc() const { return pc_; }
   TokenPosition token_pos() const { return token_pos_; }
-  bool IsInternal() const { return bpt_location_ == NULL; }
 
   RawScript* SourceCode();
   RawString* SourceUrl();
@@ -245,12 +256,26 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
+  enum Kind {
+    kRegular,
+    kAsyncSuspensionMarker,
+    kAsyncCausal,
+    kAsyncActivation,
+  };
+
   ActivationFrame(uword pc,
                   uword fp,
                   uword sp,
                   const Code& code,
                   const Array& deopt_frame,
-                  intptr_t deopt_frame_offset);
+                  intptr_t deopt_frame_offset,
+                  Kind kind = kRegular);
+
+  ActivationFrame(uword pc, const Code& code);
+
+  explicit ActivationFrame(Kind kind);
+
+  explicit ActivationFrame(const Closure& async_activation);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -310,7 +335,16 @@ class ActivationFrame : public ZoneAllocated {
   // the complete script, function, and, local variable objects are included.
   void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
+  RawObject* GetAsyncAwaiter();
+  RawObject* GetCausalStack();
+
+  bool HandlesException(const Instance& exc_obj);
+
  private:
+  void PrintToJSONObjectRegular(JSONObject* jsobj, bool full);
+  void PrintToJSONObjectAsyncCausal(JSONObject* jsobj, bool full);
+  void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj, bool full);
+  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj, bool full);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
@@ -319,6 +353,31 @@ class ActivationFrame : public ZoneAllocated {
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
+
+  RawObject* GetAsyncContextVariable(const String& name);
+  RawObject* GetAsyncStreamControllerStreamAwaiter(const Object& stream);
+  RawObject* GetAsyncStreamControllerStream();
+  RawObject* GetAsyncCompleterAwaiter(const Object& completer);
+  RawObject* GetAsyncCompleter();
+  void ExtractTokenPositionFromAsyncClosure();
+
+  bool IsAsyncMachinery() const;
+
+  static const char* KindToCString(Kind kind) {
+    switch (kind) {
+      case kRegular:
+        return "Regular";
+      case kAsyncCausal:
+        return "AsyncCausal";
+      case kAsyncSuspensionMarker:
+        return "AsyncSuspensionMarker";
+      case kAsyncActivation:
+        return "AsyncActivation";
+      default:
+        UNREACHABLE();
+        return "";
+    }
+  }
 
   RawObject* GetStackVar(intptr_t slot_index);
   RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
@@ -329,8 +388,9 @@ class ActivationFrame : public ZoneAllocated {
 
   // The anchor of the context chain for this function.
   Context& ctx_;
-  const Code& code_;
-  const Function& function_;
+  Code& code_;
+  Function& function_;
+  bool live_frame_;  // Is this frame a live frame?
   bool token_pos_initialized_;
   TokenPosition token_pos_;
   intptr_t try_index_;
@@ -342,6 +402,8 @@ class ActivationFrame : public ZoneAllocated {
   // Some frames are deoptimized into a side array in order to inspect them.
   const Array& deopt_frame_;
   const intptr_t deopt_frame_offset_;
+
+  Kind kind_;
 
   bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
@@ -367,6 +429,9 @@ class DebuggerStackTrace : public ZoneAllocated {
 
  private:
   void AddActivation(ActivationFrame* frame);
+  void AddMarker(ActivationFrame::Kind marker);
+  void AddAsyncCausalFrame(uword pc, const Code& code);
+
   ZoneGrowableArray<ActivationFrame*> trace_;
 
   friend class Debugger;
@@ -393,6 +458,8 @@ class Debugger {
   void Initialize(Isolate* isolate);
   void NotifyIsolateCreated();
   void Shutdown();
+
+  void OnIsolateRunnable();
 
   void NotifyCompilation(const Function& func);
   void NotifyDoneLoading();
@@ -424,11 +491,18 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
+  void MaybeAsyncStepInto(const Closure& async_op);
+  void AsyncStepInto(const Closure& async_op);
+
+  void Continue();
+
   bool SetResumeAction(ResumeAction action,
                        intptr_t frame_index = 1,
                        const char** error = NULL);
 
   bool IsStepping() const { return resume_action_ != kContinue; }
+
+  bool IsSingleStepping() const { return resume_action_ == kStepInto; }
 
   bool IsPaused() const { return pause_event_ != NULL; }
 
@@ -469,6 +543,12 @@ class Debugger {
   // use when stepping, but otherwise may be out of sync with the current stack.
   DebuggerStackTrace* StackTrace();
   DebuggerStackTrace* CurrentStackTrace();
+
+  DebuggerStackTrace* AsyncCausalStackTrace();
+  DebuggerStackTrace* CurrentAsyncCausalStackTrace();
+
+  DebuggerStackTrace* AwaiterStackTrace();
+  DebuggerStackTrace* CurrentAwaiterStackTrace();
 
   // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
   // Frames corresponding to invisible functions are omitted. It is not valid
@@ -530,6 +610,10 @@ class Debugger {
  private:
   RawError* PauseRequest(ServiceEvent::EventKind kind);
 
+  // Finds the breakpoint we hit at |location|.
+  Breakpoint* FindHitBreakpoint(BreakpointLocation* location,
+                                ActivationFrame* top_frame);
+
   // Will return false if we are not at an await.
   bool SetupStepOverAsyncSuspension(const char** error);
 
@@ -557,7 +641,7 @@ class Debugger {
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
                                     intptr_t requested_column);
-  void RemoveInternalBreakpoints();
+  void RemoveUnlinkedCodeBreakpoints();
   void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
   BreakpointLocation* GetLatentBreakpoint(const String& url,
                                           intptr_t line,
@@ -574,16 +658,30 @@ class Debugger {
   void SyncBreakpointLocation(BreakpointLocation* loc);
 
   ActivationFrame* TopDartFrame() const;
-  static ActivationFrame* CollectDartFrame(Isolate* isolate,
-                                           uword pc,
-                                           StackFrame* frame,
-                                           const Code& code,
-                                           const Array& deopt_frame,
-                                           intptr_t deopt_frame_offset);
+  static ActivationFrame* CollectDartFrame(
+      Isolate* isolate,
+      uword pc,
+      StackFrame* frame,
+      const Code& code,
+      const Array& deopt_frame,
+      intptr_t deopt_frame_offset,
+      ActivationFrame::Kind kind = ActivationFrame::kRegular);
   static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
+  // Appends at least one stack frame. Multiple frames will be appended
+  // if |code| at the frame's pc contains inlined functions.
+  static void AppendCodeFrames(Thread* thread,
+                               Isolate* isolate,
+                               Zone* zone,
+                               DebuggerStackTrace* stack_trace,
+                               StackFrame* frame,
+                               Code* code,
+                               Code* inlined_code,
+                               Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
+  static DebuggerStackTrace* CollectAsyncCausalStackTrace();
+  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }
@@ -603,6 +701,12 @@ class Debugger {
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                              bool skip_next_step = false);
 
+  void CacheStackTraces(DebuggerStackTrace* stack_trace,
+                        DebuggerStackTrace* async_causal_stack_trace,
+                        DebuggerStackTrace* awaiter_stack_trace);
+  void ClearCachedStackTraces();
+
+
   // Can we rewind to the indicated frame?
   bool CanRewindFrame(intptr_t frame_index, const char** error) const;
 
@@ -611,6 +715,12 @@ class Debugger {
   void RewindToOptimizedFrame(StackFrame* frame,
                               const Code& code,
                               intptr_t post_deopt_frame_index);
+
+  void ResetSteppingFramePointers();
+  bool SteppedForSyntheticAsyncBreakpoint() const;
+  void CleanupSyntheticAsyncBreakpoint();
+  void RememberTopFrameAwaiter();
+  void SetAsyncSteppingFramePointer();
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
@@ -644,16 +754,23 @@ class Debugger {
 
   // Current stack trace. Valid only while IsPaused().
   DebuggerStackTrace* stack_trace_;
+  DebuggerStackTrace* async_causal_stack_trace_;
+  DebuggerStackTrace* awaiter_stack_trace_;
 
   // When stepping through code, only pause the program if the top
   // frame corresponds to this fp value, or if the top frame is
   // lower on the stack.
   uword stepping_fp_;
+  // Used to track the current async/async* function.
+  uword async_stepping_fp_;
+  RawObject* top_frame_awaiter_;
 
   // If we step while at a breakpoint, we would hit the same pc twice.
   // We use this field to let us skip the next single-step after a
   // breakpoint.
   bool skip_next_step_;
+
+  bool needs_breakpoint_cleanup_;
 
   // We keep this breakpoint alive until after the debugger does the step over
   // async continuation machinery so that we can report that we've stopped

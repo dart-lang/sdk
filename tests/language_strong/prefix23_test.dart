@@ -6,11 +6,11 @@
 // This should not prevent execution.
 
 library Prefix23Test.dart;
+
 import "library12.dart" as lib12;
 
 class myClass {
-  lib12.Library13 fld;  /// static type warning
+  lib12.Library13 fld; // //# static type warning
 }
 
-main() {
-}
+main() {}

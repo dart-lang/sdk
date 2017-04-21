@@ -345,8 +345,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ andi(T0, A0, Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
-  if (smi_class.IsSubtypeOf(TypeArguments::Handle(zone()), type_class,
-                            TypeArguments::Handle(zone()), NULL, NULL,
+  if (smi_class.IsSubtypeOf(Object::null_type_arguments(), type_class,
+                            Object::null_type_arguments(), NULL, NULL,
                             Heap::kOld)) {
     __ beq(T0, ZR, is_instance_lbl);
   } else {
@@ -544,7 +544,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
-                                           bool negate_result,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType());
@@ -594,21 +593,15 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     // instanceof runtime call will be left as the result of the operation.
     __ lw(T0, Address(SP, 4 * kWordSize));
     __ addiu(SP, SP, Immediate(5 * kWordSize));
-    if (negate_result) {
-      __ LoadObject(V0, Bool::True());
-      __ bne(T0, V0, &done);
-      __ LoadObject(V0, Bool::False());
-    } else {
-      __ mov(V0, T0);
-    }
+    __ mov(V0, T0);
     __ b(&done);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(V0, Bool::Get(negate_result));
+  __ LoadObject(V0, Bool::Get(false));
   __ b(&done);
 
   __ Bind(&is_instance);
-  __ LoadObject(V0, Bool::Get(!negate_result));
+  __ LoadObject(V0, Bool::Get(true));
   __ Bind(&done);
   // Remove instantiator type arguments (A1).
   __ Drop(1);
@@ -1098,8 +1091,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ BranchLink(stub_entry);
-  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
-  RecordSafepoint(locs);
+  EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
 }
 
 
@@ -1108,8 +1100,7 @@ void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   __ BranchLinkPatchable(stub_entry);
-  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
-  RecordSafepoint(locs);
+  EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
 }
 
 
@@ -1119,8 +1110,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
   __ BranchLinkPatchable(stub_entry);
-  AddCurrentDescriptor(kind, deopt_id, token_pos);
-  RecordSafepoint(locs);
+  EmitCallsiteMetaData(token_pos, deopt_id, kind, locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
@@ -1146,8 +1136,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   ASSERT(is_optimizing());
   __ BranchLinkWithEquivalence(stub_entry, target);
 
-  AddCurrentDescriptor(kind, deopt_id, token_pos);
-  RecordSafepoint(locs);
+  EmitCallsiteMetaData(token_pos, deopt_id, kind, locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
@@ -1168,8 +1157,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
   __ CallRuntime(entry, argument_count);
-  AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
-  RecordSafepoint(locs);
+  EmitCallsiteMetaData(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   if (deopt_id != Thread::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
@@ -1257,28 +1245,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into T0,
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
-  Label done;
-  if (ShouldInlineSmiStringHashCode(ic_data)) {
-    Label megamorphic_call;
-    __ Comment("Inlined get:hashCode for Smi and OneByteString");
-    __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, &done);    // Is Smi.
-    __ delay_slot()->mov(V0, T0);  // Move Smi hashcode to V0.
-
-    __ LoadClassId(CMPRES1, T0);  // Class ID check.
-    __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid), &megamorphic_call);
-
-    __ lw(V0, FieldAddress(T0, String::hash_offset()));
-    __ bne(V0, ZR, &done);
-
-    __ Bind(&megamorphic_call);
-    __ Comment("Slow case: megamorphic call");
-  }
   __ LoadObject(S5, cache);
   __ lw(T9, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ jalr(T9);
 
-  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1287,9 +1257,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     if (try_index == CatchClauseNode::kInvalidTryIndex) {
       try_index = CurrentTryIndex();
     }
-    pc_descriptors_list()->AddDescriptor(
-        RawPcDescriptors::kOther, assembler()->CodeSize(), Thread::kNoDeoptId,
-        token_pos, try_index);
+    AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),
+                  Thread::kNoDeoptId, token_pos, try_index);
   } else if (is_optimizing()) {
     AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
                          token_pos);
@@ -1301,6 +1270,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
+  EmitCatchEntryState(pending_deoptimization_env_, try_index);
   __ Drop(argument_count);
 }
 
@@ -1321,8 +1291,8 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ LoadUniqueObject(S5, ic_data);
   __ jalr(T9);
 
-  AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);
-  RecordSafepoint(locs);
+  EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, RawPcDescriptors::kOther,
+                       locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after);
@@ -1548,7 +1518,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
                                         LocationSummary* locs,
-                                        bool complete) {
+                                        bool complete,
+                                        intptr_t total_ic_calls) {
   ASSERT(is_optimizing());
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor = Array::ZoneHandle(
@@ -1559,15 +1530,15 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   __ LoadObject(S4, arguments_descriptor);
 
   const bool kFirstCheckIsSmi = ic_data.GetReceiverClassIdAt(0) == kSmiCid;
-  const intptr_t kNumChecks = ic_data.NumberOfChecks();
+  const intptr_t num_checks = ic_data.NumberOfChecks();
 
-  ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
+  ASSERT(!ic_data.IsNull() && (num_checks > 0));
 
   Label after_smi_test;
   if (kFirstCheckIsSmi) {
     __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
     // Jump if receiver is not Smi.
-    if (kNumChecks == 1) {
+    if (num_checks == 1) {
       __ bne(CMPRES1, ZR, failed);
     } else {
       __ bne(CMPRES1, ZR, &after_smi_test);
@@ -1580,7 +1551,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
     __ Drop(argument_count);
-    if (kNumChecks > 1) {
+    if (num_checks > 1) {
       __ b(match_found);
     }
   } else {
@@ -1594,29 +1565,49 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 
   __ Bind(&after_smi_test);
 
-  GrowableArray<CidTarget> sorted(kNumChecks);
+  ASSERT(!ic_data.IsNull() && (num_checks > 0));
+  GrowableArray<CidRangeTarget> sorted(num_checks);
   SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
 
-  // Value is not Smi,
-  const intptr_t kSortedLen = sorted.length();
-  // If kSortedLen is 0 then only a Smi check was needed; the Smi check above
+  const intptr_t sorted_len = sorted.length();
+  // If sorted_len is 0 then only a Smi check was needed; the Smi check above
   // will fail if there was only one check and receiver is not Smi.
-  if (kSortedLen == 0) return;
+  if (sorted_len == 0) return;
 
+  // Value is not Smi,
   __ LoadClassId(T2, T0);
-  for (intptr_t i = 0; i < kSortedLen; i++) {
-    const bool kIsLastCheck = (i == (kSortedLen - 1));
-    ASSERT(sorted[i].cid != kSmiCid);
+
+  bool add_megamorphic_call = false;
+  int bias = 0;
+
+  for (intptr_t i = 0; i < sorted_len; i++) {
+    const bool is_last_check = (i == (sorted_len - 1));
+    int cid_start = sorted[i].cid_start;
+    int cid_end = sorted[i].cid_end;
+    int count = sorted[i].count;
+    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
+      // This case is hit too rarely to be worth writing class-id checks inline
+      // for.
+      add_megamorphic_call = true;
+      break;
+    }
+    ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
     Label next_test;
-    if (!complete) {
-      if (kIsLastCheck) {
-        __ BranchNotEqual(T2, Immediate(sorted[i].cid), failed);
+    Condition no_match;
+    if (!complete || !is_last_check) {
+      Label* next_label = is_last_check ? failed : &next_test;
+      if (cid_start == cid_end) {
+        __ BranchNotEqual(T2, Immediate(cid_start - bias), next_label);
       } else {
-        __ BranchNotEqual(T2, Immediate(sorted[i].cid), &next_test);
-      }
-    } else {
-      if (!kIsLastCheck) {
-        __ BranchNotEqual(T2, Immediate(sorted[i].cid), &next_test);
+        __ AddImmediate(T2, T2, bias - cid_start);
+        bias = cid_start;
+        // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+        // the range is small enough.
+        __ LoadImmediate(TMP, cid_end - cid_end);
+        // Reverse comparison so we get 1 if biased cid > tmp ie cid is out of
+        // range.
+        __ sltu(TMP, TMP, T2);
+        __ bne(TMP, ZR, next_label);
       }
     }
     // Do not use the code from the function, but let the code be patched so
@@ -1626,10 +1617,15 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
     __ Drop(argument_count);
-    if (!kIsLastCheck) {
+    if (!is_last_check) {
       __ b(match_found);
     }
     __ Bind(&next_test);
+  }
+  if (add_megamorphic_call) {
+    int try_index = CatchClauseNode::kInvalidTryIndex;
+    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id, token_index,
+                                locs, try_index, argument_count);
   }
 }
 

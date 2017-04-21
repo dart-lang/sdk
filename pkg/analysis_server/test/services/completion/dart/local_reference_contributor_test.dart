@@ -262,7 +262,7 @@ import 'dart:async';
 import '/libA.dart';
 class B { }
 String bar(f()) => true;
-void main() {bar(^);}''');
+void main() {boo(){} bar(^);}''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -271,6 +271,45 @@ void main() {bar(^);}''');
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestFunction('boo', 'dynamic',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertNotSuggested('hasLength');
+    assertNotSuggested('identical');
+    assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('A');
+    assertNotSuggested('Object');
+    assertNotSuggested('main');
+    assertNotSuggested('baz');
+    assertNotSuggested('print');
+  }
+
+  test_ArgumentList_MethodInvocation_functionalArg2() async {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addSource(
+        '/libA.dart',
+        '''
+library A;
+class A { A(f()) { } }
+bool hasLength(int expected) { }
+void baz() { }''');
+    addTestSource('''
+import 'dart:async';
+import '/libA.dart';
+class B { }
+String bar({inc()}) => true;
+void main() {boo(){} bar(inc: ^);}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+    assertSuggestFunction('bar', 'String',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_INCREMENT);
+    assertSuggestFunction('boo', 'dynamic',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_INCREMENT);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
@@ -4558,4 +4597,77 @@ class LocalReferenceContributorTest_Driver
     extends LocalReferenceContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_ArgDefaults_function() async {
+    addTestSource('''
+bool hasLength(int a, bool b) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'a, b',
+        defaultArgumentListTextRanges: [0, 1, 3, 1]);
+  }
+
+  test_ArgDefaults_function_none() async {
+    addTestSource('''
+bool hasLength() => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: null,
+        defaultArgumentListTextRanges: null);
+  }
+
+  test_ArgDefaults_function_with_optional_positional() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, [bool boo, int baz]) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar',
+        defaultArgumentListTextRanges: [0, 3]);
+  }
+
+  test_ArgDefaults_function_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+  }
+
+  test_ArgDefaults_method_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, {bool boo, @required int baz}) => false;
+  baz() {
+    f^
+  }
+}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_METHOD,
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+  }
 }

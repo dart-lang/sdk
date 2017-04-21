@@ -7,6 +7,7 @@ import "dart:async";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler.dart';
 import "package:compiler/src/elements/elements.dart";
+import "package:compiler/src/old_to_new_api.dart";
 import "package:expect/expect.dart";
 
 import "mock_compiler.dart";
@@ -18,12 +19,12 @@ Future testErrorHandling() {
   return compiler.init().then((_) {
     compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
     FunctionElement foo = compiler.mainApp.find('foo');
-    compiler.diagnosticHandler =
+    compiler.diagnosticHandler = new LegacyCompilerDiagnostics(
         (Uri uri, int begin, int end, String message, Diagnostic kind) {
       if (kind == Diagnostic.WARNING) {
         Expect.equals(foo, compiler.currentElement);
       }
-    };
+    });
     foo.computeType(compiler.resolution);
     Expect.equals(1, compiler.diagnosticCollector.warnings.length);
   });

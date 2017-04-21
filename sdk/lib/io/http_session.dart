@@ -49,12 +49,21 @@ class _HttpSession implements HttpSession {
   bool containsValue(value) => _data.containsValue(value);
   bool containsKey(key) => _data.containsKey(key);
   operator [](key) => _data[key];
-  void operator []=(key, value) { _data[key] = value; }
+  void operator []=(key, value) {
+    _data[key] = value;
+  }
+
   putIfAbsent(key, ifAbsent) => _data.putIfAbsent(key, ifAbsent);
   addAll(Map other) => _data.addAll(other);
   remove(key) => _data.remove(key);
-  void clear() { _data.clear(); }
-  void forEach(void f(key, value)) { _data.forEach(f); }
+  void clear() {
+    _data.clear();
+  }
+
+  void forEach(void f(key, value)) {
+    _data.forEach(f);
+  }
+
   Iterable get keys => _data.keys;
   Iterable get values => _data.values;
   int get length => _data.length;
@@ -71,7 +80,7 @@ class _HttpSession implements HttpSession {
 //  * In a linked list, used as a timeout queue.
 class _HttpSessionManager {
   Map<String, _HttpSession> _sessions;
-  int _sessionTimeout = 20 * 60;  // 20 mins.
+  int _sessionTimeout = 20 * 60; // 20 mins.
   _HttpSession _head;
   _HttpSession _tail;
   Timer _timer;
@@ -79,7 +88,7 @@ class _HttpSessionManager {
   _HttpSessionManager() : _sessions = {};
 
   String createSessionId() {
-    const int _KEY_LENGTH = 16;  // 128 bits.
+    const int _KEY_LENGTH = 16; // 128 bits.
     var data = _IOCrypto.getRandomBytes(_KEY_LENGTH);
     return _CryptoUtils.bytesToHex(data);
   }
@@ -104,7 +113,9 @@ class _HttpSessionManager {
     _startTimer();
   }
 
-  void close() { _stopTimer(); }
+  void close() {
+    _stopTimer();
+  }
 
   void _bumpToEnd(_HttpSession session) {
     _removeFromTimeoutQueue(session);
@@ -146,10 +157,10 @@ class _HttpSessionManager {
   }
 
   void _timerTimeout() {
-    _stopTimer();  // Clear timer.
+    _stopTimer(); // Clear timer.
     assert(_head != null);
     var session = _head;
-    session.destroy();  // Will remove the session from timeout queue and map.
+    session.destroy(); // Will remove the session from timeout queue and map.
     if (session._timeoutCallback != null) {
       session._timeoutCallback();
     }
@@ -159,8 +170,8 @@ class _HttpSessionManager {
     assert(_timer == null);
     if (_head != null) {
       int seconds = new DateTime.now().difference(_head.lastSeen).inSeconds;
-      _timer = new Timer(new Duration(seconds: _sessionTimeout - seconds),
-                         _timerTimeout);
+      _timer = new Timer(
+          new Duration(seconds: _sessionTimeout - seconds), _timerTimeout);
     }
   }
 
@@ -171,4 +182,3 @@ class _HttpSessionManager {
     }
   }
 }
-

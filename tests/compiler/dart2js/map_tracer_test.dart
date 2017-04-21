@@ -211,7 +211,6 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
-  compiler.closeResolution();
   asyncTest(() => compiler.run(uri).then((_) {
         var keyType, valueType;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;

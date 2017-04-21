@@ -88,27 +88,24 @@ import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:svg library.
 
-
-
-
-
 class _KeyRangeFactoryProvider {
-
   static KeyRange createKeyRange_only(/*Key*/ value) =>
       _only(_class(), _translateKey(value));
 
   static KeyRange createKeyRange_lowerBound(
-      /*Key*/ bound, [bool open = false]) =>
+          /*Key*/ bound,
+          [bool open = false]) =>
       _lowerBound(_class(), _translateKey(bound), open);
 
   static KeyRange createKeyRange_upperBound(
-      /*Key*/ bound, [bool open = false]) =>
+          /*Key*/ bound,
+          [bool open = false]) =>
       _upperBound(_class(), _translateKey(bound), open);
 
   static KeyRange createKeyRange_bound(/*Key*/ lower, /*Key*/ upper,
-      [bool lowerOpen = false, bool upperOpen = false]) =>
-      _bound(_class(), _translateKey(lower), _translateKey(upper),
-             lowerOpen, upperOpen);
+          [bool lowerOpen = false, bool upperOpen = false]) =>
+      _bound(_class(), _translateKey(lower), _translateKey(upper), lowerOpen,
+          upperOpen);
 
   static var _cachedClass;
 
@@ -117,25 +114,29 @@ class _KeyRangeFactoryProvider {
     return _cachedClass = _uncachedClass();
   }
 
-  static _uncachedClass() =>
-    JS('var',
-       '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
+  static _uncachedClass() => JS(
+      'var',
+      '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
           window.msIDBKeyRange || window.IDBKeyRange''');
 
-  static _translateKey(idbkey) => idbkey;  // TODO: fixme.
+  static _translateKey(idbkey) => idbkey; // TODO: fixme.
 
-  static KeyRange _only(cls, value) =>
-       JS('KeyRange', '#.only(#)', cls, value);
+  static KeyRange _only(cls, value) => JS('KeyRange', '#.only(#)', cls, value);
 
   static KeyRange _lowerBound(cls, bound, open) =>
-       JS('KeyRange', '#.lowerBound(#, #)', cls, bound, open);
+      JS('KeyRange', '#.lowerBound(#, #)', cls, bound, open);
 
   static KeyRange _upperBound(cls, bound, open) =>
-       JS('KeyRange', '#.upperBound(#, #)', cls, bound, open);
+      JS('KeyRange', '#.upperBound(#, #)', cls, bound, open);
 
-  static KeyRange _bound(cls, lower, upper, lowerOpen, upperOpen) =>
-       JS('KeyRange', '#.bound(#, #, #, #)',
-          cls, lower, upper, lowerOpen, upperOpen);
+  static KeyRange _bound(cls, lower, upper, lowerOpen, upperOpen) => JS(
+      'KeyRange',
+      '#.bound(#, #, #, #)',
+      cls,
+      lower,
+      upper,
+      lowerOpen,
+      upperOpen);
 }
 
 // Conversions for IDBKey.
@@ -155,7 +156,6 @@ class _KeyRangeFactoryProvider {
 // What is required is to ensure that an Lists in the key are actually
 // JavaScript arrays, and any Dates are JavaScript Dates.
 
-
 /**
  * Converts a native IDBKey into a Dart object.
  *
@@ -173,8 +173,9 @@ _convertNativeToDart_IDBKey(nativeKey) {
         if (containsDate(object[i])) return true;
       }
     }
-    return false;  // number, string.
+    return false; // number, string.
   }
+
   if (containsDate(nativeKey)) {
     throw new UnimplementedError('Key containing DateTime');
   }
@@ -195,8 +196,6 @@ _convertDartToNative_IDBKey(dartKey) {
   return dartKey;
 }
 
-
-
 /// May modify original.  If so, action is idempotent.
 _convertNativeToDart_IDBAny(object) {
   return convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
@@ -210,14 +209,13 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DomName('IDBCursor')
 @Unstable()
 @Native("IDBCursor")
 class Cursor extends Interceptor {
   @DomName('IDBCursor.delete')
   Future delete() {
-   try {
+    try {
       return _completeRequest(_delete());
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
@@ -226,7 +224,7 @@ class Cursor extends Interceptor {
 
   @DomName('IDBCursor.value')
   Future update(value) {
-   try {
+    try {
       return _completeRequest(_update(value));
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
@@ -242,8 +240,11 @@ class Cursor extends Interceptor {
       JS('void', '#.continue(#)', this, key);
     }
   }
-    // To suppress missing implicit constructor warnings.
-  factory Cursor._() { throw new UnsupportedError("Not supported"); }
+
+  // To suppress missing implicit constructor warnings.
+  factory Cursor._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBCursor.direction')
   @DocsEditable()
@@ -269,17 +270,17 @@ class Cursor extends Interceptor {
 
   @DomName('IDBCursor.advance')
   @DocsEditable()
-  void advance(int count) native;
+  void advance(int count) native ;
 
   @DomName('IDBCursor.continuePrimaryKey')
   @DocsEditable()
   @Experimental() // untriaged
-  void continuePrimaryKey(Object key, Object primaryKey) native;
+  void continuePrimaryKey(Object key, Object primaryKey) native ;
 
   @JSName('delete')
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request _delete() native;
+  Request _delete() native ;
 
   @DomName('IDBCursor.update')
   @DocsEditable()
@@ -287,16 +288,15 @@ class Cursor extends Interceptor {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
   }
+
   @JSName('update')
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _update_1(value) native;
-
+  Request _update_1(value) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('IDBCursorWithValue')
@@ -304,7 +304,9 @@ class Cursor extends Interceptor {
 @Native("IDBCursorWithValue")
 class CursorWithValue extends Cursor {
   // To suppress missing implicit constructor warnings.
-  factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
+  factory CursorWithValue._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable()
@@ -319,7 +321,6 @@ class CursorWithValue extends Cursor {
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 /**
@@ -389,10 +390,12 @@ class Database extends EventTarget {
   }
 
   @JSName('transaction')
-  Transaction _transaction(stores, mode) native;
+  Transaction _transaction(stores, mode) native ;
 
   // To suppress missing implicit constructor warnings.
-  factory Database._() { throw new UnsupportedError("Not supported"); }
+  factory Database._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `abort` events to event
@@ -402,7 +405,8 @@ class Database extends EventTarget {
    */
   @DomName('IDBDatabase.abortEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+  static const EventStreamProvider<Event> abortEvent =
+      const EventStreamProvider<Event>('abort');
 
   /**
    * Static factory designed to expose `close` events to event
@@ -414,7 +418,8 @@ class Database extends EventTarget {
   @DocsEditable()
   // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
   @Experimental()
-  static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
+  static const EventStreamProvider<Event> closeEvent =
+      const EventStreamProvider<Event>('close');
 
   /**
    * Static factory designed to expose `error` events to event
@@ -424,7 +429,8 @@ class Database extends EventTarget {
    */
   @DomName('IDBDatabase.errorEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<Event> errorEvent =
+      const EventStreamProvider<Event>('error');
 
   /**
    * Static factory designed to expose `versionchange` events to event
@@ -434,7 +440,8 @@ class Database extends EventTarget {
    */
   @DomName('IDBDatabase.versionchangeEvent')
   @DocsEditable()
-  static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
+  static const EventStreamProvider<VersionChangeEvent> versionChangeEvent =
+      const EventStreamProvider<VersionChangeEvent>('versionchange');
 
   @DomName('IDBDatabase.name')
   @DocsEditable()
@@ -454,7 +461,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
-  void close() native;
+  void close() native ;
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
@@ -465,18 +472,19 @@ class Database extends EventTarget {
     }
     return _createObjectStore_2(name);
   }
+
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _createObjectStore_1(name, options) native;
+  ObjectStore _createObjectStore_1(name, options) native ;
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _createObjectStore_2(name) native;
+  ObjectStore _createObjectStore_2(name) native ;
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
-  void deleteObjectStore(String name) native;
+  void deleteObjectStore(String name) native ;
 
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
@@ -498,12 +506,12 @@ class Database extends EventTarget {
   /// Stream of `versionchange` events handled by this [Database].
   @DomName('IDBDatabase.onversionchange')
   @DocsEditable()
-  Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
+  Stream<VersionChangeEvent> get onVersionChange =>
+      versionChangeEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('IDBFactory')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -517,7 +525,8 @@ class IdbFactory extends Interceptor {
    * Checks to see if Indexed DB is supported on the current platform.
    */
   static bool get supported {
-    return JS('bool',
+    return JS(
+        'bool',
         '!!(window.indexedDB || '
         'window.webkitIndexedDB || '
         'window.mozIndexedDB)');
@@ -525,7 +534,8 @@ class IdbFactory extends Interceptor {
 
   @DomName('IDBFactory.open')
   Future<Database> open(String name,
-      {int version, void onUpgradeNeeded(VersionChangeEvent),
+      {int version,
+      void onUpgradeNeeded(VersionChangeEvent),
       void onBlocked(Event)}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
@@ -552,8 +562,7 @@ class IdbFactory extends Interceptor {
   }
 
   @DomName('IDBFactory.deleteDatabase')
-  Future<IdbFactory> deleteDatabase(String name,
-      {void onBlocked(Event e)}) {
+  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)}) {
     try {
       var request = _deleteDatabase(name);
 
@@ -588,21 +597,24 @@ class IdbFactory extends Interceptor {
    * Checks to see if getDatabaseNames is supported by the current platform.
    */
   bool get supportsDatabaseNames {
-    return supported && JS('bool',
-        '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this, this);
+    return supported &&
+        JS('bool', '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this,
+            this);
   }
 
   // To suppress missing implicit constructor warnings.
-  factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
+  factory IdbFactory._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
-  int cmp(Object first, Object second) native;
+  int cmp(Object first, Object second) native ;
 
   @JSName('deleteDatabase')
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest _deleteDatabase(String name) native;
+  OpenDBRequest _deleteDatabase(String name) native ;
 
   @JSName('open')
   @DomName('IDBFactory.open')
@@ -610,7 +622,7 @@ class IdbFactory extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Database')
-  OpenDBRequest _open(String name, [int version]) native;
+  OpenDBRequest _open(String name, [int version]) native ;
 
   @JSName('webkitGetDatabaseNames')
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -621,17 +633,15 @@ class IdbFactory extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('DomStringList')
-  Request _webkitGetDatabaseNames() native;
-
+  Request _webkitGetDatabaseNames() native ;
 }
-
 
 /**
  * Ties a request to a completer, so the completer is completed when it succeeds
  * and errors out when the request errors.
  */
 Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
-  var completer = new Completer/*<T>*/.sync();
+  var completer = new Completer/*<T>*/ .sync();
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
@@ -645,14 +655,13 @@ Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DomName('IDBIndex')
 @Unstable()
 @Native("IDBIndex")
 class Index extends Interceptor {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
-   try {
+    try {
       var request = _count(key_OR_range);
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -689,8 +698,8 @@ class Index extends Interceptor {
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<CursorWithValue> openCursor(
+      {key, KeyRange range, String direction, bool autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -717,8 +726,8 @@ class Index extends Interceptor {
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<Cursor> openKeyCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<Cursor> openKeyCursor(
+      {key, KeyRange range, String direction, bool autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -738,8 +747,10 @@ class Index extends Interceptor {
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
-    // To suppress missing implicit constructor warnings.
-  factory Index._() { throw new UnsupportedError("Not supported"); }
+  // To suppress missing implicit constructor warnings.
+  factory Index._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
@@ -765,7 +776,7 @@ class Index extends Interceptor {
   @JSName('count')
   @DomName('IDBIndex.count')
   @DocsEditable()
-  Request _count(Object key) native;
+  Request _count(Object key) native ;
 
   @JSName('get')
   @DomName('IDBIndex.get')
@@ -773,17 +784,17 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get(Object key) native;
+  Request _get(Object key) native ;
 
   @DomName('IDBIndex.getAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAll(Object range, [int maxCount]) native;
+  Request getAll(Object range, [int maxCount]) native ;
 
   @DomName('IDBIndex.getAllKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAllKeys(Object range, [int maxCount]) native;
+  Request getAllKeys(Object range, [int maxCount]) native ;
 
   @JSName('getKey')
   @DomName('IDBIndex.getKey')
@@ -792,7 +803,7 @@ class Index extends Interceptor {
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   @Creates('ObjectStore')
-  Request _getKey(Object key) native;
+  Request _getKey(Object key) native ;
 
   @JSName('openCursor')
   @DomName('IDBIndex.openCursor')
@@ -800,7 +811,7 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String direction]) native;
+  Request _openCursor(Object range, [String direction]) native ;
 
   @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
@@ -808,13 +819,11 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor(Object range, [String direction]) native;
-
+  Request _openKeyCursor(Object range, [String direction]) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('IDBKeyRange')
 @Unstable()
@@ -834,12 +843,14 @@ class KeyRange extends Interceptor {
 
   @DomName('KeyRange.bound')
   factory KeyRange.bound(/*Key*/ lower, /*Key*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
+          [bool lowerOpen = false, bool upperOpen = false]) =>
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
   // To suppress missing implicit constructor warnings.
-  factory KeyRange._() { throw new UnsupportedError("Not supported"); }
+  factory KeyRange._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
@@ -862,34 +873,32 @@ class KeyRange extends Interceptor {
   @JSName('bound')
   @DomName('IDBKeyRange.bound')
   @DocsEditable()
-  static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) native;
+  static KeyRange bound_(Object lower, Object upper,
+      [bool lowerOpen, bool upperOpen]) native ;
 
   @JSName('lowerBound')
   @DomName('IDBKeyRange.lowerBound')
   @DocsEditable()
-  static KeyRange lowerBound_(Object bound, [bool open]) native;
+  static KeyRange lowerBound_(Object bound, [bool open]) native ;
 
   @JSName('only')
   @DomName('IDBKeyRange.only')
   @DocsEditable()
-  static KeyRange only_(Object value) native;
+  static KeyRange only_(Object value) native ;
 
   @JSName('upperBound')
   @DomName('IDBKeyRange.upperBound')
   @DocsEditable()
-  static KeyRange upperBound_(Object bound, [bool open]) native;
-
+  static KeyRange upperBound_(Object bound, [bool open]) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DomName('IDBObjectStore')
 @Unstable()
 @Native("IDBObjectStore")
 class ObjectStore extends Interceptor {
-
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
     try {
@@ -915,7 +924,7 @@ class ObjectStore extends Interceptor {
   }
 
   @DomName('IDBObjectStore.delete')
-  Future delete(key_OR_keyRange){
+  Future delete(key_OR_keyRange) {
     try {
       return _completeRequest(_delete(key_OR_keyRange));
     } catch (e, stacktrace) {
@@ -925,7 +934,7 @@ class ObjectStore extends Interceptor {
 
   @DomName('IDBObjectStore.count')
   Future<int> count([key_OR_range]) {
-   try {
+    try {
       var request = _count(key_OR_range);
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -981,8 +990,8 @@ class ObjectStore extends Interceptor {
    * the current transaction.
    */
   @DomName('IDBObjectStore.openCursor')
-  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
-      bool autoAdvance}) {
+  Stream<CursorWithValue> openCursor(
+      {key, KeyRange range, String direction, bool autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -1017,7 +1026,9 @@ class ObjectStore extends Interceptor {
   }
 
   // To suppress missing implicit constructor warnings.
-  factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
+  factory ObjectStore._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
@@ -1056,30 +1067,31 @@ class ObjectStore extends Interceptor {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
     return _add_2(value_1);
   }
+
   @JSName('add')
   @DomName('IDBObjectStore.add')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _add_1(value, key) native;
+  Request _add_1(value, key) native ;
   @JSName('add')
   @DomName('IDBObjectStore.add')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _add_2(value) native;
+  Request _add_2(value) native ;
 
   @JSName('clear')
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request _clear() native;
+  Request _clear() native ;
 
   @JSName('count')
   @DomName('IDBObjectStore.count')
   @DocsEditable()
-  Request _count(Object key) native;
+  Request _count(Object key) native ;
 
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
@@ -1090,23 +1102,24 @@ class ObjectStore extends Interceptor {
     }
     return _createIndex_2(name, keyPath);
   }
+
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_1(name, keyPath, options) native;
+  Index _createIndex_1(name, keyPath, options) native ;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_2(name, keyPath) native;
+  Index _createIndex_2(name, keyPath) native ;
 
   @JSName('delete')
   @DomName('IDBObjectStore.delete')
   @DocsEditable()
-  Request _delete(Object key) native;
+  Request _delete(Object key) native ;
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
-  void deleteIndex(String name) native;
+  void deleteIndex(String name) native ;
 
   @JSName('get')
   @DomName('IDBObjectStore.get')
@@ -1114,21 +1127,21 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get(Object key) native;
+  Request _get(Object key) native ;
 
   @DomName('IDBObjectStore.getAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAll(Object range, [int maxCount]) native;
+  Request getAll(Object range, [int maxCount]) native ;
 
   @DomName('IDBObjectStore.getAllKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAllKeys(Object range, [int maxCount]) native;
+  Request getAllKeys(Object range, [int maxCount]) native ;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
-  Index index(String name) native;
+  Index index(String name) native ;
 
   @JSName('openCursor')
   @DomName('IDBObjectStore.openCursor')
@@ -1136,12 +1149,12 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String direction]) native;
+  Request _openCursor(Object range, [String direction]) native ;
 
   @DomName('IDBObjectStore.openKeyCursor')
   @DocsEditable()
   @Experimental() // untriaged
-  Request openKeyCursor(Object range, [String direction]) native;
+  Request openKeyCursor(Object range, [String direction]) native ;
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()
@@ -1157,27 +1170,27 @@ class ObjectStore extends Interceptor {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
     return _put_2(value_1);
   }
-  @JSName('put')
-  @DomName('IDBObjectStore.put')
-  @DocsEditable()
-  @Returns('Request')
-  @Creates('Request')
-  @_annotation_Creates_IDBKey
-  Request _put_1(value, key) native;
-  @JSName('put')
-  @DomName('IDBObjectStore.put')
-  @DocsEditable()
-  @Returns('Request')
-  @Creates('Request')
-  @_annotation_Creates_IDBKey
-  Request _put_2(value) native;
 
+  @JSName('put')
+  @DomName('IDBObjectStore.put')
+  @DocsEditable()
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
+  Request _put_1(value, key) native ;
+  @JSName('put')
+  @DomName('IDBObjectStore.put')
+  @DocsEditable()
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
+  Request _put_2(value) native ;
 
   /**
    * Helper for iterating over cursors in a request.
    */
-  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(Request request,
-      bool autoAdvance) {
+  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(
+      Request request, bool autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
@@ -1207,14 +1220,15 @@ class ObjectStore extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('IDBOpenDBRequest')
 @Unstable()
 @Native("IDBOpenDBRequest,IDBVersionChangeRequest")
 class OpenDBRequest extends Request {
   // To suppress missing implicit constructor warnings.
-  factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
+  factory OpenDBRequest._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `blocked` events to event
@@ -1224,7 +1238,8 @@ class OpenDBRequest extends Request {
    */
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
+  static const EventStreamProvider<Event> blockedEvent =
+      const EventStreamProvider<Event>('blocked');
 
   /**
    * Static factory designed to expose `upgradeneeded` events to event
@@ -1234,7 +1249,8 @@ class OpenDBRequest extends Request {
    */
   @DomName('IDBOpenDBRequest.upgradeneededEvent')
   @DocsEditable()
-  static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
+  static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent =
+      const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
   /// Stream of `blocked` events handled by this [OpenDBRequest].
   @DomName('IDBOpenDBRequest.onblocked')
@@ -1244,12 +1260,12 @@ class OpenDBRequest extends Request {
   /// Stream of `upgradeneeded` events handled by this [OpenDBRequest].
   @DomName('IDBOpenDBRequest.onupgradeneeded')
   @DocsEditable()
-  Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
+  Stream<VersionChangeEvent> get onUpgradeNeeded =>
+      upgradeNeededEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('IDBRequest')
@@ -1257,7 +1273,9 @@ class OpenDBRequest extends Request {
 @Native("IDBRequest")
 class Request extends EventTarget {
   // To suppress missing implicit constructor warnings.
-  factory Request._() { throw new UnsupportedError("Not supported"); }
+  factory Request._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `error` events to event
@@ -1267,7 +1285,8 @@ class Request extends EventTarget {
    */
   @DomName('IDBRequest.errorEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<Event> errorEvent =
+      const EventStreamProvider<Event>('error');
 
   /**
    * Static factory designed to expose `success` events to event
@@ -1277,7 +1296,8 @@ class Request extends EventTarget {
    */
   @DomName('IDBRequest.successEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
+  static const EventStreamProvider<Event> successEvent =
+      const EventStreamProvider<Event>('success');
 
   @DomName('IDBRequest.error')
   @DocsEditable()
@@ -1319,12 +1339,10 @@ class Request extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DomName('IDBTransaction')
 @Unstable()
 @Native("IDBTransaction")
 class Transaction extends EventTarget {
-
   /**
    * Provides a Future which will be completed once the transaction has
    * completed.
@@ -1354,7 +1372,9 @@ class Transaction extends EventTarget {
   }
 
   // To suppress missing implicit constructor warnings.
-  factory Transaction._() { throw new UnsupportedError("Not supported"); }
+  factory Transaction._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `abort` events to event
@@ -1364,7 +1384,8 @@ class Transaction extends EventTarget {
    */
   @DomName('IDBTransaction.abortEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+  static const EventStreamProvider<Event> abortEvent =
+      const EventStreamProvider<Event>('abort');
 
   /**
    * Static factory designed to expose `complete` events to event
@@ -1374,7 +1395,8 @@ class Transaction extends EventTarget {
    */
   @DomName('IDBTransaction.completeEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+  static const EventStreamProvider<Event> completeEvent =
+      const EventStreamProvider<Event>('complete');
 
   /**
    * Static factory designed to expose `error` events to event
@@ -1384,7 +1406,8 @@ class Transaction extends EventTarget {
    */
   @DomName('IDBTransaction.errorEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<Event> errorEvent =
+      const EventStreamProvider<Event>('error');
 
   @DomName('IDBTransaction.db')
   @DocsEditable()
@@ -1407,11 +1430,11 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.abort')
   @DocsEditable()
-  void abort() native;
+  void abort() native ;
 
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
-  ObjectStore objectStore(String name) native;
+  ObjectStore objectStore(String name) native ;
 
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')
@@ -1427,12 +1450,10 @@ class Transaction extends EventTarget {
   @DomName('IDBTransaction.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('IDBVersionChangeEvent')
@@ -1440,7 +1461,9 @@ class Transaction extends EventTarget {
 @Native("IDBVersionChangeEvent")
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
-  factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+  factory VersionChangeEvent._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('IDBVersionChangeEvent.IDBVersionChangeEvent')
   @DocsEditable()
@@ -1451,8 +1474,13 @@ class VersionChangeEvent extends Event {
     }
     return VersionChangeEvent._create_2(type);
   }
-  static VersionChangeEvent _create_1(type, eventInitDict) => JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#,#)', type, eventInitDict);
-  static VersionChangeEvent _create_2(type) => JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
+  static VersionChangeEvent _create_1(type, eventInitDict) => JS(
+      'VersionChangeEvent',
+      'new IDBVersionChangeEvent(#,#)',
+      type,
+      eventInitDict);
+  static VersionChangeEvent _create_2(type) =>
+      JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
 
   @DomName('IDBVersionChangeEvent.dataLoss')
   @DocsEditable()

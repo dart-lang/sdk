@@ -172,6 +172,12 @@ class FlowGraphBuilder : public ValueObject {
   Isolate* isolate() const { return parsed_function().isolate(); }
   Zone* zone() const { return parsed_function().zone(); }
 
+  void AppendAwaitTokenPosition(TokenPosition token_pos);
+
+  ZoneGrowableArray<TokenPosition>* await_token_positions() const {
+    return await_token_positions_;
+  }
+
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
   friend class Intrinsifier;
@@ -212,6 +218,7 @@ class FlowGraphBuilder : public ValueObject {
 
   intptr_t jump_count_;
   ZoneGrowableArray<JoinEntryInstr*>* await_joins_;
+  ZoneGrowableArray<TokenPosition>* await_token_positions_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -316,15 +323,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Value* BuildInstantiatedTypeArguments(TokenPosition token_pos,
                                         const TypeArguments& type_arguments);
 
-  void BuildTypecheckPushArguments(
-      TokenPosition token_pos,
-      PushArgumentInstr** push_instantiator_type_arguments);
-  void BuildTypecheckArguments(TokenPosition token_pos,
-                               Value** instantiator_type_arguments);
   Value* BuildInstantiator(TokenPosition token_pos);
-  Value* BuildInstantiatorTypeArguments(TokenPosition token_pos,
-                                        const Class& instantiator_class,
-                                        Value* instantiator);
+  Value* BuildInstantiatorTypeArguments(TokenPosition token_pos);
+  Value* BuildFunctionTypeArguments(TokenPosition token_pos);
+  PushArgumentInstr* PushInstantiatorTypeArguments(const AbstractType& type,
+                                                   TokenPosition token_pos);
+  PushArgumentInstr* PushFunctionTypeArguments(const AbstractType& type,
+                                               TokenPosition token_pos);
 
   // Perform a type check on the given value.
   AssertAssignableInstr* BuildAssertAssignable(TokenPosition token_pos,

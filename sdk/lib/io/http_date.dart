@@ -39,26 +39,38 @@ class HttpDate {
    */
   static String format(DateTime date) {
     const List wkday = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const List month = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const List month = const [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
 
     DateTime d = date.toUtc();
     StringBuffer sb = new StringBuffer()
-        ..write(wkday[d.weekday - 1])
-        ..write(", ")
-        ..write(d.day <= 9 ? "0" : "")
-        ..write(d.day.toString())
-        ..write(" ")
-        ..write(month[d.month - 1])
-        ..write(" ")
-        ..write(d.year.toString())
-        ..write(d.hour <= 9 ? " 0" : " ")
-        ..write(d.hour.toString())
-        ..write(d.minute <= 9 ? ":0" : ":")
-        ..write(d.minute.toString())
-        ..write(d.second <= 9 ? ":0" : ":")
-        ..write(d.second.toString())
-        ..write(" GMT");
+      ..write(wkday[d.weekday - 1])
+      ..write(", ")
+      ..write(d.day <= 9 ? "0" : "")
+      ..write(d.day.toString())
+      ..write(" ")
+      ..write(month[d.month - 1])
+      ..write(" ")
+      ..write(d.year.toString())
+      ..write(d.hour <= 9 ? " 0" : " ")
+      ..write(d.hour.toString())
+      ..write(d.minute <= 9 ? ":0" : ":")
+      ..write(d.minute.toString())
+      ..write(d.second <= 9 ? ":0" : ":")
+      ..write(d.second.toString())
+      ..write(" GMT");
     return sb.toString();
   }
 
@@ -79,18 +91,61 @@ class HttpDate {
   static DateTime parse(String date) {
     final int SP = 32;
     const List wkdays = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const List weekdays = const ["Monday", "Tuesday", "Wednesday", "Thursday",
-                           "Friday", "Saturday", "Sunday"];
-    const List months = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const List wkdaysLowerCase =
-        const ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-    const List weekdaysLowerCase = const ["monday", "tuesday", "wednesday",
-                                          "thursday", "friday", "saturday",
-                                          "sunday"];
-    const List monthsLowerCase = const ["jan", "feb", "mar", "apr", "may",
-                                        "jun", "jul", "aug", "sep", "oct",
-                                        "nov", "dec"];
+    const List weekdays = const [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ];
+    const List months = const [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+    const List wkdaysLowerCase = const [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ];
+    const List weekdaysLowerCase = const [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ];
+    const List monthsLowerCase = const [
+      "jan",
+      "feb",
+      "mar",
+      "apr",
+      "may",
+      "jun",
+      "jul",
+      "aug",
+      "sep",
+      "oct",
+      "nov",
+      "dec"
+    ];
 
     final int formatRfc1123 = 0;
     final int formatRfc850 = 1;
@@ -206,9 +261,20 @@ class HttpDate {
 
   // Parse a cookie date string.
   static DateTime _parseCookieDate(String date) {
-    const List monthsLowerCase = const ["jan", "feb", "mar", "apr", "may",
-                                        "jun", "jul", "aug", "sep", "oct",
-                                        "nov", "dec"];
+    const List monthsLowerCase = const [
+      "jan",
+      "feb",
+      "mar",
+      "apr",
+      "may",
+      "jun",
+      "jul",
+      "aug",
+      "sep",
+      "oct",
+      "nov",
+      "dec"
+    ];
 
     int position = 0;
 
@@ -232,11 +298,11 @@ class HttpDate {
       int char = s.codeUnitAt(0);
       if (char >= 0x00 && char <= 0x08) return true;
       if (char >= 0x0A && char <= 0x1F) return true;
-      if (char >= 0x30 && char <= 0x39) return true;  // Digit
-      if (char == 0x3A) return true;  // ':'
-      if (char >= 0x41 && char <= 0x5A) return true;  // Alpha
-      if (char >= 0x61 && char <= 0x7A) return true;  // Alpha
-      if (char >= 0x7F && char <= 0xFF) return true;  // Alpha
+      if (char >= 0x30 && char <= 0x39) return true; // Digit
+      if (char == 0x3A) return true; // ':'
+      if (char >= 0x41 && char <= 0x5A) return true; // Alpha
+      if (char >= 0x61 && char <= 0x7A) return true; // Alpha
+      if (char >= 0x7F && char <= 0xFF) return true; // Alpha
       return false;
     }
 
@@ -273,26 +339,33 @@ class HttpDate {
 
     for (var token in tokens) {
       if (token.length < 1) continue;
-      if (timeStr == null && token.length >= 5 && isDigit(token[0]) &&
+      if (timeStr == null &&
+          token.length >= 5 &&
+          isDigit(token[0]) &&
           (token[1] == ":" || (isDigit(token[1]) && token[2] == ":"))) {
         timeStr = token;
       } else if (dayOfMonthStr == null && isDigit(token[0])) {
         dayOfMonthStr = token;
       } else if (monthStr == null && getMonth(token) >= 0) {
         monthStr = token;
-      } else if (yearStr == null && token.length >= 2 &&
-                 isDigit(token[0]) && isDigit(token[1])) {
+      } else if (yearStr == null &&
+          token.length >= 2 &&
+          isDigit(token[0]) &&
+          isDigit(token[1])) {
         yearStr = token;
       }
     }
 
-    if (timeStr == null || dayOfMonthStr == null ||
-        monthStr == null || yearStr == null) {
+    if (timeStr == null ||
+        dayOfMonthStr == null ||
+        monthStr == null ||
+        yearStr == null) {
       error();
     }
 
     int year = toInt(yearStr);
-    if (year >= 70 && year <= 99) year += 1900;
+    if (year >= 70 && year <= 99)
+      year += 1900;
     else if (year >= 0 && year <= 69) year += 2000;
     if (year < 1601) error();
 

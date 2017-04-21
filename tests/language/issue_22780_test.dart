@@ -3,5 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  f() => "Oh, the joy of ${f()}"; print(f()); /// 01: runtime error
+  f() => "Oh, the joy of ${f()}"; print(f()); //# 01: runtime error
 }

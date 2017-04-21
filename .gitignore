@@ -36,6 +36,11 @@
 *.iml
 .idea
 CMakeLists.txt
+.clang_complete
+
+# VSCode project files
+.vscode
+.history
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
@@ -75,3 +80,6 @@ editor/util/testing/mac/CodeLab.suite/Results
 editor/util/testing/mac/DartEditor.suite/Results
 editor/util/testing/mac/Samples.suite/Results
 .test-outcome.log
+/outline.dill
+/generated/
+/crash_logs/

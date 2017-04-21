@@ -6,18 +6,13 @@ library dart2js.constants.expressions;
 
 import '../common.dart';
 import '../constants/constant_system.dart';
-import '../core_types.dart';
-import '../elements/resolution_types.dart';
-import '../elements/elements.dart'
-    show
-        ConstructorElement,
-        FieldElement,
-        MethodElement,
-        PrefixElement,
-        VariableElement;
+import '../common_elements.dart';
+import '../elements/types.dart';
+import '../elements/entities.dart';
 import '../resolution/operators.dart';
 import '../tree/dartstring.dart' show DartString;
 import '../universe/call_structure.dart' show CallStructure;
+import 'constructors.dart';
 import 'evaluation.dart';
 import 'values.dart';
 
@@ -32,6 +27,7 @@ enum ConstantExpressionKind {
   DOUBLE,
   ERRONEOUS,
   FUNCTION,
+  FIELD,
   IDENTICAL,
   INT,
   INT_FROM_ENVIRONMENT,
@@ -45,7 +41,7 @@ enum ConstantExpressionKind {
   SYNTHETIC,
   TYPE,
   UNARY,
-  VARIABLE,
+  LOCAL_VARIABLE,
   POSITIONAL_REFERENCE,
   NAMED_REFERENCE,
 }
@@ -80,7 +76,7 @@ abstract class ConstantExpression {
 
   /// Returns the type of this constant expression, if it is independent of the
   /// environment values.
-  ResolutionDartType getKnownType(CommonElements commonElements) => null;
+  DartType getKnownType(CommonElements commonElements) => null;
 
   /// Returns a text string resembling the Dart code creating this constant.
   String toDartText() {
@@ -236,7 +232,7 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 }
 
@@ -272,7 +268,7 @@ class IntConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 }
 
@@ -308,7 +304,7 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.doubleType;
 }
 
@@ -344,7 +340,7 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 }
 
@@ -378,13 +374,13 @@ class NullConstantExpression extends PrimitiveConstantExpression {
   bool _equals(NullConstantExpression other) => true;
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.nullType;
 }
 
 /// Literal list constant.
 class ListConstantExpression extends ConstantExpression {
-  final ResolutionInterfaceType type;
+  final InterfaceType type;
   final List<ConstantExpression> values;
 
   ListConstantExpression(this.type, this.values);
@@ -439,7 +435,7 @@ class ListConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) => type;
+  DartType getKnownType(CommonElements commonElements) => type;
 
   @override
   bool get isImplicit => false;
@@ -450,7 +446,7 @@ class ListConstantExpression extends ConstantExpression {
 
 /// Literal map constant.
 class MapConstantExpression extends ConstantExpression {
-  final ResolutionInterfaceType type;
+  final InterfaceType type;
   final List<ConstantExpression> keys;
   final List<ConstantExpression> values;
 
@@ -486,8 +482,12 @@ class MapConstantExpression extends ConstantExpression {
       ConstantValue value = values[index].evaluate(environment, constantSystem);
       valueMap[key] = value;
     }
-    return constantSystem.createMap(environment.compiler, type,
-        valueMap.keys.toList(), valueMap.values.toList());
+    return constantSystem.createMap(
+        environment.commonElements,
+        environment.backendClasses,
+        type,
+        valueMap.keys.toList(),
+        valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -518,7 +518,7 @@ class MapConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) => type;
+  DartType getKnownType(CommonElements commonElements) => type;
 
   @override
   bool get isImplicit => false;
@@ -531,8 +531,8 @@ class MapConstantExpression extends ConstantExpression {
 
 /// Invocation of a const constructor.
 class ConstructedConstantExpression extends ConstantExpression {
-  final ResolutionInterfaceType type;
-  final ConstructorElement target;
+  final InterfaceType type;
+  final ConstructorEntity target;
   final CallStructure callStructure;
   final List<ConstantExpression> arguments;
 
@@ -561,15 +561,20 @@ class ConstructedConstantExpression extends ConstantExpression {
     sb.write('])');
   }
 
-  Map<FieldElement, ConstantExpression> computeInstanceFields() {
-    assert(invariant(target, target.constantConstructor != null,
+  Map<FieldEntity, ConstantExpression> computeInstanceFields(
+      Environment environment) {
+    ConstantConstructor constantConstructor =
+        environment.getConstructorConstant(target);
+    assert(invariant(target, constantConstructor != null,
         message: "No constant constructor computed for $target."));
-    return target.constantConstructor
-        .computeInstanceFields(arguments, callStructure);
+    return constantConstructor.computeInstanceFields(
+        environment, arguments, callStructure);
   }
 
-  ResolutionInterfaceType computeInstanceType() {
-    return target.constantConstructor.computeInstanceType(type);
+  InterfaceType computeInstanceType(Environment environment) {
+    return environment
+        .getConstructorConstant(target)
+        .computeInstanceType(environment, type);
   }
 
   ConstructedConstantExpression apply(NormalizedArguments arguments) {
@@ -580,13 +585,14 @@ class ConstructedConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    Map<FieldElement, ConstantValue> fieldValues =
-        <FieldElement, ConstantValue>{};
-    computeInstanceFields()
-        .forEach((FieldElement field, ConstantExpression constant) {
+    Map<FieldEntity, ConstantValue> fieldValues =
+        <FieldEntity, ConstantValue>{};
+    computeInstanceFields(environment)
+        .forEach((FieldEntity field, ConstantExpression constant) {
       fieldValues[field] = constant.evaluate(environment, constantSystem);
     });
-    return new ConstructedConstantValue(computeInstanceType(), fieldValues);
+    return new ConstructedConstantValue(
+        computeInstanceType(environment), fieldValues);
   }
 
   @override
@@ -695,7 +701,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 
   @override
@@ -732,21 +738,26 @@ class SymbolConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createSymbol(environment.compiler, name);
+    return constantSystem.createSymbol(
+        environment.commonElements, environment.backendClasses, name);
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.symbolType;
 }
 
 /// Type literal.
 class TypeConstantExpression extends ConstantExpression {
-  /// Either [ResolutionDynamicType] or a raw [GenericType].
-  final ResolutionDartType type;
+  /// Either [DynamicType] or a raw [GenericType].
+  final DartType type;
+  final String name;
 
-  TypeConstantExpression(this.type) {
-    assert(type is GenericType || type is ResolutionDynamicType);
+  TypeConstantExpression(this.type, this.name) {
+    assert(type.isInterfaceType ||
+        type.isTypedef ||
+        type.isFunctionType ||
+        type.isDynamic);
   }
 
   ConstantExpressionKind get kind => ConstantExpressionKind.TYPE;
@@ -763,7 +774,8 @@ class TypeConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createType(environment.compiler, type);
+    return constantSystem.createType(
+        environment.commonElements, environment.backendClasses, type);
   }
 
   @override
@@ -775,47 +787,82 @@ class TypeConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.typeType;
 }
 
-/// Reference to a constant local, top-level, or static variable.
-class VariableConstantExpression extends ConstantExpression {
-  final VariableElement element;
+/// Reference to a constant top-level or static field.
+class FieldConstantExpression extends ConstantExpression {
+  final FieldEntity element;
 
-  VariableConstantExpression(this.element);
+  FieldConstantExpression(this.element);
 
-  ConstantExpressionKind get kind => ConstantExpressionKind.VARIABLE;
+  ConstantExpressionKind get kind => ConstantExpressionKind.FIELD;
 
   accept(ConstantExpressionVisitor visitor, [context]) {
-    return visitor.visitVariable(this, context);
+    return visitor.visitField(this, context);
   }
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Variable(element=$element)');
+    sb.write('Field(element=$element)');
   }
 
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return element.constant.evaluate(environment, constantSystem);
+    ConstantExpression constant = environment.getFieldConstant(element);
+    return constant.evaluate(environment, constantSystem);
   }
 
   @override
   int _computeHashCode() => 13 * element.hashCode;
 
   @override
-  bool _equals(VariableConstantExpression other) {
+  bool _equals(FieldConstantExpression other) {
+    return element == other.element;
+  }
+}
+
+/// Reference to a constant local variable.
+class LocalVariableConstantExpression extends ConstantExpression {
+  final Local element;
+
+  LocalVariableConstantExpression(this.element);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.LOCAL_VARIABLE;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitLocalVariable(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('LocalVariable(element=$element)');
+  }
+
+  @override
+  ConstantValue evaluate(
+      Environment environment, ConstantSystem constantSystem) {
+    ConstantExpression constant = environment.getLocalConstant(element);
+    return constant.evaluate(environment, constantSystem);
+  }
+
+  @override
+  int _computeHashCode() => 13 * element.hashCode;
+
+  @override
+  bool _equals(LocalVariableConstantExpression other) {
     return element == other.element;
   }
 }
 
 /// Reference to a top-level or static function.
 class FunctionConstantExpression extends ConstantExpression {
-  final MethodElement element;
+  final FunctionEntity element;
+  final FunctionType type;
 
-  FunctionConstantExpression(this.element);
+  FunctionConstantExpression(this.element, this.type);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.FUNCTION;
 
@@ -831,7 +878,7 @@ class FunctionConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return new FunctionConstantValue(element, element.type);
+    return new FunctionConstantValue(element, type);
   }
 
   @override
@@ -843,7 +890,7 @@ class FunctionConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.functionType;
 }
 
@@ -894,9 +941,9 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) {
-    ResolutionDartType knownLeftType = left.getKnownType(commonElements);
-    ResolutionDartType knownRightType = right.getKnownType(commonElements);
+  InterfaceType getKnownType(CommonElements commonElements) {
+    DartType knownLeftType = left.getKnownType(commonElements);
+    DartType knownRightType = right.getKnownType(commonElements);
     switch (operator.kind) {
       case BinaryOperatorKind.EQ:
       case BinaryOperatorKind.NOT_EQ:
@@ -1036,7 +1083,7 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 
   @override
@@ -1092,7 +1139,7 @@ class UnaryConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) {
+  DartType getKnownType(CommonElements commonElements) {
     return expression.getKnownType(commonElements);
   }
 
@@ -1155,7 +1202,7 @@ class StringLengthConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 
   @override
@@ -1227,9 +1274,9 @@ class ConditionalConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) {
-    ResolutionDartType trueType = trueExp.getKnownType(commonElements);
-    ResolutionDartType falseType = falseExp.getKnownType(commonElements);
+  DartType getKnownType(CommonElements commonElements) {
+    DartType trueType = trueExp.getKnownType(commonElements);
+    DartType falseType = falseExp.getKnownType(commonElements);
     if (trueType == falseType) {
       return trueType;
     }
@@ -1408,7 +1455,7 @@ class BoolFromEnvironmentConstantExpression
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 }
 
@@ -1474,7 +1521,7 @@ class IntFromEnvironmentConstantExpression
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 }
 
@@ -1536,7 +1583,7 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
-  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
+  InterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 }
 
@@ -1544,7 +1591,7 @@ class StringFromEnvironmentConstantExpression
 /// For example `lib.C`.
 class DeferredConstantExpression extends ConstantExpression {
   final ConstantExpression expression;
-  final PrefixElement prefix;
+  final Entity prefix;
 
   DeferredConstantExpression(this.expression, this.prefix);
 
@@ -1607,7 +1654,8 @@ abstract class ConstantExpressionVisitor<R, A> {
   R visitConcatenate(ConcatenateConstantExpression exp, A context);
   R visitSymbol(SymbolConstantExpression exp, A context);
   R visitType(TypeConstantExpression exp, A context);
-  R visitVariable(VariableConstantExpression exp, A context);
+  R visitLocalVariable(LocalVariableConstantExpression exp, A context);
+  R visitField(FieldConstantExpression exp, A context);
   R visitFunction(FunctionConstantExpression exp, A context);
   R visitBinary(BinaryConstantExpression exp, A context);
   R visitIdentical(IdenticalConstantExpression exp, A context);
@@ -1641,11 +1689,11 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     }
   }
 
-  void writeTypeArguments(ResolutionInterfaceType type) {
+  void writeTypeArguments(InterfaceType type) {
     if (type.treatAsRaw) return;
     sb.write('<');
     bool needsComma = false;
-    for (ResolutionDartType value in type.typeArguments) {
+    for (DartType value in type.typeArguments) {
       if (needsComma) {
         sb.write(', ');
       }
@@ -1779,15 +1827,20 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
 
   @override
   void visitType(TypeConstantExpression exp, [_]) {
-    sb.write(exp.type.name);
+    sb.write(exp.name);
   }
 
   @override
-  void visitVariable(VariableConstantExpression exp, [_]) {
+  void visitField(FieldConstantExpression exp, [_]) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
     }
+    sb.write(exp.element.name);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariableConstantExpression exp, [_]) {
     sb.write(exp.element.name);
   }
 

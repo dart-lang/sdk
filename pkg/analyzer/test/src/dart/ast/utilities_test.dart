@@ -370,7 +370,7 @@ class NodeLocator2Test extends ParserTestCase {
   void test_onlyStartOffset() {
     String code = ' int vv; ';
     //             012345678
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    CompilationUnit unit = parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
@@ -391,7 +391,7 @@ class NodeLocator2Test extends ParserTestCase {
   void test_startEndOffset() {
     String code = ' int vv; ';
     //             012345678
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    CompilationUnit unit = parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
@@ -412,8 +412,7 @@ class NodeLocator2Test extends ParserTestCase {
 @reflectiveTest
 class NodeLocatorTest extends ParserTestCase {
   void test_range() {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit("library myLib;");
+    CompilationUnit unit = parseCompilationUnit("library myLib;");
     _assertLocate(
         unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
   }
@@ -424,14 +423,13 @@ class NodeLocatorTest extends ParserTestCase {
   }
 
   void test_searchWithin_offset() {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit("library myLib;");
+    CompilationUnit unit = parseCompilationUnit("library myLib;");
     _assertLocate(
         unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
   }
 
   void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class A {}
 class B {}''');
     NodeLocator locator = new NodeLocator(1024, 1024);
@@ -440,7 +438,7 @@ class B {}''');
   }
 
   void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class A {}
 class B {}''');
     NodeLocator locator = new NodeLocator(0, 0);
@@ -1974,16 +1972,13 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        astFactory.fieldFormalParameter(
-            null,
-            null,
-            null,
-            AstTestFactory.typeName4('A'),
-            TokenFactory.tokenFromKeyword(Keyword.THIS),
-            TokenFactory.tokenFromType(TokenType.PERIOD),
-            AstTestFactory.identifier3('a'),
-            AstTestFactory.typeParameterList(['E', 'F']),
-            AstTestFactory.formalParameterList(
+        astFactory.fieldFormalParameter2(
+            type: AstTestFactory.typeName4('A'),
+            thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
+            period: TokenFactory.tokenFromType(TokenType.PERIOD),
+            identifier: AstTestFactory.identifier3('a'),
+            typeParameters: AstTestFactory.typeParameterList(['E', 'F']),
+            parameters: AstTestFactory.formalParameterList(
                 [AstTestFactory.simpleFormalParameter3("b")])));
   }
 
@@ -2507,13 +2502,38 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        astFactory.functionTypedFormalParameter(
-            null,
-            null,
-            AstTestFactory.typeName4("T"),
-            AstTestFactory.identifier3('f'),
-            AstTestFactory.typeParameterList(['E']),
-            AstTestFactory.formalParameterList([])));
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            typeParameters: AstTestFactory.typeParameterList(['E']),
+            parameters: AstTestFactory.formalParameterList([])));
+  }
+
+  void test_visitGenericFunctionType() {
+    _assertSource(
+        "int Function<T>(T)",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ])));
+  }
+
+  void test_visitGenericTypeAlias() {
+    _assertSource(
+        "typedef X<S> = S Function<T>(T)",
+        AstTestFactory.genericTypeAlias(
+            'X',
+            AstTestFactory.typeParameterList(['S']),
+            AstTestFactory.genericFunctionType(
+                AstTestFactory.typeName4("S"),
+                AstTestFactory.typeParameterList(['T']),
+                AstTestFactory.formalParameterList([
+                  AstTestFactory.simpleFormalParameter4(
+                      AstTestFactory.typeName4("T"), null)
+                ]))));
   }
 
   void test_visitIfStatement_withElse() {
@@ -4328,16 +4348,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        astFactory.fieldFormalParameter(
-            null,
-            null,
-            null,
-            AstTestFactory.typeName4('A'),
-            TokenFactory.tokenFromKeyword(Keyword.THIS),
-            TokenFactory.tokenFromType(TokenType.PERIOD),
-            AstTestFactory.identifier3('a'),
-            AstTestFactory.typeParameterList(['E', 'F']),
-            AstTestFactory.formalParameterList(
+        astFactory.fieldFormalParameter2(
+            type: AstTestFactory.typeName4('A'),
+            thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
+            period: TokenFactory.tokenFromType(TokenType.PERIOD),
+            identifier: AstTestFactory.identifier3('a'),
+            typeParameters: AstTestFactory.typeParameterList(['E', 'F']),
+            parameters: AstTestFactory.formalParameterList(
                 [AstTestFactory.simpleFormalParameter3("b")])));
   }
 
@@ -4861,13 +4878,38 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        astFactory.functionTypedFormalParameter(
-            null,
-            null,
-            AstTestFactory.typeName4("T"),
-            AstTestFactory.identifier3('f'),
-            AstTestFactory.typeParameterList(['E']),
-            AstTestFactory.formalParameterList([])));
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            typeParameters: AstTestFactory.typeParameterList(['E']),
+            parameters: AstTestFactory.formalParameterList([])));
+  }
+
+  void test_visitGenericFunctionType() {
+    _assertSource(
+        "int Function<T>(T)",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ])));
+  }
+
+  void test_visitGenericTypeAlias() {
+    _assertSource(
+        "typedef X<S> = S Function<T>(T)",
+        AstTestFactory.genericTypeAlias(
+            'X',
+            AstTestFactory.typeParameterList(['S']),
+            AstTestFactory.genericFunctionType(
+                AstTestFactory.typeName4("S"),
+                AstTestFactory.typeParameterList(['T']),
+                AstTestFactory.formalParameterList([
+                  AstTestFactory.simpleFormalParameter4(
+                      AstTestFactory.typeName4("T"), null)
+                ]))));
   }
 
   void test_visitIfStatement_withElse() {

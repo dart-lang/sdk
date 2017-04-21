@@ -4,6 +4,8 @@
 
 library dart.core;
 
+import 'dart:async';
+
 class Object {
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
@@ -101,6 +103,7 @@ class Uri {
     int parseHex(int start, int end) {
       return 0;
     }
+
     return null;
   }
 }

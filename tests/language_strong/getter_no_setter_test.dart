@@ -12,7 +12,7 @@ class Example {
     {
       bool flag_exception = false;
       try {
-        nextVar = 1;  // Equivalent to this.nextVar = 1.
+        nextVar = 1; // Equivalent to this.nextVar = 1.
       } catch (excpt) {
         flag_exception = true;
       }
@@ -21,27 +21,27 @@ class Example {
     {
       bool flag_exception = false;
       try {
-        this.nextVar = 1;  /// 00: static type warning
+        this.nextVar = 1; // //# 00: static type warning
       } catch (excpt) {
         flag_exception = true;
       }
-      Expect.isTrue(flag_exception);   /// 00: continued
+      Expect.isTrue(flag_exception); //  //# 00: continued
     }
   }
   static test() {
-    nextVar = 0;  /// 01: runtime error
-    this.nextVar = 0;  /// 02: compile-time error
+    nextVar = 0; // //# 01: runtime error
+    this.nextVar = 0; // //# 02: compile-time error
   }
 }
 
 class Example1 {
-  Example1(int i) { }
+  Example1(int i) {}
 }
 
 class Example2 extends Example1 {
   static int _var = 1;
   static int get nextVar => _var++;
-  Example2() : super(nextVar) { }  // No 'this' in scope.
+  Example2() : super(nextVar) {} // No 'this' in scope.
 }
 
 void main() {

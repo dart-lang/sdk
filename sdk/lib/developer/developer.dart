@@ -51,10 +51,10 @@ external Object inspect(Object object);
 /// [error]  (optional) an error object associated with this log event.
 /// [stackTrace]  (optional) a stack trace associated with this log event.
 external void log(String message,
-                  {DateTime time,
-                   int sequenceNumber,
-                   int level: 0,
-                   String name: '',
-                   Zone zone,
-                   Object error,
-                   StackTrace stackTrace});
+    {DateTime time,
+    int sequenceNumber,
+    int level: 0,
+    String name: '',
+    Zone zone,
+    Object error,
+    StackTrace stackTrace});

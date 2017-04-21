@@ -10,7 +10,7 @@ foo() {}
 
 gotStream1(stream) {
   foo()
-      . /// 01: compile-time error
+      . //# 01: compile-time error
       .then();
 }
 

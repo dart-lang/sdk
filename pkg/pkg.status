@@ -11,6 +11,10 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
+analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
+analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
+analyzer/tool/summary/check_test: Skip  # Issue 29133
+
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 
@@ -20,11 +24,35 @@ dart_messages/test/dart_messages_test: Skip  # Requires a package root.
 dev_compiler/test/codegen/*: Skip
 dev_compiler/gen/*: SkipByDesign
 
+# Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
+front_end/test/fasta/rasta/*: SkipByDesign
+
+# sdk_test would take too long to complete, and should be run in a different
+# way.
+front_end/test/fasta/sdk_test: SkipByDesign
+
+front_end/test/fasta/bootstrap_test: Pass, Slow
+front_end/test/fasta/compile_test: Pass, Slow
+front_end/test/fasta/kompile_test: Pass, Slow
+
+# These are not tests but input for tests.
+kernel/testcases/*: Skip
+
+[ $compiler != dart2analyzer ]
+analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
+
+[ $runtime != vm || $mode != release || $system == windows ]
+front_end/test/fasta/*: Skip
+
 [ $runtime == vm && $mode == release && $system == linux ]
 kernel/test/closures_test: Slow, Pass
 
 [ $runtime != vm || $mode != release || $system != linux ]
 kernel/test/closures_test: Skip
+
+# Don't analyze tests in strong mode yet
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 # Analyze dev_compiler but don't run its tests
 [ $compiler != dart2analyzer ]
@@ -44,6 +72,26 @@ analysis_server/test/completion_test: Pass, Slow
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Pass, Slow
+analysis_server/test/services/correction/fix_test: Pass, Slow
+analysis_server/test/socket_server_test: Skip # Pass, Slow
+analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
+
+[ $runtime == vm && $checked && $system == windows ]
+front_end/tool/perf_test: Slow, Pass
+
+[ $runtime == vm && $use_sdk ]
+front_end/test/fasta/compile_test: Skip # Issue 28629
+front_end/test/fasta/kompile_test: Skip # Issue 28629
+front_end/test/fasta/outline_test: Skip # Issue 28629
+front_end/test/fasta/bootstrap_test: Skip # Issue 28629
+
+[ $runtime == vm && $use_sdk == false ]
+front_end/test/incremental_kernel_generator_test: Skip # Issue 28698
+front_end/test/incremental_resolved_ast_generator_test: Skip # Issue 28698
+front_end/tool/perf_test: Skip # Issue 28698
+
+[ $runtime == vm && $use_sdk == true ]
+front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557
@@ -51,13 +99,14 @@ analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
-kernel/test/baseline_type_propagation_test: RuntimeError # Issue 28243
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
+analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
+analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
@@ -102,13 +151,6 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
-[ $runtime == ie10 ]
-analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
-typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
-
-[ $runtime == ie11 ]
-kernel/test/verify_test: Skip # Times out. Issue 27935
-
 [ $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
@@ -147,78 +189,23 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
 [ $runtime == vm ]
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
-[ $use_repository_packages ]
-analyzer/test/*: PubGetError
-
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-analyzer/test/dart/ast/ast_test: Crash # Issue 24485
-analyzer/test/dart/ast/visitor_test: Crash # Issue 24485
-analyzer/test/dart/element/element_test: Crash # Issue 24485
-analyzer/test/enum_test: Crash # Issue 24485
-analyzer/test/generated/all_the_rest_test: Crash # Issue 24485
-analyzer/test/generated/ast_test: Crash # Issue 24485
-analyzer/test/generated/checked_mode_compile_time_error_code_test: Crash # Issue 24485
-analyzer/test/generated/compile_time_error_code_test: Crash # Issue 24485
-analyzer/test/generated/constant_test: Crash # Issue 24485
-analyzer/test/generated/declaration_resolver_test: Crash # Issue 24485
-analyzer/test/generated/element_resolver_test: Crash # Issue 24485
-analyzer/test/generated/element_test: Crash # Issue 24485
-analyzer/test/generated/error_suppression_test: Crash # Issue 24485
-analyzer/test/generated/hint_code_test: Crash # Issue 24485
-analyzer/test/generated/incremental_resolver_test: Crash # Issue 24485
-analyzer/test/generated/incremental_scanner_test: Crash # Issue 24485
-analyzer/test/generated/inheritance_manager_test: Crash # Issue 24485
-analyzer/test/generated/non_error_resolver_test: Crash # Issue 24485
-analyzer/test/generated/non_hint_code_test: Crash # Issue 24485
-analyzer/test/generated/parser_test: Crash # Issue 24485
-analyzer/test/generated/resolver_test: Crash # Issue 24485
-analyzer/test/generated/scanner_test: Crash # Issue 24485
-analyzer/test/generated/simple_resolver_test: Crash # Issue 24485
-analyzer/test/generated/source_factory_test: Crash # Issue 24485
-analyzer/test/generated/static_type_analyzer_test: Crash # Issue 24485
-analyzer/test/generated/static_type_warning_code_test: Crash # Issue 24485
-analyzer/test/generated/static_warning_code_test: Crash # Issue 24485
-analyzer/test/generated/strong_mode_test: Crash # Issue 24485
-analyzer/test/generated/utilities_test: Crash # Issue 24485
-analyzer/test/src/context/cache_test: Crash # Issue 24485
-analyzer/test/src/context/context_test: Crash # Issue 24485
-analyzer/test/src/dart/ast/utilities_test: Crash # Issue 24485
-analyzer/test/src/dart/element/element_test: Crash # Issue 24485
-analyzer/test/src/summary/index_unit_test: Crash # Issue 24485
-analyzer/test/src/summary/prelinker_test: Crash # Issue 24485
-analyzer/test/src/summary/resynthesize_test: Crash # Issue 24485
-analyzer/test/src/summary/resynthesize_strong_test: Crash # Issue 24485
-analyzer/test/src/summary/summarize_ast_test: Crash # Issue 24485
-analyzer/test/src/summary/summarize_elements_test: Crash # Issue 24485
-analyzer/test/src/summary/summarize_elements_strong_test: Crash # Issue 24485
-analyzer/test/src/task/dart_test: Crash # Issue 24485
-analyzer/test/src/task/dart_work_manager_test: Crash # Issue 24485
-analyzer/test/src/task/driver_test: Crash # Issue 24485
-analyzer/test/src/task/general_test: Crash # Issue 24485
-analyzer/test/src/task/html_test: Crash # Issue 24485
-analyzer/test/src/task/html_work_manager_test: Crash # Issue 24485
-analyzer/test/src/task/incremental_element_builder_test: Crash # Issue 24485
-analyzer/test/src/task/inputs_test: Crash # Issue 24485
-analyzer/test/src/task/manager_test: Crash # Issue 24485
-analyzer/test/src/task/model_test: Crash # Issue 24485
-analyzer/test/src/task/options_test: Crash # Issue 24485
-analyzer/test/src/task/options_work_manager_test: Crash # Issue 24485
-analyzer/test/src/task/strong/checker_test: Crash # Issue 24485
-analyzer/test/src/task/strong/inferred_type_test: Crash # Issue 24485
-analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
-analyzer/test/src/task/yaml_test: Crash # Issue 24485
+[ $arch == x64 && $runtime == vm && $system == windows && $checked ]
+# See: https://build.chromium.org/p/client.dart/builders/analyzer-win7-release-be/builds/3113/steps/analyzer%20unit%20tests/logs/stdio
+analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 
 [ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
 
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented, about 75% tests crash
-
 [ $compiler == none ]
 kernel/test/closures_test: Fail
+
+[ $runtime == vm && $system == windows ]
+analyzer_cli/test/driver_test: Pass, Slow
+analyzer/test/src/task/strong/checker_test: Pass, Slow

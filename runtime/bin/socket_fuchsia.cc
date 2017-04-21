@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/socket.h"
 #include "bin/socket_fuchsia.h"
@@ -69,6 +69,15 @@ bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
   LOG_INFO("Socket::FormatNumericAddress: calling getnameinfo\n");
   return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len, NULL,
                                         0, NI_NUMERICHOST) == 0));
+}
+
+
+Socket::Socket(intptr_t fd)
+    : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {}
+
+
+void Socket::SetClosedFd() {
+  fd_ = kClosedFd;
 }
 
 
@@ -534,6 +543,6 @@ bool Socket::LeaveMulticast(intptr_t fd,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)
 
 #endif  // !defined(DART_IO_DISABLED)

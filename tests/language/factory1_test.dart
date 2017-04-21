@@ -4,23 +4,22 @@
 // Dart test program for testing factory generic result types.
 
 class A<T> {
-  A() { }
+  A() {}
   factory A.factory() {
     return new A<String>();
   }
 }
 
 class B<T> extends A<T> {
-  B() { }
+  B() {}
   factory B.factory() {
     return new B<String>();
   }
 }
 
-
 main() {
   new A<String>.factory();
-  new A<int>.factory();  /// 00: dynamic type error
+  new A<int>.factory(); // //# 00: dynamic type error
   new B<String>.factory();
-  new B<int>.factory();  /// 01: dynamic type error
+  new B<int>.factory(); // //# 01: dynamic type error
 }

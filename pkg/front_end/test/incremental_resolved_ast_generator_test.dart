@@ -44,7 +44,8 @@ class IncrementalResolvedAstGeneratorTest {
   /// The object under test.
   IncrementalResolvedAstGenerator incrementalResolvedAstGenerator;
 
-  Future<Map<Uri, ResolvedLibrary>> getInitialProgram(Uri startingUri) async {
+  Future<Map<Uri, Map<Uri, CompilationUnit>>> getInitialProgram(
+      Uri startingUri) async {
     fileSystem.entityForUri(sdkSummaryUri).writeAsBytesSync(_sdkSummary);
     incrementalResolvedAstGenerator = new IncrementalResolvedAstGenerator(
         startingUri,
@@ -68,7 +69,7 @@ class IncrementalResolvedAstGeneratorTest {
       _checkPrintLiteralInt(mainStatements[0], expectedArgument);
     }
 
-    _checkMain(initialProgram[fooUri].definingCompilationUnit, 1);
+    _checkMain(initialProgram[fooUri][fooUri], 1);
     writeFiles({'/foo.dart': 'main() { print(2); }'});
     // Verify that the file isn't actually reread until invalidate is called.
     var deltaProgram1 = await incrementalResolvedAstGenerator.computeDelta();
@@ -76,11 +77,11 @@ class IncrementalResolvedAstGeneratorTest {
     // empty map.
     // expect(deltaProgram1.newState, isEmpty);
     expect(deltaProgram1.newState.keys, unorderedEquals([fooUri]));
-    _checkMain(deltaProgram1.newState[fooUri].definingCompilationUnit, 1);
+    _checkMain(deltaProgram1.newState[fooUri][fooUri], 1);
     incrementalResolvedAstGenerator.invalidateAll();
     var deltaProgram2 = await incrementalResolvedAstGenerator.computeDelta();
     expect(deltaProgram2.newState.keys, unorderedEquals([fooUri]));
-    _checkMain(deltaProgram2.newState[fooUri].definingCompilationUnit, 2);
+    _checkMain(deltaProgram2.newState[fooUri][fooUri], 2);
   }
 
   test_invalidateAllBeforeInitialProgram() async {
@@ -102,11 +103,10 @@ class IncrementalResolvedAstGeneratorTest {
     var barUri = Uri.parse('file:///bar.dart');
     var initialProgram = await getInitialProgram(fooUri);
     expect(initialProgram.keys, unorderedEquals([fooUri]));
-    expect(initialProgram[fooUri].partUnits.keys, unorderedEquals([barUri]));
+    expect(initialProgram[fooUri].keys, unorderedEquals([fooUri, barUri]));
     var mainStatements = _getFunctionStatements(
-        _getFunction(initialProgram[fooUri].definingCompilationUnit, 'main'));
-    var fDeclaration =
-        _getFunction(initialProgram[fooUri].partUnits[barUri], 'f');
+        _getFunction(initialProgram[fooUri][fooUri], 'main'));
+    var fDeclaration = _getFunction(initialProgram[fooUri][barUri], 'f');
     var fStatements = _getFunctionStatements(fDeclaration);
     expect(mainStatements, hasLength(2));
     _checkPrintLiteralInt(mainStatements[0], 1);

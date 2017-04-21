@@ -53,6 +53,11 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
    *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negogiation with
+   * clients.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
+   *
    * The optional argument [shared] specifies whether additional
    * SecureServerSocket objects can bind to the same combination of `address`,
    * `port` and `v6Only`.  If `shared` is `true` and more `SecureServerSocket`s
@@ -62,37 +67,31 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * isolates this way.
    */
   static Future<SecureServerSocket> bind(
-      address,
-      int port,
-      SecurityContext context,
+      address, int port, SecurityContext context,
       {int backlog: 0,
-       bool v6Only: false,
-       bool requestClientCertificate: false,
-       bool requireClientCertificate: false,
-       List<String> supportedProtocols,
-       bool shared: false}) {
-    return RawSecureServerSocket.bind(
-        address,
-        port,
-        context,
-        backlog: backlog,
-        v6Only: v6Only,
-        requestClientCertificate: requestClientCertificate,
-        requireClientCertificate: requireClientCertificate,
-        supportedProtocols: supportedProtocols,
-        shared: shared).then(
-            (serverSocket) => new SecureServerSocket._(serverSocket));
+      bool v6Only: false,
+      bool requestClientCertificate: false,
+      bool requireClientCertificate: false,
+      List<String> supportedProtocols,
+      bool shared: false}) {
+    return RawSecureServerSocket
+        .bind(address, port, context,
+            backlog: backlog,
+            v6Only: v6Only,
+            requestClientCertificate: requestClientCertificate,
+            requireClientCertificate: requireClientCertificate,
+            supportedProtocols: supportedProtocols,
+            shared: shared)
+        .then((serverSocket) => new SecureServerSocket._(serverSocket));
   }
 
   StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket),
-                                          {Function onError,
-                                           void onDone(),
-                                           bool cancelOnError}) {
-    return _socket.map((rawSocket) => new SecureSocket._(rawSocket))
-                  .listen(onData,
-                          onError: onError,
-                          onDone: onDone,
-                          cancelOnError: cancelOnError);
+      {Function onError, void onDone(), bool cancelOnError}) {
+    return _socket.map((rawSocket) => new SecureSocket._(rawSocket)).listen(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError);
   }
 
   /**
@@ -111,9 +110,10 @@ class SecureServerSocket extends Stream<SecureSocket> {
    */
   Future<SecureServerSocket> close() => _socket.close().then((_) => this);
 
-  void set _owner(owner) { _socket._owner = owner; }
+  void set _owner(owner) {
+    _socket._owner = owner;
+  }
 }
-
 
 /**
  * The RawSecureServerSocket is a server socket, providing a stream of low-level
@@ -131,11 +131,12 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   final List<String> supportedProtocols;
   bool _closed = false;
 
-  RawSecureServerSocket._(this._socket,
-                          this._context,
-                          this.requestClientCertificate,
-                          this.requireClientCertificate,
-                          this.supportedProtocols) {
+  RawSecureServerSocket._(
+      this._socket,
+      this._context,
+      this.requestClientCertificate,
+      this.requireClientCertificate,
+      this.supportedProtocols) {
     _controller = new StreamController<RawSecureSocket>(
         sync: true,
         onListen: _onSubscriptionStateChange,
@@ -181,6 +182,11 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * check SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
    *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negogiation with
+   * clients.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [RawSecureSocket.selectedProtocol].
+   *
    * The optional argument [shared] specifies whether additional
    * RawSecureServerSocket objects can bind to the same combination of
    * `address`, `port` and `v6Only`.  If `shared` is `true` and more
@@ -190,17 +196,15 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * multiple isolates this way.
    */
   static Future<RawSecureServerSocket> bind(
-      address,
-      int port,
-      SecurityContext context,
+      address, int port, SecurityContext context,
       {int backlog: 0,
-       bool v6Only: false,
-       bool requestClientCertificate: false,
-       bool requireClientCertificate: false,
-       List<String> supportedProtocols,
-       bool shared: false}) {
-    return RawServerSocket.bind(
-        address, port, backlog: backlog, v6Only: v6Only, shared: shared)
+      bool v6Only: false,
+      bool requestClientCertificate: false,
+      bool requireClientCertificate: false,
+      List<String> supportedProtocols,
+      bool shared: false}) {
+    return RawServerSocket
+        .bind(address, port, backlog: backlog, v6Only: v6Only, shared: shared)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
             context,
@@ -210,13 +214,9 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s),
-                                             {Function onError,
-                                              void onDone(),
-                                              bool cancelOnError}) {
+      {Function onError, void onDone(), bool cancelOnError}) {
     return _controller.stream.listen(onData,
-                                     onError: onError,
-                                     onDone: onDone,
-                                     cancelOnError: cancelOnError);
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   /**
@@ -247,16 +247,15 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
       // Do nothing - connection is closed.
       return;
     }
-    _RawSecureSocket.connect(
-        connection.address,
-        remotePort,
-        context: _context,
-        is_server: true,
-        socket: connection,
-        requestClientCertificate: requestClientCertificate,
-        requireClientCertificate: requireClientCertificate,
-        supportedProtocols: supportedProtocols)
-    .then((RawSecureSocket secureConnection) {
+    _RawSecureSocket
+        .connect(connection.address, remotePort,
+            context: _context,
+            is_server: true,
+            socket: connection,
+            requestClientCertificate: requestClientCertificate,
+            requireClientCertificate: requireClientCertificate,
+            supportedProtocols: supportedProtocols)
+        .then((RawSecureSocket secureConnection) {
       if (_closed) {
         secureConnection.close();
       } else {
@@ -280,8 +279,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   void _onSubscriptionStateChange() {
     if (_controller.hasListener) {
       _subscription = _socket.listen(_onData,
-                                     onError: _controller.addError,
-                                     onDone: _controller.close);
+          onError: _controller.addError, onDone: _controller.close);
     } else {
       close();
     }
@@ -291,5 +289,3 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
     (_socket as dynamic)._owner = owner;
   }
 }
-
-

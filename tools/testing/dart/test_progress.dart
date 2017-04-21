@@ -262,8 +262,6 @@ class TestOutcomeLogWriter extends EventListener {
     'system',
     'vm_options',
     'use_sdk',
-    'use_repository_packages',
-    'use_public_packages',
     'builder_tag'
   ];
 
@@ -315,52 +313,53 @@ class TestOutcomeLogWriter extends EventListener {
   }
 }
 
-class UnexpectedCrashDumpArchiver extends EventListener {
+class UnexpectedCrashLogger extends EventListener {
   final archivedBinaries = <String, String>{};
 
   void done(TestCase test) {
     if (test.unexpectedOutput &&
         test.result == Expectation.CRASH &&
         test.lastCommandExecuted is ProcessCommand) {
-      final name = "core.${test.lastCommandOutput.pid}";
-      final file = new File(name);
-      final exists = file.existsSync();
-      if (exists) {
-        final lastCommand = test.lastCommandExecuted as ProcessCommand;
-        // We have a coredump for the process. This coredump will be archived by
-        // CoreDumpArchiver (see tools/utils.py). For debugging purposes we
-        // need to archive the crashed binary as well. To simplify the
-        // archiving code we simply copy binaries into current folder next to
-        // core dumps and name them `core.${mode}_${arch}_${binary_name}`.
-        final binName = lastCommand.executable;
-        final binFile = new File(binName);
-        final binBaseName = new Path(binName).filename;
-        if (!archivedBinaries.containsKey(binName) &&
-            binFile.existsSync()) {
-          final mode = test.configuration['mode'];
-          final arch = test.configuration['arch'];
-          final archived = "binary.${mode}_${arch}_${binBaseName}";
-          TestUtils.copyFile(new Path(binName), new Path(archived));
-          archivedBinaries[binName] = archived;
-        }
+      final pid = "${test.lastCommandOutput.pid}";
+      final lastCommand = test.lastCommandExecuted as ProcessCommand;
 
-        if (archivedBinaries.containsKey(binName)) {
-          // We have found and copied the binary.
-          var coredumpsList;
+      // We might have a coredump for the process. This coredump will be
+      // archived by CoreDumpArchiver (see tools/utils.py).
+      //
+      // For debugging purposes we need to archive the crashed binary as well.
+      //
+      // To simplify the archiving code we simply copy binaries into current
+      // folder next to core dumps and name them
+      // `binary.${mode}_${arch}_${binary_name}`.
+      final binName = lastCommand.executable;
+      final binFile = new File(binName);
+      final binBaseName = new Path(binName).filename;
+      if (!archivedBinaries.containsKey(binName) &&
+          binFile.existsSync()) {
+        final mode = test.configuration['mode'];
+        final arch = test.configuration['arch'];
+        final archived = "binary.${mode}_${arch}_${binBaseName}";
+        TestUtils.copyFile(new Path(binName), new Path(archived));
+        archivedBinaries[binName] = archived;
+      }
+
+      if (archivedBinaries.containsKey(binName)) {
+        // We have found and copied the binary.
+        var unexpectedCrashesFile;
+        try {
+          unexpectedCrashesFile =
+              new File('unexpected-crashes').openSync(mode: FileMode.APPEND);
+          unexpectedCrashesFile.writeStringSync(
+              "${test.displayName},${pid},${archivedBinaries[binName]}\n");
+        } catch (e) {
+          print('Failed to add crash to unexpected-crashes list: ${e}');
+        } finally {
           try {
-            coredumpsList =
-                new File('coredumps').openSync(mode: FileMode.APPEND);
-            coredumpsList.writeStringSync(
-                "${test.displayName},${name},${archivedBinaries[binName]}\n");
-          } catch (e) {
-            print('Failed to add crash to coredumps list: ${e}');
-          } finally {
-            try {
-              if (coredumpsList != null)
-                coredumpsList.closeSync();
-            } catch (e) {
-              print('Failed to close coredumps list: ${e}');
+            if (unexpectedCrashesFile != null) {
+              unexpectedCrashesFile.closeSync();
             }
+          } catch (e) {
+            print('Failed to close unexpected-crashes file: ${e}');
           }
         }
       }

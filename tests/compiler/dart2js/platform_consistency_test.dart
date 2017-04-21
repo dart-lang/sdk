@@ -7,8 +7,6 @@ import "package:compiler/src/source_file_provider.dart";
 import "package:compiler/compiler_new.dart";
 import "package:expect/expect.dart";
 
-Uri unsupported = Uri.parse("unsupported:");
-
 main() async {
   CompilerInput input = new CompilerSourceFileProvider();
   Map<String, Uri> client =
@@ -22,7 +20,8 @@ main() async {
 
   for (String libraryName in shared.keys) {
     test(Map<String, Uri> m) {
-      if (m[libraryName] != unsupported && shared[libraryName] != unsupported) {
+      if (m[libraryName].scheme != 'unsupported' &&
+          shared[libraryName].scheme != 'unsupported') {
         Expect.equals(shared[libraryName], m[libraryName]);
       }
     }

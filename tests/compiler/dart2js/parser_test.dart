@@ -306,7 +306,12 @@ class Collector extends DiagnosticReporter {
 
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportFatalError(message.spannable);
+    assert(token != -1);
+    throw this;
+  }
+
+  spanFromToken(Token token) {
+    this.token = token.kind;
   }
 
   void log(message) {

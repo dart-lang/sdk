@@ -21,25 +21,23 @@ void script() {
 }
 
 var tests = [
-
-(Isolate isolate) {
-  Completer completer = new Completer();
-  // Expect at least this many GC events.
-  int gcCountdown = 3;
-  isolate.vm.getEventStream(VM.kGCStream).then((stream) {
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-      assert(event.kind == ServiceEvent.kGC);
-      print('Received GC event');
-      if (--gcCountdown == 0) {
-        subscription.cancel();
-        completer.complete();
-      }
+  (Isolate isolate) {
+    Completer completer = new Completer();
+    // Expect at least this many GC events.
+    int gcCountdown = 3;
+    isolate.vm.getEventStream(VM.kGCStream).then((stream) {
+      var subscription;
+      subscription = stream.listen((ServiceEvent event) {
+        assert(event.kind == ServiceEvent.kGC);
+        print('Received GC event');
+        if (--gcCountdown == 0) {
+          subscription.cancel();
+          completer.complete();
+        }
+      });
     });
-  });
-  return completer.future;
-},
-
+    return completer.future;
+  },
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: script);

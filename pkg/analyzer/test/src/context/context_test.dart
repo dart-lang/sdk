@@ -766,8 +766,13 @@ library lib;
     Source partSource = addSource("/part.dart", "part of 'lib';");
     context.parseCompilationUnit(librarySource);
     List<AnalysisError> errors = context.computeErrors(partSource);
-    expect(errors, isNotNull);
-    expect(errors.length > 0, isTrue);
+    if (context.analysisOptions.enableUriInPartOf) {
+      // TODO(28522)
+      // Should report that 'lib' isn't the correct URI.
+    } else {
+      expect(errors, isNotNull);
+      expect(errors.length > 0, isTrue);
+    }
   }
 
   void test_computeErrors_dart_some() {
@@ -2534,6 +2539,7 @@ import 'package:crypto/crypto.dart';
     _assertNoExceptions();
   }
 
+  @failingTest // TODO(paulberry): Remove the annotation when dartbug.com/28515 is fixed.
   void test_resolveCompilationUnit_existingElementModel() {
     prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(
@@ -4320,9 +4326,8 @@ class B extends A {
 }
 ''');
     _performPendingAnalysisTasks();
-    expect(context.getErrors(a).errors, hasLength(2));
+    expect(context.getErrors(a).errors, hasLength(1));
     // Update a.dart: rename "int foo" to "int bar".
-    // The strong mode "getter cannot override field" error is gone.
     context.setContents(
         a,
         r'''

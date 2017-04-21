@@ -4,6 +4,8 @@
 
 library dart.async;
 
+abstract class FutureOr<T> {}
+
 abstract class Future<T> {}
 
 abstract class Stream<T> {}

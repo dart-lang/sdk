@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:mock" as mock;
 
 class C extends core::Object {
   field dynamic x = null;
@@ -9,51 +8,49 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method m() → dynamic {
-    final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
-    #context.[]=(0, this);
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
     return new self::Closure#C#m#function::•(#context);
   }
   method f() → dynamic {
-    final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
-    #context.[]=(0, this);
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
     return new self::Closure#C#f#function::•(#context);
   }
 }
 class Closure#C#m#function extends core::Object implements core::Function {
   field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field mock::Context context;
-  constructor •(final mock::Context context) → dynamic
+  field Vector context;
+  constructor •(final Vector context) → dynamic
     : self::Closure#C#m#function::context = context
     ;
   method call(dynamic v) → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final mock::Context #contextParameter = this.{self::Closure#C#m#function::context};
-    return #contextParameter.[](0).x = v;
+    final Vector #contextParameter = this.{self::Closure#C#m#function::context};
+    return (#contextParameter[1]).x = v;
   }
 }
 class Closure#C#f#function#function extends core::Object implements core::Function {
   field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field mock::Context context;
-  constructor •(final mock::Context context) → dynamic
+  field Vector context;
+  constructor •(final Vector context) → dynamic
     : self::Closure#C#f#function#function::context = context
     ;
   method call() → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final mock::Context #contextParameter = this.{self::Closure#C#f#function#function::context};
-    return #contextParameter.[](0).x;
+    final Vector #contextParameter = this.{self::Closure#C#f#function#function::context};
+    return (#contextParameter[1]).x;
   }
 }
 class Closure#C#f#function extends core::Object implements core::Function {
   field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field mock::Context context;
-  constructor •(final mock::Context context) → dynamic
+  field Vector context;
+  constructor •(final Vector context) → dynamic
     : self::Closure#C#f#function::context = context
     ;
   method call() → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final mock::Context #contextParameter = this.{self::Closure#C#f#function::context};
+    final Vector #contextParameter = this.{self::Closure#C#f#function::context};
     return new self::Closure#C#f#function#function::•(#contextParameter);
   }
 }

@@ -122,7 +122,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   Uri resolutionOutput = currentDirectory.resolve('out.data');
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
-  bool trustJSInteropTypeAnnotations = false;
   bool checkedMode = false;
   List<String> hints = <String>[];
   bool verbose;
@@ -243,7 +242,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   void setTrustJSInteropTypeAnnotations(String argument) {
-    trustJSInteropTypeAnnotations = true;
     implyCompilation(argument);
   }
 
@@ -326,6 +324,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
+    // TODO(efortuna): Remove this once kernel global inference is fully
+    // implemented.
+    new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernel, passThrough),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
@@ -397,6 +398,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }),
     new OptionHandler(Flags.allowNativeExtensions, setAllowNativeExtensions),
     new OptionHandler(Flags.generateCodeWithCompileTimeErrors, passThrough),
+    new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
 
@@ -571,6 +573,7 @@ class AbortLeg {
 }
 
 void writeString(Uri uri, String text) {
+  if (!enableWriteString) return;
   if (uri.scheme != 'file') {
     fail('Unhandled scheme ${uri.scheme}.');
   }
@@ -772,6 +775,11 @@ typedef Future<api.CompilationResult> CompileFunc(
 
 ExitFunc exitFunc = exit;
 CompileFunc compileFunc = api.compile;
+
+/// If `true` a '.deps' file will be generated after compilation.
+///
+/// Set this to `false` in end-to-end tests to avoid generating '.deps' files.
+bool enableWriteString = true;
 
 Future<api.CompilationResult> internalMain(List<String> arguments) {
   Future onError(exception, trace) {
@@ -1005,16 +1013,17 @@ class _SerializedData {
 
 class _CompilerOutput extends NullCompilerOutput {
   final Uri uri;
-  _BufferedEventSink sink;
+  _BufferedOutputSink sink;
 
   _CompilerOutput(this.uri);
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     if (name == '' && extension == 'data') {
-      return sink = new _BufferedEventSink();
+      return sink = new _BufferedOutputSink();
     }
-    return super.createEventSink(name, extension);
+    return super.createOutputSink(name, extension, type);
   }
 
   _SerializedData get serializedData {
@@ -1022,7 +1031,7 @@ class _CompilerOutput extends NullCompilerOutput {
   }
 }
 
-class _BufferedEventSink implements EventSink<String> {
+class _BufferedOutputSink implements api.OutputSink {
   StringBuffer sb = new StringBuffer();
 
   @override
@@ -1033,10 +1042,5 @@ class _BufferedEventSink implements EventSink<String> {
   @override
   void close() {
     // Do nothing.
-  }
-
-  @override
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    // Ignore
   }
 }

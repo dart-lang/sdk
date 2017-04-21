@@ -215,17 +215,17 @@ main() {
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
 
-  skip0 = set2.skip(0);
-  it = skip0.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicSkip0 = set2.skip(0);
+  var dynamicIt = dynamicSkip0.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 
-  skip1 = set2.skip(1);
-  it = skip1.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicSkip1 = set2.skip(1);
+  dynamicIt = dynamicSkip1.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 
   testSkipTake(Iterable input, int skip, int take) {
     List expected = [];

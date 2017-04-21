@@ -26,10 +26,10 @@ _exceptionFromResponse(response, String message, String path) {
   assert(_isErrorResponse(response));
   switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
     case _ILLEGAL_ARGUMENT_RESPONSE:
-      return new ArgumentError();
+      return new ArgumentError("$message: $path");
     case _OSERROR_RESPONSE:
       var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-                            response[_OSERROR_RESPONSE_ERROR_CODE]);
+          response[_OSERROR_RESPONSE_ERROR_CODE]);
       return new FileSystemException(message, path, err);
     case _FILE_CLOSED_RESPONSE:
       return new FileSystemException("File closed", path);
@@ -73,20 +73,16 @@ class OSError {
     StringBuffer sb = new StringBuffer();
     sb.write("OS Error");
     if (!message.isEmpty) {
-      sb..write(": ")
-        ..write(message);
+      sb..write(": ")..write(message);
       if (errorCode != noErrorCode) {
-        sb..write(", errno = ")
-          ..write(errorCode.toString());
+        sb..write(", errno = ")..write(errorCode.toString());
       }
     } else if (errorCode != noErrorCode) {
-      sb..write(": errno = ")
-        ..write(errorCode.toString());
+      sb..write(": errno = ")..write(errorCode.toString());
     }
     return sb.toString();
   }
 }
-
 
 // Object for holding a buffer and an offset.
 class _BufferAndStart {
@@ -117,7 +113,6 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   }
   return new _BufferAndStart(newBuffer, 0);
 }
-
 
 class _IOCrypto {
   external static Uint8List getRandomBytes(int count);

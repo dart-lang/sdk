@@ -8,6 +8,7 @@
 namespace dart {
 
 class StackTrace;
+class RawStackTrace;
 
 // Creates a StackTrace object from the current stack.  Skips the
 // first skip_frames Dart frames.
@@ -15,6 +16,9 @@ class StackTrace;
 // This function is exposed to provide stack trace printing in
 // assertion failures, etc.
 const StackTrace& GetCurrentStackTrace(int skip_frames);
+
+// Creates a StackTrace object to be attached to an exception.
+RawStackTrace* GetStackTraceForException();
 
 }  // namespace dart
 

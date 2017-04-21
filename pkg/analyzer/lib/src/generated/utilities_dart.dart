@@ -6,51 +6,10 @@ library analyzer.src.generated.utilities_dart;
 
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 
-/**
- * Resolve the [containedUri] against [baseUri] using Dart rules.
- *
- * This function behaves similarly to [Uri.resolveUri], except that it properly
- * handles situations like the following:
- *
- *     resolveRelativeUri(dart:core, bool.dart) -> dart:core/bool.dart
- *     resolveRelativeUri(package:a/b.dart, ../c.dart) -> package:a/c.dart
- */
-Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
-  if (containedUri.isAbsolute) {
-    return containedUri;
-  }
-  Uri origBaseUri = baseUri;
-  try {
-    String scheme = baseUri.scheme;
-    // dart:core => dart:core/core.dart
-    if (scheme == DartUriResolver.DART_SCHEME) {
-      String part = baseUri.path;
-      if (part.indexOf('/') < 0) {
-        baseUri = FastUri.parse('$scheme:$part/$part.dart');
-      }
-    }
-    // foo.dart + ../bar.dart = ../bar.dart
-    // TODO(scheglov) Remove this temporary workaround.
-    // Should be fixed as https://github.com/dart-lang/sdk/issues/27447
-    List<String> baseSegments = baseUri.pathSegments;
-    List<String> containedSegments = containedUri.pathSegments;
-    if (baseSegments.length == 1 &&
-        containedSegments.length > 0 &&
-        containedSegments[0] == '..') {
-      return containedUri;
-    }
-    return baseUri.resolveUri(containedUri);
-  } catch (exception, stackTrace) {
-    throw new AnalysisException(
-        "Could not resolve URI ($containedUri) relative to source ($origBaseUri)",
-        new CaughtException(exception, stackTrace));
-  }
-}
+export 'package:front_end/src/base/resolve_relative_uri.dart'
+    show resolveRelativeUri;
 
 /**
  * If the given [node] has a documentation comment, remember its content

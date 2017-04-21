@@ -32,6 +32,7 @@ external UserTag getCurrentTag();
 abstract class Metric {
   /// [name] of this metric.
   final String name;
+
   /// [description] of this metric.
   final String description;
 
@@ -39,7 +40,6 @@ abstract class Metric {
     if ((name == 'vm') || name.contains('/')) {
       throw new ArgumentError('Invalid Metric name.');
     }
-
   }
 
   Map _toJSON();
@@ -90,11 +90,9 @@ class Gauge extends Metric {
   }
 }
 
-
 /// A changing value. Initial value is 0.0.
 class Counter extends Metric {
-  Counter(String name, String description)
-      : super(name, description);
+  Counter(String name, String description) : super(name, description);
 
   double _value = 0.0;
   double get value => _value;

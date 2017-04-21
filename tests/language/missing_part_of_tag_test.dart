@@ -6,6 +6,6 @@
 
 library lib;
 
-part 'missing_part_of_tag_part.dart'; /// 01: compile-time error
+part 'missing_part_of_tag_part.dart'; //# 01: compile-time error
 
 void main() {}

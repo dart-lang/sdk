@@ -8,4 +8,5 @@ library compiler.src.inferrer.debug;
 const bool VERBOSE = false;
 const bool PRINT_SUMMARY = false;
 const bool ANOMALY_WARN = false;
-const bool PRINT_GRAPH = false;
+bool PRINT_GRAPH = false;
+bool PRINT_GRAPH_ALL_NODES = false; // Include useless nodes?

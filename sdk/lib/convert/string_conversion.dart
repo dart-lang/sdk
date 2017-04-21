@@ -19,10 +19,9 @@ part of dart.convert;
  */
 abstract class StringConversionSink extends ChunkedConversionSink<String> {
   StringConversionSink();
-  factory StringConversionSink.withCallback(void callback(String accumulated))
-      = _StringCallbackSink;
-  factory StringConversionSink.from(Sink<String> sink)
-      = _StringAdapterSink;
+  factory StringConversionSink.withCallback(void callback(String accumulated)) =
+      _StringCallbackSink;
+  factory StringConversionSink.from(Sink<String> sink) = _StringAdapterSink;
 
   /**
    * Creates a new instance wrapping the given [sink].
@@ -71,8 +70,8 @@ abstract class ClosableStringSink extends StringSink {
    * Creates a new instance combining a [StringSink] [sink] and a callback
    * [onClose] which is invoked when the returned instance is closed.
    */
-  factory ClosableStringSink.fromStringSink(StringSink sink, void onClose())
-      = _ClosableStringSink;
+  factory ClosableStringSink.fromStringSink(StringSink sink, void onClose()) =
+      _ClosableStringSink;
 
   /**
    * Closes `this` and flushes any outstanding data.
@@ -92,11 +91,22 @@ class _ClosableStringSink implements ClosableStringSink {
 
   _ClosableStringSink(this._sink, this._callback);
 
-  void close() { _callback(); }
+  void close() {
+    _callback();
+  }
 
-  void writeCharCode(int charCode) { _sink.writeCharCode(charCode); }
-  void write(Object o) { _sink.write(o); }
-  void writeln([Object o = ""]) { _sink.writeln(o); }
+  void writeCharCode(int charCode) {
+    _sink.writeCharCode(charCode);
+  }
+
+  void write(Object o) {
+    _sink.write(o);
+  }
+
+  void writeln([Object o = ""]) {
+    _sink.writeln(o);
+  }
+
   void writeAll(Iterable objects, [String separator = ""]) {
     _sink.writeAll(objects, separator);
   }
@@ -165,19 +175,19 @@ class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
  * This class provides a base-class for converters that need to accept String
  * inputs.
  */
-abstract class StringConversionSinkBase extends StringConversionSinkMixin {
-}
+abstract class StringConversionSinkBase extends StringConversionSinkMixin {}
 
 /**
  * This class provides a mixin for converters that need to accept String
  * inputs.
  */
 abstract class StringConversionSinkMixin implements StringConversionSink {
-
   void addSlice(String str, int start, int end, bool isLast);
   void close();
 
-  void add(String str) { addSlice(str, 0, str.length, false); }
+  void add(String str) {
+    addSlice(str, 0, str.length, false);
+  }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) {
     return new _Utf8ConversionSink(this, allowMalformed);
@@ -193,7 +203,7 @@ abstract class StringConversionSinkMixin implements StringConversionSink {
  */
 class _StringSinkConversionSink extends StringConversionSinkBase {
   StringSink _stringSink;
-  _StringSinkConversionSink(StringSink this._stringSink);
+  _StringSinkConversionSink(this._stringSink);
 
   void close() {}
   void addSlice(String str, int start, int end, bool isLast) {
@@ -207,7 +217,9 @@ class _StringSinkConversionSink extends StringConversionSinkBase {
     if (isLast) close();
   }
 
-  void add(String str) { _stringSink.write(str); }
+  void add(String str) {
+    _stringSink.write(str);
+  }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) {
     return new _Utf8StringSinkAdapter(this, _stringSink, allowMalformed);
@@ -236,8 +248,7 @@ class _StringCallbackSink extends _StringSinkConversionSink {
   }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    return new _Utf8StringSinkAdapter(
-        this, _stringSink, allowMalformed);
+    return new _Utf8StringSinkAdapter(this, _stringSink, allowMalformed);
   }
 }
 
@@ -253,7 +264,9 @@ class _StringAdapterSink extends StringConversionSinkBase {
 
   _StringAdapterSink(this._sink);
 
-  void add(String str) { _sink.add(str); }
+  void add(String str) {
+    _sink.add(str);
+  }
 
   void addSlice(String str, int start, int end, bool isLast) {
     if (start == 0 && end == str.length) {
@@ -264,9 +277,10 @@ class _StringAdapterSink extends StringConversionSinkBase {
     if (isLast) close();
   }
 
-  void close() { _sink.close(); }
+  void close() {
+    _sink.close();
+  }
 }
-
 
 /**
  * Decodes UTF-8 code units and stores them in a [StringSink].
@@ -275,21 +289,20 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
   final _Utf8Decoder _decoder;
   final Sink _sink;
 
-  _Utf8StringSinkAdapter(this._sink,
-                         StringSink stringSink, bool allowMalformed)
+  _Utf8StringSinkAdapter(this._sink, StringSink stringSink, bool allowMalformed)
       : _decoder = new _Utf8Decoder(stringSink, allowMalformed);
 
   void close() {
     _decoder.close();
-    if(_sink != null) _sink.close();
+    if (_sink != null) _sink.close();
   }
 
   void add(List<int> chunk) {
     addSlice(chunk, 0, chunk.length, false);
   }
 
-  void addSlice(List<int> codeUnits, int startIndex, int endIndex,
-                bool isLast) {
+  void addSlice(
+      List<int> codeUnits, int startIndex, int endIndex, bool isLast) {
     _decoder.convert(codeUnits, startIndex, endIndex);
     if (isLast) close();
   }
@@ -302,15 +315,14 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
  */
 // TODO(floitsch): make this class public?
 class _Utf8ConversionSink extends ByteConversionSink {
-
   final _Utf8Decoder _decoder;
   final StringConversionSink _chunkedSink;
   final StringBuffer _buffer;
   _Utf8ConversionSink(StringConversionSink sink, bool allowMalformed)
       : this._(sink, new StringBuffer(), allowMalformed);
 
-  _Utf8ConversionSink._(this._chunkedSink, StringBuffer stringBuffer,
-                       bool allowMalformed)
+  _Utf8ConversionSink._(
+      this._chunkedSink, StringBuffer stringBuffer, bool allowMalformed)
       : _decoder = new _Utf8Decoder(stringBuffer, allowMalformed),
         _buffer = stringBuffer;
 
@@ -320,7 +332,7 @@ class _Utf8ConversionSink extends ByteConversionSink {
       String accumulated = _buffer.toString();
       _buffer.clear();
       _chunkedSink.addSlice(accumulated, 0, accumulated.length, true);
-    } else  {
+    } else {
       _chunkedSink.close();
     }
   }

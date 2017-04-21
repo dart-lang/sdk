@@ -348,7 +348,7 @@ var y = C.x;
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '(D) → E');
+        '(D) → dynamic');
   }
 
   void test_inferredType_instanceField_conditional_genericFunctions() {
@@ -489,11 +489,11 @@ class C {
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
-var x = new C().f; // Inferred type: int
+var x = new C().f; // Inferred type: dynamic
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'int');
+        'dynamic');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_instanceField_toInstanceField() {
@@ -508,33 +508,12 @@ class C {
     createLinker('''
 import 'a.dart';
 class D {
-  var g = new C().f; // Inferred type: int
+  var g = new C().f; // Inferred type: dynamic
 }
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     ClassElementForLink_Class classD = library.getContainedName('D');
-    expect(classD.fields[0].inferredType.toString(), 'int');
-  }
-
-  void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaGeneric() {
-    var bundle = createPackageBundle(
-        '''
-class B {
-  T f<T>(T t) => t;
-}
-class C extends B {
-  f<T>(t) => t; // Inferred param type: T
-}
-''',
-        path: '/a.dart');
-    addBundle('/a.ds', bundle);
-    createLinker('''
-import 'a.dart';
-var x = new C().f(0); // Inferred type: int
-''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'int');
+    expect(classD.fields[0].inferredType.toString(), 'dynamic');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {

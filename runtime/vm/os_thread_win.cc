@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "vm/growable_array.h"
 #include "vm/lockers.h"
@@ -170,6 +170,21 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 
 bool OSThread::Compare(ThreadId a, ThreadId b) {
   return a == b;
+}
+
+
+bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+// On Windows stack limits for the current thread are available in
+// the thread information block (TIB). Its fields can be accessed through
+// FS segment register on x86 and GS segment register on x86_64.
+#ifdef _WIN64
+  *upper = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackBase)));
+  *lower = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackLimit)));
+#else
+  *upper = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackBase)));
+  *lower = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackLimit)));
+#endif
+  return true;
 }
 
 
@@ -685,4 +700,4 @@ PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnDartThreadExit;
 #endif  // _WIN64
 }  // extern "C"
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

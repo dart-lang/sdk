@@ -81,6 +81,54 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
   }
 };
 
+
+template <typename V>
+class IntKeyRawPointerValueTrait {
+ public:
+  typedef intptr_t Key;
+  typedef V Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(NULL), value() {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static intptr_t Hashcode(Key key) { return key; }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
+template <typename V>
+class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
+ public:
+  typedef typename IntKeyRawPointerValueTrait<V>::Key Key;
+  typedef typename IntKeyRawPointerValueTrait<V>::Value Value;
+  typedef typename IntKeyRawPointerValueTrait<V>::Pair Pair;
+
+  inline void Insert(const Key& key, const Value& value) {
+    Pair pair(key, value);
+    DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Insert(pair);
+  }
+
+  inline V Lookup(const Key& key) {
+    Pair* pair =
+        DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
+    if (pair == NULL) {
+      return V();
+    } else {
+      return pair->value;
+    }
+  }
+
+  inline Pair* LookupPair(const Key& key) {
+    return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
+  }
+};
+
 template <typename K, typename V>
 class MallocMap
     : public MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
@@ -253,33 +301,41 @@ class TranslationHelper {
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
 
-  const dart::String& DartClassName(Class* kernel_klass);
-  const dart::String& DartConstructorName(Constructor* node);
-  const dart::String& DartProcedureName(Procedure* procedure);
+  const dart::String& DartClassName(CanonicalName* kernel_class);
 
-  const dart::String& DartSetterName(Name* kernel_name);
-  const dart::String& DartGetterName(Name* kernel_name);
+  const dart::String& DartConstructorName(CanonicalName* constructor);
+
+  const dart::String& DartProcedureName(CanonicalName* procedure);
+
+  const dart::String& DartSetterName(CanonicalName* setter);
+  const dart::String& DartSetterName(Name* setter_name);
+
+  const dart::String& DartGetterName(CanonicalName* getter);
+  const dart::String& DartGetterName(Name* getter_name);
+
   const dart::String& DartFieldName(Name* kernel_name);
+
   const dart::String& DartInitializerName(Name* kernel_name);
-  const dart::String& DartMethodName(Name* kernel_name);
-  const dart::String& DartFactoryName(Class* klass, Name* kernel_name);
+
+  const dart::String& DartMethodName(CanonicalName* method);
+  const dart::String& DartMethodName(Name* method_name);
+
+  const dart::String& DartFactoryName(CanonicalName* factory);
 
   const Array& ArgumentNames(List<NamedExpression>* named);
 
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
-  virtual RawClass* LookupClassByKernelClass(Class* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
+  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
 
-  RawUnresolvedClass* ToUnresolvedClass(Class* klass);
-
-  RawField* LookupFieldByKernelField(Field* field);
-  RawFunction* LookupStaticMethodByKernelProcedure(Procedure* procedure);
-  RawFunction* LookupConstructorByKernelConstructor(Constructor* constructor);
+  RawField* LookupFieldByKernelField(CanonicalName* field);
+  RawFunction* LookupStaticMethodByKernelProcedure(CanonicalName* procedure);
+  RawFunction* LookupConstructorByKernelConstructor(CanonicalName* constructor);
   dart::RawFunction* LookupConstructorByKernelConstructor(
       const dart::Class& owner,
-      Constructor* constructor);
+      CanonicalName* constructor);
 
   dart::Type& GetCanonicalType(const dart::Class& klass);
 
@@ -287,11 +343,17 @@ class TranslationHelper {
   void ReportError(const Error& prev_error, const char* format, ...);
 
  private:
-  // This will mangle [kernel_name] (if necessary) and make the result a symbol.
-  // The result will be avilable in [name_to_modify] and it is also returned.
-  dart::String& ManglePrivateName(Library* kernel_library,
+  // This will mangle [name_to_modify] if necessary and make the result a symbol
+  // if asked.  The result will be avilable in [name_to_modify] and it is also
+  // returned.  If the name is private, the canonical name [parent] will be used
+  // to get the import URI of the library where the name is visible.
+  dart::String& ManglePrivateName(CanonicalName* parent,
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
+
+  const dart::String& DartSetterName(CanonicalName* parent, String* setter);
+  const dart::String& DartGetterName(CanonicalName* parent, String* getter);
+  const dart::String& DartMethodName(CanonicalName* parent, String* method);
 
   dart::Thread* thread_;
   dart::Zone* zone_;
@@ -474,6 +536,18 @@ class ConstantEvaluator : public ExpressionVisitor {
                                           const Function& constructor,
                                           const Object& argument);
 
+  void AssertBoolInCheckedMode() {
+    if (isolate_->type_checks() && !result_.IsBool()) {
+      translation_helper_.ReportError("Expected boolean expression.");
+    }
+  }
+
+  bool EvaluateBooleanExpression(Expression* expression) {
+    EvaluateExpression(expression);
+    AssertBoolInCheckedMode();
+    return result_.raw() == Bool::True().raw();
+  }
+
   // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
   // should use [TokenPosition]s as well as the existing functionality in
   // `Parser::CacheConstantValue`.
@@ -492,7 +566,7 @@ class ConstantEvaluator : public ExpressionVisitor {
 
 
 struct FunctionScope {
-  FunctionNode* function;
+  intptr_t kernel_offset;
   LocalScope* scope;
 };
 
@@ -508,8 +582,8 @@ class ScopeBuildingResult : public ZoneAllocated {
         yield_jump_variable(NULL),
         yield_context_variable(NULL) {}
 
-  Map<VariableDeclaration, LocalVariable*> locals;
-  Map<TreeNode, LocalScope*> scopes;
+  IntMap<LocalVariable*> locals;
+  IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
 
   // Only non-NULL for instance functions.
@@ -627,7 +701,6 @@ class ScopeBuilder : public RecursiveVisitor {
   void HandleSpecialLoad(LocalVariable** variable, const dart::String& symbol);
   void LookupCapturedVariableByName(LocalVariable** variable,
                                     const dart::String& name);
-
 
   struct DepthState {
     explicit DepthState(intptr_t function)
@@ -760,7 +833,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment TranslateArguments(Arguments* node, Array* argument_names);
   ArgumentArray GetArguments(int count);
 
-  Fragment TranslateInitializers(Class* kernel_klass,
+  Fragment TranslateInitializers(Class* kernel_class,
                                  List<Initializer>* initialiers);
 
   Fragment TranslateStatement(Statement* statement);
@@ -804,7 +877,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment CatchBlockEntry(const Array& handler_types, intptr_t handler_index);
+  Fragment CatchBlockEntry(const Array& handler_types,
+                           intptr_t handler_index,
+                           bool needs_stacktrace);
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue();
   Fragment CheckStackOverflow();
@@ -826,7 +901,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                         intptr_t num_args_checked = 1);
   Fragment ClosureCall(int argument_count, const Array& argument_names);
   Fragment ThrowException(TokenPosition position);
-  Fragment RethrowException(int catch_try_index);
+  Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
   Fragment LoadField(const dart::Field& field);
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
@@ -857,18 +932,35 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
       bool is_initialization_store,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
+      TokenPosition position,
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
-  Fragment StoreStaticField(const dart::Field& field);
+  Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
   Fragment StringInterpolate(TokenPosition position);
+  Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment GuardFieldLength(const dart::Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const dart::Field& field, intptr_t deopt_id);
 
-  dart::RawFunction* LookupMethodByMember(Member* target,
+  Fragment EvaluateAssertion();
+  Fragment CheckReturnTypeInCheckedMode();
+  Fragment CheckVariableTypeInCheckedMode(VariableDeclaration* variable);
+  Fragment CheckBooleanInCheckedMode();
+  Fragment CheckAssignableInCheckedMode(const dart::AbstractType& dst_type,
+                                        const dart::String& dst_name);
+
+  Fragment AssertBool();
+  Fragment AssertAssignable(const dart::AbstractType& dst_type,
+                            const dart::String& dst_name);
+
+  bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
+  bool NeedsDebugStepCheck(Value* value, TokenPosition position);
+  Fragment DebugStepCheck(TokenPosition position);
+
+  dart::RawFunction* LookupMethodByMember(CanonicalName* target,
                                           const dart::String& method_name);
 
   LocalVariable* MakeTemporary();
@@ -948,6 +1040,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   LocalVariable* CurrentCatchContext() {
     return scopes_->catch_context_variables[try_depth_];
   }
+
 
   // A chained list of breakable blocks. Chaining and lookup is done by the
   // [BreakableBlock] class.

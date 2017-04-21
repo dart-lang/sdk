@@ -15,11 +15,12 @@ class Field;
 class FlowGraph;
 class ForwardInstructionIterator;
 class Function;
+class ICData;
 class InstanceCallInstr;
 class Instruction;
+class Precompiler;
 class StaticCallInstr;
 class TargetEntryInstr;
-class Precompiler;
 
 class FlowGraphInliner : ValueObject {
  public:

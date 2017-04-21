@@ -5,7 +5,11 @@
 # The platform for running dart on the web with dart2js.
 #
 # Includes dart:html and associated libraries.
-# Does not include dart:io.
+#
+# This configuration used to exclude dart:io, but we made it OK to import it.
+# This is allowed as a stopgap measure until config-specific imports are
+# supported in the language.  The returned library is an implementation of
+# dart:io that throws at runtime.
 
 [dart-spec]
 spec: 3rd edition.
@@ -23,13 +27,13 @@ developer: developer/developer.dart
 html: html/dart2js/html_dart2js.dart
 html_common: html/html_common/html_common_dart2js.dart
 indexed_db: indexed_db/dart2js/indexed_db_dart2js.dart
-io: unsupported:
+io: unsupported:io/io.dart
 isolate: isolate/isolate.dart
 js: js/dart2js/js_dart2js.dart
 js_util: js_util/dart2js/js_util_dart2js.dart
 math: math/math.dart
 mirrors: mirrors/mirrors.dart
-nativewrappers: html/dart2js/nativewrappers.dart
+nativewrappers: html/dartium/nativewrappers.dart
 typed_data: typed_data/typed_data.dart
 _native_typed_data: _internal/js_runtime/lib/native_typed_data.dart
 svg: svg/dart2js/svg_dart2js.dart

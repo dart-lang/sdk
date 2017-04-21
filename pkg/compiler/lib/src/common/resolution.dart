@@ -6,31 +6,32 @@ library dart2js.common.resolution;
 
 import '../common.dart';
 import '../compile_time_constants.dart';
-import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart' show ResolutionDartType, Types;
 import '../elements/elements.dart'
     show
-        AstElement,
         ClassElement,
         Element,
-        Entity,
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
         LibraryElement,
+        MemberElement,
         MetadataAnnotation,
         MethodElement,
         ResolvedAst,
         TypedefElement;
+import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
 import '../parser/parser_task.dart';
+import '../scanner/scanner_task.dart';
 import '../patch_parser.dart';
 import '../resolution/resolution.dart';
 import '../tree/tree.dart' show Send, TypeAnnotation;
@@ -42,15 +43,16 @@ import 'work.dart' show WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 abstract class ResolutionWorkItem implements WorkItem {
-  factory ResolutionWorkItem(Resolution resolution, AstElement element) =
+  factory ResolutionWorkItem(Resolution resolution, MemberElement element) =
       _ResolutionWorkItem;
 }
 
 class _ResolutionWorkItem extends WorkItem implements ResolutionWorkItem {
   bool _isAnalyzed = false;
+  final MemberElement element;
   final Resolution resolution;
 
-  _ResolutionWorkItem(this.resolution, AstElement element) : super(element);
+  _ResolutionWorkItem(this.resolution, this.element);
 
   WorldImpact run() {
     assert(invariant(element, !_isAnalyzed,
@@ -90,7 +92,7 @@ abstract class Target {
 
   /// Resolve target specific information for [element] and register it with
   /// [registry].
-  void resolveNativeElement(Element element, NativeRegistry registry) {}
+  void resolveNativeMember(MemberElement element, NativeRegistry registry) {}
 
   /// Processes [element] for resolution and returns the [MethodElement] that
   /// defines the implementation of [element].
@@ -111,9 +113,9 @@ abstract class Target {
   /// Returns the default superclass for the given [element] in this target.
   ClassElement defaultSuperclass(ClassElement element);
 
-  /// Returns `true` if [element] is a native element, that is, that the
+  /// Returns `true` if [element] is a native class, that is, that the
   /// corresponding entity already exists in the target language.
-  bool isNative(Entity element) => false;
+  bool isNativeClass(ClassEntity element) => false;
 
   /// Returns `true` if [element] is a foreign element, that is, that the
   /// backend has specialized handling for the element.
@@ -171,7 +173,7 @@ abstract class Resolution implements Frontend {
   /// The error itself is given in [message].
   void registerCompileTimeError(Element element, DiagnosticMessage message);
 
-  ResolutionWorkItem createWorkItem(Element element);
+  ResolutionWorkItem createWorkItem(MemberElement element);
 
   /// Returns `true` if [element] as a fully computed [ResolvedAst].
   bool hasResolvedAst(ExecutableElement element);
@@ -206,8 +208,6 @@ abstract class Resolution implements Frontend {
   /// impact.
   void emptyCache();
 
-  void forgetElement(Element element);
-
   /// Returns `true` if [value] is the top-level [proxy] annotation from the
   /// core library.
   bool isProxyConstant(ConstantValue value);
@@ -215,11 +215,16 @@ abstract class Resolution implements Frontend {
 
 /// A container of commonly used dependencies for tasks that involve parsing.
 abstract class ParsingContext {
-  factory ParsingContext(DiagnosticReporter reporter, ParserTask parser,
-      PatchParserTask patchParser, Backend backend) = _ParsingContext;
+  factory ParsingContext(
+      DiagnosticReporter reporter,
+      ParserTask parser,
+      ScannerTask scanner,
+      PatchParserTask patchParser,
+      JavaScriptBackend backend) = _ParsingContext;
 
   DiagnosticReporter get reporter;
   ParserTask get parser;
+  ScannerTask get scanner;
   PatchParserTask get patchParser;
 
   /// Use [patchParser] directly instead.
@@ -237,10 +242,12 @@ abstract class ParsingContext {
 class _ParsingContext implements ParsingContext {
   final DiagnosticReporter reporter;
   final ParserTask parser;
+  final ScannerTask scanner;
   final PatchParserTask patchParser;
-  final Backend backend;
+  final JavaScriptBackend backend;
 
-  _ParsingContext(this.reporter, this.parser, this.patchParser, this.backend);
+  _ParsingContext(
+      this.reporter, this.parser, this.scanner, this.patchParser, this.backend);
 
   @override
   measure(f()) => parser.measure(f);

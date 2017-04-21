@@ -8,6 +8,7 @@ import argparse
 import os
 import platform
 import shutil
+import socket
 import subprocess
 import sys
 import utils
@@ -38,17 +39,53 @@ IGNORE_PATTERNS = shutil.ignore_patterns(
 
 usage = """observatory_tool.py [options]"""
 
+def DisplayBootstrapWarning():
+  print """\
+
+WARNING: Your system cannot run the checked-in Dart SDK. Using the
+bootstrap Dart executable will make debug builds slow.
+Please see the Wiki for instructions on replacing the checked-in Dart SDK.
+
+https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
+
+To use the dart_bootstrap binary please update the PubCommand function
+in the tools/observatory_tool.py script.
+
+"""
+
+def DisplayFailureMessage():
+  print """\
+
+ERROR: Observatory failed to build. What should you do?
+
+1. Revert to a working revision of the Dart VM
+2. Contact zra@, johnmccutchan@, dart-vm-team@
+3. File a bug: https://github.com/dart-lang/sdk/issues/new
+
+"""
+
 # Run |command|. If its return code is 0, return 0 and swallow its output.
 # If its return code is non-zero, emit its output unless |always_silent| is
 # True, and return the return code.
 def RunCommand(command, always_silent=False):
   try:
-    subprocess.check_output(command, stderr=subprocess.STDOUT)
+    # Dart IO respects the following environment variables to configure the
+    # HttpClient proxy: https://api.dartlang.org/stable/1.22.1/dart-io/HttpClient/findProxyFromEnvironment.html
+    # We strip these to avoid problems with pub build and transformers.
+    no_http_proxy_env = os.environ.copy()
+    no_http_proxy_env.pop('http_proxy', None)
+    no_http_proxy_env.pop('HTTP_PROXY', None)
+    no_http_proxy_env.pop('https_proxy', None)
+    no_http_proxy_env.pop('HTTPS_PROXY', None)
+    subprocess.check_output(command,
+                            stderr=subprocess.STDOUT,
+                            env=no_http_proxy_env)
     return 0
   except subprocess.CalledProcessError as e:
     if not always_silent:
       print ("Command failed: " + ' '.join(command) + "\n" +
               "output: " + e.output)
+      DisplayFailureMessage()
     return e.returncode
 
 def CreateTimestampFile(options):
@@ -127,21 +164,6 @@ def ProcessOptions(options, args):
 def ChangeDirectory(directory):
   os.chdir(directory);
 
-def DisplayBootstrapWarning():
-  print """\
-
-
-WARNING: Your system cannot run the checked-in Dart SDK. Using the
-bootstrap Dart executable will make debug builds slow.
-Please see the Wiki for instructions on replacing the checked-in Dart SDK.
-
-https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
-
-To use the dart_bootstrap binary please update the PubCommand function
-in the tools/observatory_tool.py script.
-
-"""
-
 def PubCommand(dart_executable,
                pub_executable,
                pub_snapshot,
@@ -207,6 +229,13 @@ def ExecuteCommand(options, args):
     return -1;
 
 def main():
+  # Sanity check that localhost can be resolved.
+  try:
+    socket.gethostbyname('localhost')
+  except:
+    print("The hostname 'localhost' could not be resolved. Please fix your"
+          "/etc/hosts file and try again")
+    return -1
   # Parse the options.
   parser = BuildArguments()
   (options, args) = parser.parse_known_args()
@@ -224,12 +253,15 @@ def main():
     options.stamp = os.path.abspath(options.stamp)
   if len(args) == 1:
     args[0] = os.path.abspath(args[0])
-  # Pub must be run from the project's root directory.
-  ChangeDirectory(options.directory)
-  result = ExecuteCommand(options, args)
-  if result == 0:
-    CreateTimestampFile(options)
-  return result
+  try:
+    # Pub must be run from the project's root directory.
+    ChangeDirectory(options.directory)
+    result = ExecuteCommand(options, args)
+    if result == 0:
+      CreateTimestampFile(options)
+    return result
+  except:
+    DisplayFailureMessage()
 
 
 if __name__ == '__main__':

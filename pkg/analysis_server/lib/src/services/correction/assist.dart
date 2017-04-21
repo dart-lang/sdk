@@ -83,6 +83,8 @@ class DartAssistKind {
       'CONVERT_DOCUMENTATION_INTO_LINE',
       30,
       "Convert into line documentation comment");
+  static const CONVERT_FLUTTER_CHILD =
+      const AssistKind('CONVERT_FLUTTER_CHILD', 30, "Convert to children:");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
@@ -119,6 +121,14 @@ class DartAssistKind {
       "Join 'if' statement with outer 'if' statement");
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'JOIN_VARIABLE_DECLARATION', 30, "Join variable declaration");
+  static const MOVE_FLUTTER_WIDGET_DOWN =
+      const AssistKind("MOVE_FLUTTER_WIDGET_DOWN", 30, "Move widget down");
+  static const MOVE_FLUTTER_WIDGET_UP =
+      const AssistKind("MOVE_FLUTTER_WIDGET_UP", 30, "Move widget up");
+  static const REPARENT_FLUTTER_LIST = const AssistKind(
+      "REPARENT_FLUTTER_LIST", 30, "Wrap widget list with new widget");
+  static const REPARENT_FLUTTER_WIDGET = const AssistKind(
+      "REPARENT_FLUTTER_WIDGET", 30, "Wrap new-expression with new widget");
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(

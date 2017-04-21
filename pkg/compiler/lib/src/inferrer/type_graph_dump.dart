@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.inferrer.type_graph_dump;
 
-import 'dart:async';
-
+import '../../compiler_new.dart';
 import '../elements/elements.dart';
 import '../types/types.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
+import 'debug.dart';
 
 /// Dumps the type inference graph in Graphviz Dot format into the `typegraph`
 /// subfolder of the current working directory. Each function body is dumped in
@@ -73,13 +73,14 @@ class TypeGraphDump {
     }
     // Print every group separately.
     for (Element element in nodes.keys) {
-      EventSink<String> output;
+      OutputSink output;
       try {
         String name = filenameFromElement(element);
-        output = inferrer.compiler.outputProvider('$outputDir/$name', 'dot');
+        output = inferrer.compiler
+            .outputProvider('$outputDir/$name', 'dot', OutputType.debug);
         _GraphGenerator visitor = new _GraphGenerator(this, element, output);
         for (TypeInformation node in nodes[element]) {
-          node.accept(visitor);
+          visitor.visit(node);
         }
         visitor.addMissingNodes();
         visitor.finish();
@@ -147,7 +148,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   final List<TypeInformation> worklist = new List<TypeInformation>();
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   int usedIds = 0;
-  final EventSink<String> output;
+  final OutputSink output;
   final Element element;
   TypeInformation returnValue;
 
@@ -169,9 +170,13 @@ class _GraphGenerator extends TypeInformationVisitor {
     while (worklist.isNotEmpty) {
       TypeInformation node = worklist.removeLast();
       assert(nodeId.containsKey(node));
-      if (seen.contains(node)) continue;
-      node.accept(this);
+      visit(node);
     }
+  }
+
+  void visit(TypeInformation info) {
+    if (seen.contains(info)) return;
+    info.accept(this);
   }
 
   void append(String string) {
@@ -311,14 +316,25 @@ class _GraphGenerator extends TypeInformationVisitor {
         }
       }
     }
+    if (PRINT_GRAPH_ALL_NODES) {
+      for (TypeInformation user in node.users) {
+        if (!isExternal(user)) {
+          visit(user);
+        }
+      }
+    }
   }
 
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
+    // Omit unused Narrows.
+    if (!PRINT_GRAPH_ALL_NODES && info.users.isEmpty) return;
     addNode(info, 'Narrow\n${formatType(info.typeAnnotation)}',
         color: narrowColor);
   }
 
   void visitPhiElementTypeInformation(PhiElementTypeInformation info) {
+    // Omit unused Phis.
+    if (!PRINT_GRAPH_ALL_NODES && info.users.isEmpty) return;
     addNode(info, 'Phi ${info.variable?.name ?? ''}', color: phiColor);
   }
 

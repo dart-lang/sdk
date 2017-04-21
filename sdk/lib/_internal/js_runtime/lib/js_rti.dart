@@ -55,8 +55,7 @@ class TypeImpl implements Type {
 
   String toString() {
     if (_unmangledName != null) return _unmangledName;
-    String unmangledName =
-        unmangleAllIdentifiersIfPreservedAnyways(_typeName);
+    String unmangledName = unmangleAllIdentifiersIfPreservedAnyways(_typeName);
     return _unmangledName = unmangledName;
   }
 
@@ -64,7 +63,7 @@ class TypeImpl implements Type {
   int get hashCode => _typeName.hashCode;
 
   bool operator ==(other) {
-    return  (other is TypeImpl) && _typeName == other._typeName;
+    return (other is TypeImpl) && _typeName == other._typeName;
   }
 }
 
@@ -96,7 +95,8 @@ getMangledTypeName(TypeImpl type) => type._typeName;
 @NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
-  JS('var', r'#.$ti = #', target, rti);
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  JS('var', r'#[#] = #', target, rtiName, rti);
   return target;
 }
 
@@ -106,15 +106,16 @@ Object setRuntimeTypeInfo(Object target, var rti) {
  */
 getRuntimeTypeInfo(Object target) {
   if (target == null) return null;
-  return JS('var', r'#.$ti', target);
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  return JS('var', r'#[#]', target, rtiName);
 }
 
 /**
  * Returns the type arguments of [target] as an instance of [substitutionName].
  */
 getRuntimeTypeArguments(target, substitutionName) {
-  var substitution = getField(target,
-      '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
+  var substitution = getField(
+      target, '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
   return substitute(substitution, getRuntimeTypeInfo(target));
 }
 
@@ -122,13 +123,17 @@ getRuntimeTypeArguments(target, substitutionName) {
  * Returns the [index]th type argument of [target] as an instance of
  * [substitutionName].
  */
-@NoThrows() @NoSideEffects() @NoInline()
+@NoThrows()
+@NoSideEffects()
+@NoInline()
 getRuntimeTypeArgument(Object target, String substitutionName, int index) {
   var arguments = getRuntimeTypeArguments(target, substitutionName);
   return arguments == null ? null : getIndex(arguments, index);
 }
 
-@NoThrows() @NoSideEffects() @NoInline()
+@NoThrows()
+@NoSideEffects()
+@NoInline()
 getTypeArgumentByIndex(Object target, int index) {
   var rti = getRuntimeTypeInfo(target);
   return rti == null ? null : getIndex(rti, index);
@@ -171,7 +176,8 @@ String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
   if (rti is int) {
     return '${onTypeVariable == null ? rti : onTypeVariable(rti)}';
   }
-  if (JS('bool', 'typeof #.func != "undefined"', rti)) {
+  String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
+  if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
     // If the RTI has typedef equivalence info (via mirrors), use that since the
     // mirrors helpers will re-parse the generated string.
 
@@ -188,10 +194,12 @@ String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
 
 String _functionRtiToString(var rti, String onTypeVariable(int i)) {
   String returnTypeText;
-  if (JS('bool', '!!#.v', rti)) {
+  String voidTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
+  if (JS('bool', '!!#[#]', rti, voidTag)) {
     returnTypeText = 'void';
   } else {
-    var returnRti = JS('', '#.ret', rti);
+    String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
+    var returnRti = JS('', '#[#]', rti, returnTypeTag);
     returnTypeText =
         runtimeTypeToString(returnRti, onTypeVariable: onTypeVariable);
   }
@@ -199,9 +207,11 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
   String argumentsText = '';
   String sep = '';
 
-  bool hasArguments = JS('bool', '"args" in #', rti);
+  String requiredParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
+  bool hasArguments = JS('bool', '# in #', requiredParamsTag, rti);
   if (hasArguments) {
-    List arguments = JS('JSFixedArray', '#.args', rti);
+    List arguments = JS('JSFixedArray', '#[#]', rti, requiredParamsTag);
     for (var argument in arguments) {
       argumentsText += sep;
       argumentsText +=
@@ -210,9 +220,11 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     }
   }
 
-  bool hasOptionalArguments = JS('bool', '"opt" in #', rti);
+  String optionalParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
+  bool hasOptionalArguments = JS('bool', '# in #', optionalParamsTag, rti);
   if (hasOptionalArguments) {
-    List optionalArguments = JS('JSFixedArray', '#.opt', rti);
+    List optionalArguments = JS('JSFixedArray', '#[#]', rti, optionalParamsTag);
     argumentsText += '$sep[';
     sep = '';
     for (var argument in optionalArguments) {
@@ -224,15 +236,17 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     argumentsText += ']';
   }
 
-  bool hasNamedArguments = JS('bool', '"named" in #', rti);
+  String namedParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
+  bool hasNamedArguments = JS('bool', '# in #', namedParamsTag, rti);
   if (hasNamedArguments) {
-    var namedArguments = JS('', '#.named', rti);
+    var namedArguments = JS('', '#[#]', rti, namedParamsTag);
     argumentsText += '$sep{';
     sep = '';
     for (String name in extractKeys(namedArguments)) {
       argumentsText += sep;
       argumentsText += runtimeTypeToString(JS('', '#[#]', namedArguments, name),
-                                           onTypeVariable: onTypeVariable);
+          onTypeVariable: onTypeVariable);
       argumentsText += ' $name';
       sep = ', ';
     }
@@ -252,7 +266,7 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
  * [startIndex].
  */
 String joinArguments(var types, int startIndex,
-                     {String onTypeVariable(int i)}) {
+    {String onTypeVariable(int i)}) {
   if (types == null) return '';
   assert(isJsArray(types));
   bool firstArgument = true;
@@ -279,13 +293,18 @@ String joinArguments(var types, int startIndex,
  * In minified mode does *not* use unminified identifiers (even when present).
  */
 String getRuntimeTypeString(var object) {
-  // Check for function type first, since non-tearoff closures look like classes
-  // due to closure conversion.
-  var functionRti = extractFunctionTypeObjectFrom(object);
-  if (functionRti != null) return runtimeTypeToString(functionRti);
+  if (object is Closure) {
+    // This excludes classes that implement Function via a `call` method, but
+    // includes classes generated to represent closures in closure conversion.
+    var functionRti = extractFunctionTypeObjectFrom(object);
+    if (functionRti != null) {
+      return runtimeTypeToString(functionRti);
+    }
+  }
   String className = getClassName(object);
   if (object == null) return className;
-  var rti = JS('var', r'#.$ti', object);
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  var rti = JS('var', r'#[#]', object, rtiName);
   return "$className${joinArguments(rti, 0)}";
 }
 
@@ -354,28 +373,26 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
 String computeTypeName(String isField, List arguments) {
   // Extract the class name from the is field and append the textual
   // representation of the type arguments.
-  return Primitives.formatType(isCheckPropertyToJsConstructorName(isField),
-                               arguments);
+  return Primitives.formatType(
+      isCheckPropertyToJsConstructorName(isField), arguments);
 }
 
 Object subtypeCast(Object object, String isField, List checks, String asField) {
-  if (object != null && !checkSubtype(object, isField, checks, asField)) {
-    String actualType = Primitives.objectTypeName(object);
-    String typeName = computeTypeName(isField, checks);
-    // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
-    // align with [TypeErrorImplementation].
-    throw new CastErrorImplementation(actualType, typeName);
-  }
-  return object;
+  if (object == null) return object;
+  if (checkSubtype(object, isField, checks, asField)) return object;
+  String actualType = Primitives.objectTypeName(object);
+  String typeName = computeTypeName(isField, checks);
+  // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
+  // align with [TypeErrorImplementation].
+  throw new CastErrorImplementation(actualType, typeName);
 }
 
-Object assertSubtype(Object object, String isField, List checks,
-                     String asField) {
-  if (object != null && !checkSubtype(object, isField, checks, asField)) {
-    String typeName = computeTypeName(isField, checks);
-    throw new TypeErrorImplementation(object, typeName);
-  }
-  return object;
+Object assertSubtype(
+    Object object, String isField, List checks, String asField) {
+  if (object == null) return object;
+  if (checkSubtype(object, isField, checks, asField)) return object;
+  String typeName = computeTypeName(isField, checks);
+  throw new TypeErrorImplementation(object, typeName);
 }
 
 /// Checks that the type represented by [subtype] is a subtype of [supertype].
@@ -467,8 +484,8 @@ bool checkSubtypeOfRuntimeType(o, t) {
     // If the type has type variables (that is, `rti != null`), make a copy of
     // the type arguments and insert [o] in the first position to create a
     // compound type representation.
-    rti = JS('JSExtendableArray', '#.slice()', rti);  // Make a copy.
-    JS('', '#.splice(0, 0, #)', rti, type);  // Insert type at position 0.
+    rti = JS('JSExtendableArray', '#.slice()', rti); // Make a copy.
+    JS('', '#.splice(0, 0, #)', rti, type); // Insert type at position 0.
     type = rti;
   }
   if (isDartFunctionType(t)) {
@@ -567,7 +584,7 @@ bool isAssignable(var s, var t) {
  */
 bool areAssignable(List s, List t, bool allowShorter) {
   // Both lists are empty and thus equal.
-  if (t ==null && s == null) return true;
+  if (t == null && s == null) return true;
   // [t] is empty (and [s] is not) => only OK if [allowShorter].
   if (t == null) return allowShorter;
   // [s] is empty (and [t] is not) => [s] is not longer or equal to [t].
@@ -657,8 +674,8 @@ bool isFunctionSubtype(var s, var t) {
   if (sParametersLen == tParametersLen) {
     // Simple case: Same number of required parameters.
     if (!areAssignable(sParameterTypes, tParameterTypes, false)) return false;
-    if (!areAssignable(sOptionalParameterTypes,
-                       tOptionalParameterTypes, true)) {
+    if (!areAssignable(
+        sOptionalParameterTypes, tOptionalParameterTypes, true)) {
       return false;
     }
   } else {
@@ -666,8 +683,8 @@ bool isFunctionSubtype(var s, var t) {
     int pos = 0;
     // Check all required parameters of [s].
     for (; pos < sParametersLen; pos++) {
-      if (!isAssignable(getIndex(sParameterTypes, pos),
-                        getIndex(tParameterTypes, pos))) {
+      if (!isAssignable(
+          getIndex(sParameterTypes, pos), getIndex(tParameterTypes, pos))) {
         return false;
       }
     }
@@ -675,18 +692,18 @@ bool isFunctionSubtype(var s, var t) {
     int tPos = pos;
     // Check the remaining parameters of [t] with the first optional parameters
     // of [s].
-    for (; tPos < tParametersLen ; sPos++, tPos++) {
+    for (; tPos < tParametersLen; sPos++, tPos++) {
       if (!isAssignable(getIndex(sOptionalParameterTypes, sPos),
-                        getIndex(tParameterTypes, tPos))) {
+          getIndex(tParameterTypes, tPos))) {
         return false;
       }
     }
     tPos = 0;
     // Check the optional parameters of [t] with the remaining optional
     // parameters of [s]:
-    for (; tPos < tOptionalParametersLen ; sPos++, tPos++) {
+    for (; tPos < tOptionalParametersLen; sPos++, tPos++) {
       if (!isAssignable(getIndex(sOptionalParameterTypes, sPos),
-                        getIndex(tOptionalParameterTypes, tPos))) {
+          getIndex(tOptionalParameterTypes, tPos))) {
         return false;
       }
     }

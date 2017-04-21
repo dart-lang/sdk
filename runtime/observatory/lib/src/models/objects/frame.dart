@@ -4,7 +4,11 @@
 
 part of models;
 
+enum FrameKind { regular, asyncCausal, asyncSuspensionMarker, asyncActivation }
+
 abstract class Frame {
+  FrameKind get kind;
+  String get marker;
   FunctionRef get function;
   SourceLocation get location;
 }

@@ -68,10 +68,10 @@ main() {
   Expect.isTrue(NFromInt(2) is !S<S<S>>);
 
   // Greater-than tests
-  Expect.isTrue(NFromInt(4) is S<S>);            // 4 >= 2
-  Expect.isTrue(NFromInt(4) is S<S<S>>);         // 4 >= 3
-  Expect.isTrue(NFromInt(4) is S<S<S<S>>>);      // 4 >= 4
-  Expect.isTrue(NFromInt(4) is !S<S<S<S<S>>>>);  // 4 < 5
+  Expect.isTrue(NFromInt(4) is S<S>); //            4 >= 2
+  Expect.isTrue(NFromInt(4) is S<S<S>>); //         4 >= 3
+  Expect.isTrue(NFromInt(4) is S<S<S<S>>>); //      4 >= 4
+  Expect.isTrue(NFromInt(4) is !S<S<S<S<S>>>>); //  4 < 5
 
   Expect.isTrue(IsEven(NFromInt(0)));
   Expect.isFalse(IsEven(NFromInt(1)));

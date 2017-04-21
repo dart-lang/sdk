@@ -83,13 +83,24 @@ class SimpleExpressionConverter : public ExpressionVisitor {
 };
 
 
+RawArray* KernelReader::MakeFunctionsArray() {
+  const intptr_t len = functions_.length();
+  const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
+  for (intptr_t i = 0; i < len; i++) {
+    res.SetAt(i, *functions_[i]);
+  }
+  return res.raw();
+}
+
+
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
-    Library* library) {
+    CanonicalName* library) {
   return reader_->LookupLibrary(library).raw();
 }
 
 
-RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
+RawClass* BuildingTranslationHelper::LookupClassByKernelClass(
+    CanonicalName* klass) {
   return reader_->LookupClass(klass).raw();
 }
 
@@ -110,9 +121,6 @@ KernelReader::KernelReader(Program* program)
 Object& KernelReader::ReadProgram() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Procedure* main = program_->main_method();
-    Library* kernel_main_library = Library::Cast(main->parent());
-
     intptr_t length = program_->libraries().length();
     for (intptr_t i = 0; i < length; i++) {
       Library* kernel_library = program_->libraries()[i];
@@ -120,12 +128,14 @@ Object& KernelReader::ReadProgram() {
     }
 
     for (intptr_t i = 0; i < length; i++) {
-      dart::Library& library = LookupLibrary(program_->libraries()[i]);
+      dart::Library& library =
+          LookupLibrary(program_->libraries()[i]->canonical_name());
       if (!library.Loaded()) library.SetLoaded();
     }
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      dart::Library& library = LookupLibrary(kernel_main_library);
+      CanonicalName* main = program_->main_method();
+      dart::Library& library = LookupLibrary(main->EnclosingName());
 
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
@@ -145,8 +155,9 @@ Object& KernelReader::ReadProgram() {
 
 
 void KernelReader::ReadLibrary(Library* kernel_library) {
-  dart::Library& library = LookupLibrary(kernel_library);
+  dart::Library& library = LookupLibrary(kernel_library->canonical_name());
   if (library.Loaded()) return;
+  library.SetName(H.DartSymbol(kernel_library->name()));
 
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
@@ -166,6 +177,8 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
+  fields_.Clear();
+  functions_.Clear();
   ActiveClassScope active_class_scope(&active_class_, NULL, &toplevel_class);
   // Load toplevel fields.
   for (intptr_t i = 0; i < kernel_library->fields().length(); i++) {
@@ -184,15 +197,18 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
     field.SetFieldType(type);
     field.set_has_initializer(kernel_field->initializer() != NULL);
     GenerateFieldAccessors(toplevel_class, field, kernel_field);
-    toplevel_class.AddField(field);
+    fields_.Add(&field);
     library.AddObject(field, name);
   }
+  toplevel_class.AddFields(fields_);
 
   // Load toplevel procedures.
   for (intptr_t i = 0; i < kernel_library->procedures().length(); i++) {
     Procedure* kernel_procedure = kernel_library->procedures()[i];
     ReadProcedure(library, toplevel_class, kernel_procedure);
   }
+
+  toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(I->object_store()->pending_classes());
@@ -227,7 +243,7 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     type_parameters = TypeArguments::New(num_type_parameters);
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       parameter = dart::TypeParameter::New(
-          *klass, Function::Handle(Z), i,
+          *klass, Function::Handle(Z), i, 0,
           H.DartSymbol(kernel_klass->type_parameters()[i]->name()), null_bound,
           TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
@@ -283,33 +299,57 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
 dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                      const dart::Class& toplevel_class,
                                      Class* kernel_klass) {
-  // This will trigger a call to [ReadPreliminaryClass] if not already done.
-  dart::Class& klass = LookupClass(kernel_klass);
+  dart::Class& klass = LookupClass(kernel_klass->canonical_name());
+
+  // The class needs to have a script because all the functions in the class
+  // will inherit it.  The predicate Function::IsOptimizable uses the absence of
+  // a script to detect test functions that should not be optimized.
+  if (klass.script() == Script::null()) {
+    klass.set_script(ScriptAt(kernel_klass->source_uri_index()));
+  }
+  if (klass.token_pos() == TokenPosition::kNoSource) {
+    klass.set_token_pos(kernel_klass->position());
+  }
+  if (!klass.is_cycle_free()) {
+    ReadPreliminaryClass(&klass, kernel_klass);
+  }
 
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
+  fields_.Clear();
+  functions_.Clear();
 
-  for (intptr_t i = 0; i < kernel_klass->fields().length(); i++) {
-    Field* kernel_field = kernel_klass->fields()[i];
-    ActiveMemberScope active_member_scope(&active_class_, kernel_field);
+  if (library.raw() == dart::Library::InternalLibrary() &&
+      klass.Name() == Symbols::ClassID().raw()) {
+    // If this is a dart:internal.ClassID class ignore field declarations
+    // contained in the Kernel file and instead inject our own const
+    // fields.
+    klass.InjectCIDFields();
+  } else {
+    for (intptr_t i = 0; i < kernel_klass->fields().length(); i++) {
+      Field* kernel_field = kernel_klass->fields()[i];
+      ActiveMemberScope active_member_scope(&active_class_, kernel_field);
 
-    const dart::String& name = H.DartFieldName(kernel_field->name());
-    const AbstractType& type =
-        T.TranslateTypeWithoutFinalization(kernel_field->type());
-    const Object& script_class =
-        ClassForScriptAt(klass, kernel_field->source_uri_index());
-    dart::Field& field = dart::Field::Handle(
-        Z, dart::Field::New(name, kernel_field->IsStatic(),
-                            // In the VM all const fields are implicitly final
-                            // whereas in Kernel they are not final because they
-                            // are not explicitly declared that way.
-                            kernel_field->IsFinal() || kernel_field->IsConst(),
-                            kernel_field->IsConst(),
-                            false,  // is_reflectable
-                            script_class, type, kernel_field->position()));
-    field.set_kernel_field(kernel_field);
-    field.set_has_initializer(kernel_field->initializer() != NULL);
-    GenerateFieldAccessors(klass, field, kernel_field);
-    klass.AddField(field);
+      const dart::String& name = H.DartFieldName(kernel_field->name());
+      const AbstractType& type =
+          T.TranslateTypeWithoutFinalization(kernel_field->type());
+      const Object& script_class =
+          ClassForScriptAt(klass, kernel_field->source_uri_index());
+      dart::Field& field = dart::Field::Handle(
+          Z,
+          dart::Field::New(name, kernel_field->IsStatic(),
+                           // In the VM all const fields are implicitly final
+                           // whereas in Kernel they are not final because they
+                           // are not explicitly declared that way.
+                           kernel_field->IsFinal() || kernel_field->IsConst(),
+                           kernel_field->IsConst(),
+                           false,  // is_reflectable
+                           script_class, type, kernel_field->position()));
+      field.set_kernel_field(kernel_field);
+      field.set_has_initializer(kernel_field->initializer() != NULL);
+      GenerateFieldAccessors(klass, field, kernel_field);
+      fields_.Add(&field);
+    }
+    klass.AddFields(fields_);
   }
 
   for (intptr_t i = 0; i < kernel_klass->constructors().length(); i++) {
@@ -318,7 +358,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     ActiveFunctionScope active_function_scope(&active_class_,
                                               kernel_constructor->function());
 
-    const dart::String& name = H.DartConstructorName(kernel_constructor);
+    const dart::String& name =
+        H.DartConstructorName(kernel_constructor->canonical_name());
     Function& function = dart::Function::ZoneHandle(
         Z, dart::Function::New(name, RawFunction::kConstructor,
                                false,  // is_static
@@ -328,7 +369,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                false,  // is_native
                                klass, kernel_constructor->position()));
     function.set_end_token_pos(kernel_constructor->end_position());
-    klass.AddFunction(function);
+    functions_.Add(&function);
     function.set_kernel_function(kernel_constructor);
     function.set_result_type(T.ReceiverType(klass));
     SetupFunctionParameters(H, T, klass, function,
@@ -347,6 +388,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     ActiveMemberScope active_member_scope(&active_class_, kernel_procedure);
     ReadProcedure(library, klass, kernel_procedure, kernel_klass);
   }
+
+  klass.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
   if (!klass.is_marked_for_parsing()) {
     klass.set_is_marked_for_parsing();
@@ -370,7 +413,8 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   ActiveFunctionScope active_function_scope(&active_class_,
                                             kernel_procedure->function());
 
-  const dart::String& name = H.DartProcedureName(kernel_procedure);
+  const dart::String& name =
+      H.DartProcedureName(kernel_procedure->canonical_name());
   bool is_method = kernel_klass != NULL && !kernel_procedure->IsStatic();
   bool is_abstract = kernel_procedure->IsAbstract();
   bool is_external = kernel_procedure->IsExternal();
@@ -384,16 +428,18 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       if (!annotation->IsConstructorInvocation()) continue;
       ConstructorInvocation* invocation =
           ConstructorInvocation::Cast(annotation);
-      Class* annotation_class = Class::Cast(invocation->target()->parent());
+      CanonicalName* annotation_class = invocation->target()->EnclosingName();
+      ASSERT(annotation_class->IsClass());
       String* class_name = annotation_class->name();
       // Just compare by name, do not generate the annotation class.
       int length = sizeof("ExternalName") - 1;
       if (class_name->size() != length) continue;
       if (memcmp(class_name->buffer(), "ExternalName", length) != 0) continue;
+      ASSERT(annotation_class->parent()->IsLibrary());
       String* library_name = annotation_class->parent()->name();
-      length = sizeof("dart._internal") - 1;
+      length = sizeof("dart:_internal") - 1;
       if (library_name->size() != length) continue;
-      if (memcmp(library_name->buffer(), "dart._internal", length) != 0) {
+      if (memcmp(library_name->buffer(), "dart:_internal", length) != 0) {
         continue;
       }
 
@@ -416,9 +462,29 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        native_name != NULL,  // is_native
                        script_class, kernel_procedure->position()));
   function.set_end_token_pos(kernel_procedure->end_position());
-  owner.AddFunction(function);
+  functions_.Add(&function);
   function.set_kernel_function(kernel_procedure);
-  function.set_is_debuggable(kernel_procedure->function()->debuggable());
+
+  function.set_is_debuggable(
+      kernel_procedure->function()->dart_async_marker() == FunctionNode::kSync);
+  switch (kernel_procedure->function()->dart_async_marker()) {
+    case FunctionNode::kSyncStar:
+      function.set_modifier(RawFunction::kSyncGen);
+      break;
+    case FunctionNode::kAsync:
+      function.set_modifier(RawFunction::kAsync);
+      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      break;
+    case FunctionNode::kAsyncStar:
+      function.set_modifier(RawFunction::kAsyncGen);
+      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      break;
+    default:
+      // no special modifier
+      break;
+  }
+  ASSERT(kernel_procedure->function()->async_marker() == FunctionNode::kSync);
+
   if (native_name != NULL) {
     function.set_native_name(*native_name);
   }
@@ -429,8 +495,9 @@ void KernelReader::ReadProcedure(const dart::Library& library,
 
   if (kernel_klass == NULL) {
     library.AddObject(function, name);
-    ASSERT(!Object::Handle(Z, library.LookupObjectAllowPrivate(
-                                  H.DartProcedureName(kernel_procedure)))
+    ASSERT(!Object::Handle(
+                Z, library.LookupObjectAllowPrivate(
+                       H.DartProcedureName(kernel_procedure->canonical_name())))
                 .IsNull());
   }
   if (FLAG_enable_mirrors) {
@@ -448,6 +515,45 @@ const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
     return PatchClass::ZoneHandle(Z, PatchClass::New(klass, correct_script));
   }
   return klass;
+}
+
+static int LowestFirst(const intptr_t* a, const intptr_t* b) {
+  return *a - *b;
+}
+
+/**
+ * If index exists as sublist in list, sort the sublist from lowest to highest,
+ * then copy it, as Smis and without duplicates,
+ * to a new Array in Heap::kOld which is returned.
+ * Note that the source list is both sorted and de-duplicated as well, but will
+ * possibly contain duplicate and unsorted data at the end.
+ * Otherwise (when sublist doesn't exist in list) return new empty array.
+ */
+static RawArray* AsSortedDuplicateFreeArray(
+    intptr_t index,
+    MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list) {
+  if ((index < list->length()) && (list->At(index)->length() > 0)) {
+    MallocGrowableArray<intptr_t>* source = list->At(index);
+    source->Sort(LowestFirst);
+
+    intptr_t size = source->length();
+    intptr_t last = 0;
+    for (intptr_t current = 1; current < size; ++current) {
+      if (source->At(last) != source->At(current)) {
+        (*source)[++last] = source->At(current);
+      }
+    }
+    Array& array_object = Array::Handle();
+    array_object ^= Array::New(last + 1, Heap::kOld);
+    Smi& smi_value = Smi::Handle();
+    for (intptr_t i = 0; i <= last; ++i) {
+      smi_value = Smi::New(source->At(i));
+      array_object.SetAt(i, smi_value);
+    }
+    return array_object.raw();
+  } else {
+    return Array::New(0);
+  }
 }
 
 Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
@@ -477,6 +583,16 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
       array_object.SetAt(i, value);
     }
     script.set_line_starts(array_object);
+
+    // Create tokens_seen array for the script.
+    array_object ^= AsSortedDuplicateFreeArray(
+        source_uri_index, &program_->valid_token_positions);
+    script.set_debug_positions(array_object);
+
+    // Create yield_positions array for the script.
+    array_object ^= AsSortedDuplicateFreeArray(
+        source_uri_index, &program_->yield_token_positions);
+    script.set_yield_positions(array_object);
   }
   return script;
 }
@@ -484,21 +600,40 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
 void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                                           const dart::Field& field,
                                           Field* kernel_field) {
-  if (kernel_field->IsStatic() && kernel_field->initializer() != NULL) {
-    // Static fields with initializers either have the static value set to the
-    // initializer value if it is simple enough or else set to an uninitialized
-    // sentinel.
+  if (kernel_field->IsStatic() && kernel_field->initializer() == NULL) {
+    // Static fields without an initializer are implicitly initialized to null.
+    // We do not need a getter.
+    field.SetStaticValue(Instance::Handle(Z), true);
+    return;
+  }
+  if (kernel_field->initializer() != NULL) {
     SimpleExpressionConverter converter(H.thread());
-    if (converter.IsSimple(kernel_field->initializer())) {
-      // We do not need a getter.
-      field.SetStaticValue(converter.SimpleValue(), true);
-      return;
+    const bool has_simple_initializer =
+        converter.IsSimple(kernel_field->initializer());
+    if (kernel_field->IsStatic()) {
+      // Static fields with initializers either have the static value set to the
+      // initializer value if it is simple enough or else set to an
+      // uninitialized sentinel.
+      if (has_simple_initializer) {
+        // We do not need a getter.
+        field.SetStaticValue(converter.SimpleValue(), true);
+        return;
+      }
+      // We do need a getter that evaluates the initializer if necessary.
+      field.SetStaticValue(Object::sentinel(), true);
+    } else if (has_simple_initializer) {
+      // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
+      // heuristics. See JitOptimizer::VisitStoreInstanceField for more details.
+      field.RecordStore(converter.SimpleValue());
+      if (!converter.SimpleValue().IsNull() &&
+          converter.SimpleValue().IsDouble()) {
+        field.set_is_double_initialized(true);
+      }
     }
-    // We do need a getter that evaluates the initializer if necessary.
-    field.SetStaticValue(Object::sentinel(), true);
   }
 
-  const dart::String& getter_name = H.DartGetterName(kernel_field->name());
+  const dart::String& getter_name =
+      H.DartGetterName(kernel_field->canonical_name());
   const Object& script_class =
       ClassForScriptAt(klass, kernel_field->source_uri_index());
   Function& getter = Function::ZoneHandle(
@@ -518,7 +653,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_external
           false,  // is_native
           script_class, kernel_field->position()));
-  klass.AddFunction(getter);
+  functions_.Add(&getter);
   getter.set_end_token_pos(kernel_field->end_position());
   getter.set_kernel_function(kernel_field);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
@@ -528,7 +663,8 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   if (!kernel_field->IsStatic() && !kernel_field->IsFinal()) {
     // Only static fields can be const.
     ASSERT(!kernel_field->IsConst());
-    const dart::String& setter_name = H.DartSetterName(kernel_field->name());
+    const dart::String& setter_name =
+        H.DartSetterName(kernel_field->canonical_name());
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, RawFunction::kImplicitSetter,
                          false,  // is_static
@@ -537,7 +673,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_external
                          false,  // is_native
                          script_class, kernel_field->position()));
-    klass.AddFunction(setter);
+    functions_.Add(&setter);
     setter.set_end_token_pos(kernel_field->end_position());
     setter.set_kernel_function(kernel_field);
     setter.set_result_type(Object::void_type());
@@ -647,16 +783,16 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
   }
 }
 
-dart::Library& KernelReader::LookupLibrary(Library* library) {
+
+dart::Library& KernelReader::LookupLibrary(CanonicalName* library) {
   dart::Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const dart::String& url = H.DartSymbol(library->import_uri());
+    const dart::String& url = H.DartSymbol(library->name());
     handle =
         &dart::Library::Handle(Z, dart::Library::LookupLibrary(thread_, url));
     if (handle->IsNull()) {
       *handle = dart::Library::New(url);
       handle->Register(thread_);
-      handle->SetName(H.DartSymbol(library->name()));
     }
     ASSERT(!handle->IsNull());
     libraries_.Insert(library, handle);
@@ -664,34 +800,22 @@ dart::Library& KernelReader::LookupLibrary(Library* library) {
   return *handle;
 }
 
-dart::Class& KernelReader::LookupClass(Class* klass) {
+
+dart::Class& KernelReader::LookupClass(CanonicalName* klass) {
   dart::Class* handle = NULL;
   if (!classes_.Lookup(klass, &handle)) {
     dart::Library& library = LookupLibrary(klass->parent());
     const dart::String& name = H.DartClassName(klass);
     handle = &dart::Class::Handle(Z, library.LookupClass(name));
     if (handle->IsNull()) {
-      // The class needs to have a script because all the functions in the class
-      // will inherit it.  The predicate Function::IsOptimizable uses the
-      // absence of a script to detect test functions that should not be
-      // optimized.
-      Script& script = ScriptAt(klass->source_uri_index());
-      handle = &dart::Class::Handle(
-          Z, dart::Class::New(library, name, script, klass->position()));
+      *handle = dart::Class::New(library, name, Script::Handle(Z),
+                                 TokenPosition::kNoSource);
       library.AddClass(*handle);
-    } else if (handle->script() == Script::null()) {
-      // When bootstrapping we can encounter classes that do not yet have a
-      // dummy script.
-      Script& script = ScriptAt(klass->source_uri_index());
-      handle->set_script(script);
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so
     // we do not risk allocating the class again by calling LookupClass
     // recursively from ReadPreliminaryClass for the same class.
     classes_.Insert(klass, handle);
-    if (!handle->is_cycle_free()) {
-      ReadPreliminaryClass(handle, klass);
-    }
   }
   return *handle;
 }

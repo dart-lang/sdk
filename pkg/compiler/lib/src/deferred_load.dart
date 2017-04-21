@@ -4,7 +4,6 @@
 
 library deferred_load;
 
-import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
@@ -27,11 +26,14 @@ import 'elements/elements.dart'
         FunctionElement,
         ImportElement,
         LibraryElement,
+        MemberElement,
+        MethodElement,
         MetadataAnnotation,
         PrefixElement,
         ResolvedAstKind,
         TypedefElement;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
@@ -40,7 +42,7 @@ import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/setlet.dart' show Setlet;
 import 'util/uri_extras.dart' as uri_extras;
-import 'util/util.dart' show Link, makeUnique;
+import 'util/util.dart' show makeUnique;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -157,8 +159,9 @@ class DeferredLoadTask extends CompilerTask {
     mainOutputUnit.imports.add(_fakeMainImport);
   }
 
-  Backend get backend => compiler.backend;
+  JavaScriptBackend get backend => compiler.backend;
   DiagnosticReporter get reporter => compiler.reporter;
+  BackendUsage get _backendUsage => backend.backendUsage;
 
   /// Returns the [OutputUnit] where [element] belongs.
   OutputUnit outputUnitForElement(Element element) {
@@ -318,8 +321,8 @@ class DeferredLoadTask extends CompilerTask {
       } else {
         // TODO(sigurdm): We want to be more specific about this - need a better
         // way to query "liveness".
-        AstElement analyzableElement = element.analyzableElement.declaration;
-        if (!compiler.enqueuer.resolution.hasBeenProcessed(analyzableElement)) {
+        MemberElement analyzableElement = element.analyzableElement.declaration;
+        if (!compiler.resolutionWorldBuilder.isMemberUsed(analyzableElement)) {
           return;
         }
 
@@ -420,8 +423,8 @@ class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(_, Element element) {
-        if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
+      void addLiveInstanceMember(_, MemberElement element) {
+        if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         elements.add(element);
         collectDependencies(element);
@@ -566,7 +569,7 @@ class DeferredLoadTask extends CompilerTask {
       // asked isNeededForReflection. Instead an internal error is triggered.
       // So we have to filter them out here.
       if (element is AnalyzableElementX && !element.hasTreeElements) return;
-      if (compiler.backend.isAccessibleByReflection(element)) {
+      if (compiler.backend.mirrorsData.isAccessibleByReflection(element)) {
         _mapDependencies(
             element: element, import: deferredImport, isMirrorUsage: true);
       }
@@ -681,9 +684,15 @@ class DeferredLoadTask extends CompilerTask {
               // are things that the backend needs but cannot associate with a
               // particular element, for example, startRootIsolate.  This set
               // also contains elements for which we lack precise information.
-              for (Element element
-                  in compiler.globalDependencies.otherDependencies) {
-                _mapDependencies(element: element, import: _fakeMainImport);
+              for (MethodElement element
+                  in _backendUsage.globalFunctionDependencies) {
+                _mapDependencies(
+                    element: element.implementation, import: _fakeMainImport);
+              }
+              for (ClassElement element
+                  in _backendUsage.globalClassDependencies) {
+                _mapDependencies(
+                    element: element.implementation, import: _fakeMainImport);
               }
 
               // Now check to see if we have to add more elements due to

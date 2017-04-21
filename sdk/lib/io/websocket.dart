@@ -95,7 +95,7 @@ class CompressionOptions {
       } else {
         mwb = serverMaxWindowBits == null
             ? int.parse(part,
-                        onError: (source) => _WebSocketImpl.DEFAULT_WINDOW_BITS)
+                onError: (source) => _WebSocketImpl.DEFAULT_WINDOW_BITS)
             : serverMaxWindowBits;
         info.headerValue = "; server_max_window_bits=${mwb}";
         info.maxWindowBits = mwb;
@@ -146,14 +146,16 @@ class CompressionOptions {
     info.headerValue = _WebSocketImpl.PER_MESSAGE_DEFLATE;
 
     if (clientNoContextTakeover &&
-        (requested == null || (requested != null &&
-            requested.parameters.containsKey(_clientNoContextTakeover)))) {
+        (requested == null ||
+            (requested != null &&
+                requested.parameters.containsKey(_clientNoContextTakeover)))) {
       info.headerValue += "; client_no_context_takeover";
     }
 
     if (serverNoContextTakeover &&
-        (requested == null || (requested != null &&
-            requested.parameters.containsKey(_serverNoContextTakeover)))) {
+        (requested == null ||
+            (requested != null &&
+                requested.parameters.containsKey(_serverNoContextTakeover)))) {
       info.headerValue += "; server_no_context_takeover";
     }
 
@@ -256,8 +258,9 @@ abstract class WebSocketTransformer
  * `String` and a binary message will be of type `List<int>`.
  */
 abstract class WebSocket
-    implements Stream<dynamic/*String|List<int>*/>,
-        StreamSink<dynamic/*String|List<int>*/> {
+    implements
+        Stream<dynamic /*String|List<int>*/ >,
+        StreamSink<dynamic /*String|List<int>*/ > {
   /**
    * Possible states of the connection.
    */

@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOSX)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOSX)
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
 
@@ -23,4 +23,4 @@ __asan_default_options() {
 
 #endif  // __has_feature(address_sanitizer)
 #endif  // defined(__has_feature)
-#endif  //  defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOSX)
+#endif  //  defined(HOST_OS_LINUX) || defined(HOST_OS_MACOSX)

@@ -360,7 +360,7 @@ class Deserializer : public StackResource {
     return instructions_reader_->GetObjectAt(offset);
   }
 
-  RawApiError* VerifyVersionAndFeatures();
+  RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
   void Prepare();
   void Deserialize();

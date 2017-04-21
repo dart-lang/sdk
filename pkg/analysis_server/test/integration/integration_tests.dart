@@ -166,6 +166,14 @@ abstract class AbstractAnalysisServerIntegrationTest
     server.debugStdio();
   }
 
+  List<AnalysisError> getErrors(String pathname) =>
+      currentAnalysisErrors[pathname];
+
+  /**
+   * Read a source file with the given absolute [pathname].
+   */
+  String readFile(String pathname) => new File(pathname).readAsStringSync();
+
   @override
   Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
     _subscribedToServerStatus = subscriptions.contains(ServerService.STATUS);
@@ -176,8 +184,10 @@ abstract class AbstractAnalysisServerIntegrationTest
    * The server is automatically started before every test, and a temporary
    * [sourceDirectory] is created.
    */
-  Future setUp() {
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+  Future setUp() async {
+    sourceDirectory = new Directory(Directory.systemTemp
+        .createTempSync('analysisServer')
+        .resolveSymbolicLinksSync());
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
@@ -191,13 +201,12 @@ abstract class AbstractAnalysisServerIntegrationTest
       // A server error should never happen during an integration test.
       fail('${params.message}\n${params.stackTrace}');
     });
-    return startServer().then((_) {
-      server.listenToOutput(dispatchNotification);
-      server.exitCode.then((_) {
-        skipShutdown = true;
-      });
-      return serverConnected.future;
+    await startServer();
+    server.listenToOutput(dispatchNotification);
+    server.exitCode.then((_) {
+      skipShutdown = true;
     });
+    return serverConnected.future;
   }
 
   /**
@@ -211,7 +220,9 @@ abstract class AbstractAnalysisServerIntegrationTest
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill('server failed to exit');
+      // The integer value of the exit code isn't used, but we have to return
+      // an integer to keep the typing correct.
+      return server.kill('server failed to exit').then((_) => -1);
     });
   }
 
@@ -534,7 +545,7 @@ class Server {
   /**
    * Stop the server.
    */
-  Future kill(String reason) {
+  Future<int> kill(String reason) {
     debugStdio();
     _recordStdio('FORCIBLY TERMINATING PROCESS: $reason');
     _process.kill();
@@ -575,9 +586,7 @@ class Server {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
-          // TODO(paulberry): propagate the error info to the completer.
-          completer.completeError(new UnimplementedError(
-              'Server responded with an error: ${JSON.encode(message)}'));
+          completer.completeError(new ServerErrorMessage(messageAsMap));
         } else {
           completer.complete(messageAsMap['result']);
         }
@@ -633,14 +642,12 @@ class Server {
   }
 
   /**
-   * Start the server.  If [debugServer] is `true`, the server will be started
-   * with "--debug", allowing a debugger to be attached. If [profileServer] is
-   * `true`, the server will be started with "--observe" and
-   * "--pause-isolates-on-exit", allowing the observatory to be used.
+   * Start the server. If [profileServer] is `true`, the server will be started
+   * with "--observe" and "--pause-isolates-on-exit", allowing the observatory
+   * to be used.
    */
   Future start(
       {bool checked: true,
-      bool debugServer: false,
       int diagnosticPort,
       bool enableNewAnalysisDriver: false,
       bool profileServer: false,
@@ -659,9 +666,6 @@ class Server {
     //
     // Add VM arguments.
     //
-    if (debugServer) {
-      arguments.add('--debug');
-    }
     if (profileServer) {
       if (servicesPort == null) {
         arguments.add('--observe');
@@ -698,11 +702,14 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (enableNewAnalysisDriver) {
-      arguments.add('--enable-new-analysis-driver');
+    if (!enableNewAnalysisDriver) {
+      arguments.add('--disable-new-analysis-driver');
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');
+    // TODO(devoncarew): We could experiment with instead launching the analysis
+    // server in a separate isolate. This would make it easier to debug the
+    // integration tests, and would like speed the tests up as well.
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
@@ -731,7 +738,7 @@ class Server {
     // and is outputting a stacktrace, because it ensures that we see the
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    new Future.delayed(new Duration(seconds: 1), expectAsync(() {
+    new Future.delayed(new Duration(seconds: 1), expectAsync0(() {
       fail('Bad data received from server: $details');
     }));
   }
@@ -748,6 +755,19 @@ class Server {
     }
     _recordedStdio.add(line);
   }
+}
+
+/**
+ * An error result from a server request.
+ */
+class ServerErrorMessage {
+  final Map message;
+
+  ServerErrorMessage(this.message);
+
+  dynamic get error => message['error'];
+
+  String toString() => message.toString();
 }
 
 /**

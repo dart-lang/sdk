@@ -2423,6 +2423,20 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
   __ delay_slot()->movz(V0, V1, T0);  // V0 = (T0 == 0) ? V1 : V0.
 }
 
+
+void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler) {
+  __ LoadObject(V0, Object::null_object());
+  __ sw(V0, Address(THR, Thread::async_stack_trace_offset()));
+  __ Ret();
+}
+
+
+void Intrinsifier::SetAsyncThreadStackTrace(Assembler* assembler) {
+  __ lw(V0, Address(THR, Thread::async_stack_trace_offset()));
+  __ LoadObject(V0, Object::null_object());
+  __ Ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

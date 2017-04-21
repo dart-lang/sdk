@@ -5,14 +5,13 @@
 library dart2js.resolution.enum_creator;
 
 import '../common.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
-import '../tokens/keyword.dart' show Keyword;
-import '../tokens/precedence.dart';
-import '../tokens/precedence_constants.dart' as Precedence;
-import '../tokens/token.dart';
+import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence;
 import '../tree/tree.dart';
 import '../util/util.dart';
 
@@ -182,15 +181,16 @@ class AstBuilder {
 ///
 ///     class A {
 ///       final int index;
+///       final String _name;
 ///
 ///       const A(this.index);
 ///
 ///       String toString() {
-///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///         return _name;
 ///       }
 ///
-///       static const A b = const A(0);
-///       static const A c = const A(1);
+///       static const A b = const A(0, "A.b");
+///       static const A c = const A(1, "A.v");
 ///
 ///       static const List<A> values = const <A>[b, c];
 ///     }
@@ -225,14 +225,16 @@ class EnumCreator {
     }
 
     EnumFieldElementX indexVariable = addInstanceMember('index', intType);
+    EnumFieldElementX nameVariable = addInstanceMember('_name', stringType);
 
     VariableDefinitions indexDefinition = builder.initializingFormal('index');
+    VariableDefinitions nameDefinition = builder.initializingFormal('_name');
 
     FunctionExpression constructorNode = builder.functionExpression(
         builder.modifiers(isConst: true),
         enumClass.name,
         null, // typeVariables
-        builder.argumentList([indexDefinition]),
+        builder.argumentList([indexDefinition, nameDefinition]),
         builder.emptyStatement());
 
     EnumConstructorElementX constructor = new EnumConstructorElementX(
@@ -241,18 +243,22 @@ class EnumCreator {
     EnumFormalElementX indexFormal = new EnumFormalElementX(constructor,
         indexDefinition, builder.identifier('index'), indexVariable);
 
+    EnumFormalElementX nameFormal = new EnumFormalElementX(
+        constructor, nameDefinition, builder.identifier('_name'), nameVariable);
+
     FunctionSignatureX constructorSignature = new FunctionSignatureX(
-        requiredParameters: [indexFormal],
-        requiredParameterCount: 1,
-        type: new ResolutionFunctionType(constructor,
-            const ResolutionDynamicType(), <ResolutionDartType>[intType]));
+        requiredParameters: [indexFormal, nameFormal],
+        requiredParameterCount: 2,
+        type: new ResolutionFunctionType(
+            constructor,
+            const ResolutionDynamicType(),
+            <ResolutionDartType>[intType, stringType]));
     constructor.functionSignature = constructorSignature;
     enumClass.addMember(constructor, reporter);
 
     List<EnumConstantElement> enumValues = <EnumConstantElement>[];
     int index = 0;
     List<Node> valueReferences = <Node>[];
-    List<LiteralMapEntry> mapEntries = <LiteralMapEntry>[];
     for (Link<Node> link = node.names.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = link.head;
       AstBuilder valueBuilder = new AstBuilder(name.token.charOffset);
@@ -263,13 +269,12 @@ class EnumCreator {
       // Add reference for the `values` field.
       valueReferences.add(valueBuilder.reference(name));
 
-      // Add map entry for `toString` implementation.
-      mapEntries.add(valueBuilder.mapLiteralEntry(
-          valueBuilder.literalInt(index),
-          valueBuilder.literalString('${enumClass.name}.${name.source}')));
-
-      Expression initializer = valueBuilder.newExpression(enumClass.name,
-          valueBuilder.argumentList([valueBuilder.literalInt(index)]),
+      Expression initializer = valueBuilder.newExpression(
+          enumClass.name,
+          valueBuilder.argumentList([
+            valueBuilder.literalInt(index),
+            valueBuilder.literalString('${enumClass.name}.${name.source}')
+          ]),
           isConst: true);
       SendSet definition = valueBuilder.createDefinition(name, initializer);
 
@@ -286,7 +291,7 @@ class EnumCreator {
     valuesVariableList.type = valuesType;
 
     Identifier valuesIdentifier = builder.identifier('values');
-    // TODO(johnniwinther): Add type argument.
+    // TODO(28340): Add type argument.
     Expression initializer =
         builder.listLiteral(valueReferences, isConst: true);
 
@@ -297,16 +302,13 @@ class EnumCreator {
 
     enumClass.addMember(valuesVariable, reporter);
 
-    // TODO(johnniwinther): Support return type. Note `String` might be prefixed
-    // or not imported within the current library.
     FunctionExpression toStringNode = builder.functionExpression(
         Modifiers.EMPTY,
         'toString',
         null, // typeVariables
         builder.argumentList([]),
-        builder.returnStatement(builder.indexGet(
-            builder.mapLiteral(mapEntries, isConst: true),
-            builder.reference(builder.identifier('index')))));
+        builder
+            .returnStatement(builder.reference(builder.identifier('_name'))));
 
     EnumMethodElementX toString = new EnumMethodElementX(
         'toString', enumClass, Modifiers.EMPTY, toStringNode);

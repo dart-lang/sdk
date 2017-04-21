@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::foo];
+  constructor •() → void
+    ;
+  static factory foo() → self::A
+    let final dynamic #t1 = self::C::bar in invalid-expression;
+  method m() → core::int
+    ;
+}
+class C extends self::A {
+  static field dynamic _redirecting# = <dynamic>[self::C::bar];
+  constructor •() → void
+    ;
+  static factory bar() → self::D
+    let final dynamic #t2 = self::D::• in invalid-expression;
+  method m() → core::int
+    ;
+}
+class D extends self::C {
+  constructor •() → void
+    ;
+  method m() → core::int
+    ;
+}
+static method main() → dynamic
+  ;

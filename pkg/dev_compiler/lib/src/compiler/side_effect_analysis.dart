@@ -124,7 +124,7 @@ class ConstFieldVisitor {
   DartObject computeConstant(VariableDeclaration field) {
     // If the constant is already computed by ConstantEvaluator, just return it.
     VariableElement element = field.element;
-    var result = element.constantValue;
+    var result = element.computeConstantValue();
     if (result != null) return result;
 
     // ConstantEvaluator will not compute constants for non-const fields,

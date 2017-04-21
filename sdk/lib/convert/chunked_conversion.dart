@@ -9,7 +9,7 @@ typedef void _ChunkedConversionCallback<T>(T accumulated);
 /// This class is deprecated. Extend [Converter] directly.
 @deprecated
 abstract class ChunkedConverter<S, T, S2, T2> extends Converter<S, T> {
-  const ChunkedConverter(): super();
+  const ChunkedConverter() : super();
 
   dynamic bind(dynamic other) => super.bind(other);
   dynamic startChunkedConversion(dynamic sink) =>
@@ -60,8 +60,13 @@ class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
 
   _SimpleCallbackSink(this._callback);
 
-  void add(T chunk) { _accumulated.add(chunk); }
-  void close() { _callback(_accumulated); }
+  void add(T chunk) {
+    _accumulated.add(chunk);
+  }
+
+  void close() {
+    _callback(_accumulated);
+  }
 }
 
 /**
@@ -83,15 +88,19 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
    */
   final Sink<S> _chunkedSink;
 
-  _ConverterStreamEventSink(
-      Converter<S, T> converter,
-      EventSink<T> sink)
+  _ConverterStreamEventSink(Converter<S, T> converter, EventSink<T> sink)
       : this._eventSink = sink,
         _chunkedSink = converter.startChunkedConversion(sink);
 
-  void add(S o) { _chunkedSink.add(o); }
+  void add(S o) {
+    _chunkedSink.add(o);
+  }
+
   void addError(Object error, [StackTrace stackTrace]) {
     _eventSink.addError(error, stackTrace);
   }
-  void close() { _chunkedSink.close(); }
+
+  void close() {
+    _chunkedSink.close();
+  }
 }

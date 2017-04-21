@@ -5,34 +5,39 @@
 import 'package:expect/expect.dart';
 
 class A {
-  foo(required1, { named1: 499}) => -(required1 + named1 * 3);
-  bar(required1, required2, { named1: 13, named2: 17})
-      => -(required1 + required2 * 3 + named1 * 5 + named2 * 7);
+  foo(required1, {named1: 499}) => -(required1 + named1 * 3);
+  bar(required1, required2, {named1: 13, named2: 17}) =>
+      -(required1 + required2 * 3 + named1 * 5 + named2 * 7);
   gee({named1: 31}) => -named1;
 }
 
 class B extends A {
-  foo(required1
-     /*  /// 00: static type warning
-      , { named1: 499 }
-     */  /// 00: static type warning
-     ) {
+  foo(
+      required1
+     /* // //# 00: static type warning
+      ,
+      {named1: 499}
+     */ // //# 00: static type warning
+      ) {
     return required1;
   }
 
   bar(required1, required2,
-      { named1: 13
-      /*  /// 01: static type warning
-        , named2: 17
-      */  /// 01: static type warning
+      {named1: 13
+      /* // //# 01: static type warning
+      ,
+      named2: 17
+      */ // //# 01: static type warning
       }) {
     return required1 + required2 * 3 + named1 * 5;
   }
 
-  gee({named2: 11
-      /*  /// 02: static type warning
-       , named1: 31
-      */  /// 02: static type warning
+  gee(
+      {named2: 11
+      /* // //# 02: static type warning
+      ,
+      named1: 31
+      */ // //# 02: static type warning
       }) {
     return named2 * 99;
   }

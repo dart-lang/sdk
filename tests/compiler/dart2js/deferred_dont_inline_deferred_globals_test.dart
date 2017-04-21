@@ -6,6 +6,7 @@
 // Files when using deferred loading.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
@@ -31,8 +32,9 @@ void main() {
     var foo1 = lib1.find("finalVar");
     var ou_lib1 = outputUnitForElement(foo1);
 
-    String mainOutput = collector.getOutput("", "js");
-    String lib1Output = collector.getOutput("out_${ou_lib1.name}", "part.js");
+    String mainOutput = collector.getOutput("", OutputType.js);
+    String lib1Output =
+        collector.getOutput("out_${ou_lib1.name}", OutputType.jsPart);
     // Test that the deferred globals are not inlined into the main file.
     RegExp re1 = new RegExp(r"= .string1");
     RegExp re2 = new RegExp(r"= .string2");

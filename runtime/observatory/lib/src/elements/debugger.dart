@@ -209,8 +209,7 @@ class DownCommand extends DebuggerCommand {
       debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } catch (e) {
-      debugger.console.print(
-          'frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -244,8 +243,7 @@ class UpCommand extends DebuggerCommand {
       debugger.upFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print(
-          'frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -281,8 +279,7 @@ class FrameCommand extends DebuggerCommand {
       debugger.currentFrame = frame;
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print(
-          'frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -418,12 +415,12 @@ class RewindCommand extends DebuggerCommand {
         debugger.console.print('rewind expects 0 or 1 argument');
         return;
       } else if (count < 1 || count > debugger.stackDepth) {
-        debugger.console.print(
-            'frame must be in range [1..${debugger.stackDepth - 1}]');
+        debugger.console
+            .print('frame must be in range [1..${debugger.stackDepth - 1}]');
         return;
       }
       await debugger.rewind(count);
-    } on S.ServerRpcException catch(e) {
+    } on S.ServerRpcException catch (e) {
       if (e.code == S.ServerRpcException.kCannotResume) {
         debugger.console.printRed(e.data['details']);
       } else {
@@ -434,8 +431,7 @@ class RewindCommand extends DebuggerCommand {
 
   String helpShort = 'Rewind the stack to a previous frame';
 
-  String helpLong =
-      'Rewind the stack to a previous frame.\n'
+  String helpLong = 'Rewind the stack to a previous frame.\n'
       '\n'
       'Syntax: rewind\n'
       '        rewind <count>\n';
@@ -454,9 +450,8 @@ class ReloadCommand extends DebuggerCommand {
       await debugger.isolate.reloadSources();
       debugger.console.print('reload complete');
       await debugger.refreshStack();
-    } on S.ServerRpcException catch(e) {
+    } on S.ServerRpcException catch (e) {
       if (e.code == S.ServerRpcException.kIsolateReloadBarred ||
-          e.code == S.ServerRpcException.kIsolateReloadFailed ||
           e.code == S.ServerRpcException.kIsolateIsReloading) {
         debugger.console.printRed(e.data['details']);
       } else {
@@ -467,8 +462,7 @@ class ReloadCommand extends DebuggerCommand {
 
   String helpShort = 'Reload the sources for the current isolate';
 
-  String helpLong =
-      'Reload the sources for the current isolate.\n'
+  String helpLong = 'Reload the sources for the current isolate.\n'
       '\n'
       'Syntax: reload\n';
 }
@@ -604,6 +598,11 @@ class SetCommand extends DebuggerCommand {
       _setUpIsDown,
       (debugger, _) => debugger.upIsDown
     ],
+    'causal-async-stacks': [
+      _boolValues,
+      _setSaneAsyncStacks,
+      (debugger, _) => debugger.saneAsyncStacks
+    ],
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
@@ -622,6 +621,16 @@ class SetCommand extends DebuggerCommand {
     } else {
       debugger.upIsDown = false;
     }
+    debugger.console.print('${name} = ${value}');
+  }
+
+  static Future _setSaneAsyncStacks(debugger, name, value) async {
+    if (value == 'true') {
+      debugger.saneAsyncStacks = true;
+    } else {
+      debugger.saneAsyncStacks = false;
+    }
+    debugger.refreshStack();
     debugger.console.print('${name} = ${value}');
   }
 
@@ -1227,39 +1236,12 @@ class VmNameCommand extends DebuggerCommand {
       'Syntax: vm name <name>\n';
 }
 
-class VmRestartCommand extends DebuggerCommand {
-  VmRestartCommand(Debugger debugger) : super(debugger, 'restart', []);
-
-  Future handleModalInput(String line) async {
-    if (line == 'yes') {
-      debugger.console.printRed('Restarting VM...');
-      await debugger.vm.restart();
-      debugger.input.exitMode();
-    } else if (line == 'no') {
-      debugger.console.printRed('VM restart canceled.');
-      debugger.input.exitMode();
-    } else {
-      debugger.console.printRed("Please type 'yes' or 'no'");
-    }
-  }
-
-  Future run(List<String> args) async {
-    debugger.input.enterMode('Restart vm? (yes/no)', handleModalInput);
-  }
-
-  String helpShort = 'Restart a Dart virtual machine';
-
-  String helpLong = 'Restart a Dart virtual machine.\n'
-      '\n'
-      'Syntax: vm restart\n';
-}
 
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
       : super(debugger, 'vm', [
           new VmListCommand(debugger),
           new VmNameCommand(debugger),
-          new VmRestartCommand(debugger),
         ]);
 
   Future run(List<String> args) async {
@@ -1381,6 +1363,17 @@ class ObservatoryDebugger extends Debugger {
 
   bool _upIsDown;
 
+  bool get saneAsyncStacks => _saneAsyncStacks;
+  void set saneAsyncStacks(bool value) {
+    settings.set('causal-async-stacks', value);
+    _saneAsyncStacks = value;
+  }
+
+  bool _saneAsyncStacks;
+
+  static const String kAsyncCausalStackFrames = 'asyncCausalFrames';
+  static const String kStackFrames = 'frames';
+
   void upFrame(int count) {
     if (_upIsDown) {
       currentFrame += count;
@@ -1397,7 +1390,33 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  int get stackDepth => stack['frames'].length;
+  int get stackDepth {
+    if (saneAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      var stackFrames = stack[kStackFrames];
+      if (asyncCausalStackFrames == null) {
+        // No causal frames.
+        return stackFrames.length;
+      }
+      return asyncCausalStackFrames.length;
+    } else {
+      return stack[kStackFrames].length;
+    }
+  }
+
+  List get stackFrames {
+    if (saneAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      var stackFrames = stack[kStackFrames];
+      if (asyncCausalStackFrames == null) {
+        // No causal frames.
+        return stackFrames ?? [];
+      }
+      return asyncCausalStackFrames;
+    } else {
+      return stack[kStackFrames] ?? [];
+    }
+  }
 
   static final _history = [''];
 
@@ -1434,6 +1453,7 @@ class ObservatoryDebugger extends Debugger {
 
   void _loadSettings() {
     _upIsDown = settings.get('up-is-down');
+    _saneAsyncStacks = settings.get('causal-async-stacks') ?? true;
   }
 
   S.VM get vm => page.app.vm;
@@ -1808,15 +1828,15 @@ class ObservatoryDebugger extends Debugger {
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
     }).catchError((e, s) {
-      if (e is S.NetworkRpcException) {
-        console.printRed('Unable to execute command because the connection '
-            'to the VM has been closed');
+      console.printRed('Unable to execute command because the connection '
+          'to the VM has been closed');
+    }, test: (e) => e is S.NetworkRpcException).catchError((e, s) {
+      console.printRed(e.toString());
+    }, test: (e) => e is CommandException).catchError((e, s) {
+      if (s != null) {
+        console.printRed('Internal error: $e\n$s');
       } else {
-        if (s != null) {
-          console.printRed('Internal error: $e\n$s');
-        } else {
-          console.printRed('Internal error: $e\n');
-        }
+        console.printRed('Internal error: $e\n');
       }
     });
   }
@@ -2251,7 +2271,13 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
   void updateStackFrames(S.ServiceMap newStack) {
     List frameElements = _frameList.children;
-    List newFrames = newStack['frames'];
+    List newFrames;
+    if (_debugger.saneAsyncStacks &&
+        (newStack[ObservatoryDebugger.kAsyncCausalStackFrames] != null)) {
+      newFrames = newStack[ObservatoryDebugger.kAsyncCausalStackFrames];
+    } else {
+      newFrames = newStack[ObservatoryDebugger.kStackFrames];
+    }
 
     // Remove any frames whose functions don't match, starting from
     // bottom of stack.
@@ -2379,7 +2405,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   bool _expanded = false;
 
   void setCurrent(bool value) {
-    _frame.function.load().then((func) {
+    Future load = (_frame.function != null)
+        ? _frame.function.load()
+        : new Future.value(null);
+    load.then((func) {
       _current = value;
       if (_current) {
         _expand();
@@ -2431,6 +2460,17 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       classes.add('current');
     } else {
       classes.remove('current');
+    }
+    if ((_frame.kind == M.FrameKind.asyncSuspensionMarker) ||
+        (_frame.kind == M.FrameKind.asyncCausal)) {
+      classes.add('causalFrame');
+    }
+    if (_frame.kind == M.FrameKind.asyncSuspensionMarker) {
+      final content = <Element>[
+        new SpanElement()..children = _createMarkerHeader(_frame.marker)
+      ];
+      children = content;
+      return;
     }
     ButtonElement expandButton;
     final content = <Element>[
@@ -2534,6 +2574,24 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     children = content;
   }
 
+  List<Element> _createMarkerHeader(String marker) {
+    final content = [
+      new DivElement()
+        ..classes = ['frameSummaryText']
+        ..children = [
+          new DivElement()
+            ..classes = ['frameId']
+            ..text = 'Frame ${_frame.index}',
+          new SpanElement()..text = '$marker',
+        ]
+    ];
+    return [
+      new DivElement()
+        ..classes = ['frameSummary']
+        ..children = content
+    ];
+  }
+
   List<Element> _createHeader() {
     final content = [
       new DivElement()
@@ -2578,9 +2636,14 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   bool matchFrame(S.Frame newFrame) {
+    if (newFrame.kind != _frame.kind) {
+      return false;
+    }
+    if (newFrame.function == null) {
+      return frame.function == null;
+    }
     return (newFrame.function.id == _frame.function.id &&
-            newFrame.location.script.id ==
-            frame.location.script.id);
+        newFrame.location.script.id == frame.location.script.id);
   }
 
   void updateFrame(S.Frame newFrame) {

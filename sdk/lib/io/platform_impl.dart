@@ -40,7 +40,7 @@ class _Platform {
 
   // Cache the OS environment. This can be an OSError instance if
   // retrieving the environment failed.
-  static var/*OSError|Map<String,String>*/ _environmentCache;
+  static var /*OSError|Map<String,String>*/ _environmentCache;
 
   static int get numberOfProcessors => _numberOfProcessors();
   static String get pathSeparator => _pathSeparator();
@@ -61,7 +61,7 @@ class _Platform {
   static Map<String, String> get environment {
     if (_environmentCache == null) {
       var env = _environment();
-      if (env is !OSError) {
+      if (env is! OSError) {
         var isWindows = operatingSystem == 'windows';
         var result = isWindows
             ? new _CaseInsensitiveStringMap<String>()
@@ -109,15 +109,24 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   void operator []=(String key, V value) {
     _map[key.toUpperCase()] = value;
   }
+
   V putIfAbsent(String key, V ifAbsent()) {
     return _map.putIfAbsent(key.toUpperCase(), ifAbsent);
   }
+
   void addAll(Map<String, V> other) {
     other.forEach((key, value) => this[key.toUpperCase()] = value);
   }
+
   V remove(Object key) => key is String ? _map.remove(key.toUpperCase()) : null;
-  void clear() { _map.clear(); }
-  void forEach(void f(String key, V value)) { _map.forEach(f); }
+  void clear() {
+    _map.clear();
+  }
+
+  void forEach(void f(String key, V value)) {
+    _map.forEach(f);
+  }
+
   Iterable<String> get keys => _map.keys;
   Iterable<V> get values => _map.values;
   int get length => _map.length;

@@ -14,12 +14,23 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisOptions, Element;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/computer/computer_highlights.dart';
+import 'package:analysis_server/src/computer/computer_highlights2.dart';
+import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -37,18 +48,20 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
@@ -89,7 +102,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.17.0';
+  static final String VERSION = '1.18.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -97,6 +110,11 @@ class AnalysisServer {
    * to stdin. This should be removed once the underlying problem is fixed.
    */
   static int performOperationDelayFrequency = 25;
+
+  /**
+   * IDE options for this server instance.
+   */
+  IdeOptions ideOptions;
 
   /**
    * The options of this server instance.
@@ -108,6 +126,13 @@ class AnalysisServer {
    * be sent.
    */
   final ServerCommunicationChannel channel;
+
+  /**
+   * The object used to manage sending a subset of notifications to the client.
+   * The subset of notifications are those to which plugins may contribute.
+   * This field is `null` when the new plugin support is disabled.
+   */
+  final NotificationManager notificationManager;
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -225,11 +250,6 @@ class AnalysisServer {
   ServerPerformance _performance;
 
   /**
-   * The option possibly set from the server initialization which disables error notifications.
-   */
-  bool _noErrorNotification;
-
-  /**
    * The [Completer] that completes when analysis is complete.
    */
   Completer _onAnalysisCompleteCompleter;
@@ -317,19 +337,33 @@ class AnalysisServer {
    */
   ResolverProvider packageResolverProvider;
 
-  /**
-   * The manager of pub package summaries.
-   */
-  PubSummaryManager pubSummaryManager;
-
   nd.PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
 
   /**
+   * This exists as a temporary stopgap for plugins, until the official plugin
+   * API is complete.
+   */
+  StreamController<String> _onFileAddedController;
+
+  /**
+   * This exists as a temporary stopgap for plugins, until the official plugin
+   * API is complete.
+   */
+  StreamController<String> _onFileChangedController;
+
+  /**
    * The set of the files that are currently priority.
    */
   final Set<String> priorityFiles = new Set<String>();
+
+  /**
+   * The DiagnosticServer for this AnalysisServer. If available, it can be used
+   * to start an http diagnostics server or return the port for an existing
+   * server.
+   */
+  DiagnosticServer diagnosticServer;
 
   /**
    * Initialize a newly created server to receive requests from and send
@@ -349,10 +383,13 @@ class AnalysisServer {
       this.options,
       this.sdkManager,
       this.instrumentationService,
-      {ResolverProvider fileResolverProvider: null,
+      {this.diagnosticServer,
+      ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
-      this.rethrowExceptions: true}) {
+      this.rethrowExceptions: true})
+      : notificationManager =
+            new NotificationManager(channel, resourceProvider) {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -377,15 +414,7 @@ class AnalysisServer {
       }
       _analysisPerformanceLogger = new nd.PerformanceLog(sink);
     }
-    if (resourceProvider is PhysicalResourceProvider) {
-      byteStore = new MemoryCachingByteStore(
-          new FileByteStore(
-              resourceProvider.getStateLocation('.analysis-driver').path,
-              1024 * 1024 * 1024 /*1 GiB*/),
-          64 * 1024 * 1024 /*64 MiB*/);
-    } else {
-      byteStore = new MemoryByteStore();
-    }
+    byteStore = _createByteStore();
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
@@ -410,10 +439,13 @@ class AnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
+    // temporary plugin support:
+    _onFileAddedController = new StreamController.broadcast();
+    // temporary plugin support:
+    _onFileChangedController = new StreamController.broadcast();
     _onPriorityChangeController =
         new StreamController<PriorityChangeEvent>.broadcast();
     running = true;
@@ -427,16 +459,15 @@ class AnalysisServer {
     if (options.enableNewAnalysisDriver) {
       searchEngine = new SearchEngineImpl2(driverMap.values);
     } else if (index != null) {
-      searchEngine = new SearchEngineImpl(index);
+      searchEngine = new SearchEngineImpl(index, getAstProvider);
     }
-    pubSummaryManager =
-        new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
+    ideOptions = new IdeOptions.from(options);
   }
 
   /**
@@ -505,9 +536,23 @@ class AnalysisServer {
       _onContextsChangedController.stream;
 
   /**
+   * The stream that is notified when a single file has been added. This exists
+   * as a temporary stopgap for plugins, until the official plugin API is
+   * complete.
+   */
+  Stream get onFileAdded => _onFileAddedController.stream;
+
+  /**
    * The stream that is notified when a single file has been analyzed.
    */
   Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
+
+  /**
+   * The stream that is notified when a single file has been changed. This
+   * exists as a temporary stopgap for plugins, until the official plugin API is
+   * complete.
+   */
+  Stream get onFileChanged => _onFileChangedController.stream;
 
   /**
    * The stream that is notified when priority sources change.
@@ -624,6 +669,10 @@ class AnalysisServer {
    * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path) async {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
     try {
       nd.AnalysisDriver driver = getAnalysisDriver(path);
       return await driver?.getResult(path);
@@ -631,6 +680,19 @@ class AnalysisServer {
       // Ignore the exception.
       // We don't want to log the same exception again and again.
       return null;
+    }
+  }
+
+  /**
+   * Return the [AstProvider] for the given [path].
+   */
+  AstProvider getAstProvider(String path) {
+    if (options.enableNewAnalysisDriver) {
+      var analysisDriver = getAnalysisDriver(path);
+      return new AstProviderForDriver(analysisDriver);
+    } else {
+      var analysisContext = getAnalysisContext(path);
+      return new AstProviderForContext(analysisContext);
     }
   }
 
@@ -1210,6 +1272,9 @@ class AnalysisServer {
    */
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
+    if (notificationManager != null) {
+      notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+    }
     try {
       contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
     } on UnimplementedError catch (e) {
@@ -1223,20 +1288,19 @@ class AnalysisServer {
    */
   void setAnalysisSubscriptions(
       Map<AnalysisService, Set<String>> subscriptions) {
+    if (notificationManager != null) {
+      notificationManager.setSubscriptions(subscriptions);
+    }
     if (options.enableNewAnalysisDriver) {
       this.analysisServices = subscriptions;
-      Iterable<nd.AnalysisDriver> drivers = driverMap.values;
-      if (drivers.isNotEmpty) {
-        Set<String> allNewFiles =
-            subscriptions.values.expand((files) => files).toSet();
-        for (String file in allNewFiles) {
-          nd.AnalysisDriver driver = drivers.firstWhere(
-              (driver) => driver.addedFiles.contains(file),
-              orElse: () => drivers.first);
-          // The result will be produced by the "results" stream with
-          // the fully resolved unit, and processed with sending analysis
-          // notifications as it happens after content changes.
-          driver.getResult(file).catchError((exception, stackTrace) {});
+      Set<String> allNewFiles =
+          subscriptions.values.expand((files) => files).toSet();
+      for (String file in allNewFiles) {
+        // The result will be produced by the "results" stream with
+        // the fully resolved unit, and processed with sending analysis
+        // notifications as it happens after content changes.
+        if (AnalysisEngine.isDartFileName(file)) {
+          getAnalysisResult(file);
         }
       }
       return;
@@ -1416,7 +1480,7 @@ class AnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    return !_noErrorNotification && contextManager.isInAnalysisRoot(file);
+    return contextManager.isInAnalysisRoot(file);
   }
 
   void shutdown() {
@@ -1494,6 +1558,9 @@ class AnalysisServer {
         driverMap.values.forEach((driver) {
           driver.changeFile(file);
         });
+
+        // temporary plugin support:
+        _onFileChangedController.add(file);
 
         // If the file did not exist, and is "overlay only", it still should be
         // analyzed. Add it to driver to which it should have been added.
@@ -1649,6 +1716,24 @@ class AnalysisServer {
   }
 
   /**
+   * If the state location can be accessed, return the file byte store,
+   * otherwise return the memory byte store.
+   */
+  ByteStore _createByteStore() {
+    const int M = 1024 * 1024 /*1 MiB*/;
+    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    if (resourceProvider is PhysicalResourceProvider) {
+      Folder stateLocation =
+          resourceProvider.getStateLocation('.analysis-driver');
+      if (stateLocation != null) {
+        return new MemoryCachingByteStore(
+            new EvictingFileByteStore(stateLocation.path, G), 64 * M);
+      }
+    }
+    return new MemoryCachingByteStore(new NullByteStore(), 64 * M);
+  }
+
+  /**
    * Return a set of all contexts whose associated folder is contained within,
    * or equal to, one of the resources in the given list of [resources].
    */
@@ -1767,13 +1852,13 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool enablePubSummaryManager = false;
   bool finerGrainedInvalidation = false;
-  bool noErrorNotification = false;
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
+  // IDE options
+  bool enableVerboseFlutterCompletions = false;
 }
 
 /**
@@ -1820,37 +1905,81 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   nd.AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options) {
     ContextBuilder builder = createContextBuilder(folder, options);
     nd.AnalysisDriver analysisDriver = builder.buildDriver(folder.path);
-    analysisDriver.status.listen((status) {
-      // TODO(scheglov) send server status
-    });
     analysisDriver.results.listen((result) {
-      new_sendErrorNotification(analysisServer, result);
+      NotificationManager notificationManager =
+          analysisServer.notificationManager;
       String path = result.path;
+      if (analysisServer.shouldSendErrorsNotificationFor(path)) {
+        if (notificationManager != null) {
+          notificationManager.recordAnalysisErrors(
+              NotificationManager.serverId,
+              path,
+              server.doAnalysisError_listFromEngine(
+                  result.driver.analysisOptions,
+                  result.lineInfo,
+                  result.errors));
+        } else {
+          new_sendErrorNotification(analysisServer, result);
+        }
+      }
       CompilationUnit unit = result.unit;
       if (unit != null) {
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.HIGHLIGHTS, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationHighlights(analysisServer, path, unit);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.NAVIGATION, path)) {
-          _runDelayed(() {
-            new_sendDartNotificationNavigation(analysisServer, result);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.OCCURRENCES, path)) {
-          _runDelayed(() {
-            new_sendDartNotificationOccurrences(analysisServer, result);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.OVERRIDES, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationOverrides(analysisServer, path, unit);
-          });
+        if (notificationManager != null) {
+          if (analysisServer._hasAnalysisServiceSubscription(
+              AnalysisService.HIGHLIGHTS, path)) {
+            _runDelayed(() {
+              notificationManager.recordHighlightRegions(
+                  NotificationManager.serverId,
+                  path,
+                  _computeHighlightRegions(unit));
+            });
+          }
+          if (analysisServer._hasAnalysisServiceSubscription(
+              AnalysisService.NAVIGATION, path)) {
+            _runDelayed(() {
+              notificationManager.recordNavigationParams(
+                  NotificationManager.serverId,
+                  path,
+                  _computeNavigationParams(path, unit));
+            });
+          }
+          if (analysisServer._hasAnalysisServiceSubscription(
+              AnalysisService.OCCURRENCES, path)) {
+            _runDelayed(() {
+              notificationManager.recordOccurrences(
+                  NotificationManager.serverId,
+                  path,
+                  _computeOccurrences(unit));
+            });
+          }
+//          if (analysisServer._hasAnalysisServiceSubscription(
+//              AnalysisService.OUTLINE, path)) {
+//            _runDelayed(() {
+//              // TODO(brianwilkerson) Change NotificationManager to store params
+//              // so that fileKind and libraryName can be recorded / passed along.
+//              notificationManager.recordOutlines(NotificationManager.serverId,
+//                  path, _computeOutlineParams(path, unit, result.lineInfo));
+//            });
+//          }
+        } else {
+          if (analysisServer._hasAnalysisServiceSubscription(
+              AnalysisService.HIGHLIGHTS, path)) {
+            _runDelayed(() {
+              sendAnalysisNotificationHighlights(analysisServer, path, unit);
+            });
+          }
+          if (analysisServer._hasAnalysisServiceSubscription(
+              AnalysisService.NAVIGATION, path)) {
+            _runDelayed(() {
+              new_sendDartNotificationNavigation(analysisServer, result);
+            });
+          }
+          if (analysisServer._hasAnalysisServiceSubscription(
+              AnalysisService.OCCURRENCES, path)) {
+            _runDelayed(() {
+              new_sendDartNotificationOccurrences(analysisServer, result);
+            });
+          }
         }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
@@ -1863,13 +1992,21 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
                 analysisServer, path, result.lineInfo, sourceKind, unit);
           });
         }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OVERRIDES, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationOverrides(analysisServer, path, unit);
+          });
+        }
+        // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
       }
-      // TODO(scheglov) Implement more notifications.
-      // IMPLEMENTED
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
-      AnalysisEngine.instance.logger
-          .logError('Analysis failed: ${result.path}', result.exception);
+      String message = 'Analysis failed: ${result.path}';
+      if (result.contextKey != null) {
+        message += ' context: ${result.contextKey}';
+      }
+      AnalysisEngine.instance.logger.logError(message, result.exception);
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
@@ -1896,9 +2033,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (analysisDriver != null) {
         changeSet.addedSources.forEach((source) {
           analysisDriver.addFile(source.fullName);
+          // temporary plugin support:
+          analysisServer._onFileAddedController.add(source.fullName);
         });
         changeSet.changedSources.forEach((source) {
           analysisDriver.changeFile(source.fullName);
+          // temporary plugin support:
+          analysisServer._onFileChangedController.add(source.fullName);
         });
         changeSet.removedSources.forEach((source) {
           analysisDriver.removeFile(source.fullName);
@@ -1949,9 +2090,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    if (analysisServer.options.enablePubSummaryManager) {
-      builderOptions.pubSummaryManager = analysisServer.pubSummaryManager;
-    }
     ContextBuilder builder = new ContextBuilder(resourceProvider,
         analysisServer.sdkManager, analysisServer.overlayState,
         options: builderOptions);
@@ -1995,6 +2133,65 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  List<server.HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
+    if (analysisServer.options.useAnalysisHighlight2) {
+      return new DartUnitHighlightsComputer2(unit).compute();
+    } else {
+      return new DartUnitHighlightsComputer(unit).compute();
+    }
+  }
+
+  String _computeLibraryName(CompilationUnit unit) {
+    for (Directive directive in unit.directives) {
+      if (directive is LibraryDirective && directive.name != null) {
+        return directive.name.name;
+      }
+    }
+    for (Directive directive in unit.directives) {
+      if (directive is PartOfDirective && directive.libraryName != null) {
+        return directive.libraryName.name;
+      }
+    }
+    return null;
+  }
+
+  server.AnalysisNavigationParams _computeNavigationParams(
+      String path, CompilationUnit unit) {
+    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    computeDartNavigation(collector, unit, null, null);
+    collector.createRegions();
+    return new server.AnalysisNavigationParams(
+        path, collector.regions, collector.targets, collector.files);
+  }
+
+  List<Occurrences> _computeOccurrences(CompilationUnit unit) {
+    OccurrencesCollectorImpl collector = new OccurrencesCollectorImpl();
+    addDartOccurrences(collector, unit);
+    return collector.allOccurrences;
+  }
+
+  server.AnalysisOutlineParams _computeOutlineParams(
+      String path, CompilationUnit unit, LineInfo lineInfo) {
+    // compute FileKind
+    SourceKind sourceKind = unit.directives.any((d) => d is PartOfDirective)
+        ? SourceKind.PART
+        : SourceKind.LIBRARY;
+    server.FileKind fileKind = server.FileKind.LIBRARY;
+    if (sourceKind == SourceKind.LIBRARY) {
+      fileKind = server.FileKind.LIBRARY;
+    } else if (sourceKind == SourceKind.PART) {
+      fileKind = server.FileKind.PART;
+    }
+    // compute library name
+    String libraryName = _computeLibraryName(unit);
+    // compute Outline
+    DartUnitOutlineComputer computer =
+        new DartUnitOutlineComputer(path, lineInfo, unit);
+    server.Outline outline = computer.compute();
+    return new server.AnalysisOutlineParams(path, fileKind, outline,
+        libraryName: libraryName);
   }
 
   /**

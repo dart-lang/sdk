@@ -536,11 +536,13 @@ Dart_Handle Api::AcquiredError(Isolate* isolate) {
 
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   CHECK_ISOLATE(isolate);
 
   // Check against all of the handles in the current isolate as well as the
   // read-only handles.
-  return isolate->thread_registry()->IsValidHandle(handle) ||
+  return thread->IsValidHandle(handle) ||
          isolate->api_state()->IsActivePersistentHandle(
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
          isolate->api_state()->IsActiveWeakPersistentHandle(
@@ -804,13 +806,6 @@ DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
 
 DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
   return Api::ClassId(object) == kUnwindErrorCid;
-}
-
-
-DART_EXPORT bool Dart_IsVMRestartRequest(Dart_Handle handle) {
-  DARTSCOPE(Thread::Current());
-  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
-  return (obj.IsUnwindError() && UnwindError::Cast(obj).is_vm_restart());
 }
 
 
@@ -1190,9 +1185,9 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
 
   return Dart::InitOnce(
       params->vm_snapshot_data, params->vm_snapshot_instructions,
-      params->create, params->shutdown, params->thread_exit, params->file_open,
-      params->file_read, params->file_write, params->file_close,
-      params->entropy_source, params->get_service_assets);
+      params->create, params->shutdown, params->cleanup, params->thread_exit,
+      params->file_open, params->file_read, params->file_write,
+      params->file_close, params->entropy_source, params->get_service_assets);
 }
 
 
@@ -5112,6 +5107,11 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
     if (Symbols::DartIsVM().Equals(name)) {
       return Symbols::True().raw();
     }
+    if (FLAG_causal_async_stacks) {
+      if (Symbols::DartDeveloperCausalAsyncStacks().Equals(name)) {
+        return Symbols::True().raw();
+      }
+    }
   }
   return result.raw();
 }
@@ -5408,7 +5408,6 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
     return Api::NewHandle(T, tmp.raw());
   }
   library ^= tmp.raw();
-  library.set_debuggable(false);
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());
 #endif
@@ -5526,8 +5525,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   // Construct the type object, canonicalize it and return.
   Type& instantiated_type =
       Type::Handle(Type::New(cls, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(
-      cls, instantiated_type, ClassFinalizer::kCanonicalize);
+  instantiated_type ^= ClassFinalizer::FinalizeType(cls, instantiated_type);
   return Api::NewHandle(T, instantiated_type.raw());
 }
 
@@ -6013,14 +6011,6 @@ DART_EXPORT bool Dart_KernelIsolateIsRunning() {
 }
 
 
-DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort() {
-#ifdef DART_PRECOMPILED_RUNTIME
-  return ILLEGAL_PORT;
-#else
-  return KernelIsolate::WaitForKernelPort();
-#endif
-}
-
 DART_EXPORT Dart_Port Dart_KernelPort() {
 #ifdef DART_PRECOMPILED_RUNTIME
   return false;
@@ -6029,6 +6019,18 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 #endif
 }
 
+
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernel(const char* script_uri) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  Dart_KernelCompilationResult result;
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_CompileToKernel is unsupported.");
+  return result;
+#else
+  return KernelIsolate::CompileToKernel(script_uri);
+#endif
+}
 
 // --- Service support ---
 
@@ -6563,8 +6565,8 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
             intptr_t num_args_checked = ic_data_.NumArgsTested();
             js_icdata.AddProperty("argsTested", num_args_checked);
             JSONArray js_entries(&js_icdata, "entries");
-            for (intptr_t check = 0; check < ic_data_.NumberOfChecks();
-                 check++) {
+            const intptr_t number_of_checks = ic_data_.NumberOfChecks();
+            for (intptr_t check = 0; check < number_of_checks; check++) {
               GrowableArray<intptr_t> class_ids(num_args_checked);
               ic_data_.GetClassIdsAt(check, &class_ids);
               for (intptr_t k = 0; k < num_args_checked; k++) {
@@ -6596,6 +6598,16 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 #endif
 }
 
+DART_EXPORT void Dart_SortClasses() {
+  DARTSCOPE(Thread::Current());
+  // We don't have mechanisms to change class-ids that are embedded in code and
+  // ICData.
+  ClassFinalizer::ClearAllCode();
+  // Make sure that ICData etc. that have been cleared are also removed from
+  // the heap so that they are not found by the heap verifier.
+  Isolate::Current()->heap()->CollectAllGarbage();
+  ClassFinalizer::SortClasses();
+}
 
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
@@ -6667,6 +6679,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                             &image_writer, &image_writer);
 
   writer.WriteFullSnapshot();
+  image_writer.Finalize();
   *assembly_size = image_writer.AssemblySize();
 
   return Api::Success();
@@ -6690,6 +6703,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
+#elif defined(TARGET_OS_FUCHSIA)
+  return Api::NewError(
+      "AOT as blobs is not supported on Fuchsia; use dylibs instead.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());

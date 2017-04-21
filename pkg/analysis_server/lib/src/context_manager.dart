@@ -301,6 +301,19 @@ abstract class ContextManager {
   AnalysisDriver getDriverFor(String path);
 
   /**
+   * Like [getDriverFor] and [getContextFor], but returns the [Folder] which
+   * allows plugins to create & manage their own tree of drivers just like using
+   * [getDriverFor].
+   *
+   * This folder should be the root of analysis context, not just the containing
+   * folder of the path (like basename), as this is NOT just a file API.
+   *
+   * This exists at least temporarily, for plugin support until the new API is
+   * ready.
+   */
+  Folder getContextFolderFor(String path);
+
+  /**
    * Return a list of all of the analysis drivers reachable from the given
    * [analysisRoot] (the driver associated with [analysisRoot] and all of its
    * descendants).
@@ -614,6 +627,10 @@ class ContextManagerImpl implements ContextManager {
     return _getInnermostContextInfoFor(path)?.analysisDriver;
   }
 
+  Folder getContextFolderFor(String path) {
+    return _getInnermostContextInfoFor(path)?.folder;
+  }
+
   @override
   List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot) {
     List<AnalysisDriver> drivers = <AnalysisDriver>[];
@@ -705,10 +722,12 @@ class ContextManagerImpl implements ContextManager {
     var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is Map) {
       // Set ignore patterns.
-      YamlList exclude = analyzer[AnalyzerOptions.exclude];
-      List<String> excludeList = toStringList(exclude);
-      if (excludeList != null) {
-        setIgnorePatternsForContext(info, excludeList);
+      var exclude = analyzer[AnalyzerOptions.exclude];
+      if (exclude is YamlList) {
+        List<String> excludeList = toStringList(exclude);
+        if (excludeList != null) {
+          setIgnorePatternsForContext(info, excludeList);
+        }
       }
     }
   }

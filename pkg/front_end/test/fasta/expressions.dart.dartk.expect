@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int i = 0;
+  core::print(i.==(1) ? "bad" : "good");
+  core::print("${i}");
+  core::print("'${i}'");
+  core::print(" '${i}' ");
+  core::print(" '${i}' '${i}'");
+  core::print(" '${i}' '${i}'");
+  core::print("foobar");
+  core::print(" '${i}' '${i}' '${i}' '${i}'");
+  try {
+    throw "fisk";
+  }
+  on core::String catch(dynamic e, dynamic s) {
+    core::print(e);
+    if(!s.==(null))
+      core::print(s);
+  }
+  for (; false; ) {
+  }
+  dynamic list = <dynamic>["Hello, World!"];
+  core::print(list.[](i));
+  list.[]=(i, "Hello, Brave New World!");
+  core::print(list.[](i));
+  i = 87;
+  core::print(i.unary-());
+  core::print(i.~());
+  core::print(!i.==(42));
+  core::print(i = i.-(1));
+  core::print(i = i.+(1));
+  core::print(let final dynamic #t1 = i in let final dynamic #t2 = i = #t1.-(1) in #t1);
+  core::print(let final dynamic #t3 = i in let final dynamic #t4 = i = #t3.+(1) in #t3);
+}

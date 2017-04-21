@@ -8,10 +8,66 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../type_environment.dart';
+import '../library_index.dart';
 
-Program transformProgram(Program program) {
-  new TreeShaker(program).transform(program);
+Program transformProgram(Program program, {List<ProgramRoot> programRoots}) {
+  new TreeShaker(program, programRoots: programRoots).transform(program);
   return program;
+}
+
+enum ProgramRootKind {
+  /// The root is a class which will be instantiated by
+  /// external / non-Dart code.
+  ExternallyInstantiatedClass,
+
+  /// The root is a setter function or a field.
+  Setter,
+
+  /// The root is a getter function or a field.
+  Getter,
+
+  /// The root is some kind of constructor.
+  Constructor,
+
+  /// The root is a field, normal procedure or constructor.
+  Other,
+}
+
+/// A program root which the vm or embedder uses and needs to be retained.
+class ProgramRoot {
+  /// The library the root is contained in.
+  final String library;
+
+  /// The name of the class inside the library (optional).
+  final String klass;
+
+  /// The name of the member inside the library (or class, optional).
+  final String member;
+
+  /// The kind of this program root.
+  final ProgramRootKind kind;
+
+  ProgramRoot(this.library, this.klass, this.member, this.kind);
+
+  String toString() => "ProgramRoot($library, $klass, $member, $kind)";
+
+  String get disambiguatedName {
+    if (kind == ProgramRootKind.Getter) return 'get:$member';
+    if (kind == ProgramRootKind.Setter) return 'set:$member';
+    return member;
+  }
+
+  Member getMember(LibraryIndex table) {
+    assert(klass != null);
+    assert(member != null);
+    return table.getMember(
+        library, klass ?? LibraryIndex.topLevel, disambiguatedName);
+  }
+
+  Class getClass(LibraryIndex table) {
+    assert(klass != null);
+    return table.getClass(library, klass);
+  }
 }
 
 /// Tree shaking based on class hierarchy analysis.
@@ -30,13 +86,13 @@ Program transformProgram(Program program) {
 ///
 /// If the `dart:mirrors` library is used then nothing will be tree-shaken.
 //
-// TODO(asgerf): Shake off parts of the core libraries based on the Target.
 // TODO(asgerf): Tree shake unused instance fields.
 class TreeShaker {
   final Program program;
   final ClassHierarchy hierarchy;
   final CoreTypes coreTypes;
   final bool strongMode;
+  final List<ProgramRoot> programRoots;
 
   /// Map from classes to set of names that have been dispatched with that class
   /// as the static receiver type (meaning any subtype of that class can be
@@ -107,10 +163,17 @@ class TreeShaker {
   /// Set to true if any use of the `dart:mirrors` API is found.
   bool isUsingMirrors = false;
 
+  /// If we have roots, we will shake, even if we encounter some elements from
+  /// the mirrors library.
+  bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
+
   TreeShaker(Program program,
-      {ClassHierarchy hierarchy, CoreTypes coreTypes, bool strongMode: false})
+      {ClassHierarchy hierarchy,
+      CoreTypes coreTypes,
+      bool strongMode: false,
+      List<ProgramRoot> programRoots})
       : this._internal(program, hierarchy ?? new ClassHierarchy(program),
-            coreTypes ?? new CoreTypes(program), strongMode);
+            coreTypes ?? new CoreTypes(program), strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -145,8 +208,8 @@ class TreeShaker {
     new _TreeShakingTransformer(this).transform(program);
   }
 
-  TreeShaker._internal(
-      this.program, ClassHierarchy hierarchy, this.coreTypes, this.strongMode)
+  TreeShaker._internal(this.program, ClassHierarchy hierarchy, this.coreTypes,
+      this.strongMode, this.programRoots)
       : this.hierarchy = hierarchy,
         this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
         this._usedMembersWithHost =
@@ -159,7 +222,7 @@ class TreeShaker {
         new _ExternalTypeVisitor(this, isContravariant: true);
     _invariantVisitor = new _ExternalTypeVisitor(this,
         isCovariant: true, isContravariant: true);
-    _mirrorsLibrary = coreTypes.getCoreLibrary('dart:mirrors');
+    _mirrorsLibrary = coreTypes.tryGetLibrary('dart:mirrors');
     try {
       _build();
     } on _UsingMirrorsException {
@@ -179,6 +242,13 @@ class TreeShaker {
     _addDispatchedName(hierarchy.rootClass, new Name('noSuchMethod'));
     _addPervasiveUses();
     _addUsedMember(null, program.mainMethod);
+    if (programRoots != null) {
+      var table = new LibraryIndex(program, programRoots.map((r) => r.library));
+      for (var root in programRoots) {
+        _addUsedRoot(root, table);
+      }
+    }
+
     _iterateWorklist();
 
     // Mark overridden members in order to preserve abstract members as
@@ -370,6 +440,38 @@ class TreeShaker {
     visitList(classNode.annotations, _visitor);
   }
 
+  /// Registers the given root as being used.
+  void _addUsedRoot(ProgramRoot root, LibraryIndex table) {
+    if (root.kind == ProgramRootKind.ExternallyInstantiatedClass) {
+      Class class_ = root.getClass(table);
+
+      // This is a class which will be instantiated by non-Dart code (whether it
+      // has a valid generative construtor or not).
+      _addInstantiatedClass(class_);
+
+      // We keep all the constructors of externally instantiated classes.
+      // Sometimes the runtime might do a constructor call and sometimes it
+      // might just allocate the class without invoking the constructor.
+      // So we try to be on the safe side here!
+      for (var constructor in class_.constructors) {
+        _addUsedMember(class_, constructor);
+      }
+
+      // We keep all factory constructors as well for the same reason.
+      for (var member in class_.procedures) {
+        if (member.isStatic && member.kind == ProcedureKind.Factory) {
+          _addUsedMember(class_, member);
+        }
+      }
+    } else {
+      var member = root.getMember(table);
+      _addUsedMember(member.enclosingClass, member);
+      if (member is Constructor) {
+        _addInstantiatedClass(member.enclosingClass);
+      }
+    }
+  }
+
   /// Registers the given class as being used in a type annotation.
   void _addClassUsedInType(Class classNode) {
     int index = hierarchy.getClassIndex(classNode);
@@ -400,7 +502,7 @@ class TreeShaker {
   ///   the initializer list of another constructor.
   /// - Procedures are used if they can be invoked or torn off.
   void _addUsedMember(Class host, Member member) {
-    if (member.enclosingLibrary == _mirrorsLibrary) {
+    if (!forceShaking && member.enclosingLibrary == _mirrorsLibrary) {
       throw new _UsingMirrorsException();
     }
     if (host != null) {
@@ -807,16 +909,6 @@ class _TreeShakingTransformer extends Transformer {
   }
 
   void transform(Program program) {
-    for (var library in program.libraries) {
-      if (library.importUri.scheme == 'dart') {
-        // The backend expects certain things to be present in the core
-        // libraries, so we currently don't shake off anything there.
-        continue;
-      }
-      library.transformChildren(this);
-      // Note: we can't shake off empty libraries yet since we don't check if
-      // there are private names that use the library.
-    }
     for (Expression node in shaker._typedCalls) {
       // We should not leave dangling references, so if the target of a typed
       // call has been removed, we must remove the reference.  The receiver of
@@ -830,11 +922,22 @@ class _TreeShakingTransformer extends Transformer {
         node.interfaceTarget = _translateInterfaceTarget(node.interfaceTarget);
       }
     }
+    for (var library in program.libraries) {
+      if (!shaker.forceShaking && library.importUri.scheme == 'dart') {
+        // The backend expects certain things to be present in the core
+        // libraries, so we currently don't shake off anything there.
+        continue;
+      }
+      library.transformChildren(this);
+      // Note: we can't shake off empty libraries yet since we don't check if
+      // there are private names that use the library.
+    }
   }
 
   Class visitClass(Class node) {
     switch (shaker.getClassRetention(node)) {
       case ClassRetention.None:
+        node.canonicalName?.unbind();
         return null; // Remove the class.
 
       case ClassRetention.Namespace:
@@ -865,6 +968,7 @@ class _TreeShakingTransformer extends Transformer {
   Member defaultMember(Member node) {
     if (!shaker.isMemberBodyUsed(node)) {
       if (!shaker.isMemberOverridden(node)) {
+        node.canonicalName?.unbind();
         return null;
       }
       if (node is Procedure) {
@@ -928,6 +1032,8 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
   }
 
   visitVoidType(VoidType node) {}
+
+  visitVectorType(VectorType node) {}
 
   visitInterfaceType(InterfaceType node) {
     if (isCovariant) {

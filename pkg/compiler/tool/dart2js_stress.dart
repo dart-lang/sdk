@@ -21,9 +21,12 @@ void main(List<String> args) {
         "Use '$ITERATIONS_FLAG_PREFIX<count>' to set a repetition count"
         " (as first flag).");
   }
-  args = ["--suppress-warnings", "--suppress-hints", "--library-root="
-      "${Platform.script.resolve('../../../sdk').toFilePath()}"]
-           ..addAll(args);
+  args = [
+    "--suppress-warnings",
+    "--suppress-hints",
+    "--library-root="
+        "${Platform.script.resolve('../../../sdk').toFilePath()}"
+  ]..addAll(args);
   void iterate() {
     count++;
     sw.reset();

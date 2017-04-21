@@ -20,11 +20,11 @@ DECLARE_FLAG(bool, trace_type_checks);
 // Helper function in stacktrace.cc.
 void _printCurrentStackTrace();
 
-DEFINE_NATIVE_ENTRY(DartCore_fatal, 1) {
-  // The core library code entered an unrecoverable state.
+DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
+  // The dart:async library code entered an unrecoverable state.
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
-  OS::PrintErr("Fatal error in dart:core\n");
+  OS::PrintErr("Fatal error in dart:async: %s\n", msg);
   _printCurrentStackTrace();
   FATAL(msg);
   return Object::null();
@@ -82,9 +82,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   dart_arguments.SetAt(3, func_args);
   dart_arguments.SetAt(4, func_named_args);
 
-  if (is_method.value() &&
-      (((invocation_type.Value() >> InvocationMirror::kCallShift) &
-        InvocationMirror::kCallMask) != InvocationMirror::kSuper)) {
+  if (is_method.value()) {
     // Report if a function with same name (but different arguments) has been
     // found.
     Function& function = Function::Handle();
@@ -92,7 +90,12 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
       function = Closure::Cast(instance).function();
     } else {
       Class& instance_class = Class::Handle(instance.clazz());
-      function = instance_class.LookupDynamicFunction(member_name);
+      const bool is_super_call =
+          ((invocation_type.Value() >> InvocationMirror::kCallShift) &
+           InvocationMirror::kCallMask) == InvocationMirror::kSuper;
+      if (!is_super_call) {
+        function = instance_class.LookupDynamicFunction(member_name);
+      }
       while (function.IsNull()) {
         instance_class = instance_class.SuperClass();
         if (instance_class.IsNull()) break;
@@ -166,14 +169,13 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 3) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
@@ -206,7 +208,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
                                         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
-  return Bool::Get(negate.value() ? !is_instance_of : is_instance_of).raw();
+  return Bool::Get(is_instance_of).raw();
 }
 
 DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
@@ -236,65 +238,6 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
                                         AbstractType::Handle(zone),
                                         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
-  }
-  return Bool::Get(is_instance_of).raw();
-}
-
-DEFINE_NATIVE_ENTRY(Object_instanceOfNum, 2) {
-  const Instance& instance =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
-  bool is_instance_of = instance.IsNumber();
-  if (negate.value()) {
-    is_instance_of = !is_instance_of;
-  }
-  return Bool::Get(is_instance_of).raw();
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_instanceOfInt, 2) {
-  const Instance& instance =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
-  bool is_instance_of = instance.IsInteger();
-  if (negate.value()) {
-    is_instance_of = !is_instance_of;
-  }
-  return Bool::Get(is_instance_of).raw();
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_instanceOfSmi, 2) {
-  const Instance& instance =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
-  bool is_instance_of = instance.IsSmi();
-  if (negate.value()) {
-    is_instance_of = !is_instance_of;
-  }
-  return Bool::Get(is_instance_of).raw();
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_instanceOfDouble, 2) {
-  const Instance& instance =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
-  bool is_instance_of = instance.IsDouble();
-  if (negate.value()) {
-    is_instance_of = !is_instance_of;
-  }
-  return Bool::Get(is_instance_of).raw();
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_instanceOfString, 2) {
-  const Instance& instance =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
-  bool is_instance_of = instance.IsString();
-  if (negate.value()) {
-    is_instance_of = !is_instance_of;
   }
   return Bool::Get(is_instance_of).raw();
 }

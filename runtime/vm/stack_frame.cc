@@ -22,7 +22,7 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-#if !defined(TARGET_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
   // On Windows, the profiler calls this from a separate thread where
   // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
@@ -223,7 +223,7 @@ RawCode* StackFrame::LookupDartCode() const {
 // We add a no gc scope to ensure that the code below does not trigger
 // a GC as we are handling raw object references here. It is possible
 // that the code is called while a GC is in progress, that is ok.
-#if !defined(TARGET_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
   // On Windows, the profiler calls this from a separate thread where
   // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
@@ -250,12 +250,22 @@ RawCode* StackFrame::GetCodeObject() const {
 bool StackFrame::FindExceptionHandler(Thread* thread,
                                       uword* handler_pc,
                                       bool* needs_stacktrace,
-                                      bool* has_catch_all) const {
+                                      bool* has_catch_all,
+                                      bool* is_optimized) const {
   REUSABLE_CODE_HANDLESCOPE(thread);
   Code& code = reused_code_handle.Handle();
   code = LookupDartCode();
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
+  }
+  *is_optimized = code.is_optimized();
+  HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
+  ExceptionHandlerInfo* info = cache->Lookup(pc());
+  if (info != NULL) {
+    *handler_pc = code.PayloadStart() + info->handler_pc_offset;
+    *needs_stacktrace = info->needs_stacktrace;
+    *has_catch_all = info->has_catch_all;
+    return true;
   }
   uword pc_offset = pc() - code.PayloadStart();
 
@@ -274,11 +284,12 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
     if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-      RawExceptionHandlers::HandlerInfo handler_info;
+      ExceptionHandlerInfo handler_info;
       handlers.GetHandlerInfo(current_try_index, &handler_info);
       *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
       *needs_stacktrace = handler_info.needs_stacktrace;
       *has_catch_all = handler_info.has_catch_all;
+      cache->Insert(pc(), handler_info);
       return true;
     }
   }

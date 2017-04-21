@@ -149,7 +149,7 @@ class AnalysisDomainHandler implements RequestHandler {
     String file = params.file;
 
     if (server.options.enableNewAnalysisDriver) {
-      AnalysisDriver driver = server.getContainingDriver(file);
+      AnalysisDriver driver = server.getAnalysisDriver(file);
       if (driver == null) {
         server.sendResponse(new Response.getNavigationInvalidFile(request));
       } else {
@@ -173,6 +173,7 @@ class AnalysisDomainHandler implements RequestHandler {
         server.onFileAnalysisComplete(file);
     if (analysisFuture == null) {
       server.sendResponse(new Response.getNavigationInvalidFile(request));
+      return;
     }
     analysisFuture.then((AnalysisDoneReason reason) async {
       switch (reason) {

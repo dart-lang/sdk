@@ -16,6 +16,7 @@ import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/get_handler.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -27,6 +28,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:path/path.dart' as path;
 import 'package:plugin/plugin.dart';
 
 /**
@@ -139,7 +141,9 @@ class GetHandler2 implements AbstractGetHandler {
    */
   void handleGetRequest(HttpRequest request) {
     String path = request.uri.path;
-    if (path == '/' || path == STATUS_PATH) {
+    if (path == '/') {
+      _returnRedirect(request, STATUS_PATH);
+    } else if (path == STATUS_PATH) {
       _returnServerStatus(request);
     } else if (path == ANALYSIS_PERFORMANCE_PATH) {
       _returnAnalysisPerformance(request);
@@ -197,8 +201,7 @@ class GetHandler2 implements AbstractGetHandler {
       return _returnFailure(request, 'Analysis server is not running');
     }
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Analysis Performance', [],
-          (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Performance', [], (StringBuffer buffer) {
         buffer.write('<h3>Analysis Performance</h3>');
         _writeTwoColumns(buffer, (StringBuffer buffer) {
           //
@@ -287,7 +290,7 @@ class GetHandler2 implements AbstractGetHandler {
       return _returnFailure(request, 'Analysis server is not running');
     }
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Communication Performance', [],
+      _writePage(buffer, 'Communication Performance', [],
           (StringBuffer buffer) {
         buffer.write('<h3>Communication Performance</h3>');
         _writeTwoColumns(buffer, (StringBuffer buffer) {
@@ -353,8 +356,7 @@ class GetHandler2 implements AbstractGetHandler {
     String value = request.requestedUri.queryParameters['index'];
     int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Completion Stats', [],
-          (StringBuffer buffer) {
+      _writePage(buffer, 'Completion Stats', [], (StringBuffer buffer) {
         _writeCompletionPerformanceDetail(buffer, index);
         _writeCompletionPerformanceList(buffer);
       });
@@ -446,8 +448,8 @@ class GetHandler2 implements AbstractGetHandler {
     }
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(
-          buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
+      String contextName = path.basename(contextFilter);
+      _writePage(buffer, 'Context: $contextName', [contextFilter],
           (StringBuffer buffer) {
         buffer.write('<h3>Configuration</h3>');
 
@@ -539,8 +541,7 @@ class GetHandler2 implements AbstractGetHandler {
 
   void _returnFailure(HttpRequest request, String message) {
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Failure', [],
-          (StringBuffer buffer) {
+      _writePage(buffer, 'Failure', [], (StringBuffer buffer) {
         buffer.write(HTML_ESCAPE.convert(message));
       });
     });
@@ -554,8 +555,7 @@ class GetHandler2 implements AbstractGetHandler {
     String contents = _overlayContents[path];
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Overlay', [],
-          (StringBuffer buffer) {
+      _writePage(buffer, 'Overlay', [], (StringBuffer buffer) {
         buffer.write('<pre>${HTML_ESCAPE.convert(contents)}</pre>');
       });
     });
@@ -571,8 +571,7 @@ class GetHandler2 implements AbstractGetHandler {
     }
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Overlays', [],
-          (StringBuffer buffer) {
+      _writePage(buffer, 'Overlay information', [], (StringBuffer buffer) {
         buffer.write('<table border="1">');
         _overlayContents.clear();
         ContentCache overlayState = analysisServer.overlayState;
@@ -585,7 +584,7 @@ class GetHandler2 implements AbstractGetHandler {
           _overlayContents[fullName] = contents;
         });
         int count = _overlayContents.length;
-        buffer.write('<tr><td colspan="2">Total: $count entries.</td></tr>');
+        buffer.write('<tr><td colspan="2">Total: $count entries</td></tr>');
         buffer.write('</table>');
       });
     });
@@ -596,7 +595,7 @@ class GetHandler2 implements AbstractGetHandler {
    */
   void _returnServerStatus(HttpRequest request) {
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Status', [], (StringBuffer buffer) {
+      _writePage(buffer, 'Status', [], (StringBuffer buffer) {
         if (_writeServerStatus(buffer)) {
           _writeAnalysisStatus(buffer);
           _writeEditStatus(buffer);
@@ -606,6 +605,11 @@ class GetHandler2 implements AbstractGetHandler {
         }
       });
     });
+  }
+
+  void _returnRedirect(HttpRequest request, String pathFragment) {
+    HttpResponse response = request.response;
+    response.redirect(request.uri.resolve(pathFragment));
   }
 
   /**
@@ -636,12 +640,7 @@ class GetHandler2 implements AbstractGetHandler {
    * Return a two digit decimal representation of the given non-negative integer
    * [value].
    */
-  String _twoDigit(int value) {
-    if (value < 10) {
-      return '0$value';
-    }
-    return value.toString();
-  }
+  String _twoDigit(int value) => value.toString().padLeft(2, '0');
 
   /**
    * Write the status of the analysis domain (on the main status page) to the
@@ -659,12 +658,9 @@ class GetHandler2 implements AbstractGetHandler {
       buffer.write('<p>Using package resolver provider: ');
       buffer.write(_server.packageResolverProvider != null);
       buffer.write('</p>');
-      buffer.write('<p>');
-      buffer.write(makeLink(OVERLAYS_PATH, {}, 'All overlay information'));
-      buffer.write('</p>');
+      buffer.write(makeLink(OVERLAYS_PATH, {}, 'Overlay information'));
 
       buffer.write('<p><b>Analysis Contexts</b></p>');
-      buffer.write('<p>');
       bool first = true;
       folders.forEach((Folder folder) {
         if (first) {
@@ -676,19 +672,19 @@ class GetHandler2 implements AbstractGetHandler {
         buffer.write(makeLink(CONTEXT_PATH, {CONTEXT_QUERY_PARAM: folder.path},
             key, _hasException(driverMap[folder])));
         if (!folder.getChild('.packages').exists) {
-          buffer.write(' <small>[no .packages file]</small>');
+          buffer.write(' [no .packages file]');
         }
       });
-      buffer.write('</p>');
 
       int freq = AnalysisServer.performOperationDelayFrequency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
 
       buffer.write('<p><b>Performance Data</b></p>');
-      buffer.write('<p>Perform operation delay: $delay</p>');
-      buffer.write('<p>');
-      buffer.write(makeLink(ANALYSIS_PERFORMANCE_PATH, {}, 'Task data'));
-      buffer.write('</p>');
+      buffer.write(
+          makeLink(ANALYSIS_PERFORMANCE_PATH, {}, 'Analysis performance'));
+      buffer.write('<br>');
+      buffer.write('Perform operation delay: $delay');
+      buffer.write('<br>');
     }, (StringBuffer buffer) {
       _writeSubscriptionMap(
           buffer, AnalysisService.VALUES, analysisServer.analysisServices);
@@ -821,10 +817,7 @@ class GetHandler2 implements AbstractGetHandler {
   void _writeEditStatus(StringBuffer buffer) {
     buffer.write('<h3>Edit Domain</h3>');
     _writeTwoColumns(buffer, (StringBuffer buffer) {
-      buffer.write('<p><b>Performance Data</b></p>');
-      buffer.write('<p>');
-      buffer.write(makeLink(COMPLETION_PATH, {}, 'Completion data'));
-      buffer.write('</p>');
+      buffer.write(makeLink(COMPLETION_PATH, {}, 'Completion stats'));
     }, (StringBuffer buffer) {});
   }
 
@@ -879,8 +872,10 @@ class GetHandler2 implements AbstractGetHandler {
     if (handler != null) {
       buffer.write('<h3>Execution Domain</h3>');
       _writeTwoColumns(buffer, (StringBuffer buffer) {
+        buffer.write('<br>');
+      }, (StringBuffer buffer) {
         _writeSubscriptionList(buffer, ExecutionService.VALUES, services);
-      }, (StringBuffer buffer) {});
+      });
     }
   }
 
@@ -939,7 +934,7 @@ class GetHandler2 implements AbstractGetHandler {
     buffer.write('<meta charset="utf-8">');
     buffer.write(
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">');
-    buffer.write('<title>$title</title>');
+    buffer.write('<title>Analysis Server</title>');
     buffer.write('<style>');
     buffer.write('a {color: #0000DD; text-decoration: none;}');
     buffer.write('a:link.error {background-color: #FFEEEE;}');
@@ -947,8 +942,10 @@ class GetHandler2 implements AbstractGetHandler {
     buffer.write('a:hover.error {background-color: #FFEEEE;}');
     buffer.write('a:active.error {background-color: #FFEEEE;}');
     buffer.write(
-        'h3 {background-color: #DDDDDD; margin-top: 0em; margin-bottom: 0em;}');
-    buffer.write('p {margin-top: 0.5em; margin-bottom: 0.5em;}');
+        'div.subtitle {float: right; font-weight: normal; font-size: 1rem;}');
+    buffer.write('h2 {margin-top: 0;}');
+    buffer.write('h3 {border-bottom: 1px #DDD solid; margin-bottom: 0em;}');
+    buffer.write('p {margin-top: 0.5em; margin-bottom: 0;}');
     buffer.write(
         'p.commentary {margin-top: 1em; margin-bottom: 1em; margin-left: 2em; font-style: italic;}');
 //    response.write('span.error {text-decoration-line: underline; text-decoration-color: red; text-decoration-style: wavy;}');
@@ -962,10 +959,8 @@ class GetHandler2 implements AbstractGetHandler {
     buffer.write('</head>');
 
     buffer.write('<body>');
-    buffer.write(
-        '<h2>$title <small><small>(as of $time on $date)</small></small></h2>');
+    buffer.write('<h2>$title <div class="subtitle">$date, $time</div></h2>');
     if (subtitles != null && subtitles.isNotEmpty) {
-      buffer.write('<blockquote>');
       bool first = true;
       for (String subtitle in subtitles) {
         if (first) {
@@ -977,7 +972,6 @@ class GetHandler2 implements AbstractGetHandler {
         buffer.write(subtitle);
         buffer.write('</b>');
       }
-      buffer.write('</blockquote>');
     }
     try {
       body(buffer);
@@ -1069,7 +1063,11 @@ class GetHandler2 implements AbstractGetHandler {
       } else {
         buffer.write('<td$classAttribute>');
       }
-      buffer.write(columns[i]);
+      if (columns[i] is int) {
+        buffer.write(_writeWithSeparators(columns[i]));
+      } else {
+        buffer.write(columns[i]);
+      }
       if (header) {
         buffer.write('</th>');
       } else {
@@ -1089,36 +1087,48 @@ class GetHandler2 implements AbstractGetHandler {
 
     buffer.write('<h3>Server Domain</h3>');
     _writeTwoColumns(buffer, (StringBuffer buffer) {
+      buffer.write('<p><b>State</b></p>');
       if (analysisServer == null) {
         buffer.write('Status: <span style="color:red">Not running</span>');
         return;
       }
-      buffer.write('<p>');
       buffer.write('Status: Running<br>');
       buffer.write('New analysis driver: ');
       buffer.write(analysisServer.options.enableNewAnalysisDriver);
       buffer.write('<br>');
       buffer.write('Instrumentation: ');
       if (AnalysisEngine.instance.instrumentationService.isActive) {
-        buffer.write('<span style="color:red">Active</span>');
+        buffer.write('<strong>active</strong>');
       } else {
-        buffer.write('Inactive');
+        buffer.write('inactive');
       }
-      buffer.write('<br>');
-      buffer.write('Version: ');
-      buffer.write(AnalysisServer.VERSION);
       buffer.write('<br>');
       buffer.write('Process ID: ');
       buffer.write(pid);
-      buffer.write('</p>');
 
       buffer.write('<p><b>Performance Data</b></p>');
-      buffer.write('<p>');
       buffer.write(makeLink(
           COMMUNICATION_PERFORMANCE_PATH, {}, 'Communication performance'));
-      buffer.write('</p>');
+
+      if (AnalysisEngine.instance.instrumentationService.isActive) {
+        buffer.write('<p><b>Instrumentation</b></p>');
+        InstrumentationServer instrumentationServer = AnalysisEngine
+            .instance.instrumentationService.instrumentationServer;
+        String description = instrumentationServer.describe;
+        HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.ELEMENT);
+        description = htmlEscape.convert(description);
+        // Convert http(s): references to hyperlinks.
+        final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');
+        description = description.replaceAllMapped(urlRegExp, (Match match) {
+          return '<a href="${match.group(0)}">${match.group(1)}</a>';
+        });
+        buffer.write(description.replaceAll('\n', '<br>'));
+      }
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
+      buffer.write('<p><b>Versions</b></p>');
+      buffer.write('Dart SDK: ${Platform.version}<br>');
+      buffer.write('Analysis server version: ${AnalysisServer.VERSION}<br>');
     });
     return analysisServer != null;
   }
@@ -1163,18 +1173,15 @@ class GetHandler2 implements AbstractGetHandler {
       StringBuffer buffer, Enum service, Set<String> subscribedPaths) {
     buffer.write('<p>');
     buffer.write(service.name);
-    buffer.write('</p>');
-    if (subscribedPaths == null || subscribedPaths.isEmpty) {
-      buffer.write('none');
-    } else {
+    buffer.write('<br>');
+    if (subscribedPaths != null && subscribedPaths.isNotEmpty) {
       List<String> paths = subscribedPaths.toList();
       paths.sort();
       for (String path in paths) {
-        buffer.write('<p>');
-        buffer.write(path);
-        buffer.write('</p>');
+        buffer.write('$path<br>');
       }
     }
+    buffer.write('</p>');
   }
 
   /**
@@ -1186,11 +1193,10 @@ class GetHandler2 implements AbstractGetHandler {
   void _writeSubscriptionList(StringBuffer buffer, List<Enum> allServices,
       Set<Enum> subscribedServices) {
     buffer.write('<p><b>Subscriptions</b></p>');
-    buffer.write('<p>');
     for (Enum service in allServices) {
       _writeSubscriptionInList(buffer, service, subscribedServices);
+      buffer.write('<br>');
     }
-    buffer.write('</p>');
   }
 
   /**
@@ -1235,6 +1241,18 @@ class GetHandler2 implements AbstractGetHandler {
         : new Uri(path: path, queryParameters: params);
     String href = HTML_ESCAPE.convert(uri.toString());
     String classAttribute = hasError ? ' class="error"' : '';
-    return '<a href="$href"$classAttribute>$innerHtml</a>';
+    return '<a href="$href" $classAttribute>$innerHtml</a>';
   }
+}
+
+String _writeWithSeparators(int value) {
+  // TODO(devoncarew): Replace with the implementation from package:intl.
+  String str = value.toString();
+  int pos = 3;
+  while (str.length > pos) {
+    int len = str.length;
+    str = '${str.substring(0, len - pos)},${str.substring(len - pos)}';
+    pos += 4;
+  }
+  return str;
 }

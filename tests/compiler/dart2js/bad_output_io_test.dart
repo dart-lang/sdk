@@ -6,10 +6,12 @@
 
 library dart2js.test.bad_output_io;
 
+import 'dart:async';
 import 'dart:io' show exit;
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' show Diagnostic;
+import 'package:compiler/compiler_new.dart' show OutputType;
 import 'package:compiler/src/dart2js.dart'
     show exitFunc, compileFunc, compile, diagnosticHandler;
 import 'package:compiler/src/source_file_provider.dart'
@@ -56,7 +58,8 @@ class CollectingFormattingDiagnosticHandler
 
 testOutputProvider(options, input, diagnostics, output) {
   diagnosticHandler = new CollectingFormattingDiagnosticHandler();
-  output.createEventSink("/non/existing/directory/should/fail/file", "js");
+  output.createOutputSink(
+      "/non/existing/directory/should/fail/file", "js", OutputType.js);
 }
 
 void main() {

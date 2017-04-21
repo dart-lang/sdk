@@ -14,9 +14,9 @@ abstract class A {
 }
 
 class S extends A {
-  var _x;      // was bad: inferred as null, than [null | int]
+  var _x; //      was bad: inferred as null, than [null | int]
   var _y = ''; // was bad: inferred as String, rather than [String | int]
-  var _z;      // was ok : inferred as [null | int]
+  var _z; //      was ok : inferred as [null | int]
 
   set x(v) {
     _x = super.x = v;
@@ -40,7 +40,7 @@ main() {
     ..x = 2
     ..y = 2
     ..z = 2;
-  Expect.equals(false, s.isXNull);      // was incorrectly optimized to 'true'
+  Expect.equals(false, s.isXNull); //      was incorrectly optimized to 'true'
   Expect.equals(false, s._y is String); // was incorrectly optimized to 'true'
-  Expect.equals(false, s.isZNull);      // prints false
+  Expect.equals(false, s.isZNull); //      prints false
 }

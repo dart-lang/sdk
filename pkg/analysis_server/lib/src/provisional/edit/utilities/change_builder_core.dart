@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.plugin.edit.utilities.change_builder_core;
+import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/utilities/change_builder_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A builder used to build a [SourceChange].
@@ -20,18 +19,20 @@ abstract class ChangeBuilder {
   factory ChangeBuilder() = ChangeBuilderImpl;
 
   /**
-   * Return the source change that was built.
+   * Return the source change that was built. The source change will not be
+   * complete until all of the futures returned by [addFileEdit] have completed.
    */
   SourceChange get sourceChange;
 
   /**
    * Use the [buildFileEdit] function to create a collection of edits to the
-   * given [source]. The edits will be added to the source change that is being
-   * built. The [timeStamp] is the time at which the [source] was last modified
-   * and is used by clients to ensure that it is safe to apply the edits.
+   * file with the given [path]. The edits will be added to the source change
+   * that is being built. The [timeStamp] is the time at which the file was last
+   * modified and is used by clients to ensure that it is safe to apply the
+   * edits.
    */
-  void addFileEdit(Source source, int timeStamp,
-      void buildFileEdit(FileEditBuilder builder));
+  Future<Null> addFileEdit(
+      String path, int timeStamp, void buildFileEdit(FileEditBuilder builder));
 }
 
 /**
@@ -92,6 +93,28 @@ abstract class FileEditBuilder {
    */
   void addReplacement(
       int offset, int length, void buildEdit(EditBuilder builder));
+
+  /**
+   * Add an insertion of the given [text] at the given [offset]. The [offset] is
+   * relative to the original source. This is fully equivalent to
+   *
+   *     addInsertion(offset, (EditBuilder builder) {
+   *       builder.write(text);
+   *     });
+   */
+  void addSimpleInsertion(int offset, String text);
+
+  /**
+   * Add a replacement of the text starting at the given [offset] and continuing
+   * for the given [length]. The [offset] is relative to the original source.
+   * The original content will be replaced by the given [text]. This is fully
+   * equivalent to
+   *
+   *     addReplacement(offset, length, (EditBuilder builder) {
+   *       builder.write(text);
+   *     });
+   */
+  void addSimpleReplacement(int offset, int length, String text);
 }
 
 /**

@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 
 class M<T> {
-  var field = () { return T; } ();
+  Type field = () { return T; } ();
 }
 class A<U> {}
 class C1<V> = Object with M<V>;

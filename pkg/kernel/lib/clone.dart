@@ -68,62 +68,68 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitPropertyGet(PropertyGet node) {
-    return new PropertyGet(
-        clone(node.receiver), node.name, node.interfaceTarget);
+    return new PropertyGet.byReference(
+        clone(node.receiver), node.name, node.interfaceTargetReference);
   }
 
   visitPropertySet(PropertySet node) {
-    return new PropertySet(clone(node.receiver), node.name, clone(node.value),
-        node.interfaceTarget);
+    return new PropertySet.byReference(clone(node.receiver), node.name,
+        clone(node.value), node.interfaceTargetReference);
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
-    return new DirectPropertyGet(clone(node.receiver), node.target);
+    return new DirectPropertyGet.byReference(
+        clone(node.receiver), node.targetReference);
   }
 
   visitDirectPropertySet(DirectPropertySet node) {
-    return new DirectPropertySet(
-        clone(node.receiver), node.target, clone(node.value));
+    return new DirectPropertySet.byReference(
+        clone(node.receiver), node.targetReference, clone(node.value));
   }
 
   visitSuperPropertyGet(SuperPropertyGet node) {
-    return new SuperPropertyGet(node.name, node.interfaceTarget);
+    return new SuperPropertyGet.byReference(
+        node.name, node.interfaceTargetReference);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
-    return new SuperPropertySet(
-        node.name, clone(node.value), node.interfaceTarget);
+    return new SuperPropertySet.byReference(
+        node.name, clone(node.value), node.interfaceTargetReference);
   }
 
   visitStaticGet(StaticGet node) {
-    return new StaticGet(node.target);
+    return new StaticGet.byReference(node.targetReference);
   }
 
   visitStaticSet(StaticSet node) {
-    return new StaticSet(node.target, clone(node.value));
+    return new StaticSet.byReference(node.targetReference, clone(node.value));
   }
 
   visitMethodInvocation(MethodInvocation node) {
-    return new MethodInvocation(clone(node.receiver), node.name,
-        clone(node.arguments), node.interfaceTarget);
+    return new MethodInvocation.byReference(clone(node.receiver), node.name,
+        clone(node.arguments), node.interfaceTargetReference);
   }
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
-    return new DirectMethodInvocation(
-        clone(node.receiver), node.target, clone(node.arguments));
+    return new DirectMethodInvocation.byReference(
+        clone(node.receiver), node.targetReference, clone(node.arguments));
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    return new SuperMethodInvocation(
-        node.name, clone(node.arguments), node.interfaceTarget);
+    return new SuperMethodInvocation.byReference(
+        node.name, clone(node.arguments), node.interfaceTargetReference);
   }
 
   visitStaticInvocation(StaticInvocation node) {
-    return new StaticInvocation(node.target, clone(node.arguments));
+    return new StaticInvocation.byReference(
+        node.targetReference, clone(node.arguments),
+        isConst: node.isConst);
   }
 
   visitConstructorInvocation(ConstructorInvocation node) {
-    return new ConstructorInvocation(node.target, clone(node.arguments));
+    return new ConstructorInvocation.byReference(
+        node.targetReference, clone(node.arguments),
+        isConst: node.isConst);
   }
 
   visitNot(Not node) {
@@ -276,8 +282,10 @@ class CloneVisitor extends TreeVisitor {
 
   visitSwitchStatement(SwitchStatement node) {
     for (SwitchCase switchCase in node.cases) {
-      switchCases[switchCase] =
-          new SwitchCase(switchCase.expressions.map(clone).toList(), null);
+      switchCases[switchCase] = new SwitchCase(
+          switchCase.expressions.map(clone).toList(),
+          new List<int>.from(switchCase.expressionOffsets),
+          null);
     }
     return new SwitchStatement(
         clone(node.expression), node.cases.map(clone).toList());
@@ -387,7 +395,9 @@ class CloneVisitor extends TreeVisitor {
         namedParameters: named,
         requiredParameterCount: node.requiredParameterCount,
         returnType: visitType(node.returnType),
-        asyncMarker: node.asyncMarker)..fileEndOffset = node.fileEndOffset;
+        asyncMarker: node.asyncMarker,
+        dartAsyncMarker: node.dartAsyncMarker)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitArguments(Arguments node) {

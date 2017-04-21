@@ -56,6 +56,13 @@ class _LocalNameScope {
     return scope;
   }
 
+  factory _LocalNameScope.forConstructor(
+      _LocalNameScope enclosing, ConstructorDeclaration node) {
+    _LocalNameScope scope = new _LocalNameScope(enclosing);
+    scope.addFormalParameters(node.parameters);
+    return scope;
+  }
+
   factory _LocalNameScope.forFunction(
       _LocalNameScope enclosing, FunctionDeclaration node) {
     _LocalNameScope scope = new _LocalNameScope(enclosing);
@@ -175,6 +182,17 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = new _LocalNameScope.forConstructor(localScope, node);
+      super.visitConstructorDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
+  }
+
+  @override
   visitConstructorName(ConstructorName node) {
     if (node.parent is! ConstructorDeclaration) {
       super.visitConstructorName(node);
@@ -235,8 +253,10 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
     }
     // Prepare name.
     String name = node.name;
-    // Ignore unqualified names shadowed by local elements.
-    if (!node.isQualified) {
+    // Ignore names shadowed by local elements.
+    if (node.isQualified || _isNameExpressionLabel(parent)) {
+      // Cannot be local.
+    } else {
       if (localScope.contains(name)) {
         return;
       }
@@ -246,5 +266,13 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
     }
     // Do add the name.
     names.add(name);
+  }
+
+  static bool _isNameExpressionLabel(AstNode parent) {
+    if (parent is Label) {
+      AstNode parent2 = parent?.parent;
+      return parent2 is NamedExpression && parent2.name == parent;
+    }
+    return false;
   }
 }

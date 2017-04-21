@@ -136,7 +136,10 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :await_temp_var_X = <expr>;
   //   AwaitMarker(kNewContinuationState);
   //   :result_param = _awaitHelper(
-  //      :await_temp_var_X, :async_then_callback, :async_catch_error_callback);
+  //      :await_temp_var_X,
+  //      :async_then_callback,
+  //      :async_catch_error_callback,
+  //      :async_op);
   //   return;  // (return_type() == kContinuationTarget)
   //
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
@@ -165,7 +168,10 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   preamble_->Add(await_marker);
 
   // :result_param = _awaitHelper(
-  //      :await_temp, :async_then_callback, :async_catch_error_callback)
+  //      :await_temp,
+  //      :async_then_callback,
+  //      :async_catch_error_callback,
+  //      :async_op)
   const Library& async_lib = Library::Handle(Library::AsyncLibrary());
   const Function& async_await_helper = Function::ZoneHandle(
       Z, async_lib.LookupFunctionAllowPrivate(Symbols::AsyncAwaitHelper()));
@@ -177,6 +183,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       new (Z) LoadLocalNode(token_pos, async_then_callback));
   async_await_helper_args->Add(
       new (Z) LoadLocalNode(token_pos, async_catch_error_callback));
+  async_await_helper_args->Add(new (Z) LoadLocalNode(token_pos, async_op));
   StaticCallNode* await_helper_call = new (Z) StaticCallNode(
       node->token_pos(), async_await_helper, async_await_helper_args);
 
@@ -214,8 +221,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       new (Z) LoadLocalNode(token_pos, stack_trace_param);
   SequenceNode* error_ne_null_branch =
       new (Z) SequenceNode(token_pos, ChainNewScope(preamble_->scope()));
-  error_ne_null_branch->Add(new (Z) ThrowNode(
-      node->token_pos(), load_error_param, load_stack_trace_param));
+  error_ne_null_branch->Add(
+      new (Z) ThrowNode(token_pos, load_error_param, load_stack_trace_param));
   preamble_->Add(new (Z) IfNode(
       token_pos, new (Z) ComparisonNode(
                      token_pos, Token::kNE, load_error_param,

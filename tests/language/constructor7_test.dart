@@ -18,7 +18,7 @@ int E(int i) {
 }
 
 class A {
-  var j;      // Names are in reverse order to detect sorting by name...
+  var j; //      Names are in reverse order to detect sorting by name...
   var i = 0;  // Initialized odd/even to detect these inits affecting order.
   var h;
   var g = 0;

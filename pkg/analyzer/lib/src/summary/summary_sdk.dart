@@ -36,15 +36,17 @@ class SummaryBasedDartSdk implements DartSdk {
    */
   InternalAnalysisContext _analysisContext;
 
-  SummaryBasedDartSdk(String summaryPath, this.strongMode) {
-    _dataStore = new SummaryDataStore(<String>[summaryPath]);
+  SummaryBasedDartSdk(String summaryPath, this.strongMode,
+      {this.resourceProvider}) {
+    _dataStore = new SummaryDataStore(<String>[summaryPath],
+        resourceProvider: resourceProvider);
     _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = _dataStore.bundles.single;
   }
 
-  SummaryBasedDartSdk.fromBundle(
-      this.strongMode, PackageBundle bundle, this.resourceProvider) {
-    _dataStore = new SummaryDataStore([]);
+  SummaryBasedDartSdk.fromBundle(this.strongMode, PackageBundle bundle,
+      {this.resourceProvider}) {
+    _dataStore = new SummaryDataStore([], resourceProvider: resourceProvider);
     _dataStore.addBundle('dart_sdk.sum', bundle);
     _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = bundle;
@@ -64,7 +66,8 @@ class SummaryBasedDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory(
           [new DartUriResolver(this)], null, resourceProvider);
       _analysisContext.sourceFactory = factory;
-      SummaryDataStore dataStore = new SummaryDataStore([]);
+      SummaryDataStore dataStore =
+          new SummaryDataStore([], resourceProvider: resourceProvider);
       dataStore.addBundle(null, _bundle);
       _analysisContext.resultProvider =
           new InputPackagesResultProvider(_analysisContext, dataStore);
@@ -200,7 +203,14 @@ class SummaryTypeProvider extends TypeProviderBase {
   @override
   InterfaceType get futureOrType {
     assert(_asyncLibrary != null);
-    _futureOrType ??= _getType(_asyncLibrary, "FutureOr");
+    try {
+      _futureOrType ??= _getType(_asyncLibrary, "FutureOr");
+    } on StateError {
+      // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
+      // doesn't have it yet, create an element for it.
+      _futureOrType =
+          TypeProviderImpl.createPlaceholderFutureOr(futureType, objectType);
+    }
     return _futureOrType;
   }
 

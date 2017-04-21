@@ -217,7 +217,7 @@ abstract class IsolateMirror implements Mirror {
    * 2. the isolate being reflected by this mirror is the same isolate being
    *    reflected by [other].
    */
-  bool operator == (other);
+  bool operator ==(other);
 }
 
 /**
@@ -359,7 +359,6 @@ abstract class DeclarationMirror implements Mirror {
  * See [InstanceMirror], [ClassMirror], and [LibraryMirror].
  */
 abstract class ObjectMirror implements Mirror {
-
   /**
    * Invokes the named function and returns a mirror on the result.
    *
@@ -385,9 +384,8 @@ abstract class ObjectMirror implements Mirror {
    * TODO(turnidge): Handle ambiguous names.
    * TODO(turnidge): Handle optional & named arguments.
    */
-  InstanceMirror invoke(Symbol memberName,
-                        List positionalArguments,
-                        [Map<Symbol,dynamic> namedArguments]);
+  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Invokes a getter and returns a mirror on the result.
@@ -526,7 +524,7 @@ abstract class InstanceMirror implements ObjectMirror {
    *    b. the remote objects reflected by this mirror and by [other] are
    *    identical.
    */
-  bool operator == (other);
+  bool operator ==(other);
 }
 
 /**
@@ -579,7 +577,7 @@ abstract class ClosureMirror implements InstanceMirror {
    * method throws *e*.
    */
   InstanceMirror apply(List positionalArguments,
-                       [Map<Symbol, dynamic> namedArguments]);
+      [Map<Symbol, dynamic> namedArguments]);
 }
 
 /**
@@ -736,7 +734,6 @@ abstract class TypeMirror implements DeclarationMirror {
    */
   TypeMirror get originalDeclaration;
 
-
   /**
    * Checks the subtype relationship, denoted by `<:` in the language
    * specification.
@@ -818,7 +815,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    */
   Map<Symbol, MethodMirror> get staticMembers;
 
-
   /**
    * The mixin of this class.
    *
@@ -861,9 +857,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * * If evaluating the expression throws an exception *e* (that it does not
    *   catch), this method throws *e*.
    */
-  InstanceMirror newInstance(Symbol constructorName,
-                             List positionalArguments,
-                             [Map<Symbol,dynamic> namedArguments]);
+  InstanceMirror newInstance(Symbol constructorName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Whether this mirror is equal to [other].
@@ -876,7 +871,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * Note that if the reflected class is an invocation of a generic class, 2.
    * implies that the reflected class and [other] have equal type arguments.
    */
-  bool operator == (other);
+  bool operator ==(other);
 
   /**
    * Returns whether the class denoted by the receiver is a subclass of the
@@ -936,7 +931,7 @@ abstract class TypeVariableMirror extends TypeMirror {
    * 1. [other] is a mirror of the same kind, and
    * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-  bool operator == (other);
+  bool operator ==(other);
 }
 
 /**
@@ -1064,7 +1059,7 @@ abstract class MethodMirror implements DeclarationMirror {
    * 1. [other] is a mirror of the same kind, and
    * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-  bool operator == (other);
+  bool operator ==(other);
 }
 
 /**
@@ -1105,7 +1100,7 @@ abstract class VariableMirror implements DeclarationMirror {
    * 1. [other] is a mirror of the same kind, and
    * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-  bool operator == (other);
+  bool operator ==(other);
 }
 
 /**

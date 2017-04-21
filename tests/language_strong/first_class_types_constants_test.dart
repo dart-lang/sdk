@@ -12,9 +12,9 @@ class C<T> {
 typedef int Fun(bool, String);
 
 const c0 = C;
-const c1 = const C(C);
+const c1 = const C<Type>(C);
 const c2 = Fun;
-const c3 = const C(Fun);
+const c3 = const C<Type>(Fun);
 
 main() {
   Expect.identical(C, C);

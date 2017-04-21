@@ -23,10 +23,10 @@ main() {
   // Types that do not use class names - these can be checked on dart2js in
   // minified mode.
 
-  check(fn('dynamic', '()'), main);        // Top-level tear-off.
-  check(fn('void', '()'), Xyzzy.foo);      // Class static member tear-off.
-  check(fn('void', '(dynamic)'), [].add);  // Instance tear-off.
-  check(fn('dynamic', '()'), ()=>1);       // closure.
+  check(fn('dynamic', '()'), main); //        Top-level tear-off.
+  check(fn('void', '()'), Xyzzy.foo); //      Class static member tear-off.
+  check(fn('void', '(dynamic)'), [].add); //  Instance tear-off.
+  check(fn('dynamic', '()'), ()=>1); //       closure.
 
   var s = new Xyzzy().runtimeType.toString();
   if (s.length <= 3) return; // dart2js --minify has minified names.

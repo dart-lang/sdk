@@ -81,7 +81,7 @@ class MapTypeMask extends ForwardingTypeMask {
       // doesn't need the compiler.
       assert(other.keyType ==
           new TypeMask.nonNullExact(
-              closedWorld.backendClasses.stringImplementation, closedWorld));
+              closedWorld.backendClasses.stringClass, closedWorld));
       TypeMask newKeyType = keyType.union(other.keyType, closedWorld);
       TypeMask newValueType =
           other.typeMap.values.fold(keyType, (p, n) => p.union(n, closedWorld));

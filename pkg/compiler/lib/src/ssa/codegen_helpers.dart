@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/interceptor_data.dart';
+import '../options.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -16,13 +17,11 @@ import 'nodes.dart';
  * Caches codegen information on nodes.
  */
 class SsaInstructionSelection extends HBaseVisitor {
-  final Compiler compiler;
-  final ClosedWorld closedWorld;
+  final ClosedWorld _closedWorld;
+  final InterceptorData _interceptorData;
   HGraph graph;
 
-  SsaInstructionSelection(this.compiler, this.closedWorld);
-
-  JavaScriptBackend get backend => compiler.backend;
+  SsaInstructionSelection(this._closedWorld, this._interceptorData);
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -68,8 +67,8 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
-        return new HIsViaInterceptor(
-            node.typeExpression, interceptor, closedWorld.commonMasks.boolType);
+        return new HIsViaInterceptor(node.typeExpression, interceptor,
+            _closedWorld.commonMasks.boolType);
       }
     }
     return node;
@@ -88,7 +87,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (leftType.isNullable && rightType.isNullable) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
-          (left.isPrimitive(closedWorld) && leftType == rightType)) {
+          (left.isPrimitive(_closedWorld) && leftType == rightType)) {
         return '==';
       }
       return null;
@@ -105,7 +104,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
   HInstruction visitInvokeSuper(HInvokeSuper node) {
     if (node.isInterceptedCall) {
-      TypeMask mask = node.getDartReceiver(closedWorld).instructionType;
+      TypeMask mask = node.getDartReceiver(_closedWorld).instructionType;
       tryReplaceInterceptorWithDummy(node, node.selector, mask);
     }
     return node;
@@ -142,12 +141,12 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction receiverArgument = node.inputs[1];
 
     if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
-      if (backend.isInterceptedSelector(selector) &&
-          !backend.isInterceptedMixinSelector(selector, mask)) {
+      if (_interceptorData.isInterceptedSelector(selector) &&
+          !_interceptorData.isInterceptedMixinSelector(selector, mask)) {
         ConstantValue constant = new SyntheticConstantValue(
             SyntheticConstantKind.DUMMY_INTERCEPTOR,
             receiverArgument.instructionType);
-        HConstant dummy = graph.addConstant(constant, closedWorld);
+        HConstant dummy = graph.addConstant(constant, _closedWorld);
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
         dummy.usedBy.add(node);
@@ -244,7 +243,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(closedWorld)) return simpleBinary(assignOp);
+      if (op.isUInt31(_closedWorld)) return simpleBinary(assignOp);
       return noMatchingRead();
     }
 
@@ -283,6 +282,11 @@ class SsaTypeKnownRemover extends HBaseVisitor {
   }
 
   void visitTypeKnown(HTypeKnown instruction) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HTypeConversion) {
+        user.inputType = instruction.instructionType;
+      }
+    }
     instruction.block.rewrite(instruction, instruction.checkedInput);
     instruction.block.remove(instruction);
   }
@@ -293,11 +297,12 @@ class SsaTypeKnownRemover extends HBaseVisitor {
  * mode.
  */
 class SsaTrustedCheckRemover extends HBaseVisitor {
-  Compiler compiler;
-  SsaTrustedCheckRemover(this.compiler);
+  final CompilerOptions _options;
+
+  SsaTrustedCheckRemover(this._options);
 
   void visitGraph(HGraph graph) {
-    if (!compiler.options.trustPrimitives) return;
+    if (!_options.trustPrimitives) return;
     visitDominatorTree(graph);
   }
 
@@ -329,7 +334,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HBaseVisitor {
-  final Compiler compiler;
+  final SuperMemberData _superMemberData;
   /**
    * List of [HInstruction] that the instruction merger expects in
    * order when visiting the inputs of an instruction.
@@ -348,9 +353,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(this.generateAtUseSite, this.compiler);
-
-  JavaScriptBackend get backend => compiler.backend;
+  SsaInstructionMerger(this.generateAtUseSite, this._superMemberData);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -433,7 +436,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     // after first access if we use lazy initialization.
     // In this case, we therefore don't allow the receiver (the first argument)
     // to be generated at use site, and only analyze all other arguments.
-    if (!backend.canUseAliasedSuperMember(superMethod, selector)) {
+    if (!_superMemberData.canUseAliasedSuperMember(superMethod, selector)) {
       analyzeInputs(instruction, 1);
     } else {
       super.visitInvokeSuper(instruction);

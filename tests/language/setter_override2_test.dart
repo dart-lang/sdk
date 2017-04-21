@@ -9,15 +9,17 @@
 import "package:expect/expect.dart";
 
 class A {
-  var foo = 42;  /// 00: ok
-  get foo => 42;  /// 01: ok
-  foo() => 42;  /// 02: ok
-  set foo(value) { }  /// 03: ok
+  var foo = 42; // //# 00: ok
+  get foo => 42; // //# 01: ok
+  foo() => 42; // //# 02: ok
+  set foo(value) { } // //# 03: ok
 }
 
 class B extends A {
   var foo_;
-  set foo(value) { foo_ = value; }
+  set foo(value) {
+    foo_ = value;
+  }
 }
 
 main() {

@@ -92,12 +92,12 @@ class ReadStream : public ValueObject {
     return (end_ - current_);
   }
 
- private:
   template <typename T>
   T Read() {
     return Read<T>(kEndByteMarker);
   }
 
+ private:
   int16_t Read16() { return Read16(kEndByteMarker); }
 
   int32_t Read32() { return Read32(kEndByteMarker); }
@@ -388,9 +388,31 @@ class WriteStream : public ValueObject {
     va_list args;
     va_start(args, format);
     VPrint(format, args);
+    va_end(args);
   }
 
- private:
+  void VPrint(const char* format, va_list args) {
+    // Measure.
+    va_list measure_args;
+    va_copy(measure_args, args);
+    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+    va_end(measure_args);
+
+    // Alloc.
+    if ((end_ - current_) < (len + 1)) {
+      Resize(len + 1);
+    }
+    ASSERT((end_ - current_) >= (len + 1));
+
+    // Print.
+    va_list print_args;
+    va_copy(print_args, args);
+    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
+                 print_args);
+    va_end(print_args);
+    current_ += len;  // Not len + 1 to swallow the terminating NUL.
+  }
+
   template <typename T>
   void Write(T value) {
     T v = value;
@@ -401,6 +423,7 @@ class WriteStream : public ValueObject {
     WriteByte(static_cast<uint8_t>(v + kEndByteMarker));
   }
 
+ private:
   DART_FORCE_INLINE void WriteByte(uint8_t value) {
     if (current_ >= end_) {
       Resize(1);
@@ -426,28 +449,6 @@ class WriteStream : public ValueObject {
     current_size_ = new_size;
     end_ = *buffer_ + new_size;
     ASSERT(end_ > *buffer_);
-  }
-
-  void VPrint(const char* format, va_list args) {
-    // Measure.
-    va_list measure_args;
-    va_copy(measure_args, args);
-    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
-    va_end(measure_args);
-
-    // Alloc.
-    if ((end_ - current_) < (len + 1)) {
-      Resize(len + 1);
-    }
-    ASSERT((end_ - current_) >= (len + 1));
-
-    // Print.
-    va_list print_args;
-    va_copy(print_args, args);
-    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
-                 print_args);
-    va_end(print_args);
-    current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }
 
  private:

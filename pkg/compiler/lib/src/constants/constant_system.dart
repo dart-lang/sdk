@@ -4,8 +4,10 @@
 
 library dart2js.constant_system;
 
-import '../compiler.dart' show Compiler;
-import '../elements/resolution_types.dart';
+import '../common/backend_api.dart' show BackendClasses;
+import '../common_elements.dart' show CommonElements;
+import '../elements/resolution_types.dart' show DartTypes;
+import '../elements/types.dart';
 import '../resolution/operators.dart';
 import '../tree/dartstring.dart' show DartString;
 import 'values.dart';
@@ -64,19 +66,21 @@ abstract class ConstantSystem {
   ConstantValue createString(DartString string);
   ConstantValue createBool(bool value);
   ConstantValue createNull();
-  ConstantValue createList(
-      ResolutionInterfaceType type, List<ConstantValue> values);
-  // TODO(johnniwinther): Remove the need for [compiler].
-  ConstantValue createMap(Compiler compiler, ResolutionInterfaceType type,
-      List<ConstantValue> keys, List<ConstantValue> values);
-  // TODO(johnniwinther): Remove the need for [compiler].
-  ConstantValue createType(Compiler compiler, ResolutionDartType type);
-  // TODO(johnniwinther): Remove the need for [compiler].
-  ConstantValue createSymbol(Compiler compiler, String text);
+  ConstantValue createList(InterfaceType type, List<ConstantValue> values);
+  ConstantValue createMap(
+      CommonElements commonElements,
+      BackendClasses backendClasses,
+      InterfaceType type,
+      List<ConstantValue> keys,
+      List<ConstantValue> values);
+  ConstantValue createType(CommonElements commonElements,
+      BackendClasses backendClasses, DartType type);
+  ConstantValue createSymbol(CommonElements commonElements,
+      BackendClasses backendClasses, String text);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.
-  bool isSubtype(DartTypes types, ResolutionDartType s, ResolutionDartType t);
+  bool isSubtype(DartTypes types, DartType s, DartType t);
 
   /** Returns true if the [constant] is an integer at runtime. */
   bool isInt(ConstantValue constant);

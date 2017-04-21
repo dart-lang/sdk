@@ -16,8 +16,8 @@ main() {
 
   const isolate = const IsolateRefMock();
   const field = const FieldRefMock();
-  const declaredType = const InstanceMock(kind: M.InstanceKind.type,
-                                          name: 'CustomObject');
+  const declaredType =
+      const InstanceMock(kind: M.InstanceKind.type, name: 'CustomObject');
   const field_non_dynamic = const FieldRefMock(declaredType: declaredType);
   final repository = new InstanceRepositoryMock();
   test('instantiation', () {

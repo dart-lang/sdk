@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 int foo(int i) {
-  i = 'fisk';  /// 01: static type warning
-  return 'kat';  /// 02: static type warning, dynamic type error
+  i = 'fisk'; // //# 01: static type warning
+  return 'kat'; // //# 02: static type warning, dynamic type error
 }
 
 main() {
   foo(42);
-  foo('hest');  /// 03: static type warning
+  foo('hest'); // //# 03: static type warning
 }

@@ -9,6 +9,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,6 +32,7 @@ class HintCodeTest extends ResolverTestCase {
 library meta;
 
 const _Factory factory = const _Factory();
+const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _Protected protected = const _Protected();
@@ -40,6 +42,10 @@ class Required {
   const Required([this.reason]);
 }
 
+class Immutable {
+  final String reason;
+  const Immutable([this.reason]);
+}
 class _Factory {
   const _Factory();
 }
@@ -54,7 +60,7 @@ class _Protected {
 }
 class _Required {
   final String reason;
-  const _Required([this.reason]));
+  const _Required([this.reason]);
 }
 '''
       ],
@@ -1362,6 +1368,19 @@ main() {
     verify([source]);
   }
 
+  test_invalidImmutableAnnotation_method() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @immutable
+  void m() {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_IMMUTABLE_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidUseOfProtectedMember_closure() async {
     Source source = addNamedSource(
         '/lib1.dart',
@@ -1975,6 +1994,61 @@ class A {
     verify([source]);
   }
 
+  test_mustBeImmutable_direct() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_instance() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  static int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_extends() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B extends A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_fromMixin() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B {
+  int x;
+}
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
   test_mustCallSuper() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2435,6 +2509,75 @@ class C {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeHint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    options.strongModeHints = true;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeNoHint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    options.strongModeHints = false;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeWarn() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    applyToAnalysisOptions(options, {
+      AnalyzerOptions.analyzer: {
+        AnalyzerOptions.errors: {
+          StrongModeCode.DOWN_CAST_COMPOSITE.name: 'warning'
+        },
+      }
+    });
+    options.strongMode = true;
+    options.strongModeHints = false;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class A {
+  int get g => 0;
+}
+var a = new A();
+var b = a.g;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 

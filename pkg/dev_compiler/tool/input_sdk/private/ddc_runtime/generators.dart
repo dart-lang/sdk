@@ -14,14 +14,28 @@ part of dart._runtime;
 final _jsIterator = JS('', 'Symbol("_jsIterator")');
 final _current = JS('', 'Symbol("_current")');
 
-syncStar(gen, E, @rest args) => JS('', '''(() => {
+syncStar(gen, E, @rest args) => JS(
+    '',
+    '''(() => {
   const SyncIterable_E = ${getGenericClass(SyncIterable)}($E);
   return new SyncIterable_E($gen, $args);
 })()''');
 
 @JSExportName('async')
-async_(gen, T, @rest args) => JS('', '''(() => {
+async_(gen, T, @rest args) => JS(
+    '',
+    '''(() => {
   let iter;
+  const FutureT = ${getGenericClass(Future)}($T);
+  let _FutureType;
+  // Return the raw class type or null if not a class object.
+  // This is streamlined to test for native futures.
+  function _getRawClassType(obj) {
+    if (!obj) return null;
+    let constructor = obj.constructor;
+    if (!constructor == null) return null;
+    return $getGenericClass(constructor);
+  }
   function onValue(res) {
     if (res === void 0) res = null;
     return next(iter.next(res));
@@ -38,19 +52,31 @@ async_(gen, T, @rest args) => JS('', '''(() => {
     return next(iter.throw(err));
   }
   function next(ret) {
-    if (ret.done) return ret.value;
-    // Checks if the awaited value is a Future.
     let future = ret.value;
-    if (!$instanceOf(future, ${getGenericClass(Future)})) {
+    if (ret.done) {
+      return ret.value;
+    }
+    // Wraps if future is not a native Future.
+    if (_getRawClassType(future) !== _FutureType) {
       future = $Future.value(future);
     }
     // Chain the Future so `await` receives the Future's value.
     return future.then($dynamic)(onValue, {onError: onError});
   }
-  return ${getGenericClass(Future)}($T).microtask(function() {
+  let result = FutureT.microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
-    return onValue();
+    var result = onValue();
+    if ($strongInstanceOf(result, FutureT) == null) {
+      // Chain the Future<dynamic> to a Future<T> to produce the correct
+      // final type.
+      return result.then($T)((x) => x, {onError: onError});
+    } else {
+      return result;
+    }
   });
+  // TODO(jmesserly): optimize this further.
+  _FutureType = _getRawClassType(result);
+  return result;  
 })()''');
 
 // Implementation inspired by _AsyncStarStreamController in
@@ -77,7 +103,9 @@ async_(gen, T, @rest args) => JS('', '''(() => {
 //    }
 //
 // TODO(ochafik): Port back to Dart (which it used to be in the past).
-final _AsyncStarStreamController = JS('', '''
+final _AsyncStarStreamController = JS(
+    '',
+    '''
   class _AsyncStarStreamController {
     constructor(generator, T, args) {
       this.isAdding = false;
@@ -219,6 +247,8 @@ final _AsyncStarStreamController = JS('', '''
 
 /// Returns a Stream of T implemented by an async* function. */
 ///
-asyncStar(gen, T, @rest args) => JS('', '''(() => {
+asyncStar(gen, T, @rest args) => JS(
+    '',
+    '''(() => {
   return new $_AsyncStarStreamController($gen, $T, $args).controller.stream;
 })()''');

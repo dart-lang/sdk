@@ -325,7 +325,8 @@ class HtmlWorkManagerIntegrationTest {
     entry2 = context.getCacheEntry(source2);
   }
 
-  void test_onResultInvalidated_scheduleInvalidatedLibrariesAfterSetSourceFactory() {
+  void
+      test_onResultInvalidated_scheduleInvalidatedLibrariesAfterSetSourceFactory() {
     // Change the source factory, changing the analysis cache from when
     // the work manager was constructed. This used to create a failure
     // case for test_onResultInvalidated_scheduleInvalidLibraries so its
@@ -345,12 +346,9 @@ class HtmlWorkManagerIntegrationTest {
     entry2.setState(HTML_ERRORS, CacheState.INVALID);
     expect_sourceQueue([source1, source2]);
   }
-
 }
 
-class _SourceFactoryMock extends TypedMock
-    implements SourceFactory {
-}
+class _SourceFactoryMock extends TypedMock implements SourceFactory {}
 
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {

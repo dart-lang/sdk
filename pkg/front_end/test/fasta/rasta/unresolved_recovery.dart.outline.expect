@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class E extends core::Object {
+  constructor •() → void
+    ;
+  method foo() → dynamic
+    ;
+}
+static method beforeTestMissingTry() → dynamic
+  ;
+static method testMissingTry() → dynamic
+  ;
+static method main() → dynamic
+  ;

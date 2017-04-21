@@ -7,6 +7,8 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
+import 'package:compiler/compiler_new.dart';
+
 import 'package:compiler/src/elements/elements.dart' as lego;
 export 'package:compiler/src/elements/elements.dart';
 
@@ -72,9 +74,8 @@ Future<String> compile(String code,
     lego.Element element = compiler.mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.enqueuer.resolution
-        .applyImpact(compiler.backend.computeHelpersImpact());
-    compiler.processQueue(compiler.enqueuer.resolution, element);
+    compiler.processQueue(compiler.enqueuer.resolution, element,
+        compiler.libraryLoader.libraries);
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);
     resolutionWork.run();
@@ -87,7 +88,7 @@ Future<String> compile(String code,
     if (check != null) {
       check(generated);
     }
-    return returnAll ? outputCollector.getOutput('', 'js') : generated;
+    return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
   } else {
     List<String> options = <String>[Flags.disableTypeInference];
     if (enableTypeAssertions) {
@@ -126,7 +127,7 @@ Future<String> compile(String code,
     if (check != null) {
       check(generated);
     }
-    return returnAll ? outputCollector.getOutput('', 'js') : generated;
+    return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
   }
 }
 
@@ -153,16 +154,18 @@ Future<String> compileAll(String code,
         compilationSucceded,
         'Unexpected compilation error(s): '
         '${compiler.diagnosticCollector.errors}');
-    return outputCollector.getOutput('', 'js');
+    return outputCollector.getOutput('', OutputType.js);
   });
 }
 
-Future compileAndCheck(String code, String name,
+Future analyzeAndCheck(String code, String name,
     check(MockCompiler compiler, lego.Element element),
     {int expectedErrors, int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri,
-      expectedErrors: expectedErrors, expectedWarnings: expectedWarnings);
+      expectedErrors: expectedErrors,
+      expectedWarnings: expectedWarnings,
+      analyzeOnly: true);
   return compiler.run(uri).then((_) {
     lego.Element element = findElement(compiler, name);
     return check(compiler, element);
@@ -259,3 +262,40 @@ Future compileAndMatchFuzzyHelper(
     }
   });
 }
+
+/// Returns a 'check' function that uses comments in [test] to drive checking.
+///
+/// The comments contains one or more 'present:' or 'absent:' tags, each
+/// followed by a quoted string. For example, the returned checker for the
+/// following text will ensure that the argument contains the three characters
+/// 'foo' and does not contain the two characters '""':
+///
+///    // present: "foo"
+///    // absent:  '""'
+checkerForAbsentPresent(String test) {
+  var matches = _directivePattern.allMatches(test).toList();
+  checker(String generated) {
+    if (matches.isEmpty) {
+      Expect.fail("No 'absent:' or 'present:' directives in '$test'");
+    }
+    for (Match match in matches) {
+      String directive = match.group(1);
+      String pattern = match.groups([2, 3]).where((s) => s != null).single;
+      if (directive == 'present') {
+        Expect.isTrue(generated.contains(pattern),
+            "Cannot find '$pattern' in:\n$generated");
+      } else {
+        assert(directive == 'absent');
+        Expect.isFalse(generated.contains(pattern),
+            "Must not find '$pattern' in:\n$generated");
+      }
+    }
+  }
+
+  return checker;
+}
+
+RegExp _directivePattern = new RegExp(
+    //      \1                     \2        \3
+    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''',
+    multiLine: true);

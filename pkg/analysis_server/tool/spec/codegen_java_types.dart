@@ -8,6 +8,7 @@
 library java.generator.types;
 
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
@@ -48,7 +49,9 @@ const Map<String, String> _extraMethodsOnElement = const {
 /**
  * Type references in the spec that are named something else in Java.
  */
-const Map<String, String> _typeRenames = const {'Override': 'OverrideMember',};
+const Map<String, String> _typeRenames = const {
+  'Override': 'OverrideMember',
+};
 
 final String pathToGenTypes = 'tool/spec/generated/java/types';
 
@@ -103,10 +106,6 @@ final GeneratedDirectory targetDir =
       }
     }
   }
-  print("Generating...");
-  map.keys.forEach((String file) {
-    print("  ${targetDir.outputDirPath}/$file");
-  });
   return map;
 });
 

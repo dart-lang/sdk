@@ -9,7 +9,8 @@ import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show GetterName, SetterName;
 import '../../universe/selector.dart' show Selector;
-import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
+import 'package:front_end/src/fasta/scanner/characters.dart'
+    show $$, $A, $HASH, $Z, $a, $z;
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
@@ -72,7 +73,7 @@ class NsmEmitter extends CodeEmitterHelper {
         if (reflectionName != null) {
           bool accessible = closedWorld.allFunctions
               .filter(selector, null)
-              .any(backend.isMemberAccessibleByReflection);
+              .any(backend.mirrorsData.isMemberAccessibleByReflection);
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }
@@ -141,10 +142,10 @@ class NsmEmitter extends CodeEmitterHelper {
 
     // Find out how many selectors there are with the special calling
     // convention.
-    Iterable<Selector> interceptedSelectors = trivialNsmHandlers
-        .where((Selector s) => backend.isInterceptedName(s.name));
-    Iterable<Selector> ordinarySelectors = trivialNsmHandlers
-        .where((Selector s) => !backend.isInterceptedName(s.name));
+    Iterable<Selector> interceptedSelectors = trivialNsmHandlers.where(
+        (Selector s) => backend.interceptorData.isInterceptedName(s.name));
+    Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
+        (Selector s) => !backend.interceptorData.isInterceptedName(s.name));
 
     // Get the short names (JS names, perhaps minified).
     Iterable<jsAst.Name> interceptedShorts =

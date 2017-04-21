@@ -1,0 +1,43 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+class A<N extends core::Object, S extends core::Object, U extends core::Object> extends core::Object {
+  final field core::List<self::A::U> field;
+  constructor •(self::A::N n, self::A::S s) → void
+    : self::A::field = core::List::_internal<self::A::U>(core::_GROWABLE_ARRAY_MARKER), super core::Object::•() {
+    exp::Expect::isTrue(n is self::A::N, null);
+    exp::Expect::isTrue(s is self::A::S, null);
+  }
+  constructor empty() → void
+    : self::A::field = null, super core::Object::•() {}
+  const constructor c(self::A::U u, self::A::S s) → void
+    : self::A::field = const <dynamic>[null], super core::Object::•()
+    ;
+  static factory f<N extends core::Object, S extends core::Object, U extends core::Object>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U> {
+    exp::Expect::isTrue(s is self::A::f::S, null);
+    return new self::A::empty<dynamic, dynamic, dynamic>();
+  }
+  get getter() → core::List<self::A::U> {
+    return this.field;
+  }
+  set setter(self::A::S s) → void {}
+}
+abstract class J<Aa extends core::Object, B extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class I<H extends core::Object, C extends core::Object, K extends core::Object> extends self::J<self::I::C, self::I::K> {
+  constructor •() → void
+    : super self::J::•()
+    ;
+}
+static method main() → dynamic {
+  new self::A::•<core::num, core::double, core::List<dynamic>>(1, 2.0);
+  self::A<dynamic, dynamic, dynamic> a = self::A::f<core::int, core::int, core::int>(1);
+  const self::A::c<core::int, core::int, core::List<dynamic>>(const <dynamic>[], 1);
+  dynamic z = a.getter;
+  a.setter = 1;
+}

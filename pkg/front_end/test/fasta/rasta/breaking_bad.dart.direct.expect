@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/breaking_bad.dart:6:3: \u0027[31mError: No target of break.\u0027[0m");
+  #L1:
+  break #L1;
+}

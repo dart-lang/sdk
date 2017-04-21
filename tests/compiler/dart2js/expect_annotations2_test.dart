@@ -4,6 +4,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/compiler_new.dart';
 import 'memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -41,7 +42,7 @@ void main() {
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
-    String jsOutput = collector.getOutput('', 'js');
+    String jsOutput = collector.getOutput('', OutputType.js);
 
     Expect.isTrue(jsOutput.contains('49912344'));
     Expect.isTrue(jsOutput.contains('123455'));

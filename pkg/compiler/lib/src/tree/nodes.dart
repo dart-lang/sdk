@@ -6,16 +6,17 @@ import 'dart:collection' show IterableMixin;
 
 import '../common.dart';
 import '../elements/elements.dart' show MetadataAnnotation;
-import '../resolution/secret_tree_element.dart'
-    show NullTreeElementMixin, StoredTreeElementMixin;
-import '../tokens/precedence_constants.dart' as Precedence show FUNCTION_INFO;
-import '../tokens/token.dart' show BeginGroupToken, Token;
-import '../tokens/token_constants.dart' as Tokens show PLUS_TOKEN;
-import '../util/characters.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
+    show FUNCTION_INFO;
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
+    show PLUS_TOKEN;
+import 'package:front_end/src/fasta/scanner/characters.dart';
 import '../util/util.dart';
 import 'dartstring.dart';
 import 'prettyprint.dart';
 import 'unparser.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 
 abstract class Visitor<R> {
   const Visitor();
@@ -48,6 +49,10 @@ abstract class Visitor<R> {
   R visitForIn(ForIn node) => visitLoop(node);
   R visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+  R visitFunctionTypeAnnotation(FunctionTypeAnnotation node) {
+    return visitTypeAnnotation(node);
+  }
+
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
   R visitImport(Import node) => visitLibraryDependency(node);
@@ -79,6 +84,10 @@ abstract class Visitor<R> {
 
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
+  R visitNominalTypeAnnotation(NominalTypeAnnotation node) {
+    return visitTypeAnnotation(node);
+  }
+
   R visitOperator(Operator node) => visitIdentifier(node);
   R visitParenthesizedExpression(ParenthesizedExpression node) {
     return visitExpression(node);
@@ -176,6 +185,10 @@ abstract class Visitor1<R, A> {
     return visitExpression(node, arg);
   }
 
+  R visitFunctionTypeAnnotation(FunctionTypeAnnotation node, A arg) {
+    return visitTypeAnnotation(node, arg);
+  }
+
   R visitGotoStatement(GotoStatement node, A arg) {
     return visitStatement(node, arg);
   }
@@ -225,6 +238,10 @@ abstract class Visitor1<R, A> {
 
   R visitNewExpression(NewExpression node, A arg) => visitExpression(node, arg);
   R visitNodeList(NodeList node, A arg) => visitNode(node, arg);
+  R visitNominalTypeAnnotation(NominalTypeAnnotation node, A arg) {
+    visitTypeAnnotation(node, arg);
+  }
+
   R visitOperator(Operator node, A arg) => visitIdentifier(node, arg);
   R visitParenthesizedExpression(ParenthesizedExpression node, A arg) {
     return visitExpression(node, arg);
@@ -260,8 +277,8 @@ abstract class Visitor1<R, A> {
   R visitLiteralSymbol(LiteralSymbol node, A arg) => visitExpression(node, arg);
   R visitThrow(Throw node, A arg) => visitExpression(node, arg);
   R visitTryStatement(TryStatement node, A arg) => visitStatement(node, arg);
-  R visitTypeAnnotation(TypeAnnotation node, A arg) => visitNode(node, arg);
   R visitTypedef(Typedef node, A arg) => visitNode(node, arg);
+  R visitTypeAnnotation(TypeAnnotation node, A arg) => visitNode(node, arg);
   R visitTypeVariable(TypeVariable node, A arg) => visitNode(node, arg);
   R visitVariableDefinitions(VariableDefinitions node, A arg) {
     return visitStatement(node, arg);
@@ -360,6 +377,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   ForIn asForIn() => null;
   FunctionDeclaration asFunctionDeclaration() => null;
   FunctionExpression asFunctionExpression() => null;
+  FunctionTypeAnnotation asFunctionTypeAnnotation() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
   Import asImport() => null;
@@ -383,6 +401,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   NamedMixinApplication asNamedMixinApplication() => null;
   NewExpression asNewExpression() => null;
   NodeList asNodeList() => null;
+  NominalTypeAnnotation asNominalTypeAnnotation() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
   Part asPart() => null;
@@ -401,7 +420,6 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   SwitchStatement asSwitchStatement() => null;
   Throw asThrow() => null;
   TryStatement asTryStatement() => null;
-  TypeAnnotation asTypeAnnotation() => null;
   TypeVariable asTypeVariable() => null;
   Typedef asTypedef() => null;
   VariableDefinitions asVariableDefinitions() => null;
@@ -478,7 +496,7 @@ class ClassNode extends Node {
     if (token == null) {
       token = name.getEndToken();
     }
-    assert(invariant(beginToken, token != null));
+    assert(token != null);
     return token;
   }
 
@@ -486,7 +504,7 @@ class ClassNode extends Node {
 }
 
 class MixinApplication extends Node {
-  final TypeAnnotation superclass;
+  final NominalTypeAnnotation superclass;
   final NodeList mixins;
 
   MixinApplication(this.superclass, this.mixins);
@@ -511,8 +529,6 @@ class MixinApplication extends Node {
   Token getEndToken() => mixins.getEndToken();
 }
 
-// TODO(kasperl): Let this share some structure with the typedef for function
-// type aliases?
 class NamedMixinApplication extends Node implements MixinApplication {
   final Identifier name;
   final NodeList typeParameters;
@@ -527,7 +543,7 @@ class NamedMixinApplication extends Node implements MixinApplication {
   NamedMixinApplication(this.name, this.typeParameters, this.modifiers,
       this.mixinApplication, this.interfaces, this.classKeyword, this.endToken);
 
-  TypeAnnotation get superclass => mixinApplication.superclass;
+  NominalTypeAnnotation get superclass => mixinApplication.superclass;
   NodeList get mixins => mixinApplication.mixins;
 
   MixinApplication asMixinApplication() => this;
@@ -1073,7 +1089,7 @@ class AsyncModifier extends Node {
   Token getEndToken() => starToken != null ? starToken : asyncToken;
 
   /// Is `true` if this modifier is either `async` or `async*`.
-  bool get isAsynchronous => asyncToken.value == 'async';
+  bool get isAsynchronous => asyncToken.lexeme == 'async';
 
   /// Is `true` if this modifier is either `sync*` or `async*`.
   bool get isYielding => starToken != null;
@@ -1200,7 +1216,7 @@ class LiteralInt extends Literal<int> {
       if (identical(valueToken.kind, Tokens.PLUS_TOKEN)) {
         valueToken = valueToken.next;
       }
-      return int.parse(valueToken.value);
+      return int.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -1223,7 +1239,7 @@ class LiteralDouble extends Literal<double> {
       if (identical(valueToken.kind, Tokens.PLUS_TOKEN)) {
         valueToken = valueToken.next;
       }
-      return double.parse(valueToken.value);
+      return double.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -1242,7 +1258,7 @@ class LiteralBool extends Literal<bool> {
   bool get value {
     if (identical(token.stringValue, 'true')) return true;
     if (identical(token.stringValue, 'false')) return false;
-    (this.handler)(token, "not a bool ${token.value}");
+    (this.handler)(token, "not a bool ${token.lexeme}");
     throw false;
   }
 
@@ -1415,7 +1431,7 @@ class LiteralSymbol extends Expression {
 class Identifier extends Expression with StoredTreeElementMixin {
   final Token token;
 
-  String get source => token.value;
+  String get source => token.lexeme;
 
   Identifier(Token this.token);
 
@@ -1720,17 +1736,21 @@ class Rethrow extends Statement {
   Token getEndToken() => endToken;
 }
 
-class TypeAnnotation extends Node {
+abstract class TypeAnnotation extends Node {}
+
+class NominalTypeAnnotation extends TypeAnnotation {
   final Expression typeName;
   final NodeList typeArguments;
 
-  TypeAnnotation(Expression this.typeName, NodeList this.typeArguments);
+  NominalTypeAnnotation(this.typeName, this.typeArguments);
 
-  TypeAnnotation asTypeAnnotation() => this;
+  NominalTypeAnnotation asNominalTypeAnnotation() => this;
 
-  accept(Visitor visitor) => visitor.visitTypeAnnotation(this);
+  accept(Visitor visitor) => visitor.visitNominalTypeAnnotation(this);
 
-  accept1(Visitor1 visitor, arg) => visitor.visitTypeAnnotation(this, arg);
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitNominalTypeAnnotation(this, arg);
+  }
 
   visitChildren(Visitor visitor) {
     typeName.accept(visitor);
@@ -1826,7 +1846,13 @@ class VariableDefinitions extends Statement {
     return token;
   }
 
-  Token getEndToken() => definitions.getEndToken();
+  Token getEndToken() {
+    var result = definitions.getEndToken();
+    if (result != null) return result;
+    assert(definitions.nodes.length == 1);
+    assert(definitions.nodes.last == null);
+    return type.getEndToken();
+  }
 }
 
 abstract class Loop extends Statement {
@@ -2854,16 +2880,37 @@ class Combinator extends Node {
 }
 
 class Typedef extends Node {
+  final bool isGeneralizedTypeAlias;
+
+  /// Parameters to the template.
+  ///
+  /// For example, `T` and `S` are template parameters in the following
+  /// typedef: `typedef F<S, T> = Function(S, T)`, or, in the inlined syntax,
+  /// `typedef F<S, T>(S x, T y)`.
+  final NodeList templateParameters;
+
   final TypeAnnotation returnType;
   final Identifier name;
+
+  /// The generic type parameters to the function type.
+  ///
+  /// For example `A` and `B` (but not `T`) are type parameters in
+  /// `typedef F<T> = Function<A, B>(A, B, T)`;
   final NodeList typeParameters;
   final NodeList formals;
 
   final Token typedefKeyword;
   final Token endToken;
 
-  Typedef(this.returnType, this.name, this.typeParameters, this.formals,
-      this.typedefKeyword, this.endToken);
+  Typedef(
+      this.isGeneralizedTypeAlias,
+      this.templateParameters,
+      this.returnType,
+      this.name,
+      this.typeParameters,
+      this.formals,
+      this.typedefKeyword,
+      this.endToken);
 
   Typedef asTypedef() => this;
 
@@ -2872,6 +2919,7 @@ class Typedef extends Node {
   accept1(Visitor1 visitor, arg) => visitor.visitTypedef(this, arg);
 
   visitChildren(Visitor visitor) {
+    if (templateParameters != null) templateParameters.accept(visitor);
     if (returnType != null) returnType.accept(visitor);
     name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
@@ -2879,6 +2927,7 @@ class Typedef extends Node {
   }
 
   visitChildren1(Visitor1 visitor, arg) {
+    if (templateParameters != null) templateParameters.accept1(visitor, arg);
     if (returnType != null) returnType.accept1(visitor, arg);
     name.accept1(visitor, arg);
     if (typeParameters != null) typeParameters.accept1(visitor, arg);
@@ -2888,6 +2937,43 @@ class Typedef extends Node {
   Token getBeginToken() => typedefKeyword;
 
   Token getEndToken() => endToken;
+}
+
+class FunctionTypeAnnotation extends TypeAnnotation {
+  final TypeAnnotation returnType;
+  final Token functionToken;
+  final NodeList typeParameters;
+  final NodeList formals;
+
+  FunctionTypeAnnotation(
+      this.returnType, this.functionToken, this.typeParameters, this.formals);
+
+  FunctionTypeAnnotation asFunctionTypeAnnotation() => this;
+
+  accept(Visitor visitor) => visitor.visitFunctionTypeAnnotation(this);
+
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitFunctionTypeAnnotation(this, arg);
+  }
+
+  visitChildren(Visitor visitor) {
+    if (returnType != null) returnType.accept(visitor);
+    if (typeParameters != null) typeParameters.accept(visitor);
+    formals.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (returnType != null) returnType.accept1(visitor, arg);
+    if (typeParameters != null) typeParameters.accept1(visitor, arg);
+    formals.accept1(visitor, arg);
+  }
+
+  Token getBeginToken() {
+    if (returnType != null) return returnType.getBeginToken();
+    return functionToken;
+  }
+
+  Token getEndToken() => formals.getEndToken();
 }
 
 class TryStatement extends Statement {
@@ -3086,17 +3172,17 @@ class IsInterpolationVisitor extends Visitor<bool> {
 class ErrorNode extends Node
     implements FunctionExpression, VariableDefinitions, Typedef {
   final Token token;
-  final String reason;
+  final FastaMessage message;
   final Identifier name;
   final NodeList definitions;
 
-  ErrorNode.internal(this.token, this.reason, this.name, this.definitions);
+  ErrorNode.internal(this.token, this.message, this.name, this.definitions);
 
-  factory ErrorNode(Token token, String reason) {
+  factory ErrorNode(Token token, FastaMessage message) {
     Identifier name = new Identifier(token);
     NodeList definitions =
         new NodeList(null, const Link<Node>().prepend(name), null, null);
-    return new ErrorNode.internal(token, reason, name, definitions);
+    return new ErrorNode.internal(token, message, name, definitions);
   }
 
   Token get beginToken => token;
@@ -3134,7 +3220,68 @@ class ErrorNode extends Node
   get type => null;
 
   // Typedef.
+  get isGeneralizedTypeAlias => null;
+  get templateParameters => null;
   get typeParameters => null;
   get formals => null;
   get typedefKeyword => null;
+}
+
+/**
+ * Encapsulates the field [TreeElementMixin._element].
+ *
+ * This library is an implementation detail of dart2js, and should not
+ * be imported except by resolution and tree node libraries, or for
+ * testing.
+ *
+ * We have taken great care to ensure AST nodes can be cached between
+ * compiler instances.  Part of this requires that we always access
+ * resolution results through TreeElements.
+ *
+ * So please, do not add additional elements to this library, and do
+ * not import it.
+ */
+/// Interface for associating
+abstract class TreeElementMixin {
+  Object get _element;
+  void set _element(Object value);
+}
+
+/// Null implementation of [TreeElementMixin] which does not allow association
+/// of elements.
+///
+/// This class is the superclass of all AST nodes.
+abstract class NullTreeElementMixin implements TreeElementMixin, Spannable {
+  // Deliberately using [Object] here to thwart code completion.
+  // You're not really supposed to access this field anyways.
+  Object get _element => null;
+  set _element(_) {
+    assert(invariant(this, false,
+        message: "Elements cannot be associated with ${runtimeType}."));
+  }
+}
+
+/// Actual implementation of [TreeElementMixin] which stores the associated
+/// element in the private field [_element].
+///
+/// This class is mixed into the node classes that are actually associated with
+/// elements.
+abstract class StoredTreeElementMixin implements TreeElementMixin {
+  Object _element;
+}
+
+/**
+ * Do not call this method directly.  Instead, use an instance of
+ * TreeElements.
+ *
+ * Using [Object] as return type to thwart code completion.
+ */
+Object getTreeElement(TreeElementMixin node) => node._element;
+
+/**
+ * Do not call this method directly.  Instead, use an instance of
+ * TreeElements.
+ */
+void setTreeElement(TreeElementMixin node, Object value) {
+  node._element = value;
 }

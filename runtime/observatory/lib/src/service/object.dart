@@ -79,8 +79,8 @@ class NetworkRpcException extends RpcException
   String toString() => 'NetworkRpcException(${message})';
 }
 
-Future<ServiceObject> ignoreNetworkErrors(
-    Object error, [ServiceObject resultOnNetworkError = null]) {
+Future<ServiceObject> ignoreNetworkErrors(Object error,
+    [ServiceObject resultOnNetworkError = null]) {
   if (error is NetworkRpcException) {
     return new Future.value(resultOnNetworkError);
   }
@@ -261,8 +261,17 @@ abstract class ServiceObject {
           case 'PcDescriptors':
             obj = new PcDescriptors._empty(owner);
             break;
+          case 'SingleTargetCache':
+            obj = new SingleTargetCache._empty(owner);
+            break;
+          case 'SubtypeTestCache':
+            obj = new SubtypeTestCache._empty(owner);
+            break;
           case 'TokenStream':
             obj = new TokenStream._empty(owner);
+            break;
+          case 'UnlinkedCall':
+            obj = new UnlinkedCall._empty(owner);
             break;
         }
         break;
@@ -432,7 +441,8 @@ class RetainingObject implements M.RetainingObject {
   RetainingObject(this.object);
 }
 
-abstract class ServiceObjectOwner extends ServiceObject {
+abstract class ServiceObjectOwner extends ServiceObject
+    implements M.ServiceObjectOwner {
   /// Creates an empty [ServiceObjectOwner].
   ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -440,6 +450,8 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(Map map);
+
+  Future<M.Object> invokeRpc(String method, Map params);
 }
 
 abstract class Location implements M.Location {
@@ -659,7 +671,10 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int architectureBits;
   bool assertsEnabled = false;
   bool typeChecksEnabled = false;
+  int nativeZoneMemoryUsage = 0;
   int pid = 0;
+  int heapAllocatedMemoryUsage = 0;
+  int heapAllocationCount = 0;
   int maxRSS = 0;
   bool profileVM = false;
   DateTime startTime;
@@ -764,29 +779,28 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       return this;
     }
 
-    assert(type == 'Isolate');
     String id = map['id'];
-    if (!id.startsWith(_isolateIdPrefix)) {
-      // Currently the VM only supports upgrading Isolate ServiceObjects.
-      throw new UnimplementedError();
+    if ((id != null) && id.startsWith(_isolateIdPrefix)) {
+      // Check cache.
+      var isolate = _isolateCache[id];
+      if (isolate == null) {
+        // Add new isolate to the cache.
+        isolate = new ServiceObject._fromMap(this, map);
+        _isolateCache[id] = isolate;
+        _buildIsolateList();
+
+        // Eagerly load the isolate.
+        isolate.load().catchError((e, stack) {
+          Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
+        });
+      } else {
+        isolate.update(map);
+      }
+      return isolate;
     }
 
-    // Check cache.
-    var isolate = _isolateCache[id];
-    if (isolate == null) {
-      // Add new isolate to the cache.
-      isolate = new ServiceObject._fromMap(this, map);
-      _isolateCache[id] = isolate;
-      _buildIsolateList();
-
-      // Eagerly load the isolate.
-      isolate.load().catchError((e, stack) {
-        Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
-      });
-    } else {
-      isolate.update(map);
-    }
-    return isolate;
+    // Build the object from the map directly.
+    return new ServiceObject._fromMap(this, map);
   }
 
   // Note that this function does not reload the isolate if it found
@@ -821,7 +835,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     });
   }
 
-  Future<ServiceObject> invokeRpc(String method, Map params) {
+  Future<dynamic> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((Map response) {
       var obj = new ServiceObject._fromMap(this, response);
       if ((obj != null) && obj.canCache) {
@@ -839,10 +853,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     if (isolate != null) {
       isolate._onEvent(event);
     }
-  }
-
-  Future restart() {
-    return invokeRpc('_restartVM', {});
   }
 
   Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
@@ -876,8 +886,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       'streamId': streamId,
     };
     // Ignore network errors on stream listen.
-    return invokeRpc('streamListen', params).catchError(
-        (e) => ignoreNetworkErrors(e));
+    return invokeRpc('streamListen', params)
+        .catchError((e) => ignoreNetworkErrors(e));
   }
 
   Future<ServiceObject> _streamCancel(String streamId) {
@@ -885,8 +895,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       'streamId': streamId,
     };
     // Ignore network errors on stream cancel.
-    return invokeRpc('streamCancel', params).catchError(
-        (e) => ignoreNetworkErrors(e));
+    return invokeRpc('streamCancel', params)
+        .catchError((e) => ignoreNetworkErrors(e));
   }
 
   // A map from stream id to event stream state.
@@ -946,7 +956,16 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     int startTimeMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
     refreshTime = new DateTime.now();
+    if (map['_nativeZoneMemoryUsage'] != null) {
+      nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
+    }
     pid = map['pid'];
+    if (map['_heapAllocatedMemoryUsage'] != null) {
+      heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
+    }
+    if (map['_heapAllocationCount'] != null) {
+      heapAllocationCount = map['_heapAllocationCount'];
+    }
     maxRSS = map['_maxRSS'];
     profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
@@ -1337,9 +1356,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('getSourceReport', params);
   }
 
-  Future<ServiceMap> reloadSources(
-      {String rootLibUri,
-       bool pause}) {
+  Future<ServiceMap> reloadSources({String rootLibUri, bool pause}) {
     Map<String, dynamic> params = <String, dynamic>{};
     if (rootLibUri != null) {
       params['rootLibUri'] = rootLibUri;
@@ -1354,10 +1371,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   void _handleIsolateReloadEvent(ServiceEvent event) {
-    if (event.reloadError != null) {
-      // Failure.
-      print('Reload failed: ${event.reloadError}');
-    } else {
+    if (event.reloadError == null) {
       _cache.clear();
     }
   }
@@ -1454,7 +1468,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return vm.invokeRpcNoUpgrade(method, params);
   }
 
-  Future<ServiceObject> invokeRpc(String method, Map params) {
+  Future<dynamic> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((Map response) {
       return getFromMap(response);
     });
@@ -1507,8 +1521,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
-  int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark = 0;
+  int get zoneHighWatermark => _zoneHighWatermark;
+  int _zoneHighWatermark = 0;
 
   int get numZoneHandles => _numZoneHandles;
   int _numZoneHandles;
@@ -1548,8 +1562,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   static String _rootsToString(M.HeapSnapshotRoots roots) {
     switch (roots) {
-      case M.HeapSnapshotRoots.user: return "User";
-      case M.HeapSnapshotRoots.vm: return "VM";
+      case M.HeapSnapshotRoots.user:
+        return "User";
+      case M.HeapSnapshotRoots.vm:
+        return "VM";
     }
     return null;
   }
@@ -1559,8 +1575,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       _snapshotFetch = new StreamController.broadcast();
       // isolate.vm.streamListen('_Graph');
       isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
-                                 {'roots': _rootsToString(roots),
-                                  'collectGarbage': collectGarbage});
+          {'roots': _rootsToString(roots), 'collectGarbage': collectGarbage});
     }
     return _snapshotFetch.stream;
   }
@@ -1641,17 +1656,17 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     threads.clear();
-    if(map['_threads'] != null) {
+    if (map['_threads'] != null) {
       threads.addAll(map['_threads']);
     }
 
-    int currentMemoryHighWatermark = 0;
+    int currentZoneHighWatermark = 0;
     for (var i = 0; i < threads.length; i++) {
-      currentMemoryHighWatermark += threads[i].memoryHighWatermark;
+      currentZoneHighWatermark += threads[i].zoneHighWatermark;
     }
 
-    if (currentMemoryHighWatermark > _memoryHighWatermark) {
-      _memoryHighWatermark = currentMemoryHighWatermark;
+    if (currentZoneHighWatermark > _zoneHighWatermark) {
+      _zoneHighWatermark = currentZoneHighWatermark;
     }
 
     _numZoneHandles = map['_numZoneHandles'];
@@ -2101,7 +2116,7 @@ class ServiceEvent extends ServiceObject {
   DartError error;
   String extensionRPC;
   Instance exception;
-  Instance reloadError;
+  DartError reloadError;
   bool atAsyncSuspension;
   Instance inspectee;
   ByteData data;
@@ -2996,7 +3011,7 @@ class ServiceFunction extends HeapObject implements M.Function {
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
+    _upgradeCollection(map, owner);
     super._update(map, mapIsRef);
 
     name = map['name'];
@@ -3093,18 +3108,17 @@ class Thread extends ServiceObject implements M.Thread {
   M.ThreadKind _kind;
   String get kindString => _kindString;
   String _kindString;
-  int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark;
-  List<Zone> get zones => _zones;
-  final List<Zone> _zones = new List<Zone>();
+  int get zoneHighWatermark => _zoneHighWatermark;
+  int _zoneHighWatermark;
+  int get zoneCapacity => _zoneCapacity;
+  int _zoneCapacity;
 
   Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
     String rawKind = map['kind'];
-    List<Map> zoneList = map['zones'];
 
-    switch(rawKind) {
+    switch (rawKind) {
       case "kUnknownTask":
         _kind = M.ThreadKind.unknownTask;
         _kindString = 'unknown';
@@ -3133,14 +3147,8 @@ class Thread extends ServiceObject implements M.Thread {
         assert(false);
     }
 
-    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
-
-    zones.clear();
-    zoneList.forEach((zone) {
-      int capacity = zone['capacity'];
-      int used = zone['used'];
-      zones.add(new Zone(capacity, used));
-    });
+    _zoneHighWatermark = int.parse(map['_zoneHighWatermark']);
+    _zoneCapacity = int.parse(map['_zoneCapacity']);
   }
 }
 
@@ -3761,14 +3769,8 @@ class LocalVarDescriptor implements M.LocalVarDescriptorsRef {
   final int scopeId;
   final String kind;
 
-  LocalVarDescriptor(this.id,
-                     this.name,
-                     this.index,
-                     this.declarationPos,
-                     this.beginPos,
-                     this.endPos,
-                     this.scopeId,
-                     this.kind);
+  LocalVarDescriptor(this.id, this.name, this.index, this.declarationPos,
+      this.beginPos, this.endPos, this.scopeId, this.kind);
 }
 
 class LocalVarDescriptors extends ServiceObject {
@@ -3879,6 +3881,66 @@ class ICData extends HeapObject implements M.ICData {
     }
     argumentsDescriptor = map['_argumentsDescriptor'];
     entries = map['_entries'];
+  }
+}
+
+class UnlinkedCall extends HeapObject implements M.UnlinkedCall {
+  String selector;
+  Instance argumentsDescriptor;
+
+  bool get immutable => false;
+
+  UnlinkedCall._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    selector = map['_selector'];
+    if (mapIsRef) {
+      return;
+    }
+    argumentsDescriptor = map['_argumentsDescriptor'];
+  }
+}
+
+class SingleTargetCache extends HeapObject implements M.SingleTargetCache {
+  Code target;
+  int lowerLimit;
+  int upperLimit;
+
+  bool get immutable => false;
+
+  SingleTargetCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    target = map['_target'];
+    if (mapIsRef) {
+      return;
+    }
+    lowerLimit = map['_lowerLimit'];
+    upperLimit = map['_upperLimit'];
+  }
+}
+
+class SubtypeTestCache extends HeapObject implements M.SubtypeTestCache {
+  Instance cache;
+
+  bool get immutable => false;
+
+  SubtypeTestCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    if (mapIsRef) {
+      return;
+    }
+    cache = map['_cache'];
   }
 }
 
@@ -4392,12 +4454,22 @@ class ServiceMetric extends ServiceObject implements M.Metric {
   String toString() => "ServiceMetric($_id)";
 }
 
+Future<Null> printFrames(List<Frame> frames) async {
+  for (int i = 0; i < frames.length; i++) {
+    final Frame frame = frames[i];
+    String frameText = await frame.toUserString();
+    print('#${i.toString().padLeft(3)}: $frameText');
+  }
+}
+
 class Frame extends ServiceObject implements M.Frame {
+  M.FrameKind kind = M.FrameKind.regular;
   int index;
   ServiceFunction function;
   SourceLocation location;
   Code code;
   List<ServiceMap> variables = <ServiceMap>[];
+  String marker;
 
   Frame._empty(ServiceObject owner) : super._empty(owner);
 
@@ -4405,14 +4477,53 @@ class Frame extends ServiceObject implements M.Frame {
     assert(!mapIsRef);
     _loaded = true;
     _upgradeCollection(map, owner);
+    this.kind = _fromString(map['kind']);
+    this.marker = map['marker'];
     this.index = map['index'];
     this.function = map['function'];
     this.location = map['location'];
     this.code = map['code'];
-    this.variables = map['vars'];
+    this.variables = map['vars'] ?? [];
   }
 
-  String toString() => "Frame(${function.qualifiedName} $location)";
+  M.FrameKind _fromString(String frameKind) {
+    if (frameKind == null) {
+      return M.FrameKind.regular;
+    }
+    switch (frameKind) {
+      case 'Regular':
+        return M.FrameKind.regular;
+      case 'AsyncCausal':
+        return M.FrameKind.asyncCausal;
+      case 'AsyncSuspensionMarker':
+        return M.FrameKind.asyncSuspensionMarker;
+      case 'AsyncActivation':
+        return M.FrameKind.asyncActivation;
+      default:
+        throw new UnsupportedError('Unknown FrameKind: $frameKind');
+    }
+  }
+
+  String toString() {
+    if (function != null) {
+      return "Frame([$kind] ${function.qualifiedName} $location)";
+    } else if (location != null) {
+      return "Frame([$kind] $location)";
+    } else {
+      return "Frame([$kind])";
+    }
+  }
+
+  Future<String> toUserString() async {
+    if (function != null) {
+      return "Frame([$kind] ${function.qualifiedName} "
+          "${await location.toUserString()})";
+    } else if (location != null) {
+      return "Frame([$kind] ${await location.toUserString()}";
+    } else {
+      return "Frame([$kind])";
+    }
+  }
 }
 
 class ServiceMessage extends ServiceObject {

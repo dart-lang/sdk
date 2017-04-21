@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.utilities.change_builder_dart;
+import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
@@ -14,7 +14,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -24,18 +25,20 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
   /**
-   * The analysis context in which the files being edited were analyzed.
+   * The analysis driver in which the files being edited were analyzed.
    */
-  final AnalysisContext context;
+  final AnalysisDriver driver;
 
   /**
    * Initialize a newly created change builder.
    */
-  DartChangeBuilderImpl(this.context);
+  DartChangeBuilderImpl(this.driver);
 
   @override
-  DartFileEditBuilderImpl createFileEditBuilder(Source source, int fileStamp) {
-    return new DartFileEditBuilderImpl(this, source, fileStamp);
+  Future<DartFileEditBuilderImpl> createFileEditBuilder(
+      String path, int fileStamp) async {
+    AnalysisResult result = await driver.getResult(path);
+    return new DartFileEditBuilderImpl(this, path, fileStamp, result.unit);
   }
 }
 
@@ -59,16 +62,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
 
   @override
+  LinkedEditBuilderImpl createLinkedEditBuilder() {
+    return new DartLinkedEditBuilderImpl(this);
+  }
+
+  @override
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract: false,
       void memberWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
-      DartType superclass}) {
+      DartType superclass,
+      String superclassGroupName: DartEditBuilder.SUPERCLASS_GROUP_ID}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
     // parameterWriter parameter.
-    // TODO(brianwilkerson) Add a superclassGroupName parameter.
     if (isAbstract) {
       write(Keyword.ABSTRACT.syntax);
       write(' ');
@@ -83,7 +91,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (superclass != null) {
       write(' extends ');
-      writeType(superclass, groupName: DartEditBuilder.SUPERCLASS_GROUP_ID);
+      writeType(superclass, groupName: superclassGroupName);
     } else if (mixins != null && mixins.isNotEmpty) {
       write(' extends Object ');
     }
@@ -130,13 +138,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
     }
+    write('(');
     if (argumentList != null) {
       writeParametersMatchingArguments(argumentList);
-    } else {
-      write('()');
     }
-    writeln(' {');
-    write('  }');
+    writeln(');');
   }
 
   @override
@@ -181,6 +187,46 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeFunctionDeclaration(String name,
+      {void bodyWriter(),
+      bool isStatic: false,
+      String nameGroupName,
+      void parameterWriter(),
+      DartType returnType,
+      String returnTypeGroupName}) {
+    if (isStatic) {
+      write(Keyword.STATIC.syntax);
+      write(' ');
+    }
+    if (returnType != null) {
+      writeType(returnType, groupName: returnTypeGroupName);
+      write(' ');
+    }
+    if (nameGroupName != null) {
+      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
+        write(name);
+      });
+    } else {
+      write(name);
+    }
+    write('(');
+    if (parameterWriter != null) {
+      parameterWriter();
+    }
+    write(')');
+    if (bodyWriter == null) {
+      if (returnType != null) {
+        write(' => null;');
+      } else {
+        write(' {}');
+      }
+    } else {
+      write(' ');
+      bodyWriter();
+    }
+  }
+
+  @override
   void writeGetterDeclaration(String name,
       {void bodyWriter(),
       bool isStatic: false,
@@ -210,6 +256,46 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
       bodyWriter();
     }
+  }
+
+  @override
+  void writeLocalVariableDeclaration(String name,
+      {void initializerWriter(),
+      bool isConst: false,
+      bool isFinal: false,
+      String nameGroupName,
+      DartType type,
+      String typeGroupName}) {
+    bool typeRequired = true;
+    if (isConst) {
+      write(Keyword.CONST.syntax);
+      typeRequired = false;
+    } else if (isFinal) {
+      write(Keyword.FINAL.syntax);
+      typeRequired = false;
+    }
+    if (type != null) {
+      if (!typeRequired) {
+        // The type is required unless we're written a keyword.
+        write(' ');
+      }
+      writeType(type, groupName: typeGroupName);
+    } else if (typeRequired) {
+      write(Keyword.VAR.syntax);
+    }
+    write(' ');
+    if (nameGroupName != null) {
+      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
+        write(name);
+      });
+    } else {
+      write(name);
+    }
+    if (initializerWriter != null) {
+      write(' = ');
+      initializerWriter();
+    }
+    write(';');
   }
 
   @override
@@ -270,6 +356,29 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeParameterMatchingArgument(
+      Expression argument, int index, Set<String> usedNames) {
+    // append type name
+    DartType type = argument.bestType;
+    if (writeType(type, addSupertypeProposals: true, groupName: 'TYPE$index')) {
+      write(' ');
+    }
+    // append parameter name
+    if (argument is NamedExpression) {
+      write(argument.name.label.name);
+    } else {
+      List<String> suggestions =
+          _getParameterNameSuggestions(usedNames, type, argument, index);
+      String favorite = suggestions[0];
+      usedNames.add(favorite);
+      addLinkedEdit('PARAM$index', (LinkedEditBuilder builder) {
+        write(favorite);
+        builder.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
+      });
+    }
+  }
+
+  @override
   void writeParameters(Iterable<ParameterElement> parameters) {
     write('(');
     bool sawNamed = false;
@@ -317,42 +426,26 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParametersMatchingArguments(ArgumentList arguments) {
-    Set<String> excluded = new Set();
-    bool namedFound = false;
-    write('(');
-    List<Expression> argumentList = arguments.arguments;
-    for (int i = 0; i < argumentList.length; i++) {
-      Expression argument = argumentList[i];
-      DartType type = argument.bestType;
-      List<String> suggestions =
-          _getParameterNameSuggestions(excluded, type, argument, i);
-      String favorite = suggestions[0];
-      // append separator
+  void writeParametersMatchingArguments(ArgumentList argumentList) {
+    // TODO(brianwilkerson) Handle the case when there are required parameters
+    // after named parameters.
+    Set<String> usedNames = new Set<String>();
+    List<Expression> arguments = argumentList.arguments;
+    bool hasNamedParameters = false;
+    for (int i = 0; i < arguments.length; i++) {
+      Expression argument = arguments[i];
       if (i > 0) {
         write(', ');
       }
-      if (argument is NamedExpression) {
-        if (!namedFound) {
-          namedFound = true;
-          write('[');
-        }
-        favorite = argument.name.label.name;
+      if (argument is NamedExpression && !hasNamedParameters) {
+        hasNamedParameters = true;
+        write('{');
       }
-      // append type name
-      writeType(type, addSupertypeProposals: true, groupName: 'TYPE$i');
-      write(' ');
-      // append parameter name
-      excluded.add(favorite);
-      addLinkedEdit('ARG$i', (LinkedEditBuilder builder) {
-        builder.write(favorite);
-        builder.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
-      });
+      writeParameterMatchingArgument(argument, i, usedNames);
     }
-    if (namedFound) {
-      write(']');
+    if (hasNamedParameters) {
+      write('}');
     }
-    write(')');
   }
 
   @override
@@ -370,19 +463,23 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type != null && !type.isDynamic) {
       String typeSource =
           utils.getTypeSource(type, dartFileEditBuilder.librariesToImport);
-      if (groupName != null) {
-        addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+      if (typeSource != 'dynamic') {
+        if (groupName != null) {
+          addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+            write(typeSource);
+            if (addSupertypeProposals) {
+              _addSuperTypeProposals(builder, type, new Set<DartType>());
+            }
+          });
+        } else {
           write(typeSource);
-          if (addSupertypeProposals) {
-            _addSuperTypeProposals(builder, type, new Set<DartType>());
-          }
-        });
-      } else {
-        write(typeSource);
+        }
+        return true;
       }
-      return true;
-    } else if (required) {
+    }
+    if (required) {
       write(Keyword.VAR.syntax);
+      return true;
     }
     return false;
   }
@@ -425,20 +522,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
-   * Return a list containing the suggested names for a parmeter with the given
+   * Return a list containing the suggested names for a parameter with the given
    * [type] whose value in one location is computed by the given [expression].
    * The list will not contain any names in the set of [excluded] names. The
    * [index] is the index of the argument, used to create a name if no better
    * name could be created. The first name in the list will be the best name.
    */
   List<String> _getParameterNameSuggestions(
-      Set<String> excluded, DartType type, Expression expression, int index) {
+      Set<String> usedNames, DartType type, Expression expression, int index) {
     List<String> suggestions =
-        getVariableNameSuggestionsForExpression(type, expression, excluded);
+        getVariableNameSuggestionsForExpression(type, expression, usedNames);
     if (suggestions.length != 0) {
       return suggestions;
     }
-    return <String>['arg$index'];
+    // TODO(brianwilkerson) Verify that the name below is not in the set of used names.
+    return <String>['param$index'];
   }
 }
 
@@ -466,22 +564,105 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
-   * the given [source] and [timeStamp].
+   * the given [source] and [timeStamp], and the given fully resolved [unit].
    */
-  DartFileEditBuilderImpl(
-      DartChangeBuilderImpl changeBuilder, Source source, int timeStamp)
-      : super(changeBuilder, source, timeStamp) {
-    AnalysisContext context = changeBuilder.context;
-    List<Source> librariesContaining = context.getLibrariesContaining(source);
-    if (librariesContaining.length < 1) {
-      throw new StateError('Cannot build edits for ${source.fullName}');
-    }
-    unit = context.resolveCompilationUnit2(source, librariesContaining[0]);
+  DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
+      int timeStamp, this.unit)
+      : super(changeBuilder, path, timeStamp) {
     utils = new CorrectionUtils(unit);
+  }
+
+  @override
+  void convertFunctionFromSyncToAsync(
+      FunctionBody body, TypeProvider typeProvider) {
+    if (body == null && body.keyword != null) {
+      throw new ArgumentError(
+          'The function must have a synchronous, non-generator body.');
+    }
+    addInsertion(body.offset, (EditBuilder builder) {
+      builder.write('async ');
+    });
+    _replaceReturnTypeWithFuture(body, typeProvider);
   }
 
   @override
   DartEditBuilderImpl createEditBuilder(int offset, int length) {
     return new DartEditBuilderImpl(this, offset, length);
+  }
+
+  @override
+  void replaceTypeWithFuture(
+      TypeAnnotation typeAnnotation, TypeProvider typeProvider) {
+    InterfaceType futureType = typeProvider.futureType;
+    //
+    // Check whether the type needs to be replaced.
+    //
+    DartType type = typeAnnotation?.type;
+    if (type == null ||
+        type.isDynamic ||
+        type is InterfaceType && type.element == futureType.element) {
+      return;
+    }
+    // prepare code for the types
+    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
+    String nodeCode = utils.getNodeText(typeAnnotation);
+    // wrap the existing type with Future
+    String returnTypeCode =
+        nodeCode == 'void' ? futureTypeCode : '$futureTypeCode<$nodeCode>';
+    addReplacement(typeAnnotation.offset, typeAnnotation.length,
+        (EditBuilder builder) {
+      builder.write(returnTypeCode);
+    });
+  }
+
+  /**
+   * Create an edit to replace the return type of the innermost function
+   * containing the given [node] with the type `Future`. The [typeProvider] is
+   * used to check the current return type, because if it is already `Future` no
+   * edit will be added.
+   */
+  void _replaceReturnTypeWithFuture(AstNode node, TypeProvider typeProvider) {
+    while (node != null) {
+      node = node.parent;
+      if (node is FunctionDeclaration) {
+        replaceTypeWithFuture(node.returnType, typeProvider);
+        return;
+      } else if (node is MethodDeclaration) {
+        replaceTypeWithFuture(node.returnType, typeProvider);
+        return;
+      }
+    }
+  }
+}
+
+/**
+ * A [LinkedEditBuilder] used to build linked edits for Dart files.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
+    implements DartLinkedEditBuilder {
+  /**
+   * Initialize a newly created linked edit builder.
+   */
+  DartLinkedEditBuilderImpl(EditBuilderImpl editBuilder) : super(editBuilder);
+
+  @override
+  void addSuperTypesAsSuggestions(DartType type) {
+    _addSuperTypesAsSuggestions(type, new Set<DartType>());
+  }
+
+  /**
+   * Safely implement [addSuperTypesAsSuggestions] by using the set of
+   * [alreadyAdded] types to prevent infinite loops.
+   */
+  void _addSuperTypesAsSuggestions(DartType type, Set<DartType> alreadyAdded) {
+    if (type is InterfaceType && alreadyAdded.add(type)) {
+      addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      _addSuperTypesAsSuggestions(type.superclass, alreadyAdded);
+      for (InterfaceType interfaceType in type.interfaces) {
+        _addSuperTypesAsSuggestions(interfaceType, alreadyAdded);
+      }
+    }
   }
 }

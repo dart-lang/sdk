@@ -55,7 +55,7 @@ const String cachedClassFieldNames = r'$cachedFieldNames';
 // names we want. Furthermore, the pretty-printer minifies local variables, thus
 // reducing their size.
 const String mainBoilerplate = '''
-(function() {
+(function dartProgram() {
 // Copies the own properties from [from] to [to].
 function copyProperties(from, to) {
   var keys = Object.keys(from);
@@ -655,7 +655,7 @@ class FragmentEmitter {
     List<js.Name> fieldNames =
         cls.fields.map((Field field) => field.name).toList();
     if (cls.hasRtiField) {
-      fieldNames.add(namer.rtiFieldName);
+      fieldNames.add(namer.rtiFieldJsName);
     }
 
     Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
@@ -702,7 +702,6 @@ class FragmentEmitter {
     Iterable<Method> checkedSetters = cls.checkedSetters;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
-    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
     Iterable<Method> allMethods = [
@@ -710,7 +709,6 @@ class FragmentEmitter {
       checkedSetters,
       isChecks,
       callStubs,
-      typeVariableReaderStubs,
       noSuchMethodStubs,
       gettersSetters
     ].expand((x) => x);
@@ -864,10 +862,12 @@ class FragmentEmitter {
       }
     }
 
-    return new js.Block([inheritCalls, mixinCalls]
-        .expand((e) => e)
-        .map((e) => new js.ExpressionStatement(e))
-        .toList(growable: false));
+    return wrapPhase(
+        'inheritance',
+        js.js.statement('{#; #;}', [
+          inheritCalls.map((e) => new js.ExpressionStatement(e)),
+          mixinCalls.map((e) => new js.ExpressionStatement(e))
+        ]));
   }
 
   /// Emits the setup of method aliases.
@@ -966,7 +966,7 @@ class FragmentEmitter {
     bool isIntercepted = false;
     if (method is InstanceMethod) {
       MethodElement element = method.element;
-      isIntercepted = backend.isInterceptedMethod(element);
+      isIntercepted = backend.interceptorData.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();
@@ -994,6 +994,13 @@ class FragmentEmitter {
         });
   }
 
+  /// Wraps the statement in a named function to that it shows up as a unit in
+  /// profiles.
+  // TODO(sra): Should this be conditional?
+  js.Statement wrapPhase(String name, js.Statement statement) {
+    return js.js.statement('(function #(){#})();', [name, statement]);
+  }
+
   /// Emits the section that installs tear-off getters.
   js.Statement emitInstallTearOffs(Fragment fragment) {
     List<js.Statement> inits = <js.Statement>[];
@@ -1018,7 +1025,7 @@ class FragmentEmitter {
         }
       }
     }
-    return new js.Block(inits);
+    return wrapPhase('installTearOffs', new js.Block(inits));
   }
 
   /// Emits the constants section.
@@ -1037,14 +1044,14 @@ class FragmentEmitter {
       compiler.dumpInfoTask.registerConstantAst(constant.value, assignment);
       assignments.add(assignment);
     }
-    return new js.Block(assignments);
+    return wrapPhase('constants', new js.Block(assignments));
   }
 
   /// Emits the static non-final fields section.
   ///
   /// This section initializes all static non-final fields that don't require
   /// an initializer.
-  js.Block emitStaticNonFinalFields(Fragment fragment) {
+  js.Statement emitStaticNonFinalFields(Fragment fragment) {
     List<StaticField> fields = fragment.staticNonFinalFields;
     // TODO(floitsch): instead of assigning the fields one-by-one we should
     // create a literal and assign it to the static-state holder.
@@ -1056,14 +1063,14 @@ class FragmentEmitter {
       return js.js
           .statement("#.# = #;", [field.holder.name, field.name, field.code]);
     });
-    return new js.Block(statements.toList());
+    return wrapPhase('staticFields', new js.Block(statements.toList()));
   }
 
   /// Emits lazy fields.
   ///
   /// This section initializes all static (final and non-final) fields that
   /// require an initializer.
-  js.Block emitLazilyInitializedStatics(Fragment fragment) {
+  js.Statement emitLazilyInitializedStatics(Fragment fragment) {
     List<StaticField> fields = fragment.staticLazilyInitializedFields;
     Iterable<js.Statement> statements = fields.map((StaticField field) {
       assert(field.holder.isStaticStateHolder);
@@ -1075,7 +1082,7 @@ class FragmentEmitter {
       ]);
     });
 
-    return new js.Block(statements.toList());
+    return wrapPhase('lazyInitializers', new js.Block(statements.toList()));
   }
 
   /// Emits the embedded globals that are needed for deferred loading.
@@ -1389,6 +1396,6 @@ class FragmentEmitter {
         js.js.statement("setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
     statements.addAll(subclassAssignments);
 
-    return new js.Block(statements);
+    return wrapPhase('nativeSupport', new js.Block(statements));
   }
 }

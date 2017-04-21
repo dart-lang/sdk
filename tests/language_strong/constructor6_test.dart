@@ -23,8 +23,8 @@ class A {
     // b2 should be initialized between the above initializers and the following
     // statements.
     var r1 = f();
-    E(arg += 100);  // If this is the same arg as closed by f, ...
-    var r2 = f();   // .. the effect of +=100 will be seen here.
+    E(arg += 100); // If this is the same arg as closed by f, ...
+    var r2 = f(); //  .. the effect of +=100 will be seen here.
   }
   final a;
   final f;

@@ -7,13 +7,11 @@ class A {
   var b;
 }
 
-class B extends A {
-
-}
+class B extends A {}
 
 class C extends B {
-  var a; /// 01: static type warning
-  static var b; /// 02: compile-time error
+  var a; //# 01: static type warning
+  static var b; //# 02: compile-time error
 }
 
 void main() {

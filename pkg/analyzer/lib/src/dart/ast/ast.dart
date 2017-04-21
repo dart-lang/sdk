@@ -4325,6 +4325,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /**
    * The 'covariant' keyword, or `null` if the keyword was not used.
    */
+  @override
   Token covariantKeyword;
 
   /**
@@ -4351,8 +4352,13 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
    * corresponding attribute. The [staticKeyword] can be `null` if the field is
    * not a static field.
    */
-  FieldDeclarationImpl(CommentImpl comment, List<Annotation> metadata,
-      this.staticKeyword, VariableDeclarationListImpl fieldList, this.semicolon)
+  FieldDeclarationImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.covariantKeyword,
+      this.staticKeyword,
+      VariableDeclarationListImpl fieldList,
+      this.semicolon)
       : super(comment, metadata) {
     _fieldList = _becomeParentOf(fieldList);
   }
@@ -4457,6 +4463,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   FieldFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      Token covariantKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       this.thisKeyword,
@@ -4464,7 +4471,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters)
-      : super(comment, metadata, identifier) {
+      : super(comment, metadata, covariantKeyword, identifier) {
     _type = _becomeParentOf(type);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -5574,12 +5581,13 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   FunctionTypedFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      Token covariantKeyword,
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters,
       this.question)
-      : super(comment, metadata, identifier) {
+      : super(comment, metadata, covariantKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -5700,6 +5708,9 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
    */
   FormalParameterList _parameters;
 
+  @override
+  DartType type;
+
   /**
    * Initialize a newly created generic function type.
    */
@@ -5742,9 +5753,6 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   void set returnType(TypeAnnotation type) {
     _returnType = _becomeParentOf(type as AstNodeImpl);
   }
-
-  @override
-  DartType get type => null;
 
   /**
    * Return the type parameters for the function type, or `null` if the function
@@ -5823,8 +5831,9 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     ..add(_typeParameters)
     ..add(equals)
     ..add(_functionType);
+
   @override
-  Element get element => null;
+  Element get element => name.staticElement;
 
   @override
   GenericFunctionType get functionType => _functionType;
@@ -5847,7 +5856,6 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     return visitor.visitGenericTypeAlias(this);
   }
 
-  // TODO: implement element
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
@@ -8138,7 +8146,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
    * corresponding attribute.
    */
   NormalFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      SimpleIdentifierImpl identifier) {
+      this.covariantKeyword, SimpleIdentifierImpl identifier) {
     _comment = _becomeParentOf(comment);
     _metadata = new NodeListImpl<Annotation>(this, metadata);
     _identifier = _becomeParentOf(identifier);
@@ -9231,15 +9239,23 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
    */
   TypeAnnotation _type;
 
+  @override
+  ParameterElement element;
+
   /**
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
    * corresponding attribute. The [keyword] can be `null` if a type was
    * specified. The [type] must be `null` if the keyword is 'var'.
    */
-  SimpleFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      this.keyword, TypeAnnotationImpl type, SimpleIdentifierImpl identifier)
-      : super(comment, metadata, identifier) {
+  SimpleFormalParameterImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      Token covariantKeyword,
+      this.keyword,
+      TypeAnnotationImpl type,
+      SimpleIdentifierImpl identifier)
+      : super(comment, metadata, covariantKeyword, identifier) {
     _type = _becomeParentOf(type);
   }
 
@@ -9263,7 +9279,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
       super._childEntities..add(keyword)..add(_type)..add(identifier);
 
   @override
-  Token get endToken => identifier.endToken;
+  Token get endToken => identifier?.endToken ?? type?.endToken;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;

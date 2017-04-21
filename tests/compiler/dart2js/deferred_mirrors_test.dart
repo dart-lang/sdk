@@ -57,7 +57,7 @@ runTests() async {
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    Expect.isFalse(compiler.backend.hasInsufficientMirrorsUsed);
+    Expect.isFalse(compiler.backend.mirrorsData.hasInsufficientMirrorsUsed);
     var mainLib = lookupLibrary(compiler, "memory:main3.dart");
     var lib3 = lookupLibrary(compiler, "memory:lib3.dart");
     var C = mainLib.find("C");

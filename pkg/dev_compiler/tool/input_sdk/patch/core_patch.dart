@@ -5,16 +5,18 @@
 // Patch file for dart:core classes.
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
-import 'dart:_js_helper' show patch,
-                              checkInt,
-                              getRuntimeType,
-                              jsonEncodeNative,
-                              JsLinkedHashMap,
-                              JSSyntaxRegExp,
-                              Primitives,
-                              stringJoinUnchecked,
-                              objectHashCode,
-                              getTraceFromException;
+import 'dart:_js_helper'
+    show
+        patch,
+        checkInt,
+        getRuntimeType,
+        jsonEncodeNative,
+        JsLinkedHashMap,
+        JSSyntaxRegExp,
+        Primitives,
+        stringJoinUnchecked,
+        objectHashCode,
+        getTraceFromException;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -29,19 +31,18 @@ int identityHashCode(Object object) => objectHashCode(object);
 @patch
 class Object {
   @patch
-  int get hashCode => Primitives.objectHashCode(this);
+  bool operator ==(other) => identical(this, other);
 
+  @patch
+  int get hashCode => Primitives.objectHashCode(this);
 
   @patch
   String toString() => Primitives.objectToString(this);
 
   @patch
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(
-        this,
-        invocation.memberName,
-        invocation.positionalArguments,
-        invocation.namedArguments);
+    throw new NoSuchMethodError(this, invocation.memberName,
+        invocation.positionalArguments, invocation.namedArguments);
   }
 
   @patch
@@ -49,16 +50,29 @@ class Object {
       JS('Type', 'dart.wrapType(dart.getReifiedType(#))', this);
 }
 
+@patch
+class Null {
+  @patch
+  int get hashCode => super.hashCode;
+}
+
 // Patch for Function implementation.
 @patch
 class Function {
   @patch
-  static apply(Function f,
-               List positionalArguments,
-               [Map<Symbol, dynamic> namedArguments]) {
-    // TODO(vsm): Handle named args:
-    // https://github.com/dart-lang/sdk/issues/27257
-    return JS('', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
+  static apply(Function f, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]) {
+    positionalArguments ??= [];
+    // dcall expects the namedArguments as a JS map in the last slot.
+    if (namedArguments != null && namedArguments.isNotEmpty) {
+      var map = JS('', '{}');
+      namedArguments.forEach((symbol, arg) {
+        JS('', '#[#] = #', map, _symbolToString(symbol), arg);
+      });
+      positionalArguments = new List.from(positionalArguments)..add(map);
+    }
+    return JS(
+        '', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(
@@ -79,13 +93,13 @@ class Expando<T> {
   Expando([String name]) : this.name = name;
 
   @patch
-  T operator[](Object object) {
+  T operator [](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
     return (values == null) ? null : Primitives.getProperty(values, _getKey());
   }
 
   @patch
-  void operator[]=(Object object, T value) {
+  void operator []=(Object object, T value) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
     if (values == null) {
       values = new Object();
@@ -111,9 +125,7 @@ class Expando<T> {
 @patch
 class int {
   @patch
-  static int parse(String source,
-                         { int radix,
-                           int onError(String source) }) {
+  static int parse(String source, {int radix, int onError(String source)}) {
     return Primitives.parseInt(source, radix, onError);
   }
 
@@ -127,8 +139,7 @@ class int {
 @patch
 class double {
   @patch
-  static double parse(String source,
-                            [double onError(String source)]) {
+  static double parse(String source, [double onError(String source)]) {
     return Primitives.parseDouble(source, onError);
   }
 }
@@ -149,6 +160,18 @@ class Error {
   StackTrace get stackTrace => Primitives.extractStackTrace(this);
 }
 
+@patch
+class FallThroughError {
+  @patch
+  String toString() => super.toString();
+}
+
+@patch
+class AbstractClassInstantiationError {
+  @patch
+  String toString() => "Cannot instantiate abstract class: '$_className'";
+}
+
 /// An interface type for all Strong-mode errors.
 class StrongModeError extends Error {}
 
@@ -157,33 +180,31 @@ class StrongModeError extends Error {}
 class DateTime {
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-                                      {bool isUtc: false})
+      {bool isUtc: false})
       : this._withValue(millisecondsSinceEpoch, isUtc: isUtc);
 
   @patch
   DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-                                      {bool isUtc: false})
+      {bool isUtc: false})
       : this._withValue(
-          _microsecondInRoundedMilliseconds(microsecondsSinceEpoch),
-          isUtc: isUtc);
+            _microsecondInRoundedMilliseconds(microsecondsSinceEpoch),
+            isUtc: isUtc);
 
   @patch
-  DateTime._internal(int year,
-                     int month,
-                     int day,
-                     int hour,
-                     int minute,
-                     int second,
-                     int millisecond,
-                     int microsecond,
-                     bool isUtc)
-        // checkBool is manually inlined here because dart2js doesn't inline it
-        // and [isUtc] is usually a constant.
+  DateTime._internal(int year, int month, int day, int hour, int minute,
+      int second, int millisecond, int microsecond, bool isUtc)
+      // checkBool is manually inlined here because dart2js doesn't inline it
+      // and [isUtc] is usually a constant.
       : this.isUtc = isUtc is bool
             ? isUtc
             : throw new ArgumentError.value(isUtc, 'isUtc'),
         _value = checkInt(Primitives.valueFromDecomposedDate(
-            year, month, day, hour, minute, second,
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
             millisecond + _microsecondInRoundedMilliseconds(microsecond),
             isUtc));
 
@@ -200,11 +221,15 @@ class DateTime {
   }
 
   @patch
-  static int _brokenDownDateToValue(
-      int year, int month, int day, int hour, int minute, int second,
-      int millisecond, int microsecond, bool isUtc) {
+  static int _brokenDownDateToValue(int year, int month, int day, int hour,
+      int minute, int second, int millisecond, int microsecond, bool isUtc) {
     return Primitives.valueFromDecomposedDate(
-        year, month, day, hour, minute, second,
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
         millisecond + _microsecondInRoundedMilliseconds(microsecond),
         isUtc);
   }
@@ -223,14 +248,14 @@ class DateTime {
 
   @patch
   DateTime add(Duration duration) {
-    return new DateTime._withValue(
-        _value + duration.inMilliseconds, isUtc: isUtc);
+    return new DateTime._withValue(_value + duration.inMilliseconds,
+        isUtc: isUtc);
   }
 
   @patch
   DateTime subtract(Duration duration) {
-    return new DateTime._withValue(
-        _value - duration.inMilliseconds, isUtc: isUtc);
+    return new DateTime._withValue(_value - duration.inMilliseconds,
+        isUtc: isUtc);
   }
 
   @patch
@@ -272,7 +297,6 @@ class DateTime {
   int get weekday => Primitives.getWeekday(this);
 }
 
-
 // Patch for Stopwatch implementation.
 @patch
 class Stopwatch {
@@ -297,8 +321,9 @@ class List<E> {
     } else {
       // Explicit type test is necessary to guard against JavaScript conversions
       // in unchecked mode.
-      if ((length is !int) || (length < 0)) {
-        throw new ArgumentError("Length must be a non-negative integer: $length");
+      if ((length is! int) || (length < 0)) {
+        throw new ArgumentError(
+            "Length must be a non-negative integer: $length");
       }
       list = JSArray.markFixedList(JS('', 'new Array(#)', length));
     }
@@ -306,18 +331,19 @@ class List<E> {
   }
 
   @patch
-  factory List.filled(int length, E fill) {
+  factory List.filled(int length, E fill, {bool growable: true}) {
     List<E> result = new List<E>(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;
       }
     }
-    return result;
+    if (growable) return result;
+    return makeListFixedLength/*<E>*/(result);
   }
 
   @patch
-  factory List.from(Iterable elements, { bool growable: true }) {
+  factory List.from(Iterable elements, {bool growable: true}) {
     List<E> list = new List<E>();
     for (var e in elements) {
       list.add(e);
@@ -348,7 +374,7 @@ class Map<K, V> {
 class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
-                               [int start = 0, int end]) {
+      [int start = 0, int end]) {
     if (charCodes is JSArray) {
       return _stringFromJSArray(charCodes, start, end);
     }
@@ -370,7 +396,9 @@ class String {
   }
 
   static String _stringFromJSArray(
-      /*=JSArray<int>*/ list, int start, int endOrNull) {
+      /*=JSArray<int>*/ list,
+      int start,
+      int endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
@@ -386,8 +414,8 @@ class String {
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
   }
 
-  static String _stringFromIterable(Iterable<int> charCodes,
-                                    int start, int end) {
+  static String _stringFromIterable(
+      Iterable<int> charCodes, int start, int end) {
     if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
     if (end != null && end < start) {
       throw new RangeError.range(end, start, charCodes.length);
@@ -420,17 +448,18 @@ class bool {
     throw new UnsupportedError(
         'bool.fromEnvironment can only be used as a const constructor');
   }
+
+  @patch
+  int get hashCode => super.hashCode;
 }
 
 @patch
 class RegExp {
   @patch
   factory RegExp(String source,
-                       {bool multiLine: false,
-                        bool caseSensitive: true})
-    => new JSSyntaxRegExp(source,
-                          multiLine: multiLine,
-                          caseSensitive: caseSensitive);
+          {bool multiLine: false, bool caseSensitive: true}) =>
+      new JSSyntaxRegExp(source,
+          multiLine: multiLine, caseSensitive: caseSensitive);
 }
 
 // Patch for 'identical' function.
@@ -506,6 +535,16 @@ class StringBuffer {
 @patch
 class NoSuchMethodError {
   @patch
+  NoSuchMethodError(Object receiver, Symbol memberName,
+      List positionalArguments, Map<Symbol, dynamic> namedArguments,
+      [List existingArgumentNames = null])
+      : _receiver = receiver,
+        _memberName = memberName,
+        _arguments = positionalArguments,
+        _namedArguments = namedArguments,
+        _existingArgumentNames = existingArgumentNames;
+
+  @patch
   String toString() {
     StringBuffer sb = new StringBuffer();
     int i = 0;
@@ -554,15 +593,17 @@ class NoSuchMethodError {
 @patch
 class Uri {
   @patch
-  static bool get _isWindows => false;
-
-  @patch
   static Uri get base {
     String uri = Primitives.currentUri();
     if (uri != null) return Uri.parse(uri);
     throw new UnsupportedError("'Uri.base' is not supported");
   }
+}
 
+@patch
+class _Uri {
+  @patch
+  static bool get _isWindows => false;
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that
@@ -575,17 +616,15 @@ class Uri {
    * that appear in [canonicalTable], and returns the escaped string.
    */
   @patch
-  static String _uriEncode(List<int> canonicalTable,
-                           String text,
-                           Encoding encoding,
-                           bool spaceToPlus) {
+  static String _uriEncode(List<int> canonicalTable, String text,
+      Encoding encoding, bool spaceToPlus) {
     if (identical(encoding, UTF8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
 
     // Encode the string into bytes then generate an ASCII only string
     // by percent encoding selected bytes.
-    StringBuffer result = new StringBuffer();
+    StringBuffer result = new StringBuffer('');
     var bytes = encoding.encode(text);
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];

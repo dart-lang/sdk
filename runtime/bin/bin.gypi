@@ -1000,8 +1000,9 @@
             'tools/create_snapshot_bin.py',
             '--executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
+            '--snapshot_kind', 'core',
             '--vm_output_bin', '<(vm_isolate_snapshot_bin_file)',
-            '--output_bin', '<(isolate_snapshot_bin_file)',
+            '--isolate_output_bin', '<(isolate_snapshot_bin_file)',
             '--target_os', '<(OS)',
             '--timestamp_file', '<(gen_snapshot_stamp_file)',
           ],
@@ -1122,12 +1123,16 @@
         '../../third_party/', # Zlib
       ],
       'sources': [
-        'main.cc',
         'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
+        'error_exit.cc',
+        'error_exit.h',
         'io_natives.h',
+        'main.cc',
+        'snapshot_utils.cc',
+        'snapshot_utils.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         '<(observatory_assets_cc_file)',
@@ -1150,9 +1155,6 @@
         ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
           'dependencies': [
             '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
-          ],
-          'defines': [
-            'DART_USE_TCMALLOC'
           ],
         }],
       ],
@@ -1184,13 +1186,17 @@
         '../../third_party/', # Zlib
       ],
       'sources': [
-        'main.cc',
         'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
+        'error_exit.cc',
+        'error_exit.h',
         'io_natives.h',
+        'main.cc',
         'snapshot_empty.cc',
+        'snapshot_utils.cc',
+        'snapshot_utils.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         '<(observatory_assets_cc_file)',
@@ -1230,14 +1236,18 @@
         '..',
       ],
       'sources': [
-        'main.cc',
         'builtin.cc',
         'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
+        'error_exit.cc',
+        'error_exit.h',
         'io_natives.h',
+        'main.cc',
         'observatory_assets_empty.cc',
         'snapshot_empty.cc',
+        'snapshot_utils.cc',
+        'snapshot_utils.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         # Include generated source files.
@@ -1347,9 +1357,6 @@
         ['OS == "linux" and asan == 0 and msan == 0 and tsan == 0', {
           'dependencies': [
             '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
-          ],
-          'defines': [
-            'DART_USE_TCMALLOC'
           ],
         }],
       ],

@@ -1,0 +1,397 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Each entry in this map corresponds to a diagnostic message. Ideally, each
+# entry contains three parts:
+#
+# 1. A message template (template).
+#
+# 2. A suggestion for how to correct the problem (tip).
+#
+# 3. Examples that produce the message (one of expression, statement,
+#    declaration, member, script, or bytes).
+#
+# In addition, an entry can contain an analyzer error code (analyzerCode) and a
+# dart2js error code (dart2jsCode).
+#
+# ## Parameter Substitution in Template and Tip
+#
+# The fields `template` and `tip` are subject to parameter substitution. When
+# the compiler reports a problem, it may also specify a map with the following
+# keys to be substituted into the message:
+#
+# `#character` a Unicode character.
+#
+# `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
+#  units or code points.
+#
+# `#name` a name (a string).
+#
+# `#lexeme` a token. The token's `lexeme` property is used.
+#
+# `#string` a string.
+
+AsciiControlCharacter:
+  template: "The control character #unicode can only be used in strings and comments."
+  dart2jsCode: BAD_INPUT_CHARACTER
+  expresssion: "\x1b 1"
+
+NonAsciiIdentifier:
+  template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
+  tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
+  analyzerCode: ILLEGAL_CHARACTER
+  dart2jsCode: BAD_INPUT_CHARACTER
+  expresssion: "å"
+
+NonAsciiWhitespace:
+  template: "The non-ASCII space character #unicode can only be used in strings and comments."
+  analyzerCode: ILLEGAL_CHARACTER
+  dart2jsCode: BAD_INPUT_CHARACTER
+  expresssion: "\u2028 1"
+
+Encoding:
+  template: "Unable to decode bytes as UTF-8."
+  dart2jsCode: FASTA_FATAL
+  bytes: [255]
+
+EmptyNamedParameterList:
+  template: "Named parameter lists cannot be empty."
+  tip: "Try adding a named parameter to the list."
+  dart2jsCode: EMPTY_NAMED_PARAMETER_LIST
+  script: >
+    foo({}) {}
+
+    main() {
+      foo();
+    }
+
+EmptyOptionalParameterList:
+  template: "Optional parameter lists cannot be empty."
+  tip: "Try adding an optional parameter to the list."
+  dart2jsCode: EMPTY_OPTIONAL_PARAMETER_LIST
+  script: >
+    foo([]) {}
+
+    main() {
+      foo();
+    }
+
+ExpectedBlockToSkip:
+  template: "Expected a function body or '=>'."
+  # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
+  tip: "Try adding {}."
+  dart2jsCode: NATIVE_OR_BODY_EXPECTED
+  script: "main();"
+
+ExpectedBody:
+  template: "Expected a function body or '=>'."
+  # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
+  tip: "Try adding {}."
+  dart2jsCode: BODY_EXPECTED
+  script: "main();"
+
+ExpectedButGot:
+  template: "Expected '#string' before this."
+  # Consider the second example below: the parser expects a ')' before 'y', but
+  # a ',' would also have worked. We don't have enough information to give a
+  # good suggestion.
+  tip: DONT_KNOW_HOW_TO_FIX,
+  dart2jsCode: MISSING_TOKEN_BEFORE_THIS
+  script:
+    - "main() => true ? 1;"
+    - "main() => foo(x: 1 y: 2);"
+
+ExpectedClassBody:
+  template: "Expected a class body, but got '#lexeme'."
+  dart2jsCode: FASTA_FATAL
+
+ExpectedClassBodyToSkip: ExpectedClassBody
+
+ExpectedDeclaration:
+  template: "Expected a declaration, but got '#lexeme'."
+  dart2jsCode: FASTA_FATAL
+
+ExpectedExpression:
+  template: "Expected an expression, but got '#lexeme'."
+  dart2jsCode: FASTA_FATAL
+
+ExpectedFunctionBody:
+  template: "Expected a function body, but got '#lexeme'."
+  dart2jsCode: NATIVE_OR_FATAL
+
+ExpectedHexDigit:
+  template: "A hex digit (0-9 or A-F) must follow '0x'."
+  # No tip, seems obvious from the error message.
+  analyzerCode: MISSING_HEX_DIGIT
+  dart2jsCode: HEX_DIGIT_EXPECTED
+  script: >
+    main() {
+      var i = 0x;
+    }
+
+ExpectedIdentifier:
+  template: "'#lexeme' is a reserved word and can't be used here."
+  tip: "Try using a different name."
+  dart2jsCode: EXPECTED_IDENTIFIER
+  script: "do() {} main() {}"
+
+ExpectedOpenParens:
+  template: "Expected '('."
+  dart2jsCode: GENERIC
+
+ExpectedString:
+  template: "Expected a String, but got '#lexeme'."
+  dart2jsCode: FASTA_FATAL
+
+ExpectedType:
+  template: "Expected a type, but got '#lexeme'."
+  dart2jsCode: FASTA_FATAL
+
+ExtraneousModifier:
+  template: "Can't have modifier '#lexeme' here."
+  tip: "Try removing '#lexeme'."
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "var String foo; main(){}"
+    - "var set foo; main(){}"
+    - "var final foo; main(){}"
+    - "var var foo; main(){}"
+    - "var const foo; main(){}"
+    - "var abstract foo; main(){}"
+    - "var static foo; main(){}"
+    - "var external foo; main(){}"
+    - "get var foo; main(){}"
+    - "set var foo; main(){}"
+    - "final var foo; main(){}"
+    - "var var foo; main(){}"
+    - "const var foo; main(){}"
+    - "abstract var foo; main(){}"
+    - "static var foo; main(){}"
+    - "external var foo; main(){}"
+
+ExtraneousModifierReplace:
+  template: "Can't have modifier '#lexeme' here."
+  tip: "Try replacing modifier '#lexeme' with 'var', 'final', or a type."
+  dart2jsCode: EXTRANEOUS_MODIFIER_REPLACE
+  script:
+    - "set foo; main(){}"
+    - "abstract foo; main(){}"
+    - "static foo; main(){}"
+    - "external foo; main(){}"
+
+InvalidAwaitFor:
+  template: "'await' is only supported in methods with an 'async' or 'async*' body modifier."
+  tip: "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword."
+  dart2jsCode: INVALID_AWAIT_FOR
+  script: >
+    main(o) sync* {
+      await for (var e in o) {}
+    }
+
+InvalidSyncModifier:
+  template: "Invalid modifier 'sync'."
+  tip: "Try replacing 'sync' with 'sync*'."
+  dart2jsCode: INVALID_SYNC_MODIFIER
+  script: "main() sync {}"
+
+InvalidVoid:
+  template: "Type 'void' can't be used here because it isn't a return type."
+  tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
+  dart2jsCode: VOID_NOT_ALLOWED
+  script:
+    - "void x; main() {}"
+    - "foo(void x) {} main() { foo(null); }"
+
+MissingExponent:
+  template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
+  tip: "Make sure there is an exponent, and remove any whitespace before it."
+  analyzerCode: MISSING_DIGIT
+  dart2jsCode: EXPONENT_MISSING
+  script: >
+    main() {
+      var i = 1e;
+    }
+
+PositionalParameterWithEquals:
+  template: "Positional optional parameters can't use ':' to specify a default value."
+  tip: "Try replacing ':' with '='."
+  dart2jsCode: POSITIONAL_PARAMETER_WITH_EQUALS
+  script: >
+    main() {
+      foo([a: 1]) => print(a);
+      foo(2);
+    }
+
+RequiredParameterWithDefault:
+  template: "Non-optional parameters can't have a default value."
+  tip: "Try removing the default value or making the parameter optional."
+  dart2jsCode: REQUIRED_PARAMETER_WITH_DEFAULT
+  script:
+    - >
+      main() {
+        foo(a: 1) => print(a);
+        foo(2);
+      }
+    - >
+      main() {
+        foo(a = 1) => print(a);
+        foo(2);
+      }
+
+StackOverflow:
+  template: "Stack overflow."
+  dart2jsCode: GENERIC
+
+UnexpectedDollarInString:
+  template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
+  tip: "Try adding a backslash (\\) to escape the '$'."
+  dart2jsCode: MALFORMED_STRING_LITERAL
+  script:
+    - >
+      main() {
+        return '$';
+      }
+    - >
+      main() {
+        return "$";
+      }
+    - >
+      main() {
+        return '''$''';
+      }
+    - >
+      main() {
+        return """$""";
+      }
+
+UnexpectedToken:
+  template: "Unexpected token '#lexeme'."
+  dart2jsCode: FASTA_FATAL
+
+UnmatchedToken:
+  template: "Can't find '#string' to match '#lexeme'."
+  dart2jsCode: UNMATCHED_TOKEN
+  script:
+    - "main("
+    - "main(){"
+    - "main(){[}"
+
+UnsupportedPrefixPlus:
+  template: "'+' is not a prefix operator. "
+  tip: "Try removing '+'."
+  dart2jsCode: UNSUPPORTED_PREFIX_PLUS
+  script: "main() => +2;  // No longer a valid way to write '2'"
+
+UnterminatedComment:
+  template: "Comment starting with '/*' must end with '*/'."
+  analyzerCode: UNTERMINATED_MULTI_LINE_COMMENT
+  dart2jsCode: UNTERMINATED_COMMENT
+  script:
+    main() {
+    }
+    /*
+
+UnterminatedString:
+  template: "String must end with #string."
+  analyzerCode: UNTERMINATED_STRING_LITERAL
+  dart2jsCode: UNTERMINATED_STRING
+  script:
+    - >
+      main() {
+        return '
+      ;
+      }
+    - >
+      main() {
+        return \"
+      ;
+      }
+    - >
+      main() {
+        return r'
+      ;
+      }
+    - >
+      main() {
+        return r\"
+      ;
+      }
+    - >
+      main() => '''
+    - >
+      main() => \"\"\"
+    - >
+      main() => r'''
+    - >
+      main() => r\"\"\"
+
+UnterminatedToken:
+  # This is a fall-back message that shouldn't happen.
+  template: "Incomplete token."
+  dart2jsCode: UNTERMINATED_TOKEN
+
+Unspecified:
+  template: "#string"
+  dart2jsCode: GENERIC
+
+AbstractNotSync:
+  template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
+  dart2jsCode: FASTA_IGNORED
+
+AsyncAsIdentifier:
+  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  template: "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+  dart2jsCode: GENERIC
+
+AwaitAsIdentifier:
+  template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+  dart2jsCode: FASTA_IGNORED
+
+AwaitNotAsync:
+  template: "'await' can only be used in 'async' or 'async*' methods."
+  dart2jsCode: FASTA_IGNORED
+
+BuiltInIdentifierAsType:
+  template: "Can't use '#lexeme' as a type."
+  dart2jsCode: GENERIC
+
+BuiltInIdentifierInDeclaration:
+  template: "Can't use '#lexeme' as a name here."
+  dart2jsCode: GENERIC
+
+AwaitForNotAsync:
+  template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
+  dart2jsCode: FASTA_IGNORED
+
+FactoryNotSync:
+  template: "Factories can't use 'async', 'async*', or 'sync*'."
+  dart2jsCode: FASTA_IGNORED
+
+GeneratorReturnsValue:
+  template: "'sync*' and 'async*' can't return a value."
+  dart2jsCode: FASTA_IGNORED
+
+InvalidInlineFunctionType:
+  template: "Invalid inline function type."
+  tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
+  dart2jsCode: INVALID_INLINE_FUNCTION_TYPE
+  declaration: "typedef F = Function(int f(String x)); main() { F f; }"
+
+SetterNotSync:
+  template: "Setters can't use 'async', 'async*', or 'sync*'."
+  dart2jsCode: FASTA_IGNORED
+
+YieldAsIdentifier:
+  template: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+  dart2jsCode: FASTA_IGNORED
+
+YieldNotGenerator:
+  template: "'yield' can only be used in 'sync*' or 'async*' methods."
+  dart2jsCode: FASTA_IGNORED
+
+OnlyTry:
+  template: "Try block should be followed by 'on', 'catch', or 'finally' block."
+  tip: "Did you forget to add a 'finally' block?"
+  statement: "try {}"
+  dart2jsCode: FASTA_IGNORED

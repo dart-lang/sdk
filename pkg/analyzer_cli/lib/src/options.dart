@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -33,7 +34,7 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
-  final bool enableNewAnalysisDriver = false;
+  final bool enableNewAnalysisDriver = true;
 
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
@@ -53,9 +54,6 @@ class CommandLineOptions {
   /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
-
-  /// Whether to use exclude informative data from created summaries.
-  final bool buildSummaryExcludeInformative;
 
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
@@ -86,9 +84,6 @@ class CommandLineOptions {
 
   /// Whether to display version information
   final bool displayVersion;
-
-  /// Whether to enable null-aware operators (DEP 9).
-  final bool enableNullAwareOperators;
 
   /// Whether to treat type mismatches found during constant evaluation as
   /// errors.
@@ -126,7 +121,7 @@ class CommandLineOptions {
   final bool showSdkWarnings;
 
   /// The source files to analyze
-  final List<String> sourceFiles;
+  List<String> _sourceFiles;
 
   /// Whether to treat warnings as fatal
   final bool warningsAreFatal;
@@ -143,6 +138,15 @@ class CommandLineOptions {
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
+  /// Whether to use memory byte store for analysis driver.
+  final bool useAnalysisDriverMemoryByteStore;
+
+  /// Emit output in a verbose mode.
+  final bool verbose;
+
+  /// Use ANSI color codes for output.
+  final bool color;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = args['build-analysis-output'],
@@ -151,8 +155,6 @@ class CommandLineOptions {
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
-        buildSummaryExcludeInformative =
-            args['build-summary-exclude-informative'],
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
@@ -162,26 +164,29 @@ class CommandLineOptions {
         disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableNullAwareOperators = args['enable-null-aware-operators'],
         enableTypeChecks = args['enable_type_checks'],
         hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
-        lints = args['lints'],
+        lints = args[lintsFlag],
         log = args['log'],
-        machineFormat = args['machine'] || args['format'] == 'machine',
+        machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
         shouldBatch = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
             args['x-package-warnings-prefix'] != null,
         showPackageWarningsPrefix = args['x-package-warnings-prefix'],
-        showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
-        sourceFiles = args.rest,
+        showSdkWarnings = args['sdk-warnings'],
+        _sourceFiles = args.rest,
         warningsAreFatal = args['fatal-warnings'],
         strongMode = args['strong'],
         implicitCasts = !args['no-implicit-casts'],
         implicitDynamic = !args['no-implicit-dynamic'],
-        lintsAreFatal = args['fatal-lints'];
+        lintsAreFatal = args['fatal-lints'],
+        useAnalysisDriverMemoryByteStore =
+            args['use-analysis-driver-memory-byte-store'],
+        verbose = args['verbose'],
+        color = args['color'];
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -223,7 +228,7 @@ class CommandLineOptions {
         }
       }
 
-      var sdkPath = options.dartSdkPath;
+      String sdkPath = options.dartSdkPath;
 
       // Check that SDK is specified.
       if (sdkPath == null) {
@@ -246,24 +251,27 @@ class CommandLineOptions {
       }
     }
 
-    // OK.  Report deprecated options.
-    if (options.enableNullAwareOperators) {
-      errorSink.writeln(
-          "Info: Option '--enable-null-aware-operators' is no longer needed. "
-          "Null aware operators are supported by default.");
-    }
-
     // Build mode.
     if (options.buildModePersistentWorker && !options.buildMode) {
       printAndFail('The option --persisten_worker can be used only '
           'together with --build-mode.');
+      return null; // Only reachable in testing.
     }
     if (options.buildSummaryOnlyDiet && !options.buildSummaryOnly) {
       printAndFail('The option --build-summary-only-diet can be used only '
           'together with --build-summary-only.');
+      return null; // Only reachable in testing.
     }
 
     return options;
+  }
+
+  /// The source files to analyze
+  List<String> get sourceFiles => _sourceFiles;
+
+  /// Replace the sourceFiles parsed from the command line.
+  void rewriteSourceFiles(List<String> newSourceFiles) {
+    _sourceFiles = newSourceFiles;
   }
 
   static String _getVersion() {
@@ -285,33 +293,27 @@ class CommandLineOptions {
     bool verbose = args.contains('-v') || args.contains('--verbose');
     bool hide = !verbose;
 
-    var parser = new ArgParser(allowTrailingOptions: true);
+    ArgParser parser = new ArgParser(allowTrailingOptions: true);
+
+    if (!hide) {
+      parser.addSeparator('General options:');
+    }
+
+    // TODO(devoncarew): This defines some hidden flags, which would be better
+    // defined with the rest of the hidden flags below (to group well with the
+    // other flags).
     defineAnalysisArguments(parser, hide: hide);
+
     parser
-      ..addFlag('batch',
-          abbr: 'b',
-          help: 'Read commands from standard input (for testing).',
-          defaultsTo: false,
-          negatable: false)
       ..addOption('format',
-          help: 'Specifies the format in which errors are displayed.')
-      ..addFlag('machine',
-          help: 'Print errors in a format suitable for parsing (deprecated).',
-          defaultsTo: false,
-          negatable: false)
+          help: 'Specifies the format in which errors are displayed; the only '
+              'currently allowed value is \'machine\'.')
       ..addFlag('version',
           help: 'Print the analyzer version.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('lints',
-          help: 'Show lint results.', defaultsTo: false, negatable: false)
       ..addFlag('no-hints',
           help: 'Do not show hint results.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
-      ..addFlag(ignoreUnrecognizedFlagsFlag,
-          help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,
           negatable: false)
       ..addFlag('fatal-hints',
@@ -326,41 +328,24 @@ class CommandLineOptions {
           help: 'Show warnings from package: imports.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('show-package-warnings',
-          help: 'Show warnings from package: imports (deprecated).',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('warnings',
-          help: 'Show warnings from SDK imports.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('show-sdk-warnings',
-          help: 'Show warnings from SDK imports (deprecated).',
-          defaultsTo: false,
-          negatable: false)
-      ..addOption('x-package-warnings-prefix',
-          help:
-              'Show warnings from package: imports that match the given prefix',
-          hide: true)
-      ..addOption('x-perf-report',
-          help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',
           abbr: 'h',
-          help: 'Display this help message.\n'
-              'Add --verbose to show hidden options.',
+          help:
+              'Display this help message. Add --verbose to show hidden options.',
           defaultsTo: false,
           negatable: false)
       ..addFlag('verbose',
-          abbr: 'v', defaultsTo: false, help: 'Verbose output.')
-      ..addOption('url-mapping',
-          help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
-              'analyzer to use "library.dart" as the source for an import '
-              'of "libraryUri".',
-          allowMultiple: true,
-          splitCommas: false)
-      //
-      // Build mode.
-      //
+          abbr: 'v',
+          defaultsTo: false,
+          help: 'Verbose output.',
+          negatable: false);
+
+    // Build mode options.
+    if (!hide) {
+      parser.addSeparator('Build mode flags:');
+    }
+
+    parser
       ..addFlag('persistent_worker',
           help: 'Enable Bazel persistent worker mode.',
           defaultsTo: false,
@@ -378,7 +363,7 @@ class CommandLineOptions {
           hide: hide)
       ..addOption('build-summary-input',
           help: 'Path to a summary file that contains information from a '
-              'previous analysis run.  May be specified multiple times.',
+              'previous analysis run; may be specified multiple times.',
           allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
@@ -394,19 +379,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('build-summary-only-ast',
-          help: 'deprecated -- Generate summaries using ASTs.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
       ..addFlag('build-summary-only-diet',
           help: 'Diet parse function bodies.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('build-summary-exclude-informative',
-          help: 'Exclude @informative information (docs, offsets, etc).  '
-              'Deprecated: please use --build-summary-output-semantic instead.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -415,18 +389,34 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      //
-      // Hidden flags.
-      //
-      ..addFlag('enable-async',
-          help: 'Enable support for the proposed async feature.',
+      ..addFlag('color',
+          help: 'Use asni colors when printing messages.',
+          defaultsTo: ansi.terminalSupportsAnsi(),
+          hide: hide);
+
+    // Hidden flags.
+    if (!hide) {
+      parser.addSeparator('Less frequently used flags:');
+    }
+
+    parser
+      ..addFlag('batch',
+          help: 'Read commands from standard input (for testing).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('enable-enum',
-          help: 'Enable support for the proposed enum feature.',
+      ..addFlag(ignoreUnrecognizedFlagsFlag,
+          help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,
           negatable: false,
+          hide: hide)
+      ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
+      ..addOption('x-perf-report',
+          help: 'Writes a performance report to the given file (experimental).',
+          hide: hide)
+      ..addOption('x-package-warnings-prefix',
+          help:
+              'Show warnings from package: imports that match the given prefix.',
           hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
@@ -434,13 +424,13 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('enable-null-aware-operators',
-          help: 'Enable support for null-aware operators (DEP 9).',
+      ..addFlag('show-package-warnings',
+          help: 'Show warnings from package: imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('enable-new-task-model',
-          help: 'deprecated -- Ennable new task model.',
+      ..addFlag('sdk-warnings',
+          help: 'Show warnings from SDK imports.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -453,30 +443,33 @@ class CommandLineOptions {
           help: 'Check types in constant evaluation.',
           defaultsTo: false,
           negatable: false,
+          hide: hide)
+      ..addFlag('use-analysis-driver-memory-byte-store',
+          help: 'Use memory byte store, not the file system cache.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addOption('url-mapping',
+          help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
+              'analyzer to use "library.dart" as the source for an import '
+              'of "libraryUri".',
+          allowMultiple: true,
+          splitCommas: false,
           hide: hide);
 
     try {
-      // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
-      args =
-          args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
-      var results = parser.parse(args);
+      ArgResults results = parser.parse(args);
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
-        bool validArgs;
-        if (!args.contains('--build-mode')) {
-          validArgs = false;
-        } else if (args.length == 2) {
-          validArgs = true;
-        } else if (args.length == 4 && args.contains('--dart-sdk')) {
-          validArgs = true;
-        } else {
-          validArgs = false;
-        }
-        if (!validArgs) {
+        bool hasBuildMode = args.contains('--build-mode');
+        bool onlyDartSdkArg = args.length == 2 ||
+            (args.length == 3 && args.any((a) => a.startsWith('--dart-sdk'))) ||
+            (args.length == 4 && args.contains('--dart-sdk'));
+        if (!(hasBuildMode && onlyDartSdkArg)) {
           printAndFail('The --persistent_worker flag should be used with and '
               'only with the --build-mode flag, and possibly the --dart-sdk '
               'option. Got: $args');
@@ -508,7 +501,7 @@ class CommandLineOptions {
           return null; // Only reachable in testing.
         }
       } else if (results['version']) {
-        outSink.write('$_binaryName version ${_getVersion()}');
+        outSink.writeln('$_binaryName version ${_getVersion()}');
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
@@ -527,12 +520,15 @@ class CommandLineOptions {
     }
   }
 
-  static _showUsage(parser) {
-    errorSink
-        .writeln('Usage: $_binaryName [options...] <libraries to analyze...>');
-    errorSink.writeln(parser.getUsage());
-    errorSink.writeln('');
+  static _showUsage(ArgParser parser) {
     errorSink.writeln(
-        'For more information, see http://www.dartlang.org/tools/analyzer.');
+        'Usage: $_binaryName [options...] <directory or list of files>');
+    errorSink.writeln('');
+    errorSink.writeln(parser.usage);
+    errorSink.writeln('');
+    errorSink.writeln('''
+Run "dartanalyzer -h -v" for verbose help output, including less commonly used options.
+For more information, see http://www.dartlang.org/tools/analyzer.
+''');
   }
 }

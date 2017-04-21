@@ -12,12 +12,13 @@ import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
@@ -113,19 +114,6 @@ class ClosureTask extends CompilerTask {
         return _closureMappingCache[element];
       });
     });
-  }
-
-  void forgetElement(var closure) {
-    ClosureClassElement cls;
-    if (closure is ClosureFieldElement) {
-      cls = closure.closureClass;
-    } else if (closure is SynthesizedCallMethodElementX) {
-      cls = closure.closureClass;
-    } else {
-      throw new SpannableAssertionFailure(
-          closure, 'Not a closure: $closure (${closure.runtimeType}).');
-    }
-    compiler.enqueuer.codegen.forgetEntity(cls, compiler);
   }
 }
 
@@ -286,6 +274,9 @@ class BoxLocal extends Local {
 
   BoxLocal(this.name, this.executableContext);
 
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
+
   String toString() => 'BoxLocal($name)';
 }
 
@@ -358,6 +349,9 @@ class ThisLocal extends Local {
   final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => 'this';
 
@@ -454,27 +448,35 @@ class ClosureScope {
 }
 
 class ClosureClassMap {
-  // The closure's element before any translation. Will be null for methods.
+  /// The local function element before any translation.
+  ///
+  /// Will be null for methods.
   final LocalFunctionElement closureElement;
-  // The closureClassElement will be null for methods that are not local
-  // closures.
+
+  /// The synthesized closure class for [closureElement].
+  ///
+  /// The closureClassElement will be null for methods that are not local
+  /// closures.
   final ClosureClassElement closureClassElement;
-  // The callElement will be null for methods that are not local closures.
-  final FunctionElement callElement;
-  // The [thisElement] makes handling 'this' easier by treating it like any
-  // other argument. It is only set for instance-members.
+
+  /// The synthesized `call` method of the [ closureClassElement].
+  ///
+  /// The callElement will be null for methods that are not local closures.
+  final MethodElement callElement;
+
+  /// The [thisElement] makes handling 'this' easier by treating it like any
+  /// other argument. It is only set for instance-members.
   final ThisLocal thisLocal;
 
-  // Maps free locals, arguments, function elements, and box locals to
-  // their locations.
+  /// Maps free locals, arguments, function elements, and box locals to
+  /// their locations.
   final Map<Local, CapturedVariable> freeVariableMap =
       new Map<Local, CapturedVariable>();
 
-  // Maps [Loop] and [FunctionExpression] nodes to their
-  // [ClosureScope] which contains their box and the
-  // captured variables that are stored in the box.
-  // This map will be empty if the method/closure of this [ClosureData] does not
-  // contain any nested closure.
+  /// Maps [Loop] and [FunctionExpression] nodes to their [ClosureScope] which
+  /// contains their box and the captured variables that are stored in the box.
+  /// This map will be empty if the method/closure of this [ClosureData] does
+  /// not contain any nested closure.
   final Map<Node, ClosureScope> capturingScopes = new Map<Node, ClosureScope>();
 
   /// Variables that are used in a try must be treated as boxed because the
@@ -917,7 +919,8 @@ class ClosureTranslator extends Visitor {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
-        compiler.backend.classNeedsRti(outermostElement.enclosingClass)) {
+        compiler.backend.rtiNeed
+            .classNeedsRti(outermostElement.enclosingClass)) {
       if (outermostElement.isConstructor || outermostElement.isField) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember) {
@@ -1076,9 +1079,9 @@ class ClosureTranslator extends Visitor {
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
     closedWorldRefiner.registerClosureClass(globalizedElement);
-    FunctionElement callElement = new SynthesizedCallMethodElementX(
+    MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
-    backend.maybeMarkClosureAsNeededForReflection(
+    backend.mirrorsDataBuilder.maybeMarkClosureAsNeededForReflection(
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
@@ -1101,10 +1104,13 @@ class ClosureTranslator extends Visitor {
     insideClosure = outermostElement != null;
     LocalFunctionElement closure;
     executableContext = element;
+    bool needsRti = false;
     if (insideClosure) {
       closure = element;
       closures.add(closure);
       closureData = globalizeClosure(node, closure);
+      needsRti = compiler.options.enableTypeAssertions ||
+          compiler.backend.rtiNeed.localFunctionNeedsRti(closure);
     } else {
       outermostElement = element;
       ThisLocal thisElement = null;
@@ -1112,6 +1118,10 @@ class ClosureTranslator extends Visitor {
         thisElement = new ThisLocal(element);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
+      if (element is MethodElement) {
+        needsRti = compiler.options.enableTypeAssertions ||
+            compiler.backend.rtiNeed.methodNeedsRti(element);
+      }
     }
     closureMappingCache[element.declaration] = closureData;
     if (closureData.callElement != null) {
@@ -1119,13 +1129,10 @@ class ClosureTranslator extends Visitor {
     }
 
     inNewScope(node, () {
-      ResolutionDartType type = element.type;
       // If the method needs RTI, or checked mode is set, we need to
       // escape the potential type variables used in that closure.
-      if (element is FunctionElement &&
-          (compiler.backend.methodNeedsRti(element) ||
-              compiler.options.enableTypeAssertions)) {
-        analyzeTypeVariables(type);
+      if (needsRti) {
+        analyzeTypeVariables(element.type);
       }
 
       visitChildren();
@@ -1201,6 +1208,9 @@ class TypeVariableLocal implements Local {
   final ExecutableElement executableContext;
 
   TypeVariableLocal(this.typeVariable, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => typeVariable.name;
 

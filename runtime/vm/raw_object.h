@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/atomic.h"
+#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
@@ -435,7 +436,19 @@ class RawObject {
     uword tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
-      ASSERT(result == SizeFromClass());
+#if defined(DEBUG)
+      // TODO(22501) Array::MakeArray has a race with this code: we might have
+      // loaded tags field and then MakeArray could have updated it leading
+      // to inconsistency between SizeFromClass() and SizeTag::decode(tags).
+      // We are working around it by reloading tags_ and recomputing
+      // size from tags.
+      const intptr_t size_from_class = SizeFromClass();
+      if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
+          (ptr()->tags_ != tags)) {
+        result = SizeTag::decode(ptr()->tags_);
+      }
+      ASSERT(result == size_from_class);
+#endif
       return result;
     }
     result = SizeFromClass();
@@ -1010,6 +1023,8 @@ class RawScript : public RawObject {
   RawString* resolved_url_;
   RawArray* compile_time_constants_;
   RawArray* line_starts_;
+  RawArray* debug_positions_;
+  RawArray* yield_positions_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
@@ -1100,14 +1115,6 @@ class RawNamespace : public RawObject {
 
 
 class RawCode : public RawObject {
-  enum InlinedMetadataIndex {
-    kInlinedIntervalsIndex = 0,
-    kInlinedIdToFunctionIndex = 1,
-    kInlinedCallerIdMapIndex = 2,
-    kInlinedIdToTokenPosIndex = 3,
-    kInlinedMetadataSize = 4,
-  };
-
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
   uword entry_point_;          // Accessed from generated code.
@@ -1124,21 +1131,26 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  union {
+    RawTypedData* catch_entry_state_maps_;
+    RawSmi* variables_;
+  } catch_entry_;
   RawArray* stackmaps_;
+  RawArray* inlined_id_to_function_;
+  RawCodeSourceMap* code_source_map_;
+  NOT_IN_PRECOMPILED(RawArray* await_token_positions_);
   NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
-  NOT_IN_PRECOMPILED(RawArray* inlined_metadata_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
   NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);
   NOT_IN_PRECOMPILED(RawLocalVarDescriptors* var_descriptors_);
-  NOT_IN_PRECOMPILED(RawCodeSourceMap* code_source_map_);
   NOT_IN_PRECOMPILED(RawArray* comments_);
   RawObject** to() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+    return reinterpret_cast<RawObject**>(&ptr()->code_source_map_);
 #else
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
 #endif
@@ -1276,13 +1288,13 @@ class RawPcDescriptors : public RawObject {
 };
 
 
-// CodeSourceMap stores a mapping between code PC ranges and source token
-// positions.
+// CodeSourceMap encodes a mapping from code PC ranges to source token
+// positions and the stack of inlined functions.
 class RawCodeSourceMap : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
 
-  int32_t length_;  // Number of entries.
+  int32_t length_;  // Length in bytes.
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
@@ -1389,16 +1401,6 @@ class RawLocalVarDescriptors : public RawObject {
 
 
 class RawExceptionHandlers : public RawObject {
- public:
-  // The index into the ExceptionHandlers table corresponds to
-  // the try_index of the handler.
-  struct HandlerInfo {
-    uint32_t handler_pc_offset;  // PC offset value of handler.
-    int16_t outer_try_index;     // Try block index of enclosing try block.
-    int8_t needs_stacktrace;     // True if a stacktrace is needed.
-    int8_t has_catch_all;        // Catches all exceptions.
-  };
-
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
@@ -1410,8 +1412,12 @@ class RawExceptionHandlers : public RawObject {
   RawArray* handled_types_data_;
 
   // Exception handler info of length [num_entries_].
-  const HandlerInfo* data() const { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
-  HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
+  const ExceptionHandlerInfo* data() const {
+    OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
+  }
+  ExceptionHandlerInfo* data() {
+    OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
+  }
 
   friend class Object;
 };
@@ -1615,7 +1621,6 @@ class RawUnwindError : public RawError {
   RawString* message_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->message_); }
   bool is_user_initiated_;
-  bool is_vm_restart_;
 };
 
 
@@ -1774,10 +1779,14 @@ class RawClosure : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
+    return reinterpret_cast<RawObject**>(&ptr()->instantiator_);
   }
 
-  RawTypeArguments* type_arguments_;
+  // No instance fields should be declared before the following 3 fields whose
+  // offsets must be identical in Dart and C++.
+
+  // These 3 fields are also declared in the Dart source of class _Closure.
+  RawTypeArguments* instantiator_;
   RawFunction* function_;
   RawContext* context_;
 
@@ -2127,8 +2136,9 @@ class RawStackTrace : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_array_);
+    return reinterpret_cast<RawObject**>(&ptr()->async_link_);
   }
+  RawStackTrace* async_link_;  // Link to parent async stack trace.
   RawArray* code_array_;       // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
   RawObject** to() {

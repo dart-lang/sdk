@@ -5,14 +5,15 @@
 #if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX) ||                  \
-    defined(TARGET_OS_WINDOWS) || defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX) ||                      \
+    defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
 
 #include "bin/secure_socket.h"
 #include "bin/secure_socket_boringssl.h"
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -34,6 +35,7 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "platform/text_buffer.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"
@@ -78,39 +80,42 @@ static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 const char* commandline_root_certs_file = NULL;
 const char* commandline_root_certs_cache = NULL;
 
-/* Get the error messages from BoringSSL, and put them in buffer as a
- * null-terminated string. */
-static void FetchErrorString(char* buffer, int length) {
-  buffer[0] = '\0';
-  int error = ERR_get_error();
-  while (error != 0) {
-    int used = strlen(buffer);
-    int free_length = length - used;
-    if (free_length > 16) {
-      // Enough room for error code at least.
-      if (used > 0) {
-        buffer[used] = '\n';
-        buffer[used + 1] = '\0';
-        used++;
-        free_length--;
-      }
-      ERR_error_string_n(error, buffer + used, free_length);
-      // ERR_error_string_n is guaranteed to leave a null-terminated string.
+// Get the error messages from BoringSSL, and put them in buffer as a
+// null-terminated string.
+static void FetchErrorString(const SSL* ssl, TextBuffer* text_buffer) {
+  const char* sep = File::PathSeparator();
+  while (true) {
+    const char* path = NULL;
+    int line = -1;
+    uint32_t error = ERR_get_error_line(&path, &line);
+    if (error == 0) {
+      break;
     }
-    error = ERR_get_error();
+    text_buffer->Printf("\n\t%s", ERR_reason_error_string(error));
+    if ((ssl != NULL) && (ERR_GET_LIB(error) == ERR_LIB_SSL) &&
+        (ERR_GET_REASON(error) == SSL_R_CERTIFICATE_VERIFY_FAILED)) {
+      intptr_t result = SSL_get_verify_result(ssl);
+      text_buffer->Printf(": %s", X509_verify_cert_error_string(result));
+    }
+    if ((path != NULL) && (line >= 0)) {
+      const char* file = strrchr(path, sep[0]);
+      path = file ? file + 1 : path;
+      text_buffer->Printf("(%s:%d)", path, line);
+    }
   }
 }
 
 
-/* Handle an error reported from the BoringSSL library. */
+// Handle an error reported from the BoringSSL library.
 static void ThrowIOException(int status,
                              const char* exception_type,
-                             const char* message) {
-  char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
-  FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
+                             const char* message,
+                             const SSL* ssl) {
   Dart_Handle exception;
   {
-    OSError os_error_struct(status, error_string, OSError::kBoringSSL);
+    TextBuffer error_string(SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    FetchErrorString(ssl, &error_string);
+    OSError os_error_struct(status, error_string.buf(), OSError::kBoringSSL);
     Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
     exception =
         DartUtils::NewDartIOException(exception_type, message, os_error);
@@ -258,12 +263,16 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   SSLFilter* filter = GetFilter(args);
-  // The SSLFilter is deleted in the finalizer for the Dart object created by
-  // SetFilter. There is no need to NULL-out the native field for the SSLFilter
-  // here because the SSLFilter won't be deleted until the finalizer for the
-  // Dart object runs while the Dart object is being GCd. This approach avoids a
-  // leak if Destroy isn't called, and avoids a NULL-dereference if Destroy is
-  // called more than once.
+  // There are two paths that can clean up an SSLFilter object. First,
+  // there is this explicit call to Destroy(), called from
+  // _SecureFilter.destroy() in Dart code. After a call to destroy(), the Dart
+  // code maintains the invariant that there will be no futher SSLFilter
+  // requests sent to the IO Service. Therefore, the internals of the SSLFilter
+  // are safe to deallocate, but not the SSLFilter itself, which is already
+  // set up to be cleaned up by the finalizer.
+  //
+  // The second path is through the finalizer, which we have to do in case
+  // some mishap prevents a call to _SecureFilter.destroy().
   filter->Destroy();
 }
 
@@ -429,7 +438,7 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
   SSL_CTX* ctx = SSL_CTX_new(TLS_method());
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, CertificateCallback);
-  SSL_CTX_set_min_version(ctx, TLS1_VERSION);
+  SSL_CTX_set_min_proto_version(ctx, TLS1_VERSION);
   SSL_CTX_set_cipher_list(ctx, "HIGH:MEDIUM");
   SSLContext* context = new SSLContext(ctx);
   Dart_Handle err = SetSecurityContext(args, context);
@@ -448,7 +457,10 @@ int PasswordCallback(char* buf, int size, int rwflag, void* userdata) {
 }
 
 
-void CheckStatus(int status, const char* type, const char* message) {
+void CheckStatusSSL(int status,
+                    const char* type,
+                    const char* message,
+                    const SSL* ssl) {
   // TODO(24183): Take appropriate action on failed calls,
   // throw exception that includes all messages from the error stack.
   if (status == 1) {
@@ -461,7 +473,12 @@ void CheckStatus(int status, const char* type, const char* message) {
     ERR_error_string_n(error, error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
     Log::PrintErr("ERROR: %d %s\n", error, error_string);
   }
-  ThrowIOException(status, type, message);
+  ThrowIOException(status, type, message, ssl);
+}
+
+
+void CheckStatus(int status, const char* type, const char* message) {
+  CheckStatusSSL(status, type, message, NULL);
 }
 
 
@@ -816,7 +833,7 @@ static void LoadRootCertFile(SSLContext* context, const char* file) {
     Log::Print("Looking for trusted roots in %s\n", file);
   }
   if (!File::Exists(file)) {
-    ThrowIOException(-1, "TlsException", "Failed to find root cert file");
+    ThrowIOException(-1, "TlsException", "Failed to find root cert file", NULL);
   }
   int status = SSL_CTX_load_verify_locations(context->context(), file, NULL);
   CheckStatus(status, "TlsException", "Failure trusting builtin roots");
@@ -831,7 +848,8 @@ static void LoadRootCertCache(SSLContext* context, const char* cache) {
     Log::Print("Looking for trusted roots in %s\n", cache);
   }
   if (Directory::Exists(cache) != Directory::EXISTS) {
-    ThrowIOException(-1, "TlsException", "Failed to find root cert cache");
+    ThrowIOException(-1, "TlsException", "Failed to find root cert cache",
+                     NULL);
   }
   int status = SSL_CTX_load_verify_locations(context->context(), NULL, cache);
   CheckStatus(status, "TlsException", "Failure trusting builtin roots");
@@ -856,7 +874,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     return;
   }
 
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
   // On Android, we don't compile in the trusted root certificates. Insead,
   // we use the directory of trusted certificates already present on the device.
   // This saves ~240KB from the size of the binary. This has the drawback that
@@ -867,7 +885,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   const char* android_cacerts = "/system/etc/security/cacerts";
   LoadRootCertCache(context, android_cacerts);
   return;
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
   // On Linux, we use the compiled-in trusted certs as a last resort. First,
   // we try to find the trusted certs in various standard locations. A good
   // discussion of the complexities of this endeavor can be found here:
@@ -884,7 +902,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     LoadRootCertCache(context, cachedir);
     return;
   }
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)
 
   // Fall back on the compiled-in certs if the standard locations don't exist,
   // or we aren't on Linux.
@@ -1193,11 +1211,11 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     return result;
   } else {
     int32_t error_code = static_cast<int32_t>(ERR_peek_error());
-    char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
-    FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    TextBuffer error_string(SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    FetchErrorString(filter->ssl_, &error_string);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1, new CObjectString(CObject::NewString(error_string)));
+    result->SetAt(1, new CObjectString(CObject::NewString(error_string.buf())));
     return result;
   }
 }
@@ -1514,7 +1532,7 @@ void SSLFilter::Connect(const char* hostname,
   BIO* ssl_side;
   status = BIO_new_bio_pair(&ssl_side, kInternalBIOSize, &socket_side_,
                             kInternalBIOSize);
-  CheckStatus(status, "TlsException", "BIO_new_bio_pair");
+  CheckStatusSSL(status, "TlsException", "BIO_new_bio_pair", ssl_);
 
   assert(context != NULL);
   ssl_ = SSL_new(context);
@@ -1532,7 +1550,7 @@ void SSLFilter::Connect(const char* hostname,
   } else {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
     status = SSL_set_tlsext_host_name(ssl_, hostname);
-    CheckStatus(status, "TlsException", "Set SNI host name");
+    CheckStatusSSL(status, "TlsException", "Set SNI host name", ssl_);
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
@@ -1543,8 +1561,8 @@ void SSLFilter::Connect(const char* hostname,
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
     status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
                                          hostname_, strlen(hostname_));
-    CheckStatus(status, "TlsException",
-                "Set hostname for certificate checking");
+    CheckStatusSSL(status, "TlsException",
+                   "Set hostname for certificate checking", ssl_);
   }
   // Make the connection:
   if (is_server_) {
@@ -1597,9 +1615,10 @@ void SSLFilter::Handshake() {
     in_handshake_ = true;
     return;
   }
-  CheckStatus(status, "HandshakeException", is_server_
-                                                ? "Handshake error in server"
-                                                : "Handshake error in client");
+  CheckStatusSSL(
+      status, "HandshakeException",
+      is_server_ ? "Handshake error in server" : "Handshake error in client",
+      ssl_);
   // Handshake succeeded.
   if (in_handshake_) {
     // TODO(24071): Check return value of SSL_get_verify_result, this
@@ -1648,7 +1667,7 @@ void SSLFilter::Renegotiate(bool use_session_cache,
 }
 
 
-SSLFilter::~SSLFilter() {
+void SSLFilter::FreeResources() {
   if (ssl_ != NULL) {
     SSL_free(ssl_);
     ssl_ = NULL;
@@ -1667,6 +1686,11 @@ SSLFilter::~SSLFilter() {
       buffers_[i] = NULL;
     }
   }
+}
+
+
+SSLFilter::~SSLFilter() {
+  FreeResources();
 }
 
 
@@ -1693,6 +1717,7 @@ void SSLFilter::Destroy() {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
     bad_certificate_callback_ = NULL;
   }
+  FreeResources();
 }
 
 
@@ -1776,7 +1801,7 @@ int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)
 
 #endif  // !defined(DART_IO_DISABLED) &&
         // !defined(DART_IO_SECURE_SOCKET_DISABLED)

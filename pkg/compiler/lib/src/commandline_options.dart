@@ -27,7 +27,9 @@ class Flags {
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
-  static const String incrementalSupport = '--incremental-support';
+  // Temporary flag to also integrate Kernel into global type inference.
+  // TODO(efortuna): Remove when fully implemented and simply use "useKernel".
+  static const String kernelGlobalInference = '--kernel-global-inference';
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
@@ -45,6 +47,7 @@ class Flags {
       '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
   static const String useKernel = '--use-kernel';
+  static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
   static const String version = '--version';

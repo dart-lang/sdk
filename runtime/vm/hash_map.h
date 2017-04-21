@@ -27,21 +27,25 @@ class BaseDirectChainedHashMap : public B {
 
   BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
 
-  ~BaseDirectChainedHashMap() {
+  virtual ~BaseDirectChainedHashMap() {
     allocator_->template Free<HashMapListElement>(array_, array_size_);
     allocator_->template Free<HashMapListElement>(lists_, lists_size_);
   }
 
   void Insert(typename KeyValueTrait::Pair kv);
+  bool Remove(typename KeyValueTrait::Key key);
 
   typename KeyValueTrait::Value LookupValue(
       typename KeyValueTrait::Key key) const;
 
   typename KeyValueTrait::Pair* Lookup(typename KeyValueTrait::Key key) const;
+  bool HasKey(typename KeyValueTrait::Key key) const {
+    return Lookup(key) != NULL;
+  }
 
   bool IsEmpty() const { return count_ == 0; }
 
-  void Clear() {
+  virtual void Clear() {
     if (!IsEmpty()) {
       count_ = 0;
       InitArray(array_, array_size_);
@@ -174,8 +178,8 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
   if (array_index_ < map_.array_size_) {
     // If we're not in the middle of a list, find the next array slot.
     if (list_index_ == kNil) {
-      while (KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue &&
-             array_index_ < map_.array_size_) {
+      while ((array_index_ < map_.array_size_) &&
+             KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue) {
         array_index_++;
       }
       if (array_index_ < map_.array_size_) {
@@ -308,6 +312,68 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
 }
 
 
+template <typename KeyValueTrait, typename B, typename Allocator>
+bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
+    typename KeyValueTrait::Key key) {
+  uword pos = Bound(static_cast<uword>(KeyValueTrait::Hashcode(key)));
+
+  // Check to see if the first element in the bucket is the one we want to
+  // remove.
+  if (KeyValueTrait::KeyOf(array_[pos].kv) == key) {
+    if (array_[pos].next == kNil) {
+      array_[pos] = HashMapListElement();
+    } else {
+      intptr_t next = array_[pos].next;
+      array_[pos] = lists_[next];
+      lists_[next] = HashMapListElement();
+      lists_[next].next = free_list_head_;
+      free_list_head_ = next;
+    }
+    count_--;
+    return true;
+  }
+
+  intptr_t current = array_[pos].next;
+
+  // If there's only the single element in the bucket and it does not match the
+  // key to be removed, just return.
+  if (current == kNil) {
+    return false;
+  }
+
+  // Check the case where the second element in the bucket is the one to be
+  // removed.
+  if (KeyValueTrait::KeyOf(lists_[current].kv) == key) {
+    array_[pos].next = lists_[current].next;
+    lists_[current] = HashMapListElement();
+    lists_[current].next = free_list_head_;
+    free_list_head_ = current;
+    count_--;
+    return true;
+  }
+
+  // Finally, iterate through the rest of the bucket to see if we can find the
+  // entry that matches our key.
+  intptr_t previous;
+  while (KeyValueTrait::KeyOf(lists_[current].kv) != key) {
+    previous = current;
+    current = lists_[current].next;
+
+    if (current == kNil) {
+      // Could not find entry with provided key to remove.
+      return false;
+    }
+  }
+
+  lists_[previous].next = lists_[current].next;
+  lists_[current] = HashMapListElement();
+  lists_[current].next = free_list_head_;
+  free_list_head_ = current;
+  count_--;
+  return true;
+}
+
+
 template <typename KeyValueTrait>
 class DirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, ValueObject> {
@@ -315,6 +381,10 @@ class DirectChainedHashMap
   DirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
             ASSERT_NOTNULL(Thread::Current()->zone())) {}
+
+  explicit DirectChainedHashMap(Zone* zone)
+      : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
+            ASSERT_NOTNULL(zone)) {}
 };
 
 

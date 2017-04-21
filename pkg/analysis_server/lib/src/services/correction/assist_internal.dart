@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
@@ -117,6 +118,7 @@ class AssistProcessor {
     _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
+    _addProposal_convertFlutterChild();
     _addProposal_convertToForIndexLoop();
     _addProposal_convertToIsNot_onIs();
     _addProposal_convertToIsNot_onNot();
@@ -132,7 +134,11 @@ class AssistProcessor {
     _addProposal_joinIfStatementOuter();
     _addProposal_joinVariableDeclaration_onAssignment();
     _addProposal_joinVariableDeclaration_onDeclaration();
+    _addProposal_moveFlutterWidgetDown();
+    _addProposal_moveFlutterWidgetUp();
     _addProposal_removeTypeAnnotation();
+    _addProposal_reparentFlutterList();
+    _addProposal_reparentFlutterWidget();
     _addProposal_replaceConditionalWithIfElse();
     _addProposal_replaceIfElseWithConditional();
     _addProposal_splitAndCondition();
@@ -495,6 +501,57 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, []);
+  }
+
+  void _addProposal_convertFlutterChild() {
+    NamedExpression namedExp;
+    // Allow assist to activate from either the new-expr or the child: arg.
+    if (node is SimpleIdentifier &&
+        node.parent is Label &&
+        node.parent.parent is NamedExpression) {
+      namedExp = node.parent.parent as NamedExpression;
+      if ((node as SimpleIdentifier).name != 'child' ||
+          namedExp.expression == null) {
+        return;
+      }
+      if (namedExp.parent?.parent is! InstanceCreationExpression) {
+        return;
+      }
+      InstanceCreationExpression newExpr = namedExp.parent.parent;
+      if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+        return;
+      }
+    } else {
+      InstanceCreationExpression newExpr = identifyNewExpression(node);
+      if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+        _coverageMarker();
+        return;
+      }
+      namedExp = findChildArgument(newExpr);
+      if (namedExp == null || namedExp.expression == null) {
+        _coverageMarker();
+        return;
+      }
+    }
+    InstanceCreationExpression childArg = getChildWidget(namedExp, false);
+    if (childArg == null) {
+      _coverageMarker();
+      return;
+    }
+    convertFlutterChildToChildren(
+        childArg,
+        namedExp,
+        eol,
+        utils.getNodeText,
+        utils.getLinePrefix,
+        utils.getIndent,
+        utils.getText,
+        _addInsertEdit,
+        _addRemoveEdit,
+        _addReplaceEdit,
+        rangeStartLength,
+        rangeNode);
+    _addAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, []);
   }
 
   void _addProposal_convertIntoFinalField() {
@@ -876,7 +933,7 @@ class AssistProcessor {
     }
     // strip !()
     if (getExpressionParentPrecedence(prefExpression) >=
-        TokenType.IS.precedence) {
+        TokenClass.RELATIONAL_OPERATOR.precedence) {
       _addRemoveEdit(rangeToken(prefExpression.operator));
     } else {
       _addRemoveEdit(
@@ -925,7 +982,7 @@ class AssistProcessor {
     }
     // strip !()
     if (getExpressionParentPrecedence(prefExpression) >=
-        TokenType.IS.precedence) {
+        TokenClass.RELATIONAL_OPERATOR.precedence) {
       _addRemoveEdit(rangeToken(prefExpression.operator));
     } else {
       _addRemoveEdit(
@@ -1558,6 +1615,73 @@ class AssistProcessor {
     _addAssist(DartAssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
 
+  void _addProposal_moveFlutterWidgetDown() {
+    InstanceCreationExpression exprGoingDown = identifyNewExpression(node);
+    if (exprGoingDown == null ||
+        !isFlutterInstanceCreationExpression(exprGoingDown)) {
+      _coverageMarker();
+      return;
+    }
+    InstanceCreationExpression exprGoingUp = findChildWidget(exprGoingDown);
+    if (exprGoingUp == null) {
+      _coverageMarker();
+      return;
+    }
+    NamedExpression stableChild = findChildArgument(exprGoingUp);
+    if (stableChild == null || stableChild.expression == null) {
+      _coverageMarker();
+      return;
+    }
+    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
+    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
+    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
+      _coverageMarker();
+      return; // Outer new-expr needs to be in multi-line format already.
+    }
+    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
+    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
+    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
+      _coverageMarker();
+      return; // Inner new-expr needs to be in multi-line format already.
+    }
+    _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
+        DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN);
+  }
+
+  void _addProposal_moveFlutterWidgetUp() {
+    InstanceCreationExpression exprGoingUp = identifyNewExpression(node);
+    if (exprGoingUp == null ||
+        !isFlutterInstanceCreationExpression(exprGoingUp)) {
+      _coverageMarker();
+      return;
+    }
+    AstNode expr = exprGoingUp.parent?.parent?.parent;
+    if (expr == null || expr is! InstanceCreationExpression) {
+      _coverageMarker();
+      return;
+    }
+    InstanceCreationExpression exprGoingDown = expr;
+    NamedExpression stableChild = findChildArgument(exprGoingUp);
+    if (stableChild == null || stableChild.expression == null) {
+      _coverageMarker();
+      return;
+    }
+    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
+    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
+    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
+      _coverageMarker();
+      return; // Inner new-expr needs to be in multi-line format already.
+    }
+    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
+    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
+    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
+      _coverageMarker();
+      return; // Outer new-expr needs to be in multi-line format already.
+    }
+    _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
+        DartAssistKind.MOVE_FLUTTER_WIDGET_UP);
+  }
+
   void _addProposal_removeTypeAnnotation() {
     VariableDeclarationList declarationList =
         node.getAncestor((n) => n is VariableDeclarationList);
@@ -1593,6 +1717,89 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.REMOVE_TYPE_ANNOTATION, []);
+  }
+
+  void _addProposal_reparentFlutterList() {
+    if (node is! ListLiteral) {
+      return;
+    }
+    if ((node as ListLiteral).elements.any((Expression exp) =>
+        !(exp is InstanceCreationExpression &&
+            isFlutterInstanceCreationExpression(exp)))) {
+      _coverageMarker();
+      return;
+    }
+    String literalSrc = utils.getNodeText(node);
+    SourceBuilder sb = new SourceBuilder(file, node.offset);
+    int newlineIdx = literalSrc.lastIndexOf(eol);
+    if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {
+      _coverageMarker();
+      return; // Lists need to be in multi-line format already.
+    }
+    String indentOld = utils.getLinePrefix(node.offset + 1 + newlineIdx);
+    String indentArg = '$indentOld${utils.getIndent(1)}';
+    String indentList = '$indentOld${utils.getIndent(2)}';
+    sb.append('[');
+    sb.append(eol);
+    sb.append(indentArg);
+    sb.append('new ');
+    sb.startPosition('WIDGET');
+    sb.append('widget');
+    sb.endPosition();
+    sb.append('(');
+    sb.append(eol);
+    sb.append(indentList);
+    // Linked editing not needed since arg is always a list.
+    sb.append('children: ');
+    sb.append(literalSrc.replaceAll(
+        new RegExp("^$indentOld", multiLine: true), "$indentList"));
+    sb.append(',');
+    sb.append(eol);
+    sb.append(indentArg);
+    sb.append('),');
+    sb.append(eol);
+    sb.append(indentOld);
+    sb.append(']');
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, literalSrc.length);
+    _addAssist(DartAssistKind.REPARENT_FLUTTER_LIST, []);
+  }
+
+  void _addProposal_reparentFlutterWidget() {
+    InstanceCreationExpression newExpr = identifyNewExpression(node);
+    if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+      _coverageMarker();
+      return;
+    }
+    String newExprSrc = utils.getNodeText(newExpr);
+    SourceBuilder sb = new SourceBuilder(file, newExpr.offset);
+    sb.append('new ');
+    sb.startPosition('WIDGET');
+    sb.append('widget');
+    sb.endPosition();
+    sb.append('(');
+    if (newExprSrc.contains(eol)) {
+      int newlineIdx = newExprSrc.lastIndexOf(eol);
+      if (newlineIdx == newExprSrc.length - 1) {
+        newlineIdx -= 1;
+      }
+      String indentOld = utils.getLinePrefix(newExpr.offset + 1 + newlineIdx);
+      String indentNew = '$indentOld${utils.getIndent(1)}';
+      sb.append(eol);
+      sb.append(indentNew);
+      newExprSrc = newExprSrc.replaceAll(
+          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+      newExprSrc += ",$eol$indentOld";
+    }
+    sb.startPosition('CHILD');
+    sb.append('child');
+    sb.endPosition();
+    sb.append(': ');
+    sb.append(newExprSrc);
+    sb.append(')');
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, newExpr.length);
+    _addAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, []);
   }
 
   void _addProposal_replaceConditionalWithIfElse() {
@@ -2198,6 +2405,89 @@ class AssistProcessor {
 
   Position _newPosition(int offset) {
     return new Position(file, offset);
+  }
+
+  void _swapFlutterWidgets(
+      InstanceCreationExpression exprGoingDown,
+      InstanceCreationExpression exprGoingUp,
+      NamedExpression stableChild,
+      AssistKind assistKind) {
+    String currentSource = analysisContext.getContents(source).data;
+    // TODO(messick) Find a better way to get LineInfo for the source.
+    LineInfo lineInfo = new LineInfo.fromContent(currentSource);
+    int currLn = lineInfo.getLocation(exprGoingUp.offset).lineNumber;
+    int lnOffset = lineInfo.getOffsetOfLine(currLn);
+    SourceBuilder sb = new SourceBuilder(file, exprGoingDown.offset);
+    String argSrc =
+        utils.getText(exprGoingUp.offset, lnOffset - exprGoingUp.offset);
+    sb.append(argSrc); // Append child new-expr plus rest of line.
+
+    String getSrc(Expression expr) {
+      int startLn = lineInfo.getLocation(expr.offset).lineNumber;
+      int startOffset = lineInfo.getOffsetOfLine(startLn - 1);
+      int endLn =
+          lineInfo.getLocation(expr.offset + expr.length).lineNumber + 1;
+      int curOffset = lineInfo.getOffsetOfLine(endLn - 1);
+      return utils.getText(startOffset, curOffset - startOffset);
+    }
+
+    String outerIndent = utils.getNodePrefix(exprGoingDown.parent);
+    String innerIndent = utils.getNodePrefix(exprGoingUp.parent);
+    exprGoingUp.argumentList.arguments.forEach((arg) {
+      if (arg is NamedExpression && arg.name.label.name == 'child') {
+        if (stableChild != arg) {
+          _coverageMarker();
+          return;
+        }
+        // Insert exprGoingDown here.
+        // Copy from start of line to offset of exprGoingDown.
+        currLn = lineInfo.getLocation(stableChild.offset).lineNumber;
+        lnOffset = lineInfo.getOffsetOfLine(currLn - 1);
+        argSrc =
+            utils.getText(lnOffset, stableChild.expression.offset - lnOffset);
+        argSrc = argSrc.replaceAll(
+            new RegExp("^$innerIndent", multiLine: true), "$outerIndent");
+        sb.append(argSrc);
+        int nextLn = lineInfo.getLocation(exprGoingDown.offset).lineNumber;
+        lnOffset = lineInfo.getOffsetOfLine(nextLn);
+        argSrc = utils.getText(
+            exprGoingDown.offset, lnOffset - exprGoingDown.offset);
+        sb.append(argSrc);
+
+        exprGoingDown.argumentList.arguments.forEach((val) {
+          if (val is NamedExpression && val.name.label.name == 'child') {
+            // Insert stableChild here at same indent level.
+            sb.append(utils.getNodePrefix(arg.name));
+            argSrc = utils.getNodeText(stableChild);
+            sb.append(argSrc);
+            if (assistKind == DartAssistKind.MOVE_FLUTTER_WIDGET_UP) {
+              sb.append(',$eol');
+            }
+          } else {
+            argSrc = getSrc(val);
+            argSrc = argSrc.replaceAll(
+                new RegExp("^$outerIndent", multiLine: true), "$innerIndent");
+            sb.append(argSrc);
+          }
+        });
+        if (assistKind == DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN) {
+          sb.append(',$eol');
+        }
+        sb.append(innerIndent);
+        sb.append('),$eol');
+      } else {
+        argSrc = getSrc(arg);
+        argSrc = argSrc.replaceAll(
+            new RegExp("^$innerIndent", multiLine: true), "$outerIndent");
+        sb.append(argSrc);
+      }
+    });
+    sb.append(outerIndent);
+    sb.append(')');
+
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, exprGoingDown.length);
+    _addAssist(assistKind, []);
   }
 
   /**

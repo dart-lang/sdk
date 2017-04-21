@@ -21,7 +21,6 @@ abstract class Exception {
   factory Exception([var message]) => new _Exception(message);
 }
 
-
 /** Default implementation of [Exception] which carries a message. */
 class _Exception implements Exception {
   final message;
@@ -33,7 +32,6 @@ class _Exception implements Exception {
     return "Exception: $message";
   }
 }
-
 
 /**
  * Exception thrown when a string or some other data does not have an expected

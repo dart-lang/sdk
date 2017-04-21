@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/file.h"
 
@@ -12,6 +12,7 @@
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
+#include <sys/utime.h>  // NOLINT
 #include <WinIoCtl.h>  // NOLINT
 
 #include "bin/builtin.h"
@@ -48,14 +49,14 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  if ((handle_->fd() == _fileno(stdout)) ||
-      (handle_->fd() == _fileno(stderr))) {
+  int closing_fd = handle_->fd();
+  if ((closing_fd == _fileno(stdout)) || (closing_fd == _fileno(stderr))) {
     int fd = _open("NUL", _O_WRONLY);
     ASSERT(fd >= 0);
-    _dup2(fd, handle_->fd());
+    _dup2(fd, closing_fd);
     close(fd);
   } else {
-    int err = close(handle_->fd());
+    int err = close(closing_fd);
     if (err != 0) {
       Log::PrintErr("%s\n", strerror(errno));
     }
@@ -74,7 +75,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(File::MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
   DWORD prot_alloc;
   DWORD prot_final;
   switch (type) {
@@ -110,7 +111,15 @@ void* File::Map(File::MapType type, int64_t position, int64_t length) {
     VirtualFree(addr, 0, MEM_RELEASE);
     return NULL;
   }
-  return addr;
+  return new MappedMemory(addr, length);
+}
+
+
+void MappedMemory::Unmap() {
+  BOOL result = VirtualFree(address_, 0, MEM_RELEASE);
+  ASSERT(result);
+  address_ = 0;
+  size_ = 0;
 }
 
 
@@ -121,8 +130,56 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
-  ASSERT(handle_->fd() >= 0);
-  return write(handle_->fd(), buffer, num_bytes);
+  int fd = handle_->fd();
+  ASSERT(fd >= 0);
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+  DWORD written = 0;
+  BOOL result = WriteFile(handle, buffer, num_bytes, &written, NULL);
+  if (!result) {
+    return -1;
+  }
+  DWORD mode;
+  int64_t bytes_written = written;
+  if (GetConsoleMode(handle, &mode)) {
+    // If `handle` is for a console, then `written` may refer to the number of
+    // characters printed to the screen rather than the number of bytes of the
+    // buffer that were actually consumed. To compute the number of bytes that
+    // were actually consumed, we convert the buffer to a wchar_t using the
+    // console's current code page, filling as many characters as were
+    // printed, and then convert that many characters back to the encoding for
+    // the code page, which gives the number of bytes of `buffer` used to
+    // generate the characters that were printed.
+    wchar_t* wide = new wchar_t[written];
+    int cp = GetConsoleOutputCP();
+    MultiByteToWideChar(cp, 0, reinterpret_cast<const char*>(buffer), -1, wide,
+                        written);
+    int buffer_len =
+        WideCharToMultiByte(cp, 0, wide, written, NULL, 0, NULL, NULL);
+    delete wide;
+    bytes_written = buffer_len;
+  }
+  return bytes_written;
+}
+
+
+bool File::VPrint(const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = _vscprintf(format, measure_args);
+  va_end(measure_args);
+
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  _vsnprintf(buffer, len + 1, format, print_args);
+  va_end(print_args);
+
+  bool result = WriteFully(buffer, len);
+  free(buffer);
+  return result;
 }
 
 
@@ -240,30 +297,39 @@ File* File::Open(const char* path, FileOpenMode mode) {
 
 
 File* File::OpenStdio(int fd) {
+  int stdio_fd = -1;
   switch (fd) {
     case 1:
-      fd = _fileno(stdout);
+      stdio_fd = _fileno(stdout);
       break;
     case 2:
-      fd = _fileno(stderr);
+      stdio_fd = _fileno(stderr);
       break;
     default:
       UNREACHABLE();
   }
-  _setmode(fd, _O_BINARY);
-  return new File(new FileHandle(fd));
+  _setmode(stdio_fd, _O_BINARY);
+  return new File(new FileHandle(stdio_fd));
+}
+
+
+static bool StatHelper(wchar_t* path, struct __stat64* st) {
+  int stat_status = _wstat64(path, st);
+  if (stat_status != 0) {
+    return false;
+  }
+  if ((st->st_mode & S_IFMT) != S_IFREG) {
+    SetLastError(ERROR_NOT_SUPPORTED);
+    return false;
+  }
+  return true;
 }
 
 
 bool File::Exists(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
-  bool stat_status = _wstat64(system_name.wide(), &st);
-  if (stat_status == 0) {
-    return ((st.st_mode & S_IFMT) == S_IFREG);
-  } else {
-    return false;
-  }
+  return StatHelper(system_name.wide(), &st);
 }
 
 
@@ -442,16 +508,10 @@ bool File::Copy(const char* old_path, const char* new_path) {
 int64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
-  int stat_status = _wstat64(system_name.wide(), &st);
-  if (stat_status == 0) {
-    if ((st.st_mode & S_IFMT) == S_IFREG) {
-      return st.st_size;
-    } else {
-      // ERROR_DIRECTORY_NOT_SUPPORTED is not always in the message table.
-      SetLastError(ERROR_NOT_SUPPORTED);
-    }
+  if (!StatHelper(system_name.wide(), &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_size;
 }
 
 
@@ -539,19 +599,55 @@ void File::Stat(const char* name, int64_t* data) {
 }
 
 
+time_t File::LastAccessed(const char* name) {
+  struct __stat64 st;
+  Utf8ToWideScope system_name(name);
+  if (!StatHelper(system_name.wide(), &st)) {
+    return -1;
+  }
+  return st.st_atime;
+}
+
+
 time_t File::LastModified(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
-  int stat_status = _wstat64(system_name.wide(), &st);
-  if (stat_status == 0) {
-    if ((st.st_mode & S_IFMT) == S_IFREG) {
-      return st.st_mtime;
-    } else {
-      // ERROR_DIRECTORY_NOT_SUPPORTED is not always in the message table.
-      SetLastError(ERROR_NOT_SUPPORTED);
-    }
+  if (!StatHelper(system_name.wide(), &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_mtime;
+}
+
+
+bool File::SetLastAccessed(const char* name, int64_t millis) {
+  // First get the current times.
+  struct __stat64 st;
+  Utf8ToWideScope system_name(name);
+  if (!StatHelper(system_name.wide(), &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct __utimbuf64 times;
+  times.actime = millis / kMillisecondsPerSecond;
+  times.modtime = st.st_mtime;
+  return _wutime64(system_name.wide(), &times) == 0;
+}
+
+
+bool File::SetLastModified(const char* name, int64_t millis) {
+  // First get the current times.
+  struct __stat64 st;
+  Utf8ToWideScope system_name(name);
+  if (!StatHelper(system_name.wide(), &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct __utimbuf64 times;
+  times.actime = st.st_atime;
+  times.modtime = millis / kMillisecondsPerSecond;
+  return _wutime64(system_name.wide(), &times) == 0;
 }
 
 
@@ -687,4 +783,4 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

@@ -14,11 +14,14 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 import 'ast_properties.dart';
 
@@ -41,6 +44,11 @@ DartType getDefiniteType(
     return typeSystem.functionTypeToConcreteType(type);
   }
   return type;
+}
+
+bool hasStrictArrow(Expression expression) {
+  var element = _getKnownElement(expression);
+  return element is FunctionElement || element is MethodElement;
 }
 
 DartType _elementType(Element e) {
@@ -97,11 +105,6 @@ FieldElement _getMemberField(
 /// declared type.
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
     _memberTypeGetter(member)(type);
-
-bool hasStrictArrow(Expression expression) {
-  var element = _getKnownElement(expression);
-  return element is FunctionElement || element is MethodElement;
-}
 
 _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   String memberName = member.name;
@@ -428,12 +431,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
-    _checkForUnsafeBlockClosureInference(node);
-    super.visitFunctionExpression(node);
-  }
-
-  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     checkFunctionApplication(node);
     node.visitChildren(this);
@@ -645,6 +642,16 @@ class CodeChecker extends RecursiveAstVisitor {
           StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
           [node.name, variableElement?.type]);
     }
+    AstNode parent = node.parent;
+    if (variableElement != null &&
+        parent is VariableDeclarationList &&
+        parent.type == null &&
+        node.initializer != null) {
+      if (variableElement.kind == ElementKind.TOP_LEVEL_VARIABLE ||
+          variableElement.kind == ElementKind.FIELD) {
+        _validateTopLevelInitializer(variableElement.name, node.initializer);
+      }
+    }
     return super.visitVariableDeclaration(node);
   }
 
@@ -722,108 +729,6 @@ class CodeChecker extends RecursiveAstVisitor {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
-  }
-
-  /**
-   * Check if the closure [node] is unsafe due to dartbug.com/26947.  If so,
-   * issue a warning.
-   *
-   * TODO(paulberry): eliminate this once dartbug.com/26947 is fixed.
-   */
-  void _checkForUnsafeBlockClosureInference(FunctionExpression node) {
-    if (node.body is! BlockFunctionBody) {
-      return;
-    }
-    if (resolutionMap
-        .elementDeclaredByFunctionExpression(node)
-        .returnType
-        .isDynamic) {
-      return;
-    }
-    // Find the enclosing variable declaration whose inferred type might depend
-    // on the inferred return type of the block closure (if any).
-    AstNode prevAncestor = node;
-    AstNode ancestor = node.parent;
-    while (ancestor != null && ancestor is! VariableDeclaration) {
-      if (ancestor is BlockFunctionBody) {
-        // node is inside another block function body; if that block
-        // function body is unsafe, we've already warned about it.
-        return;
-      }
-      if (ancestor is InstanceCreationExpression) {
-        // node appears inside an instance creation expression; we may be safe
-        // if the type of the instance creation expression requires no
-        // inference.
-        TypeName typeName = ancestor.constructorName.type;
-        if (typeName.typeArguments != null) {
-          // Type arguments were explicitly specified.  We are safe.
-          return;
-        }
-        DartType type = typeName.type;
-        if (!(type is ParameterizedType && type.typeParameters.isNotEmpty)) {
-          // Type is not generic.  We are safe.
-          return;
-        }
-      }
-      if (ancestor is MethodInvocation) {
-        // node appears inside a method or function invocation; we may be safe
-        // if the type of the method or function requires no inference.
-        if (ancestor.typeArguments != null) {
-          // Type arguments were explicitly specified.  We are safe.
-          return;
-        }
-        Element methodElement = ancestor.methodName.staticElement;
-        if (!(methodElement is ExecutableElement &&
-            methodElement.typeParameters.isNotEmpty)) {
-          // Method is not generic.  We are safe.
-          return;
-        }
-      }
-      if (ancestor is FunctionExpressionInvocation &&
-          !identical(prevAncestor, ancestor.function)) {
-        // node appears inside an argument to a function expression invocation;
-        // we may be safe if the type of the function expression requires no
-        // inference.
-        if (ancestor.typeArguments != null) {
-          // Type arguments were explicitly specified.  We are safe.
-          return;
-        }
-        DartType type = ancestor.function.staticType;
-        if (!(type is FunctionTypeImpl && type.typeFormals.isNotEmpty)) {
-          // Type is not generic or has had its type parameters instantiated.
-          // We are safe.
-          return;
-        }
-      }
-      if ((ancestor is ListLiteral && ancestor.typeArguments != null) ||
-          (ancestor is MapLiteral && ancestor.typeArguments != null)) {
-        // node appears inside a list or map literal with an explicit type.  We
-        // are safe because no type inference is required.
-        return;
-      }
-      prevAncestor = ancestor;
-      ancestor = ancestor.parent;
-    }
-    if (ancestor == null) {
-      // node is not inside a variable declaration, so it is safe.
-      return;
-    }
-    VariableDeclaration decl = ancestor;
-    VariableElement declElement = decl.element;
-    if (!declElement.hasImplicitType) {
-      // Variable declaration has an explicit type, so it's safe.
-      return;
-    }
-    if (declElement.type.isDynamic) {
-      // No type was successfully inferred for this variable, so it's safe.
-      return;
-    }
-    if (declElement.enclosingElement is ExecutableElement) {
-      // Variable declaration is inside a function or method, so it's safe.
-      return;
-    }
-    _recordMessage(node, StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
-        [declElement.name]);
   }
 
   /// Checks if an implicit cast of [expr] from [from] type to [to] type is
@@ -1134,8 +1039,21 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
-    var severity = errorCode.errorSeverity;
-    if (severity == ErrorSeverity.ERROR) _failure = true;
+    // Compute the right severity taking the analysis options into account.
+    // We construct a dummy error to make the common case where we end up
+    // ignoring the strong mode message cheaper.
+    var processor = ErrorProcessor.getProcessor(_options,
+        new AnalysisError.forValues(null, -1, 0, errorCode, null, null));
+    var severity =
+        (processor != null) ? processor.severity : errorCode.errorSeverity;
+
+    if (severity == ErrorSeverity.ERROR) {
+      _failure = true;
+    }
+    if (errorCode.type == ErrorType.HINT &&
+        errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
+      severity = ErrorSeverity.ERROR;
+    }
     if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
       int begin = node is AnnotatedNode
           ? node.firstTokenAfterCommentAndMetadata.offset
@@ -1147,6 +1065,158 @@ class CodeChecker extends RecursiveAstVisitor {
       var error =
           new AnalysisError(source, begin, length, errorCode, arguments);
       reporter.onError(error);
+    }
+  }
+
+  void _validateTopLevelInitializer(String name, Expression n) {
+    void validateHasType(PropertyAccessorElement e) {
+      if (e.hasImplicitReturnType) {
+        var variable = e.variable as VariableElementImpl;
+        TopLevelInferenceError error = variable.typeInferenceError;
+        if (error != null) {
+          if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
+            _recordMessage(
+                n, StrongModeCode.TOP_LEVEL_CYCLE, [name, error.arguments]);
+          } else {
+            _recordMessage(
+                n, StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE, [name, e.name]);
+          }
+        }
+      }
+    }
+
+    void validateIdentifierElement(AstNode n, Element e) {
+      if (e == null) {
+        return;
+      }
+
+      Element enclosing = e.enclosingElement;
+      if (enclosing is CompilationUnitElement) {
+        if (e is PropertyAccessorElement) {
+          validateHasType(e);
+        }
+      } else if (enclosing is ClassElement) {
+        if (e is PropertyAccessorElement) {
+          if (e.isStatic) {
+            validateHasType(e);
+          } else {
+            _recordMessage(
+                n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [name, e.name]);
+          }
+        }
+      }
+    }
+
+    if (n == null ||
+        n is NullLiteral ||
+        n is BooleanLiteral ||
+        n is DoubleLiteral ||
+        n is IntegerLiteral ||
+        n is StringLiteral ||
+        n is SymbolLiteral) {
+      // Nothing to validate.
+    } else if (n is AwaitExpression) {
+      _validateTopLevelInitializer(name, n.expression);
+    } else if (n is ThrowExpression) {
+      // Nothing to validate.
+    } else if (n is ParenthesizedExpression) {
+      _validateTopLevelInitializer(name, n.expression);
+    } else if (n is ConditionalExpression) {
+      _validateTopLevelInitializer(name, n.thenExpression);
+      _validateTopLevelInitializer(name, n.elseExpression);
+    } else if (n is BinaryExpression) {
+      TokenType operator = n.operator.type;
+      if (operator == TokenType.AMPERSAND_AMPERSAND ||
+          operator == TokenType.BAR_BAR ||
+          operator == TokenType.EQ_EQ ||
+          operator == TokenType.BANG_EQ) {
+        // These operators give 'bool', no need to validate operands.
+      } else if (operator == TokenType.QUESTION_QUESTION) {
+        _recordMessage(n, StrongModeCode.TOP_LEVEL_UNSUPPORTED,
+            [name, n.runtimeType.toString()]);
+      } else {
+        _validateTopLevelInitializer(name, n.leftOperand);
+      }
+    } else if (n is PrefixExpression) {
+      TokenType operator = n.operator.type;
+      if (operator == TokenType.BANG) {
+        // This operator gives 'bool', no need to validate operands.
+      } else {
+        _validateTopLevelInitializer(name, n.operand);
+      }
+    } else if (n is PostfixExpression) {
+      _validateTopLevelInitializer(name, n.operand);
+    } else if (n is ListLiteral) {
+      if (n.typeArguments == null) {
+        for (Expression element in n.elements) {
+          _validateTopLevelInitializer(name, element);
+        }
+      }
+    } else if (n is MapLiteral) {
+      if (n.typeArguments == null) {
+        for (MapLiteralEntry entry in n.entries) {
+          _validateTopLevelInitializer(name, entry.key);
+          _validateTopLevelInitializer(name, entry.value);
+        }
+      }
+    } else if (n is FunctionExpression) {
+      for (FormalParameter p in n.parameters.parameters) {
+        if (p is DefaultFormalParameter) {
+          p = (p as DefaultFormalParameter).parameter;
+        }
+        if (p is SimpleFormalParameter) {
+          if (p.type == null) {
+            _recordMessage(
+                p,
+                StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER,
+                [name, p.element?.name]);
+          }
+        }
+      }
+
+      FunctionBody body = n.body;
+      if (body is ExpressionFunctionBody) {
+        _validateTopLevelInitializer(name, body.expression);
+      } else {
+        _recordMessage(n, StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, []);
+      }
+    } else if (n is InstanceCreationExpression) {
+      ConstructorElement constructor = n.staticElement;
+      ClassElement clazz = constructor?.enclosingElement;
+      if (clazz != null && clazz.typeParameters.isNotEmpty) {
+        TypeName type = n.constructorName.type;
+        if (type.typeArguments == null) {
+          _recordMessage(type, StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
+              [name, clazz.name]);
+        }
+      }
+    } else if (n is AsExpression) {
+      // Nothing to validate.
+    } else if (n is IsExpression) {
+      // Nothing to validate.
+    } else if (n is Identifier) {
+      validateIdentifierElement(n, n.staticElement);
+    } else if (n is PropertyAccess) {
+      Element element = n.propertyName.staticElement;
+      validateIdentifierElement(n.propertyName, element);
+    } else if (n is FunctionExpressionInvocation) {
+      _validateTopLevelInitializer(name, n.function);
+      // TODO(scheglov) type arguments
+    } else if (n is MethodInvocation) {
+      _validateTopLevelInitializer(name, n.target);
+      SimpleIdentifier methodName = n.methodName;
+      Element element = methodName.staticElement;
+      if (element is ExecutableElement && element.typeParameters.isNotEmpty) {
+        if (n.typeArguments == null) {
+          _recordMessage(methodName, StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
+              [name, methodName.name]);
+        }
+      }
+    } else if (n is CascadeExpression) {
+      _validateTopLevelInitializer(name, n.target);
+    } else {
+      _recordMessage(n, StrongModeCode.TOP_LEVEL_UNSUPPORTED,
+          [name, n.runtimeType.toString()]);
     }
   }
 }

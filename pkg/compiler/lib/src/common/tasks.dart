@@ -188,14 +188,6 @@ abstract class CompilerTask {
   int getSubtaskTime(String subtask) => _subtasks[subtask].timing;
 
   bool getSubtaskIsRunning(String subtask) => _subtasks[subtask].isRunning;
-
-  /// Used by the dart2js_incremental to provide measurements on each
-  /// incremental compile.
-  clearMeasurements() {
-    if (_isDisabled) return;
-    _watch.reset();
-    _subtasks.values.forEach((s) => s.clearMeasurements());
-  }
 }
 
 class GenericTask extends CompilerTask {

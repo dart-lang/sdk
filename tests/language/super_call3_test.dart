@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 
 class A {
   A(
-    this.x  /// 01: compile-time error
-  );
+    this.x // //# 01: compile-time error
+      );
   final foo = 499;
 }
 
@@ -23,12 +23,13 @@ class B2 extends A {
 
 class C {
   C
-  .named  /// 02: compile-time error
+  .named // //# 02: compile-time error
   ();
   final foo = 499;
 }
 
 class D extends C {}
+
 class D2 extends C {
   D2();
   D2.named() : this.x = 499;

@@ -29,9 +29,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
 import '../context/abstract_context.dart';
+import 'element_text.dart';
 
 /**
  * Abstract base class for resynthesizing and comparing elements.
+ *
+ * The return type separator: →
  */
 abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
@@ -43,10 +46,20 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<String> variablesWithNotConstInitializers = new Set<String>();
 
   /**
+   * Names that cannot be resolved, e.g. because of duplicate declaration.
+   */
+  Set<String> namesThatCannotBeResolved = new Set<String>();
+
+  /**
    * Tests may set this to `true` to indicate that a missing file at the time of
    * summary resynthesis shouldn't trigger an error.
    */
   bool allowMissingFiles = false;
+
+  /**
+   * Return `true` if resynthesizing should be done is strong mode.
+   */
+  bool get isStrongMode;
 
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
@@ -255,32 +268,33 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
+    compareLineInfo(resynthesized.lineInfo, original.lineInfo);
     expect(resynthesized.types.length, original.types.length,
-        reason: '$desc types');
+        reason: '$desc.types.length');
     for (int i = 0; i < resynthesized.types.length; i++) {
       compareClassElements(
           resynthesized.types[i], original.types[i], original.types[i].name);
     }
     expect(resynthesized.topLevelVariables.length,
         original.topLevelVariables.length,
-        reason: '$desc topLevelVariables');
+        reason: '$desc.topLevelVariables.length');
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
       String name = resynthesized.topLevelVariables[i].name;
       compareTopLevelVariableElements(
           resynthesized.topLevelVariables[i],
           original.topLevelVariables
               .singleWhere((TopLevelVariableElement e) => e.name == name),
-          'variable $name');
+          '$desc.topLevelVariables[$name]');
     }
     expect(resynthesized.functions.length, original.functions.length,
-        reason: '$desc functions');
+        reason: '$desc.functions.length');
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
-          'function ${original.functions[i].name}');
+          '$desc.functions[$i] /* ${original.functions[i].name} */');
     }
     expect(resynthesized.functionTypeAliases.length,
         original.functionTypeAliases.length,
-        reason: '$desc functionTypeAliases');
+        reason: '$desc.functionTypeAliases.length');
     for (int i = 0; i < resynthesized.functionTypeAliases.length; i++) {
       compareFunctionTypeAliasElements(
           resynthesized.functionTypeAliases[i],
@@ -288,13 +302,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           original.functionTypeAliases[i].name);
     }
     expect(resynthesized.enums.length, original.enums.length,
-        reason: '$desc enums');
+        reason: '$desc.enums.length');
     for (int i = 0; i < resynthesized.enums.length; i++) {
       compareClassElements(
           resynthesized.enums[i], original.enums[i], original.enums[i].name);
     }
     expect(resynthesized.accessors.length, original.accessors.length,
-        reason: '$desc accessors');
+        reason: '$desc.accessors.length');
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = resynthesized.accessors[i].name;
       if (original.accessors[i].isGetter) {
@@ -302,13 +316,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.accessors[i],
             original.accessors
                 .singleWhere((PropertyAccessorElement e) => e.name == name),
-            'getter $name');
+            '$desc.accessors[$i] /* getter $name */');
       } else {
         comparePropertyAccessorElements(
             resynthesized.accessors[i],
             original.accessors
                 .singleWhere((PropertyAccessorElement e) => e.name == name),
-            'setter $name');
+            '$desc.accessors[$i] /* setter $name */');
       }
     }
     // Note: no need to test CompilationUnitElementImpl._offsetToElementMap
@@ -381,7 +395,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAsts(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name, reason: desc);
-        compareElements(r.staticElement, o.staticElement, desc);
+        if (namesThatCannotBeResolved.contains(r.name)) {
+          expect(r.staticElement, isNull);
+        } else {
+          compareElements(r.staticElement, o.staticElement, desc);
+        }
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We don't resynthesize prefixed identifiers when the prefix refers to
         // a PrefixElement or a ClassElement.  We use simple identifiers with
@@ -440,6 +458,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         checkElidablePrefix(oTarget.prefix);
         checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
+      } else if (o is SuperExpression && r is SuperExpression) {
+        // Nothing to compare.
       } else if (o is ThisExpression && r is ThisExpression) {
         // Nothing to compare.
       } else if (o is NullLiteral) {
@@ -686,7 +706,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
-    expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
+    expect(resynthesized.nameOffset, original.nameOffset,
+        reason: '$desc.nameOffset');
     expect(rImpl.codeOffset, oImpl.codeOffset, reason: desc);
     expect(rImpl.codeLength, oImpl.codeLength, reason: desc);
     expect(resynthesized.documentationComment, original.documentationComment,
@@ -760,23 +781,58 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     checkPossibleLocalElements(resynthesized, original);
   }
 
-  void compareFunctionTypeAliasElements(
-      FunctionTypeAliasElementImpl resynthesized,
-      FunctionTypeAliasElementImpl original,
-      String desc) {
+  void compareFunctionTypeAliasElements(FunctionTypeAliasElement resynthesized,
+      FunctionTypeAliasElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareParameterElementLists(
-        resynthesized.parameters, original.parameters, desc);
-    compareTypes(
-        resynthesized.returnType, original.returnType, '$desc return type');
+    ElementImpl rImpl = getActualElement(resynthesized, desc);
+    ElementImpl oImpl = getActualElement(original, desc);
+    if (rImpl is FunctionTypeAliasElementImpl) {
+      if (oImpl is FunctionTypeAliasElementImpl) {
+        compareParameterElementLists(
+            rImpl.parameters, oImpl.parameters, '$desc.parameters');
+        compareTypes(rImpl.returnType, oImpl.returnType, '$desc.returnType');
+      } else {
+        fail(
+            'Resynthesized a FunctionTypeAliasElementImpl, but expected a ${oImpl.runtimeType}');
+      }
+    } else if (rImpl is GenericTypeAliasElementImpl) {
+      if (oImpl is GenericTypeAliasElementImpl) {
+        compareGenericFunctionTypeElements(
+            rImpl.function, oImpl.function, '$desc.function');
+      } else {
+        fail(
+            'Resynthesized a GenericTypeAliasElementImpl, but expected a ${oImpl.runtimeType}');
+      }
+    } else {
+      fail('Resynthesized a ${rImpl.runtimeType}');
+    }
     compareTypes(resynthesized.type, original.type, desc);
     expect(resynthesized.typeParameters.length, original.typeParameters.length);
     for (int i = 0; i < resynthesized.typeParameters.length; i++) {
       compareTypeParameterElements(
           resynthesized.typeParameters[i],
           original.typeParameters[i],
-          '$desc type parameter ${original.typeParameters[i].name}');
+          '$desc.typeParameters[$i] /* ${original.typeParameters[i].name} */');
     }
+  }
+
+  void compareGenericFunctionTypeElements(
+      GenericFunctionTypeElement resynthesized,
+      GenericFunctionTypeElement original,
+      String desc) {
+    if (resynthesized == null) {
+      if (original != null) {
+        fail('Failed to resynthesize generic function type');
+      }
+    } else if (original == null) {
+      fail('Resynthesizes a generic function type when none expected');
+    }
+    compareTypeParameterElementLists(resynthesized.typeParameters,
+        original.typeParameters, '$desc.typeParameters');
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, '$desc.parameters');
+    compareTypes(
+        resynthesized.returnType, original.returnType, '$desc.returnType');
   }
 
   void compareImportElements(ImportElementImpl resynthesized,
@@ -808,6 +864,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
         reason: desc);
     compareElements(resynthesized, original, desc);
+  }
+
+  void compareLineInfo(LineInfo resynthesized, LineInfo original) {
+    expect(resynthesized.lineCount, original.lineCount);
+    expect(resynthesized.lineStarts, original.lineStarts);
   }
 
   void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
@@ -899,7 +960,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareParameterElements(
           resynthesizedParameters[i],
           originalParameters[i],
-          '$desc parameter ${originalParameters[i].name}');
+          '$desc.parameters[$i] /* ${originalParameters[i].name} */');
     }
   }
 
@@ -982,15 +1043,26 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareTypeImpls(
       TypeImpl resynthesized, TypeImpl original, String desc) {
     expect(resynthesized.element.location, original.element.location,
-        reason: desc);
-    expect(resynthesized.name, original.name, reason: desc);
+        reason: '$desc.element.location');
+    expect(resynthesized.name, original.name, reason: '$desc.name');
+  }
+
+  void compareTypeParameterElementLists(
+      List<TypeParameterElement> resynthesized,
+      List<TypeParameterElement> original,
+      String desc) {
+    int length = original.length;
+    expect(resynthesized.length, length, reason: '$desc.length');
+    for (int i = 0; i < length; i++) {
+      compareTypeParameterElements(resynthesized[i], original[i], '$desc[$i]');
+    }
   }
 
   void compareTypeParameterElements(TypeParameterElement resynthesized,
       TypeParameterElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, desc);
-    compareTypes(resynthesized.bound, original.bound, '$desc bound');
+    compareTypes(resynthesized.type, original.type, '$desc.type');
+    compareTypes(resynthesized.bound, original.bound, '$desc.bound');
   }
 
   void compareTypes(DartType resynthesized, DartType original, String desc) {
@@ -999,10 +1071,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else if (resynthesized is InterfaceTypeImpl &&
         original is InterfaceTypeImpl) {
       compareTypeImpls(resynthesized, original, desc);
-      expect(resynthesized.typeArguments.length, original.typeArguments.length);
+      expect(resynthesized.typeArguments.length, original.typeArguments.length,
+          reason: '$desc.typeArguments.length');
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
-            '$desc type argument ${original.typeArguments[i].name}');
+            '$desc.typeArguments[$i] /* ${original.typeArguments[i].name} */');
       }
     } else if (resynthesized is TypeParameterTypeImpl &&
         original is TypeParameterTypeImpl) {
@@ -1029,12 +1102,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(resynthesized.element, new isInstanceOf<FunctionElement>());
         expect(resynthesized.element.enclosingElement, isNull, reason: desc);
         compareFunctionElements(
-            resynthesized.element, original.element, '$desc element',
+            resynthesized.element, original.element, '$desc.element',
             shallow: true);
         expect(resynthesized.element.type, same(resynthesized));
       }
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
-          reason: '$desc typeArguments.length');
+          reason: '$desc.typeArguments.length');
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         if (resynthesized.typeArguments[i].isDynamic &&
             original.typeArguments[i] is TypeParameterType) {
@@ -1048,7 +1121,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           compareTypes(
               resynthesized.typeArguments[i],
               original.typeArguments[i],
-              '$desc type argument ${original.typeArguments[i].name}');
+              '$desc.typeArguments[$i] /* ${original.typeArguments[i].name} */');
         }
       }
       if (original.typeParameters == null) {
@@ -1060,14 +1133,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             reason: desc);
         for (int i = 0; i < resynthesized.typeParameters.length; i++) {
           compareTypeParameterElements(resynthesized.typeParameters[i],
-              original.typeParameters[i], '$desc type parameter $i');
+              original.typeParameters[i], '$desc.typeParameters[$i]');
         }
       }
       expect(resynthesized.typeFormals.length, original.typeFormals.length,
           reason: desc);
       for (int i = 0; i < resynthesized.typeFormals.length; i++) {
         compareTypeParameterElements(resynthesized.typeFormals[i],
-            original.typeFormals[i], '$desc bound type parameter $i');
+            original.typeFormals[i], '$desc.typeFormals[$i]');
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
@@ -1089,33 +1162,33 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareUriReferencedElements(UriReferencedElementImpl resynthesized,
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.uri, original.uri, reason: '$desc uri');
+    expect(resynthesized.uri, original.uri, reason: '$desc.uri');
     expect(resynthesized.uriOffset, original.uriOffset,
-        reason: '$desc uri uriOffset');
-    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc uriEnd');
+        reason: '$desc.uriOffset');
+    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc.uriEnd');
   }
 
   void compareVariableElements(
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, desc);
+    compareTypes(resynthesized.type, original.type, '$desc.type');
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
     compareFunctionElements(resynthesizedActual.initializer,
-        originalActual.initializer, '$desc initializer');
+        originalActual.initializer, '$desc.initializer');
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {
-        compareConstValues(
-            resynthesized.constantValue, original.constantValue, desc);
+        compareConstValues(resynthesized.constantValue, original.constantValue,
+            '$desc.constantValue');
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
         if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
           _assertUnresolvedIdentifier(initializer, desc);
         } else {
           compareConstAsts(initializer, originalActual.constantInitializer,
-              '$desc initializer');
+              '$desc.constantInitializer');
         }
       }
     }
@@ -1300,23 +1373,105 @@ abstract class ResynthesizeTest extends AbstractResynthesizeTest {
   SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource);
 
   fail_library_hasExtUri() {
-    checkLibrary('import "dart-ext:doesNotExist.dart";');
+    var library = checkLibrary('import "dart-ext:doesNotExist.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+''');
+    }
   }
 
   test_class_abstract() {
-    checkLibrary('abstract class C {}');
+    var library = checkLibrary('abstract class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+}
+''');
+    }
   }
 
   test_class_alias() {
-    checkLibrary('class C = D with E, F; class D {} class E {} class F {}');
+    var library =
+        checkLibrary('class C = D with E, F; class D {} class E {} class F {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class alias C extends D with E, F {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+class F {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class alias C extends D with E, F {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+class F {
+}
+''');
+    }
   }
 
   test_class_alias_abstract() {
-    checkLibrary('abstract class C = D with E; class D {} class E {}');
+    var library =
+        checkLibrary('abstract class C = D with E; class D {} class E {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+    }
   }
 
   test_class_alias_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -1325,6 +1480,37 @@ class C = D with E;
 
 class D {}
 class E {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+    }
   }
 
   test_class_alias_with_forwarding_constructors() {
@@ -1342,35 +1528,122 @@ class Base {
   factory Base.fact2() = Base.noArgs;
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import "a.dart";
 class M {}
 class MixinApp = Base with M;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class M {
+}
+class alias MixinApp extends Base with M {
+  synthetic MixinApp._priv() = Base._priv;
+  synthetic MixinApp() = Base;
+  synthetic MixinApp.noArgs() = Base.noArgs;
+  synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
+  synthetic MixinApp.fact() = Base.fact;
+  synthetic MixinApp.fact2() = Base.fact2;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class M {
+}
+class alias MixinApp extends Base with M {
+  synthetic MixinApp._priv() = Base._priv;
+  synthetic MixinApp() = Base;
+  synthetic MixinApp.noArgs() = Base.noArgs;
+  synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
+  synthetic MixinApp.fact() = Base.fact;
+  synthetic MixinApp.fact2() = Base.fact2;
+}
+''');
+    }
   }
 
   test_class_alias_with_forwarding_constructors_type_substitution() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class Base<T> {
   Base.ctor(T t, List<T> l);
 }
 class M {}
 class MixinApp = Base with M;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class Base<T> {
+  Base.ctor(T t, List<T> l);
+}
+class M {
+}
+class alias MixinApp extends Base<dynamic> with M {
+  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) = Base<T>.ctor;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class Base<T> {
+  Base.ctor(T t, List<T> l);
+}
+class M {
+}
+class alias MixinApp extends Base<dynamic> with M {
+  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) = Base<T>.ctor;
+}
+''');
+    }
   }
 
   test_class_alias_with_forwarding_constructors_type_substitution_complex() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class Base<T> {
   Base.ctor(T t, List<T> l);
 }
 class M {}
 class MixinApp<U> = Base<List<U>> with M;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class Base<T> {
+  Base.ctor(T t, List<T> l);
+}
+class M {
+}
+class alias MixinApp<U> extends Base<List<U>> with M {
+  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) = Base<T>.ctor;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class Base<T> {
+  Base.ctor(T t, List<T> l);
+}
+class M {
+}
+class alias MixinApp<U> extends Base<List<U>> with M {
+  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) = Base<T>.ctor;
+}
+''');
+    }
   }
 
   test_class_alias_with_mixin_members() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C = D with E;
 class D {}
 class E {
@@ -1379,133 +1652,680 @@ class E {
   void f() {}
   int x;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+  int x;
+  int get a {}
+  void set b(int i) {}
+  void f() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+  int x;
+  int get a {}
+  void set b(int i) {}
+  void f() {}
+}
+''');
+    }
   }
 
   test_class_constructor_const() {
-    checkLibrary('class C { const C(); }');
+    var library = checkLibrary('class C { const C(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C();
+}
+''');
+    }
   }
 
   test_class_constructor_const_external() {
-    checkLibrary('class C { external const C(); }');
+    var library = checkLibrary('class C { external const C(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external const C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external const C();
+}
+''');
+    }
   }
 
   test_class_constructor_explicit_named() {
-    checkLibrary('class C { C.foo(); }');
+    var library = checkLibrary('class C { C.foo(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.foo();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.foo();
+}
+''');
+    }
   }
 
   test_class_constructor_explicit_type_params() {
-    checkLibrary('class C<T, U> { C(); }');
+    var library = checkLibrary('class C<T, U> { C(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  C();
+}
+''');
+    }
   }
 
   test_class_constructor_explicit_unnamed() {
-    checkLibrary('class C { C(); }');
+    var library = checkLibrary('class C { C(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    }
   }
 
   test_class_constructor_external() {
-    checkLibrary('class C { external C(); }');
+    var library = checkLibrary('class C { external C(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external C();
+}
+''');
+    }
   }
 
   test_class_constructor_factory() {
-    checkLibrary('class C { factory C() => null; }');
+    var library = checkLibrary('class C { factory C() => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  factory C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  factory C();
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_dynamic_dynamic() {
-    checkLibrary('class C { dynamic x; C(dynamic this.x); }');
+    var library = checkLibrary('class C { dynamic x; C(dynamic this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_dynamic_typed() {
-    checkLibrary('class C { dynamic x; C(int this.x); }');
+    var library = checkLibrary('class C { dynamic x; C(int this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(int this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(int this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_dynamic_untyped() {
-    checkLibrary('class C { dynamic x; C(this.x); }');
+    var library = checkLibrary('class C { dynamic x; C(this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_multiple_matching_fields() {
     // This is a compile-time error but it should still analyze consistently.
-    checkLibrary('class C { C(this.x); int x; String x; }', allowErrors: true);
+    var library = checkLibrary('class C { C(this.x); int x; String x; }',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  String x;
+  C(int this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  String x;
+  C(int this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_no_matching_field() {
     // This is a compile-time error but it should still analyze consistently.
-    checkLibrary('class C { C(this.x); }', allowErrors: true);
+    var library = checkLibrary('class C { C(this.x); }', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C(dynamic this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C(dynamic this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_typed_dynamic() {
-    checkLibrary('class C { num x; C(dynamic this.x); }', allowErrors: true);
+    var library = checkLibrary('class C { num x; C(dynamic this.x); }',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num x;
+  C(dynamic this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num x;
+  C(dynamic this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_typed_typed() {
-    checkLibrary('class C { num x; C(int this.x); }');
+    var library = checkLibrary('class C { num x; C(int this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num x;
+  C(int this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num x;
+  C(int this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_typed_untyped() {
-    checkLibrary('class C { num x; C(this.x); }');
+    var library = checkLibrary('class C { num x; C(this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num x;
+  C(num this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num x;
+  C(num this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_untyped_dynamic() {
-    checkLibrary('class C { var x; C(dynamic this.x); }');
+    var library = checkLibrary('class C { var x; C(dynamic this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_untyped_typed() {
-    checkLibrary('class C { var x; C(int this.x); }');
+    var library = checkLibrary('class C { var x; C(int this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(int this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(int this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_field_formal_untyped_untyped() {
-    checkLibrary('class C { var x; C(this.x); }');
+    var library = checkLibrary('class C { var x; C(this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(dynamic this.x);
+}
+''');
+    }
   }
 
   test_class_constructor_fieldFormal_named_noDefault() {
-    checkLibrary('class C { int x; C({this.x}); }');
+    var library = checkLibrary('class C { int x; C({this.x}); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C({int this.x});
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C({int this.x});
+}
+''');
+    }
   }
 
   test_class_constructor_fieldFormal_named_withDefault() {
-    checkLibrary('class C { int x; C({this.x: 42}); }');
+    var library = checkLibrary('class C { int x; C({this.x: 42}); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C({int this.x});
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C({int this.x});
+}
+''');
+    }
   }
 
   test_class_constructor_fieldFormal_optional_noDefault() {
-    checkLibrary('class C { int x; C([this.x]); }');
+    var library = checkLibrary('class C { int x; C([this.x]); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C([int this.x]);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C([int this.x]);
+}
+''');
+    }
   }
 
   test_class_constructor_fieldFormal_optional_withDefault() {
-    checkLibrary('class C { int x; C([this.x = 42]); }');
+    var library = checkLibrary('class C { int x; C([this.x = 42]); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C([int this.x]);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+  C([int this.x]);
+}
+''');
+    }
   }
 
   test_class_constructor_implicit() {
-    checkLibrary('class C {}');
+    var library = checkLibrary('class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+''');
+    }
   }
 
   test_class_constructor_implicit_type_params() {
-    checkLibrary('class C<T, U> {}');
+    var library = checkLibrary('class C<T, U> {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+''');
+    }
   }
 
   test_class_constructor_params() {
-    checkLibrary('class C { C(x, y); }');
+    var library = checkLibrary('class C { C(x, int y); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C(dynamic x, int y);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C(dynamic x, int y);
+}
+''');
+    }
   }
 
   test_class_constructors() {
-    checkLibrary('class C { C.foo(); C.bar(); }');
+    var library = checkLibrary('class C { C.foo(); C.bar(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.foo();
+  C.bar();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.foo();
+  C.bar();
+}
+''');
+    }
   }
 
   test_class_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 class C {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+class C {
+}
+''');
+    }
   }
 
   test_class_documented_tripleSlash() {
-    checkLibrary('''
+    var library = checkLibrary('''
 /// aaa
 /// bbbb
 /// cc
 class C {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/// aaa
+/// bbbb
+/// cc
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/// aaa
+/// bbbb
+/// cc
+class C {
+}
+''');
+    }
   }
 
   test_class_documented_with_references() {
-    checkLibrary('''
+    var library = checkLibrary('''
 /**
  * Docs referring to [D] and [E]
  */
@@ -1513,170 +2333,897 @@ class C {}
 
 class D {}
 class E {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs referring to [D] and [E]
+ */
+class C {
+}
+class D {
+}
+class E {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs referring to [D] and [E]
+ */
+class C {
+}
+class D {
+}
+class E {
+}
+''');
+    }
   }
 
   test_class_documented_with_windows_line_endings() {
-    checkLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
+    var library = checkLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+class C {
+}
+''');
+    }
   }
 
   test_class_field_const() {
-    checkLibrary('class C { static const int i = 0; }');
+    var library = checkLibrary('class C { static const int i = 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const int i = 0;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const int i = 0;
+}
+''');
+    }
   }
 
   test_class_field_implicit_type() {
-    checkLibrary('class C { var x; }');
+    var library = checkLibrary('class C { var x; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+}
+''');
+    }
   }
 
   test_class_field_static() {
-    checkLibrary('class C { static int i; }');
+    var library = checkLibrary('class C { static int i; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int i;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int i;
+}
+''');
+    }
   }
 
   test_class_fields() {
-    checkLibrary('class C { int i; int j; }');
+    var library = checkLibrary('class C { int i; int j; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int i;
+  int j;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int i;
+  int j;
+}
+''');
+    }
   }
 
   test_class_getter_abstract() {
-    checkLibrary('abstract class C { int get x; }');
+    var library = checkLibrary('abstract class C { int get x; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+  int get x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+  int get x;
+}
+''');
+    }
   }
 
   test_class_getter_external() {
-    checkLibrary('class C { external int get x; }');
+    var library = checkLibrary('class C { external int get x; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external int get x {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external int get x {}
+}
+''');
+    }
   }
 
   test_class_getter_implicit_return_type() {
-    checkLibrary('class C { get x => null; }');
+    var library = checkLibrary('class C { get x => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic get x {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic get x {}
+}
+''');
+    }
   }
 
   test_class_getter_static() {
-    checkLibrary('class C { static int get x => null; }');
+    var library = checkLibrary('class C { static int get x => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int get x {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int get x {}
+}
+''');
+    }
   }
 
   test_class_getters() {
-    checkLibrary('class C { int get x => null; get y => null; }');
+    var library = checkLibrary('class C { int get x => null; get y => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int get x {}
+  dynamic get y {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int get x {}
+  dynamic get y {}
+}
+''');
+    }
   }
 
   test_class_implicitField_getterFirst() {
-    checkLibrary('class C { int get x => 0; void set x(int value) {} }');
+    var library =
+        checkLibrary('class C { int get x => 0; void set x(int value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int get x {}
+  void set x(int value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int get x {}
+  void set x(int value) {}
+}
+''');
+    }
   }
 
   test_class_implicitField_setterFirst() {
-    checkLibrary('class C { void set x(int value) {} int get x => 0; }');
+    var library =
+        checkLibrary('class C { void set x(int value) {} int get x => 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(int value) {}
+  int get x {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(int value) {}
+  int get x {}
+}
+''');
+    }
   }
 
   test_class_interfaces() {
-    checkLibrary('class C implements D, E {} class D {} class E {}');
+    var library =
+        checkLibrary('class C implements D, E {} class D {} class E {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C implements D, E {
+}
+class D {
+}
+class E {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C implements D, E {
+}
+class D {
+}
+class E {
+}
+''');
+    }
   }
 
   test_class_interfaces_unresolved() {
-    checkLibrary('class C implements X, Y, Z {} class X {} class Z {}',
+    var library = checkLibrary(
+        'class C implements X, Y, Z {} class X {} class Z {}',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C implements X, Z {
+}
+class X {
+}
+class Z {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C implements X, Z {
+}
+class X {
+}
+class Z {
+}
+''');
+    }
   }
 
   test_class_method_abstract() {
-    checkLibrary('abstract class C { f(); }');
+    var library = checkLibrary('abstract class C { f(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+  dynamic f();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+  dynamic f();
+}
+''');
+    }
   }
 
   test_class_method_external() {
-    checkLibrary('class C { external f(); }');
+    var library = checkLibrary('class C { external f(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external dynamic f() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external dynamic f() {}
+}
+''');
+    }
   }
 
   test_class_method_params() {
-    checkLibrary('class C { f(x, y) {} }');
+    var library = checkLibrary('class C { f(x, y) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f(dynamic x, dynamic y) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f(dynamic x, dynamic y) {}
+}
+''');
+    }
   }
 
   test_class_method_static() {
-    checkLibrary('class C { static f() {} }');
+    var library = checkLibrary('class C { static f() {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static dynamic f() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static dynamic f() {}
+}
+''');
+    }
   }
 
   test_class_methods() {
-    checkLibrary('class C { f() {} g() {} }');
+    var library = checkLibrary('class C { f() {} g() {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f() {}
+  dynamic g() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f() {}
+  dynamic g() {}
+}
+''');
+    }
   }
 
   test_class_mixins() {
-    checkLibrary('class C extends Object with D, E {} class D {} class E {}');
+    var library = checkLibrary(
+        'class C extends Object with D, E {} class D {} class E {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends Object with D, E {
+  synthetic C();
+}
+class D {
+}
+class E {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends Object with D, E {
+  synthetic C();
+}
+class D {
+}
+class E {
+}
+''');
+    }
   }
 
   test_class_mixins_unresolved() {
-    checkLibrary('class C extends Object with X, Y, Z; class X {} class Z {}',
+    var library = checkLibrary(
+        'class C extends Object with X, Y, Z; class X {} class Z {}',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends Object with X, Z {
+  synthetic C();
+}
+class X {
+}
+class Z {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends Object with X, Z {
+  synthetic C();
+}
+class X {
+}
+class Z {
+}
+''');
+    }
   }
 
   test_class_setter_abstract() {
-    checkLibrary('abstract class C { void set x(int value); }');
+    var library = checkLibrary('abstract class C { void set x(int value); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+  void set x(int value);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class C {
+  void set x(int value);
+}
+''');
+    }
   }
 
   test_class_setter_external() {
-    checkLibrary('class C { external void set x(int value); }');
+    var library = checkLibrary('class C { external void set x(int value); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external void set x(int value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external void set x(int value) {}
+}
+''');
+    }
   }
 
   test_class_setter_implicit_param_type() {
-    checkLibrary('class C { void set x(value) {} }');
+    var library = checkLibrary('class C { void set x(value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(dynamic value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(dynamic value) {}
+}
+''');
+    }
   }
 
   test_class_setter_implicit_return_type() {
-    checkLibrary('class C { set x(int value) {} }');
+    var library = checkLibrary('class C { set x(int value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(int value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic set x(int value) {}
+}
+''');
+    }
   }
 
   test_class_setter_invalid_no_parameter() {
-    checkLibrary('class C { void set x() {} }');
+    var library = checkLibrary('class C { void set x() {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x() {}
+}
+''');
+    }
   }
 
   test_class_setter_static() {
-    checkLibrary('class C { static void set x(int value) {} }');
+    var library = checkLibrary('class C { static void set x(int value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static void set x(int value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static void set x(int value) {}
+}
+''');
+    }
   }
 
   test_class_setters() {
-    checkLibrary('class C { void set x(int value) {} set y(value) {} }');
+    var library =
+        checkLibrary('class C { void set x(int value) {} set y(value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(int value) {}
+  void set y(dynamic value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(int value) {}
+  dynamic set y(dynamic value) {}
+}
+''');
+    }
   }
 
   test_class_supertype() {
-    checkLibrary('class C extends D {} class D {}');
+    var library = checkLibrary('class C extends D {} class D {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+}
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+}
+class D {
+}
+''');
+    }
   }
 
   test_class_supertype_unresolved() {
-    checkLibrary('class C extends D {}', allowErrors: true);
+    var library = checkLibrary('class C extends D {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+''');
+    }
   }
 
   test_class_type_parameters() {
-    checkLibrary('class C<T, U> {}');
+    var library = checkLibrary('class C<T, U> {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+''');
+    }
   }
 
   test_class_type_parameters_bound() {
-    checkLibrary('class C<T extends Object, U extends D> {} class D {}');
+    var library =
+        checkLibrary('class C<T extends Object, U extends D> {} class D {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T extends Object, U extends D> {
+}
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T extends Object, U extends D> {
+}
+class D {
+}
+''');
+    }
   }
 
   test_class_type_parameters_f_bound_complex() {
-    checkLibrary('class C<T extends List<U>, U> {}');
+    var library = checkLibrary('class C<T extends List<U>, U> {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T extends List<U>, U> {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T extends List<U>, U> {
+}
+''');
+    }
   }
 
   test_class_type_parameters_f_bound_simple() {
-    checkLibrary('class C<T extends U, U> {}');
+    var library = checkLibrary('class C<T extends U, U> {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T extends U, U> {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T extends U, U> {
+}
+''');
+    }
   }
 
   test_classes() {
-    checkLibrary('class C {} class D {}');
+    var library = checkLibrary('class C {} class D {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+class D {
+}
+''');
+    }
   }
 
   test_closure_executable_with_return_type_from_closure() {
-    checkLibrary('''
+    var library = checkLibrary('''
 f() {
   print(() {});
   print(() => () => 0);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    }
+  }
+
+  test_closure_generic() {
+    var library = checkLibrary('final f = <U, V>(U x, V y) => y;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+final <U,V>(U, V) → V f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+final dynamic f;
+''');
+    }
   }
 
   test_closure_in_variable_declaration_in_part() {
     addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
-    checkLibrary('''
+    var library = checkLibrary('''
 library lib;
 part "a.dart";
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library lib;
+part 'a.dart';
+--------------------
+unit: a.dart
+
+final (int) → double f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library lib;
+part 'a.dart';
+--------------------
+unit: a.dart
+
+final dynamic f;
+''');
+    }
   }
 
   test_const_invalid_field_const() {
     variablesWithNotConstInitializers.add('f');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 class C {
   static const f = 1 + foo();
@@ -1684,11 +3231,32 @@ class C {
 int foo() => 42;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const int f =
+        $$invalidConstExpr$$/*location: null*/;
+}
+int foo() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
+}
+int foo() {}
+''');
+    }
   }
 
   test_const_invalid_field_final() {
     variablesWithNotConstInitializers.add('f');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 class C {
   final f = 1 + foo();
@@ -1696,25 +3264,90 @@ class C {
 int foo() => 42;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final int f =
+        $$invalidConstExpr$$/*location: null*/;
+}
+int foo() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
+}
+int foo() {}
+''');
+    }
   }
 
   test_const_invalid_topLevel() {
     variablesWithNotConstInitializers.add('v');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 const v = 1 + foo();
 int foo() => 42;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const int v =
+        $$invalidConstExpr$$/*location: null*/;
+int foo() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic v =
+        $$invalidConstExpr$$/*location: null*/;
+int foo() {}
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_named() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C<K, V> {
   const C.named(K k, V v);
 }
 const V = const C<int, String>.named(1, '222');
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<K, V> {
+  const C.named(K k, V v);
+}
+const C<int, String> V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: test.dart;C;named*/(1, '222');
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<K, V> {
+  const C.named(K k, V v);
+}
+const dynamic V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: test.dart;C;named*/(1, '222');
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_named_imported() {
@@ -1725,10 +3358,33 @@ class C<K, V> {
   const C.named(K k, V v);
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = const C<int, String>.named(1, '222');
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_named_imported_withPrefix() {
@@ -1739,28 +3395,97 @@ class C<K, V> {
   const C.named(K k, V v);
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C<int, String>.named(1, '222');
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_noTypeArguments() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C<K, V> {
   const C();
 }
 const V = const C();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<K, V> {
+  const C();
+}
+const C<dynamic, dynamic> V = const
+        C/*location: test.dart;C*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<K, V> {
+  const C();
+}
+const dynamic V = const
+        C/*location: test.dart;C*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_unnamed() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C<K, V> {
   const C();
 }
 const V = const C<int, String>();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<K, V> {
+  const C();
+}
+const C<int, String> V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<K, V> {
+  const C();
+}
+const dynamic V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_unnamed_imported() {
@@ -1771,10 +3496,31 @@ class C<K, V> {
   const C();
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = const C<int, String>();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    }
   }
 
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() {
@@ -1785,19 +3531,67 @@ class C<K, V> {
   const C();
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C<int, String>();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    }
   }
 
   test_const_invokeConstructor_named() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   const C.named(bool a, int b, int c, {String d, double e});
 }
 const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C.named(bool a, int b, int c, {String d}, {double e});
+}
+const C V = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(true, 1, 2,
+        d/*location: null*/: 'ccc',
+        e/*location: null*/: 3.4);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C.named(bool a, int b, int c, {String d}, {double e});
+}
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(true, 1, 2,
+        d/*location: null*/: 'ccc',
+        e/*location: null*/: 3.4);
+''');
+    }
   }
 
   test_const_invokeConstructor_named_imported() {
@@ -1808,10 +3602,29 @@ class C {
   const C.named();
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = const C.named();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const C V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_named_imported_withPrefix() {
@@ -1822,27 +3635,84 @@ class C {
   const C.named();
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const C V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 class C {}
 const V = const C.named();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+const C V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved2() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 const V = const C.named();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        C/*location: null*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        C/*location: null*/.
+        named/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved3() {
@@ -1852,39 +3722,151 @@ const V = const C.named();
 class C {
 }
 ''');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const C V = const
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved4() {
     addLibrarySource('/a.dart', '');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 import 'a.dart' as p;
 const V = const p.C.named();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved5() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 const V = const p.C.named();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
+''');
+    }
+  }
+
+  test_const_invokeConstructor_named_unresolved6() {
+    var library = checkLibrary(
+        r'''
+class C<T> {}
+const V = const C.named();
+''',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+}
+const C<dynamic> V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+}
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_unnamed() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   const C();
 }
 const V = const C();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C();
+}
+const C V = const
+        C/*location: test.dart;C*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C();
+}
+const dynamic V = const
+        C/*location: test.dart;C*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_imported() {
@@ -1895,10 +3877,27 @@ class C {
   const C();
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = const C();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const C V = const
+        C/*location: a.dart;C*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V = const
+        C/*location: a.dart;C*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_imported_withPrefix() {
@@ -1909,45 +3908,138 @@ class C {
   const C();
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const C V = const
+        C/*location: a.dart;C*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        C/*location: a.dart;C*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 const V = const C();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        C/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        C/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() {
     addLibrarySource('/a.dart', '');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 import 'a.dart' as p;
 const V = const p.C();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
+''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved3() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 const V = const p.C();
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
+''');
+    }
   }
 
   test_const_length_ofClassConstField() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   static const String F = '';
 }
 const int v = C.F.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const String F = '';
+}
+const int v =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const String F = '';
+}
+const int v =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_ofClassConstField_imported() {
@@ -1958,10 +4050,31 @@ class C {
   static const String F = '';
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const int v = C.F.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const int v =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const int v =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_ofClassConstField_imported_withPrefix() {
@@ -1972,23 +4085,80 @@ class C {
   static const String F = '';
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const int v = p.C.F.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const int v =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const int v =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_ofStringLiteral() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const v = 'abc'.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic v/*error: instanceGetter*/ = 'abc'.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic v = 'abc'.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_ofTopLevelVariable() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const String S = 'abc';
 const v = S.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const String S = 'abc';
+const dynamic v/*error: instanceGetter*/ =
+        S/*location: test.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const String S = 'abc';
+const dynamic v =
+        S/*location: test.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_ofTopLevelVariable_imported() {
@@ -1997,10 +4167,29 @@ const v = S.length;
         r'''
 const String S = 'abc';
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const v = S.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic v/*error: instanceGetter*/ =
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic v =
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_ofTopLevelVariable_imported_withPrefix() {
@@ -2009,51 +4198,154 @@ const v = S.length;
         r'''
 const String S = 'abc';
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const v = p.S.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic v/*error: instanceGetter*/ =
+        p/*location: null*/.
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic v =
+        p/*location: null*/.
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    }
   }
 
   test_const_length_staticMethod() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   static int length() => 42;
 }
 const v = C.length;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int length() {}
+}
+const () → int v =
+        C/*location: test.dart;C*/.
+        length/*location: test.dart;C;length*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int length() {}
+}
+const dynamic v =
+        C/*location: test.dart;C*/.
+        length/*location: test.dart;C;length*/;
+''');
+    }
   }
 
   test_const_parameterDefaultValue_initializingFormal_functionTyped() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   final x;
   const C({this.x: foo});
 }
 int foo() => 42;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C({dynamic this.x});
+}
+int foo() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C({dynamic this.x});
+}
+int foo() {}
+''');
+    }
   }
 
   test_const_parameterDefaultValue_initializingFormal_named() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   final x;
   const C({this.x: 1 + 2});
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C({dynamic this.x});
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C({dynamic this.x});
+}
+''');
+    }
   }
 
   test_const_parameterDefaultValue_initializingFormal_positional() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   final x;
   const C([this.x = 1 + 2]);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C([dynamic this.x]);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C([dynamic this.x]);
+}
+''');
+    }
   }
 
   test_const_parameterDefaultValue_normal() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   const C.positional([p = 1 + 2]);
   const C.named({p: 1 + 2});
@@ -2063,15 +4355,65 @@ class C {
   void methodNamedWithoutDefault({p}) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C.positional([dynamic p = 1 + 2]);
+  const C.named({dynamic p: 1 + 2});
+  void methodPositional([dynamic p = 1 + 2]) {}
+  void methodPositionalWithoutDefault([dynamic p]) {}
+  void methodNamed({dynamic p: 1 + 2}) {}
+  void methodNamedWithoutDefault({dynamic p}) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C.positional([dynamic p = 1 + 2]);
+  const C.named({dynamic p: 1 + 2});
+  void methodPositional([dynamic p = 1 + 2]) {}
+  void methodPositionalWithoutDefault([dynamic p]) {}
+  void methodNamed({dynamic p: 1 + 2}) {}
+  void methodNamedWithoutDefault({dynamic p}) {}
+}
+''');
+    }
   }
 
   test_const_reference_staticField() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   static const int F = 42;
 }
 const V = C.F;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const int F = 42;
+}
+const int V =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const int F = 42;
+}
+const dynamic V =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/;
+''');
+    }
   }
 
   test_const_reference_staticField_imported() {
@@ -2082,10 +4424,29 @@ class C {
   static const int F = 42;
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = C.F;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const int V =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
+''');
+    }
   }
 
   test_const_reference_staticField_imported_withPrefix() {
@@ -2096,19 +4457,63 @@ class C {
   static const int F = 42;
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = p.C.F;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const int V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
+''');
+    }
   }
 
   test_const_reference_staticMethod() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   static int m(int a, String b) => 42;
 }
 const V = C.m;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int m(int a, String b) {}
+}
+const (int, String) → int V =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int m(int a, String b) {}
+}
+const dynamic V =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
+''');
+    }
   }
 
   test_const_reference_staticMethod_imported() {
@@ -2119,10 +4524,29 @@ class C {
   static int m(int a, String b) => 42;
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = C.m;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const (int, String) → int V =
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V =
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
+''');
+    }
   }
 
   test_const_reference_staticMethod_imported_withPrefix() {
@@ -2133,17 +4557,55 @@ class C {
   static int m(int a, String b) => 42;
 }
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = p.C.m;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const (int, String) → int V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
+''');
+    }
   }
 
   test_const_reference_topLevelFunction() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 foo() {}
 const V = foo;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const () → dynamic V =
+        foo/*location: test.dart;foo*/;
+dynamic foo() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic V =
+        foo/*location: test.dart;foo*/;
+dynamic foo() {}
+''');
+    }
   }
 
   test_const_reference_topLevelFunction_imported() {
@@ -2152,10 +4614,27 @@ const V = foo;
         r'''
 foo() {}
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const V = foo;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const () → dynamic V =
+        foo/*location: a.dart;foo*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic V =
+        foo/*location: a.dart;foo*/;
+''');
+    }
   }
 
   test_const_reference_topLevelFunction_imported_withPrefix() {
@@ -2164,17 +4643,53 @@ const V = foo;
         r'''
 foo() {}
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const V = p.foo;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const () → dynamic V =
+        p/*location: null*/.
+        foo/*location: a.dart;foo*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic V =
+        p/*location: null*/.
+        foo/*location: a.dart;foo*/;
+''');
+    }
   }
 
   test_const_reference_topLevelVariable() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const A = 1;
 const B = A + 2;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const int A = 1;
+const int B =
+        A/*location: test.dart;A?*/ + 2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic A = 1;
+const dynamic B =
+        A/*location: test.dart;A?*/ + 2;
+''');
+    }
   }
 
   test_const_reference_topLevelVariable_imported() {
@@ -2183,10 +4698,27 @@ const B = A + 2;
         r'''
 const A = 1;
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const B = A + 2;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const int B =
+        A/*location: a.dart;A?*/ + 2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic B =
+        A/*location: a.dart;A?*/ + 2;
+''');
+    }
   }
 
   test_const_reference_topLevelVariable_imported_withPrefix() {
@@ -2195,14 +4727,33 @@ const B = A + 2;
         r'''
 const A = 1;
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const B = p.A + 2;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const int B =
+        p/*location: null*/.
+        A/*location: a.dart;A?*/ + 2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic B =
+        p/*location: null*/.
+        A/*location: a.dart;A?*/ + 2;
+''');
+    }
   }
 
   test_const_reference_type() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {}
 class D<T> {}
 enum E {a, b, c}
@@ -2215,15 +4766,99 @@ const vGenericClass = D;
 const vEnum = E;
 const vFunctionTypeAlias = F;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(int a, String b);
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+class C {
+}
+class D<T> {
+}
+const Type vDynamic =
+        dynamic/*location: dynamic*/;
+const Type vNull =
+        Null/*location: dart:core;Null*/;
+const Type vObject =
+        Object/*location: dart:core;Object*/;
+const Type vClass =
+        C/*location: test.dart;C*/;
+const Type vGenericClass =
+        D/*location: test.dart;D*/;
+const Type vEnum =
+        E/*location: test.dart;E*/;
+const Type vFunctionTypeAlias =
+        F/*location: test.dart;F*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(int a, String b);
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+class C {
+}
+class D<T> {
+}
+const dynamic vDynamic =
+        dynamic/*location: dynamic*/;
+const dynamic vNull =
+        Null/*location: dart:core;Null*/;
+const dynamic vObject =
+        Object/*location: dart:core;Object*/;
+const dynamic vClass =
+        C/*location: test.dart;C*/;
+const dynamic vGenericClass =
+        D/*location: test.dart;D*/;
+const dynamic vEnum =
+        E/*location: test.dart;E*/;
+const dynamic vFunctionTypeAlias =
+        F/*location: test.dart;F*/;
+''');
+    }
   }
 
   test_const_reference_type_functionType() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 typedef F();
 class C {
   final f = <F>[];
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+class C {
+  final List<F> f = const <
+        F/*location: test.dart;F*/>[];
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+class C {
+  final dynamic f = const <
+        F/*location: test.dart;F*/>[];
+}
+''');
+    }
   }
 
   test_const_reference_type_imported() {
@@ -2234,12 +4869,37 @@ class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const vClass = C;
 const vEnum = E;
 const vFunctionTypeAlias = F;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const Type vClass =
+        C/*location: a.dart;C*/;
+const Type vEnum =
+        E/*location: a.dart;E*/;
+const Type vFunctionTypeAlias =
+        F/*location: a.dart;F*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic vClass =
+        C/*location: a.dart;C*/;
+const dynamic vEnum =
+        E/*location: a.dart;E*/;
+const dynamic vFunctionTypeAlias =
+        F/*location: a.dart;F*/;
+''');
+    }
   }
 
   test_const_reference_type_imported_withPrefix() {
@@ -2250,37 +4910,123 @@ class C {}
 enum E {a, b, c}
 typedef F(int a, String b);
 ''');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const vClass = p.C;
 const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const Type vClass =
+        p/*location: null*/.
+        C/*location: a.dart;C*/;
+const Type vEnum =
+        p/*location: null*/.
+        E/*location: a.dart;E*/;
+const Type vFunctionTypeAlias =
+        p/*location: null*/.
+        F/*location: a.dart;F*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic vClass =
+        p/*location: null*/.
+        C/*location: a.dart;C*/;
+const dynamic vEnum =
+        p/*location: null*/.
+        E/*location: a.dart;E*/;
+const dynamic vFunctionTypeAlias =
+        p/*location: null*/.
+        F/*location: a.dart;F*/;
+''');
+    }
   }
 
   test_const_reference_type_typeParameter() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C<T> {
   final f = <T>[];
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  final List<T> f = const <
+        T/*location: test.dart;C;T*/>[];
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  final dynamic f = const <
+        T/*location: test.dart;C;T*/>[];
+}
+''');
+    }
   }
 
   test_const_reference_unresolved_prefix0() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 const V = foo;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic V =
+        foo/*location: null*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic V =
+        foo/*location: null*/;
+''');
+    }
   }
 
   test_const_reference_unresolved_prefix1() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 class C {}
 const v = C.foo;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+const dynamic v =
+        C/*location: test.dart;C*/.
+        foo/*location: null*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+const dynamic v =
+        C/*location: test.dart;C*/.
+        foo/*location: null*/;
+''');
+    }
   }
 
   test_const_reference_unresolved_prefix2() {
@@ -2289,16 +5035,37 @@ const v = C.foo;
         '''
 class C {}
 ''');
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 import 'foo.dart' as p;
 const v = p.C.foo;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as p;
+const dynamic v =
+        p/*location: null*/.
+        C/*location: foo.dart;C*/.
+        foo/*location: null*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as p;
+const dynamic v =
+        p/*location: null*/.
+        C/*location: foo.dart;C*/.
+        foo/*location: null*/;
+''');
+    }
   }
 
   test_const_topLevel_binary() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vEqual = 1 == 2;
 const vAnd = true && false;
 const vOr = false || true;
@@ -2318,28 +5085,114 @@ const vGreaterEqual = 1 >= 2;
 const vLess = 1 < 2;
 const vLessEqual = 1 <= 2;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const bool vEqual = 1 == 2;
+const bool vAnd = true && false;
+const bool vOr = false || true;
+const int vBitXor = 1 ^ 2;
+const int vBitAnd = 1 & 2;
+const int vBitOr = 1 | 2;
+const int vBitShiftLeft = 1 << 2;
+const int vBitShiftRight = 1 >> 2;
+const int vAdd = 1 + 2;
+const int vSubtract = 1 - 2;
+const int vMiltiply = 1 * 2;
+const num vDivide = 1 / 2;
+const int vFloorDivide = 1 ~/ 2;
+const int vModulo = 1 % 2;
+const bool vGreater = 1 > 2;
+const bool vGreaterEqual = 1 >= 2;
+const bool vLess = 1 < 2;
+const bool vLessEqual = 1 <= 2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vEqual = 1 == 2;
+const dynamic vAnd = true && false;
+const dynamic vOr = false || true;
+const dynamic vBitXor = 1 ^ 2;
+const dynamic vBitAnd = 1 & 2;
+const dynamic vBitOr = 1 | 2;
+const dynamic vBitShiftLeft = 1 << 2;
+const dynamic vBitShiftRight = 1 >> 2;
+const dynamic vAdd = 1 + 2;
+const dynamic vSubtract = 1 - 2;
+const dynamic vMiltiply = 1 * 2;
+const dynamic vDivide = 1 / 2;
+const dynamic vFloorDivide = 1 ~/ 2;
+const dynamic vModulo = 1 % 2;
+const dynamic vGreater = 1 > 2;
+const dynamic vGreaterEqual = 1 >= 2;
+const dynamic vLess = 1 < 2;
+const dynamic vLessEqual = 1 <= 2;
+''');
+    }
   }
 
   test_const_topLevel_conditional() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const int vConditional = 1 == 2 ? 11 : 22;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vConditional = 1 == 2 ? 11 : 22;
+''');
+    }
   }
 
   test_const_topLevel_identical() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const int vIdentical = 1 == 2 ? 11 : 22;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vIdentical = 1 == 2 ? 11 : 22;
+''');
+    }
   }
 
   test_const_topLevel_ifNull() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vIfNull = 1 ?? 2.0;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const num vIfNull = 1 ?? 2.0;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vIfNull = 1 ?? 2.0;
+''');
+    }
   }
 
   test_const_topLevel_literal() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
@@ -2351,19 +5204,107 @@ const vStringConcat = 'aaa' 'bbb';
 const vStringInterpolation = 'aaa ${true} ${42} bbb';
 const vSymbol = #aaa.bbb.ccc;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic vNull = null;
+const bool vBoolFalse = false;
+const bool vBoolTrue = true;
+const int vInt = 1;
+const int vIntLong = 44998905507923676709665;
+const double vDouble = 2.3;
+const String vString = 'abc';
+const String vStringConcat = 'aaabbb';
+const String vStringInterpolation = 'aaa ${true} ${42} bbb';
+const Symbol vSymbol = #aaa.bbb.ccc;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vNull = null;
+const dynamic vBoolFalse = false;
+const dynamic vBoolTrue = true;
+const dynamic vInt = 1;
+const dynamic vIntLong = 44998905507923676709665;
+const dynamic vDouble = 2.3;
+const dynamic vString = 'abc';
+const dynamic vStringConcat = 'aaabbb';
+const dynamic vStringInterpolation = 'aaa ${true} ${42} bbb';
+const dynamic vSymbol = #aaa.bbb.ccc;
+''');
+    }
   }
 
   test_const_topLevel_prefix() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vNotEqual = 1 != 2;
 const vNot = !true;
 const vNegate = -1;
 const vComplement = ~1;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const bool vNotEqual = 1 != 2;
+const bool vNot = !true;
+const int vNegate = -1;
+const int vComplement = ~1;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vNotEqual = 1 != 2;
+const dynamic vNot = !true;
+const dynamic vNegate = -1;
+const dynamic vComplement = ~1;
+''');
+    }
+  }
+
+  test_const_topLevel_super() {
+    var library = checkLibrary(r'''
+const vSuper = super;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic vSuper = super;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vSuper = super;
+''');
+    }
+  }
+
+  test_const_topLevel_this() {
+    var library = checkLibrary(r'''
+const vThis = this;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic vThis = this;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vThis = this;
+''');
+    }
   }
 
   test_const_topLevel_typedList() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vNull = const <Null>[];
 const vDynamic = const <dynamic>[1, 2, 3];
 const vInterfaceNoTypeParameters = const <int>[1, 2, 3];
@@ -2371,101 +5312,439 @@ const vInterfaceNoTypeArguments = const <List>[];
 const vInterfaceWithTypeArguments = const <List<String>>[];
 const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const List<Null> vNull = const <
+        Null/*location: dart:core;Null*/>[];
+const List<dynamic> vDynamic = const <
+        dynamic/*location: dynamic*/>[1, 2, 3];
+const List<int> vInterfaceNoTypeParameters = const <
+        int/*location: dart:core;int*/>[1, 2, 3];
+const List<List<dynamic>> vInterfaceNoTypeArguments = const <
+        List/*location: dart:core;List*/>[];
+const List<List<String>> vInterfaceWithTypeArguments = const <
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>[];
+const List<Map<int, List<String>>> vInterfaceWithTypeArguments2 = const <
+        Map/*location: dart:core;Map*/<
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>>[];
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vNull = const <
+        Null/*location: dart:core;Null*/>[];
+const dynamic vDynamic = const <
+        dynamic/*location: dynamic*/>[1, 2, 3];
+const dynamic vInterfaceNoTypeParameters = const <
+        int/*location: dart:core;int*/>[1, 2, 3];
+const dynamic vInterfaceNoTypeArguments = const <
+        List/*location: dart:core;List*/>[];
+const dynamic vInterfaceWithTypeArguments = const <
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>[];
+const dynamic vInterfaceWithTypeArguments2 = const <
+        Map/*location: dart:core;Map*/<
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>>[];
+''');
+    }
   }
 
   test_const_topLevel_typedList_imported() {
     addLibrarySource('/a.dart', 'class C {}');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart';
 const v = const <C>[];
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const List<C> v = const <
+        C/*location: a.dart;C*/>[];
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+const dynamic v = const <
+        C/*location: a.dart;C*/>[];
+''');
+    }
   }
 
   test_const_topLevel_typedList_importedWithPrefix() {
     addLibrarySource('/a.dart', 'class C {}');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'a.dart' as p;
 const v = const <p.C>[];
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const List<C> v = const <
+        C/*location: a.dart;C*/>[];
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as p;
+const dynamic v = const <
+        C/*location: a.dart;C*/>[];
+''');
+    }
   }
 
   test_const_topLevel_typedMap() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const vDynamic1 = const <dynamic, int>{};
 const vDynamic2 = const <int, dynamic>{};
 const vInterface = const <int, String>{};
 const vInterfaceWithTypeArguments = const <int, List<String>>{};
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const Map<dynamic, int> vDynamic1 = const <
+        dynamic/*location: dynamic*/,
+        int/*location: dart:core;int*/>{};
+const Map<int, dynamic> vDynamic2 = const <
+        int/*location: dart:core;int*/,
+        dynamic/*location: dynamic*/>{};
+const Map<int, String> vInterface = const <
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>{};
+const Map<int, List<String>> vInterfaceWithTypeArguments = const <
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>{};
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic vDynamic1 = const <
+        dynamic/*location: dynamic*/,
+        int/*location: dart:core;int*/>{};
+const dynamic vDynamic2 = const <
+        int/*location: dart:core;int*/,
+        dynamic/*location: dynamic*/>{};
+const dynamic vInterface = const <
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>{};
+const dynamic vInterfaceWithTypeArguments = const <
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>{};
+''');
+    }
   }
 
   test_const_topLevel_untypedList() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const v = const [1, 2, 3];
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const List<int> v = const [1, 2, 3];
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic v = const [1, 2, 3];
+''');
+    }
   }
 
   test_const_topLevel_untypedMap() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
+''');
+    }
+  }
+
+  test_constExpr_pushReference_enum_field() {
+    var library = checkLibrary('''
+enum E {a, b, c}
+final vValue = E.a;
+final vValues = E.values;
+final vIndex = E.a.index;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+final E vValue;
+final List<E> vValues;
+final dynamic vIndex/*error: instanceGetter*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+final dynamic vValue;
+final dynamic vValues;
+final dynamic vIndex;
+''');
+    }
+  }
+
+  test_constExpr_pushReference_enum_method() {
+    var library = checkLibrary('''
+enum E {a}
+final vToString = E.a.toString();
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+}
+final String vToString;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+}
+final dynamic vToString;
+''');
+    }
   }
 
   test_constExpr_pushReference_field_simpleIdentifier() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   static const a = b;
   static const b = null;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const dynamic a =
+        C/*location: test.dart;C*/.
+        b/*location: test.dart;C;b?*/;
+  static const dynamic b = null;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const dynamic a =
+        C/*location: test.dart;C*/.
+        b/*location: test.dart;C;b?*/;
+  static const dynamic b = null;
+}
+''');
+    }
   }
 
   test_constExpr_pushReference_staticMethod_simpleIdentifier() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   static const a = m;
   static m() {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const () → dynamic a =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
+  static dynamic m() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const dynamic a =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
+  static dynamic m() {}
+}
+''');
+    }
   }
 
   test_constructor_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   /**
    * Docs
    */
   C();
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  /**
+   * Docs
+   */
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  /**
+   * Docs
+   */
+  C();
+}
+''');
+    }
   }
 
   test_constructor_initializers_assertInvocation() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   const C(int x) : assert(x >= 42);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42);
+}
+''');
+    }
   }
 
   test_constructor_initializers_assertInvocation_message() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   const C(int x) : assert(x >= 42, 'foo');
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42, 'foo');
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42, 'foo');
+}
+''');
+    }
   }
 
   test_constructor_initializers_field() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   final x;
   const C() : x = 42;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ = 42;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ = 42;
+}
+''');
+    }
   }
 
   test_constructor_initializers_field_notConst() {
     variablesWithNotConstInitializers.add('x');
-    checkLibrary(
+    var library = checkLibrary(
         '''
 class C {
   final x;
@@ -2474,19 +5753,67 @@ class C {
 int foo() => 42;
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ =
+        $$invalidConstExpr$$/*location: null*/;
+}
+int foo() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ =
+        $$invalidConstExpr$$/*location: null*/;
+}
+int foo() {}
+''');
+    }
   }
 
   test_constructor_initializers_field_withParameter() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   final x;
   const C(int p) : x = 1 + p;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C(int p) :
+        x/*location: test.dart;C;x*/ = 1 +
+        p/*location: test.dart;C;;p*/;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C(int p) :
+        x/*location: test.dart;C;x*/ = 1 +
+        p/*location: test.dart;C;;p*/;
+}
+''');
+    }
   }
 
   test_constructor_initializers_superInvocation_named() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class A {
   const A.aaa(int p);
 }
@@ -2494,10 +5821,35 @@ class C extends A {
   const C() : super.aaa(42);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A.aaa(int p);
+}
+class C extends A {
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(42);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A.aaa(int p);
+}
+class C extends A {
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(42);
+}
+''');
+    }
   }
 
   test_constructor_initializers_superInvocation_namedExpression() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class A {
   const A.aaa(a, {int b});
 }
@@ -2505,10 +5857,37 @@ class C extends A {
   const C() : super.aaa(1, b: 2);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A.aaa(dynamic a, {int b});
+}
+class C extends A {
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(1,
+        b/*location: null*/: 2);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A.aaa(dynamic a, {int b});
+}
+class C extends A {
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(1,
+        b/*location: null*/: 2);
+}
+''');
+    }
   }
 
   test_constructor_initializers_superInvocation_unnamed() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class A {
   const A(int p);
 }
@@ -2516,37 +5895,123 @@ class C extends A {
   const C.ccc() : super(42);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A(int p);
+}
+class C extends A {
+  const C.ccc() : super(42);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A(int p);
+}
+class C extends A {
+  const C.ccc() : super(42);
+}
+''');
+    }
   }
 
   test_constructor_initializers_thisInvocation_named() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   const C() : this.named(1, 'bbb');
   const C.named(int a, String b);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1, 'bbb');
+  const C.named(int a, String b);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1, 'bbb');
+  const C.named(int a, String b);
+}
+''');
+    }
   }
 
   test_constructor_initializers_thisInvocation_namedExpression() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   const C() : this.named(1, b: 2);
   const C.named(a, {int b});
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1,
+        b/*location: null*/: 2);
+  const C.named(dynamic a, {int b});
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1,
+        b/*location: null*/: 2);
+  const C.named(dynamic a, {int b});
+}
+''');
+    }
   }
 
   test_constructor_initializers_thisInvocation_unnamed() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   const C.named() : this(1, 'bbb');
   const C(int a, String b);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C.named() = C : this(1, 'bbb');
+  const C(int a, String b);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  const C.named() = C : this(1, 'bbb');
+  const C(int a, String b);
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   factory C() = D.named;
   C._();
@@ -2555,10 +6020,35 @@ class D extends C {
   D.named() : super._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  factory C() = D.named;
+  C._();
+}
+class D extends C {
+  D.named();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  factory C() = D.named;
+  C._();
+}
+class D extends C {
+  D.named();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_generic() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T, U> {
   factory C() = D<U, T>.named;
   C._();
@@ -2567,6 +6057,31 @@ class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D.named();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D.named();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_imported() {
@@ -2578,13 +6093,34 @@ class D extends C {
   D.named() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart';
 class C {
   factory C() = D.named;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C {
+  factory C() = D.named;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C {
+  factory C() = D.named;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_imported_generic() {
@@ -2596,13 +6132,34 @@ class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart';
 class C<T, U> {
   factory C() = D<U, T>.named;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_prefixed() {
@@ -2614,13 +6171,34 @@ class D extends C {
   D.named() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart' as foo;
 class C {
   factory C() = foo.D.named;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C {
+  factory C() = D.named;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C {
+  factory C() = D.named;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_prefixed_generic() {
@@ -2632,27 +6210,65 @@ class D<T, U> extends C<U, T> {
   D.named() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart' as foo;
 class C<T, U> {
   factory C() = foo.D<U, T>.named;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = D<U, T>.named;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_unresolved_class() {
-    checkLibrary(
+    var library = checkLibrary(
         '''
 class C<E> {
   factory C() = D.named<E>;
 }
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<E> {
+  factory C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<E> {
+  factory C();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_named_unresolved_constructor() {
-    checkLibrary(
+    var library = checkLibrary(
         '''
 class D {}
 class C<E> {
@@ -2660,10 +6276,31 @@ class C<E> {
 }
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class D {
+}
+class C<E> {
+  factory C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class D {
+}
+class C<E> {
+  factory C();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   factory C() = D;
   C._();
@@ -2672,10 +6309,35 @@ class D extends C {
   D() : super._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  factory C() = D;
+  C._();
+}
+class D extends C {
+  D();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  factory C() = D;
+  C._();
+}
+class D extends C {
+  D();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed_generic() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T, U> {
   factory C() = D<U, T>;
   C._();
@@ -2684,6 +6346,31 @@ class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+class D<T, U> extends C<U, T> {
+  D();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed_imported() {
@@ -2695,13 +6382,34 @@ class D extends C {
   D() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart';
 class C {
   factory C() = D;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C {
+  factory C() = D;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C {
+  factory C() = D;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed_imported_generic() {
@@ -2713,13 +6421,34 @@ class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart';
 class C<T, U> {
   factory C() = D<U, T>;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed_prefixed() {
@@ -2731,13 +6460,34 @@ class D extends C {
   D() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart' as foo;
 class C {
   factory C() = foo.D;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C {
+  factory C() = D;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C {
+  factory C() = D;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed_prefixed_generic() {
@@ -2749,63 +6499,177 @@ class D<T, U> extends C<U, T> {
   D() : super._();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import 'foo.dart' as foo;
 class C<T, U> {
   factory C() = foo.D<U, T>;
   C._();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+class C<T, U> {
+  factory C() = D<U, T>;
+  C._();
+}
+''');
+    }
   }
 
   test_constructor_redirected_factory_unnamed_unresolved() {
-    checkLibrary(
+    var library = checkLibrary(
         '''
 class C<E> {
   factory C() = D<E>;
 }
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<E> {
+  factory C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<E> {
+  factory C();
+}
+''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_named() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   C.named();
   C() : this.named();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.named();
+  C() = C.named;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.named();
+  C() = C.named;
+}
+''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_named_generic() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T> {
   C.named();
   C() : this.named();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  C.named();
+  C() = C<T>.named;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  C.named();
+  C() = C<T>.named;
+}
+''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_unnamed() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   C();
   C.named() : this();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+  C.named() = C;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+  C.named() = C;
+}
+''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_unnamed_generic() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T> {
   C();
   C.named() : this();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  C();
+  C.named() = C<T>;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  C();
+  C.named() = C<T>;
+}
+''');
+    }
   }
 
   test_constructor_withCycles_const() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   final x;
   const C() : x = const D();
@@ -2815,10 +6679,45 @@ class D {
   const D() : x = const C();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ = const
+        D/*location: test.dart;D*/();
+}
+class D {
+  final dynamic x;
+  const D() :
+        x/*location: test.dart;D;x*/ = const
+        C/*location: test.dart;C*/();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ = const
+        D/*location: test.dart;D*/();
+}
+class D {
+  final dynamic x;
+  const D() :
+        x/*location: test.dart;D;x*/ = const
+        C/*location: test.dart;C*/();
+}
+''');
+    }
   }
 
   test_constructor_withCycles_nonConst() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   final x;
   C() : x = new D();
@@ -2828,10 +6727,37 @@ class D {
   D() : x = new C();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  C();
+}
+class D {
+  final dynamic x;
+  D();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x;
+  C();
+}
+class D {
+  final dynamic x;
+  D();
+}
+''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_constructor() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class B<T> {
   const B();
 }
@@ -2839,10 +6765,35 @@ class C<T> {
   const C([B<T> b = const B()]);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const
+        B/*location: test.dart;B*/()]);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const
+        B/*location: test.dart;B*/()]);
+}
+''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_constructor2() {
-    checkLibrary('''
+    var library = checkLibrary('''
 abstract class A<T> {}
 class B<T> implements A<T> {
   const B();
@@ -2851,19 +6802,69 @@ class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const B()]);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class A<T> {
+}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const
+        B/*location: test.dart;B*/()]);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class A<T> {
+}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const
+        B/*location: test.dart;B*/()]);
+}
+''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_functionG() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class B<T> {
   const B();
 }
 void foo<T>([B<T> b = const B()]) {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
+''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodG() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class B<T> {
   const B();
 }
@@ -2871,10 +6872,35 @@ class C {
   void foo<T>([B<T> b = const B()]) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
+}
+''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class B<T1, T2> {
   const B();
 }
@@ -2882,10 +6908,35 @@ class C<E1> {
   void foo<E2>([B<E1, E2> b = const B()]) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const
+        B/*location: test.dart;B*/()]) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const
+        B/*location: test.dart;B*/()]) {}
+}
+''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodNG() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class B<T> {
   const B();
 }
@@ -2893,51 +6944,302 @@ class C<T> {
   void foo([B<T> b = const B()]) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
+}
+''');
+    }
   }
 
   test_enum_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 enum E { v }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+''');
+    }
   }
 
   test_enum_value_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 enum E {
   /**
    * Docs
    */
   v
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  /**
+   * Docs
+   */
+  static const E v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  /**
+   * Docs
+   */
+  static const E v;
+}
+''');
+    }
   }
 
   test_enum_values() {
-    checkLibrary('enum E { v1, v2 }');
+    var library = checkLibrary('enum E { v1, v2 }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v1;
+  static const E v2;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v1;
+  static const E v2;
+}
+''');
+    }
   }
 
   test_enums() {
-    checkLibrary('enum E1 { v1 } enum E2 { v2 }');
+    var library = checkLibrary('enum E1 { v1 } enum E2 { v2 }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E1 {
+  synthetic final int index;
+  synthetic static const List<E1> values;
+  static const E1 v1;
+}
+enum E2 {
+  synthetic final int index;
+  synthetic static const List<E2> values;
+  static const E2 v2;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E1 {
+  synthetic final int index;
+  synthetic static const List<E1> values;
+  static const E1 v1;
+}
+enum E2 {
+  synthetic final int index;
+  synthetic static const List<E2> values;
+  static const E2 v2;
+}
+''');
+    }
+  }
+
+  test_error_extendsEnum() {
+    var library = checkLibrary('''
+enum E {a, b, c}
+
+class M {}
+
+class A extends E {
+  foo() {}
+}
+
+class B implements E, M {
+  foo() {}
+}
+
+class C extends Object with E, M {
+  foo() {}
+}
+
+class D = Object with M, E;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+class M {
+}
+class A {
+  dynamic foo() {}
+}
+class B implements M {
+  dynamic foo() {}
+}
+class C extends Object with M {
+  synthetic C();
+  dynamic foo() {}
+}
+class alias D extends Object with M {
+  synthetic D() = Object;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+class M {
+}
+class A {
+  dynamic foo() {}
+}
+class B implements M {
+  dynamic foo() {}
+}
+class C extends Object with M {
+  synthetic C();
+  dynamic foo() {}
+}
+class alias D extends Object with M {
+  synthetic D() = Object;
+}
+''');
+    }
   }
 
   test_executable_parameter_type_typedef() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 typedef F(int p);
 main(F f) {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(int p);
+dynamic main(F f) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(int p);
+dynamic main(F f) {}
+''');
+    }
   }
 
   test_export_class() {
     addLibrarySource('/a.dart', 'class C {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_class_type_alias() {
     addLibrarySource(
         '/a.dart', 'class C {} exends _D with _E; class _D {} class _E {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_configurations_useDefault() {
@@ -2950,6 +7252,19 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'foo.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'foo.dart';
+''');
+    }
     expect(library.exports[0].uri, 'foo.dart');
     expect(library.exports[0].exportedLibrary.source.shortName, 'foo.dart');
   }
@@ -2965,6 +7280,19 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'foo_io.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'foo_io.dart';
+''');
+    }
     expect(library.exports[0].uri, 'foo_io.dart');
     expect(library.exports[0].exportedLibrary.source.shortName, 'foo_io.dart');
   }
@@ -2980,6 +7308,19 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'foo_html.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'foo_html.dart';
+''');
+    }
     ExportElement export = library.exports[0];
     expect(export.uri, 'foo_html.dart');
     expect(export.exportedLibrary.source.shortName, 'foo_html.dart');
@@ -2987,52 +7328,182 @@ export 'foo.dart'
 
   test_export_function() {
     addLibrarySource('/a.dart', 'f() {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_getter() {
     addLibrarySource('/a.dart', 'get f() => null;');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_hide() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream, Future;');
+    var library = checkLibrary('export "dart:async" hide Stream, Future;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'dart:async' hide Stream, Future;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'dart:async' hide Stream, Future;
+''');
+    }
   }
 
   test_export_multiple_combinators() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" hide Stream show Future;');
+    var library = checkLibrary('export "dart:async" hide Stream show Future;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'dart:async' hide Stream show Future;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'dart:async' hide Stream show Future;
+''');
+    }
   }
 
   test_export_setter() {
     addLibrarySource('/a.dart', 'void set f(value) {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_show() {
     addLibrary('dart:async');
-    checkLibrary('export "dart:async" show Future, Stream;');
+    var library = checkLibrary('export "dart:async" show Future, Stream;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'dart:async' show Future, Stream;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'dart:async' show Future, Stream;
+''');
+    }
   }
 
   test_export_typedef() {
     addLibrarySource('/a.dart', 'typedef F();');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_variable() {
     addLibrarySource('/a.dart', 'var x;');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_variable_const() {
     addLibrarySource('/a.dart', 'const x = 0;');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_export_variable_final() {
     addLibrarySource('/a.dart', 'final x = 0;');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_exportImport_configurations_useDefault() {
@@ -3051,6 +7522,23 @@ export 'foo.dart'
 import 'bar.dart';
 class B extends A {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'bar.dart';
+class B extends A {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'bar.dart';
+class B extends A {
+}
+''');
+    }
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo.dart');
   }
@@ -3072,6 +7560,23 @@ export 'foo.dart'
 import 'bar.dart';
 class B extends A {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'bar.dart';
+class B extends A {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'bar.dart';
+class B extends A {
+}
+''');
+    }
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
@@ -3079,206 +7584,855 @@ class B extends A {}
   test_exports() {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
-    checkLibrary('export "a.dart"; export "b.dart";');
+    var library = checkLibrary('export "a.dart"; export "b.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    }
+  }
+
+  test_expr_invalid_typeParameter_asPrefix() {
+    variablesWithNotConstInitializers.add('f');
+    var library = checkLibrary('''
+class C<T> {
+  final f = T.k;
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  final dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  final dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
+}
+''');
+    }
   }
 
   test_field_covariant() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   covariant int x;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  covariant int x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  covariant int x;
+}
+''');
+    }
   }
 
   test_field_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   /**
    * Docs
    */
   var x;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  /**
+   * Docs
+   */
+  dynamic x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  /**
+   * Docs
+   */
+  dynamic x;
+}
+''');
+    }
   }
 
   test_field_formal_param_inferred_type_implicit() {
-    checkLibrary('class C extends D { var v; C(this.v); }'
+    var library = checkLibrary('class C extends D { var v; C(this.v); }'
         ' abstract class D { int get v; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  int v;
+  C(int this.v);
+}
+abstract class D {
+  int get v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  dynamic v;
+  C(dynamic this.v);
+}
+abstract class D {
+  int get v;
+}
+''');
+    }
   }
 
   test_field_inferred_type_nonStatic_explicit_initialized() {
-    checkLibrary('class C { num v = 0; }');
+    var library = checkLibrary('class C { num v = 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  num v;
+}
+''');
+    }
   }
 
   test_field_inferred_type_nonStatic_implicit_initialized() {
-    checkLibrary('class C { var v = 0; }');
+    var library = checkLibrary('class C { var v = 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic v;
+}
+''');
+    }
   }
 
   test_field_inferred_type_nonStatic_implicit_uninitialized() {
-    checkLibrary(
+    var library = checkLibrary(
         'class C extends D { var v; } abstract class D { int get v; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  int v;
+}
+abstract class D {
+  int get v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  dynamic v;
+}
+abstract class D {
+  int get v;
+}
+''');
+    }
   }
 
   test_field_inferred_type_static_implicit_initialized() {
-    checkLibrary('class C { static var v = 0; }');
+    var library = checkLibrary('class C { static var v = 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static int v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static dynamic v;
+}
+''');
+    }
   }
 
   test_field_propagatedType_const_noDep() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   static const x = 0;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const int x = 0;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static const dynamic x = 0;
+}
+''');
+    }
   }
 
   test_field_propagatedType_final_dep_inLib() {
     addLibrarySource('/a.dart', 'final a = 1;');
-    checkLibrary('''
+    var library = checkLibrary('''
 import "a.dart";
 class C {
   final b = a / 2;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class C {
+  final num b =
+        a/*location: a.dart;a?*/ / 2;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class C {
+  final dynamic b =
+        a/*location: a.dart;a?*/ / 2;
+}
+''');
+    }
   }
 
   test_field_propagatedType_final_dep_inPart() {
     addSource('/a.dart', 'part of lib; final a = 1;');
-    checkLibrary('''
+    var library = checkLibrary('''
 library lib;
 part "a.dart";
 class C {
   final b = a / 2;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library lib;
+part 'a.dart';
+class C {
+  final num b =
+        a/*location: test.dart;a.dart;a?*/ / 2;
+}
+--------------------
+unit: a.dart
+
+final int a;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library lib;
+part 'a.dart';
+class C {
+  final dynamic b =
+        a/*location: test.dart;a.dart;a?*/ / 2;
+}
+--------------------
+unit: a.dart
+
+final dynamic a;
+''');
+    }
   }
 
   test_field_propagatedType_final_noDep_instance() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   final x = 0;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final int x = 0;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  final dynamic x = 0;
+}
+''');
+    }
   }
 
   test_field_propagatedType_final_noDep_static() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   static final x = 0;
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static final int x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static final dynamic x;
+}
+''');
+    }
   }
 
   test_field_static_final_untyped() {
-    checkLibrary('class C { static final x = 0; }');
+    var library = checkLibrary('class C { static final x = 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static final int x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static final dynamic x;
+}
+''');
+    }
   }
 
   test_field_untyped() {
-    checkLibrary('class C { var x = 0; }');
+    var library = checkLibrary('class C { var x = 0; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int x;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+}
+''');
+    }
   }
 
   test_function_async() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 Future f() async {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+Future<dynamic> f() async {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+Future<dynamic> f() async {}
+''');
+    }
   }
 
   test_function_asyncStar() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 Stream f() async* {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+Stream<dynamic> f() async* {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+Stream<dynamic> f() async* {}
+''');
+    }
   }
 
   test_function_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 f() {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    }
   }
 
   test_function_entry_point() {
-    checkLibrary('main() {}');
+    var library = checkLibrary('main() {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic main() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic main() {}
+''');
+    }
   }
 
   test_function_entry_point_in_export() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_function_entry_point_in_export_hidden() {
     addLibrarySource('/a.dart', 'library a; main() {}');
-    checkLibrary('export "a.dart" hide main;');
+    var library = checkLibrary('export "a.dart" hide main;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart' hide main;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart' hide main;
+''');
+    }
   }
 
   test_function_entry_point_in_part() {
     addSource('/a.dart', 'part of my.lib; main() {}');
-    checkLibrary('library my.lib; part "a.dart";');
+    var library = checkLibrary('library my.lib; part "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+--------------------
+unit: a.dart
+
+dynamic main() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+--------------------
+unit: a.dart
+
+dynamic main() {}
+''');
+    }
   }
 
   test_function_external() {
-    checkLibrary('external f();');
+    var library = checkLibrary('external f();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+external dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+external dynamic f() {}
+''');
+    }
   }
 
   test_function_parameter_final() {
-    checkLibrary('f(final x) {}');
+    var library = checkLibrary('f(final x) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f(final dynamic x) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f(final dynamic x) {}
+''');
+    }
   }
 
   test_function_parameter_kind_named() {
-    checkLibrary('f({x}) {}');
+    var library = checkLibrary('f({x}) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f({dynamic x}) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f({dynamic x}) {}
+''');
+    }
   }
 
   test_function_parameter_kind_positional() {
-    checkLibrary('f([x]) {}');
+    var library = checkLibrary('f([x]) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f([dynamic x]) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f([dynamic x]) {}
+''');
+    }
   }
 
   test_function_parameter_kind_required() {
-    checkLibrary('f(x) {}');
+    var library = checkLibrary('f(x) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f(dynamic x) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f(dynamic x) {}
+''');
+    }
   }
 
   test_function_parameter_parameters() {
-    checkLibrary('f(g(x, y)) {}');
+    var library = checkLibrary('f(g(x, y)) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f((dynamic, dynamic) → dynamic g) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f((dynamic, dynamic) → dynamic g) {}
+''');
+    }
   }
 
   test_function_parameter_return_type() {
-    checkLibrary('f(int g()) {}');
+    var library = checkLibrary('f(int g()) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f(() → int g) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f(() → int g) {}
+''');
+    }
   }
 
   test_function_parameter_return_type_void() {
-    checkLibrary('f(void g()) {}');
+    var library = checkLibrary('f(void g()) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f(() → void g) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f(() → void g) {}
+''');
+    }
   }
 
   test_function_parameter_type() {
-    checkLibrary('f(int i) {}');
+    var library = checkLibrary('f(int i) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f(int i) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f(int i) {}
+''');
+    }
   }
 
   test_function_parameters() {
-    checkLibrary('f(x, y) {}');
+    var library = checkLibrary('f(x, y) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f(dynamic x, dynamic y) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f(dynamic x, dynamic y) {}
+''');
+    }
   }
 
   test_function_return_type() {
-    checkLibrary('int f() => null;');
+    var library = checkLibrary('int f() => null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+int f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+int f() {}
+''');
+    }
   }
 
   test_function_return_type_implicit() {
-    checkLibrary('f() => null;');
+    var library = checkLibrary('f() => null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    }
   }
 
   test_function_return_type_void() {
-    checkLibrary('void f() {}');
+    var library = checkLibrary('void f() {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f() {}
+''');
+    }
   }
 
   test_function_type_parameter() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('T f<T, U>(U u) => null;');
+    var library = checkLibrary('T f<T, U>(U u) => null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+T f<T, U>(U u) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+T f<T, U>(U u) {}
+''');
+    }
   }
 
   test_function_type_parameter_with_function_typed_parameter() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('void f<T, U>(T x(U u)) {}');
+    var library = checkLibrary('void f<T, U>(T x(U u)) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>((U) → T x) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>((U) → T x) {}
+''');
+    }
   }
 
   test_functions() {
-    checkLibrary('f() {} g() {}');
+    var library = checkLibrary('f() {} g() {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+dynamic g() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+dynamic g() {}
+''');
+    }
   }
 
   test_futureOr() {
     var library = checkLibrary('import "dart:async"; FutureOr<int> x;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+FutureOr<int> x;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+dynamic x;
+''');
+    }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
     if (createOptions().strongMode) {
@@ -3290,6 +8444,23 @@ f() {}''');
 
   test_futureOr_const() {
     var library = checkLibrary('import "dart:async"; const x = FutureOr;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+const Type x =
+        FutureOr/*location: dart:async;FutureOr*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+const dynamic x =
+        FutureOr/*location: dart:async;FutureOr*/;
+''');
+    }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
     var x = variables[0] as ConstTopLevelVariableElementImpl;
@@ -3308,6 +8479,25 @@ FutureOr<int> f() => null;
 var x = f();
 var y = x.then((z) => z.asDouble());
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+FutureOr<int> x;
+dynamic y;
+FutureOr<int> f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+dynamic x;
+dynamic y;
+dynamic f() {}
+''');
+    }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(2));
     var x = variables[0];
@@ -3325,13 +8515,106 @@ var y = x.then((z) => z.asDouble());
 
   test_generic_gClass_gMethodStatic() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
     void f<X, Y>(V v, W w, X x, Y y) {
     }
   }
 }
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  static void m<V, W>(V v, W w) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  static void m<V, W>(V v, W w) {}
+}
+''');
+    }
+  }
+
+  test_genericFunction_asFunctionReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+int Function(int a, String b) f() => null;
+''');
+    checkElementText(
+        library,
+        r'''
+(int, String) → int f() {}
+''');
+  }
+
+  test_genericFunction_asFunctionTypedParameterReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+void f(int Function(int a, String b) p(num c)) => null;
+''');
+    checkElementText(
+        library,
+        r'''
+void f((num) → (int, String) → int p) {}
+''');
+  }
+
+  test_genericFunction_asGenericFunctionReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+typedef F = void Function(String a) Function(int b);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = (String) → void Function(int b);
+''');
+  }
+
+  test_genericFunction_asMethodReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+class C {
+  int Function(int a, String b) m() => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  (int, String) → int m() {}
+}
+''');
+  }
+
+  test_genericFunction_asParameterType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+void f(int Function(int a, String b) p) => null;
+''');
+    checkElementText(
+        library,
+        r'''
+void f((int, String) → int p) {}
+''');
+  }
+
+  test_genericFunction_asTopLevelVariableType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+int Function(int a, String b) v;
+''');
+    checkElementText(
+        library,
+        r'''
+(int, String) → int v;
 ''');
   }
 
@@ -3418,33 +8701,133 @@ class C<T, U> {
   }
 
   test_getter_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 get x => null;''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+dynamic get x {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+dynamic get x {}
+''');
+    }
   }
 
   test_getter_external() {
-    checkLibrary('external int get x;');
+    var library = checkLibrary('external int get x;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+external int get x {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+external int get x {}
+''');
+    }
   }
 
   test_getter_inferred_type_nonStatic_implicit_return() {
-    checkLibrary(
+    var library = checkLibrary(
         'class C extends D { get f => null; } abstract class D { int get f; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  int get f {}
+}
+abstract class D {
+  int get f;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  dynamic get f {}
+}
+abstract class D {
+  int get f;
+}
+''');
+    }
   }
 
   test_getters() {
-    checkLibrary('int get x => null; get y => null;');
+    var library = checkLibrary('int get x => null; get y => null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+int get x {}
+dynamic get y {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+int get x {}
+dynamic get y {}
+''');
+    }
   }
 
   test_implicitTopLevelVariable_getterFirst() {
-    checkLibrary('int get x => 0; void set x(int value) {}');
+    var library = checkLibrary('int get x => 0; void set x(int value) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+int get x {}
+void set x(int value) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+int get x {}
+void set x(int value) {}
+''');
+    }
   }
 
   test_implicitTopLevelVariable_setterFirst() {
-    checkLibrary('void set x(int value) {} int get x => 0;');
+    var library = checkLibrary('void set x(int value) {} int get x => 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void set x(int value) {}
+int get x {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void set x(int value) {}
+int get x {}
+''');
+    }
   }
 
   test_import_configurations_useDefault() {
@@ -3459,6 +8842,23 @@ import 'foo.dart'
 
 class B extends A {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class B extends A {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+class B extends A {
+}
+''');
+    }
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo.dart');
   }
@@ -3476,28 +8876,108 @@ import 'foo.dart'
 
 class B extends A {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo_io.dart';
+class B extends A {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo_io.dart';
+class B extends A {
+}
+''');
+    }
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
   test_import_deferred() {
     addLibrarySource('/a.dart', 'f() {}');
-    checkLibrary('import "a.dart" deferred as p; main() { p.f(); }');
+    var library =
+        checkLibrary('import "a.dart" deferred as p; main() { p.f(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' deferred as p;
+dynamic main() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' deferred as p;
+dynamic main() {}
+''');
+    }
   }
 
   test_import_hide() {
     addLibrary('dart:async');
-    checkLibrary('import "dart:async" hide Stream, Completer; Future f;');
+    var library =
+        checkLibrary('import "dart:async" hide Stream, Completer; Future f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' hide Stream, Completer;
+Future<dynamic> f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' hide Stream, Completer;
+Future<dynamic> f;
+''');
+    }
   }
 
   test_import_multiple_combinators() {
     addLibrary('dart:async');
-    checkLibrary('import "dart:async" hide Stream show Future; Future f;');
+    var library =
+        checkLibrary('import "dart:async" hide Stream show Future; Future f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' hide Stream show Future;
+Future<dynamic> f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' hide Stream show Future;
+Future<dynamic> f;
+''');
+    }
   }
 
   test_import_prefixed() {
     addLibrarySource('/a.dart', 'library a; class C {}');
-    checkLibrary('import "a.dart" as a; a.C c;');
+    var library = checkLibrary('import "a.dart" as a; a.C c;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as a;
+C c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as a;
+C c;
+''');
+    }
   }
 
   test_import_self() {
@@ -3510,6 +8990,27 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(resynthesized.imports[0].importedLibrary.location,
         resynthesized.location);
     expect(resynthesized.imports[1].importedLibrary.isDartCore, true);
+    if (isStrongMode) {
+      checkElementText(
+          resynthesized,
+          r'''
+import 'test.dart' as p;
+class C {
+}
+class D extends C {
+}
+''');
+    } else {
+      checkElementText(
+          resynthesized,
+          r'''
+import 'test.dart' as p;
+class C {
+}
+class D extends C {
+}
+''');
+    }
   }
 
   test_import_short_absolute() {
@@ -3518,78 +9019,212 @@ class D extends p.C {} // Prevent "unused import" warning
     var destinationPath =
         resourceProvider.pathContext.fromUri(Uri.parse('/a.dart'));
     addLibrarySource(destinationPath, 'class C {}');
-    checkLibrary('import "/a.dart"; C c;');
+    var library = checkLibrary('import "/a.dart"; C c;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import '/a.dart';
+C c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import '/a.dart';
+C c;
+''');
+    }
   }
 
   test_import_show() {
     addLibrary('dart:async');
-    checkLibrary('''
+    var library = checkLibrary('''
 import "dart:async" show Future, Stream;
 Future f;
 Stream s;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' show Future, Stream;
+Future<dynamic> f;
+Stream<dynamic> s;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' show Future, Stream;
+Future<dynamic> f;
+Stream<dynamic> s;
+''');
+    }
   }
 
   test_imports() {
     addLibrarySource('/a.dart', 'library a; class C {}');
     addLibrarySource('/b.dart', 'library b; class D {}');
-    checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
+    var library = checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+import 'b.dart';
+C c;
+D d;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+import 'b.dart';
+C c;
+D d;
+''');
+    }
   }
 
   test_inferred_function_type_for_variable_in_generic_function() {
     // In the code below, `x` has an inferred type of `() => int`, with 2
     // (unused) type parameters from the enclosing top level function.
-    checkLibrary('''
+    var library = checkLibrary('''
 f<U, V>() {
   var x = () => 0;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f<U, V>() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f<U, V>() {}
+''');
+    }
   }
 
   test_inferred_function_type_in_generic_class_constructor() {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<U, V> {
   final x;
   C() : x = (() => () => 0);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<U, V> {
+  final dynamic x;
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<U, V> {
+  final dynamic x;
+  C();
+}
+''');
+    }
   }
 
   test_inferred_function_type_in_generic_class_getter() {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<U, V> {
   get x => () => () => 0;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<U, V> {
+  dynamic get x {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<U, V> {
+  dynamic get x {}
+}
+''');
+    }
   }
 
   test_inferred_function_type_in_generic_class_in_generic_method() {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters from the enclosing class
     // and method.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T> {
   f<U, V>() {
     print(() => () => 0);
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  dynamic f<U, V>() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  dynamic f<U, V>() {}
+}
+''');
+    }
   }
 
   test_inferred_function_type_in_generic_class_setter() {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<U, V> {
   void set x(value) {
     print(() => () => 0);
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<U, V> {
+  void set x(dynamic value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<U, V> {
+  void set x(dynamic value) {}
+}
+''');
+    }
   }
 
   test_inferred_function_type_in_generic_closure() {
@@ -3604,11 +9239,23 @@ class C<U, V> {
     }
     // In the code below, `<U, V>() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters.
-    checkLibrary('''
+    var library = checkLibrary('''
 f<T>() {
   print(/*<U, V>*/() => () => 0);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f<T>() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+''');
+    }
   }
 
   test_inferred_generic_function_type_in_generic_closure() {
@@ -3623,35 +9270,136 @@ f<T>() {
     }
     // In the code below, `<U, V>() => <W, X, Y, Z>() => 0` has an inferred
     // return type of `() => int`, with 7 (unused) type parameters.
-    checkLibrary('''
+    var library = checkLibrary('''
 f<T>() {
   print(/*<U, V>*/() => /*<W, X, Y, Z>*/() => 0);
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f<T>() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+''');
+    }
   }
 
   test_inferred_type_is_typedef() {
-    checkLibrary('typedef int F(String s);'
+    var library = checkLibrary('typedef int F(String s);'
         ' class C extends D { var v; }'
         ' abstract class D { F get v; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef int F(String s);
+class C extends D {
+  F v;
+}
+abstract class D {
+  F get v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef int F(String s);
+class C extends D {
+  dynamic v;
+}
+abstract class D {
+  F get v;
+}
+''');
+    }
   }
 
   test_inferred_type_refers_to_bound_type_param() {
-    checkLibrary('class C<T> extends D<int, T> { var v; }'
+    var library = checkLibrary('class C<T> extends D<int, T> { var v; }'
         ' abstract class D<U, V> { Map<V, U> get v; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> extends D<int, T> {
+  Map<T, int> v;
+}
+abstract class D<U, V> {
+  Map<V, U> get v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> extends D<int, T> {
+  dynamic v;
+}
+abstract class D<U, V> {
+  Map<V, U> get v;
+}
+''');
+    }
   }
 
   void test_inferred_type_refers_to_function_typed_param_of_typedef() {
-    checkLibrary('''
+    var library = checkLibrary('''
 typedef void F(int g(String s));
 h(F f) => null;
 var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef void F((String) → int g);
+dynamic v;
+dynamic h(F f) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef void F((String) → int g);
+dynamic v;
+dynamic h(F f) {}
+''');
+    }
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
-    checkLibrary('class C<T, U> extends D<U, int> { void f(int x, g) {} }'
-        ' abstract class D<V, W> { void f(int x, W g(V s)); }');
+    var library =
+        checkLibrary('class C<T, U> extends D<U, int> { void f(int x, g) {} }'
+            ' abstract class D<V, W> { void f(int x, W g(V s)); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> extends D<U, int> {
+  void f(int x, (U) → int g) {}
+}
+abstract class D<V, W> {
+  void f(int x, (V) → W g);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> extends D<U, int> {
+  void f(int x, dynamic g) {}
+}
+abstract class D<V, W> {
+  void f(int x, (V) → W g);
+}
+''');
+    }
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
@@ -3659,31 +9407,127 @@ var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
         '/a.dart', 'import "b.dart"; abstract class D extends E {}');
     addLibrarySource(
         '/b.dart', 'abstract class E { void f(int x, int g(String s)); }');
-    checkLibrary('import "a.dart"; class C extends D { void f(int x, g) {} }');
+    var library = checkLibrary(
+        'import "a.dart"; class C extends D { void f(int x, g) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class C extends D {
+  void f(int x, (String) → int g) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class C extends D {
+  void f(int x, dynamic g) {}
+}
+''');
+    }
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
-    checkLibrary('class C extends D { void f(int x, g) {} }'
+    var library = checkLibrary('class C extends D { void f(int x, g) {} }'
         ' abstract class D { void f(int x, int g(String s)); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void f(int x, (String) → int g) {}
+}
+abstract class D {
+  void f(int x, (String) → int g);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void f(int x, dynamic g) {}
+}
+abstract class D {
+  void f(int x, (String) → int g);
+}
+''');
+    }
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() {
-    checkLibrary('''
+    var library = checkLibrary('''
 f(void g(int x, void h())) => null;
 var v = f((x, y) {});
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+dynamic f((int, () → void) → void g) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+dynamic f((int, () → void) → void g) {}
+''');
+    }
   }
 
   test_inferred_type_refers_to_nested_function_typed_param_named() {
-    checkLibrary('''
+    var library = checkLibrary('''
 f({void g(int x, void h())}) => null;
 var v = f(g: (x, y) {});
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+dynamic f({(int, () → void) → void g}) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+dynamic f({(int, () → void) → void g}) {}
+''');
+    }
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
-    checkLibrary('class C extends D { void set f(g) {} }'
+    var library = checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void set f((String) → int g) {}
+}
+abstract class D {
+  void set f((String) → int g);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void set f(dynamic g) {}
+}
+abstract class D {
+  void set f((String) → int g);
+}
+''');
+    }
   }
 
   void test_inferredType_definedInSdkLibraryPart() {
@@ -3701,6 +9545,25 @@ class B extends A {
   m(p) {}
 }
   ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class B extends A {
+  dynamic m(Stream<dynamic> p) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+class B extends A {
+  dynamic m(dynamic p) {}
+}
+''');
+    }
     ClassElement b = library.definingCompilationUnit.types[0];
     ParameterElement p = b.methods[0].parameters[0];
     // This test should verify that we correctly record inferred types,
@@ -3713,15 +9576,32 @@ class B extends A {
   }
 
   void test_inferredType_usesSyntheticFunctionType_functionTypedParam() {
-    checkLibrary('''
+    var library = checkLibrary('''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
 var v = [f, g];
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+List<((String) → int) → Object> v;
+int f((String) → int x) {}
+String g((String) → int x) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+int f((String) → int x) {}
+String g((String) → int x) {}
+''');
+    }
   }
 
   test_inheritance_errors() {
-    checkLibrary('''
+    var library = checkLibrary('''
 abstract class A {
   int m();
 }
@@ -3736,63 +9616,214 @@ abstract class D extends C {
   var f;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+abstract class A {
+  int m();
+}
+abstract class B {
+  String m();
+}
+abstract class C implements A, B {
+}
+abstract class D extends C {
+  dynamic f;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+abstract class A {
+  int m();
+}
+abstract class B {
+  String m();
+}
+abstract class C implements A, B {
+}
+abstract class D extends C {
+  dynamic f;
+}
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure() {
-    checkLibrary('var v = () => 0;');
+    var library = checkLibrary('var v = () => 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+() → int v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_dynamic() {
-    checkLibrary('var v = (f) async => await f;');
+    var library = checkLibrary('var v = (f) async => await f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+(dynamic) → Future<dynamic> v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future3_int() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 var v = (Future<Future<Future<int>>> f) async => await f;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+(Future<Future<Future<int>>>) → Future<int> v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+dynamic v;
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future_int() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 var v = (Future<int> f) async => await f;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+(Future<int>) → Future<int> v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+dynamic v;
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure_await_future_noArg() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 var v = (Future f) async => await f;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+(Future<dynamic>) → Future<dynamic> v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+dynamic v;
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure_field() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   var v = () => 0;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  () → int v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic v;
+}
+''');
+    }
   }
 
   test_initializer_executable_with_return_type_from_closure_local() {
-    checkLibrary('''
+    var library = checkLibrary('''
 void f() {
   int u = 0;
   var v = () => 0;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f() {}
+''');
+    }
   }
 
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<S extends num, T extends C<S, T>> {
+}
+C<num, C<num, dynamic>> c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<S extends num, T extends C<S, T>> {
+}
+C<dynamic, dynamic> c;
+''');
+    }
   }
 
   test_instantiateToBounds_boundRefersToItself() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T extends C<T>> {}
 C c;
 var c2 = new C();
@@ -3800,20 +9831,101 @@ class B {
   var c3 = new C();
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T extends C<T>> {
+}
+class B {
+  C<C<dynamic>> c3;
+}
+C<C<dynamic>> c;
+C<C<dynamic>> c2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T extends C<T>> {
+}
+class B {
+  dynamic c3;
+}
+C<dynamic> c;
+dynamic c2;
+''');
+    }
   }
 
   test_instantiateToBounds_boundRefersToLaterTypeArgument() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T extends C<T, U>, U extends num> {
+}
+C<C<dynamic, num>, num> c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T extends C<T, U>, U extends num> {
+}
+C<dynamic, dynamic> c;
+''');
+    }
+  }
+
+  test_instantiateToBounds_functionTypeAlias_simple() {
+    var library = checkLibrary('''
+typedef F<T extends num>(T p);
+F f;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<T extends num>(T p);
+F<num> f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<T extends num>(T p);
+F f;
+''');
+    }
   }
 
   test_instantiateToBounds_simple() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T extends num> {}
 C c;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T extends num> {
+}
+C<num> c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T extends num> {
+}
+C<dynamic> c;
+''');
+    }
   }
 
   test_invalid_annotation_prefixed_constructor() {
@@ -3824,11 +9936,36 @@ class C {
   const C.named();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import "a.dart" as a;
 @a.C.named
 class D {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as a;
+@
+        a/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as a;
+@
+        a/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
+class D {
+}
+''');
+    }
   }
 
   test_invalid_annotation_unprefixed_constructor() {
@@ -3839,36 +9976,325 @@ class C {
   const C.named();
 }
 ''');
-    checkLibrary('''
+    var library = checkLibrary('''
 import "a.dart";
 @C.named
 class D {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+@
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+@
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
+class D {
+}
+''');
+    }
+  }
+
+  test_invalid_importPrefix_asTypeArgument() {
+    var library = checkLibrary('''
+import 'dart:async' as ppp;
+class C {
+  List<ppp> v;
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as ppp;
+class C {
+  List<dynamic> v;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as ppp;
+class C {
+  List<dynamic> v;
+}
+''');
+    }
+  }
+
+  test_invalid_nameConflict_imported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'V() {}');
+    addLibrarySource('/b.dart', 'V() {}');
+    var library = checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+foo([p = V]) {}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+import 'b.dart';
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+import 'b.dart';
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
+''');
+    }
+  }
+
+  test_invalid_nameConflict_imported_exported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'V() {}');
+    addLibrarySource('/b.dart', 'V() {}');
+    addLibrarySource(
+        '/c.dart',
+        r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    var library = checkLibrary('''
+import 'c.dart';
+foo([p = V]) {}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'c.dart';
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'c.dart';
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
+''');
+    }
+  }
+
+  test_invalid_nameConflict_local() {
+    namesThatCannotBeResolved.add('V');
+    var library = checkLibrary('''
+foo([p = V]) {}
+V() {}
+var V;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic V;
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
+dynamic V() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic V;
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
+dynamic V() {}
+''');
+    }
+  }
+
+  test_invalid_setterParameter_fieldFormalParameter() {
+    var library = checkLibrary('''
+class C {
+  int foo;
+  void set bar(this.foo) {}
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int foo;
+  void set bar(dynamic this.foo) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  int foo;
+  void set bar(dynamic this.foo) {}
+}
+''');
+    }
+  }
+
+  test_invalid_setterParameter_fieldFormalParameter_self() {
+    var library = checkLibrary('''
+class C {
+  set x(this.x) {}
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(dynamic this.x) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic set x(dynamic this.x) {}
+}
+''');
+    }
+  }
+
+  test_invalidUris() {
+    allowMissingFiles = true;
+    var library = checkLibrary(r'''
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+import 'a1.dart';
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+export 'a2.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+
+part '[invalid uri]';
+part 'a3.dart';
+part '[invalid uri]';
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a1.dart';
+export 'a2.dart';
+part 'a3.dart';
+--------------------
+unit: a3.dart
+
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a1.dart';
+export 'a2.dart';
+part 'a3.dart';
+--------------------
+unit: a3.dart
+
+''');
+    }
   }
 
   test_library() {
-    checkLibrary('');
+    var library = checkLibrary('');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+''');
+    }
   }
 
   test_library_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 library foo;''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library foo;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library foo;
+''');
+    }
   }
 
   test_library_name_with_spaces() {
-    checkLibrary('library foo . bar ;');
+    var library = checkLibrary('library foo . bar ;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library foo.bar;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library foo.bar;
+''');
+    }
   }
 
   test_library_named() {
-    checkLibrary('library foo.bar;');
+    var library = checkLibrary('library foo.bar;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library foo.bar;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library foo.bar;
+''');
+    }
   }
 
   test_localFunctions() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 f() {
   f1() {}
   {
@@ -3876,38 +10302,98 @@ f() {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    }
   }
 
   test_localFunctions_inConstructor() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   C() {
     f() {}
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    }
   }
 
   test_localFunctions_inMethod() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   m() {
     f() {}
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic m() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic m() {}
+}
+''');
+    }
   }
 
   test_localFunctions_inTopLevelGetter() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 get g {
   f() {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic get g {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic get g {}
+''');
+    }
   }
 
   test_localLabels_inConstructor() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 class C {
   C() {
@@ -3920,10 +10406,27 @@ class C {
 }
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    }
   }
 
   test_localLabels_inMethod() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 class C {
   m() {
@@ -3936,10 +10439,27 @@ class C {
 }
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic m() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic m() {}
+}
+''');
+    }
   }
 
   test_localLabels_inTopLevelFunction() {
-    checkLibrary(
+    var library = checkLibrary(
         r'''
 main() {
   aaa: while (true) {}
@@ -3950,10 +10470,23 @@ main() {
 }
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic main() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic main() {}
+''');
+    }
   }
 
   test_localVariables_inConstructor() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   C() {
     int v;
@@ -3961,10 +10494,27 @@ class C {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C();
+}
+''');
+    }
   }
 
   test_localVariables_inLocalFunction() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 f() {
   f1() {
     int v1 = 1;
@@ -3977,20 +10527,50 @@ f() {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+''');
+    }
   }
 
   test_localVariables_inMethod() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class C {
   m() {
     int v;
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic m() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic m() {}
+}
+''');
+    }
   }
 
   test_localVariables_inTopLevelFunction() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 main() {
   int v1 = 1;
   {
@@ -3999,264 +10579,1500 @@ main() {
   Map<int, List<double>> v3;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic main() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic main() {}
+''');
+    }
   }
 
   test_localVariables_inTopLevelGetter() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 get g {
   int v;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic get g {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic get g {}
+''');
+    }
   }
 
   test_main_class() {
-    checkLibrary('class main {}');
+    var library = checkLibrary('class main {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class main {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class main {
+}
+''');
+    }
   }
 
   test_main_class_alias() {
-    checkLibrary('class main = C with D; class C {} class D {}');
+    var library = checkLibrary('class main = C with D; class C {} class D {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class alias main extends C with D {
+  synthetic main() = C;
+}
+class C {
+}
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class alias main extends C with D {
+  synthetic main() = C;
+}
+class C {
+}
+class D {
+}
+''');
+    }
   }
 
   test_main_class_alias_via_export() {
     addLibrarySource('/a.dart', 'class main = C with D; class C {} class D {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_main_class_via_export() {
     addLibrarySource('/a.dart', 'class main {}');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_main_getter() {
-    checkLibrary('get main => null;');
+    var library = checkLibrary('get main => null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic get main {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic get main {}
+''');
+    }
   }
 
   test_main_getter_via_export() {
     addLibrarySource('/a.dart', 'get main => null;');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_main_typedef() {
-    checkLibrary('typedef main();');
+    var library = checkLibrary('typedef main();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic main();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic main();
+''');
+    }
   }
 
   test_main_typedef_via_export() {
     addLibrarySource('/a.dart', 'typedef main();');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_main_variable() {
-    checkLibrary('var main;');
+    var library = checkLibrary('var main;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic main;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic main;
+''');
+    }
   }
 
   test_main_variable_via_export() {
     addLibrarySource('/a.dart', 'var main;');
-    checkLibrary('export "a.dart";');
+    var library = checkLibrary('export "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'a.dart';
+''');
+    }
   }
 
   test_member_function_async() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 class C {
   Future f() async {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+class C {
+  Future<dynamic> f() async {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+class C {
+  Future<dynamic> f() async {}
+}
+''');
+    }
   }
 
   test_member_function_asyncStar() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 import 'dart:async';
 class C {
   Stream f() async* {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+class C {
+  Stream<dynamic> f() async* {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async';
+class C {
+  Stream<dynamic> f() async* {}
+}
+''');
+    }
   }
 
   test_metadata_classDeclaration() {
-    checkLibrary('const a = null; @a class C {}');
+    var library = checkLibrary(r'''
+const a = null;
+const b = null;
+@a
+@b
+class C {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+@
+        b/*location: test.dart;b?*/
+class C {
+}
+const dynamic a = null;
+const dynamic b = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+@
+        b/*location: test.dart;b?*/
+class C {
+}
+const dynamic a = null;
+const dynamic b = null;
+''');
+    }
   }
 
   test_metadata_classTypeAlias() {
-    checkLibrary(
+    var library = checkLibrary(
         'const a = null; @a class C = D with E; class D {} class E {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_constructor_call_named() {
-    checkLibrary('class A { const A.named(); } @A.named() class C {}');
+    var library =
+        checkLibrary('class A { const A.named(); } @A.named() class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A.named();
+}
+@
+        A/*location: test.dart;A*/.
+        named/*location: test.dart;A;named*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A.named();
+}
+@
+        A/*location: test.dart;A*/.
+        named/*location: test.dart;A;named*/()
+class C {
+}
+''');
+    }
   }
 
   test_metadata_constructor_call_named_prefixed() {
     addLibrarySource('/foo.dart', 'class A { const A.named(); }');
-    checkLibrary('import "foo.dart" as foo; @foo.A.named() class C {}');
+    var library =
+        checkLibrary('import "foo.dart" as foo; @foo.A.named() class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+@
+        A/*location: foo.dart;A*/.
+        named/*location: foo.dart;A;named*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+@
+        A/*location: foo.dart;A*/.
+        named/*location: foo.dart;A;named*/()
+class C {
+}
+''');
+    }
   }
 
   test_metadata_constructor_call_unnamed() {
-    checkLibrary('class A { const A(); } @A() class C {}');
+    var library = checkLibrary('class A { const A(); } @A() class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A();
+}
+@
+        A/*location: test.dart;A*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A();
+}
+@
+        A/*location: test.dart;A*/()
+class C {
+}
+''');
+    }
   }
 
   test_metadata_constructor_call_unnamed_prefixed() {
     addLibrarySource('/foo.dart', 'class A { const A(); }');
-    checkLibrary('import "foo.dart" as foo; @foo.A() class C {}');
+    var library = checkLibrary('import "foo.dart" as foo; @foo.A() class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+@
+        A/*location: foo.dart;A*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart' as foo;
+@
+        A/*location: foo.dart;A*/()
+class C {
+}
+''');
+    }
   }
 
   test_metadata_constructor_call_with_args() {
-    checkLibrary('class A { const A(x); } @A(null) class C {}');
+    var library = checkLibrary('class A { const A(x); } @A(null) class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A(dynamic x);
+}
+@
+        A/*location: test.dart;A*/(null)
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A(dynamic x);
+}
+@
+        A/*location: test.dart;A*/(null)
+class C {
+}
+''');
+    }
   }
 
   test_metadata_constructorDeclaration_named() {
-    checkLibrary('const a = null; class C { @a C.named(); }');
+    var library = checkLibrary('const a = null; class C { @a C.named(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  C.named();
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  C.named();
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_constructorDeclaration_unnamed() {
-    checkLibrary('const a = null; class C { @a C(); }');
+    var library = checkLibrary('const a = null; class C { @a C(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  C();
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  C();
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_enumDeclaration() {
-    checkLibrary('const a = null; @a enum E { v }');
+    var library = checkLibrary('const a = null; @a enum E { v }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_exportDirective() {
     addLibrarySource('/foo.dart', '');
-    checkLibrary('@a export "foo.dart"; const a = null;');
+    var library = checkLibrary('@a export "foo.dart"; const a = null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+export 'foo.dart';
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+export 'foo.dart';
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_fieldDeclaration() {
-    checkLibrary('const a = null; class C { @a int x; }');
+    var library = checkLibrary('const a = null; class C { @a int x; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  int x;
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  int x;
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_fieldFormalParameter() {
-    checkLibrary('const a = null; class C { var x; C(@a this.x); }');
+    var library =
+        checkLibrary('const a = null; class C { var x; C(@a this.x); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(@
+        a/*location: test.dart;a?*/ dynamic this.x);
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C(@
+        a/*location: test.dart;a?*/ dynamic this.x);
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_fieldFormalParameter_withDefault() {
-    checkLibrary('const a = null; class C { var x; C([@a this.x = null]); }');
+    var library = checkLibrary(
+        'const a = null; class C { var x; C([@a this.x = null]); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C([@
+        a/*location: test.dart;a?*/ dynamic this.x]);
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C([@
+        a/*location: test.dart;a?*/ dynamic this.x]);
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_functionDeclaration_function() {
-    checkLibrary('const a = null; @a f() {}');
+    var library = checkLibrary('const a = null; @a f() {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f() {}
+''');
+    }
   }
 
   test_metadata_functionDeclaration_getter() {
-    checkLibrary('const a = null; @a get f => null;');
+    var library = checkLibrary('const a = null; @a get f => null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
+dynamic get f {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
+dynamic get f {}
+''');
+    }
   }
 
   test_metadata_functionDeclaration_setter() {
-    checkLibrary('const a = null; @a set f(value) {}');
+    var library = checkLibrary('const a = null; @a set f(value) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
+void set f(dynamic value) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
+dynamic set f(dynamic value) {}
+''');
+    }
   }
 
   test_metadata_functionTypeAlias() {
-    checkLibrary('const a = null; @a typedef F();');
+    var library = checkLibrary('const a = null; @a typedef F();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+typedef dynamic F();
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+typedef dynamic F();
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_functionTypedFormalParameter() {
-    checkLibrary('const a = null; f(@a g()) {}');
+    var library = checkLibrary('const a = null; f(@a g()) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f(@
+        a/*location: test.dart;a?*/ () → dynamic g) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f(@
+        a/*location: test.dart;a?*/ () → dynamic g) {}
+''');
+    }
   }
 
   test_metadata_functionTypedFormalParameter_withDefault() {
-    checkLibrary('const a = null; f([@a g() = null]) {}');
+    var library = checkLibrary('const a = null; f([@a g() = null]) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f([@
+        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f([@
+        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
+''');
+    }
   }
 
   test_metadata_importDirective() {
     addLibrarySource('/foo.dart', 'const b = null;');
-    checkLibrary('@a import "foo.dart"; const a = b;');
+    var library = checkLibrary('@a import "foo.dart"; const a = b;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+import 'foo.dart';
+const dynamic a =
+        b/*location: foo.dart;b?*/;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+import 'foo.dart';
+const dynamic a =
+        b/*location: foo.dart;b?*/;
+''');
+    }
   }
 
   test_metadata_invalid_classDeclaration() {
-    checkLibrary('f(_) {} @f(42) class C {}');
+    var library = checkLibrary('f(_) {} @f(42) class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        f/*location: test.dart;f*/(42)
+class C {
+}
+dynamic f(dynamic _) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        f/*location: test.dart;f*/(42)
+class C {
+}
+dynamic f(dynamic _) {}
+''');
+    }
   }
 
   test_metadata_libraryDirective() {
-    checkLibrary('@a library L; const a = null;');
+    var library = checkLibrary('@a library L; const a = null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+library L;
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        a/*location: test.dart;a?*/
+library L;
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_methodDeclaration_getter() {
-    checkLibrary('const a = null; class C { @a get m => null; }');
+    var library = checkLibrary('const a = null; class C { @a get m => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  dynamic get m {}
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  dynamic get m {}
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_methodDeclaration_method() {
-    checkLibrary('const a = null; class C { @a m() {} }');
+    var library = checkLibrary(r'''
+const a = null;
+const b = null;
+class C {
+  @a
+  @b
+  m() {}
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  @
+        b/*location: test.dart;b?*/
+  dynamic m() {}
+}
+const dynamic a = null;
+const dynamic b = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  @
+        b/*location: test.dart;b?*/
+  dynamic m() {}
+}
+const dynamic a = null;
+const dynamic b = null;
+''');
+    }
   }
 
   test_metadata_methodDeclaration_setter() {
-    checkLibrary('const a = null; class C { @a set m(value) {} }');
+    var library =
+        checkLibrary('const a = null; class C { @a set m(value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  void set m(dynamic value) {}
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  @
+        a/*location: test.dart;a?*/
+  dynamic set m(dynamic value) {}
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_partDirective() {
     addSource('/foo.dart', 'part of L;');
-    checkLibrary('library L; @a part "foo.dart"; const a = null;');
+    var library =
+        checkLibrary('library L; @a part "foo.dart"; const a = null;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library L;
+@
+        a/*location: test.dart;a?*/
+part 'foo.dart';
+const dynamic a = null;
+--------------------
+unit: foo.dart
+
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library L;
+@
+        a/*location: test.dart;a?*/
+part 'foo.dart';
+const dynamic a = null;
+--------------------
+unit: foo.dart
+
+''');
+    }
   }
 
   test_metadata_prefixed_variable() {
     addLibrarySource('/a.dart', 'const b = null;');
-    checkLibrary('import "a.dart" as a; @a.b class C {}');
+    var library = checkLibrary('import "a.dart" as a; @a.b class C {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as a;
+@
+        a/*location: null*/.
+        b/*location: a.dart;b?*/
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart' as a;
+@
+        a/*location: null*/.
+        b/*location: a.dart;b?*/
+class C {
+}
+''');
+    }
   }
 
   test_metadata_simpleFormalParameter() {
-    checkLibrary('const a = null; f(@a x) {}');
+    var library = checkLibrary('const a = null; f(@a x) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f(@
+        a/*location: test.dart;a?*/ dynamic x) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f(@
+        a/*location: test.dart;a?*/ dynamic x) {}
+''');
+    }
   }
 
   test_metadata_simpleFormalParameter_withDefault() {
-    checkLibrary('const a = null; f([@a x = null]) {}');
+    var library = checkLibrary('const a = null; f([@a x = null]) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f([@
+        a/*location: test.dart;a?*/ dynamic x = null]) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f([@
+        a/*location: test.dart;a?*/ dynamic x = null]) {}
+''');
+    }
   }
 
   test_metadata_topLevelVariableDeclaration() {
-    checkLibrary('const a = null; @a int v;');
+    var library = checkLibrary('const a = null; @a int v;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
+int v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
+int v;
+''');
+    }
   }
 
   test_metadata_typeParameter_ofClass() {
-    checkLibrary('const a = null; class C<@a T> {}');
+    var library = checkLibrary('const a = null; class C<@a T> {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_typeParameter_ofClassTypeAlias() {
-    checkLibrary(
+    var library = checkLibrary(
         'const a = null; class C<@a T> = D with E; class D {} class E {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class alias C<T> extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class alias C<T> extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+const dynamic a = null;
+''');
+    }
   }
 
   test_metadata_typeParameter_ofFunction() {
-    checkLibrary('const a = null; f<@a T>() {}');
+    var library = checkLibrary('const a = null; f<@a T>() {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f<T>() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic a = null;
+dynamic f<T>() {}
+''');
+    }
   }
 
   test_metadata_typeParameter_ofTypedef() {
-    checkLibrary('const a = null; typedef F<@a T>();');
+    var library = checkLibrary('const a = null; typedef F<@a T>();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<T>();
+const dynamic a = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<T>();
+const dynamic a = null;
+''');
+    }
   }
 
   test_method_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   /**
    * Docs
    */
   f() {}
 }''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  /**
+   * Docs
+   */
+  dynamic f() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  /**
+   * Docs
+   */
+  dynamic f() {}
+}
+''');
+    }
   }
 
   test_method_inferred_type_nonStatic_implicit_param() {
-    checkLibrary('class C extends D { void f(value) {} }'
+    var library = checkLibrary('class C extends D { void f(value) {} }'
         ' abstract class D { void f(int value); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void f(int value) {}
+}
+abstract class D {
+  void f(int value);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void f(dynamic value) {}
+}
+abstract class D {
+  void f(int value);
+}
+''');
+    }
   }
 
   test_method_inferred_type_nonStatic_implicit_return() {
-    checkLibrary(
+    var library = checkLibrary(
         'class C extends D { f() => null; } abstract class D { int f(); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  int f() {}
+}
+abstract class D {
+  int f();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  dynamic f() {}
+}
+abstract class D {
+  int f();
+}
+''');
+    }
   }
 
   test_method_type_parameter() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('class C { T f<T, U>(U u) => null; }');
+    var library = checkLibrary('class C { T f<T, U>(U u) => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  T f<T, U>(U u) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  T f<T, U>(U u) {}
+}
+''');
+    }
   }
 
   test_method_type_parameter_in_generic_class() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
+    var library =
+        checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  V f<V, W>(T t, U u, W w) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  V f<V, W>(T t, U u, W w) {}
+}
+''');
+    }
   }
 
   test_method_type_parameter_with_function_typed_parameter() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
+    var library = checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void f<T, U>((U) → T x) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void f<T, U>((U) → T x) {}
+}
+''');
+    }
+  }
+
+  test_nameConflict_exportedAndLocal() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/c.dart',
+        '''
+export 'a.dart';
+class C {}
+''');
+    var library = checkLibrary('''
+import 'c.dart';
+C v = null;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'c.dart';
+C v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'c.dart';
+C v;
+''');
+    }
+  }
+
+  test_nameConflict_exportedAndLocal_exported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/c.dart',
+        '''
+export 'a.dart';
+class C {}
+''');
+    addLibrarySource('/d.dart', 'export "c.dart";');
+    var library = checkLibrary('''
+import 'd.dart';
+C v = null;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'd.dart';
+C v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'd.dart';
+C v;
+''');
+    }
+  }
+
+  test_nameConflict_exportedAndParted() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/b.dart',
+        '''
+part of lib;
+class C {}
+''');
+    addLibrarySource(
+        '/c.dart',
+        '''
+library lib;
+export 'a.dart';
+part 'b.dart';
+''');
+    var library = checkLibrary('''
+import 'c.dart';
+C v = null;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'c.dart';
+C v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'c.dart';
+C v;
+''');
+    }
+  }
+
+  test_nameConflict_importWithRelativeUri_exportWithAbsolute() {
+    if (resourceProvider.pathContext.separator != '/') {
+      return;
+    }
+
+    addLibrarySource('/a.dart', 'class A {}');
+    addLibrarySource('/b.dart', 'export "/a.dart";');
+    var library = checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+A v = null;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+import 'b.dart';
+A v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+import 'b.dart';
+A v;
+''');
+    }
   }
 
   test_nested_generic_functions_in_generic_class_with_function_typed_params() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T, U> {
   void g<V, W>() {
     void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
@@ -4264,10 +12080,27 @@ class C<T, U> {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  void g<V, W>() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  void g<V, W>() {}
+}
+''');
+    }
   }
 
   test_nested_generic_functions_in_generic_class_with_local_variables() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T, U> {
   void g<V, W>() {
     void h<X, Y>() {
@@ -4281,10 +12114,27 @@ class C<T, U> {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  void g<V, W>() {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  void g<V, W>() {}
+}
+''');
+    }
   }
 
   test_nested_generic_functions_with_function_typed_param() {
-    checkLibrary('''
+    var library = checkLibrary('''
 void f<T, U>() {
   void g<V, W>() {
     void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
@@ -4292,10 +12142,23 @@ void f<T, U>() {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>() {}
+''');
+    }
   }
 
   test_nested_generic_functions_with_local_variables() {
-    checkLibrary('''
+    var library = checkLibrary('''
 void f<T, U>() {
   void g<V, W>() {
     void h<X, Y>() {
@@ -4309,54 +12172,213 @@ void f<T, U>() {
   }
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>() {}
+''');
+    }
   }
 
   test_operator() {
-    checkLibrary('class C { C operator+(C other) => null; }');
+    var library = checkLibrary('class C { C operator+(C other) => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C +(C other) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C +(C other) {}
+}
+''');
+    }
   }
 
   test_operator_equal() {
-    checkLibrary('class C { bool operator==(Object other) => false; }');
+    var library =
+        checkLibrary('class C { bool operator==(Object other) => false; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool ==(Object other) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool ==(Object other) {}
+}
+''');
+    }
   }
 
   test_operator_external() {
-    checkLibrary('class C { external C operator+(C other); }');
+    var library = checkLibrary('class C { external C operator+(C other); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external C +(C other) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  external C +(C other) {}
+}
+''');
+    }
   }
 
   test_operator_greater_equal() {
-    checkLibrary('class C { bool operator>=(C other) => false; }');
+    var library =
+        checkLibrary('class C { bool operator>=(C other) => false; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool >=(C other) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool >=(C other) {}
+}
+''');
+    }
   }
 
   test_operator_index() {
-    checkLibrary('class C { bool operator[](int i) => null; }');
+    var library = checkLibrary('class C { bool operator[](int i) => null; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool [](int i) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool [](int i) {}
+}
+''');
+    }
   }
 
   test_operator_index_set() {
-    checkLibrary('class C { void operator[]=(int i, bool v) {} }');
+    var library =
+        checkLibrary('class C { void operator[]=(int i, bool v) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void []=(int i, bool v) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void []=(int i, bool v) {}
+}
+''');
+    }
   }
 
   test_operator_less_equal() {
-    checkLibrary('class C { bool operator<=(C other) => false; }');
+    var library =
+        checkLibrary('class C { bool operator<=(C other) => false; }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool <=(C other) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  bool <=(C other) {}
+}
+''');
+    }
   }
 
   void test_parameter_checked() {
     // Note: due to dartbug.com/27393, the keyword "checked" is identified by
     // its presence in a library called "meta".  If that bug is fixed, this test
     // my need to be changed.
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 library meta;
 const checked = null;
 class A<T> {
   void f(@checked T t) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library meta;
+class A<T> {
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
+}
+const dynamic checked = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library meta;
+class A<T> {
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
+}
+const dynamic checked = null;
+''');
+    }
   }
 
   void test_parameter_checked_inherited() {
     // Note: due to dartbug.com/27393, the keyword "checked" is identified by
     // its presence in a library called "meta".  If that bug is fixed, this test
     // my need to be changed.
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 library meta;
 const checked = null;
 class A<T> {
@@ -4366,15 +12388,61 @@ class B<T> extends A<T> {
   void f(T t) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library meta;
+class A<T> {
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
+}
+class B<T> extends A<T> {
+  void f(covariant T t) {}
+}
+const dynamic checked = null;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library meta;
+class A<T> {
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
+}
+const dynamic checked = null;
+''');
+    }
   }
 
   test_parameter_covariant() {
     prepareAnalysisContext(createOptions());
-    checkLibrary('class C { void m(covariant C c) {} }');
+    var library = checkLibrary('class C { void m(covariant C c) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void m(covariant C c) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void m(covariant C c) {}
+}
+''');
+    }
   }
 
   void test_parameter_covariant_inherited() {
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 class A<T> {
   void f(covariant T t) {}
 }
@@ -4382,130 +12450,480 @@ class B<T> extends A<T> {
   void f(T t) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A<T> {
+  void f(covariant T t) {}
+}
+class B<T> extends A<T> {
+  void f(covariant T t) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A<T> {
+  void f(covariant T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
+}
+''');
+    }
   }
 
   test_parameter_parameters() {
-    checkLibrary('class C { f(g(x, y)) {} }');
+    var library = checkLibrary('class C { f(g(x, y)) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f((dynamic, dynamic) → dynamic g) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f((dynamic, dynamic) → dynamic g) {}
+}
+''');
+    }
   }
 
   test_parameter_parameters_in_generic_class() {
-    checkLibrary('class C<A, B> { f(A g(B x)) {} }');
+    var library = checkLibrary('class C<A, B> { f(A g(B x)) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<A, B> {
+  dynamic f((B) → A g) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<A, B> {
+  dynamic f((B) → A g) {}
+}
+''');
+    }
   }
 
   test_parameter_return_type() {
-    checkLibrary('class C { f(int g()) {} }');
+    var library = checkLibrary('class C { f(int g()) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f(() → int g) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f(() → int g) {}
+}
+''');
+    }
   }
 
   test_parameter_return_type_void() {
-    checkLibrary('class C { f(void g()) {} }');
+    var library = checkLibrary('class C { f(void g()) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f(() → void g) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic f(() → void g) {}
+}
+''');
+    }
   }
 
   test_parameterTypeNotInferred_constructor() {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   C.positional([x = 1]);
   C.named({x: 1});
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.positional([dynamic x = 1]);
+  C.named({dynamic x: 1});
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  C.positional([dynamic x = 1]);
+  C.named({dynamic x: 1});
+}
+''');
+    }
   }
 
   test_parameterTypeNotInferred_initializingFormal() {
     // Strong mode doesn't do type inference on initializing formals, so it's
     // ok that we don't store inferred type info for them in summaries.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   var x;
   C.positional([this.x = 1]);
   C.named({this.x: 1});
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C.positional([dynamic this.x]);
+  C.named({dynamic this.x});
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  dynamic x;
+  C.positional([dynamic this.x]);
+  C.named({dynamic this.x});
+}
+''');
+    }
   }
 
   test_parameterTypeNotInferred_staticMethod() {
     // Strong mode doesn't do type inference on parameters of static methods,
     // so it's ok that we don't store inferred type info for them in summaries.
-    checkLibrary('''
+    var library = checkLibrary('''
 class C {
   static void positional([x = 1]) {}
   static void named({x: 1}) {}
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static void positional([dynamic x = 1]) {}
+  static void named({dynamic x: 1}) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static void positional([dynamic x = 1]) {}
+  static void named({dynamic x: 1}) {}
+}
+''');
+    }
   }
 
   test_parameterTypeNotInferred_topLevelFunction() {
     // Strong mode doesn't do type inference on parameters of top level
     // functions, so it's ok that we don't store inferred type info for them in
     // summaries.
-    checkLibrary('''
+    var library = checkLibrary('''
 void positional([x = 1]) {}
 void named({x: 1}) {}
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void positional([dynamic x = 1]) {}
+void named({dynamic x: 1}) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void positional([dynamic x = 1]) {}
+void named({dynamic x: 1}) {}
+''');
+    }
   }
 
   test_parts() {
     addSource('/a.dart', 'part of my.lib;');
     addSource('/b.dart', 'part of my.lib;');
-    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    var library = checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+--------------------
+unit: b.dart
+
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+--------------------
+unit: b.dart
+
+''');
+    }
   }
 
   test_parts_invalidUri() {
     allowMissingFiles = true;
     addSource('/foo/bar.dart', 'part of my.lib;');
-    checkLibrary('library my.lib; part "foo/";');
+    var library = checkLibrary('library my.lib; part "foo/";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+''');
+    }
   }
 
   test_parts_invalidUri_nullStringValue() {
     allowMissingFiles = true;
     addSource('/foo/bar.dart', 'part of my.lib;');
-    checkLibrary(r'''
+    var library = checkLibrary(r'''
 library my.lib;
 part "${foo}/bar.dart";
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+''');
+    }
   }
 
   test_propagated_type_refers_to_closure() {
-    checkLibrary('''
+    var library = checkLibrary('''
 void f() {
   var x = () => 0;
   var y = x;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f() {}
+''');
+    }
   }
 
   test_setter_covariant() {
-    checkLibrary('class C { void set x(covariant int value); }');
+    var library = checkLibrary('class C { void set x(covariant int value); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(covariant int value);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  void set x(covariant int value);
+}
+''');
+    }
   }
 
   test_setter_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 void set x(value) {}''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+void set x(dynamic value) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+void set x(dynamic value) {}
+''');
+    }
   }
 
   test_setter_external() {
-    checkLibrary('external void set x(int value);');
+    var library = checkLibrary('external void set x(int value);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+external void set x(int value) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+external void set x(int value) {}
+''');
+    }
   }
 
   test_setter_inferred_type_nonStatic_implicit_param() {
-    checkLibrary('class C extends D { void set f(value) {} }'
+    var library = checkLibrary('class C extends D { void set f(value) {} }'
         ' abstract class D { void set f(int value); }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void set f(int value) {}
+}
+abstract class D {
+  void set f(int value);
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C extends D {
+  void set f(dynamic value) {}
+}
+abstract class D {
+  void set f(int value);
+}
+''');
+    }
   }
 
   test_setter_inferred_type_static_implicit_return() {
-    checkLibrary('class C { static set f(int value) {} }');
+    var library = checkLibrary('class C { static set f(int value) {} }');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static void set f(int value) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+  static dynamic set f(int value) {}
+}
+''');
+    }
   }
 
   test_setter_inferred_type_top_level_implicit_return() {
-    checkLibrary('set f(int value) {}');
+    var library = checkLibrary('set f(int value) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void set f(int value) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic set f(int value) {}
+''');
+    }
   }
 
   test_setters() {
-    checkLibrary('void set x(int value) {} set y(value) {}');
+    var library = checkLibrary('void set x(int value) {} set y(value) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void set x(int value) {}
+void set y(dynamic value) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void set x(int value) {}
+dynamic set y(dynamic value) {}
+''');
+    }
   }
 
   test_syntheticFunctionType_genericClosure() {
@@ -4518,10 +12936,21 @@ void set x(value) {}''');
       // and remove this hack.  See dartbug.com/25819
       return;
     }
-    checkLibrary('''
+    var library = checkLibrary('''
 final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
 bool f() => true;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+''');
+    }
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() {
@@ -4534,257 +12963,1329 @@ bool f() => true;
       // and remove this hack.  See dartbug.com/25819
       return;
     }
-    checkLibrary('''
+    var library = checkLibrary('''
 void f<T, U>(bool b) {
   final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>(bool b) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+''');
+    }
   }
 
   test_syntheticFunctionType_inGenericClass() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T, U> {
   var v = f() ? (T t, U u) => 0 : (T t, U u) => 1;
 }
 bool f() => false;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+  synthetic C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+  dynamic v;
+}
+bool f() {}
+''');
+    }
   }
 
   test_syntheticFunctionType_inGenericFunction() {
-    checkLibrary('''
+    var library = checkLibrary('''
 void f<T, U>(bool b) {
   var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
 }
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>(bool b) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+void f<T, U>(bool b) {}
+''');
+    }
   }
 
   test_syntheticFunctionType_noArguments() {
-    checkLibrary('''
+    var library = checkLibrary('''
 final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+final dynamic v;
+bool f() {}
+''');
+    }
   }
 
   test_syntheticFunctionType_withArguments() {
-    checkLibrary('''
+    var library = checkLibrary('''
 final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
 bool f() => true;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+final dynamic v;
+bool f() {}
+''');
+    }
   }
 
   test_type_arguments_explicit_dynamic_dynamic() {
-    checkLibrary('Map<dynamic, dynamic> m;');
+    var library = checkLibrary('Map<dynamic, dynamic> m;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+Map<dynamic, dynamic> m;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+Map<dynamic, dynamic> m;
+''');
+    }
   }
 
   test_type_arguments_explicit_dynamic_int() {
-    checkLibrary('Map<dynamic, int> m;');
+    var library = checkLibrary('Map<dynamic, int> m;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+Map<dynamic, int> m;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+Map<dynamic, int> m;
+''');
+    }
   }
 
   test_type_arguments_explicit_String_dynamic() {
-    checkLibrary('Map<String, dynamic> m;');
+    var library = checkLibrary('Map<String, dynamic> m;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+Map<String, dynamic> m;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+Map<String, dynamic> m;
+''');
+    }
   }
 
   test_type_arguments_explicit_String_int() {
-    checkLibrary('Map<String, int> m;');
+    var library = checkLibrary('Map<String, int> m;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+Map<String, int> m;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+Map<String, int> m;
+''');
+    }
   }
 
   test_type_arguments_implicit() {
-    checkLibrary('Map m;');
+    var library = checkLibrary('Map m;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+Map<dynamic, dynamic> m;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+Map<dynamic, dynamic> m;
+''');
+    }
   }
 
   test_type_dynamic() {
-    checkLibrary('dynamic d;');
+    var library = checkLibrary('dynamic d;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic d;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic d;
+''');
+    }
+  }
+
+  test_type_invalid_topLevelVariableElement_asType() {
+    var library = checkLibrary(
+        '''
+class C<T extends V> {}
+typedef V F(V p);
+V f(V p) {}
+V V2 = null;
+int V = 0;
+''',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(dynamic p);
+class C<T extends dynamic> {
+}
+dynamic V2;
+int V;
+dynamic f(dynamic p) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(dynamic p);
+class C<T extends dynamic> {
+}
+dynamic V2;
+int V;
+dynamic f(dynamic p) {}
+''');
+    }
+  }
+
+  test_type_invalid_topLevelVariableElement_asTypeArgument() {
+    var library = checkLibrary(
+        '''
+var V;
+static List<V> V2;
+''',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic V;
+List<dynamic> V2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic V;
+List<dynamic> V2;
+''');
+    }
+  }
+
+  test_type_invalid_typeParameter_asPrefix() {
+    var library = checkLibrary(
+        '''
+class C<T> {
+  m(T.K p) {}
+}
+''',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  dynamic m(dynamic p) {}
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  dynamic m(dynamic p) {}
+}
+''');
+    }
   }
 
   test_type_reference_lib_to_lib() {
-    checkLibrary('class C {} enum E { v } typedef F(); C c; E e; F f;');
+    var library =
+        checkLibrary('class C {} enum E { v } typedef F(); C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_lib_to_part() {
     addSource('/a.dart', 'part of l; class C {} enum E { v } typedef F();');
-    checkLibrary('library l; part "a.dart"; C c; E e; F f;');
+    var library = checkLibrary('library l; part "a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+C c;
+E e;
+F f;
+--------------------
+unit: a.dart
+
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+C c;
+E e;
+F f;
+--------------------
+unit: a.dart
+
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+''');
+    }
   }
 
   test_type_reference_part_to_lib() {
     addSource('/a.dart', 'part of l; C c; E e; F f;');
-    checkLibrary(
+    var library = checkLibrary(
         'library l; part "a.dart"; class C {} enum E { v } typedef F();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+--------------------
+unit: a.dart
+
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+--------------------
+unit: a.dart
+
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_part_to_other_part() {
     addSource('/a.dart', 'part of l; class C {} enum E { v } typedef F();');
     addSource('/b.dart', 'part of l; C c; E e; F f;');
-    checkLibrary('library l; part "a.dart"; part "b.dart";');
+    var library = checkLibrary('library l; part "a.dart"; part "b.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+--------------------
+unit: b.dart
+
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+--------------------
+unit: b.dart
+
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_part_to_part() {
     addSource('/a.dart',
         'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
-    checkLibrary('library l; part "a.dart";');
+    var library = checkLibrary('library l; part "a.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+--------------------
+unit: a.dart
+
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library l;
+part 'a.dart';
+--------------------
+unit: a.dart
+
+typedef dynamic F();
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+class C {
+}
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_class() {
-    checkLibrary('class C {} C c;');
+    var library = checkLibrary('class C {} C c;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+C c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C {
+}
+C c;
+''');
+    }
   }
 
   test_type_reference_to_class_with_type_arguments() {
-    checkLibrary('class C<T, U> {} C<int, String> c;');
+    var library = checkLibrary('class C<T, U> {} C<int, String> c;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+C<int, String> c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+C<int, String> c;
+''');
+    }
   }
 
   test_type_reference_to_class_with_type_arguments_implicit() {
-    checkLibrary('class C<T, U> {} C c;');
+    var library = checkLibrary('class C<T, U> {} C c;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+C<dynamic, dynamic> c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T, U> {
+}
+C<dynamic, dynamic> c;
+''');
+    }
   }
 
   test_type_reference_to_enum() {
-    checkLibrary('enum E { v } E e;');
+    var library = checkLibrary('enum E { v } E e;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+E e;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E v;
+}
+E e;
+''');
+    }
   }
 
   test_type_reference_to_import() {
     addLibrarySource('/a.dart', 'class C {} enum E { v }; typedef F();');
-    checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_export() {
     addLibrarySource('/a.dart', 'export "b.dart";');
     addLibrarySource('/b.dart', 'class C {} enum E { v } typedef F();');
-    checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_export_export() {
     addLibrarySource('/a.dart', 'export "b.dart";');
     addLibrarySource('/b.dart', 'export "c.dart";');
     addLibrarySource('/c.dart', 'class C {} enum E { v } typedef F();');
-    checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_export_export_in_subdirs() {
     addLibrarySource('/a/a.dart', 'export "b/b.dart";');
     addLibrarySource('/a/b/b.dart', 'export "../c/c.dart";');
     addLibrarySource('/a/c/c.dart', 'class C {} enum E { v } typedef F();');
-    checkLibrary('import "a/a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a/a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a/a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a/a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_export_in_subdirs() {
     addLibrarySource('/a/a.dart', 'export "b/b.dart";');
     addLibrarySource('/a/b/b.dart', 'class C {} enum E { v } typedef F();');
-    checkLibrary('import "a/a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a/a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a/a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a/a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_part() {
     addLibrarySource('/a.dart', 'library l; part "b.dart";');
     addSource('/b.dart', 'part of l; class C {} enum E { v } typedef F();');
-    checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_part2() {
     addLibrarySource('/a.dart', 'library l; part "p1.dart"; part "p2.dart";');
     addSource('/p1.dart', 'part of l; class C1 {}');
     addSource('/p2.dart', 'part of l; class C2 {}');
-    checkLibrary('import "a.dart"; C1 c1; C2 c2;');
+    var library = checkLibrary('import "a.dart"; C1 c1; C2 c2;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C1 c1;
+C2 c2;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C1 c1;
+C2 c2;
+''');
+    }
   }
 
   test_type_reference_to_import_part_in_subdir() {
     addLibrarySource('/a/b.dart', 'library l; part "c.dart";');
     addSource('/a/c.dart', 'part of l; class C {} enum E { v } typedef F();');
-    checkLibrary('import "a/b.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a/b.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a/b.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a/b.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_import_relative() {
     addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
-    checkLibrary('import "a.dart"; C c; E e; F f;');
+    var library = checkLibrary('import "a.dart"; C c; E e; F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+C c;
+E e;
+F f;
+''');
+    }
   }
 
   test_type_reference_to_typedef() {
-    checkLibrary('typedef F(); F f;');
+    var library = checkLibrary('typedef F(); F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+F f;
+''');
+    }
   }
 
   test_type_reference_to_typedef_with_type_arguments() {
-    checkLibrary('typedef U F<T, U>(T t); F<int, String> f;');
+    var library = checkLibrary('typedef U F<T, U>(T t); F<int, String> f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T, U>(T t);
+F<int, String> f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T, U>(T t);
+F<int, String> f;
+''');
+    }
   }
 
   test_type_reference_to_typedef_with_type_arguments_implicit() {
-    checkLibrary('typedef U F<T, U>(T t); F f;');
+    var library = checkLibrary('typedef U F<T, U>(T t); F f;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T, U>(T t);
+F f;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T, U>(T t);
+F f;
+''');
+    }
   }
 
   test_type_unresolved() {
-    checkLibrary('C c;', allowErrors: true);
+    var library = checkLibrary('C c;', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic c;
+''');
+    }
   }
 
   test_type_unresolved_prefixed() {
-    checkLibrary('import "dart:core" as core; core.C c;', allowErrors: true);
+    var library = checkLibrary('import "dart:core" as core; core.C c;',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:core' as core;
+dynamic c;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:core' as core;
+dynamic c;
+''');
+    }
   }
 
   test_typedef_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 typedef F();''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+typedef dynamic F();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+typedef dynamic F();
+''');
+    }
+  }
+
+  test_typedef_generic() {
+    var library = checkLibrary(
+        'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef F<T> = int Function<S>(List<S> list, <A>(A) → num , T );
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef F<T> = int Function<S>(List<S> list, <A>(A) → num , T );
+''');
+    }
+  }
+
+  test_typedef_generic_asFieldType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+typedef Foo<S> = S Function<T>(T x);
+class A {
+  Foo<int> f;
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef Foo<S> = S Function<T>(T x);
+class A {
+  <T>(T) → int f;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef Foo<S> = S Function<T>(T x);
+class A {
+  <T>(T) → int f;
+}
+''');
+    }
   }
 
   test_typedef_parameter_parameters() {
-    checkLibrary('typedef F(g(x, y));');
+    var library = checkLibrary('typedef F(g(x, y));');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F((dynamic, dynamic) → dynamic g);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F((dynamic, dynamic) → dynamic g);
+''');
+    }
   }
 
   test_typedef_parameter_parameters_in_generic_class() {
-    checkLibrary('typedef F<A, B>(A g(B x));');
+    var library = checkLibrary('typedef F<A, B>(A g(B x));');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<A, B>((B) → A g);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<A, B>((B) → A g);
+''');
+    }
   }
 
   test_typedef_parameter_return_type() {
-    checkLibrary('typedef F(int g());');
+    var library = checkLibrary('typedef F(int g());');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(() → int g);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(() → int g);
+''');
+    }
   }
 
   test_typedef_parameter_type() {
-    checkLibrary('typedef F(int i);');
+    var library = checkLibrary('typedef F(int i);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(int i);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(int i);
+''');
+    }
   }
 
   test_typedef_parameter_type_generic() {
-    checkLibrary('typedef F<T>(T t);');
+    var library = checkLibrary('typedef F<T>(T t);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<T>(T t);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F<T>(T t);
+''');
+    }
   }
 
   test_typedef_parameters() {
-    checkLibrary('typedef F(x, y);');
+    var library = checkLibrary('typedef F(x, y);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(dynamic x, dynamic y);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F(dynamic x, dynamic y);
+''');
+    }
   }
 
   test_typedef_return_type() {
-    checkLibrary('typedef int F();');
+    var library = checkLibrary('typedef int F();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef int F();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef int F();
+''');
+    }
   }
 
   test_typedef_return_type_generic() {
-    checkLibrary('typedef T F<T>();');
+    var library = checkLibrary('typedef T F<T>();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef T F<T>();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef T F<T>();
+''');
+    }
   }
 
   test_typedef_return_type_implicit() {
-    checkLibrary('typedef F();');
+    var library = checkLibrary('typedef F();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef dynamic F();
+''');
+    }
   }
 
   test_typedef_return_type_void() {
-    checkLibrary('typedef void F();');
+    var library = checkLibrary('typedef void F();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef void F();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef void F();
+''');
+    }
   }
 
   test_typedef_type_parameters() {
-    checkLibrary('typedef U F<T, U>(T t);');
+    var library = checkLibrary('typedef U F<T, U>(T t);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T, U>(T t);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T, U>(T t);
+''');
+    }
   }
 
   test_typedef_type_parameters_bound() {
-    checkLibrary('typedef U F<T extends Object, U extends D>(T t); class D {}');
+    var library = checkLibrary(
+        'typedef U F<T extends Object, U extends D>(T t); class D {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T extends Object, U extends D>(T t);
+class D {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T extends Object, U extends D>(T t);
+class D {
+}
+''');
+    }
   }
 
   test_typedef_type_parameters_f_bound_complex() {
-    checkLibrary('typedef U F<T extends List<U>, U>(T t);');
+    var library = checkLibrary('typedef U F<T extends List<U>, U>(T t);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T extends List<U>, U>(T t);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T extends List<U>, U>(T t);
+''');
+    }
   }
 
   test_typedef_type_parameters_f_bound_simple() {
-    checkLibrary('typedef U F<T extends U, U>(T t);');
+    var library = checkLibrary('typedef U F<T extends U, U>(T t);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T extends U, U>(T t);
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef U F<T extends U, U>(T t);
+''');
+    }
   }
 
   test_typedefs() {
-    checkLibrary('f() {} g() {}');
+    var library = checkLibrary('f() {} g() {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+dynamic g() {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic f() {}
+dynamic g() {}
+''');
+    }
+  }
+
+  @failingTest
+  test_unresolved_annotation_instanceCreation_argument_super() {
+    // TODO(scheglov) fix https://github.com/dart-lang/sdk/issues/28553
+    var library = checkLibrary(
+        '''
+class A {
+  const A(_);
+}
+
+@A(super)
+class C {}
+''',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  A(_);
+}
+
+class C {
+  synthetic C();
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  A(_);
+}
+
+class C {
+  synthetic C();
+}
+''');
+    }
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() {
-    checkLibrary(
+    var library = checkLibrary(
         '''
 class A {
   const A(_);
@@ -4794,59 +14295,342 @@ class A {
 class C {}
 ''',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A(dynamic _);
+}
+@
+        A/*location: test.dart;A*/(this)
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class A {
+  const A(dynamic _);
+}
+@
+        A/*location: test.dart;A*/(this)
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() {
-    checkLibrary('@foo.bar() class C {}', allowErrors: true);
+    var library = checkLibrary('@foo.bar() class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() {
-    checkLibrary('@String.foo() class C {}', allowErrors: true);
+    var library = checkLibrary('@String.foo() class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        String/*location: dart:core;String*/.
+        foo/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        String/*location: dart:core;String*/.
+        foo/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() {
-    checkLibrary('@foo.bar class C {}', allowErrors: true);
+    var library = checkLibrary('@foo.bar class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() {
-    checkLibrary('import "dart:async" as foo; @foo.bar class C {}',
+    var library = checkLibrary(
+        'import "dart:async" as foo; @foo.bar class C {}',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        bar/*location: null*/
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        bar/*location: null*/
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() {
-    checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
+    var library = checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() {
-    checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}',
+    var library = checkLibrary(
+        'import "dart:async" as foo; @foo.bar.baz() class C {}',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() {
-    checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}',
+    var library = checkLibrary(
+        'import "dart:async" as foo; @foo.Future.bar() class C {}',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        Future/*location: dart:async;Future*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        Future/*location: dart:async;Future*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() {
-    checkLibrary('@foo.bar() class C {}', allowErrors: true);
+    var library = checkLibrary('@foo.bar() class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() {
-    checkLibrary('import "dart:async" as foo; @foo.bar() class C {}',
+    var library = checkLibrary(
+        'import "dart:async" as foo; @foo.bar() class C {}',
         allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'dart:async' as foo;
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_simpleIdentifier() {
-    checkLibrary('@foo class C {}', allowErrors: true);
+    var library = checkLibrary('@foo class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() {
-    checkLibrary('@foo() class C {}', allowErrors: true);
+    var library = checkLibrary('@foo() class C {}', allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+@
+        foo/*location: null*/()
+class C {
+}
+''');
+    }
   }
 
   test_unresolved_export() {
     allowMissingFiles = true;
-    checkLibrary("export 'foo.dart';", allowErrors: true);
+    var library = checkLibrary("export 'foo.dart';", allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+export 'foo.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+export 'foo.dart';
+''');
+    }
   }
 
   test_unresolved_import() {
@@ -4857,101 +14641,452 @@ class C {}
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'foo.dart';
+''');
+    }
   }
 
   test_unresolved_part() {
     allowMissingFiles = true;
-    checkLibrary("part 'foo.dart';", allowErrors: true);
+    var library = checkLibrary("part 'foo.dart';", allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+part 'foo.dart';
+--------------------
+unit: foo.dart
+
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+part 'foo.dart';
+--------------------
+unit: foo.dart
+
+''');
+    }
   }
 
   test_unused_type_parameter() {
-    checkLibrary('''
+    var library = checkLibrary('''
 class C<T> {
   void f() {}
 }
 C<int> c;
 var v = c.f;
 ''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  void f() {}
+}
+C<int> c;
+() → void v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+  void f() {}
+}
+C<int> c;
+dynamic v;
+''');
+    }
   }
 
   test_variable_const() {
-    checkLibrary('const int i = 0;');
+    var library = checkLibrary('const int i = 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const int i = 0;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const int i = 0;
+''');
+    }
   }
 
   test_variable_documented() {
-    checkLibrary('''
+    var library = checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 var x;''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+dynamic x;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+/**
+ * Docs
+ */
+dynamic x;
+''');
+    }
   }
 
   test_variable_final() {
-    checkLibrary('final int x = 0;');
+    var library = checkLibrary('final int x = 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+final int x;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+final int x;
+''');
+    }
   }
 
   test_variable_final_top_level_untyped() {
-    checkLibrary('final v = 0;');
+    var library = checkLibrary('final v = 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+final int v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+final dynamic v;
+''');
+    }
   }
 
   test_variable_getterInLib_setterInPart() {
     addSource('/a.dart', 'part of my.lib; void set x(int _) {}');
-    checkLibrary('library my.lib; part "a.dart"; int get x => 42;');
+    var library =
+        checkLibrary('library my.lib; part "a.dart"; int get x => 42;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+int get x {}
+--------------------
+unit: a.dart
+
+void set x(int _) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+int get x {}
+--------------------
+unit: a.dart
+
+void set x(int _) {}
+''');
+    }
   }
 
   test_variable_getterInPart_setterInLib() {
     addSource('/a.dart', 'part of my.lib; int get x => 42;');
-    checkLibrary('library my.lib; part "a.dart"; void set x(int _) {}');
+    var library =
+        checkLibrary('library my.lib; part "a.dart"; void set x(int _) {}');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+void set x(int _) {}
+--------------------
+unit: a.dart
+
+int get x {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+void set x(int _) {}
+--------------------
+unit: a.dart
+
+int get x {}
+''');
+    }
   }
 
   test_variable_getterInPart_setterInPart() {
     addSource('/a.dart', 'part of my.lib; int get x => 42;');
     addSource('/b.dart', 'part of my.lib; void set x(int _) {}');
-    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    var library = checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+int get x {}
+--------------------
+unit: b.dart
+
+void set x(int _) {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+int get x {}
+--------------------
+unit: b.dart
+
+void set x(int _) {}
+''');
+    }
   }
 
   test_variable_implicit_type() {
-    checkLibrary('var x;');
+    var library = checkLibrary('var x;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+dynamic x;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic x;
+''');
+    }
   }
 
   test_variable_inferred_type_implicit_initialized() {
-    checkLibrary('var v = 0;');
+    var library = checkLibrary('var v = 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+int v;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+dynamic v;
+''');
+    }
   }
 
   test_variable_propagatedType_const_noDep() {
-    checkLibrary('const i = 0;');
+    var library = checkLibrary('const i = 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+const int i = 0;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+const dynamic i = 0;
+''');
+    }
   }
 
   test_variable_propagatedType_final_dep_inLib() {
     addLibrarySource('/a.dart', 'final a = 1;');
-    checkLibrary('import "a.dart"; final b = a / 2;');
+    var library = checkLibrary('import "a.dart"; final b = a / 2;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+final num b;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'a.dart';
+final dynamic b;
+''');
+    }
   }
 
   test_variable_propagatedType_final_dep_inPart() {
     addSource('/a.dart', 'part of lib; final a = 1;');
-    checkLibrary('library lib; part "a.dart"; final b = a / 2;');
+    var library = checkLibrary('library lib; part "a.dart"; final b = a / 2;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library lib;
+part 'a.dart';
+final num b;
+--------------------
+unit: a.dart
+
+final int a;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library lib;
+part 'a.dart';
+final dynamic b;
+--------------------
+unit: a.dart
+
+final dynamic a;
+''');
+    }
   }
 
   test_variable_propagatedType_final_noDep() {
-    checkLibrary('final i = 0;');
+    var library = checkLibrary('final i = 0;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+final int i;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+final dynamic i;
+''');
+    }
   }
 
   test_variable_propagatedType_implicit_dep() {
     // The propagated type is defined in a library that is not imported.
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', 'import "a.dart"; C f() => null;');
-    checkLibrary('import "b.dart"; final x = f();');
+    var library = checkLibrary('import "b.dart"; final x = f();');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+import 'b.dart';
+final C x;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+import 'b.dart';
+final dynamic x;
+''');
+    }
   }
 
   test_variable_setterInPart_getterInPart() {
     addSource('/a.dart', 'part of my.lib; void set x(int _) {}');
     addSource('/b.dart', 'part of my.lib; int get x => 42;');
-    checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    var library = checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+void set x(int _) {}
+--------------------
+unit: b.dart
+
+int get x {}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+library my.lib;
+part 'a.dart';
+part 'b.dart';
+--------------------
+unit: a.dart
+
+void set x(int _) {}
+--------------------
+unit: b.dart
+
+int get x {}
+''');
+    }
   }
 
   test_variables() {
-    checkLibrary('int i; int j;');
+    var library = checkLibrary('int i; int j;');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+int i;
+int j;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+int i;
+int j;
+''');
+    }
   }
 
   /**

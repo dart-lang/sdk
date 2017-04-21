@@ -12,7 +12,7 @@
 #define USING_DBC false
 #endif
 
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 #define USING_FUCHSIA true
 #else
 #define USING_FUCHSIA false
@@ -23,6 +23,12 @@
 #define USING_MULTICORE true
 #else
 #define USING_MULTICORE false
+#endif
+
+#if defined(DART_PRECOMPILER)
+#define USING_PRECOMPILER true
+#else
+#define USING_PRECOMPILER false
 #endif
 
 // List of all flags in the VM.
@@ -45,7 +51,7 @@
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
     "Stress test system: stop background compiler often.")                     \
-  P(background_finalization, bool, USING_MULTICORE,                            \
+  P(background_finalization, bool, false,                                      \
     "Run weak handle finalizers in background")                                \
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
@@ -67,7 +73,13 @@
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
+  P(dwarf_stack_traces, bool, false,                                           \
+    "Emit DWARF line number and inlining info"                                 \
+    "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  R(enable_malloc_hooks, false, bool, false,                                   \
+    "Enable native memory statistic collection. Enabled by default in Debug "  \
+    "mode")                                                                    \
   C(enable_mirrors, false, false, bool, true,                                  \
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
@@ -92,6 +104,8 @@
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
+  R(limit_ints_to_64_bits, false, bool, false,                                 \
+    "Throw a RangeError on 64-bit integer overflow");                          \
   C(load_deferred_eagerly, true, true, bool, false,                            \
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
@@ -122,6 +136,8 @@
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
   C(precompiled_runtime, true, false, bool, false, "Precompiled runtime mode") \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
+  P(print_benchmarking_metrics, bool, false,                                   \
+    "Print additional memory and latency metrics for benchmarking.")           \
   R(print_ssa_liveranges, false, bool, false,                                  \
     "Print live ranges after allocation.")                                     \
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \
@@ -130,6 +146,11 @@
   R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                       \
     "Enable the profiler.")                                                    \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
+  C(causal_async_stacks, false, false, bool, true, "Improved async stacks")    \
+  C(stress_async_stacks, false, false, bool, false,                            \
+    "Stress test async stack traces")                                          \
+  C(async_debugger, false, false, bool, false,                                 \
+    "Debugger support async functions.")                                       \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   C(support_debugger, false, false, bool, true, "Support the debugger.")       \
@@ -154,7 +175,7 @@
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, !USING_DBC,                                        \
     "Use field guards and track field types")                                  \
-  C(use_osr, false, true, bool, true, "Use OSR")                               \
+  C(use_osr, false, !USING_PRECOMPILER, bool, !USING_PRECOMPILER, "Use OSR")   \
   P(verbose_gc, bool, false, "Enables verbose GC.")                            \
   P(verbose_gc_hdr, int, 40, "Print verbose GC header interval.")              \
   R(verify_after_gc, false, bool, false,                                       \

@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.17.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.18.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -41,9 +41,9 @@
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
-      any instance of “<tt>{}</tt>” or “<tt>[]</tt>” with null. The
+      any instance of "<tt>{}</tt>" or "<tt>[]</tt>" with null. The
       server will always properly represent empty lists as
-      “<tt>[]</tt>” and empty maps as “<tt>{}</tt>”.
+      "<tt>[]</tt>" and empty maps as "<tt>{}</tt>".
     </p>
     <h3>Communication Structure</h3>
     <p>
@@ -171,9 +171,10 @@
     <dl>
       <dt>--no-error-notification</dt>
       <dd>
-      Disable notifications about errors (see analysis.error). If this
-      flag is not specified then notifications will be sent for all
-      errors produced for all files in the actual analysis roots.
+        <p><b>Deprecated</b></p>
+        Disable notifications about errors (see analysis.error). If this
+        flag is not specified then notifications will be sent for all
+        errors produced for all files in the actual analysis roots.
       </dd>
     </dl>
     <dl>
@@ -811,6 +812,8 @@
         </result>
       </request>
       <request method="updateOptions">
+        <p><b><i>Deprecated</i></b>: all of the options can be set by users in
+          an analysis options file.</p>
         <p>
           Update the options controlling analysis based on the given
           set of options. Any options that are not included in the
@@ -850,10 +853,6 @@
           Reports the errors associated with a given file. The set of
           errors included in the notification is always a complete
           list that supersedes any previously reported errors.
-        </p>
-        <p>
-          It is only possible to unsubscribe from this notification by
-          using the command-line flag --no-error-notification.
         </p>
         <params>
           <field name="file">
@@ -1733,7 +1732,7 @@
               refactoring being performed. The data that is expected is
               documented in the section titled <a
               href="#refactorings">Refactorings</a>, labeled as
-              “Options”. This field can be omitted if the refactoring
+              "Options". This field can be omitted if the refactoring
               does not require any options or if the values of those
               options are not known.
             </p>
@@ -1774,7 +1773,7 @@
               being created. The data that is returned is documented
               in the section titled <a
               href="#refactorings">Refactorings</a>, labeled as
-              “Feedback”.
+              "Feedback".
             </p>
           </field>
           <field name="change" optional="true">
@@ -1985,6 +1984,10 @@
       </request>
       <request method="setSubscriptions">
         <p>
+          <b><i>Deprecated</i></b>: the analysis server no longer fires
+          <tt>LAUNCH_DATA</tt> events.
+        </p>
+        <p>
           Subscribe for services. All previous subscriptions are replaced by the
           given set of services.
         </p>
@@ -2046,6 +2049,19 @@
           <field name="contexts">
             <list><ref>ContextData</ref></list>
             <p>The list of analysis contexts.</p>
+          </field>
+        </result>
+      </request>
+      <request method="getServerPort">
+        <p>
+          Return the port of the diagnostic web server. If the server is not running
+          this call will start the server. If unable to start the diagnostic web server,
+          this call will return an error of <tt>DEBUG_PORT_COULD_NOT_BE_OPENED</tt>.
+        </p>
+        <result>
+          <field name="port">
+            <ref>int</ref>
+            <p>The diagnostic server port.</p>
           </field>
         </result>
       </request>
@@ -2187,6 +2203,8 @@
         </enum>
       </type>
       <type name="AnalysisOptions">
+        <p><b><i>Deprecated</i></b>: the only reference to this type has been
+          deprecated.</p>
         <p>
           A set of options controlling what kind of analysis is to be
           performed. If the value of a field is omitted the value of the
@@ -2412,6 +2430,25 @@
               The class that declares the element being suggested. This
               field is omitted if the suggested element is not a member
               of a class.
+            </p>
+          </field>
+          <field name="defaultArgumentListString" optional="true">
+            <ref>String</ref>
+            <p>
+              A default String for use in generating argument list
+              source contents on the client side.
+            </p>
+          </field>
+          <field name="defaultArgumentListTextRanges" optional="true">
+            <list><ref>int</ref></list>
+            <p>
+              Pairs of offsets and lengths describing 'defaultArgumentListString'
+              text ranges suitable for use by clients to set up linked edits of
+              default argument source contents. For example, given an argument
+              list string 'x, y', the corresponding text range [0, 1, 3, 1],
+              indicates two text ranges of length 1, starting at offsets 0 and 3.
+              Clients can use these ranges to treat the 'x' and 'y' values
+              specially for linked edits.
             </p>
           </field>
           <field name="element" optional="true">
@@ -3114,8 +3151,8 @@
             <ref>String</ref>
             <p>
               A human-readable description of the kind of element being
-              referenced (such as “class” or “function type
-              alias”). This data is omitted if there is no referenced
+              referenced (such as "class" or "function type
+              alias"). This data is omitted if there is no referenced
               element.
             </p>
           </field>
@@ -3345,13 +3382,13 @@
           <field name="offset">
             <ref>int</ref>
             <p>
-              The offset of the region from which the user can navigate.
+              The offset of the region to which the user can navigate.
             </p>
           </field>
           <field name="length">
             <ref>int</ref>
             <p>
-              The length of the region from which the user can navigate.
+              The length of the region to which the user can navigate.
             </p>
           </field>
           <field name="startLine">
@@ -3728,6 +3765,12 @@
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </value>
+          <value>
+            <code>DEBUG_PORT_COULD_NOT_BE_OPENED</code>
+            <p>
+              The server was unable to open a port for the diagnostic server.
             </p>
           </value>
           <value>
@@ -4537,8 +4580,8 @@
             <ref>String</ref>
             <p>
               The human-readable description of the kind of element being
-              renamed (such as “class” or “function type
-              alias”).
+              renamed (such as "class" or "function type
+              alias").
             </p>
           </field>
           <field name="oldName">

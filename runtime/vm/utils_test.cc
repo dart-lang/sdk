@@ -8,7 +8,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(Minimum) {
+VM_UNIT_TEST_CASE(Minimum) {
   EXPECT_EQ(0, Utils::Minimum(0, 1));
   EXPECT_EQ(0, Utils::Minimum(1, 0));
 
@@ -23,7 +23,7 @@ UNIT_TEST_CASE(Minimum) {
 }
 
 
-UNIT_TEST_CASE(Maximum) {
+VM_UNIT_TEST_CASE(Maximum) {
   EXPECT_EQ(1, Utils::Maximum(0, 1));
   EXPECT_EQ(1, Utils::Maximum(1, 0));
 
@@ -38,7 +38,7 @@ UNIT_TEST_CASE(Maximum) {
 }
 
 
-UNIT_TEST_CASE(IsPowerOfTwo) {
+VM_UNIT_TEST_CASE(IsPowerOfTwo) {
   EXPECT(!Utils::IsPowerOfTwo(0));
   EXPECT(Utils::IsPowerOfTwo(1));
   EXPECT(Utils::IsPowerOfTwo(2));
@@ -51,14 +51,14 @@ UNIT_TEST_CASE(IsPowerOfTwo) {
 }
 
 
-UNIT_TEST_CASE(ShiftForPowerOfTwo) {
+VM_UNIT_TEST_CASE(ShiftForPowerOfTwo) {
   EXPECT_EQ(1, Utils::ShiftForPowerOfTwo(2));
   EXPECT_EQ(2, Utils::ShiftForPowerOfTwo(4));
   EXPECT_EQ(8, Utils::ShiftForPowerOfTwo(256));
 }
 
 
-UNIT_TEST_CASE(IsAligned) {
+VM_UNIT_TEST_CASE(IsAligned) {
   EXPECT(Utils::IsAligned(0, 1));
   EXPECT(Utils::IsAligned(1, 1));
 
@@ -72,7 +72,7 @@ UNIT_TEST_CASE(IsAligned) {
 }
 
 
-UNIT_TEST_CASE(RoundDown) {
+VM_UNIT_TEST_CASE(RoundDown) {
   EXPECT_EQ(0, Utils::RoundDown(22, 32));
   EXPECT_EQ(32, Utils::RoundDown(33, 32));
   EXPECT_EQ(32, Utils::RoundDown(63, 32));
@@ -82,7 +82,7 @@ UNIT_TEST_CASE(RoundDown) {
 }
 
 
-UNIT_TEST_CASE(RoundUp) {
+VM_UNIT_TEST_CASE(RoundUp) {
   EXPECT_EQ(32, Utils::RoundUp(22, 32));
   EXPECT_EQ(64, Utils::RoundUp(33, 32));
   EXPECT_EQ(64, Utils::RoundUp(63, 32));
@@ -92,7 +92,7 @@ UNIT_TEST_CASE(RoundUp) {
 }
 
 
-UNIT_TEST_CASE(RoundUpToPowerOfTwo) {
+VM_UNIT_TEST_CASE(RoundUpToPowerOfTwo) {
   EXPECT_EQ(0U, Utils::RoundUpToPowerOfTwo(0));
   EXPECT_EQ(1U, Utils::RoundUpToPowerOfTwo(1));
   EXPECT_EQ(2U, Utils::RoundUpToPowerOfTwo(2));
@@ -106,7 +106,7 @@ UNIT_TEST_CASE(RoundUpToPowerOfTwo) {
 }
 
 
-UNIT_TEST_CASE(CountOneBits) {
+VM_UNIT_TEST_CASE(CountOneBits) {
   EXPECT_EQ(0, Utils::CountOneBits(0));
   EXPECT_EQ(1, Utils::CountOneBits(0x00000010));
   EXPECT_EQ(1, Utils::CountOneBits(0x00010000));
@@ -117,7 +117,7 @@ UNIT_TEST_CASE(CountOneBits) {
 }
 
 
-UNIT_TEST_CASE(CountZeros) {
+VM_UNIT_TEST_CASE(CountZeros) {
   EXPECT_EQ(0, Utils::CountTrailingZeros(0x1));
   EXPECT_EQ(kBitsPerWord - 1, Utils::CountLeadingZeros(0x1));
   EXPECT_EQ(1, Utils::CountTrailingZeros(0x2));
@@ -134,7 +134,7 @@ UNIT_TEST_CASE(CountZeros) {
 }
 
 
-UNIT_TEST_CASE(IsInt) {
+VM_UNIT_TEST_CASE(IsInt) {
   EXPECT(Utils::IsInt(8, 16));
   EXPECT(Utils::IsInt(8, 127));
   EXPECT(Utils::IsInt(8, -128));
@@ -150,7 +150,7 @@ UNIT_TEST_CASE(IsInt) {
 }
 
 
-UNIT_TEST_CASE(IsUint) {
+VM_UNIT_TEST_CASE(IsUint) {
   EXPECT(Utils::IsUint(8, 16));
   EXPECT(Utils::IsUint(8, 0));
   EXPECT(Utils::IsUint(8, 255));
@@ -166,7 +166,7 @@ UNIT_TEST_CASE(IsUint) {
 }
 
 
-UNIT_TEST_CASE(IsAbsoluteUint) {
+VM_UNIT_TEST_CASE(IsAbsoluteUint) {
   EXPECT(Utils::IsAbsoluteUint(8, 16));
   EXPECT(Utils::IsAbsoluteUint(8, 0));
   EXPECT(Utils::IsAbsoluteUint(8, -128));
@@ -185,7 +185,7 @@ UNIT_TEST_CASE(IsAbsoluteUint) {
 }
 
 
-UNIT_TEST_CASE(LowBits) {
+VM_UNIT_TEST_CASE(LowBits) {
   EXPECT_EQ(0xff00, Utils::Low16Bits(0xffff00));
   EXPECT_EQ(0xff, Utils::High16Bits(0xffff00));
   EXPECT_EQ(0xff00, Utils::Low32Bits(0xff0000ff00LL));
@@ -194,7 +194,7 @@ UNIT_TEST_CASE(LowBits) {
 }
 
 
-UNIT_TEST_CASE(Endianity) {
+VM_UNIT_TEST_CASE(Endianity) {
   uint16_t value16be = Utils::HostToBigEndian16(0xf1);
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value16be)[0]);
   EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value16be)[1]);
@@ -237,7 +237,7 @@ UNIT_TEST_CASE(Endianity) {
 }
 
 
-UNIT_TEST_CASE(DoublesBitEqual) {
+VM_UNIT_TEST_CASE(DoublesBitEqual) {
   EXPECT(Utils::DoublesBitEqual(1.0, 1.0));
   EXPECT(!Utils::DoublesBitEqual(1.0, -1.0));
   EXPECT(Utils::DoublesBitEqual(0.0, 0.0));

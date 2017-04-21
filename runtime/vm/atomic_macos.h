@@ -9,7 +9,7 @@
 #error Do not include atomic_macos.h directly. Use atomic.h instead.
 #endif
 
-#if !defined(TARGET_OS_MACOS)
+#if !defined(HOST_OS_MACOS)
 #error This file should only be included on Mac OS X builds.
 #endif
 

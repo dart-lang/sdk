@@ -25,12 +25,13 @@ collect() async {
       await new Future.microtask(() => throw new TimeoutException("here"));
     } on dynamic {
       vmService.close();
-      rethrow;  // LINE_A
+      rethrow; // LINE_A
     }
   });
 }
 
-test_code() async {  // LINE_B
+test_code() async {
+  // LINE_B
   try {
     await collect();
   } on TimeoutException {
@@ -60,16 +61,19 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
   return completer.future;
 }
 
-var tests = [hasPausedAtStart,
-             setBreakpointAtLine(LINE_B),
-             resumeIsolate,
-             hasStoppedAtBreakpoint,
-             setBreakpointAtLine(LINE_A),
-             resumeIsolate,
-             hasStoppedAtBreakpoint,
-             stepOut,
-             stoppedAtLine(LINE_B),
-             resumeIsolate];
+var tests = [
+  hasPausedAtStart,
+  markDartColonLibrariesDebuggable,
+  setBreakpointAtLine(LINE_B),
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+  setBreakpointAtLine(LINE_A),
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stepOut,
+  stoppedAtLine(LINE_B),
+  resumeIsolate
+];
 
 main(args) => runIsolateTestsSynchronous(args, tests,
     testeeConcurrent: test_code, pause_on_start: true, pause_on_exit: false);

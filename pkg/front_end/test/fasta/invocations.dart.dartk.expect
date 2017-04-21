@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("Hello, World!");
+  throw new core::NoSuchMethodError::•(null, #z, <dynamic>["Hello, World!"], <dynamic, dynamic>{}, null);
+  (throw new core::NoSuchMethodError::•(null, #z, <dynamic>[], <dynamic, dynamic>{}, null)).print("Hello, World!");
+  (throw new core::NoSuchMethodError::•(null, #y, <dynamic>[], <dynamic, dynamic>{}, null)).z.print("Hello, World!");
+  (throw new core::NoSuchMethodError::•(null, #x, <dynamic>[], <dynamic, dynamic>{}, null)).y.z.print("Hello, World!");
+  1.+(core::print("Hello, World!")).+(throw new core::NoSuchMethodError::•(null, #z, <dynamic>["Hello, World!"], <dynamic, dynamic>{}, null)).+((throw new core::NoSuchMethodError::•(null, #z, <dynamic>[], <dynamic, dynamic>{}, null)).print("Hello, World!")).+((throw new core::NoSuchMethodError::•(null, #y, <dynamic>[], <dynamic, dynamic>{}, null)).z.print("Hello, World!")).+((throw new core::NoSuchMethodError::•(null, #x, <dynamic>[], <dynamic, dynamic>{}, null)).y.z.print("Hello, World!"));
+}

@@ -91,70 +91,52 @@ type Something<T> extends Option<T> {
   T value;
 }
 
+type CanonicalNameReference {
+  UInt biasedIndex; // 0 if null, otherwise N+1 where N is index of parent
+}
+
+type CanonicalName {
+  CanonicalNameReference parent;
+  StringReference name;
+}
+
 type ProgramFile {
   MagicWord magic = 0x90ABCDEF;
   StringTable strings;
   UriSource sourceMap;
+  List<CanonicalName> canonicalNames;
   List<Library> libraries;
-  LibraryProcedureReference mainMethod;
+  ProcedureReference mainMethod;
 }
 
 type LibraryReference {
-  // Index into the ProgramFile libraries.
-  UInt index;
+  // Must be populated by a library (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-abstract type ClassReference {}
-
-type NormalClassReference extends ClassReference {
-  Byte tag = 100;
-  LibraryReference library;
-  UInt classIndex;
+type ClassReference {
+  // Must be populated by a class (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-type MixinClassReference extends ClassReference {
-  Byte tag = 101;
-  LibraryReference library;
-  UInt classIndex;
+type MemberReference {
+  // Must be populated by a member (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-abstract type MemberReference {
+type FieldReference {
+  // Must be populated by a field (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-type LibraryFieldReference extends MemberReference {
-  Byte tag = 102;
-  LibraryReference library;
-  UInt fieldIndex; // Index in list of fields.
+type ConstructorReference {
+  // Must be populated by a constructor (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-type ClassFieldReference extends MemberReference {
-  Byte tag = 103;
-  ClassReference class;
-  UInt fieldIndex;
-}
-
-type ClassConstructorReference extends MemberReference {
-  Byte tag = 104;
-  ClassReference class;
-  UInt constructorIndex; // Index in list of constructors.
-}
-
-type LibraryProcedureReference extends MemberReference {
-  Byte tag = 105;
-  LibraryReference library;
-  UInt procedureIndex; // Index in list of procedures.
-}
-
-type ClassProcedureReference extends MemberReference {
-  Byte tag = 106;
-  ClassReference class;
-  UInt procedureIndex;
-}
-
-// Can be used as MemberReference or ClassReference *only* if indicated that
-// the given reference may be a NullReference.
-type NullReference extends MemberReference, ClassReference {
-  Byte tag = 99;
+type ProcedureReference {
+  // Must be populated by a procedure (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
 type Name {
@@ -166,23 +148,31 @@ type Name {
 
 type Library {
   Byte flags (isExternal);
+  CanonicalNameReference canonicalName;
   StringReference name;
-  // A URI from which the library was created.  The URI has the dart, package,
-  // file, or app scheme.  For file URIs, the path is an absolute path to the
-  // .dart file from which the library was created.  For app URIs, the path is
-  // relative to an application root that was specified when the binary was
-  // generated.
-  StringReference importUri;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
+  List<DeferredImport> deferredImports;
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
 }
 
+type DeferredImport {
+  LibraryReference importedLibrary;
+  StringReference name;
+}
+
+type DeferredImportReference {
+  // Index into deferredImports in the enclosing Library.
+  UInt index;
+}
+
 abstract type Node {
   Byte tag;
 }
+
+enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
 
 // A class can be represented at one of three levels: type, hierarchy, or body.
 //
@@ -192,43 +182,29 @@ abstract type Node {
 //
 // See ClassLevel in ast.dart for the details of each loading level.
 
-abstract type Class extends Node {}
-
-type NormalClass extends Class {
+abstract type Class extends Node {
   Byte tag = 2;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
-  Byte flags (isAbstract, isTypeLevel);
+  Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   Option<InterfaceType> superClass;
+  Option<InterfaceType> mixedInType;
   List<InterfaceType> implementedClasses;
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
 }
 
-type MixinClass extends Class {
-  Byte tag = 3;
-  FileOffset fileOffset;
-  Byte flags (isAbstract, isTypeLevel);
-  StringReference name;
-  // An absolute path URI to the .dart file from which the class was created.
-  UriReference fileUri;
-  List<Expression> annotations;
-  List<TypeParameter> typeParameters;
-  InterfaceType firstSuperClass;
-  InterfaceType secondSuperClass;
-  List<InterfaceType> implementedClasses;
-  List<Constructor> constructors;
-}
-
 abstract type Member extends Node {}
 
 type Field extends Member {
   Byte tag = 4;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
@@ -237,12 +213,12 @@ type Field extends Member {
   UriReference fileUri;
   List<Expression> annotations;
   DartType type;
-  Option<InferredValue> inferredValue;
   Option<Expression> initializer;
 }
 
 type Constructor extends Member {
   Byte tag = 5;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
@@ -264,6 +240,7 @@ enum ProcedureKind {
 
 type Procedure extends Member {
   Byte tag = 6;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
@@ -310,7 +287,8 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar
+  AsyncStar,
+  SyncYielding
 }
 */
 
@@ -319,13 +297,12 @@ type FunctionNode {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
-  Byte debuggable; // 1 for yes, 0 for no
+  Byte dartAsyncMarker; // Index into AsyncMarker above.
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
   DartType returnType;
-  Option<InferredValue> inferredReturnValue;
   Option<Statement> body;
 }
 
@@ -416,12 +393,14 @@ type SuperPropertySet extends Expression {
 
 type DirectPropertyGet extends Expression {
   Byte tag = 15; // Note: tag is out of order
+  FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
 }
 
 type DirectPropertySet extends Expression {
   Byte tag = 16; // Note: tag is out of order
+  FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
   Expression value;
@@ -435,6 +414,7 @@ type StaticGet extends Expression {
 
 type StaticSet extends Expression {
   Byte tag = 27;
+  FileOffset fileOffset;
   MemberReference target;
   Expression value;
 }
@@ -545,6 +525,7 @@ type IsExpression extends Expression {
 
 type AsExpression extends Expression {
   Byte tag = 38;
+  FileOffset fileOffset;
   Expression operand;
   DartType type;
 }
@@ -607,6 +588,7 @@ type ThisExpression extends Expression {
 
 type Rethrow extends Expression {
   Byte tag = 47;
+  FileOffset fileOffset;
 }
 
 type Throw extends Expression {
@@ -617,12 +599,14 @@ type Throw extends Expression {
 
 type ListLiteral extends Expression {
   Byte tag = 49;
+  FileOffset fileOffset;
   DartType typeArgument;
   List<Expression> values;
 }
 
 type ConstListLiteral extends Expression {
   Byte tag = 58; // Note: tag is out of order.
+  FileOffset fileOffset;
   DartType typeArgument;
   List<Expression> values;
 }
@@ -664,6 +648,39 @@ type Let extends Expression {
   Expression body;
 }
 
+type LoadLibrary extends Expression {
+  Byte tag = 14;
+  DeferredImportReference import;
+}
+
+type CheckLibraryIsLoaded extends Expression {
+  Byte tag = 13;
+  DeferredImportReference import;
+}
+
+type VectorCreation extends Expression {
+  Byte tag = 102;
+  UInt length;
+}
+
+type VectorGet extends Expression {
+  Byte tag = 103;
+  Expression vectorExpression;
+  UInt index;
+}
+
+type VectorSet extends Expression {
+  Byte tag = 104;
+  Expression vectorExpression;
+  UInt index;
+  Expression value;
+}
+
+type VectorCopy extends Expression {
+  Byte tag = 105;
+  Expression vectorExpression;
+}
+
 abstract type Statement extends Node {}
 
 type InvalidStatement extends Statement {
@@ -697,6 +714,7 @@ type LabeledStatement extends Statement {
 
 type BreakStatement extends Statement {
   Byte tag = 66;
+  FileOffset fileOffset;
 
   // Reference to the Nth LabeledStatement in scope, with 0 being the
   // outermost enclosing labeled statement within the same FunctionNode.
@@ -727,6 +745,7 @@ type ForStatement extends Statement {
 
 type ForInStatement extends Statement {
   Byte tag = 70;
+  FileOffset fileOffset; // note that this is actually the body offset
   VariableDeclaration variable;
   Expression iterable;
   Statement body;
@@ -734,6 +753,7 @@ type ForInStatement extends Statement {
 
 type AsyncForInStatement extends Statement {
   Byte tag = 80; // Note: tag is out of order.
+  FileOffset fileOffset; // note that this is actually the body offset
   VariableDeclaration variable;
   Expression iterable;
   Statement body;
@@ -748,6 +768,7 @@ type SwitchStatement extends Statement {
 type SwitchCase {
   // Note: there is no tag on SwitchCase
   List<Expression> expressions;
+  FileOffset[expressions.length] expressionOffsets; // 1-to-1 with expressions.
   Byte isDefault; // 1 if default, 0 is not default.
   Statement body;
 }
@@ -812,14 +833,20 @@ type VariableDeclarationStatement extends Statement {
 }
 
 type VariableDeclaration {
+  // The offset for the variable declaration, i.e. the offset of the start of
+  // the declaration.
   FileOffset fileOffset;
+
+  // The offset for the equal sign in the declaration (if it contains one).
+  // If it does not contain one this should be -1.
+  FileOffset fileEqualsOffset;
+
   Byte flags (isFinal, isConst);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
   StringReference name;
   DartType type;
-  Option<InferredValue> inferredValue;
 
   // For statements and for-loops, this is the initial value.
   // For optional parameters, this is the default value (if given).
@@ -909,18 +936,14 @@ type TypeParameterType extends DartType {
   UInt index;
 }
 
+type VectorType extends DartType {
+  Byte tag = 88;
+}
+
 type TypeParameter {
   // Note: there is no tag on TypeParameter
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-}
-
-/* enum BaseClassKind { None, Exact, Subclass, Subtype, } */
-
-type InferredValue {
-  ClassReference baseClass; // May be NullReference if kind = None.
-  Byte kind; // Index into BaseClassKind.
-  Byte valueBits; // See lib/type_propagation/type_propagation.dart
 }
 
 ```

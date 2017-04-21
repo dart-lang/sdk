@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class Timer {
-  @patch static Timer _createTimer(Duration duration, void callback()) {
+import 'dart:_internal' hide Symbol;
+
+@patch
+class Timer {
+  @patch
+  static Timer _createTimer(Duration duration, void callback()) {
     // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
     if (_TimerFactory._factory == null) {
       _TimerFactory._factory = VMLibraryHooks.timerFactory;
@@ -13,11 +17,14 @@
     }
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return _TimerFactory._factory(milliseconds, (_) { callback(); }, false);
+    return _TimerFactory._factory(milliseconds, (_) {
+      callback();
+    }, false);
   }
 
-  @patch static Timer _createPeriodicTimer(Duration duration,
-                                              void callback(Timer timer)) {
+  @patch
+  static Timer _createPeriodicTimer(
+      Duration duration, void callback(Timer timer)) {
     // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
     if (_TimerFactory._factory == null) {
       _TimerFactory._factory = VMLibraryHooks.timerFactory;
@@ -31,9 +38,8 @@
   }
 }
 
-typedef Timer _TimerFactoryClosure(int milliseconds,
-                                   void callback(Timer timer),
-                                   bool repeating);
+typedef Timer _TimerFactoryClosure(
+    int milliseconds, void callback(Timer timer), bool repeating);
 
 // Warning: Dartium sets _TimerFactory._factory instead of setting things up
 // through VMLibraryHooks.timerFactory.

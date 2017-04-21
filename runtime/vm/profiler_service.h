@@ -29,6 +29,7 @@ class ProfileCodeTable;
 class RawCode;
 class RawFunction;
 class SampleFilter;
+class ProcessedSample;
 class ProcessedSampleBuffer;
 
 class ProfileFunctionSourcePosition {
@@ -257,7 +258,18 @@ class ProfileTrieNode : public ZoneAllocated {
 
   intptr_t count() const { return count_; }
 
-  void Tick() { count_++; }
+  void Tick(ProcessedSample* sample, bool exclusive = false);
+
+  void IncrementAllocation(intptr_t allocation, bool exclusive) {
+    ASSERT(allocation >= 0);
+    if (exclusive) {
+      exclusive_allocations_ += allocation;
+    }
+    inclusive_allocations_ += allocation;
+  }
+
+  intptr_t inclusive_allocations() const { return inclusive_allocations_; }
+  intptr_t exclusive_allocations() const { return exclusive_allocations_; }
 
   intptr_t NumChildren() const { return children_.length(); }
 
@@ -284,6 +296,8 @@ class ProfileTrieNode : public ZoneAllocated {
 
   intptr_t table_index_;
   intptr_t count_;
+  intptr_t exclusive_allocations_;
+  intptr_t inclusive_allocations_;
   ZoneGrowableArray<ProfileTrieNode*> children_;
   intptr_t frame_id_;
 
@@ -378,6 +392,10 @@ class ProfileTrieWalker : public ValueObject {
   intptr_t CurrentInclusiveTicks();
   // Return the current node's peer's exclusive tick count.
   intptr_t CurrentExclusiveTicks();
+  // Return the current node's inclusive allocation count.
+  intptr_t CurrentInclusiveAllocations();
+  // Return the current node's exclusive allocation count.
+  intptr_t CurrentExclusiveAllocations();
   // Return the current node's tick count.
   intptr_t CurrentNodeTickCount();
   // Return the number siblings (including yourself).
@@ -418,6 +436,11 @@ class ProfilerService : public AllStatic {
                                   const Class& cls,
                                   int64_t time_origin_micros,
                                   int64_t time_extent_micros);
+
+  static void PrintNativeAllocationJSON(JSONStream* stream,
+                                        Profile::TagOrder tag_order,
+                                        int64_t time_origin_micros,
+                                        int64_t time_extent_micros);
 
   static void PrintTimelineJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,

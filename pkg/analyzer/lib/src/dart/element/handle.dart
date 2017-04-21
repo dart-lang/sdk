@@ -209,6 +209,9 @@ class CompilationUnitElementHandle extends ElementHandle
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
+  LineInfo get lineInfo => actualElement.lineInfo;
+
+  @override
   Source get source => actualElement.source;
 
   @override
@@ -646,6 +649,45 @@ class FunctionTypeAliasElementHandle extends ElementHandle
   @override
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
+
+  @override
+  ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  @override
+  List<ParameterElement> get parameters => actualElement.parameters;
+
+  @override
+  DartType get returnType => actualElement.returnType;
+
+  @override
+  FunctionType get type => actualElement.type;
+
+  @override
+  List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
+
+  @override
+  FunctionTypeAlias computeNode() => actualElement.computeNode();
+}
+
+/**
+ * A handle to a [GenericTypeAliasElement].
+ */
+class GenericTypeAliasElementHandle extends ElementHandle
+    implements GenericTypeAliasElement {
+  GenericTypeAliasElementHandle(
+      ElementResynthesizer resynthesizer, ElementLocation location)
+      : super(resynthesizer, location);
+
+  @override
+  GenericTypeAliasElement get actualElement =>
+      super.actualElement as GenericTypeAliasElement;
+
+  @override
+  CompilationUnitElement get enclosingElement =>
+      super.enclosingElement as CompilationUnitElement;
+
+  @override
+  GenericFunctionTypeElement get function => actualElement.function;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;

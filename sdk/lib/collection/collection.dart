@@ -11,8 +11,8 @@
  */
 library dart.collection;
 
-import 'dart:_internal';
-import 'dart:math' show Random;  // Used by ListMixin.shuffle.
+import 'dart:_internal' hide Symbol;
+import 'dart:math' show Random; // Used by ListMixin.shuffle.
 
 part 'collections.dart';
 part 'hash_map.dart';

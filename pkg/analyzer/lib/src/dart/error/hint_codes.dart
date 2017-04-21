@@ -140,11 +140,11 @@ class HintCode extends ErrorCode {
    * directory.
    */
   static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE =
-  const HintCode(
-      'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
-      "A file in the 'lib' directory shouldn't import a file outside the "
+      const HintCode(
+          'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
+          "A file in the 'lib' directory shouldn't import a file outside the "
           "'lib' directory.",
-      "Try removing the import, or "
+          "Try removing the import, or "
           "moving the imported file inside the 'lib' directory.");
 
   /**
@@ -155,11 +155,11 @@ class HintCode extends ErrorCode {
    * directory.
    */
   static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE =
-  const HintCode(
-      'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
-      "A file outside the 'lib' directory shouldn't reference a file "
+      const HintCode(
+          'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
+          "A file outside the 'lib' directory shouldn't reference a file "
           "inside the 'lib' directory using a relative path.",
-      "Try using a package: URI instead.");
+          "Try using a package: URI instead.");
 
   /**
    * Deferred libraries shouldn't define a top level function 'loadLibrary'.
@@ -216,6 +216,14 @@ class HintCode extends ErrorCode {
       "Factory method '{0}' doesn't return a newly allocated object.");
 
   /**
+   * This hint is generated anywhere an @immutable annotation is associated with
+   * anything other than a class.
+   */
+  static const HintCode INVALID_IMMUTABLE_ANNOTATION = const HintCode(
+      'INVALID_IMMUTABLE_ANNOTATION',
+      "Only classes can be annotated as being immutable.");
+
+  /**
    * Generic Method DEP: number of type parameters must match.
    * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
    *
@@ -224,11 +232,10 @@ class HintCode extends ErrorCode {
    * 1: the number of type parameters in the overridden method
    * 2: the name of the class where the overridden method is declared
    */
-  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
-  const HintCode(
+  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS = const HintCode(
       'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
       "The method has {0} type parameters, but it is overriding a method "
-          "with {1} type parameters from '{2}'.",
+      "with {1} type parameters from '{2}'.",
       "Try changing the number of type parameters so that they are the same.");
 
   /**
@@ -243,11 +250,11 @@ class HintCode extends ErrorCode {
    * 4: the name of the class where the overridden method is declared
    */
   static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
-  const HintCode(
-      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
-      "The type parameter '{0}' extends '{1}', but that is stricter than "
+      const HintCode(
+          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
+          "The type parameter '{0}' extends '{1}', but that is stricter than "
           "'{2}' extends '{3}' in the overridden method from '{4}'.",
-      "Try changing the bounds on the type parameters so that they are compatible.");
+          "Try changing the bounds on the type parameters so that they are compatible.");
 
   /**
    * This hint is generated anywhere where a member annotated with `@protected`
@@ -268,7 +275,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_DOUBLE = const HintCode(
       'IS_DOUBLE',
       "When compiled to JS, this test might return true when the left hand "
-          "side is an int.",
+      "side is an int.",
       "Try testing for 'num' instead.");
 
   /**
@@ -277,7 +284,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_INT = const HintCode(
       'IS_INT',
       "When compiled to JS, this test might return true when the left hand "
-          "side is a double.",
+      "side is a double.",
       "Try testing for 'num' instead.");
 
   /**
@@ -286,7 +293,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_NOT_DOUBLE = const HintCode(
       'IS_NOT_DOUBLE',
       "When compiled to JS, this test might return false when the left hand "
-          "side is an int.",
+      "side is an int.",
       "Try testing for 'num' instead.");
 
   /**
@@ -295,7 +302,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_NOT_INT = const HintCode(
       'IS_NOT_INT',
       "When compiled to JS, this test might return false when the left hand "
-          "side is a double.",
+      "side is a double.",
       "Try testing for 'num' instead.");
 
   /**
@@ -305,7 +312,7 @@ class HintCode extends ErrorCode {
   static const HintCode MISSING_JS_LIB_ANNOTATION = const HintCode(
       'MISSING_JS_LIB_ANNOTATION',
       "The @JS() annotation can only be used if it is also declared on the "
-          "library directive.",
+      "library directive.",
       "Try adding the annotation to the library directive.");
 
   /**
@@ -346,6 +353,15 @@ class HintCode extends ErrorCode {
       "Try adding a return statement, or changing the return type to 'void'.");
 
   /**
+   * Generate a hint for classes that inherit from classes annotated with
+   * `@immutable` but that are not immutable.
+   */
+  static const HintCode MUST_BE_IMMUTABLE = const HintCode(
+      'MUST_BE_IMMUTABLE',
+      "This class inherits from a class marked as @immutable, "
+      "and therefore should be immutable (all instance fields must be final).");
+
+  /**
    * Generate a hint for methods that override methods annotated `@mustCallSuper`
    * that do not invoke the overridden super method.
    *
@@ -355,7 +371,7 @@ class HintCode extends ErrorCode {
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as @mustCallSuper in '{0}', "
-      "but does invoke the overridden method.");
+      "but does not invoke the overridden method.");
 
   /**
    * A condition in a control flow statement could evaluate to `null` because it
@@ -552,9 +568,9 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_CATCH_CLAUSE = const HintCode(
       'UNUSED_CATCH_CLAUSE',
       "The exception variable '{0}' isn't used, so the 'catch' clause can be removed.",
-  // TODO(brianwilkerson) Split this error code so that we can differentiate
-  // between removing the catch clause and replacing the catch clause with
-  // an on clause.
+      // TODO(brianwilkerson) Split this error code so that we can differentiate
+      // between removing the catch clause and replacing the catch clause with
+      // an on clause.
       "Try removing the catch clause.");
 
   /**
@@ -621,11 +637,10 @@ class HintCode extends ErrorCode {
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
    */
-  static const HintCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
-  const HintCode(
+  static const HintCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD = const HintCode(
       'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
       "The method '{0}' is declared with {1} type parameters, "
-          "but {2} type arguments were given.",
+      "but {2} type arguments were given.",
       "Try adjusting the number of type arguments.");
 
   /**

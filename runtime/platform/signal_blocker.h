@@ -8,7 +8,7 @@
 #include "platform/globals.h"
 #include "platform/assert.h"
 
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 #error Do not include this file on Windows.
 #endif
 

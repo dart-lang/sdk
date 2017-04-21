@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor arg0() → void
+    ;
+  constructor arg1(dynamic a) → void
+    ;
+  constructor arg2(dynamic a, dynamic b) → void
+    ;
+}
+class Sub extends self::Super {
+  field dynamic field;
+  constructor arg0() → void
+    ;
+  constructor arg1(dynamic a) → void
+    ;
+  constructor arg2(dynamic a, dynamic b) → void
+    ;
+}

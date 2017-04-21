@@ -1,0 +1,113 @@
+# Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the kompile_test.dart (notice k, not c) test suite. This is
+# testing generating Analyzer ASTs, that is, code in
+# pkg/fasta/lib/src/analyzer/. Currently, this is behind direct-to-kernel, so
+# there are many crashes.
+
+accessors: Crash
+await: Fail
+classes: Crash
+cycles: Fail
+default_values: Crash
+expressions: Crash
+fibonacci: Crash
+for_in_scope: Crash
+function_in_field: Crash
+function_type_recovery: Fail
+functions: Crash
+implicit_this: Crash
+invocations: Fail
+map: Fail
+mixin: Crash
+operators: Crash
+redirecting_constructor: Fail
+statements: Fail
+super_rasta_copy: Crash
+top_level_accessors: Crash
+type_variable_as_super: Fail
+typedef: Crash
+
+rasta/abstract_constructor: Fail
+rasta/bad_constructor_redirection: Crash
+rasta/bad_continue: Crash
+rasta/bad_default_constructor: Crash
+rasta/bad_explicit_super_constructor: Crash
+rasta/bad_implicit_super_constructor: Crash
+rasta/bad_interpolation: Fail
+rasta/bad_redirection: Fail
+rasta/bad_setter_initializer: Crash
+rasta/bad_unicode: Fail
+rasta/breaking_bad: Crash
+rasta/cascades: Crash
+rasta/class_hierarchy: Fail
+rasta/class_member: Crash
+rasta/constant_get_and_invoke: Crash
+rasta/deferred_lib: Fail
+rasta/deferred_load: Crash
+rasta/duplicated_mixin: Crash
+rasta/export: Fail
+rasta/external_factory_redirection: Crash
+rasta/foo: Fail
+rasta/for_loop: Fail
+rasta/generic_factory: Fail # Compile-time error destroys program.
+rasta/issue_000001: Crash
+rasta/issue_000002: Crash
+rasta/issue_000004: Crash
+rasta/issue_000006: Crash
+rasta/issue_000007: Fail
+rasta/issue_000008: Crash
+rasta/issue_000012: Crash
+rasta/issue_000025: Crash
+rasta/issue_000026: Crash
+rasta/issue_000031: Crash
+rasta/issue_000032: Fail
+rasta/issue_000034: Crash
+rasta/issue_000035: Crash
+rasta/issue_000035a: Fail
+rasta/issue_000036: Fail
+rasta/issue_000039: Crash
+rasta/issue_000041: Fail
+rasta/issue_000042: Crash
+rasta/issue_000043: Fail
+rasta/issue_000044: Fail
+rasta/issue_000045: Fail
+rasta/issue_000046: Fail
+rasta/issue_000047: Fail
+rasta/issue_000048: Crash
+rasta/issue_000052: Crash
+rasta/issue_000053: Crash
+rasta/issue_000067: Crash
+rasta/issue_000068: Crash
+rasta/issue_000070: Crash
+rasta/issue_000080: Crash
+rasta/issue_000081: Crash
+rasta/malformed_const_constructor: Fail
+rasta/malformed_function: VerificationError
+rasta/malformed_function_type: Crash
+rasta/mandatory_parameter_initializer: Fail
+rasta/mixin_library: Crash
+rasta/native_is_illegal: Fail
+rasta/parser_error: Crash
+rasta/previsit_deferred: Crash
+rasta/static: Crash
+rasta/super: Crash
+rasta/super: Fail
+rasta/super_initializer: Crash
+rasta/super_mixin: Crash
+rasta/super_operator: Crash
+rasta/supports_reflection: Crash
+rasta/switch_execution_case_t02: Crash
+rasta/switch_fall_through: Fail
+rasta/this_invoke: Crash
+rasta/try_label: Crash
+rasta/type_literals: Crash
+rasta/type_with_parse_error: Fail
+rasta/typedef: Crash
+rasta/unresolved: Fail
+rasta/unresolved_constructor: Crash
+rasta/unresolved_for_in: Crash
+rasta/unresolved_recovery: Fail
+rasta/unsupported_platform_library: Fail

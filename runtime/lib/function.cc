@@ -76,6 +76,8 @@ DEFINE_NATIVE_ENTRY(Closure_hashCode, 1) {
 DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const TypeArguments& instantiator =
+      TypeArguments::Handle(zone, receiver.instantiator());
   const Function& func = Function::Handle(zone, receiver.function());
   const Context& ctx = Context::Handle(zone, receiver.context());
   Context& cloned_ctx =
@@ -86,7 +88,7 @@ DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
     inst = ctx.At(i);
     cloned_ctx.SetAt(i, inst);
   }
-  return Closure::New(func, cloned_ctx);
+  return Closure::New(instantiator, func, cloned_ctx);
 }
 
 

@@ -46,6 +46,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_headers_(NULL),
       loop_invariant_loads_(NULL),
       deferred_prefixes_(parsed_function.deferred_prefixes()),
+      await_token_positions_(NULL),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1) {
   DiscoverBlocks();
@@ -83,11 +84,15 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   if (current->ArgumentCount() != 0) {
-    // This is a call instruction. Must remove original push arguments.
+    // Replacing a call instruction with something else.  Must remove
+    // superfluous push arguments.
     for (intptr_t i = 0; i < current->ArgumentCount(); ++i) {
       PushArgumentInstr* push = current->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
+      if (replacement == NULL || i >= replacement->ArgumentCount() ||
+          replacement->PushArgumentAt(i) != push) {
+        push->ReplaceUsesWith(push->value()->definition());
+        push->RemoveFromGraph();
+      }
     }
   }
   iterator->RemoveCurrentFromGraph();
@@ -415,6 +420,7 @@ void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
 
 
 bool FlowGraph::IsReceiver(Definition* def) const {
+  def = def->OriginalDefinition();  // Could be redefined.
   if (def->IsParameter()) return (def->AsParameter()->index() == 0);
   if (!def->IsPhi() || graph_entry()->catch_entries().is_empty()) return false;
   PhiInstr* phi = def->AsPhi();
@@ -483,7 +489,37 @@ bool FlowGraph::VerifyUseLists() {
       VerifyUseListsInInstruction(it.Current());
     }
   }
+
   return true;  // Return true so we can ASSERT validation.
+}
+
+
+// Verify that a redefinition dominates all uses of the redefined value.
+bool FlowGraph::VerifyRedefinitions() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done(); instr_it.Advance()) {
+      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
+      if (redefinition != NULL) {
+        Definition* original = redefinition->value()->definition();
+        for (Value::Iterator it(original->input_use_list()); !it.Done();
+             it.Advance()) {
+          Value* original_use = it.Current();
+          if (original_use->instruction() == redefinition) {
+            continue;
+          }
+          if (original_use->instruction()->IsDominatedBy(redefinition)) {
+            FlowGraphPrinter::PrintGraph("VerifyRedefinitions", this);
+            THR_Print("%s\n", redefinition->ToCString());
+            THR_Print("use=%s\n", original_use->instruction()->ToCString());
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
 }
 
 
@@ -1254,6 +1290,25 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
     JoinEntryInstr* join = it.Current()->AsJoinEntry();
     if (join != NULL) join->RemoveDeadPhis(constant_dead());
   }
+}
+
+
+RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
+                                                 Definition* original,
+                                                 CompileType compile_type) {
+  RedefinitionInstr* first = prev->next()->AsRedefinition();
+  if (first != NULL && (first->constrained_type() != NULL)) {
+    if ((first->value()->definition() == original) &&
+        first->constrained_type()->IsEqualTo(&compile_type)) {
+      // Already redefined. Do nothing.
+      return NULL;
+    }
+  }
+  RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
+  redef->set_constrained_type(new CompileType(compile_type));
+  InsertAfter(prev, redef, NULL, FlowGraph::kValue);
+  RenameDominatedUses(original, redef, redef);
+  return redef;
 }
 
 
@@ -2091,6 +2146,21 @@ void FlowGraph::RenameDominatedUses(Definition* def,
     Value* use = it.Current();
     if (IsDominatedUse(dom, use)) {
       use->BindTo(other);
+    }
+  }
+}
+
+
+void FlowGraph::RenameUsesDominatedByRedefinitions() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done(); instr_it.Advance()) {
+      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
+      if (redefinition != NULL) {
+        Definition* original = redefinition->value()->definition();
+        RenameDominatedUses(original, redefinition, redefinition);
+      }
     }
   }
 }

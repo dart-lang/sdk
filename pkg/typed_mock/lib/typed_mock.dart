@@ -1,6 +1,5 @@
 library typed_mock;
 
-
 _InvocationMatcher _lastMatcher;
 
 /// Enables stubbing methods.
@@ -39,13 +38,11 @@ Behavior when(_ignored) {
   }
 }
 
-
 /// Clears all interactions remembered so far.
 resetInteractions(TypedMock mock) {
   mock._invocations.clear();
   mock._verifiedInvocations.clear();
 }
-
 
 /// Verifies certain behavior happened a specified number of times.
 Verifier verify(_ignored) {
@@ -60,7 +57,6 @@ Verifier verify(_ignored) {
   }
 }
 
-
 /// Verifies that the given mock doesn't have any unverified interaction.
 void verifyNoMoreInteractions(TypedMock mock) {
   var notVerified = mock._computeNotVerifiedInvocations();
@@ -72,7 +68,6 @@ void verifyNoMoreInteractions(TypedMock mock) {
   var invocationsString = _getInvocationsString(notVerified);
   throw new VerifyError('Unexpected interactions:\n$invocationsString');
 }
-
 
 /// Verifies that no interactions happened on the given mock.
 void verifyZeroInteractions(TypedMock mock) {
@@ -86,14 +81,12 @@ void verifyZeroInteractions(TypedMock mock) {
   throw new VerifyError('Unexpected interactions:\n$invocationsString');
 }
 
-
 /// [VerifyError] is thrown when one of the [verify] checks fails.
 class VerifyError {
   final String message;
   VerifyError(this.message);
   String toString() => 'VerifyError: $message';
 }
-
 
 String _getInvocationsString(Iterable<Invocation> invocations) {
   var buffer = new StringBuffer();
@@ -108,7 +101,6 @@ String _getInvocationsString(Iterable<Invocation> invocations) {
   });
   return buffer.toString();
 }
-
 
 class _InvocationMatcher {
   final Symbol _member;
@@ -144,7 +136,6 @@ class _InvocationMatcher {
     return true;
   }
 }
-
 
 class Behavior {
   final _InvocationMatcher _matcher;
@@ -232,7 +223,6 @@ class Behavior {
   }
 }
 
-
 class Verifier {
   final TypedMock _mock;
   final _InvocationMatcher _matcher;
@@ -313,7 +303,6 @@ class Verifier {
   }
 }
 
-
 /// A class to extend mocks from.
 /// It supports specifying behavior using [when] and validation of interactions
 /// using [verify].
@@ -368,7 +357,6 @@ class TypedMock {
   }
 }
 
-
 /// [ArgumentMatcher] checks whether the given argument satisfies some
 /// condition.
 abstract class ArgumentMatcher {
@@ -377,7 +365,6 @@ abstract class ArgumentMatcher {
   /// Checks whether this matcher accepts the given argument.
   bool matches(val);
 }
-
 
 class _ArgumentMatcher_equals extends ArgumentMatcher {
   final expected;
@@ -389,7 +376,6 @@ class _ArgumentMatcher_equals extends ArgumentMatcher {
     return val == expected;
   }
 }
-
 
 class _ArgumentMatcher_anyBool extends ArgumentMatcher {
   const _ArgumentMatcher_anyBool();
@@ -403,7 +389,6 @@ class _ArgumentMatcher_anyBool extends ArgumentMatcher {
 /// Matches any [bool] value.
 final anyBool = const _ArgumentMatcher_anyBool() as dynamic;
 
-
 class _ArgumentMatcher_anyInt extends ArgumentMatcher {
   const _ArgumentMatcher_anyInt();
 
@@ -416,7 +401,6 @@ class _ArgumentMatcher_anyInt extends ArgumentMatcher {
 /// Matches any [int] value.
 final anyInt = const _ArgumentMatcher_anyInt() as dynamic;
 
-
 class _ArgumentMatcher_anyObject extends ArgumentMatcher {
   const _ArgumentMatcher_anyObject();
 
@@ -428,7 +412,6 @@ class _ArgumentMatcher_anyObject extends ArgumentMatcher {
 
 /// Matches any [Object] (or subclass) value.
 final anyObject = const _ArgumentMatcher_anyObject() as dynamic;
-
 
 class _ArgumentMatcher_anyString extends ArgumentMatcher {
   const _ArgumentMatcher_anyString();

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class StringBuffer {
+import 'dart:typed_data' show Uint16List;
+
+@patch
+class StringBuffer {
   static const int _BUFFER_SIZE = 64;
   static const int _PARTS_TO_COMPACT = 128;
   static const int _PARTS_TO_COMPACT_SIZE_LIMIT = _PARTS_TO_COMPACT * 8;
@@ -48,20 +51,24 @@
   int _bufferCodeUnitMagnitude = 0;
 
   /// Creates the string buffer with an initial content.
-  @patch StringBuffer([Object content = ""]) {
+  @patch
+  StringBuffer([Object content = ""]) {
     write(content);
   }
 
-  @patch int get length => _partsCodeUnits + _bufferPosition;
+  @patch
+  int get length => _partsCodeUnits + _bufferPosition;
 
-  @patch void write(Object obj) {
+  @patch
+  void write(Object obj) {
     String str = '$obj';
     if (str.isEmpty) return;
     _consumeBuffer();
     _addPart(str);
   }
 
-  @patch void writeCharCode(int charCode) {
+  @patch
+  void writeCharCode(int charCode) {
     if (charCode <= 0xFFFF) {
       if (charCode < 0) {
         throw new RangeError.range(charCode, 0, 0x10FFFF);
@@ -81,7 +88,8 @@
     }
   }
 
-  @patch void writeAll(Iterable objects, [String separator = ""]) {
+  @patch
+  void writeAll(Iterable objects, [String separator = ""]) {
     Iterator iterator = objects.iterator;
     if (!iterator.moveNext()) return;
     if (separator.isEmpty) {
@@ -97,23 +105,26 @@
     }
   }
 
-  @patch void writeln([Object obj = ""]) {
+  @patch
+  void writeln([Object obj = ""]) {
     write(obj);
     write("\n");
   }
 
   /** Makes the buffer empty. */
-  @patch void clear() {
+  @patch
+  void clear() {
     _parts = null;
     _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude = 0;
   }
 
   /** Returns the contents of buffer as a string. */
-  @patch String toString() {
+  @patch
+  String toString() {
     _consumeBuffer();
-    return (_partsCodeUnits == 0) ?
-        "" :
-        _StringBase._concatRange(_parts, 0, _parts.length);
+    return (_partsCodeUnits == 0)
+        ? ""
+        : _StringBase._concatRange(_parts, 0, _parts.length);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
@@ -167,9 +178,9 @@
     if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
       String compacted = _StringBase._concatRange(
           _parts,
-          _partsCompactionIndex,                     // Start
-          _partsCompactionIndex + _PARTS_TO_COMPACT  // End
-      );
+          _partsCompactionIndex, // Start
+          _partsCompactionIndex + _PARTS_TO_COMPACT // End
+          );
       _parts.length = _parts.length - _PARTS_TO_COMPACT;
       _parts.add(compacted);
     }

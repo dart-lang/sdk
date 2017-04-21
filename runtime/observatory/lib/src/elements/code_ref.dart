@@ -27,7 +27,6 @@ class CodeRefElement extends HtmlElement implements Renderable {
 
   factory CodeRefElement(M.IsolateRef isolate, M.CodeRef code,
       {RenderingQueue queue}) {
-    assert(isolate != null);
     assert(code != null);
     CodeRefElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
@@ -55,7 +54,7 @@ class CodeRefElement extends HtmlElement implements Renderable {
     final name = (_code.isOptimized ? '*' : '') + _code.name;
     children = [
       new AnchorElement(
-          href: M.isSyntheticCode(_code.kind)
+          href: ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
               ? null
               : Uris.inspect(_isolate, object: _code))..text = name
     ];

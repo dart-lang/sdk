@@ -9,9 +9,9 @@ void main() {
   bool checkedMode = false;
   assert((checkedMode = true));
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
-    "\x85"    /// 01: ok
-    "\xa0";
-  const String whiteSpace = "$oneByteWhiteSpace\u1680\u180e"
+    "\x85" //   //# 01: ok
+      "\xa0";
+  const String whiteSpace = "$oneByteWhiteSpace\u1680"
       "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
       "\u2028\u2029\u202f\u205f\u3000\ufeff";
 
@@ -25,10 +25,10 @@ void main() {
 
   void testParse(int result, String radixString, int radix) {
     var m = "$radixString/$radix->$result";
-    Expect.equals(result,
-                  int.parse(radixString.toLowerCase(), radix: radix), m);
-    Expect.equals(result,
-                  int.parse(radixString.toUpperCase(), radix: radix), m);
+    Expect.equals(
+        result, int.parse(radixString.toLowerCase(), radix: radix), m);
+    Expect.equals(
+        result, int.parse(radixString.toUpperCase(), radix: radix), m);
     Expect.equals(result, int.parse(" $radixString", radix: radix), m);
     Expect.equals(result, int.parse("$radixString ", radix: radix), m);
     Expect.equals(result, int.parse(" $radixString ", radix: radix), m);
@@ -40,14 +40,20 @@ void main() {
     Expect.equals(-result, int.parse(" -$radixString", radix: radix), m);
     Expect.equals(-result, int.parse("-$radixString ", radix: radix), m);
     Expect.equals(-result, int.parse(" -$radixString ", radix: radix), m);
-    Expect.equals(result, int.parse(
-        "$oneByteWhiteSpace$radixString$oneByteWhiteSpace", radix: radix), m);
-    Expect.equals(-result, int.parse(
-        "$oneByteWhiteSpace-$radixString$oneByteWhiteSpace", radix: radix), m);
-    Expect.equals(result, int.parse(
-        "$whiteSpace$radixString$whiteSpace", radix: radix), m);
-    Expect.equals(-result, int.parse(
-        "$whiteSpace-$radixString$whiteSpace", radix: radix), m);
+    Expect.equals(
+        result,
+        int.parse("$oneByteWhiteSpace$radixString$oneByteWhiteSpace",
+            radix: radix),
+        m);
+    Expect.equals(
+        -result,
+        int.parse("$oneByteWhiteSpace-$radixString$oneByteWhiteSpace",
+            radix: radix),
+        m);
+    Expect.equals(result,
+        int.parse("$whiteSpace$radixString$whiteSpace", radix: radix), m);
+    Expect.equals(-result,
+        int.parse("$whiteSpace-$radixString$whiteSpace", radix: radix), m);
 
     Expect.equals(result, int.parse("$zeros$radixString", radix: radix), m);
     Expect.equals(result, int.parse("+$zeros$radixString", radix: radix), m);
@@ -61,21 +67,21 @@ void main() {
     }
   }
 
-  for (int i = 2; i <= 36; i++) {              /// 02: ok
-    // Test with bignums.                      /// 02: continued
-    var digit = digits[i - 1];                 /// 02: continued
-    testParse(pow(i, 64) - 1, digit * 64, i);  /// 02: continued
-    testParse(0, zeros, i);                    /// 02: continued
-  }                                            /// 02: continued
+  for (int i = 2; i <= 36; i++) { //             //# 02: ok
+    // Test with bignums. //                     //# 02: continued
+    var digit = digits[i - 1]; //                //# 02: continued
+    testParse(pow(i, 64) - 1, digit * 64, i); // //# 02: continued
+    testParse(0, zeros, i); //                   //# 02: continued
+  } //                                           //# 02: continued
 
   // Allow both upper- and lower-case letters.
   Expect.equals(0xABCD, int.parse("ABCD", radix: 16));
   Expect.equals(0xABCD, int.parse("abcd", radix: 16));
   Expect.equals(15628859, int.parse("09azAZ", radix: 36));
   // Big number.
-  Expect.equals(0x12345678123456781234567812345678,  /// 02: continued
-                int.parse("0x1234567812345678"       /// 02: continued
-                          "1234567812345678"));      /// 02: continued
+  Expect.equals(0x12345678123456781234567812345678, // //# 02: continued
+                int.parse("0x1234567812345678" //      //# 02: continued
+                          "1234567812345678")); //     //# 02: continued
   // Allow whitespace before and after the number.
   Expect.equals(1, int.parse(" 1", radix: 2));
   Expect.equals(1, int.parse("1 ", radix: 2));
@@ -86,20 +92,22 @@ void main() {
   Expect.equals(1, int.parse("+1", radix: 2));
 
   void testFails(String source, int radix) {
-    Expect.throws(() { throw int.parse(source, radix: radix,
-                                       onError: (s) { throw "FAIL"; }); },
-                  isFail,
-                  "$source/$radix");
+    Expect.throws(() {
+      throw int.parse(source, radix: radix, onError: (s) {
+        throw "FAIL";
+      });
+    }, isFail, "$source/$radix");
     Expect.equals(-999, int.parse(source, radix: radix, onError: (s) => -999));
   }
+
   for (int i = 2; i < 36; i++) {
     var char = i.toRadixString(36);
     testFails(char.toLowerCase(), i);
     testFails(char.toUpperCase(), i);
   }
   testFails("", 2);
-  testFails("+ 1", 2);  // No space between sign and digits.
-  testFails("- 1", 2);  // No space between sign and digits.
+  testFails("+ 1", 2); // No space between sign and digits.
+  testFails("- 1", 2); // No space between sign and digits.
   testFails("0x", null);
   for (int i = 2; i <= 33; i++) {
     // No 0x specially allowed.
@@ -116,7 +124,7 @@ void main() {
     }
     // In checked mode, it's always a TypeError.
     Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-                  (e) => e is TypeError || e is CastError);
+        (e) => e is TypeError || e is CastError);
   }
 
   testBadTypes(9, 10);
@@ -127,7 +135,7 @@ void main() {
   testBadArguments(String source, int radix) {
     // If the types match, it should be an ArgumentError of some sort.
     Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
   }
 
   testBadArguments("0", -1);

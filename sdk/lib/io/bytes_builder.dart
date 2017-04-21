@@ -78,29 +78,26 @@ abstract class BytesBuilder {
   void clear();
 }
 
-
 class _CopyingBytesBuilder implements BytesBuilder {
   // Start with 1024 bytes.
   static const int _INIT_SIZE = 1024;
 
+  static final _emptyList = new Uint8List(0);
+
   int _length = 0;
   Uint8List _buffer;
+
+  _CopyingBytesBuilder([int initialCapacity = 0])
+      : _buffer = (initialCapacity <= 0)
+            ? _emptyList
+            : new Uint8List(_pow2roundup(initialCapacity));
 
   void add(List<int> bytes) {
     int bytesLength = bytes.length;
     if (bytesLength == 0) return;
     int required = _length + bytesLength;
-    if (_buffer == null) {
-      int size = _pow2roundup(required);
-      size = max(size, _INIT_SIZE);
-      _buffer = new Uint8List(size);
-    } else if (_buffer.length < required) {
-      // We will create a list in the range of 2-4 times larger than
-      // required.
-      int size = _pow2roundup(required) * 2;
-      var newBuffer = new Uint8List(size);
-      newBuffer.setRange(0, _buffer.length, _buffer);
-      _buffer = newBuffer;
+    if (_buffer.length < required) {
+      _grow(required);
     }
     assert(_buffer.length >= required);
     if (bytes is Uint8List) {
@@ -113,17 +110,40 @@ class _CopyingBytesBuilder implements BytesBuilder {
     _length = required;
   }
 
-  void addByte(int byte) { add([byte]); }
+  void addByte(int byte) {
+    if (_buffer.length == _length) {
+      // The grow algorithm always at least doubles.
+      // If we added one to _length it would quadruple unnecessarily.
+      _grow(_length);
+    }
+    assert(_buffer.length > _length);
+    _buffer[_length] = byte;
+    _length++;
+  }
+
+  void _grow(int required) {
+    // We will create a list in the range of 2-4 times larger than
+    // required.
+    int newSize = required * 2;
+    if (newSize < _INIT_SIZE) {
+      newSize = _INIT_SIZE;
+    } else {
+      newSize = _pow2roundup(newSize);
+    }
+    var newBuffer = new Uint8List(newSize);
+    newBuffer.setRange(0, _buffer.length, _buffer);
+    _buffer = newBuffer;
+  }
 
   List<int> takeBytes() {
-    if (_buffer == null) return new Uint8List(0);
+    if (_length == 0) return _emptyList;
     var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
     clear();
     return buffer;
   }
 
   List<int> toBytes() {
-    if (_buffer == null) return new Uint8List(0);
+    if (_length == 0) return _emptyList;
     return new Uint8List.fromList(
         new Uint8List.view(_buffer.buffer, 0, _length));
   }
@@ -136,10 +156,11 @@ class _CopyingBytesBuilder implements BytesBuilder {
 
   void clear() {
     _length = 0;
-    _buffer = null;
+    _buffer = _emptyList;
   }
 
-  int _pow2roundup(int x) {
+  static int _pow2roundup(int x) {
+    assert(x > 0);
     --x;
     x |= x >> 1;
     x |= x >> 2;
@@ -149,7 +170,6 @@ class _CopyingBytesBuilder implements BytesBuilder {
     return x + 1;
   }
 }
-
 
 class _BytesBuilder implements BytesBuilder {
   int _length = 0;
@@ -166,12 +186,15 @@ class _BytesBuilder implements BytesBuilder {
     _length += typedBytes.length;
   }
 
-  void addByte(int byte) { add([byte]); }
+  void addByte(int byte) {
+    _chunks.add(new Uint8List(1)..[0] = byte);
+    _length++;
+  }
 
   List<int> takeBytes() {
-    if (_chunks.length == 0) return new Uint8List(0);
+    if (_length == 0) return _CopyingBytesBuilder._emptyList;
     if (_chunks.length == 1) {
-      var buffer = _chunks.single;
+      var buffer = _chunks[0];
       clear();
       return buffer;
     }
@@ -186,7 +209,7 @@ class _BytesBuilder implements BytesBuilder {
   }
 
   List<int> toBytes() {
-    if (_chunks.length == 0) return new Uint8List(0);
+    if (_length == 0) return _CopyingBytesBuilder._emptyList;
     var buffer = new Uint8List(_length);
     int offset = 0;
     for (var chunk in _chunks) {

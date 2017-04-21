@@ -33,8 +33,7 @@ _parseJson(String source, reviver(key, value)) {
   var parsed;
   try {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
-                'JSON.parse(#)',
-                source);
+        'JSON.parse(#)', source);
   } catch (e) {
     throw new FormatException(JS('String', 'String(#)', e));
   }
@@ -88,7 +87,7 @@ _convertJsonToDart(json, reviver(key, value)) {
     }
 
     // Update the JSON map structure so future access is cheaper.
-    map._original = processed;  // Don't keep two objects around.
+    map._original = processed; // Don't keep two objects around.
     return map;
   }
 
@@ -140,10 +139,10 @@ class _JsonMap implements LinkedHashMap {
 
   _JsonMap(this._original);
 
-  operator[](key) {
+  operator [](key) {
     if (_isUpgraded) {
       return _upgradedMap[key];
-    } else if (key is !String) {
+    } else if (key is! String) {
       return null;
     } else {
       var result = _getProperty(_processed, key);
@@ -152,9 +151,7 @@ class _JsonMap implements LinkedHashMap {
     }
   }
 
-  int get length => _isUpgraded
-      ? _upgradedMap.length
-      : _computeKeys().length;
+  int get length => _isUpgraded ? _upgradedMap.length : _computeKeys().length;
 
   bool get isEmpty => length == 0;
   bool get isNotEmpty => length > 0;
@@ -169,7 +166,7 @@ class _JsonMap implements LinkedHashMap {
     return new MappedIterable(_computeKeys(), (each) => this[each]);
   }
 
-  operator[]=(key, value) {
+  operator []=(key, value) {
     if (_isUpgraded) {
       _upgradedMap[key] = value;
     } else if (containsKey(key)) {
@@ -177,7 +174,7 @@ class _JsonMap implements LinkedHashMap {
       _setProperty(processed, key, value);
       var original = _original;
       if (!identical(original, processed)) {
-        _setProperty(original, key, null);  // Reclaim memory.
+        _setProperty(original, key, null); // Reclaim memory.
       }
     } else {
       _upgrade()[key] = value;
@@ -202,7 +199,7 @@ class _JsonMap implements LinkedHashMap {
 
   bool containsKey(key) {
     if (_isUpgraded) return _upgradedMap.containsKey(key);
-    if (key is !String) return false;
+    if (key is! String) return false;
     return _hasProperty(_original, key);
   }
 
@@ -259,7 +256,6 @@ class _JsonMap implements LinkedHashMap {
   }
 
   String toString() => Maps.mapToString(this);
-
 
   // ------------------------------------------
   // Private helper methods.
@@ -319,23 +315,20 @@ class _JsonMap implements LinkedHashMap {
     return _setProperty(_processed, key, result);
   }
 
-
   // ------------------------------------------
   // Private JavaScript helper methods.
   // ------------------------------------------
 
-  static bool _hasProperty(object, String key)
-      => JS('bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
-  static _getProperty(object, String key)
-      => JS('', '#[#]', object, key);
-  static _setProperty(object, String key, value)
-      => JS('', '#[#]=#', object, key, value);
-  static List _getPropertyNames(object)
-      => JS('JSExtendableArray', 'Object.keys(#)', object);
-  static bool _isUnprocessed(object)
-      => JS('bool', 'typeof(#)=="undefined"', object);
-  static _newJavaScriptObject()
-      => JS('=Object', 'Object.create(null)');
+  static bool _hasProperty(object, String key) =>
+      JS('bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
+  static _getProperty(object, String key) => JS('', '#[#]', object, key);
+  static _setProperty(object, String key, value) =>
+      JS('', '#[#]=#', object, key, value);
+  static List _getPropertyNames(object) =>
+      JS('JSExtendableArray', 'Object.keys(#)', object);
+  static bool _isUnprocessed(object) =>
+      JS('bool', 'typeof(#)=="undefined"', object);
+  static _newJavaScriptObject() => JS('=Object', 'Object.create(null)');
 }
 
 class _JsonMapKeyIterable extends ListIterable {
@@ -346,16 +339,18 @@ class _JsonMapKeyIterable extends ListIterable {
   int get length => _parent.length;
 
   String elementAt(int index) {
-    return _parent._isUpgraded ? _parent.keys.elementAt(index)
-                               : _parent._computeKeys()[index];
+    return _parent._isUpgraded
+        ? _parent.keys.elementAt(index)
+        : _parent._computeKeys()[index];
   }
 
   /// Although [ListIterable] defines its own iterator, we return the iterator
   /// of the underlying list [_keys] in order to propagate
   /// [ConcurrentModificationError]s.
   Iterator get iterator {
-    return _parent._isUpgraded ? _parent.keys.iterator
-                               : _parent._computeKeys().iterator;
+    return _parent._isUpgraded
+        ? _parent.keys.iterator
+        : _parent._computeKeys().iterator;
   }
 
   /// Delegate to [parent.containsKey] to ensure the performance expected
@@ -363,7 +358,8 @@ class _JsonMapKeyIterable extends ListIterable {
   bool contains(Object key) => _parent.containsKey(key);
 }
 
-@patch class JsonDecoder {
+@patch
+class JsonDecoder {
   @patch
   StringConversionSink startChunkedConversion(Sink<Object> sink) {
     return new _JsonDecoderSink(_reviver, sink);
@@ -381,8 +377,7 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   final _Reviver _reviver;
   final Sink<Object> _sink;
 
-  _JsonDecoderSink(this._reviver, this._sink)
-      : super(new StringBuffer(''));
+  _JsonDecoderSink(this._reviver, this._sink) : super(new StringBuffer(''));
 
   void close() {
     super.close();
@@ -395,7 +390,8 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   }
 }
 
-@patch class Utf8Decoder {
+@patch
+class Utf8Decoder {
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     return super.fuse(next);
@@ -403,8 +399,8 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
 
   // Currently not intercepting UTF8 decoding.
   @patch
-  static String _convertIntercepted(bool allowMalformed, List<int> codeUnits,
-                                    int start, int end) {
-    return null;  // This call was not intercepted.
+  static String _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int end) {
+    return null; // This call was not intercepted.
   }
 }

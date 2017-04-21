@@ -4,6 +4,16 @@
 
 part of vmservice_io;
 
+final bool silentObservatory = const bool.fromEnvironment('SILENT_OBSERVATORY');
+
+void serverPrint(String s) {
+  if (silentObservatory) {
+    // We've been requested to be silent.
+    return;
+  }
+  print(s);
+}
+
 class WebSocketClient extends Client {
   static const int PARSE_ERROR_CODE = 4000;
   static const int BINARY_MESSAGE_ERROR_CODE = 4001;
@@ -52,7 +62,7 @@ class WebSocketClient extends Client {
     }
     try {
       if (result is String || result is Uint8List) {
-        socket.add(result);  // String or binary message.
+        socket.add(result); // String or binary message.
       } else {
         // String message as external Uint8List.
         assert(result is List);
@@ -60,9 +70,9 @@ class WebSocketClient extends Client {
         socket.addUtf8Text(cstring);
       }
     } catch (e, st) {
-      print("Ignoring error posting over WebSocket.");
-      print(e);
-      print(st);
+      serverPrint("Ignoring error posting over WebSocket.");
+      serverPrint(e);
+      serverPrint(st);
     }
   }
 
@@ -74,14 +84,13 @@ class WebSocketClient extends Client {
   }
 }
 
-
 class HttpRequestClient extends Client {
   static ContentType jsonContentType =
       new ContentType("application", "json", charset: "utf-8");
   final HttpRequest request;
 
   HttpRequestClient(this.request, VMService service)
-      : super(service, sendEvents:false);
+      : super(service, sendEvents: false);
 
   disconnect() {
     request.response.close();
@@ -101,7 +110,7 @@ class HttpRequestClient extends Client {
       response.write(result);
     } else {
       assert(result is List);
-      Uint8List cstring = result[0];  // Already in UTF-8.
+      Uint8List cstring = result[0]; // Already in UTF-8.
       response.add(cstring);
     }
     response.close();
@@ -158,7 +167,7 @@ class Server {
 
     if ((uri.port == _server.port) &&
         ((uri.host == _server.address.address) ||
-         (uri.host == _server.address.host))) {
+            (uri.host == _server.address.host))) {
       return true;
     }
 
@@ -206,8 +215,9 @@ class Server {
       return null;
     }
     // Construct the actual request path by chopping off the auth token.
-    return (requestPathSegments[1] == '') ?
-        ROOT_REDIRECT_PATH : '/${requestPathSegments.sublist(1).join('/')}';
+    return (requestPathSegments[1] == '')
+        ? ROOT_REDIRECT_PATH
+        : '/${requestPathSegments.sublist(1).join('/')}';
   }
 
   Future _requestHandler(HttpRequest request) async {
@@ -222,31 +232,41 @@ class Server {
       List fsNameList;
       List fsPathList;
       List fsPathBase64List;
+      List fsUriBase64List;
       Object fsName;
       Object fsPath;
+      Object fsUri;
 
       try {
         // Extract the fs name and fs path from the request headers.
         fsNameList = request.headers['dev_fs_name'];
         fsName = fsNameList[0];
 
-        fsPathList = request.headers['dev_fs_path'];
-        fsPathBase64List = request.headers['dev_fs_path_b64'];
-        // If the 'dev_fs_path_b64' header field was sent, use that instead.
-        if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
-          fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
-        } else {
-          fsPath = fsPathList[0];
+        // Prefer Uri encoding first.
+        fsUriBase64List = request.headers['dev_fs_uri_b64'];
+        if ((fsUriBase64List != null) && (fsUriBase64List.length > 0)) {
+          String decodedFsUri = UTF8.decode(BASE64.decode(fsUriBase64List[0]));
+          fsUri = Uri.parse(decodedFsUri);
         }
-      } catch (e) { /* ignore */ }
+
+        // Fallback to path encoding.
+        if (fsUri == null) {
+          fsPathList = request.headers['dev_fs_path'];
+          fsPathBase64List = request.headers['dev_fs_path_b64'];
+          // If the 'dev_fs_path_b64' header field was sent, use that instead.
+          if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+            fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
+          } else {
+            fsPath = fsPathList[0];
+          }
+        }
+      } catch (e) {/* ignore */}
 
       String result;
       try {
         result = await _service.devfs.handlePutStream(
-            fsName,
-            fsPath,
-            request.transform(GZIP.decoder));
-      } catch (e) { /* ignore */ }
+            fsName, fsPath, fsUri, request.transform(GZIP.decoder));
+      } catch (e) {/* ignore */}
 
       if (result != null) {
         request.response.headers.contentType =
@@ -270,8 +290,7 @@ class Server {
     }
 
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request).then(
-                                   (WebSocket webSocket) {
+      WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
       return;
@@ -280,8 +299,7 @@ class Server {
     Asset asset = assets[path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
-      request.response.headers.contentType =
-          ContentType.parse(asset.mimeType);
+      request.response.headers.contentType = ContentType.parse(asset.mimeType);
       request.response.add(asset.data);
       request.response.close();
       return;
@@ -292,8 +310,8 @@ class Server {
       var message = new Message.fromUri(client, request.uri);
       client.onMessage(null, message);
     } catch (e) {
-      print('Unexpected error processing HTTP request uri: '
-            '${request.uri}\n$e\n');
+      serverPrint('Unexpected error processing HTTP request uri: '
+          '${request.uri}\n$e\n');
       rethrow;
     }
   }
@@ -305,36 +323,70 @@ class Server {
     }
 
     // Startup HTTP server.
-    try {
-      var address;
-      if (Platform.isFuchsia) {
-        address = InternetAddress.ANY_IP_V6;
-      } else {
-        var addresses = await InternetAddress.lookup(_ip);
-        // Prefer IPv4 addresses.
-        for (var i = 0; i < addresses.length; i++) {
-          address = addresses[i];
-          if (address.type == InternetAddressType.IP_V4) break;
+    var pollError;
+    var pollStack;
+    Future<bool> poll() async {
+      try {
+        var address;
+        if (Platform.isFuchsia) {
+          address = InternetAddress.ANY_IP_V4;
+        } else {
+          var addresses = await InternetAddress.lookup(_ip);
+          // Prefer IPv4 addresses.
+          for (var i = 0; i < addresses.length; i++) {
+            address = addresses[i];
+            if (address.type == InternetAddressType.IP_V4) break;
+          }
         }
+        _server = await HttpServer.bind(address, _port);
+        return true;
+      } catch (e, st) {
+        pollError = e;
+        pollStack = st;
+        return false;
       }
-      _server = await HttpServer.bind(address, _port);
-      _server.listen(_requestHandler, cancelOnError: true);
-      print('Observatory listening on $serverAddress');
-      // Server is up and running.
-      _notifyServerState(serverAddress.toString());
-      onServerAddressChange('$serverAddress');
-      return this;
-    } catch (e, st) {
-      print('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("");
-      onServerAddressChange(null);
-      return this;
     }
+
+    // poll for the network for ~10 seconds.
+    int attempts = 0;
+    final int maxAttempts = 10;
+    while (!await poll()) {
+      attempts++;
+      serverPrint("Observatory server failed to start after $attempts tries");
+      if (attempts > maxAttempts) {
+        serverPrint('Could not start Observatory HTTP server:\n'
+                    '$pollError\n$pollStack\n');
+        _notifyServerState("");
+        onServerAddressChange(null);
+        return this;
+      }
+      await new Future<Null>.delayed(const Duration(seconds: 1));
+    }
+    _server.listen(_requestHandler, cancelOnError: true);
+    serverPrint('Observatory listening on $serverAddress');
+    if (Platform.isFuchsia) {
+      // Create a file with the port number.
+      String tmp = Directory.systemTemp.path;
+      String path = "$tmp/dart.services/${_server.port}";
+      serverPrint("Creating $path");
+      new File(path)..createSync(recursive: true);
+    }
+    // Server is up and running.
+    _notifyServerState(serverAddress.toString());
+    onServerAddressChange('$serverAddress');
+    return this;
   }
 
   Future cleanup(bool force) {
     if (_server == null) {
       return new Future.value(null);
+    }
+    if (Platform.isFuchsia) {
+      // Remove the file with the port number.
+      String tmp = Directory.systemTemp.path;
+      String path = "$tmp/dart.services/${_server.port}";
+      serverPrint("Deleting $path");
+      new File(path)..deleteSync();
     }
     return _server.close(force: force);
   }
@@ -348,21 +400,19 @@ class Server {
     // Shutdown HTTP server and subscription.
     Uri oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
-      print('Observatory no longer listening on $oldServerAddress');
+      serverPrint('Observatory no longer listening on $oldServerAddress');
       _server = null;
       _notifyServerState("");
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
-      print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
+      serverPrint('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
       _notifyServerState("");
       onServerAddressChange(null);
       return this;
     });
   }
-
 }
 
-void _notifyServerState(String uri)
-    native "VMServiceIO_NotifyServerState";
+void _notifyServerState(String uri) native "VMServiceIO_NotifyServerState";

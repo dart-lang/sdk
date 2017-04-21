@@ -14,7 +14,7 @@ import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
 import '../tree/tree.dart' show Node, Send;
-import 'code_output.dart' show CodeBuffer;
+import 'code_output.dart' show BufferedCodeOutput;
 import 'source_file.dart';
 import 'source_information.dart';
 
@@ -106,8 +106,9 @@ class PositionSourceInformationStrategy
   }
 
   @override
-  SourceInformationProcessor createProcessor(SourceMapper mapper) {
-    return new PositionSourceInformationProcessor(mapper);
+  SourceInformationProcessor createProcessor(
+      SourceMapperProvider provider, SourceInformationReader reader) {
+    return new PositionSourceInformationProcessor(provider, reader);
   }
 
   @override
@@ -425,24 +426,37 @@ enum CodePositionKind {
 
 /// Processor that associates [SourceLocation]s from [SourceInformation] on
 /// [js.Node]s with the target offsets in a [SourceMapper].
-class PositionSourceInformationProcessor implements SourceInformationProcessor {
+class PositionSourceInformationProcessor extends SourceInformationProcessor {
+  /// The id for this source information engine.
+  ///
+  /// The id is added to the source map file in an extra "engine" property and
+  /// serves as a version number for the engine.
+  ///
+  /// The version history of this engine is:
+  ///
+  ///   v2: The initial version with an id.
+  static const String id = 'v2';
+
   final CodePositionRecorder codePositionRecorder = new CodePositionRecorder();
+  final SourceInformationReader reader;
   CodePositionMap codePositionMap;
   List<TraceListener> traceListeners;
 
-  PositionSourceInformationProcessor(SourceMapper sourceMapper,
+  PositionSourceInformationProcessor(SourceMapperProvider provider, this.reader,
       [Coverage coverage]) {
     codePositionMap = coverage != null
         ? new CodePositionCoverage(codePositionRecorder, coverage)
         : codePositionRecorder;
-    traceListeners = [new PositionTraceListener(sourceMapper)];
+    traceListeners = [
+      new PositionTraceListener(provider.createSourceMapper(id), reader)
+    ];
     if (coverage != null) {
-      traceListeners.add(new CoverageListener(coverage));
+      traceListeners.add(new CoverageListener(coverage, reader));
     }
   }
 
-  void process(js.Node node, CodeBuffer codeBuffer) {
-    new JavaScriptTracer(codePositionMap, traceListeners).apply(node);
+  void process(js.Node node, BufferedCodeOutput code) {
+    new JavaScriptTracer(codePositionMap, reader, traceListeners).apply(node);
   }
 
   @override
@@ -456,17 +470,21 @@ class PositionSourceInformationProcessor implements SourceInformationProcessor {
 /// Visitor that computes [SourceInformation] for a [js.Node] using information
 /// attached to the node itself or alternatively from child nodes.
 class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
-  const NodeSourceInformation();
+  final SourceInformationReader reader;
+
+  const NodeSourceInformation(this.reader);
 
   SourceInformation visit(js.Node node) => node?.accept(this);
 
   @override
-  SourceInformation visitNode(js.Node node) => node.sourceInformation;
+  SourceInformation visitNode(js.Node node) =>
+      reader.getSourceInformation(node);
 
   @override
   SourceInformation visitExpressionStatement(js.ExpressionStatement node) {
-    if (node.sourceInformation != null) {
-      return node.sourceInformation;
+    SourceInformation sourceInformation = reader.getSourceInformation(node);
+    if (sourceInformation != null) {
+      return sourceInformation;
     }
     return visit(node.expression);
   }
@@ -474,8 +492,9 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
   @override
   SourceInformation visitVariableDeclarationList(
       js.VariableDeclarationList node) {
-    if (node.sourceInformation != null) {
-      return node.sourceInformation;
+    SourceInformation sourceInformation = reader.getSourceInformation(node);
+    if (sourceInformation != null) {
+      return sourceInformation;
     }
     for (js.Node declaration in node.declarations) {
       SourceInformation sourceInformation = visit(declaration);
@@ -489,25 +508,29 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
   @override
   SourceInformation visitVariableInitialization(
       js.VariableInitialization node) {
-    if (node.sourceInformation != null) {
-      return node.sourceInformation;
+    SourceInformation sourceInformation = reader.getSourceInformation(node);
+    if (sourceInformation != null) {
+      return sourceInformation;
     }
     return visit(node.value);
   }
 
   @override
   SourceInformation visitAssignment(js.Assignment node) {
-    if (node.sourceInformation != null) {
-      return node.sourceInformation;
+    SourceInformation sourceInformation = reader.getSourceInformation(node);
+    if (sourceInformation != null) {
+      return sourceInformation;
     }
     return visit(node.value);
   }
 }
 
 /// Mixin that add support for computing [SourceInformation] for a [js.Node].
-class NodeToSourceInformationMixin {
+abstract class NodeToSourceInformationMixin {
+  SourceInformationReader get reader;
+
   SourceInformation computeSourceInformation(js.Node node) {
-    return const NodeSourceInformation().visit(node);
+    return new NodeSourceInformation(reader).visit(node);
   }
 }
 
@@ -515,8 +538,9 @@ class NodeToSourceInformationMixin {
 class PositionTraceListener extends TraceListener
     with NodeToSourceInformationMixin {
   final SourceMapper sourceMapper;
+  final SourceInformationReader reader;
 
-  PositionTraceListener(this.sourceMapper);
+  PositionTraceListener(this.sourceMapper, this.reader);
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
@@ -542,7 +566,9 @@ class PositionTraceListener extends TraceListener
     switch (kind) {
       case StepKind.FUN_ENTRY:
         // TODO(johnniwinther): Remove this when fully transitioned to the
-        // new source info system.
+        // new source info system. Verify that tools no longer expect JS
+        // function signatures to map to the origin. The main method may still
+        // need mapping to enable breakpoints before calling main.
         registerPosition(SourcePositionKind.START);
         break;
       case StepKind.FUN_EXIT:
@@ -746,6 +772,7 @@ abstract class TraceListener {
 /// steppable execution and thus needs source mapping locations.
 class JavaScriptTracer extends js.BaseVisitor {
   final CodePositionMap codePositions;
+  final SourceInformationReader reader;
   final List<TraceListener> listeners;
 
   /// The steps added by subexpressions.
@@ -762,7 +789,8 @@ class JavaScriptTracer extends js.BaseVisitor {
 
   bool active;
 
-  JavaScriptTracer(this.codePositions, this.listeners, {this.active: false});
+  JavaScriptTracer(this.codePositions, this.reader, this.listeners,
+      {this.active: false});
 
   void notifyStart(js.Node node) {
     listeners.forEach((listener) => listener.onStart(node));
@@ -831,7 +859,7 @@ class JavaScriptTracer extends js.BaseVisitor {
   visitFun(js.Fun node) {
     bool activeBefore = active;
     if (!active) {
-      active = node.sourceInformation != null;
+      active = reader.getSourceInformation(node) != null;
     }
     leftToRightOffset =
         statementOffset = getSyntaxOffset(node, kind: CodePositionKind.START);
@@ -1277,8 +1305,9 @@ class Coverage {
 /// [TraceListener] that registers [onStep] callbacks with [coverage].
 class CoverageListener extends TraceListener with NodeToSourceInformationMixin {
   final Coverage coverage;
+  final SourceInformationReader reader;
 
-  CoverageListener(this.coverage);
+  CoverageListener(this.coverage, this.reader);
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {

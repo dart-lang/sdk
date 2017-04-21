@@ -66,7 +66,7 @@ install:
   # Empty to suppress default pub get behavior
 before_script:
   # Node modules used by DDC
-  - nvm install 5.5.0
+  - nvm install 6.9.1
   - npm install
 script:
   # Run DDC tests
@@ -78,12 +78,14 @@ env:
   - ANALYZER=master
   - ANALYZER=master DDC_BROWSERS=Firefox
   - ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
-  - ANALYZER=master CXX=clang++
+  # TODO(vsm): We don't get much value from this for DDC & it eats up travis
+  # cycles.  Consider adding back at some point to test the built dartdevc
+  # snapshot.
+  # - ANALYZER=master CXX=clang++
   - TEST=coverage
   - TEST=package
 matrix:
   allow_failures:
-    - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
     - env: ANALYZER=master CXX=clang++
 notifications:
   email:

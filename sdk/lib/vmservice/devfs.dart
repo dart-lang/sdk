@@ -5,20 +5,17 @@
 part of dart._vmservice;
 
 String _encodeDevFSDisabledError(Message message) {
-  return encodeRpcError(
-      message, kFeatureDisabled,
+  return encodeRpcError(message, kFeatureDisabled,
       details: "DevFS is not supported by this Dart implementation");
 }
 
 String _encodeFileSystemAlreadyExistsError(Message message, String fsName) {
-  return encodeRpcError(
-      message, kFileSystemAlreadyExists,
+  return encodeRpcError(message, kFileSystemAlreadyExists,
       details: "${message.method}: file system '${fsName}' already exists");
 }
 
 String _encodeFileSystemDoesNotExistError(Message message, String fsName) {
-  return encodeRpcError(
-      message, kFileSystemDoesNotExist,
+  return encodeRpcError(message, kFileSystemDoesNotExist,
       details: "${message.method}: file system '${fsName}' does not exist");
 }
 
@@ -38,10 +35,14 @@ class _FileSystem {
     Uri pathUri;
     try {
       pathUri = new Uri.file(path);
-    } on FormatException catch(e) {
+    } on FormatException catch (e) {
       return null;
     }
 
+    return resolve(pathUri);
+  }
+
+  Uri resolve(Uri pathUri) {
     try {
       // Make sure that this pathUri can be converted to a file path.
       pathUri.toFilePath();
@@ -72,13 +73,13 @@ class DevFS {
   Map<String, _FileSystem> _fsMap = {};
 
   final Set _rpcNames = new Set.from([
-      '_listDevFS',
-      '_createDevFS',
-      '_deleteDevFS',
-      '_readDevFSFile',
-      '_writeDevFSFile',
-      '_writeDevFSFiles',
-      '_listDevFSFiles',
+    '_listDevFS',
+    '_createDevFS',
+    '_deleteDevFS',
+    '_readDevFSFile',
+    '_writeDevFSFile',
+    '_writeDevFSFiles',
+    '_listDevFSFiles',
   ]);
 
   void cleanup() {
@@ -115,15 +116,13 @@ class DevFS {
       case '_listDevFSFiles':
         return _listDevFSFiles(message);
       default:
-        return encodeRpcError(
-            message, kInternalError,
+        return encodeRpcError(message, kInternalError,
             details: 'Unexpected rpc ${message.method}');
     }
   }
 
-  Future<String> handlePutStream(Object fsName,
-                                 Object path,
-                                 Stream<List<int>> bytes) async {
+  Future<String> handlePutStream(
+      Object fsName, Object path, Uri fsUri, Stream<List<int>> bytes) async {
     // A dummy Message for error message construction.
     Message message = new Message.forMethod('_writeDevFSFile');
     var writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
@@ -140,15 +139,23 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    if (path == null) {
-      return encodeMissingParamError(message, 'path');
-    }
-    if (path is! String) {
-      return encodeInvalidParamError(message, 'path');
-    }
-    Uri uri = fs.resolvePath(path);
+    Uri uri = fsUri;
     if (uri == null) {
-      return encodeInvalidParamError(message, 'path');
+      if (path == null) {
+        return encodeMissingParamError(message, 'path');
+      }
+      if (path is! String) {
+        return encodeInvalidParamError(message, 'path');
+      }
+      uri = fs.resolvePath(path);
+      if (uri == null) {
+        return encodeInvalidParamError(message, 'path');
+      }
+    } else {
+      uri = fs.resolve(uri);
+      if (uri == null) {
+        return encodeInvalidParamError(message, 'uri');
+      }
     }
     await writeStreamFile(uri, bytes);
     return encodeSuccess(message);
@@ -157,7 +164,7 @@ class DevFS {
   Future<String> _listDevFS(Message message) async {
     var result = {};
     result['type'] = 'FileSystemList';
-    result['fsNames'] =  _fsMap.keys.toList();
+    result['fsNames'] = _fsMap.keys.toList();
     return encodeResult(message, result);
   }
 
@@ -219,28 +226,40 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    var path = message.params['path'];
-    if (path == null) {
-      return encodeMissingParamError(message, 'path');
+    Uri uri;
+    if (message.params['uri'] != null) {
+      try {
+        var uriParam = message.params['uri'];
+        if (uriParam is! String) {
+          return encodeInvalidParamError(message, 'uri');
+        }
+        Uri parsedUri = Uri.parse(uriParam);
+        uri = fs.resolve(parsedUri);
+        if (uri == null) {
+          return encodeInvalidParamError(message, 'uri');
+        }
+      } catch (e) {
+        return encodeInvalidParamError(message, 'uri');
+      }
+    } else {
+      var path = message.params['path'];
+      if (path == null) {
+        return encodeMissingParamError(message, 'path');
+      }
+      if (path is! String) {
+        return encodeInvalidParamError(message, 'path');
+      }
+      uri = fs.resolvePath(path);
+      if (uri == null) {
+        return encodeInvalidParamError(message, 'path');
+      }
     }
-    if (path is! String) {
-      return encodeInvalidParamError(message, 'path');
-    }
-    Uri uri = fs.resolvePath(path);
-    if (uri == null) {
-      return encodeInvalidParamError(message, 'path');
-    }
-
     try {
       List<int> bytes = await readFile(uri);
-      var result = {
-        'type': 'FSFile',
-        'fileContents': BASE64.encode(bytes)
-      };
+      var result = {'type': 'FSFile', 'fileContents': BASE64.encode(bytes)};
       return encodeResult(message, result);
     } catch (e) {
-      return encodeRpcError(
-          message, kFileDoesNotExist,
+      return encodeRpcError(message, kFileDoesNotExist,
           details: "_readDevFSFile: $e");
     }
   }
@@ -261,16 +280,33 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    var path = message.params['path'];
-    if (path == null) {
-      return encodeMissingParamError(message, 'path');
-    }
-    if (path is! String) {
-      return encodeInvalidParamError(message, 'path');
-    }
-    Uri uri = fs.resolvePath(path);
-    if (uri == null) {
-      return encodeInvalidParamError(message, 'path');
+    Uri uri;
+    if (message.params['uri'] != null) {
+      try {
+        var uriParam = message.params['uri'];
+        if (uriParam is! String) {
+          return encodeInvalidParamError(message, 'uri');
+        }
+        Uri parsedUri = Uri.parse(uriParam);
+        uri = fs.resolve(parsedUri);
+        if (uri == null) {
+          return encodeInvalidParamError(message, 'uri');
+        }
+      } catch (e) {
+        return encodeInvalidParamError(message, 'uri');
+      }
+    } else {
+      var path = message.params['path'];
+      if (path == null) {
+        return encodeMissingParamError(message, 'path');
+      }
+      if (path is! String) {
+        return encodeInvalidParamError(message, 'path');
+      }
+      uri = fs.resolvePath(path);
+      if (uri == null) {
+        return encodeInvalidParamError(message, 'path');
+      }
     }
     var fileContents = message.params['fileContents'];
     if (fileContents == null) {
@@ -313,18 +349,17 @@ class DevFS {
       var fileInfo = files[i];
       if (fileInfo is! List ||
           fileInfo.length != 2 ||
-          fileInfo[0] is! String || fileInfo[1] is! String) {
-        return encodeRpcError(
-            message, kInvalidParams,
+          fileInfo[0] is! String ||
+          fileInfo[1] is! String) {
+        return encodeRpcError(message, kInvalidParams,
             details: "${message.method}: invalid 'files' parameter "
-                     "at index ${i}: ${fileInfo}");
+                "at index ${i}: ${fileInfo}");
       }
       var uri = fs.resolvePath(fileInfo[0]);
       if (uri == null) {
-        return encodeRpcError(
-            message, kInvalidParams,
+        return encodeRpcError(message, kInvalidParams,
             details: "${message.method}: invalid 'files' parameter "
-                     "at index ${i}: ${fileInfo}");
+                "at index ${i}: ${fileInfo}");
       }
       uris.add(uri);
     }
@@ -358,7 +393,7 @@ class DevFS {
     for (int i = 0; i < fileList.length; i++) {
       fileList[i]['name'] = Uri.decodeFull(fileList[i]['name']);
     }
-    var result = { 'type': 'FSFileList', 'files': fileList };
+    var result = {'type': 'FSFileList', 'files': fileList};
     return encodeResult(message, result);
   }
 }

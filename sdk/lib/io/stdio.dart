@@ -10,24 +10,17 @@ const int _STDIO_HANDLE_TYPE_FILE = 2;
 const int _STDIO_HANDLE_TYPE_SOCKET = 3;
 const int _STDIO_HANDLE_TYPE_OTHER = 4;
 
-
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
 
   _StdStream(this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {Function onError,
-                                        void onDone(),
-                                        bool cancelOnError}) {
-    return _stream.listen(
-        onData,
-        onError: onError,
-        onDone: onDone,
-        cancelOnError: cancelOnError);
+      {Function onError, void onDone(), bool cancelOnError}) {
+    return _stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
-
 
 /**
  * [Stdin] allows both synchronous and asynchronous reads from the standard
@@ -53,8 +46,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * that data is returned.
    * Returns `null` if no bytes preceded the end of input.
    */
-  String readLineSync({Encoding encoding: SYSTEM_ENCODING,
-                       bool retainNewlines: false}) {
+  String readLineSync(
+      {Encoding encoding: SYSTEM_ENCODING, bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
     final List<int> line = <int>[];
@@ -87,7 +80,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
       }
     } else {
       // Case having to handel CR LF as a single unretained line terminator.
-      outer: while (true) {
+      outer:
+      while (true) {
         int byte = readByteSync();
         if (byte == LF) break;
         if (byte == CR) {
@@ -120,6 +114,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If disabled, input from to console will not be echoed.
    *
    * Default depends on the parent process, but usually enabled.
+   *
+   * On Windows this mode can only be enabled if [lineMode] is enabled as well.
    */
   external void set echoMode(bool enabled);
 
@@ -135,8 +131,34 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If disabled, characters will be available as typed.
    *
    * Default depends on the parent process, but usually enabled.
+   *
+   * On Windows this mode can only be disabled if [echoMode] is disabled as well.
    */
   external void set lineMode(bool enabled);
+
+  /**
+    * Whether connected to a terminal that supports ANSI escape sequences.
+    *
+    * Not all terminals are recognized, and not all recognized terminals can
+    * report whether they support ANSI escape sequences, so this value is a
+    * best-effort attempt at detecting the support.
+    *
+    * The actual escape sequence support may differ between terminals,
+    * with some terminals supporting more escape sequences than others,
+    * and some terminals even differing in behavior for the same escape
+    * sequence.
+    *
+    * The ANSI color selection is generally supported.
+    *
+    * Currently, a `TERM` environment variable containing the string `xterm`
+    * will be taken as evidence that ANSI escape sequences are supported.
+    * On Windows, only versions of Windows 10 after v.1511
+    * ("TH2", OS build 10586) will be detected as supporting the output of
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * Update", OS build 14393) will be detected as supporting the input of
+    * ANSI escape sequences.
+    */
+  external bool get supportsAnsiEscapes;
 
   /**
    * Synchronously read a byte from stdin. This call will block until a byte is
@@ -146,7 +168,6 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    */
   external int readByteSync();
 }
-
 
 /**
  * [Stdout] represents the [IOSink] for either `stdout` or `stderr`.
@@ -181,7 +202,7 @@ class Stdout extends _StdSink implements IOSink {
    */
   int get terminalColumns => _terminalColumns(_fd);
 
-  /**
+  /*
    * Get the number of lines of the terminal.
    *
    * If no terminal is attached to stdout, a [StdoutException] is thrown. See
@@ -189,9 +210,34 @@ class Stdout extends _StdSink implements IOSink {
    */
   int get terminalLines => _terminalLines(_fd);
 
+  /**
+    * Whether connected to a terminal that supports ANSI escape sequences.
+    *
+    * Not all terminals are recognized, and not all recognized terminals can
+    * report whether they support ANSI escape sequences, so this value is a
+    * best-effort attempt at detecting the support.
+    *
+    * The actual escape sequence support may differ between terminals,
+    * with some terminals supporting more escape sequences than others,
+    * and some terminals even differing in behavior for the same escape
+    * sequence.
+    *
+    * The ANSI color selection is generally supported.
+    *
+    * Currently, a `TERM` environment variable containing the string `xterm`
+    * will be taken as evidence that ANSI escape sequences are supported.
+    * On Windows, only versions of Windows 10 after v.1511
+    * ("TH2", OS build 10586) will be detected as supporting the output of
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * Update", OS build 14393) will be detected as supporting the input of
+    * ANSI escape sequences.
+    */
+  bool get supportsAnsiEscapes => _supportsAnsiEscapes(_fd);
+
   external bool _hasTerminal(int fd);
   external int _terminalColumns(int fd);
   external int _terminalLines(int fd);
+  external static bool _supportsAnsiEscapes(int fd);
 
   /**
    * Get a non-blocking `IOSink`.
@@ -204,7 +250,6 @@ class Stdout extends _StdSink implements IOSink {
   }
 }
 
-
 class StdoutException implements IOException {
   final String message;
   final OSError osError;
@@ -215,7 +260,6 @@ class StdoutException implements IOException {
     return "StdoutException: $message${osError == null ? "" : ", $osError"}";
   }
 }
-
 
 class StdinException implements IOException {
   final String message;
@@ -228,7 +272,6 @@ class StdinException implements IOException {
   }
 }
 
-
 class _StdConsumer implements StreamConsumer<List<int>> {
   final _file;
 
@@ -237,15 +280,14 @@ class _StdConsumer implements StreamConsumer<List<int>> {
   Future addStream(Stream<List<int>> stream) {
     var completer = new Completer();
     var sub;
-    sub = stream.listen(
-        (data) {
-          try {
-            _file.writeFromSync(data);
-          } catch (e, s) {
-            sub.cancel();
-            completer.completeError(e, s);
-          }
-        },
+    sub = stream.listen((data) {
+      try {
+        _file.writeFromSync(data);
+      } catch (e, s) {
+        sub.cancel();
+        completer.completeError(e, s);
+      }
+    },
         onError: completer.completeError,
         onDone: completer.complete,
         cancelOnError: true);
@@ -260,6 +302,7 @@ class _StdConsumer implements StreamConsumer<List<int>> {
 
 class _StdSink implements IOSink {
   final IOSink _sink;
+  final bool _isTranslatable;
 
   _StdSink(this._sink);
 
@@ -267,14 +310,31 @@ class _StdSink implements IOSink {
   void set encoding(Encoding encoding) {
     _sink.encoding = encoding;
   }
-  void write(object) { _sink.write(object); }
-  void writeln([object = "" ]) { _sink.writeln(object); }
-  void writeAll(objects, [sep = ""]) { _sink.writeAll(objects, sep); }
-  void add(List<int> data) { _sink.add(data); }
+
+  void write(object) {
+    _sink.write(object);
+  }
+
+  void writeln([object = ""]) {
+    _sink.writeln(object);
+  }
+
+  void writeAll(objects, [sep = ""]) {
+    _sink.writeAll(objects, sep);
+  }
+
+  void add(List<int> data) {
+    _sink.add(data);
+  }
+
   void addError(error, [StackTrace stackTrace]) {
     _sink.addError(error, stackTrace);
   }
-  void writeCharCode(int charCode) { _sink.writeCharCode(charCode); }
+
+  void writeCharCode(int charCode) {
+    _sink.writeCharCode(charCode);
+  }
+
   Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
   Future flush() => _sink.flush();
   Future close() => _sink.close();
@@ -292,11 +352,9 @@ class StdioType {
   String toString() => "StdioType: $name";
 }
 
-
 Stdin _stdin;
 Stdout _stdout;
 Stdout _stderr;
-
 
 /// The standard input stream of data read by this program.
 Stdin get stdin {
@@ -306,7 +364,6 @@ Stdin get stdin {
   return _stdin;
 }
 
-
 /// The standard output stream of data written by this program.
 Stdout get stdout {
   if (_stdout == null) {
@@ -314,7 +371,6 @@ Stdout get stdout {
   }
   return _stdout;
 }
-
 
 /// The standard output stream of errors written by this program.
 Stdout get stderr {
@@ -324,7 +380,6 @@ Stdout get stderr {
   return _stderr;
 }
 
-
 /// For a stream, returns whether it is attached to a file, pipe, terminal, or
 /// something else.
 StdioType stdioType(object) {
@@ -332,9 +387,12 @@ StdioType stdioType(object) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
     switch (_StdIOUtils._getStdioHandleType(object == stdout ? 1 : 2)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
-      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
-      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+      case _STDIO_HANDLE_TYPE_TERMINAL:
+        return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE:
+        return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:
+        return StdioType.FILE;
     }
   }
   if (object is _FileStream) {
@@ -364,10 +422,10 @@ StdioType stdioType(object) {
   return StdioType.OTHER;
 }
 
-
 class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
+
   /// Returns the socket type or `null` if [socket] is not a builtin socket.
   external static int _socketType(Socket socket);
   external static _getStdioHandleType(int fd);

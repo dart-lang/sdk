@@ -12,6 +12,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -97,10 +98,23 @@ class ExecutionDomainHandler implements RequestHandler {
       return new Response.invalidParameter(request, 'id',
           'There is no execution context with an id of $contextId');
     }
-    AnalysisContext context = server.getContainingContext(path);
-    if (context == null) {
-      return new Response.invalidExecutionContext(request, contextId);
+
+    SourceFactory sourceFactory;
+    AnalysisDriver driver;
+    if (server.options.enableNewAnalysisDriver) {
+      driver = server.getAnalysisDriver(path);
+      if (driver == null) {
+        return new Response.invalidExecutionContext(request, contextId);
+      }
+      sourceFactory = driver.sourceFactory;
+    } else {
+      AnalysisContext context = server.getContainingContext(path);
+      if (context == null) {
+        return new Response.invalidExecutionContext(request, contextId);
+      }
+      sourceFactory = context.sourceFactory;
     }
+
     String file = params.file;
     String uri = params.uri;
     if (file != null) {
@@ -115,16 +129,22 @@ class ExecutionDomainHandler implements RequestHandler {
         return new Response.invalidParameter(
             request, 'file', 'Must not refer to a directory');
       }
-      ContextSourcePair contextSource = server.getContextSourcePair(file);
-      Source source = contextSource.source;
+
+      Source source;
+      if (server.options.enableNewAnalysisDriver) {
+        source = driver.fsState.getFileForPath(file).source;
+      } else {
+        ContextSourcePair contextSource = server.getContextSourcePair(file);
+        source = contextSource.source;
+      }
       if (source.uriKind != UriKind.FILE_URI) {
         uri = source.uri.toString();
       } else {
-        uri = context.sourceFactory.restoreUri(source).toString();
+        uri = sourceFactory.restoreUri(source).toString();
       }
       return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {
-      Source source = context.sourceFactory.forUri(uri);
+      Source source = sourceFactory.forUri(uri);
       if (source == null) {
         return new Response.invalidParameter(request, 'uri', 'Invalid URI');
       }
@@ -139,20 +159,26 @@ class ExecutionDomainHandler implements RequestHandler {
    * Implement the 'execution.setSubscriptions' request.
    */
   Response setSubscriptions(Request request) {
-    List<ExecutionService> subscriptions =
-        new ExecutionSetSubscriptionsParams.fromRequest(request).subscriptions;
-    if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
-      if (onFileAnalyzed == null) {
-        onFileAnalyzed = server.onFileAnalyzed.listen(_fileAnalyzed);
-        _reportCurrentFileStatus();
-      }
+    if (server.options.enableNewAnalysisDriver) {
+      // Under the analysis driver, setSubscriptions() becomes a no-op.
+      return new ExecutionSetSubscriptionsResult().toResponse(request.id);
     } else {
-      if (onFileAnalyzed != null) {
-        onFileAnalyzed.cancel();
-        onFileAnalyzed = null;
+      List<ExecutionService> subscriptions =
+          new ExecutionSetSubscriptionsParams.fromRequest(request)
+              .subscriptions;
+      if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
+        if (onFileAnalyzed == null) {
+          onFileAnalyzed = server.onFileAnalyzed.listen(_fileAnalyzed);
+          _reportCurrentFileStatus();
+        }
+      } else {
+        if (onFileAnalyzed != null) {
+          onFileAnalyzed.cancel();
+          onFileAnalyzed = null;
+        }
       }
+      return new ExecutionSetSubscriptionsResult().toResponse(request.id);
     }
-    return new ExecutionSetSubscriptionsResult().toResponse(request.id);
   }
 
   void _fileAnalyzed(ChangeNotice notice) {

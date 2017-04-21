@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int x;
+  final field core::int y;
+  constructor •(dynamic y) → void
+    : self::A::y = y, self::A::x = 42, super core::Object::•()
+    ;
+  method method() → dynamic {
+    core::print("A.method x: ${this.x} y: ${this.y}");
+    core::print(this);
+    core::print(this.runtimeType);
+  }
+}
+class B extends self::A {
+  constructor •(dynamic x) → void
+    : super self::A::•(x)
+    ;
+  method method() → dynamic {
+    core::print("B.method x: ${this.x} y: ${this.y}");
+    this.{=self::A::method}();
+  }
+}
+static method main() → dynamic {
+  self::A a = new self::A::•(87);
+  self::B b = new self::B::•(117);
+  a.method();
+  b.method();
+}

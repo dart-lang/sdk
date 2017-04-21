@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "vm/lockers.h"
 #include "vm/native_symbol.h"
@@ -20,7 +20,6 @@ void NativeSymbolResolver::InitOnce() {
   ASSERT(running_ == false);
   lock_ = new Mutex();
   running_ = true;
-#if 0
   SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
   HANDLE hProcess = GetCurrentProcess();
   if (!SymInitialize(hProcess, NULL, TRUE)) {
@@ -28,7 +27,6 @@ void NativeSymbolResolver::InitOnce() {
     printf("Failed to init NativeSymbolResolver (SymInitialize %d)\n", error);
     return;
   }
-#endif
 }
 
 
@@ -38,13 +36,11 @@ void NativeSymbolResolver::ShutdownOnce() {
     return;
   }
   running_ = false;
-#if 0
   HANDLE hProcess = GetCurrentProcess();
   if (!SymCleanup(hProcess)) {
     DWORD error = GetLastError();
     printf("Failed to shutdown NativeSymbolResolver (SymCleanup  %d)\n", error);
   }
-#endif
 }
 
 
@@ -60,20 +56,21 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   if (start != NULL) {
     *start = NULL;
   }
-#if 0
   memset(&buffer[0], 0, sizeof(buffer));
   HANDLE hProcess = GetCurrentProcess();
   DWORD64 address = static_cast<DWORD64>(pc);
   PSYMBOL_INFO pSymbol = reinterpret_cast<PSYMBOL_INFO>(&buffer[0]);
   pSymbol->SizeOfStruct = kSymbolInfoSize;
   pSymbol->MaxNameLen = kMaxNameLength;
-  BOOL r = SymFromAddr(hProcess, address, NULL, pSymbol);
+  DWORD64 displacement;
+  BOOL r = SymFromAddr(hProcess, address, &displacement, pSymbol);
   if (r == FALSE) {
     return NULL;
   }
+  if (start != NULL) {
+    *start = pc - displacement;
+  }
   return strdup(pSymbol->Name);
-#endif
-  return NULL;
 }
 
 
@@ -82,6 +79,12 @@ void NativeSymbolResolver::FreeSymbolName(char* name) {
 }
 
 
+bool NativeSymbolResolver::LookupSharedObject(uword pc,
+                                              uword* dso_base,
+                                              char** dso_name) {
+  return false;
+}
+
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

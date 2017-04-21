@@ -1,0 +1,21 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+/generic_methods_unused_parameter_test: Crash
+/generic_methods_closure_test: Crash
+/generic_methods_generic_class_tearoff_test: Crash
+/generic_methods_local_variable_declaration_test: Crash
+/generic_methods_named_parameters_test: Crash
+/generic_methods_optional_parameters_test: Crash
+/generic_methods_recursive_bound_error_test: Crash
+/generic_methods_recursive_bound_test: Crash
+/generic_methods_reuse_type_variables_test: Crash
+/generic_methods_shadowing_test: Crash
+/generic_methods_simple_is_expression_test: Crash
+/generic_methods_tearoff_specialization_test: Crash
+/generic_methods_bounds_test: Fail
+/generic_methods_dynamic_dependent_type_error_test: Fail
+/generic_methods_dynamic_simple_error_test: Fail
+/generic_methods_dynamic_test: Fail
+/generic_methods_simple_as_expression_error_test: Fail

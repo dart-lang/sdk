@@ -135,8 +135,8 @@ abstract class Map<K, V> {
    *
    * The two [Iterable]s must have the same length.
    */
-  factory Map.fromIterables(Iterable<K> keys, Iterable<V> values)
-      = LinkedHashMap<K, V>.fromIterables;
+  factory Map.fromIterables(Iterable<K> keys, Iterable<V> values) =
+      LinkedHashMap<K, V>.fromIterables;
 
   /**
    * Returns true if this map contains the given [value].

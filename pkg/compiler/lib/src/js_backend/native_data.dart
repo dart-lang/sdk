@@ -5,200 +5,484 @@
 library js_backend.native_data;
 
 import '../common.dart';
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Entity,
-        FieldElement,
-        FunctionElement,
-        MemberElement;
+import '../common_elements.dart' show ElementEnvironment;
+import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
+import '../util/util.dart';
+
+/// Basic information for native classes and js-interop libraries and classes.
+///
+/// This information is computed during loading using [NativeBasicDataBuilder].
+abstract class NativeBasicData {
+  /// Returns `true` if [cls] corresponds to a native JavaScript class.
+  ///
+  /// A class is marked as native either through the `@Native(...)` annotation
+  /// allowed for internal libraries or via the typed JavaScriptInterop
+  /// mechanism allowed for user libraries.
+  bool isNativeClass(ClassEntity element);
+
+  /// Returns the list of non-directive native tag words for [cls].
+  List<String> getNativeTagsOfClass(ClassEntity cls);
+
+  /// Returns `true` if [cls] has a `!nonleaf` tag word.
+  bool hasNativeTagsForcedNonLeaf(ClassEntity cls);
+
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassEntity element);
+
+  /// Returns `true` if [element] is a JsInterop library.
+  bool isJsInteropLibrary(LibraryEntity element);
+
+  /// Returns `true` if [element] is a JsInterop class.
+  bool isJsInteropClass(ClassEntity element);
+}
 
 /// Additional element information for native classes and methods and js-interop
 /// methods.
-class NativeData {
-  /// The JavaScript names for elements implemented via typed JavaScript
-  /// interop.
-  Map<Element, String> jsInteropNames = <Element, String>{};
+///
+/// This information is computed during resolution using [NativeDataBuilder].
+abstract class NativeData extends NativeBasicData {
+  /// Returns `true` if [element] corresponds to a native JavaScript member.
+  ///
+  /// A member is marked as native either through the native mechanism
+  /// (`@Native(...)` or the `native` pseudo keyword) allowed for internal
+  /// libraries or via the typed JavaScriptInterop mechanism allowed for user
+  /// libraries.
+  bool isNativeMember(MemberEntity element);
 
-  /// The JavaScript names for native JavaScript elements implemented.
-  Map<Element, String> nativeMemberName = <Element, String>{};
+  /// Returns the [NativeBehavior] for calling the native [method].
+  NativeBehavior getNativeMethodBehavior(FunctionEntity method);
 
-  /// Tag info for native JavaScript classes names. See
-  /// [setNativeClassTagInfo].
-  Map<ClassElement, String> nativeClassTagInfo = <ClassElement, String>{};
+  /// Returns the [NativeBehavior] for reading from the native [field].
+  NativeBehavior getNativeFieldLoadBehavior(FieldEntity field);
 
-  /// Cache for [NativeBehavior]s for calling native methods.
-  Map<FunctionElement, NativeBehavior> nativeMethodBehavior =
-      <FunctionElement, NativeBehavior>{};
-
-  /// Cache for [NativeBehavior]s for reading from native fields.
-  Map<MemberElement, NativeBehavior> nativeFieldLoadBehavior =
-      <FieldElement, NativeBehavior>{};
-
-  /// Cache for [NativeBehavior]s for writing to native fields.
-  Map<MemberElement, NativeBehavior> nativeFieldStoreBehavior =
-      <FieldElement, NativeBehavior>{};
-
-  /// Prefix used to escape JS names that are not valid Dart names
-  /// when using JSInterop.
-  static const String _jsInteropEscapePrefix = r'JS$';
-
-  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
-  bool _isJsInterop(Element element) {
-    return jsInteropNames.containsKey(element.declaration);
-  }
-
-  /// Returns [element] as an explicit part of JsInterop. The js interop name is
-  /// expected to be computed later.
-  void markAsJsInterop(Element element) {
-    jsInteropNames[element.declaration] = null;
-  }
-
-  /// Sets the explicit js interop [name] for [element].
-  void setJsInteropName(Element element, String name) {
-    assert(invariant(element, isJsInterop(element),
-        message:
-            'Element $element is not js interop but given a js interop name.'));
-    jsInteropNames[element.declaration] = name;
-  }
-
-  /// Returns the explicit js interop name for [element].
-  String getJsInteropName(Element element) {
-    return jsInteropNames[element.declaration];
-  }
-
-  /// Returns `true` if [element] is part of JsInterop.
-  bool isJsInterop(Element element) {
-    // An function is part of JsInterop in the following cases:
-    // * It has a jsInteropName annotation
-    // * It is external member of a class or library tagged as JsInterop.
-    if (element.isFunction || element.isConstructor || element.isAccessor) {
-      FunctionElement function = element;
-      if (!function.isExternal) return false;
-
-      if (_isJsInterop(function)) return true;
-      if (function.isClassMember) return isJsInterop(function.contextClass);
-      if (function.isTopLevel) return isJsInterop(function.library);
-      return false;
-    } else {
-      return _isJsInterop(element);
-    }
-  }
+  /// Returns the [NativeBehavior] for writing to the native [field].
+  NativeBehavior getNativeFieldStoreBehavior(FieldEntity field);
 
   /// Returns `true` if the name of [element] is fixed for the generated
   /// JavaScript.
-  bool hasFixedBackendName(Element element) {
-    return isJsInterop(element) ||
-        nativeMemberName.containsKey(element.declaration);
-  }
-
-  String _jsNameHelper(Element element) {
-    String jsInteropName = jsInteropNames[element.declaration];
-    assert(invariant(element, !(_isJsInterop(element) && jsInteropName == null),
-        message:
-            'Element $element is js interop but js interop name has not yet '
-            'been computed.'));
-    if (jsInteropName != null && jsInteropName.isNotEmpty) {
-      return jsInteropName;
-    }
-    return element.isLibrary ? 'self' : getUnescapedJSInteropName(element.name);
-  }
+  bool hasFixedBackendName(MemberEntity element);
 
   /// Computes the name for [element] to use in the generated JavaScript. This
   /// is either given through a native annotation or a js interop annotation.
-  String getFixedBackendName(Entity entity) {
-    // TODO(johnniwinther): Remove this assignment from [Entity] to [Element]
-    // when `.declaration` is no longer needed.
-    Element element = entity;
-    String name = nativeMemberName[element.declaration];
-    if (name == null && isJsInterop(element)) {
-      // If an element isJsInterop but _isJsInterop is false that means it is
-      // considered interop as the parent class is interop.
-      name = _jsNameHelper(
-          element.isConstructor ? element.enclosingClass : element);
-      nativeMemberName[element.declaration] = name;
-    }
-    return name;
-  }
+  String getFixedBackendName(MemberEntity element);
 
-  /// Whether [element] corresponds to a native JavaScript construct either
-  /// through the native mechanism (`@Native(...)` or the `native` pseudo
-  /// keyword) which is only allowed for internal libraries or via the typed
-  /// JavaScriptInterop mechanism which is allowed for user libraries.
-  bool isNative(Element element) {
-    if (isJsInterop(element)) return true;
-    if (element.isClass) {
-      return nativeClassTagInfo.containsKey(element.declaration);
-    } else {
-      return nativeMemberName.containsKey(element.declaration);
-    }
-  }
+  /// Computes the name prefix for [element] to use in the generated JavaScript.
+  ///
+  /// For static and top-level members and constructors this is based on the
+  /// JavaScript names for the library and/or the enclosing class.
+  String getFixedBackendMethodPath(FunctionEntity element);
+
+  /// Returns `true` if [element] is a JsInterop method.
+  bool isJsInteropMember(MemberEntity element);
+
+  /// Returns the explicit js interop name for library [element].
+  String getJsInteropLibraryName(LibraryEntity element);
+
+  /// Returns the explicit js interop name for class [element].
+  String getJsInteropClassName(ClassEntity element);
+
+  /// Returns the explicit js interop name for member [element].
+  String getJsInteropMemberName(MemberEntity element);
+
+  /// Apply JS$ escaping scheme to convert possible escaped Dart names into
+  /// JS names.
+  String computeUnescapedJSInteropName(String name);
+}
+
+abstract class NativeBasicDataBuilder {
+  /// Sets the native tag info for [cls].
+  ///
+  /// The tag info string contains comma-separated 'words' which are either
+  /// dispatch tags (having JavaScript identifier syntax) and directives that
+  /// begin with `!`.
+  void setNativeClassTagInfo(ClassEntity cls, String tagInfo);
+
+  /// Marks [element] as an explicit part of JsInterop. The js interop name is
+  /// expected to be computed later.
+  void markAsJsInteropLibrary(LibraryEntity element);
+
+  /// Marks [element] as an explicit part of JsInterop. The js interop name is
+  /// expected to be computed later.
+  void markAsJsInteropClass(ClassEntity element);
+
+  /// Creates the [NativeBasicData] object for the data collected in this
+  /// builder.
+  NativeBasicData close(ElementEnvironment environment);
+}
+
+abstract class NativeDataBuilder {
+  /// Registers the [behavior] for calling the native [method].
+  void setNativeMethodBehavior(FunctionEntity method, NativeBehavior behavior);
+
+  /// Registers the [behavior] for reading from the native [field].
+  void setNativeFieldLoadBehavior(FieldEntity field, NativeBehavior behavior);
+
+  /// Registers the [behavior] for writing to the native [field].
+  void setNativeFieldStoreBehavior(FieldEntity field, NativeBehavior behavior);
+
+  /// Returns [element] as an explicit part of JsInterop. The js interop name is
+  /// expected to be computed later.
+  void markAsJsInteropMember(MemberEntity element);
 
   /// Sets the native [name] for the member [element]. This name is used for
   /// [element] in the generated JavaScript.
-  void setNativeMemberName(MemberElement element, String name) {
-    // TODO(johnniwinther): Avoid setting this more than once. The enqueuer
-    // might enqueue [element] several times (before processing it) and computes
-    // name on each call to `internalAddToWorkList`.
-    assert(invariant(
-        element,
-        nativeMemberName[element.declaration] == null ||
-            nativeMemberName[element.declaration] == name,
-        message: "Native member name set inconsistently on $element: "
-            "Existing name '${nativeMemberName[element.declaration]}', "
-            "new name '$name'."));
-    nativeMemberName[element.declaration] = name;
-  }
+  void setNativeMemberName(MemberEntity element, String name);
+
+  /// Sets the explicit js interop [name] for the library [element].
+  void setJsInteropLibraryName(LibraryEntity element, String name);
+
+  /// Sets the explicit js interop [name] for the class [element].
+  void setJsInteropClassName(ClassEntity element, String name);
+
+  /// Sets the explicit js interop [name] for the member [element].
+  void setJsInteropMemberName(MemberEntity element, String name);
+}
+
+class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
+  /// Tag info for native JavaScript classes names. See
+  /// [setNativeClassTagInfo].
+  Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
+      <ClassEntity, NativeClassTag>{};
+
+  /// The JavaScript libraries implemented via typed JavaScript interop.
+  Set<LibraryEntity> jsInteropLibraries = new Set<LibraryEntity>();
+
+  /// The JavaScript classes implemented via typed JavaScript interop.
+  Set<ClassEntity> jsInteropClasses = new Set<ClassEntity>();
 
   /// Sets the native tag info for [cls].
   ///
   /// The tag info string contains comma-separated 'words' which are either
   /// dispatch tags (having JavaScript identifier syntax) and directives that
   /// begin with `!`.
-  void setNativeClassTagInfo(ClassElement cls, String tagInfo) {
+  void setNativeClassTagInfo(ClassEntity cls, String tagInfo) {
+    String tagText = tagInfo.substring(1, tagInfo.length - 1);
     // TODO(johnniwinther): Assert that this is only called once. The memory
     // compiler copies pre-processed elements into a new compiler through
     // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
     // method.
     assert(invariant(
         cls,
-        nativeClassTagInfo[cls.declaration] == null ||
-            nativeClassTagInfo[cls.declaration] == tagInfo,
+        nativeClassTagInfo[cls] == null ||
+            nativeClassTagInfo[cls].text == tagText,
         message: "Native tag info set inconsistently on $cls: "
-            "Existing tag info '${nativeClassTagInfo[cls.declaration]}', "
-            "new tag info '$tagInfo'."));
-    nativeClassTagInfo[cls.declaration] = tagInfo;
+            "Existing tag info '${nativeClassTagInfo[cls]}', "
+            "new tag info '$tagText'."));
+    nativeClassTagInfo[cls] = new NativeClassTag(tagText);
   }
 
-  /// Returns the list of native tag words for [cls].
-  List<String> getNativeTagsOfClassRaw(ClassElement cls) {
-    String quotedName = nativeClassTagInfo[cls.declaration];
-    return quotedName.substring(1, quotedName.length - 1).split(',');
+  @override
+  void markAsJsInteropLibrary(LibraryEntity element) {
+    jsInteropLibraries.add(element);
+  }
+
+  @override
+  void markAsJsInteropClass(ClassEntity element) {
+    jsInteropClasses.add(element);
+  }
+
+  NativeBasicData close(ElementEnvironment environment) {
+    return new NativeBasicDataImpl(
+        environment, nativeClassTagInfo, jsInteropLibraries, jsInteropClasses);
+  }
+}
+
+class NativeBasicDataImpl implements NativeBasicData {
+  final ElementEnvironment _env;
+
+  /// Tag info for native JavaScript classes names. See
+  /// [setNativeClassTagInfo].
+  final Map<ClassEntity, NativeClassTag> nativeClassTagInfo;
+
+  /// The JavaScript libraries implemented via typed JavaScript interop.
+  final Set<LibraryEntity> jsInteropLibraries;
+
+  /// The JavaScript classes implemented via typed JavaScript interop.
+  final Set<ClassEntity> jsInteropClasses;
+
+  NativeBasicDataImpl(this._env, this.nativeClassTagInfo,
+      this.jsInteropLibraries, this.jsInteropClasses);
+
+  /// Returns `true` if [cls] is a native class.
+  bool isNativeClass(ClassEntity element) {
+    if (isJsInteropClass(element)) return true;
+    return nativeClassTagInfo.containsKey(element);
   }
 
   /// Returns the list of non-directive native tag words for [cls].
-  List<String> getNativeTagsOfClass(ClassElement cls) {
-    return getNativeTagsOfClassRaw(cls)
-        .where((s) => !s.startsWith('!'))
-        .toList();
+  List<String> getNativeTagsOfClass(ClassEntity cls) {
+    return nativeClassTagInfo[cls].names;
   }
 
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
-  bool hasNativeTagsForcedNonLeaf(ClassElement cls) {
-    return getNativeTagsOfClassRaw(cls).contains('!nonleaf');
+  bool hasNativeTagsForcedNonLeaf(ClassEntity cls) {
+    return nativeClassTagInfo[cls].isNonLeaf;
+  }
+
+  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
+  bool isJsInteropLibrary(LibraryEntity element) {
+    return jsInteropLibraries.contains(element);
+  }
+
+  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
+  bool isJsInteropClass(ClassEntity element) {
+    return jsInteropClasses.contains(element);
+  }
+
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassEntity element) {
+    if (element == null) return false;
+    if (isNativeClass(element) || isJsInteropClass(element)) {
+      return true;
+    }
+    return isNativeOrExtendsNative(_env.getSuperClass(element));
+  }
+}
+
+class NativeDataImpl implements NativeDataBuilder, NativeData {
+  /// Prefix used to escape JS names that are not valid Dart names
+  /// when using JSInterop.
+  static const String _jsInteropEscapePrefix = r'JS$';
+
+  final NativeBasicData _nativeBasicData;
+
+  /// The JavaScript names for native JavaScript elements implemented.
+  Map<MemberEntity, String> nativeMemberName = <MemberEntity, String>{};
+
+  /// Cache for [NativeBehavior]s for calling native methods.
+  Map<FunctionEntity, NativeBehavior> nativeMethodBehavior =
+      <FunctionEntity, NativeBehavior>{};
+
+  /// Cache for [NativeBehavior]s for reading from native fields.
+  Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
+      <FieldEntity, NativeBehavior>{};
+
+  /// Cache for [NativeBehavior]s for writing to native fields.
+  Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
+      <FieldEntity, NativeBehavior>{};
+
+  /// The JavaScript names for elements implemented via typed JavaScript
+  /// interop.
+  Map<LibraryEntity, String> jsInteropLibraryNames = <LibraryEntity, String>{};
+  Map<ClassEntity, String> jsInteropClassNames = <ClassEntity, String>{};
+
+  /// The JavaScript names for elements implemented via typed JavaScript
+  /// interop.
+  Map<MemberEntity, String> jsInteropMemberNames = <MemberEntity, String>{};
+
+  NativeDataImpl(this._nativeBasicData);
+
+  /// Sets the native [name] for the member [element]. This name is used for
+  /// [element] in the generated JavaScript.
+  void setNativeMemberName(MemberEntity element, String name) {
+    // TODO(johnniwinther): Avoid setting this more than once. The enqueuer
+    // might enqueue [element] several times (before processing it) and computes
+    // name on each call to `internalAddToWorkList`.
+    assert(invariant(element,
+        nativeMemberName[element] == null || nativeMemberName[element] == name,
+        message: "Native member name set inconsistently on $element: "
+            "Existing name '${nativeMemberName[element]}', "
+            "new name '$name'."));
+    nativeMemberName[element] = name;
+  }
+
+  /// Registers the [behavior] for calling the native [method].
+  void setNativeMethodBehavior(FunctionEntity method, NativeBehavior behavior) {
+    nativeMethodBehavior[method] = behavior;
+  }
+
+  /// Registers the [behavior] for reading from the native [field].
+  void setNativeFieldLoadBehavior(FieldEntity field, NativeBehavior behavior) {
+    nativeFieldLoadBehavior[field] = behavior;
+  }
+
+  /// Registers the [behavior] for writing to the native [field].
+  void setNativeFieldStoreBehavior(FieldEntity field, NativeBehavior behavior) {
+    nativeFieldStoreBehavior[field] = behavior;
+  }
+
+  /// Sets the explicit js interop [name] for the library [element].
+  void setJsInteropLibraryName(LibraryEntity element, String name) {
+    assert(invariant(element, _nativeBasicData.isJsInteropLibrary(element),
+        message:
+            'Library $element is not js interop but given a js interop name.'));
+    jsInteropLibraryNames[element] = name;
+  }
+
+  /// Sets the explicit js interop [name] for the class [element].
+  void setJsInteropClassName(ClassEntity element, String name) {
+    assert(invariant(element, _nativeBasicData.isJsInteropClass(element),
+        message:
+            'Class $element is not js interop but given a js interop name.'));
+    jsInteropClassNames[element] = name;
+  }
+
+  @override
+  void markAsJsInteropMember(MemberEntity element) {
+    jsInteropMemberNames[element] = null;
+  }
+
+  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
+  bool _isJsInteropMember(MemberEntity element) {
+    return jsInteropMemberNames.containsKey(element);
+  }
+
+  /// Sets the explicit js interop [name] for the member [element].
+  void setJsInteropMemberName(MemberEntity element, String name) {
+    assert(invariant(element, _isJsInteropMember(element),
+        message:
+            'Member $element is not js interop but given a js interop name.'));
+    jsInteropMemberNames[element] = name;
+  }
+
+  /// Returns `true` if [cls] is a native class.
+  bool isNativeClass(ClassEntity element) =>
+      _nativeBasicData.isNativeClass(element);
+
+  /// Returns the list of non-directive native tag words for [cls].
+  List<String> getNativeTagsOfClass(ClassEntity cls) =>
+      _nativeBasicData.getNativeTagsOfClass(cls);
+
+  /// Returns `true` if [cls] has a `!nonleaf` tag word.
+  bool hasNativeTagsForcedNonLeaf(ClassEntity cls) =>
+      _nativeBasicData.hasNativeTagsForcedNonLeaf(cls);
+
+  /// Returns `true` if [element] is a JsInterop library.
+  bool isJsInteropLibrary(LibraryEntity element) =>
+      _nativeBasicData.isJsInteropLibrary(element);
+
+  /// Returns `true` if [element] is a JsInterop class.
+  bool isJsInteropClass(ClassEntity element) =>
+      _nativeBasicData.isJsInteropClass(element);
+
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassEntity element) =>
+      _nativeBasicData.isNativeOrExtendsNative(element);
+
+  /// Returns the explicit js interop name for library [element].
+  String getJsInteropLibraryName(LibraryEntity element) {
+    return jsInteropLibraryNames[element];
+  }
+
+  /// Returns the explicit js interop name for class [element].
+  String getJsInteropClassName(ClassEntity element) {
+    return jsInteropClassNames[element];
+  }
+
+  /// Returns the explicit js interop name for member [element].
+  String getJsInteropMemberName(MemberEntity element) {
+    return jsInteropMemberNames[element];
+  }
+
+  /// Returns `true` if [element] is a JsInterop method.
+  bool isJsInteropMember(MemberEntity element) {
+    if (element.isFunction ||
+        element.isConstructor ||
+        element.isGetter ||
+        element.isSetter) {
+      FunctionEntity function = element;
+      if (!function.isExternal) return false;
+
+      if (_isJsInteropMember(function)) return true;
+      if (function.enclosingClass != null) {
+        return isJsInteropClass(function.enclosingClass);
+      }
+      if (function.isTopLevel) {
+        return isJsInteropLibrary(function.library);
+      }
+      return false;
+    } else {
+      return _isJsInteropMember(element);
+    }
+  }
+
+  /// Returns `true` if the name of [element] is fixed for the generated
+  /// JavaScript.
+  bool hasFixedBackendName(MemberEntity element) {
+    return isJsInteropMember(element) || nativeMemberName.containsKey(element);
+  }
+
+  /// Computes the name for [element] to use in the generated JavaScript. This
+  /// is either given through a native annotation or a js interop annotation.
+  String getFixedBackendName(MemberEntity element) {
+    String name = nativeMemberName[element];
+    if (name == null && isJsInteropMember(element)) {
+      // If an element isJsInterop but _isJsInterop is false that means it is
+      // considered interop as the parent class is interop.
+      name = element.isConstructor
+          ? _jsClassNameHelper(element.enclosingClass)
+          : _jsMemberNameHelper(element);
+      nativeMemberName[element] = name;
+    }
+    return name;
+  }
+
+  String _jsLibraryNameHelper(LibraryEntity element) {
+    String jsInteropName = getJsInteropLibraryName(element);
+    if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
+    return 'self';
+  }
+
+  String _jsClassNameHelper(ClassEntity element) {
+    String jsInteropName = getJsInteropClassName(element);
+    if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
+    return computeUnescapedJSInteropName(element.name);
+  }
+
+  String _jsMemberNameHelper(MemberEntity element) {
+    String jsInteropName = jsInteropMemberNames[element];
+    assert(invariant(element,
+        !(jsInteropMemberNames.containsKey(element) && jsInteropName == null),
+        message:
+            'Member $element is js interop but js interop name has not yet '
+            'been computed.'));
+    if (jsInteropName != null && jsInteropName.isNotEmpty) {
+      return jsInteropName;
+    }
+    return computeUnescapedJSInteropName(element.name);
+  }
+
+  /// Returns a JavaScript path specifying the context in which
+  /// [element.fixedBackendName] should be evaluated. Only applicable for
+  /// elements using typed JavaScript interop.
+  /// For example: fixedBackendPath for the static method createMap in the
+  /// Map class of the goog.map JavaScript library would have path
+  /// "goog.maps.Map".
+  String getFixedBackendMethodPath(FunctionEntity element) {
+    if (!isJsInteropMember(element)) return null;
+    if (element.isInstanceMember) return 'this';
+    if (element.isConstructor) {
+      return _fixedBackendClassPath(element.enclosingClass);
+    }
+    StringBuffer sb = new StringBuffer();
+    sb.write(_jsLibraryNameHelper(element.library));
+    if (element.enclosingClass != null) {
+      sb..write('.')..write(_jsClassNameHelper(element.enclosingClass));
+    }
+    return sb.toString();
+  }
+
+  String _fixedBackendClassPath(ClassEntity element) {
+    if (!isJsInteropClass(element)) return null;
+    return _jsLibraryNameHelper(element.library);
+  }
+
+  /// Returns `true` if [element] is a native member of a native class.
+  bool isNativeMember(MemberEntity element) {
+    if (isJsInteropMember(element)) return true;
+    return nativeMemberName.containsKey(element);
   }
 
   /// Returns the [NativeBehavior] for calling the native [method].
-  NativeBehavior getNativeMethodBehavior(FunctionElement method) {
+  NativeBehavior getNativeMethodBehavior(FunctionEntity method) {
     assert(invariant(method, nativeMethodBehavior.containsKey(method),
         message: "No native method behavior has been computed for $method."));
     return nativeMethodBehavior[method];
   }
 
   /// Returns the [NativeBehavior] for reading from the native [field].
-  NativeBehavior getNativeFieldLoadBehavior(FieldElement field) {
+  NativeBehavior getNativeFieldLoadBehavior(FieldEntity field) {
     assert(invariant(field, nativeFieldLoadBehavior.containsKey(field),
         message: "No native field load behavior has been "
             "computed for $field."));
@@ -206,35 +490,54 @@ class NativeData {
   }
 
   /// Returns the [NativeBehavior] for writing to the native [field].
-  NativeBehavior getNativeFieldStoreBehavior(FieldElement field) {
+  NativeBehavior getNativeFieldStoreBehavior(FieldEntity field) {
     assert(invariant(field, nativeFieldStoreBehavior.containsKey(field),
         message: "No native field store behavior has been "
             "computed for $field."));
     return nativeFieldStoreBehavior[field];
   }
 
-  /// Registers the [behavior] for calling the native [method].
-  void setNativeMethodBehavior(
-      FunctionElement method, NativeBehavior behavior) {
-    nativeMethodBehavior[method] = behavior;
-  }
-
-  /// Registers the [behavior] for reading from the native [field].
-  void setNativeFieldLoadBehavior(FieldElement field, NativeBehavior behavior) {
-    nativeFieldLoadBehavior[field] = behavior;
-  }
-
-  /// Registers the [behavior] for writing to the native [field].
-  void setNativeFieldStoreBehavior(
-      FieldElement field, NativeBehavior behavior) {
-    nativeFieldStoreBehavior[field] = behavior;
-  }
-
   /// Apply JS$ escaping scheme to convert possible escaped Dart names into
   /// JS names.
-  String getUnescapedJSInteropName(String name) {
+  String computeUnescapedJSInteropName(String name) {
     return name.startsWith(_jsInteropEscapePrefix)
         ? name.substring(_jsInteropEscapePrefix.length)
         : name;
   }
+}
+
+class NativeClassTag {
+  final List<String> names;
+  final bool isNonLeaf;
+
+  factory NativeClassTag(String tagText) {
+    List<String> tags = tagText.split(',');
+    List<String> names = tags.where((s) => !s.startsWith('!')).toList();
+    bool isNonLeaf = tags.contains('!nonleaf');
+    return new NativeClassTag.internal(names, isNonLeaf);
+  }
+
+  NativeClassTag.internal(this.names, this.isNonLeaf);
+
+  String get text {
+    StringBuffer sb = new StringBuffer();
+    sb.write(names.join(','));
+    if (isNonLeaf) {
+      if (names.isNotEmpty) {
+        sb.write(',');
+      }
+      sb.write('!nonleaf');
+    }
+    return sb.toString();
+  }
+
+  int get hashCode => Hashing.listHash(names, isNonLeaf.hashCode);
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! NativeClassTag) return false;
+    return equalElements(names, other.names) && isNonLeaf == other.isNonLeaf;
+  }
+
+  String toString() => text;
 }

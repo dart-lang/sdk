@@ -59,8 +59,29 @@ testBindShared(String host, bool v6Only) async {
 }
 
 void main() {
-  for (var host in ['127.0.0.1', '::1']) {
-    testBindShared(host, false);
-    testBindShared(host, true);
+  // Please don't change this to use await/async.
+  asyncStart();
+  supportsIPV6().then((ok) {
+    var addresses = ['127.0.0.1'];
+    if (ok) {
+      addresses.add('::1');
+    }
+    var futures = [];
+    for (var host in addresses) {
+      futures.add(testBindShared(host, false));
+      futures.add(testBindShared(host, true));
+    }
+    Future.wait(futures).then((_) => asyncEnd());
+  });
+}
+
+Future<bool> supportsIPV6() async {
+  try {
+    var socket = await ServerSocket.bind('::1', 0);
+    await socket.close();
+    return true;
+  } catch (e) {
+    print(e);
+    return false;
   }
 }

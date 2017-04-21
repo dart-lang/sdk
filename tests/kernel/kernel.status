@@ -4,6 +4,9 @@
 
 unsorted/invocation_errors_test: RuntimeError
 
+[ $compiler == dartk || $compiler == dartkp ]
+unsorted/super_mixin_test: RuntimeError
+
 [ $compiler == dartk && $runtime == vm ]
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
@@ -11,6 +14,9 @@ unsorted/invocation_errors_test: RuntimeError
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $compiler == dart2js ]
 unsorted/invocation_errors_test: Pass

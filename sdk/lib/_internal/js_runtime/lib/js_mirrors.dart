@@ -45,6 +45,7 @@ import 'dart:_js_helper'
         UnimplementedNoSuchMethodError,
         createRuntimeType,
         createUnmangledInvocationMirror,
+        extractFunctionTypeObjectFrom,
         getMangledTypeName,
         getMetadata,
         getType,
@@ -580,7 +581,17 @@ Symbol setterSymbol(Symbol symbol) => s("${n(symbol)}=");
 final JsMirrorSystem currentJsMirrorSystem = new JsMirrorSystem();
 
 InstanceMirror reflect(Object reflectee) {
-  if (reflectee is Closure) {
+  // TODO(sra): This test should be a quick test for something like 'is
+  // Function', but only for classes that implement `Function` via a `call`
+  // method. The JS form of the test could be something like
+  //
+  //     if (reflectee instanceof P.Object && reflectee.$isFunction) ...
+  //
+  // We don't currently have a way get that generated. We should ensure type
+  // analysis can express 'not Interceptor' and recognize a negative type test
+  // against Interceptor can be optimized to the above test. For now we have to
+  // accept the following is compiled to an interceptor-based type check.
+  if (reflectee is Function) {
     return new JsClosureMirror(reflectee);
   } else {
     return new JsInstanceMirror(reflectee);
@@ -2286,6 +2297,21 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
         Function.apply(reflectee, positionalArguments, namedArguments));
   }
 
+  TypeMirror get type {
+    // Classes that implement [call] do not subclass [Closure], but only
+    // implement [Function], so are rejected by this test.
+    if (reflectee is Closure) {
+      var functionRti = extractFunctionTypeObjectFrom(reflectee);
+      if (functionRti != null) {
+        return new JsFunctionTypeMirror(functionRti, null);
+      }
+    }
+    // Use the JsInstanceMirror method to return the JsClassMirror.
+    // TODO(sra): Should there be a TypeMirror that is both a ClassMirror and
+    // FunctionTypeMirror?
+    return super.type;
+  }
+
   String toString() => "ClosureMirror on '${Error.safeToString(reflectee)}'";
 
   // TODO(ahe): Implement this method.
@@ -2635,6 +2661,7 @@ class JsFunctionTypeMirror extends BrokenClassMirror
   String _cachedToString;
   TypeMirror _cachedReturnType;
   UnmodifiableListView<ParameterMirror> _cachedParameters;
+  Type _cachedReflectedType;
   DeclarationMirror owner;
 
   JsFunctionTypeMirror(this._typeData, this.owner);
@@ -2729,6 +2756,10 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     return _cachedParameters =
         new UnmodifiableListView<ParameterMirror>(result);
   }
+
+  bool get hasReflectedType => true;
+  Type get reflectedType => _cachedReflectedType ??=
+      createRuntimeType(runtimeTypeToString(_typeData));
 
   String _unmangleIfPreserved(String mangled) {
     String result = unmangleGlobalNameIfPreservedAnyways(mangled);

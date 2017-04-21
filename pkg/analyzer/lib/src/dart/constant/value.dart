@@ -136,6 +136,29 @@ class BoolState extends InstanceState {
 }
 
 /**
+ * Information about a const constructor invocation.
+ */
+class ConstructorInvocation {
+  /**
+   * The constructor that was called.
+   */
+  final ConstructorElement constructor;
+
+  /**
+   * The positional arguments passed to the constructor.
+   */
+  final List<DartObjectImpl> positionalArguments;
+
+  /**
+   * The named arguments passed to the constructor.
+   */
+  final Map<String, DartObjectImpl> namedArguments;
+
+  ConstructorInvocation(
+      this.constructor, this.positionalArguments, this.namedArguments);
+}
+
+/**
  * A representation of an instance of a Dart class.
  */
 class DartObjectImpl implements DartObject {
@@ -371,6 +394,16 @@ class DartObjectImpl implements DartObject {
     InstanceState state = _state;
     if (state is GenericState) {
       return state.fields[name];
+    }
+    return null;
+  }
+
+  /// Gets the constructor that was called to create this value, if this is a
+  /// const constructor invocation. Otherwise returns null.
+  ConstructorInvocation getInvocation() {
+    InstanceState state = _state;
+    if (state is GenericState) {
+      return state.invocation;
     }
     return null;
   }
@@ -1322,10 +1355,15 @@ class GenericState extends InstanceState {
   final HashMap<String, DartObjectImpl> _fieldMap;
 
   /**
+   * Information about the constructor invoked to generate this instance.
+   */
+  final ConstructorInvocation invocation;
+
+  /**
    * Initialize a newly created state to represent a newly created object. The
    * [fieldMap] contains the values of the fields of the instance.
    */
-  GenericState(this._fieldMap);
+  GenericState(this._fieldMap, {this.invocation});
 
   @override
   HashMap<String, DartObjectImpl> get fields => _fieldMap;

@@ -9,11 +9,12 @@ import '../diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import '../elements/elements.dart' show CompilationUnitElement, LibraryElement;
 import '../parser/diet_parser_task.dart' show DietParserTask;
 import '../script.dart' show Script;
-import '../tokens/token.dart' show Token;
-import '../tokens/token_constants.dart' as Tokens show COMMENT_TOKEN, EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart'
+    show Scanner, StringScanner, Token, Utf8BytesScanner;
+import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
+    show COMMENT_TOKEN, EOF_TOKEN;
 import '../tokens/token_map.dart' show TokenMap;
-import 'scanner.dart' show Scanner;
-import 'string_scanner.dart' show StringScanner;
+import '../io/source_file.dart';
 
 class ScannerTask extends CompilerTask {
   final DietParserTask _dietParser;
@@ -52,10 +53,17 @@ class ScannerTask extends CompilerTask {
     });
   }
 
+  Token scanFile(SourceFile file, {bool includeComments: false}) {
+    Scanner scanner = file is Utf8BytesSourceFile
+        ? new Utf8BytesScanner(file.slowUtf8ZeroTerminatedBytes(),
+            includeComments: includeComments)
+        : new StringScanner(file.slowText(), includeComments: includeComments);
+    return measure(scanner.tokenize);
+  }
+
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
-    Token tokens =
-        new Scanner(script.file, includeComments: _preserveComments).tokenize();
+    Token tokens = scanFile(script.file, includeComments: _preserveComments);
     if (_preserveComments) {
       tokens = processAndStripComments(tokens);
     }
@@ -71,8 +79,7 @@ class ScannerTask extends CompilerTask {
    */
   Token tokenize(String source) {
     return measure(() {
-      return new StringScanner.fromString(source, includeComments: false)
-          .tokenize();
+      return new StringScanner(source, includeComments: false).tokenize();
     });
   }
 

@@ -13,7 +13,7 @@ abstract class _IOResourceInfo {
   static final Stopwatch _sw = new Stopwatch()..start();
   static final _startTime = new DateTime.now().millisecondsSinceEpoch;
 
-  static double get timestamp => _startTime + _sw.elapsedMicroseconds/1000;
+  static double get timestamp => _startTime + _sw.elapsedMicroseconds / 1000;
 
   _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
 
@@ -23,8 +23,7 @@ abstract class _IOResourceInfo {
 
   /// The reference map, used to return a list of values, e.g., getting
   /// all open sockets. The structure of this is shared among all subclasses.
-  Map<String, dynamic> get referenceValueMap =>
-      {
+  Map<String, dynamic> get referenceValueMap => {
         // The type for a reference object is prefixed with @ in observatory.
         'type': '@$type',
         'id': id,
@@ -54,7 +53,9 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   // In cases where we read but did not necessarily get any bytes, use this to
   // update the readCount and timestamp. Manually update totalRead if any bytes
   // where actually read.
-  void didRead() { addRead(0); }
+  void didRead() {
+    addRead(0);
+  }
 
   void addWrite(int bytes) {
     totalWritten += bytes;
@@ -62,27 +63,26 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
     lastWrite = _IOResourceInfo.timestamp;
   }
 
-  _ReadWriteResourceInfo(String type) :
-    totalRead = 0,
-    totalWritten = 0,
-    readCount = 0,
-    writeCount = 0,
-    lastRead = 0.0,
-    lastWrite = 0.0,
-    super(type);
+  _ReadWriteResourceInfo(String type)
+      : totalRead = 0,
+        totalWritten = 0,
+        readCount = 0,
+        writeCount = 0,
+        lastRead = 0.0,
+        lastWrite = 0.0,
+        super(type);
 
-  Map<String, dynamic> get fullValueMap =>
-    {
-      'type': type,
-      'id': id,
-      'name': name,
-      'totalRead': totalRead,
-      'totalWritten': totalWritten,
-      'readCount': readCount,
-      'writeCount': writeCount,
-      'lastRead': lastRead,
-      'lastWrite': lastWrite
-    };
+  Map<String, dynamic> get fullValueMap => {
+        'type': type,
+        'id': id,
+        'name': name,
+        'totalRead': totalRead,
+        'totalWritten': totalWritten,
+        'readCount': readCount,
+        'writeCount': writeCount,
+        'lastRead': lastRead,
+        'lastWrite': lastWrite
+      };
 }
 
 class _FileResourceInfo extends _ReadWriteResourceInfo {
@@ -126,7 +126,7 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
     assert(params.containsKey('id'));
     var id = int.parse(params['id']);
     var result =
-      openFiles.containsKey(id) ? openFiles[id].getFileInfoMap() : {};
+        openFiles.containsKey(id) ? openFiles[id].getFileInfoMap() : {};
     var json = JSON.encode(result);
     return new Future.value(new ServiceExtensionResponse.result(json));
   }
@@ -136,7 +136,7 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   }
 }
 
-class _ProcessResourceInfo extends _IOResourceInfo{
+class _ProcessResourceInfo extends _IOResourceInfo {
   static const String TYPE = '_process';
   final process;
   final double startedAt;
@@ -144,27 +144,28 @@ class _ProcessResourceInfo extends _IOResourceInfo{
   static Map<int, _ProcessResourceInfo> startedProcesses =
       new Map<int, _ProcessResourceInfo>();
 
-  _ProcessResourceInfo(this.process) :
-      startedAt = _IOResourceInfo.timestamp,
-      super(TYPE) {
+  _ProcessResourceInfo(this.process)
+      : startedAt = _IOResourceInfo.timestamp,
+        super(TYPE) {
     ProcessStarted(this);
   }
 
   String get name => process._path;
 
-  void stopped() { ProcessStopped(this); }
+  void stopped() {
+    ProcessStopped(this);
+  }
 
-  Map<String, dynamic> get fullValueMap =>
-    {
-      'type': type,
-      'id': id,
-      'name': name,
-      'pid': process.pid,
-      'startedAt': startedAt,
-      'arguments': process._arguments,
-      'workingDirectory':
-          process._workingDirectory == null ? '.' : process._workingDirectory,
-    };
+  Map<String, dynamic> get fullValueMap => {
+        'type': type,
+        'id': id,
+        'name': name,
+        'pid': process.pid,
+        'startedAt': startedAt,
+        'arguments': process._arguments,
+        'workingDirectory':
+            process._workingDirectory == null ? '.' : process._workingDirectory,
+      };
 
   static ProcessStarted(_ProcessResourceInfo info) {
     assert(!startedProcesses.containsKey(info.id));
@@ -221,7 +222,7 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
       var remoteHost = socket.remoteAddress.host;
       var remotePort = socket.remotePort;
       remote = ' -> $remoteHost:$remotePort';
-    } catch (e) { } // ignored if we can't get the information
+    } catch (e) {} // ignored if we can't get the information
     return '${socket.address.host}:${socket.port}$remote';
   }
 
@@ -257,7 +258,7 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
     assert(params.containsKey('id'));
     var id = int.parse(params['id']);
     var result =
-      openSockets.containsKey(id) ? openSockets[id].getSocketInfoMap() : {};
+        openSockets.containsKey(id) ? openSockets[id].getSocketInfoMap() : {};
     var json = JSON.encode(result);
     return new Future.value(new ServiceExtensionResponse.result(json));
   }

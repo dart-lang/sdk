@@ -39,7 +39,7 @@ abstract class BadC extends HtmlElement {
   BadC.created() : super.created();
 }
 
-class BadF implements HtmlElement {
+class BadF implements HtmlElement { //# compile-time error
   static final tag = 'x-tag-f';
   factory BadF() => new Element.tag(tag);
 }
@@ -100,7 +100,7 @@ main() {
     var parsedFoo = container.firstChild;
 
     expect(parsedFoo is Foo, isTrue);
-    expect(parsedFoo.tagName, "X-FOO");
+    expect((parsedFoo as Foo).tagName, "X-FOO");
 
     // Ensuring the wrapper is retained
     var someProperty = new Expando();
@@ -134,9 +134,9 @@ main() {
         treeSanitizer: new NullTreeSanitizer());
     upgradeCustomElements(container);
     expect(container.firstChild is Bar, isTrue);
-    expect(container.firstChild.tagName, "X-BAR");
+    expect((container.firstChild as Bar).tagName, "X-BAR");
     expect(container.lastChild is Bar, isTrue);
-    expect(container.lastChild.tagName, "X-BAR");
+    expect((container.lastChild as Bar).tagName, "X-BAR");
 
     // Constructors shouldn't interfere with each other
     expect((new Foo()).tagName, "X-FOO");

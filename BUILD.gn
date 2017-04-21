@@ -45,6 +45,19 @@ group("runtime") {
   ]
 }
 
+group("runtime_kernel") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
+  deps = [
+    ":runtime",
+
+    # TODO(rmacnak): Link this into 'dart'.
+    "utils/kernel-service:kernel-service",
+  ]
+}
+
 group("runtime_precompiled") {
   deps = [
     "runtime/bin:dart_bootstrap($host_toolchain)",
@@ -122,9 +135,11 @@ action("create_sdk") {
     rebase_path("$root_gen_dir"),
   ]
   if (defined(is_fuchsia) && is_fuchsia_host) {
-    args += [
-      "--copy_libs"
-    ]
+    args += [ "--copy_libs" ]
+  }
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # The binaries are already stripped.
+    args += [ "--disable_stripping" ]
   }
 }
 
@@ -173,11 +188,10 @@ group("samples") {
   ]
 }
 
-
 # The rules below build a qemu Fuchsia OS image that includes the Dart tree
 # under /system/test/dart. Building this image is gated by the GN argument
 # 'dart_build_fuchsia_test_image' because building the image is slow.
-if (defined(is_fuchsia) && (is_fuchsia)) {
+if (defined(is_fuchsia) && is_fuchsia) {
   declare_args() {
     dart_build_fuchsia_test_image = false
   }
@@ -217,14 +231,26 @@ if (defined(is_fuchsia) && (is_fuchsia)) {
     action("generate_dart_test_image") {
       testonly = true
       deps = [
-        "runtime/bin:dart",
-        "runtime/bin:run_vm_tests",
-        "runtime/bin:process_test",
         ":generate_dart_test_manifest",
+        "runtime/bin:dart",
+        "runtime/bin:process_test",
+        "runtime/bin:run_vm_tests",
       ]
+
+      # Compute path to magenta bootdata.bin
+      if (current_cpu == "arm64") {
+        magenta_bootdata =
+            "//out/build-magenta/build-magenta-qemu-arm64/bootdata.bin"
+      } else if (current_cpu == "x64") {
+        magenta_bootdata =
+            "//out/build-magenta/build-magenta-pc-x86-64/bootdata.bin"
+      } else {
+        assert(false, "unable to determine path to magenta's bootdata.bin")
+      }
 
       input = "$target_gen_dir/dart_test_tree.manifest"
       inputs = [
+        magenta_bootdata,
         input,
       ]
 
@@ -241,7 +267,8 @@ if (defined(is_fuchsia) && (is_fuchsia)) {
         rebase_path(output),
         "--build-id-map",
         rebase_path("$target_gen_dir/build_id_map"),
-        "--compress",
+        "--pre-binaries",
+        rebase_path(magenta_bootdata),
       ]
     }
   }

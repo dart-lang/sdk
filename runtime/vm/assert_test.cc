@@ -6,14 +6,14 @@
 #include "vm/unit_test.h"
 
 
-UNIT_TEST_CASE(Assert) {
+VM_UNIT_TEST_CASE(Assert) {
   ASSERT(true);
   ASSERT(87 == 87);
   ASSERT(42 != 87);
 }
 
 
-UNIT_TEST_CASE(Expect) {
+VM_UNIT_TEST_CASE(Expect) {
   EXPECT(true);
   EXPECT(87 == 87);
   EXPECT(42 != 87);
@@ -48,16 +48,16 @@ UNIT_TEST_CASE(Expect) {
 }
 
 
-UNIT_TEST_CASE(Fail0) {
+VM_UNIT_TEST_CASE(Fail0) {
   FAIL("This test fails");
 }
 
 
-UNIT_TEST_CASE(Fail1) {
+VM_UNIT_TEST_CASE(Fail1) {
   FAIL1("This test fails with one argument: %d", 4);
 }
 
 
-UNIT_TEST_CASE(Fail2) {
+VM_UNIT_TEST_CASE(Fail2) {
   FAIL2("This test fails with two arguments: %d, %d", -100, 42);
 }

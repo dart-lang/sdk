@@ -160,11 +160,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate a source-map file together with the output program.
   final bool generateSourceMap;
 
-  /// Whether some values are cached for reuse in incremental compilation.
-  /// Incremental compilation allows calling `Compiler.run` more than once
-  /// (experimental).
-  final bool hasIncrementalSupport;
-
   /// URI of the main output if the compiler is generating source maps.
   final Uri outputUri;
 
@@ -207,9 +202,17 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use kernel internally as part of compilation.
   final bool useKernel;
 
+  // Whether to use kernel internally for global type inference calculations.
+  // TODO(efortuna): Remove this and consolidate with useKernel.
+  final bool kernelGlobalInference;
+
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   final bool useFrequencyNamer;
+
+  /// Whether to generate source-information from both the old and the new
+  /// source-information engines. (experimental)
+  final bool useMultiSourceInfo;
 
   /// Whether to use the new source-information implementation for source-maps.
   /// (experimental)
@@ -280,8 +283,7 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors:
             _hasOption(options, Flags.generateCodeWithCompileTimeErrors),
         generateSourceMap: !_hasOption(options, Flags.noSourceMaps),
-        hasIncrementalSupport: _forceIncrementalSupport ||
-            _hasOption(options, Flags.incrementalSupport),
+        kernelGlobalInference: _hasOption(options, Flags.kernelGlobalInference),
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
@@ -302,6 +304,7 @@ class CompilerOptions implements DiagnosticOptions {
         useKernel: _hasOption(options, Flags.useKernel),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
+        useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
         useNewSourceInfo: _hasOption(options, Flags.useNewSourceInfo),
         useStartupEmitter: _hasOption(options, Flags.fastStartup),
         verbose: _hasOption(options, Flags.verbose));
@@ -343,7 +346,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool enableUserAssertions: false,
       bool generateCodeWithCompileTimeErrors: false,
       bool generateSourceMap: true,
-      bool hasIncrementalSupport: false,
+      bool kernelGlobalInference: false,
       Uri outputUri: null,
       Uri platformConfigUri: null,
       bool preserveComments: false,
@@ -360,6 +363,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool useContentSecurityPolicy: false,
       bool useKernel: false,
       bool useFrequencyNamer: true,
+      bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useStartupEmitter: false,
       bool verbose: false}) {
@@ -402,7 +406,7 @@ class CompilerOptions implements DiagnosticOptions {
         suppressWarnings: suppressWarnings,
         suppressHints: suppressHints,
         shownPackageWarnings: shownPackageWarnings,
-        disableInlining: disableInlining || hasIncrementalSupport,
+        disableInlining: disableInlining,
         disableTypeInference: disableTypeInference,
         dumpInfo: dumpInfo,
         enableAssertMessage: enableAssertMessage,
@@ -413,7 +417,7 @@ class CompilerOptions implements DiagnosticOptions {
         enableUserAssertions: enableUserAssertions,
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap,
-        hasIncrementalSupport: hasIncrementalSupport,
+        kernelGlobalInference: kernelGlobalInference,
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
@@ -431,6 +435,7 @@ class CompilerOptions implements DiagnosticOptions {
         useContentSecurityPolicy: useContentSecurityPolicy,
         useKernel: useKernel,
         useFrequencyNamer: useFrequencyNamer,
+        useMultiSourceInfo: useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo,
         useStartupEmitter: useStartupEmitter,
         verbose: verbose);
@@ -462,7 +467,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.enableUserAssertions: false,
       this.generateCodeWithCompileTimeErrors: false,
       this.generateSourceMap: true,
-      this.hasIncrementalSupport: false,
+      this.kernelGlobalInference: false,
       this.outputUri: null,
       this.platformConfigUri: null,
       this.preserveComments: false,
@@ -480,6 +485,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.useContentSecurityPolicy: false,
       this.useKernel: false,
       this.useFrequencyNamer: false,
+      this.useMultiSourceInfo: false,
       this.useNewSourceInfo: false,
       this.useStartupEmitter: false,
       this.verbose: false})
@@ -518,7 +524,7 @@ class CompilerOptions implements DiagnosticOptions {
       enableUserAssertions,
       generateCodeWithCompileTimeErrors,
       generateSourceMap,
-      hasIncrementalSupport,
+      kernelGlobalInference,
       outputUri,
       platformConfigUri,
       preserveComments,
@@ -536,6 +542,7 @@ class CompilerOptions implements DiagnosticOptions {
       useContentSecurityPolicy,
       useKernel,
       useFrequencyNamer,
+      useMultiSourceInfo,
       useNewSourceInfo,
       useStartupEmitter,
       verbose}) {
@@ -580,8 +587,8 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
             options.generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
-        hasIncrementalSupport:
-            hasIncrementalSupport ?? options.hasIncrementalSupport,
+        kernelGlobalInference:
+            kernelGlobalInference ?? options.kernelGlobalInference,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
         preserveComments: preserveComments ?? options.preserveComments,
@@ -602,6 +609,7 @@ class CompilerOptions implements DiagnosticOptions {
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
         useKernel: useKernel ?? options.useKernel,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
+        useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
         useStartupEmitter: useStartupEmitter ?? options.useStartupEmitter,
         verbose: verbose ?? options.verbose);
@@ -706,5 +714,3 @@ const String _serverPlatform = "lib/dart_server.platform";
 const String _sharedPlatform = "lib/dart_shared.platform";
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";
-const bool _forceIncrementalSupport =
-    const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');

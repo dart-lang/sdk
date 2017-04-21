@@ -122,7 +122,7 @@ class Platform {
   /**
    * Returns true if the operating system is Fuchsia
    */
-   static final bool isFuchsia = (_operatingSystem == "fuchsia");
+  static final bool isFuchsia = (_operatingSystem == "fuchsia");
 
   /**
    * Get the environment for this process.

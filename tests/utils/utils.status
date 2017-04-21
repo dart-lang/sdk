@@ -17,9 +17,8 @@ dart2js_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js && $mode == debug ]
 dummy_compiler_test: Slow, Pass
 
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-dummy_compiler_test: Crash # Issue 24485
-recursive_import_test: Crash # Issue 24485
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $hot_reload || $hot_reload_rollback ]
 recursive_import_test: Skip # Running dart2js under frequent reloads is slow.

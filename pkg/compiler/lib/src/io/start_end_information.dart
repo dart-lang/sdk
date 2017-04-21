@@ -7,12 +7,13 @@
 
 library dart2js.source_information.start_end;
 
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../elements/elements.dart' show ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../tokens/token.dart' show Token;
 import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 import 'source_information.dart';
@@ -117,25 +118,58 @@ class StartEndSourceInformationStrategy
   }
 
   @override
-  SourceInformationProcessor createProcessor(SourceMapper sourceMapper) {
-    return new StartEndSourceInformationProcessor(sourceMapper);
+  SourceInformationProcessor createProcessor(
+      SourceMapperProvider provider, SourceInformationReader reader) {
+    return new StartEndSourceInformationProcessor(provider, reader);
   }
 }
 
 class StartEndSourceInformationProcessor extends SourceInformationProcessor {
+  /// The id for this source information engine.
+  ///
+  /// The id is added to the source map file in an extra "engine" property and
+  /// serves as a version number for the engine.
+  ///
+  /// The version history of this engine is:
+  ///
+  ///   v1: The initial version with an id.
+  static const String id = 'v1';
+
   final SourceMapper sourceMapper;
+  final SourceInformationReader reader;
 
   /// Used to track whether a terminating source location marker has been
   /// registered for the top-most node with source information.
   bool hasRegisteredRoot = false;
 
-  StartEndSourceInformationProcessor(this.sourceMapper);
+  /// The root of the tree. Used to add a [NoSourceLocationMarker] to the start
+  /// of the output.
+  js.Node root;
+
+  /// The root of the current subtree with source information. Used to add
+  /// [NoSourceLocationMarker] after areas with source information.
+  js.Node subRoot;
+
+  StartEndSourceInformationProcessor(SourceMapperProvider provider, this.reader)
+      : this.sourceMapper = provider.createSourceMapper(id);
+
+  void onStartPosition(js.Node node, int startPosition) {
+    if (root == null) {
+      root = node;
+      sourceMapper.register(
+          node, startPosition, const NoSourceLocationMarker());
+    }
+    if (subRoot == null && reader.getSourceInformation(node) != null) {
+      subRoot = node;
+    }
+  }
 
   @override
   void onPositions(
       js.Node node, int startPosition, int endPosition, int closingPosition) {
-    if (node.sourceInformation != null) {
-      StartEndSourceInformation sourceInformation = node.sourceInformation;
+    StartEndSourceInformation sourceInformation =
+        reader.getSourceInformation(node);
+    if (sourceInformation != null) {
       sourceMapper.register(
           node, startPosition, sourceInformation.startPosition);
       if (sourceInformation.endPosition != null) {
@@ -144,6 +178,11 @@ class StartEndSourceInformationProcessor extends SourceInformationProcessor {
       if (!hasRegisteredRoot) {
         sourceMapper.register(node, endPosition, null);
         hasRegisteredRoot = true;
+      }
+      if (node == subRoot) {
+        sourceMapper.register(
+            node, endPosition, const NoSourceLocationMarker());
+        subRoot = null;
       }
     }
   }

@@ -19,16 +19,14 @@ part of dart.io;
  * ignored. Use the [done] future to be notified when the [IOSink] is closed.
  */
 abstract class IOSink implements StreamSink<List<int>>, StringSink {
-
   /**
    * Create an [IOSink] that outputs to a [target] [StreamConsumer] of bytes.
    *
    * Text written to [StreamSink] methods is encoded to bytes using [encoding]
    * before being output on [target].
    */
-  factory IOSink(StreamConsumer<List<int>> target,
-                 {Encoding encoding: UTF8})
-      => new _IOSinkImpl(target, encoding);
+  factory IOSink(StreamConsumer<List<int>> target, {Encoding encoding: UTF8}) =>
+      new _IOSinkImpl(target, encoding);
 
   /**
    * The [Encoding] used when writing strings. Depending on the
@@ -112,7 +110,7 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
 
   /**
    * Returns a [Future] that completes once all buffered data is accepted by the
-   * to underlying [StreamConsumer].
+   * underlying [StreamConsumer].
    *
    * This method must not be called while an [addStream] is incomplete.
    *
@@ -123,6 +121,10 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
 
   /**
    * Close the target consumer.
+   *
+   * NOTE: Writes to the [IOSink] may be buffered, and may not be flushed by
+   * a call to `close()`. To flush all buffered writes, call `flush()` before
+   * calling `close()`.
    */
   Future close();
 
@@ -162,11 +164,11 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (_hasError) return done;
     // Wait for any sync operations to complete.
     Future targetAddStream() {
-      return _target.addStream(stream)
-          .whenComplete(() {
-            _isBound = false;
-          });
+      return _target.addStream(stream).whenComplete(() {
+        _isBound = false;
+      });
     }
+
     if (_controllerInstance == null) return targetAddStream();
     var future = _controllerCompleter.future;
     _controllerInstance.close();
@@ -254,18 +256,16 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
           _completeDoneError(error, stackTrace);
         }
       });
-   }
+    }
     return _controllerInstance;
   }
 }
-
 
 class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   Encoding _encoding;
   bool _encodingMutable = true;
 
-  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding)
-      : super(target);
+  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding) : super(target);
 
   Encoding get encoding => _encoding;
 

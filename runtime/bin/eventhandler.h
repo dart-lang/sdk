@@ -605,15 +605,15 @@ class DescriptorInfoMultipleMixin : public DI {
 }  // namespace dart
 
 // The event handler delegation class is OS specific.
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 #include "bin/eventhandler_android.h"
-#elif defined(TARGET_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
 #include "bin/eventhandler_fuchsia.h"
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
 #include "bin/eventhandler_linux.h"
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include "bin/eventhandler_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 #include "bin/eventhandler_win.h"
 #else
 #error Unknown target os.
@@ -646,6 +646,8 @@ class EventHandler {
   static void Stop();
 
   static EventHandlerImplementation* delegate();
+
+  static void SendFromNative(intptr_t id, Dart_Port port, int64_t data);
 
  private:
   friend class EventHandlerImplementation;

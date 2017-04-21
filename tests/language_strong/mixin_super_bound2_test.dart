@@ -15,32 +15,39 @@ bool inCheckedMode() {
   return false;
 }
 
-class MS<U, V
-    extends U /// 01: static type warning
-    > { }
+class MS<
+    U,
+    V
+    extends U //# 01: static type warning
+    > {}
 
-class M<U
-    extends V /// 01: continued
-    , V> extends MS<V, U> { }
+class M<
+    U
+    extends V //# 01: continued
+    ,
+    V> extends MS<V, U> {}
 
-class NS<U
-    extends V /// 01: continued
-    , V> { }
+class NS<
+    U
+    extends V //# 01: continued
+    ,
+    V> {}
 
-class N<U, V
-    extends U /// 01: continued
-    > extends NS<V, U> { }
+class N<
+    U,
+    V
+    extends U //# 01: continued
+    > extends NS<V, U> {}
 
-class S<T> { }
+class S<T> {}
 
 class MNA<U, V, W> extends S<List<U>>
-    with M<List<V>, List<U>>, N<List<W>, List<W>> { }
+    with M<List<V>, List<U>>, N<List<W>, List<W>> {}
 
-class MNA2<U, V, W> = S<List<U>>
-    with M<List<W>, List<W>>, N<List<U>, List<V>>;
+class MNA2<U, V, W> = S<List<U>> with M<List<W>, List<W>>, N<List<U>, List<V>>;
 
 class MNA3<U, V, W> extends S<List<U>>
-    with MNA<U, V, W>, MNA2<List<U>, List<V>, List<W>> { }
+    with MNA<U, V, W>, MNA2<List<U>, List<V>, List<W>> {}
 
 class MNA4<U, V, W> = S<List<U>>
     with MNA<U, V, W>, MNA2<List<U>, List<V>, List<W>>;
@@ -51,7 +58,7 @@ main() {
   new MNA3<num, int, bool>();
   new MNA4<num, int, bool>();
   bool shouldThrow = false
-      || inCheckedMode() /// 01: continued
+      || inCheckedMode() //# 01: continued
       ;
   if (shouldThrow) {
     // Type parameter U of M must extend type parameter V, but
@@ -73,4 +80,3 @@ main() {
     new MNA4<int, num, bool>();
   }
 }
-

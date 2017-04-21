@@ -18,7 +18,6 @@ import '../elements/modelx.dart'
         LocalParameterElementX,
         TypeVariableElementX;
 import '../tree/tree.dart';
-import '../universe/use.dart' show TypeUse;
 import '../util/util.dart' show Link, LinkBuilder;
 import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
@@ -94,7 +93,9 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       reporter.internalError(node, 'function type parameters not supported');
     }
     currentDefinitions = node;
-    FormalElementX element = definition.accept(this);
+    FormalElementX element = definition == null
+        ? createUnnamedParameter() // This happens in function types.
+        : definition.accept(this);
     if (currentDefinitions.metadata != null) {
       element.metadataInternal =
           resolution.resolver.resolveMetadata(element, node);
@@ -113,7 +114,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
 
   void computeParameterType(FormalElementX element,
       [VariableElement fieldElement]) {
-    void computeFunctionType(FunctionExpression functionExpression) {
+    // Function-type as in `foo(int bar(String x))`
+    void computeInlineFunctionType(FunctionExpression functionExpression) {
       FunctionSignature functionSignature = SignatureResolver.analyze(
           resolution,
           scope,
@@ -135,13 +137,14 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       assert(invariant(currentDefinitions, link.tail.isEmpty));
       if (link.head.asFunctionExpression() != null) {
         // Inline function typed parameter, like `void m(int f(String s))`.
-        computeFunctionType(link.head);
+        computeInlineFunctionType(link.head);
       } else if (link.head.asSend() != null &&
           link.head.asSend().selector.asFunctionExpression() != null) {
         // Inline function typed initializing formal or
         // parameter with default value, like `C(int this.f(String s))` or
         // `void m([int f(String s) = null])`.
-        computeFunctionType(link.head.asSend().selector.asFunctionExpression());
+        computeInlineFunctionType(
+            link.head.asSend().selector.asFunctionExpression());
       } else {
         assert(invariant(currentDefinitions,
             link.head.asIdentifier() != null || link.head.asSend() != null));
@@ -194,6 +197,15 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       parameter = new FormalElementX(
           ElementKind.PARAMETER, enclosingElement, currentDefinitions, name);
     }
+    computeParameterType(parameter);
+    return parameter;
+  }
+
+  FormalElementX createUnnamedParameter() {
+    FormalElementX parameter;
+    assert(!createRealParameters);
+    parameter = new FormalElementX.unnamed(
+        ElementKind.PARAMETER, enclosingElement, currentDefinitions);
     computeParameterType(parameter);
     return parameter;
   }
@@ -427,7 +439,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     List<Element> orderedOptionalParameters =
         visitor.optionalParameters.toList();
     if (visitor.optionalParametersAreNamed) {
-      // TODO(karlklose); replace when [visitor.optinalParameters] is a [List].
+      // TODO(karlklose); replace when [visitor.optionalParameters] is a [List].
       orderedOptionalParameters.sort((Element a, Element b) {
         return a.name.compareTo(b.name);
       });
@@ -442,7 +454,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       namedParameterTypes =
           namedParameterTypesBuilder.toLink().toList(growable: false);
     } else {
-      // TODO(karlklose); replace when [visitor.optinalParameters] is a [List].
+      // TODO(karlklose); replace when [visitor.optionalParameters] is a [List].
       LinkBuilder<ResolutionDartType> optionalParameterTypesBuilder =
           new LinkBuilder<ResolutionDartType>();
       for (FormalElement parameter in visitor.optionalParameters) {

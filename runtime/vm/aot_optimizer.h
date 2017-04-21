@@ -52,7 +52,6 @@ class AotOptimizer : public FlowGraphVisitor {
  private:
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
-  const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid);
 
   bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 

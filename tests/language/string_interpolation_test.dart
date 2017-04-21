@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 
 // Tests for string interpolation
 class StringInterpolationTest {
-
   StringInterpolationTest() {}
 
   static void m() {}
@@ -59,7 +58,7 @@ class StringInterpolationTest {
     Expect.equals("}", "escaped     \${3+2}"[17]);
 
     if (alwaysFalse) {
-      "${i.toHorse()}"; /// 01: static type warning
+      "${i.toHorse()}"; //# 01: static type warning
     }
 
     Expect.equals("${m}", "$m");

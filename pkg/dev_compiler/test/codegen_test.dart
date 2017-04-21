@@ -156,21 +156,18 @@ main(List<String> arguments) {
         compiler = new ModuleCompiler(analyzerOptions);
       }
       JSModuleFile module = null;
-      var error, trace;
       try {
         module = compiler.compile(unit, options);
-      } catch (e, t) {
-        error = e;
-        trace = t;
-      }
+      } catch (e) {}
 
+      bool expectedCompileTimeError =
+          contents.contains(': compile-time error\n');
       bool notStrong = notYetStrongTests.contains(name);
       bool crashing = _crashingTests.contains(name);
 
       if (module == null) {
         expect(crashing, isTrue,
-            reason: "test $name crashes during compilation.\n\n"
-                "Exception: $error\n\nStack trace:\n\n$trace");
+            reason: "test $name crashes during compilation.");
       } else if (module.isValid) {
         _writeModule(
             path.join(codegenOutputDir, name),
@@ -179,12 +176,17 @@ main(List<String> arguments) {
             module);
 
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
+        // TODO(vsm): We don't seem to trip on non-strong errors?
+        // expect(expectedCompileTimeError, isFalse,
+        //    reason: "test $name expected compilation errors, but compiled.");
         expect(notStrong, isFalse,
             reason: "test $name expected strong mode errors, but compiled.");
       } else {
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
-        expect(notStrong, isTrue,
-            reason: "test $name failed to compile due to strong mode errors:"
+        var reason =
+            expectedCompileTimeError ? "expected" : "untriaged strong mode";
+        expect(expectedCompileTimeError || notStrong, isTrue,
+            reason: "test $name failed to compile due to $reason errors:"
                 "\n\n${module.errors.join('\n')}.");
       }
     });
@@ -379,25 +381,16 @@ String _resolveDirective(UriBasedDirective directive) {
 }
 
 final _crashingTests = new Set<String>.from([
-  'language/mixin_illegal_syntax_test_none_multi',
-  'language/mixin_illegal_syntax_test_01_multi',
-  'language/mixin_illegal_syntax_test_02_multi',
-  'language/mixin_illegal_syntax_test_03_multi',
-  'language/mixin_illegal_syntax_test_04_multi',
-  'language/mixin_illegal_syntax_test_05_multi',
-  'language/mixin_illegal_syntax_test_06_multi',
-  'language/mixin_illegal_syntax_test_07_multi',
-  'language/mixin_illegal_syntax_test_08_multi',
-  'language/mixin_illegal_syntax_test_09_multi',
-  'language/mixin_illegal_syntax_test_10_multi',
-  'language/mixin_illegal_syntax_test_11_multi',
-  'language/mixin_illegal_syntax_test_12_multi',
-  'language/mixin_illegal_syntax_test_13_multi',
-  'language/mixin_illegal_syntax_test_14_multi',
+  'language/generic_methods_generic_class_tearoff_test',
+  'language/generic_methods_named_parameters_test',
+  'language/generic_methods_optional_parameters_test',
+  'language/generic_methods_tearoff_specialization_test',
+  'language/generic_methods_unused_parameter_test',
 
   // TODO(vsm): Fix these - they import files from a different directory
   // - this triggers an invalid library root build error.
   'lib/html/custom/attribute_changed_callback_test',
+  'lib/html/custom/constructor_calls_created_synchronously_test',
   'lib/html/custom/entered_left_view_test',
   'lib/html/custom/js_custom_test',
   'lib/html/custom/mirrors_test',

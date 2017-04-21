@@ -4,6 +4,7 @@
 library kernel.target.vm;
 
 import '../ast.dart';
+import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
@@ -54,23 +55,27 @@ class VmTarget extends Target {
         'dart:io',
       ];
 
-  void transformProgram(Program program) {
-    var mixins = new mix.MixinFullResolution();
-    mixins.transform(program);
+  ClassHierarchy _hierarchy;
 
-    var hierarchy = mixins.hierarchy;
+  void performModularTransformations(Program program) {
+    var mixins = new mix.MixinFullResolution()..transform(program);
+
+    _hierarchy = mixins.hierarchy;
+  }
+
+  void performGlobalTransformations(Program program) {
     var coreTypes = new CoreTypes(program);
 
     if (strongMode) {
-      new InsertTypeChecks(hierarchy: hierarchy, coreTypes: coreTypes)
+      new InsertTypeChecks(hierarchy: _hierarchy, coreTypes: coreTypes)
           .transformProgram(program);
-      new InsertCovarianceChecks(hierarchy: hierarchy, coreTypes: coreTypes)
+      new InsertCovarianceChecks(hierarchy: _hierarchy, coreTypes: coreTypes)
           .transformProgram(program);
     }
 
-    new TreeShaker(program,
-            hierarchy: hierarchy, coreTypes: coreTypes, strongMode: strongMode)
-        .transform(program);
+    if (flags.treeShake) {
+      performTreeShaking(program);
+    }
 
     cont.transformProgram(program);
 
@@ -78,9 +83,24 @@ class VmTarget extends Target {
     setup_builtin_library.transformProgram(program);
 
     if (strongMode) {
-      new Erasure().transform(program);
+      performErasure(program);
     }
 
     new SanitizeForVM().transform(program);
+  }
+
+  void performTreeShaking(Program program) {
+    var coreTypes = new CoreTypes(program);
+    new TreeShaker(program,
+            hierarchy: _hierarchy,
+            coreTypes: coreTypes,
+            strongMode: strongMode,
+            programRoots: flags.programRoots)
+        .transform(program);
+    _hierarchy = null; // Hierarchy must be recomputed.
+  }
+
+  void performErasure(Program program) {
+    new Erasure().transform(program);
   }
 }

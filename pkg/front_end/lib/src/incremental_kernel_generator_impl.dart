@@ -15,9 +15,8 @@ import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/incremental_resolved_ast_generator_impl.dart';
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/kernel.dart' hide Source;
-import 'package:kernel/repository.dart';
 
 dynamic unimplemented() {
   // TODO(paulberry): get rid of this.
@@ -72,11 +71,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       var analysisOptions = new _AnalysisOptionsProxy(strongMode);
       var context =
           new _AnalysisContextProxy(deltaLibraries.newState, analysisOptions);
-      var repository = new Repository();
+      var program = new Program();
       var loader =
-          new DartLoader(repository, kernelOptions, packages, context: context);
+          new DartLoader(program, kernelOptions, packages, context: context);
       loader.loadLibrary(uri);
-      kernels[uri] = new Program(repository.libraries);
+      kernels[uri] = program;
       // TODO(paulberry) rework watch invocation to eliminate race condition,
       // include part source files, and prevent watch from being a bottleneck
       if (watch != null) await watch(uri, true);
@@ -93,7 +92,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 }
 
 class _AnalysisContextProxy implements AnalysisContext {
-  final Map<Uri, ResolvedLibrary> _resolvedLibraries;
+  final Map<Uri, Map<Uri, CompilationUnit>> _resolvedLibraries;
 
   @override
   final _SourceFactoryProxy sourceFactory = new _SourceFactoryProxy();
@@ -112,7 +111,7 @@ class _AnalysisContextProxy implements AnalysisContext {
     assert(_resolvedLibraries.containsKey(source.uri));
     return resolutionMap
         .elementDeclaredByCompilationUnit(
-            _resolvedLibraries[source.uri].definingCompilationUnit)
+            _resolvedLibraries[source.uri][source.uri])
         .library;
   }
 
@@ -120,14 +119,9 @@ class _AnalysisContextProxy implements AnalysisContext {
 
   CompilationUnit resolveCompilationUnit(
       Source unitSource, LibraryElement library) {
-    assert(_resolvedLibraries.containsKey(library.source.uri));
-    var resolvedLibrary = _resolvedLibraries[library.source.uri];
-    if (unitSource == library.source) {
-      return resolvedLibrary.definingCompilationUnit;
-    } else {
-      assert(resolvedLibrary.partUnits.containsKey(unitSource.uri));
-      return resolvedLibrary.partUnits[unitSource.uri];
-    }
+    var unit = _resolvedLibraries[library.source.uri][unitSource.uri];
+    assert(unit != null);
+    return unit;
   }
 }
 

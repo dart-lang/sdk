@@ -261,7 +261,7 @@ abstract class Future<T> {
    * See also [Completer] for a way to create and complete a future at a
    * later time that isn't necessarily after a known fixed duration.
    */
-  factory Future.delayed(Duration duration, [computation()]) {
+  factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
       try {
@@ -295,23 +295,26 @@ abstract class Future<T> {
    * uncaught asynchronous error.
    */
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
-                           {bool eagerError: false,
-                            void cleanUp(T successValue)}) {
+      {bool eagerError: false, void cleanUp(T successValue)}) {
     final _Future<List<T>> result = new _Future<List<T>>();
-    List<T> values;  // Collects the values. Set to null on error.
-    int remaining = 0;  // How many futures are we waiting for.
-    var error;   // The first error from a future.
-    StackTrace stackTrace;  // The stackTrace that came with the error.
+    List<T> values; // Collects the values. Set to null on error.
+    int remaining = 0; // How many futures are we waiting for.
+    var error; // The first error from a future.
+    StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
-    void handleError(theError, theStackTrace) {
+    // TODO(jmesserly): use `void` return type once it can be inferred for the
+    // `then` call below.
+    handleError(theError, theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
           for (var value in values) {
             if (value != null) {
               // Ensure errors from cleanUp are uncaught.
-              new Future.sync(() { cleanUp(value); });
+              new Future.sync(() {
+                cleanUp(value);
+              });
             }
           }
         }
@@ -342,7 +345,9 @@ abstract class Future<T> {
           } else {
             if (cleanUp != null && value != null) {
               // Ensure errors from cleanUp are uncaught.
-              new Future.sync(() { cleanUp(value); });
+              new Future.sync(() {
+                cleanUp(value);
+              });
             }
             if (remaining == 0 && !eagerError) {
               result._completeError(error, stackTrace);
@@ -404,7 +409,6 @@ abstract class Future<T> {
     return completer.future;
   }
 
-
   /**
    * Perform an async operation for each element of the iterable, in turn.
    *
@@ -418,8 +422,8 @@ abstract class Future<T> {
    * If [f] returns a non-[Future], iteration continues immediately. Otherwise
    * it waits for the returned [Future] to complete.
    */
-  static Future forEach(Iterable input, f(element)) {
-    Iterator iterator = input.iterator;
+  static Future forEach<T>(Iterable<T> input, dynamic f(T element)) {
+    var iterator = input.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
       return new Future.sync(() => f(iterator.current)).then((_) => true);
@@ -441,15 +445,15 @@ abstract class Future<T> {
    * The [f] function must return either a `bool` value or a [Future] completing
    * with a `bool` value.
    */
-  static Future doWhile(f()) {
+  static Future doWhile(FutureOr<bool> f()) {
     _Future doneSignal = new _Future();
     var nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
     nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
       if (keepGoing) {
-        new Future.sync(f).then(nextIteration,
-                                onError: doneSignal._completeError);
+        new Future.sync(f)
+            .then(nextIteration, onError: doneSignal._completeError);
       } else {
         doneSignal._complete(null);
       }
@@ -496,8 +500,13 @@ abstract class Future<T> {
    * In most cases, it is more readable to use [catchError] separately, possibly
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
+   *
+   * Note that futures don't delay reporting of errors until listeners are
+   * added. If the first `then` or `catchError` call happens after this future
+   * has completed with an error then the error is reported as unhandled error.
+   * See the description on [Future].
    */
-  Future<S> then<S>(FutureOr<S> onValue(T value), { Function onError });
+  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError});
 
   /**
    * Handles errors emitted by this [Future].
@@ -526,6 +535,11 @@ abstract class Future<T> {
    * The `test` function should not throw, but if it does, it is handled as
    * if the `onError` function had thrown.
    *
+   * Note that futures don't delay reporting of errors until listeners are
+   * added. If the first `catchError` (or `then`) call happens after this future
+   * has completed with an error then the error is reported as unhandled error.
+   * See the description on [Future].
+   *
    * Example:
    *
    *     foo
@@ -551,17 +565,14 @@ abstract class Future<T> {
    *     }
    *
    */
-  // The `Function` below can stand for several types:
-  // - (dynamic) -> T
-  // - (dynamic, StackTrace) -> T
-  // - (dynamic) -> Future<T>
-  // - (dynamic, StackTrace) -> Future<T>
+  // The `Function` below stands for one of two types:
+  // - (dynamic) -> FutureOr<T>
+  // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
   // Note: making `catchError` return a `Future<T>` in non-strong mode could be
   // a breaking change.
-  Future<T> catchError(Function onError,
-                           {bool test(Object error)});
+  Future<T> catchError(Function onError, {bool test(Object error)});
 
   /**
    * Register a function to be called when this future completes.
@@ -598,7 +609,7 @@ abstract class Future<T> {
    *       });
    *     }
    */
-  Future<T> whenComplete(action());
+  Future<T> whenComplete(dynamic action());
 
   /**
    * Creates a [Stream] containing the result of this future.
@@ -625,7 +636,7 @@ abstract class Future<T> {
    * If `onTimeout` is omitted, a timeout will cause the returned future to
    * complete with a [TimeoutException].
    */
-  Future<T> timeout(Duration timeLimit, {onTimeout()});
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()});
 }
 
 /**
@@ -691,7 +702,6 @@ class TimeoutException implements Exception {
  *     }
  */
 abstract class Completer<T> {
-
   /**
    * Creates a new completer.
    *
@@ -783,7 +793,7 @@ abstract class Completer<T> {
    *
    * All listeners on the future are informed about the value.
    */
-  void complete([value]);
+  void complete([FutureOr<T> value]);
 
   /**
    * Complete [future] with an error.
@@ -825,5 +835,4 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
 }
 
 /** Helper function that converts `null` to a [NullThrownError]. */
-Object _nonNullError(Object error) =>
-  (error != null) ? error : new NullThrownError();
+Object _nonNullError(Object error) => error ?? new NullThrownError();

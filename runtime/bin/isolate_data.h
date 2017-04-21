@@ -10,9 +10,18 @@
 #include "platform/globals.h"
 
 namespace dart {
+
+// Forward declaration.
+template <typename T>
+class MallocGrowableArray;
+
+}  // namespace dart
+
+namespace dart {
 namespace bin {
 
 // Forward declaration.
+class AppSnapshot;
 class EventHandler;
 class Loader;
 
@@ -23,34 +32,9 @@ class IsolateData {
  public:
   IsolateData(const char* url,
               const char* package_root,
-              const char* packages_file)
-      : script_url((url != NULL) ? strdup(url) : NULL),
-        package_root(NULL),
-        packages_file(NULL),
-        udp_receive_buffer(NULL),
-        builtin_lib_(NULL),
-        loader_(NULL) {
-    if (package_root != NULL) {
-      ASSERT(packages_file == NULL);
-      this->package_root = strdup(package_root);
-    } else if (packages_file != NULL) {
-      this->packages_file = strdup(packages_file);
-    }
-  }
-
-  ~IsolateData() {
-    free(script_url);
-    script_url = NULL;
-    free(package_root);
-    package_root = NULL;
-    free(packages_file);
-    packages_file = NULL;
-    free(udp_receive_buffer);
-    udp_receive_buffer = NULL;
-    if (builtin_lib_ != NULL) {
-      Dart_DeletePersistentHandle(builtin_lib_);
-    }
-  }
+              const char* packages_file,
+              AppSnapshot* app_snapshot);
+  ~IsolateData();
 
   Dart_Handle builtin_lib() const {
     ASSERT(builtin_lib_ != NULL);
@@ -79,10 +63,18 @@ class IsolateData {
     ASSERT((loader_ == NULL) || (loader == NULL));
     loader_ = loader;
   }
+  MallocGrowableArray<char*>* dependencies() const { return dependencies_; }
+  void set_dependencies(MallocGrowableArray<char*>* deps) {
+    dependencies_ = deps;
+  }
+
+  void OnIsolateShutdown();
 
  private:
   Dart_Handle builtin_lib_;
   Loader* loader_;
+  AppSnapshot* app_snapshot_;
+  MallocGrowableArray<char*>* dependencies_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

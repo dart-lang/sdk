@@ -26,7 +26,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/abstract_context.dart';
-import '../task/strong/inferred_type_test.dart';
+import 'element_text.dart';
 import 'resynthesize_common.dart';
 import 'summary_common.dart';
 
@@ -34,742 +34,66 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResynthesizeAstSpecTest);
     defineReflectiveTests(ResynthesizeAstStrongTest);
-    defineReflectiveTests(AstInferredTypeTest);
+    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
 
 @reflectiveTest
-class AstInferredTypeTest extends AbstractResynthesizeTest
-    with _AstResynthesizeTestMixin, InferredTypeMixin {
-  @override
-  bool get mayCheckTypesOfLocals => false;
-
-  @override
-  void addFile(String content, {String name: '/main.dart'}) {
-    addLibrarySource(name, content);
-  }
-
-  @override
-  CompilationUnitElement checkFile(String content) {
-    Source source = addSource('/main.dart', content);
-    SummaryResynthesizer resynthesizer = _encodeLibrary(source);
-    LibraryElementImpl resynthesized = _checkSource(resynthesizer, source);
-    for (Source otherSource in otherLibrarySources) {
-      _checkSource(resynthesizer, otherSource);
-    }
-    _reset();
-    return resynthesized.definingCompilationUnit;
-  }
-
-  @override
-  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
-      ExecutableElement original, String desc) {
-    // We don't resynthesize local elements during link.
-    // So, we should not compare them.
-  }
-
-  @override
-  DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
-
-  @override
-  AnalysisOptionsImpl createOptions() =>
-      new AnalysisOptionsImpl()..strongMode = true;
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel() {
-    super.test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreValues_topLevel() {
-    super.test_blockBodiedLambdas_async_allReturnsAreValues_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel() {
-    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_asyncStar_topLevel() {
-    super.test_blockBodiedLambdas_asyncStar_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_basic_topLevel() {
-    super.test_blockBodiedLambdas_basic_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_inferBottom_async_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_async_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_inferBottom_asyncStar_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_asyncStar_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_inferBottom_sync_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_sync_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_inferBottom_syncStar_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_syncStar_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_LUB_topLevel() {
-    super.test_blockBodiedLambdas_LUB_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_nestedLambdas_topLevel() {
-    super.test_blockBodiedLambdas_nestedLambdas_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_syncStar_topLevel() {
-    super.test_blockBodiedLambdas_syncStar_topLevel();
-  }
-
-  @override
-  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
-    variablesWithNotConstInitializers.add('a2');
-    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
-  @failingTest
-  void test_circularReference_viaClosures_initializerTypes() {
-    super.test_circularReference_viaClosures_initializerTypes();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments() {
-    // TODO(jmesserly): does this need to be implemented in AST summaries?
-    // The test might need a change as well to not be based on local variable
-    // types, which don't seem to be available.
-    super.test_constructors_inferFromArguments();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_const() {
-    super.test_constructors_inferFromArguments_const();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_factory() {
-    super.test_constructors_inferFromArguments_factory();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_named() {
-    super.test_constructors_inferFromArguments_named();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_namedFactory() {
-    super.test_constructors_inferFromArguments_namedFactory();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_redirecting() {
-    super.test_constructors_inferFromArguments_redirecting();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_redirectingFactory() {
-    super.test_constructors_inferFromArguments_redirectingFactory();
-  }
-
-  void test_infer_extractIndex_custom() {
-    var unit = checkFile('''
-class A {
-  String operator [](_) => null;
-}
-var a = new A();
-var b = a[0];
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'String');
-  }
-
-  void test_infer_extractIndex_fromList() {
-    var unit = checkFile('''
-var a = <int>[1, 2, 3];
-var b = a[0];
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'int');
-  }
-
-  void test_infer_extractIndex_fromMap() {
-    var unit = checkFile('''
-var a = <int, double>{};
-var b = a[0];
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'double');
-  }
-
-  void test_infer_extractProperty_getter() {
-    checkFile(r'''
-var a = 1.isEven;
-var b = 2.isNaN;
-var c = 3.foo;
-var d = foo.bar;
-  ''');
-  }
-
-  void test_infer_extractProperty_getter_sequence() {
-    var unit = checkFile(r'''
-class A {
-  B b = new B();
-}
-class B {
-  C c = new C();
-}
-class C {
-  int d;
-}
-var a = new A();
-var v = a.b.c.d;
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'int');
-  }
-
-  void test_infer_extractProperty_getter_sequence_generic() {
-    var unit = checkFile(r'''
-class A<T> {
-  B<T> b = new B<T>();
-}
-class B<K> {
-  C<List<K>, int> c = new C<List<K>, int>();
-}
-class C<K, V> {
-  Map<K, V> d;
-}
-var a = new A<double>();
-var v = a.b.c.d;
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
-  }
-
-  void test_infer_extractProperty_getter_sequence_withUnresolved() {
-    var unit = checkFile(r'''
-class A {
-  B b = new B();
-}
-class B {
-  int c;
-}
-var a = new A();
-var v = a.b.foo.c;
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
-  }
-
-  void test_infer_extractProperty_method() {
-    var unit = checkFile(r'''
-class A {
-  int m(double p1, String p2) => 42;
-}
-var a = new A();
-var v = a.m;
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
-  }
-
-  void test_infer_extractProperty_method2() {
-    var unit = checkFile(r'''
-var a = 1.round;
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), '() → int');
-  }
-
-  void test_infer_extractProperty_method_sequence() {
-    var unit = checkFile(r'''
-class A {
-  B b = new B();
-}
-class B {
-  C c = new C();
-}
-class C {
-  int m(double p1, String p2) => 42;
-}
-var a = new A();
-var v = a.b.c.m;
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
-  }
-
-  void test_infer_invokeConstructor_factoryRedirected() {
-    checkFile(r'''
-class A {
-  factory A() = B;
-}
-class B implements A {}
-var a = new A();
-  ''');
-  }
-
-  void test_infer_invokeConstructor_named() {
-    checkFile(r'''
-class A {
-  A.aaa();
-}
-class B<K, V> {
-  B.bbb();
-}
-var a = new A.aaa();
-var b1 = new B.bbb();
-var b2 = new B<int, String>.bbb();
-var b3 = new B<List<int>, Map<List<int>, Set<String>>>.bbb();
-  ''');
-  }
-
-  void test_infer_invokeConstructor_named_importedWithPrefix() {
-    addFile(
-        r'''
-class A {
-  A.aaa();
-}
-class B<K, V> {
-  B.bbb();
-}
-''',
-        name: '/a.dart');
-    checkFile(r'''
-import 'a.dart' as p;
-var a = new p.A.aaa();
-var b1 = new p.B.bbb();
-var b2 = new p.B<int, String>.bbb();
-  ''');
-  }
-
-  void test_infer_invokeConstructor_unnamed() {
-    checkFile(r'''
-class A {
-  A();
-}
-class B<T> {
-  B();
-}
-var a = new A();
-var b1 = new B();
-var b2 = new B<int>();
-  ''');
-  }
-
-  void test_infer_invokeConstructor_unnamed_synthetic() {
-    checkFile(r'''
-class A {}
-class B<T> {}
-var a = new A();
-var b1 = new B();
-var b2 = new B<int>();
-  ''');
-  }
-
-  void test_infer_invokeMethodRef_function() {
-    var unit = checkFile(r'''
-int m() => 0;
-var a = m();
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  void test_infer_invokeMethodRef_function_generic() {
-    var unit = checkFile(r'''
-/*=Map<int, V>*/ m/*<V>*/(/*=V*/ a) => null;
-var a = m(2.3);
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'Map<int, double>');
-  }
-
-  void test_infer_invokeMethodRef_function_importedWithPrefix() {
-    addFile(
-        r'''
-int m() => 0;
-''',
-        name: '/a.dart');
-    var unit = checkFile(r'''
-import 'a.dart' as p;
-var a = p.m();
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  void test_infer_invokeMethodRef_method() {
-    var unit = checkFile(r'''
-class A {
-  int m() => 0;
-}
-var a = new A();
-var b = a.m();
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'int');
-  }
-
-  void test_infer_invokeMethodRef_method_g() {
-    var unit = checkFile(r'''
-class A {
-  /*=T*/ m/*<T>*/(/*=T*/ a) => null;
-}
-var a = new A();
-var b = a.m(1.0);
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'double');
-  }
-
-  void test_infer_invokeMethodRef_method_genericSequence() {
-    var unit = checkFile(r'''
-class A<T> {
-  B<T> b = new B<T>();
-}
-class B<K> {
-  C<List<K>, int> c = new C<List<K>, int>();
-}
-class C<K, V> {
-  Map<K, V> m() => null;
-}
-var a = new A<double>();
-var v = a.b.c.m();
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
-  }
-
-  void test_infer_invokeMethodRef_method_gg() {
-    var unit = checkFile(r'''
-class A<K> {
-  /*=Map<K, V>*/ m/*<V>*/(/*=V*/ a) => null;
-}
-var a = new A<int>();
-var b = a.m(1.0);
-  ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'Map<int, double>');
-  }
-
-  void test_infer_invokeMethodRef_method_importedWithPrefix() {
-    addFile(
-        r'''
-class A {
-  int m() => 0;
-}
-var a = new A();
-''',
-        name: '/a.dart');
-    var unit = checkFile(r'''
-import 'a.dart' as p;
-var b = p.a.m();
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  void test_infer_invokeMethodRef_method_importedWithPrefix2() {
-    addFile(
-        r'''
-class A {
-  B b = new B();
-}
-class B {
-  int m() => 0;
-}
-var a = new A();
-''',
-        name: '/a.dart');
-    var unit = checkFile(r'''
-import 'a.dart' as p;
-var b = p.a.b.m();
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  void test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() {
-    var unit = checkFile('''
-class Base {
-  int m() => 0;
-}
-class A extends Base {
-  m() => 0; // Inferred return type: int
-}
-var a = new A();
-var b = a.m();
-    ''');
-    // Type inference operates on static and top level variables prior to
-    // instance members.  So at the time `b` is inferred, `A.m` still has return
-    // type `dynamic`.
-    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
-  }
-
-  void test_infer_invokeMethodRef_method_withInferredTypeOutsideLibraryCycle() {
-    addFile(
-        '''
-class Base {
-  int m() => 0;
-}
-class A extends Base {
-  m() => 0; // Inferred return type: int
-}
-''',
-        name: '/a.dart');
-    var unit = checkFile('''
-import 'a.dart';
-var a = new A();
-var b = a.m();
-''');
-    // Since a.dart is in a separate library file from the compilation unit
-    // containing `a` and `b`, its types are inferred first; then `a` and `b`'s
-    // types are inferred.  So the inferred return type of `int` should be
-    // propagated to `b`.
-    expect(unit.topLevelVariables[1].type.toString(), 'int');
-  }
-
-  @override
-  @failingTest
-  void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
-    super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
-  }
-
-  @override
-  @failingTest
-  void test_inferenceInCyclesIsDeterministic() {
-    super.test_inferenceInCyclesIsDeterministic();
-  }
-
-  @override
-  @failingTest
-  void test_inferLocalFunctionReturnType() {
-    super.test_inferLocalFunctionReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_inferredType_blockBodiedClosure_noArguments() {
-    super.test_inferredType_blockBodiedClosure_noArguments();
-  }
-
-  @override
-  @failingTest
-  void test_inferredType_blockClosure_noArgs_noReturn() {
-    super.test_inferredType_blockClosure_noArgs_noReturn();
-  }
-
-  @override
-  @failingTest
-  void test_inferredType_opAssignToProperty_prefixedIdentifier() {
-    super.test_inferredType_opAssignToProperty_prefixedIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() {
-    super
-        .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
-  }
-
-  void test_invokeMethod_notGeneric_genericClass() {
-    var unit = checkFile(r'''
-class C<T> {
-  T m(int a, {String b, T c}) => null;
-}
-var v = new C<double>().m(1, b: 'bbb', c: 2.0);
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'double');
-  }
-
-  void test_invokeMethod_notGeneric_notGenericClass() {
-    var unit = checkFile(r'''
-class C {
-  int m(int a, {String b, int c}) => null;
-}
-var v = new C().m(1, b: 'bbb', c: 2.0);
-  ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  @override
-  @failingTest
-  void test_nullCoalescingOperator() {
-    super.test_nullCoalescingOperator();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_closureCall() {
-    super.test_unsafeBlockClosureInference_closureCall();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() {
-    super.test_unsafeBlockClosureInference_constructorCall_implicitTypeParam();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_functionCall_implicitTypeParam() {
-    super.test_unsafeBlockClosureInference_functionCall_implicitTypeParam();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
-  }
-
-  @override
-  @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() {
-    super
-        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
-    super.test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_inList_untyped() {
-    super.test_unsafeBlockClosureInference_inList_untyped();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_inMap_untyped() {
-    super.test_unsafeBlockClosureInference_inMap_untyped();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
-    super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
-  }
-
-  @override
-  @failingTest
-  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() {
-    super
-        .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
-  }
-
-  @override
-  LibraryElementImpl _checkSource(
-      SummaryResynthesizer resynthesizer, Source source) {
-    LibraryElementImpl resynthesized =
-        resynthesizer.getLibraryElement(source.uri.toString());
-    LibraryElementImpl original = context.computeLibraryElement(source);
-    checkLibraryElements(original, resynthesized);
-    return resynthesized;
+class ApplyCheckElementTextReplacements {
+  test_applyReplacements() {
+    applyCheckElementTextReplacements();
   }
 }
 
 @reflectiveTest
 class ResynthesizeAstSpecTest extends _ResynthesizeAstTest {
   @override
-  AnalysisOptionsImpl createOptions() =>
-      super.createOptions()..strongMode = false;
+  bool get isStrongMode => false;
 }
 
 @reflectiveTest
 class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
   @override
+  bool get isStrongMode => true;
+
+  @override
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;
 
   @override
-  test_instantiateToBounds_boundRefersToItself() {
-    super.test_instantiateToBounds_boundRefersToItself();
+  @failingTest
+  test_const_invokeConstructor_generic_noTypeArguments() async {
+    await super.test_const_invokeConstructor_generic_noTypeArguments();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_genericClosure() {
-    super.test_syntheticFunctionType_genericClosure();
+  test_instantiateToBounds_boundRefersToItself() async {
+    await super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_inGenericClass() {
-    super.test_syntheticFunctionType_inGenericClass();
+  test_syntheticFunctionType_genericClosure() async {
+    await super.test_syntheticFunctionType_genericClosure();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_noArguments() {
-    super.test_syntheticFunctionType_noArguments();
+  test_syntheticFunctionType_inGenericClass() async {
+    await super.test_syntheticFunctionType_inGenericClass();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_withArguments() {
-    super.test_syntheticFunctionType_withArguments();
+  test_syntheticFunctionType_noArguments() async {
+    await super.test_syntheticFunctionType_noArguments();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_withArguments() async {
+    await super.test_syntheticFunctionType_withArguments();
   }
 }
 
@@ -876,32 +200,17 @@ abstract class _AstResynthesizeTestMixin
     });
   }
 
-  void _reset() {
-    serializedSources.clear();
-    bundleAssembler = new PackageBundleAssembler();
-    uriToUnit.clear();
-  }
-
   void _serializeLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary) {
+    if (librarySource == null || librarySource.isInSystemLibrary) {
       return;
     }
     if (!serializedSources.add(librarySource)) {
       return;
     }
 
-    Source resolveRelativeUri(String relativeUri) {
-      Source resolvedSource =
-          context.sourceFactory.resolveUri(librarySource, relativeUri);
-      if (resolvedSource == null && !allowMissingFiles) {
-        throw new StateError('Could not resolve $relativeUri in the context of '
-            '$librarySource (${librarySource.runtimeType})');
-      }
-      return resolvedSource;
-    }
-
-    UnlinkedUnit getPart(String relativeUri) {
-      return _getUnlinkedUnit(resolveRelativeUri(relativeUri));
+    UnlinkedUnit getPart(String absoluteUri) {
+      Source source = context.sourceFactory.forUri(absoluteUri);
+      return _getUnlinkedUnit(source);
     }
 
     UnlinkedPublicNamespace getImport(String relativeUri) {
@@ -910,10 +219,11 @@ abstract class _AstResynthesizeTestMixin
 
     UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
     if (definingUnit != null) {
-      LinkedLibraryBuilder linkedLibrary = prelink(
+      LinkedLibraryBuilder linkedLibrary = prelink(librarySource.uri.toString(),
           definingUnit, getPart, getImport, context.declaredVariables.get);
       linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
-        _serializeLibrary(resolveRelativeUri(d.uri));
+        Source source = context.sourceFactory.forUri(d.uri);
+        _serializeLibrary(source);
       });
     }
   }
@@ -935,6 +245,8 @@ abstract class _AstResynthesizeTestMixinInterface {
 
 abstract class _ResynthesizeAstTest extends ResynthesizeTest
     with _AstResynthesizeTestMixin {
+  bool get isStrongMode;
+
   @override
   LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
@@ -960,6 +272,10 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
 
   @override
   DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
+
+  @override
+  AnalysisOptionsImpl createOptions() =>
+      super.createOptions()..strongMode = isStrongMode;
 
   @override
   TestSummaryResynthesizer encodeDecodeLibrarySource(Source source) {

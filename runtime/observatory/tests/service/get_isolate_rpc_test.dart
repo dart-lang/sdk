@@ -23,8 +23,8 @@ var tests = [
     expect(result['pauseOnExit'], isFalse);
     expect(result['pauseEvent']['type'], equals('Event'));
     expect(result['error'], isNull);
-    expect(result['numZoneHandles'], isPositive);
-    expect(result['numScopedHandles'], isPositive);
+    expect(result['_numZoneHandles'], isPositive);
+    expect(result['_numScopedHandles'], isPositive);
     expect(result['rootLib']['type'], equals('@Library'));
     expect(result['libraries'].length, isPositive);
     expect(result['libraries'][0]['type'], equals('@Library'));
@@ -40,12 +40,11 @@ var tests = [
     bool caughtException;
     try {
       await vm.invokeRpcNoUpgrade('getIsolate', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             "getIsolate: invalid 'isolateId' parameter: badid");
+      expect(e.message, "getIsolate: invalid 'isolateId' parameter: badid");
     }
     expect(caughtException, isTrue);
   },

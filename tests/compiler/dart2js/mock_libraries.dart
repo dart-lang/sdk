@@ -98,7 +98,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'Resource': 'class Resource {}',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
-  'Symbol': 'class Symbol { final name; const Symbol(this.name); }',
+  'Symbol': 'class Symbol { final _name; const Symbol(this._name); }',
   'Type': 'class Type {}',
   'Pattern': 'abstract class Pattern {}',
   '_genericNoSuchMethod': '_genericNoSuchMethod(a,b,c,d,e) {}',
@@ -183,6 +183,9 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
         buildNamedFunctionType(null, null, null);
         buildInterfaceType(null, null);
       }''',
+  'functionTypeTest': r'functionTypeTest(f, t) {}',
+  'functionTypeCast': r'functionTypeCast(f, t) { return f; }',
+  'functionTypeCheck': r'functionTypeCheck(f, t) { return f; }',
   'getFallThroughError': 'getFallThroughError() {}',
   'getIsolateAffinityTag': 'getIsolateAffinityTag(_) {}',
   'getRuntimeTypeArgument':
@@ -301,7 +304,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
             var length;
             operator[](index) => this[index];
             operator[]=(index, value) { this[index] = value; }
-            add(value) { this[length + 1] = value; }
+            add(value) { this[length] = value; }
             insert(index, value) {}
             E get first => this[0];
             E get last => this[0];
@@ -310,7 +313,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
             E removeAt(index) => this[0];
             E elementAt(index) => this[0];
             E singleWhere(f) => this[0];
-            Iterator<E> get iterator => null; 
+            Iterator<E> get iterator => null;
           }''',
   'JSBool': 'class JSBool extends Interceptor implements bool {}',
   'JSDouble': 'class JSDouble extends JSNumber implements double {}',

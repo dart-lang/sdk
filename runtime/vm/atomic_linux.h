@@ -9,7 +9,7 @@
 #error Do not include atomic_linux.h directly. Use atomic.h instead.
 #endif
 
-#if !defined(TARGET_OS_LINUX)
+#if !defined(HOST_OS_LINUX)
 #error This file should only be included on Linux builds.
 #endif
 

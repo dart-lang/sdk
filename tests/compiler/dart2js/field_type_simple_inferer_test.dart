@@ -550,7 +550,7 @@ void test() {
   });
   runTest(TEST_15, <String, TestCallback>{
     'f': (closedWorld) {
-      ClassElement cls = closedWorld.backendClasses.indexableImplementation;
+      ClassElement cls = closedWorld.backendClasses.indexableClass;
       return new TypeMask.nonNullSubtype(cls, closedWorld);
     }
   });

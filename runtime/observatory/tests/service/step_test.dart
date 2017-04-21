@@ -1,10 +1,14 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
-const int LINE_A = 10;
+const int LINE_A = 14;
 
 code() {
   var x = {}; // LINE_A
@@ -32,7 +36,12 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
   return completer.future;
 }
 
-var tests = [hasPausedAtStart, setBreakpointAtLine(LINE_A), stepThroughProgram];
+var tests = [
+  hasPausedAtStart,
+  markDartColonLibrariesDebuggable,
+  setBreakpointAtLine(LINE_A),
+  stepThroughProgram
+];
 
 main(args) => runIsolateTestsSynchronous(args, tests,
     testeeConcurrent: code, pause_on_start: true, pause_on_exit: true);

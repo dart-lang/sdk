@@ -6,6 +6,7 @@
 
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
+#include "bin/platform.h"
 #include "bin/utils.h"
 #include "bin/thread.h"
 
@@ -22,6 +23,16 @@ void BootstrapDartIo() {
 
 void SetSystemTempDirectory(const char* system_temp) {
   Directory::SetSystemTemp(system_temp);
+}
+
+
+void SetExecutableName(const char* executable_name) {
+  Platform::SetExecutableName(executable_name);
+}
+
+
+void SetExecutableArguments(int script_index, char** argv) {
+  Platform::SetExecutableArguments(script_index, argv);
 }
 
 }  // namespace bin

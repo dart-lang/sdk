@@ -10,18 +10,17 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 
 class A
-    extends FutureOr<String>  /// extends: compile-time error
-    extends Object with FutureOr<bool>  /// with: compile-time error
-    implements FutureOr<int>  /// implements: compile-time error
-{
-}
+    extends FutureOr<String> // //# extends: compile-time error
+    extends Object with FutureOr<bool> // //# with: compile-time error
+    implements FutureOr<int> // //# implements: compile-time error
+{}
 
 main() {
   // FutureOr<T> should be treated like `dynamic`. Dynamically the `T` is
   // completely ignored. It can be a malformed type.
   Expect.isTrue(499 is FutureOr<A>);
-  Expect.isTrue(499 is FutureOr<Does<Not<Exist>>>);  /// 00: static type warning
-  Expect.isTrue(499 is FutureOr<A, A>);              /// 01: static type warning
+  Expect.isTrue(499 is FutureOr<Does<Not<Exist>>>); // //# 00: static type warning
+  Expect.isTrue(499 is FutureOr<A, A>); //             //# 01: static type warning
 
   var a = new A();
   Expect.isTrue(a.toString() is String);

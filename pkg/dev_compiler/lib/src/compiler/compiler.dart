@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
-import 'dart:convert' show BASE64, JSON, UTF8;
+import 'dart:convert' show JSON;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
@@ -32,6 +32,7 @@ import 'package:source_maps/source_maps.dart';
 
 import '../analyzer/context.dart' show AnalyzerOptions, createSourceFactory;
 import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' show js;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
 import 'extension_types.dart' show ExtensionTypeSet;
@@ -68,7 +69,8 @@ class ModuleCompiler {
   factory ModuleCompiler(AnalyzerOptions options,
       {ResourceProvider resourceProvider,
       String analysisRoot,
-      List<UriResolver> fileResolvers}) {
+      List<UriResolver> fileResolvers,
+      SummaryDataStore summaryData}) {
     // TODO(danrubel): refactor with analyzer CLI into analyzer common code
     AnalysisEngine.instance.processRequiredPlugins();
 
@@ -85,8 +87,8 @@ class ModuleCompiler {
     var sdkResolver = new DartUriResolver(sdk);
 
     // Read the summaries.
-    var summaryData =
-        new SummaryDataStore(options.summaryPaths, recordDependencyInfo: true);
+    summaryData ??= new SummaryDataStore(options.summaryPaths,
+        resourceProvider: resourceProvider, recordDependencyInfo: true);
     var sdkSummaryBundle = sdk.getLinkedBundle();
     if (sdkSummaryBundle != null) {
       summaryData.addBundle(null, sdkSummaryBundle);
@@ -264,6 +266,8 @@ class CompilerOptions {
   /// Hoist types in type tests
   final bool hoistTypeTests;
 
+  // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
+  //               is fixed.
   final bool useAngular2Whitelist;
 
   /// Enable ES6 destructuring of named parameters. Off by default.
@@ -373,6 +377,8 @@ class CompilerOptions {
           help: 'Name types used in type tests', defaultsTo: true, hide: hide)
       ..addFlag('hoist-type-tests',
           help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
+      // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
+      //               is fixed.
       ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: hide)
       ..addOption('bazel-mapping',
           help:
@@ -443,6 +449,13 @@ class JSModuleFile {
   /// the libraries in this module.
   final List<int> summaryBytes;
 
+  /// Unique identifier indicating hole to inline the source map.
+  ///
+  /// We cannot generate the source map before the script it is for is
+  /// generated so we have generate the script including this id and then
+  /// replace the ID once the source map is generated.
+  static String sourceMapHoleID = 'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
+
   JSModuleFile(
       this.name, this.errors, this.options, this.moduleTree, this.summaryBytes);
 
@@ -485,7 +498,9 @@ class JSModuleFile {
     if (options.sourceMap && sourceMap != null) {
       builtMap =
           placeSourceMap(sourceMap.build(jsUrl), mapUrl, options.bazelMapping);
-
+      if (name == 'dart_sdk') {
+        builtMap = cleanupSdkSourcemap(builtMap);
+      }
       if (options.sourceMapComment) {
         var relativeMapUrl = path
             .toUri(
@@ -493,18 +508,18 @@ class JSModuleFile {
             .toString();
         assert(path.dirname(jsUrl) == path.dirname(mapUrl));
         printer.emit('\n//# sourceMappingURL=');
-        if (options.inlineSourceMap) {
-          var bytes = UTF8.encode(JSON.encode(builtMap));
-          var base64 = BASE64.encode(bytes);
-          printer..emit('data:application/json;base64,')..emit(base64);
-        } else {
-          printer.emit(relativeMapUrl);
-        }
+        printer.emit(relativeMapUrl);
         printer.emit('\n');
       }
     }
 
-    return new JSModuleCode(printer.getText(), builtMap);
+    var text = printer.getText();
+    var rawSourceMap = options.inlineSourceMap
+        ? js.escapedString(JSON.encode(builtMap), "'").value
+        : 'null';
+    text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
+
+    return new JSModuleCode(text, builtMap);
   }
 
   /// Similar to [getCode] but immediately writes the resulting files.
@@ -582,5 +597,18 @@ Map placeSourceMap(
     list[i] = transformUri(list[i]);
   }
   map['file'] = transformUri(map['file']);
+  return map;
+}
+
+/// Cleanup the dart_sdk source map.
+///
+/// Strip out files that should not be included in the sdk sourcemap as they
+/// are implementation details that would just confuse users.
+/// Normalize sdk urls to use "dart:" for more understandable stack traces.
+Map cleanupSdkSourcemap(Map sourceMap) {
+  var map = new Map.from(sourceMap);
+  map['sources'] = map['sources']
+      .map((url) => url.contains('/_internal/') ? null : url)
+      .toList();
   return map;
 }

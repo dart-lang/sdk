@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 
 #include "bin/platform.h"
 
@@ -51,6 +51,10 @@ bool Platform::Initialize() {
     return false;
   }
   if (sigaction(SIGSEGV, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+  if (sigaction(SIGTRAP, &act, NULL) != 0) {
     perror("sigaction() failed.");
     return false;
   }
@@ -113,4 +117,4 @@ void Platform::Exit(int exit_code) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)

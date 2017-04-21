@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class Expando<T> {
-  @patch Expando([String name])
+@patch
+class Expando<T> {
+  @patch
+  Expando([String name])
       : name = name,
         _data = new List(_minSize),
         _used = 0;
@@ -11,7 +13,8 @@
   static const _minSize = 8;
   static final _deletedEntry = new _WeakProperty(null, null);
 
-  @patch T operator[](Object object) {
+  @patch
+  T operator [](Object object) {
     _checkType(object);
 
     var mask = _size - 1;
@@ -32,7 +35,8 @@
     return null;
   }
 
-  @patch void operator[]=(Object object, T value) {
+  @patch
+  void operator []=(Object object, T value) {
     _checkType(object);
 
     var mask = _size - 1;
@@ -51,12 +55,12 @@
         }
         return;
       } else if ((empty_idx < 0) && identical(wp, _deletedEntry)) {
-        empty_idx = idx;  // Insert at this location if not found.
+        empty_idx = idx; // Insert at this location if not found.
       } else if (wp.key == null) {
         // This entry has been cleared by the GC.
         _data[idx] = _deletedEntry;
         if (empty_idx < 0) {
-          empty_idx = idx;  // Insert at this location if not found.
+          empty_idx = idx; // Insert at this location if not found.
         }
       }
       idx = (idx + 1) & mask;
@@ -83,7 +87,7 @@
 
     // Grow/reallocate if too many slots have been used.
     _rehash();
-    this[object] = value;  // Recursively add the value.
+    this[object] = value; // Recursively add the value.
   }
 
   _rehash() {
@@ -129,9 +133,9 @@
 
   static _checkType(object) {
     if ((object == null) ||
-         (object is bool) ||
-         (object is num) ||
-         (object is String)) {
+        (object is bool) ||
+        (object is num) ||
+        (object is String)) {
       throw new ArgumentError.value(object,
           "Expandos are not allowed on strings, numbers, booleans or null");
     }
@@ -141,5 +145,5 @@
   get _limit => (3 * (_size ~/ 4));
 
   List _data;
-  int _used;  // Number of used (active and deleted) slots.
+  int _used; // Number of used (active and deleted) slots.
 }

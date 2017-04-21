@@ -17,6 +17,8 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -25,6 +27,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import 'flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -51,6 +54,8 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
 
   String myPkgLibPath = '/packages/my_pkg/lib';
 
+  String flutterPkgLibPath = '/packages/flutter/lib';
+
   Fix fix;
   SourceChange change;
   String resultCode;
@@ -75,13 +80,19 @@ bool test() {
 ''');
   }
 
-  assertHasFix(FixKind kind, String expected) async {
+  assertHasFix(FixKind kind, String expected, {String target}) async {
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(kind, error);
     change = fix.change;
+
     // apply to "file"
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
+
+    if (target != null) {
+      expect(target, fileEdits.first.file);
+    }
+
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
@@ -161,6 +172,7 @@ bool test() {
           provider,
           driver.getTopLevelNameDeclarations,
           resolutionMap.elementDeclaredByCompilationUnit(testUnit).context,
+          new AstProviderForDriver(driver),
           testUnit,
           error);
       return await new DefaultFixContributor().internalComputeFixes(fixContext);
@@ -424,6 +436,172 @@ class A {
 ''');
   }
 
+  test_addMissingRequiredArg_cons_single() async {
+    _addMetaPackageSource();
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+class A {
+  A({@required int a}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(a: null);
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_multiple() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test({@required int a, @required int bcd}) {}
+main() {
+  test(a: 3);
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test({@required int a, @required int bcd}) {}
+main() {
+  test(a: 3, bcd: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_multiple_2() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test({@required int a, @required int bcd}) {}
+main() {
+  test();
+}
+''');
+
+    // For now we expect one error per missing arg (dartbug.com/28830).
+    List<AnalysisError> errors = await _computeErrors();
+    expect(errors, hasLength(2));
+
+    List<AnalysisError> filteredErrors = errors
+        .where((e) => e.message == "The parameter 'a' is required.")
+        .toList();
+    expect(filteredErrors, hasLength(1));
+
+    List<Fix> fixes = await _computeFixes(filteredErrors.first);
+
+    List<Fix> filteredFixes = fixes
+        .where((fix) => fix.change.message == "Add required argument 'a'")
+        .toList();
+    expect(filteredFixes, hasLength(1));
+    change = filteredFixes.first.change;
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+    // verify
+    expect(
+        resultCode,
+        '''
+import 'package:meta/meta.dart';
+
+test({@required int a, @required int bcd}) {}
+main() {
+  test(a: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_single() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test({@required int abc}) {}
+main() {
+  test();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test({@required int abc}) {}
+main() {
+  test(abc: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_single_normal() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test(String x, {@required int abc}) {}
+main() {
+  test("foo");
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test(String x, {@required int abc}) {}
+main() {
+  test("foo", abc: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_single_with_details() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test({@Required("Really who doesn't need an abc?") int abc}) {}
+main() {
+  test();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test({@Required("Really who doesn't need an abc?") int abc}) {}
+main() {
+  test(abc: null);
+}
+''');
+  }
+
   test_addSync_asyncFor() async {
     await resolveTestUnit('''
 import 'dart:async';
@@ -472,7 +650,7 @@ main() {
     // Has fix for "await".
     {
       AnalysisError error = errors[1];
-      expect(error.message, startsWith("Undefined name 'await'."));
+      expect(error.message, startsWith("Undefined name 'await' in function"));
       List<Fix> fixes = await _computeFixes(error);
       // has exactly one fix
       expect(fixes, hasLength(1));
@@ -5212,6 +5390,135 @@ class A {
 ''');
   }
 
+  test_undefinedParameter_convertFlutterChild_invalidList() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+      child: <Widget>[
+        new Transform(),
+        null,
+        new AspectRatio(),
+      ],
+    ),
+  );
+}
+''');
+    await assertNoFix(DartFixKind.CONVERT_FLUTTER_CHILD);
+  }
+
+  test_undefinedParameter_convertFlutterChild_OK_hasList() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+      child: [
+        new Transform(),
+        new ClipRect.rect(),
+        new AspectRatio(),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasFix(
+        DartFixKind.CONVERT_FLUTTER_CHILD,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+      children: <Widget>[
+        new Transform(),
+        new ClipRect.rect(),
+        new AspectRatio(),
+      ],
+    ),
+  );
+}
+''');
+  }
+
+  test_undefinedParameter_convertFlutterChild_OK_hasTypedList() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+      child: <Widget>[
+        new Transform(),
+        new ClipRect.rect(),
+        new AspectRatio(),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasFix(
+        DartFixKind.CONVERT_FLUTTER_CHILD,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Container(
+    child: new Row(
+      children: <Widget>[
+        new Transform(),
+        new ClipRect.rect(),
+        new AspectRatio(),
+      ],
+    ),
+  );
+}
+''');
+  }
+
+  test_undefinedParameter_convertFlutterChild_OK_multiLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+    body: new Row(
+      child: new Container(
+        width: 200.0,
+        height: 300.0,
+      ),
+    ),
+  );
+}
+''');
+    await assertHasFix(
+        DartFixKind.CONVERT_FLUTTER_CHILD,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+build() {
+  return new Scaffold(
+    body: new Row(
+      children: <Widget>[
+        new Container(
+          width: 200.0,
+          height: 300.0,
+        ),
+      ],
+    ),
+  );
+}
+''');
+  }
+
   test_undefinedSetter_useSimilar_hint() async {
     await resolveTestUnit('''
 class A {
@@ -5333,73 +5640,56 @@ main() {
 }
 ''');
   }
+
+  void _addMetaPackageSource() {
+    addPackageSource(
+        'meta',
+        'meta.dart',
+        r'''
+library meta;
+
+const Required required = const Required();
+
+class Required {
+  final String reason;
+  const Required([this.reason]);
+}
+''');
+  }
+
+  /**
+   * Configures the [SourceFactory] to have the `flutter` package in
+   * `/packages/flutter/lib` folder.
+   */
+  void _configureFlutterPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('$flutterPkgLibPath/$path', code);
+    });
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'flutter': [myPkgFolder]
+    });
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      context.sourceFactory = sourceFactory;
+    }
+    // force 'flutter' resolution
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:flutter/$path';")
+            .join('\n'));
+  }
 }
 
 @reflectiveTest
 class FixProcessorTest_Driver extends FixProcessorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_AsExpression() {
-    return super.test_importLibrarySdk_withClass_AsExpression();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_invocationTarget() {
-    return super.test_importLibrarySdk_withClass_invocationTarget();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_IsExpression() {
-    return super.test_importLibrarySdk_withClass_IsExpression();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList() {
-    return super.test_importLibrarySdk_withClass_itemOfList();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList_inAnnotation() {
-    return super.test_importLibrarySdk_withClass_itemOfList_inAnnotation();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation() {
-    return super.test_importLibrarySdk_withClass_typeAnnotation();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() {
-    return super
-        .test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeArgument() {
-    return super.test_importLibrarySdk_withClass_typeArgument();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable() {
-    return super.test_importLibrarySdk_withTopLevelVariable();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable_annotation() {
-    return super.test_importLibrarySdk_withTopLevelVariable_annotation();
-  }
 }
 
 @reflectiveTest
@@ -5647,11 +5937,14 @@ class _DartFixContextImpl implements DartFixContext {
   final AnalysisContext analysisContext;
 
   @override
+  final AstProvider astProvider;
+
+  @override
   final CompilationUnit unit;
 
   @override
   final AnalysisError error;
 
   _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
-      this.analysisContext, this.unit, this.error);
+      this.analysisContext, this.astProvider, this.unit, this.error);
 }

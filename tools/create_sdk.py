@@ -61,6 +61,7 @@
 # ......isolate/
 # ......js/
 # ......js_util/
+# ......kernel/
 # ......math/
 # ......mirrors/
 # ......typed_data/
@@ -96,6 +97,9 @@ def GetOptions():
   options.add_option("--copy_libs",
       action="store_true", default=False,
       help='Copy dynamically linked libraries to the SDK bin directory.')
+  options.add_option("--disable_stripping",
+      action="store_true", default=False,
+      help='Do not try to strip binaries. Use when they are already stripped')
   return options.parse_args()
 
 
@@ -163,7 +167,7 @@ def CopySnapshots(snapshots, sdk_root):
              join(sdk_root, 'bin', 'snapshots', snapshot))
 
 def CopyAnalyzerSources(home, lib_dir):
-  for library in ['analyzer', 'analysis_server', 'front_end']:
+  for library in ['analyzer', 'analysis_server', 'front_end', 'kernel']:
     copytree(join(home, 'pkg', library), join(lib_dir, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore', 'packages'))
@@ -193,6 +197,8 @@ def CopyDevCompilerSdk(home, lib):
            join(lib, '_internal', 'ddc_sdk.sum'))
   copytree(join(home, 'pkg', 'dev_compiler', 'lib', 'js'),
            join(lib, 'dev_compiler'))
+  copyfile(join(home, 'third_party', 'requirejs', 'require.js'),
+           join(lib, 'dev_compiler', 'amd', 'require.js'))
 
 def Main():
   # Pull in all of the gypi files which will be munged into the sdk.
@@ -237,9 +243,9 @@ def Main():
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
   # Strip the binaries on platforms where that is supported.
-  if HOST_OS == 'linux':
+  if HOST_OS == 'linux' and not options.disable_stripping:
     subprocess.call(['strip', dart_dest_binary])
-  elif HOST_OS == 'macos':
+  elif HOST_OS == 'macos' and not options.disable_stripping:
     subprocess.call(['strip', '-x', dart_dest_binary])
 
   #

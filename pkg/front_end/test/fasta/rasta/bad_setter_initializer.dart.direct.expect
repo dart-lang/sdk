@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    : final dynamic #t1 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/bad_setter_initializer.dart:6:9: \u0027[31mError: Can't use field here.\u0027[0m"), super core::Object::•()
+    ;
+  set field(dynamic value) → dynamic {}
+}
+static method main() → dynamic {
+  new self::C::•();
+}

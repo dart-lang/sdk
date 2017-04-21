@@ -17,10 +17,10 @@ class B extends A {
     result = 87;
   }
 
-  set foo(v) => super.foo = v; /// 01: static type warning
+  set foo(v) => super.foo = v; //# 01: static type warning
 }
 
 main() {
-  new B().foo = 0;           /// 01: continued
-  Expect.equals(42, result); /// 01: continued
+  new B().foo = 0; //          //# 01: continued
+  Expect.equals(42, result); //# 01: continued
 }

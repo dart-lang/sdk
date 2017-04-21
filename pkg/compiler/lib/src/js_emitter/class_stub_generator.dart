@@ -40,8 +40,9 @@ class ClassStubGenerator {
     var typeParameters = const <jsAst.Parameter>[];
     var typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
-      typeParameters = namer.rtiFieldName;
-      typeInits = js('this.# = #', [namer.rtiFieldName, namer.rtiFieldName]);
+      var rtiName = namer.rtiFieldJsName;
+      typeParameters = rtiName;
+      typeInits = js('this.# = #', [rtiName, rtiName]);
     }
     return js('function(#, #) { #; #; this.#();}', [
       fields,
@@ -54,15 +55,19 @@ class ClassStubGenerator {
 
   jsAst.Expression generateGetter(MemberEntity member, jsAst.Name fieldName) {
     ClassEntity cls = member.enclosingClass;
-    String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
+    String receiver =
+        backend.interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
+    List<String> args =
+        backend.interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
     return js('function(#) { return #.# }', [args, receiver, fieldName]);
   }
 
   jsAst.Expression generateSetter(MemberEntity member, jsAst.Name fieldName) {
     ClassEntity cls = member.enclosingClass;
-    String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
+    String receiver =
+        backend.interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
+    List<String> args =
+        backend.interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
     // TODO(floitsch): remove 'return'?
     return js(
         'function(#, v) { return #.# = v; }', [args, receiver, fieldName]);
@@ -77,14 +82,16 @@ class ClassStubGenerator {
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
-    bool isInterceptedMethod = backend.isInterceptedMethod(member);
-    bool isInterceptorClass = backend.isInterceptorClass(member.enclosingClass);
+    bool isInterceptedMethod =
+        backend.interceptorData.isInterceptedMethod(member);
+    bool isInterceptedClass =
+        backend.interceptorData.isInterceptedClass(member.enclosingClass);
 
     const String receiverArgumentName = r'$receiver';
 
     jsAst.Expression buildGetter() {
       jsAst.Expression receiver =
-          js(isInterceptorClass ? receiverArgumentName : 'this');
+          js(isInterceptedClass ? receiverArgumentName : 'this');
       if (member.isGetter) {
         jsAst.Name getterName = namer.getterForElement(member);
         if (isInterceptedMethod) {
@@ -175,8 +182,10 @@ class ClassStubGenerator {
     jsAst.Name methodName = namer.asName(selector.invocationMirrorMemberName);
     jsAst.Name internalName = namer.invocationMirrorInternalName(selector);
 
-    assert(backend.isInterceptedName(Identifiers.noSuchMethod_));
-    bool isIntercepted = backend.isInterceptedName(selector.name);
+    assert(
+        backend.interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
+    bool isIntercepted =
+        backend.interceptorData.isInterceptedName(selector.name);
     jsAst.Expression expression = js(
         '''this.#noSuchMethodName(#receiver,
                     #createInvocationMirror(#methodName,

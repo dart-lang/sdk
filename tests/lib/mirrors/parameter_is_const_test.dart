@@ -10,8 +10,8 @@ import 'package:expect/expect.dart';
 
 class Class {
   foo(
-  const /// 01: compile-time error
-  param) {}
+  const //# 01: compile-time error
+      param) {}
 }
 
 main() {

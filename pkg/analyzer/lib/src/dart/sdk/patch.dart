@@ -51,7 +51,7 @@ class SdkPatcher {
       _allowNewPublicNames = libraryName == '_internal';
     }
     // Prepare the patch files to apply.
-    List<String> patchPaths = allPatchPaths[libraryUriStr];
+    List<String> patchPaths = allPatchPaths[libraryUriStr] ?? const <String>[];
 
     for (String path in patchPaths) {
       File patchFile = resourceProvider.getFile(path);

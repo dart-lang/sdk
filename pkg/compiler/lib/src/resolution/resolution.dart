@@ -19,7 +19,7 @@ import '../constants/expressions.dart'
         ConstructedConstantExpression,
         ErroneousConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -37,7 +37,7 @@ import '../elements/modelx.dart'
         TypedefElementX;
 import '../enqueue.dart';
 import '../options.dart';
-import '../tokens/token.dart'
+import 'package:front_end/src/fasta/scanner.dart'
     show
         isBinaryOperator,
         isMinusOperator,
@@ -47,7 +47,7 @@ import '../tokens/token.dart'
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart' show Feature;
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../util/util.dart' show Link, Setlet;
 import '../world.dart';
@@ -207,14 +207,14 @@ class ResolverTask extends CompilerTask {
   bool _isNativeClassOrExtendsNativeClass(ClassElement classElement) {
     assert(classElement != null);
     while (classElement != null) {
-      if (target.isNative(classElement)) return true;
+      if (target.isNativeClass(classElement)) return true;
       classElement = classElement.superclass;
     }
     return false;
   }
 
   WorldImpact resolveMethodElementImplementation(
-      FunctionElement element, FunctionExpression tree) {
+      FunctionElementX element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
       if (element.isExternal && tree.hasBody) {
         reporter.reportErrorMessage(element, MessageKind.EXTERNAL_WITH_BODY,
@@ -286,7 +286,7 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
-      resolution.target.resolveNativeElement(element, registry.impactBuilder);
+      resolution.target.resolveNativeMember(element, registry.impactBuilder);
 
       return registry.impactBuilder;
     });
@@ -434,7 +434,7 @@ class ResolverTask extends CompilerTask {
       // Perform various checks as side effect of "computing" the type.
       element.computeType(resolution);
 
-      resolution.target.resolveNativeElement(element, registry.impactBuilder);
+      resolution.target.resolveNativeMember(element, registry.impactBuilder);
 
       return registry.impactBuilder;
     });
@@ -518,7 +518,6 @@ class ResolverTask extends CompilerTask {
       ResolvedAst resolvedAst = factory.resolvedAst;
       assert(invariant(node, resolvedAst != null,
           message: 'No ResolvedAst for $factory.'));
-      FunctionExpression functionNode = resolvedAst.node;
       RedirectingFactoryBody redirectionNode = resolvedAst.body;
       ResolutionDartType factoryType =
           resolvedAst.elements.getType(redirectionNode);
@@ -1083,8 +1082,8 @@ class ResolverTask extends CompilerTask {
               switch (constant.kind) {
                 case ConstantExpressionKind.CONSTRUCTED:
                   ConstructedConstantExpression constructedConstant = constant;
-                  if (constructedConstant.type.isGeneric &&
-                      !constructedConstant.type.isRaw) {
+                  ResolutionInterfaceType type = constructedConstant.type;
+                  if (type.isGeneric && !type.isRaw) {
                     // Const constructor calls cannot have type arguments.
                     // TODO(24312): Remove this.
                     reporter.reportErrorMessage(
@@ -1092,7 +1091,7 @@ class ResolverTask extends CompilerTask {
                     constant = new ErroneousConstantExpression();
                   }
                   break;
-                case ConstantExpressionKind.VARIABLE:
+                case ConstantExpressionKind.FIELD:
                 case ConstantExpressionKind.ERRONEOUS:
                   break;
                 default:

@@ -1742,8 +1742,7 @@ on String catch (e, s) { return 1; }''');
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = ParserTestCase.parseStatement(
-        source, [], enableLazyAssignmentOperators);
+    Statement statement = parseStatement(source, enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 

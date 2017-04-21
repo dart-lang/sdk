@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
+#include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/simulator.h"
@@ -31,7 +32,7 @@ static RawClass* CreateDummyClass(const String& class_name,
 }
 
 
-VM_TEST_CASE(Class) {
+ISOLATE_UNIT_TEST_CASE(Class) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
@@ -139,7 +140,7 @@ VM_TEST_CASE(Class) {
 }
 
 
-VM_TEST_CASE(TypeArguments) {
+ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   const Type& type1 = Type::Handle(Type::Double());
   const Type& type2 = Type::Handle(Type::StringType());
   const TypeArguments& type_arguments1 =
@@ -161,7 +162,7 @@ VM_TEST_CASE(TypeArguments) {
 }
 
 
-VM_TEST_CASE(TokenStream) {
+ISOLATE_UNIT_TEST_CASE(TokenStream) {
   Zone* zone = Thread::Current()->zone();
   String& source = String::Handle(zone, String::New("= ( 9 , ."));
   String& private_key = String::Handle(zone, String::New(""));
@@ -179,7 +180,7 @@ VM_TEST_CASE(TokenStream) {
 }
 
 
-VM_TEST_CASE(GenerateExactSource) {
+ISOLATE_UNIT_TEST_CASE(GenerateExactSource) {
   // Verify the exact formatting of generated sources.
   const char* kScriptChars =
       "\n"
@@ -247,7 +248,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
 }
 
 
-VM_TEST_CASE(InstanceClass) {
+ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   // Allocate the class first.
   String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
   Script& script = Script::Handle();
@@ -293,7 +294,7 @@ VM_TEST_CASE(InstanceClass) {
 }
 
 
-VM_TEST_CASE(Smi) {
+ISOLATE_UNIT_TEST_CASE(Smi) {
   const Smi& smi = Smi::Handle(Smi::New(5));
   Object& smi_object = Object::Handle(smi.raw());
   EXPECT(smi.IsSmi());
@@ -354,7 +355,7 @@ VM_TEST_CASE(Smi) {
 }
 
 
-VM_TEST_CASE(StringCompareTo) {
+ISOLATE_UNIT_TEST_CASE(StringCompareTo) {
   const String& abcd = String::Handle(String::New("abcd"));
   const String& abce = String::Handle(String::New("abce"));
   EXPECT_EQ(0, abcd.CompareTo(abcd));
@@ -397,7 +398,7 @@ VM_TEST_CASE(StringCompareTo) {
 }
 
 
-VM_TEST_CASE(StringEncodeIRI) {
+ISOLATE_UNIT_TEST_CASE(StringEncodeIRI) {
   const char* kInput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
   const char* kOutput =
@@ -409,7 +410,7 @@ VM_TEST_CASE(StringEncodeIRI) {
 }
 
 
-VM_TEST_CASE(StringDecodeIRI) {
+ISOLATE_UNIT_TEST_CASE(StringDecodeIRI) {
   const char* kOutput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
   const char* kInput =
@@ -422,7 +423,7 @@ VM_TEST_CASE(StringDecodeIRI) {
 }
 
 
-VM_TEST_CASE(StringDecodeIRIInvalid) {
+ISOLATE_UNIT_TEST_CASE(StringDecodeIRIInvalid) {
   String& input = String::Handle();
   input = String::New("file%");
   String& decoded = String::Handle();
@@ -437,7 +438,7 @@ VM_TEST_CASE(StringDecodeIRIInvalid) {
 }
 
 
-VM_TEST_CASE(StringIRITwoByte) {
+ISOLATE_UNIT_TEST_CASE(StringIRITwoByte) {
   const intptr_t kInputLen = 3;
   const uint16_t kInput[kInputLen] = {'x', '/', 256};
   const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
@@ -452,7 +453,7 @@ VM_TEST_CASE(StringIRITwoByte) {
 }
 
 
-VM_TEST_CASE(Mint) {
+ISOLATE_UNIT_TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
 #if !defined(ARCH_IS_64_BIT)
@@ -526,7 +527,7 @@ VM_TEST_CASE(Mint) {
 }
 
 
-VM_TEST_CASE(Double) {
+ISOLATE_UNIT_TEST_CASE(Double) {
   {
     const double dbl_const = 5.0;
     const Double& dbl = Double::Handle(Double::New(dbl_const));
@@ -610,7 +611,7 @@ VM_TEST_CASE(Double) {
 }
 
 
-VM_TEST_CASE(Bigint) {
+ISOLATE_UNIT_TEST_CASE(Bigint) {
   Bigint& b = Bigint::Handle();
   EXPECT(b.IsNull());
   const char* cstr = "18446744073709551615000";
@@ -649,7 +650,7 @@ VM_TEST_CASE(Bigint) {
 }
 
 
-VM_TEST_CASE(Integer) {
+ISOLATE_UNIT_TEST_CASE(Integer) {
   Integer& i = Integer::Handle();
   i = Integer::NewCanonical(String::Handle(String::New("12")));
   EXPECT(i.IsSmi());
@@ -666,7 +667,7 @@ VM_TEST_CASE(Integer) {
 }
 
 
-VM_TEST_CASE(String) {
+ISOLATE_UNIT_TEST_CASE(String) {
   const char* kHello = "Hello World!";
   int32_t hello_len = strlen(kHello);
   const String& str = String::Handle(String::New(kHello));
@@ -813,7 +814,7 @@ VM_TEST_CASE(String) {
 }
 
 
-VM_TEST_CASE(StringFormat) {
+ISOLATE_UNIT_TEST_CASE(StringFormat) {
   const char* hello_str = "Hello World!";
   const String& str =
       String::Handle(String::NewFormatted("Hello %s!", "World"));
@@ -826,7 +827,7 @@ VM_TEST_CASE(StringFormat) {
 }
 
 
-VM_TEST_CASE(StringConcat) {
+ISOLATE_UNIT_TEST_CASE(StringConcat) {
   // Create strings from concatenated 1-byte empty strings.
   {
     const String& empty1 = String::Handle(String::New(""));
@@ -1357,7 +1358,7 @@ VM_TEST_CASE(StringConcat) {
 }
 
 
-VM_TEST_CASE(StringHashConcat) {
+ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   EXPECT_EQ(String::Handle(String::New("onebyte")).Hash(),
             String::HashConcat(String::Handle(String::New("one")),
                                String::Handle(String::New("byte"))));
@@ -1373,7 +1374,7 @@ VM_TEST_CASE(StringHashConcat) {
 }
 
 
-VM_TEST_CASE(StringSubStringDifferentWidth) {
+ISOLATE_UNIT_TEST_CASE(StringSubStringDifferentWidth) {
   // Create 1-byte substring from a 1-byte source string.
   const char* onechars = "\xC3\xB6\xC3\xB1\xC3\xA9";
 
@@ -1434,7 +1435,7 @@ VM_TEST_CASE(StringSubStringDifferentWidth) {
 }
 
 
-VM_TEST_CASE(StringFromUtf8Literal) {
+ISOLATE_UNIT_TEST_CASE(StringFromUtf8Literal) {
   // Create a 1-byte string from a UTF-8 encoded string literal.
   {
     const char* src =
@@ -1594,7 +1595,7 @@ VM_TEST_CASE(StringFromUtf8Literal) {
 }
 
 
-VM_TEST_CASE(StringEqualsUtf8) {
+ISOLATE_UNIT_TEST_CASE(StringEqualsUtf8) {
   const char* onesrc = "abc";
   const String& onestr = String::Handle(String::New(onesrc));
   EXPECT(onestr.IsOneByteString());
@@ -1626,7 +1627,7 @@ VM_TEST_CASE(StringEqualsUtf8) {
 }
 
 
-VM_TEST_CASE(StringEqualsUTF32) {
+ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   const String& empty = String::Handle(String::New(""));
   const String& t_str = String::Handle(String::New("t"));
   const String& th_str = String::Handle(String::New("th"));
@@ -1643,7 +1644,7 @@ VM_TEST_CASE(StringEqualsUTF32) {
 }
 
 
-VM_TEST_CASE(ExternalOneByteString) {
+ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = {0xF6, 0xF1, 0xE9};
   intptr_t len = ARRAY_SIZE(characters);
 
@@ -1674,7 +1675,7 @@ VM_TEST_CASE(ExternalOneByteString) {
 }
 
 
-VM_TEST_CASE(EscapeSpecialCharactersOneByteString) {
+ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersOneByteString) {
   uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                           '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
@@ -1694,7 +1695,7 @@ VM_TEST_CASE(EscapeSpecialCharactersOneByteString) {
 }
 
 
-VM_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
+ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                           '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
@@ -1717,7 +1718,7 @@ VM_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   EXPECT_EQ(escaped_empty_str.Length(), 0);
 }
 
-VM_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
+ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
   uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                            '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
@@ -1740,7 +1741,7 @@ VM_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
 }
 
 
-VM_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
+ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                            '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
@@ -1763,7 +1764,7 @@ VM_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
 }
 
 
-VM_TEST_CASE(ExternalTwoByteString) {
+ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
   uint16_t characters[] = {0x1E6B, 0x1E85, 0x1E53};
   intptr_t len = ARRAY_SIZE(characters);
 
@@ -1796,7 +1797,7 @@ VM_TEST_CASE(ExternalTwoByteString) {
 }
 
 
-VM_TEST_CASE(Symbol) {
+ISOLATE_UNIT_TEST_CASE(Symbol) {
   const String& one = String::Handle(Symbols::New(thread, "Eins"));
   EXPECT(one.IsSymbol());
   const String& two = String::Handle(Symbols::New(thread, "Zwei"));
@@ -1858,7 +1859,7 @@ VM_TEST_CASE(Symbol) {
 }
 
 
-VM_TEST_CASE(SymbolUnicode) {
+ISOLATE_UNIT_TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = {0xd83d, 0xdc35};  // Unicode Monkey Face.
   String& monkey = String::Handle(Symbols::FromUTF16(thread, monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
@@ -1881,13 +1882,13 @@ VM_TEST_CASE(SymbolUnicode) {
 }
 
 
-VM_TEST_CASE(Bool) {
+ISOLATE_UNIT_TEST_CASE(Bool) {
   EXPECT(Bool::True().value());
   EXPECT(!Bool::False().value());
 }
 
 
-VM_TEST_CASE(Array) {
+ISOLATE_UNIT_TEST_CASE(Array) {
   const int kArrayLen = 5;
   const Array& array = Array::Handle(Array::New(kArrayLen));
   EXPECT_EQ(kArrayLen, array.Length());
@@ -2042,7 +2043,7 @@ TEST_CASE(Int8ListLengthMaxElements) {
 }
 
 
-VM_TEST_CASE(StringCodePointIterator) {
+ISOLATE_UNIT_TEST_CASE(StringCodePointIterator) {
   const String& str0 = String::Handle(String::New(""));
   String::CodePointIterator it0(str0);
   EXPECT(!it0.Next());
@@ -2099,7 +2100,7 @@ VM_TEST_CASE(StringCodePointIterator) {
 }
 
 
-VM_TEST_CASE(StringCodePointIteratorRange) {
+ISOLATE_UNIT_TEST_CASE(StringCodePointIteratorRange) {
   const String& str = String::Handle(String::New("foo bar baz"));
 
   String::CodePointIterator it0(str, 3, 0);
@@ -2116,7 +2117,7 @@ VM_TEST_CASE(StringCodePointIteratorRange) {
 }
 
 
-VM_TEST_CASE(GrowableObjectArray) {
+ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   const int kArrayLen = 5;
   Smi& value = Smi::Handle();
   Smi& expected_value = Smi::Handle();
@@ -2238,7 +2239,7 @@ VM_TEST_CASE(GrowableObjectArray) {
 }
 
 
-VM_TEST_CASE(InternalTypedData) {
+ISOLATE_UNIT_TEST_CASE(InternalTypedData) {
   uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
   intptr_t data_length = ARRAY_SIZE(data);
 
@@ -2294,7 +2295,7 @@ VM_TEST_CASE(InternalTypedData) {
 }
 
 
-VM_TEST_CASE(ExternalTypedData) {
+ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
   intptr_t data_length = ARRAY_SIZE(data);
 
@@ -2388,7 +2389,7 @@ TEST_CASE(Script) {
 }
 
 
-VM_TEST_CASE(EmbeddedScript) {
+ISOLATE_UNIT_TEST_CASE(EmbeddedScript) {
   const char* url_chars = "builtin:test-case";
   const char* text =
       /* 1 */
@@ -2490,7 +2491,7 @@ VM_TEST_CASE(EmbeddedScript) {
 }
 
 
-VM_TEST_CASE(Context) {
+ISOLATE_UNIT_TEST_CASE(Context) {
   const int kNumVariables = 5;
   const Context& parent_context = Context::Handle(Context::New(0));
   const Context& context = Context::Handle(Context::New(kNumVariables));
@@ -2513,7 +2514,7 @@ VM_TEST_CASE(Context) {
 }
 
 
-VM_TEST_CASE(ContextScope) {
+ISOLATE_UNIT_TEST_CASE(ContextScope) {
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
       new LocalScope(NULL, parent_scope_function_level, 0);
@@ -2598,7 +2599,7 @@ VM_TEST_CASE(ContextScope) {
 }
 
 
-VM_TEST_CASE(Closure) {
+ISOLATE_UNIT_TEST_CASE(Closure) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
@@ -2618,7 +2619,8 @@ VM_TEST_CASE(Closure) {
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
-  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  const Closure& closure = Closure::Handle(
+      Closure::New(Object::null_type_arguments(), function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());
@@ -2628,7 +2630,7 @@ VM_TEST_CASE(Closure) {
 }
 
 
-VM_TEST_CASE(ObjectPrinting) {
+ISOLATE_UNIT_TEST_CASE(ObjectPrinting) {
   // Simple Smis.
   EXPECT_STREQ("2", Smi::Handle(Smi::New(2)).ToCString());
   EXPECT_STREQ("-15", Smi::Handle(Smi::New(-15)).ToCString());
@@ -2646,7 +2648,7 @@ VM_TEST_CASE(ObjectPrinting) {
 }
 
 
-VM_TEST_CASE(CheckedHandle) {
+ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   // Ensure that null handles have the correct C++ vtable setup.
   const String& str1 = String::Handle();
   EXPECT(str1.IsString());
@@ -2690,7 +2692,7 @@ static RawFunction* CreateFunction(const char* name) {
 
 
 // Test for Code and Instruction object creation.
-VM_TEST_CASE(Code) {
+ISOLATE_UNIT_TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
@@ -2708,7 +2710,10 @@ VM_TEST_CASE(Code) {
 
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
-VM_TEST_CASE(CodeImmutability) {
+ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
+  bool stack_trace_collection_enabled =
+      MallocHooks::stack_trace_collection_enabled();
+  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
@@ -2726,11 +2731,13 @@ VM_TEST_CASE(CodeImmutability) {
     // TODO(regis, fschneider): Should this be FATAL() instead?
     OS::DebugBreak();
   }
+  MallocHooks::set_stack_trace_collection_enabled(
+      stack_trace_collection_enabled);
 }
 
 
 // Test for Embedded String object in the instructions.
-VM_TEST_CASE(EmbedStringInCode) {
+ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   extern void GenerateEmbedStringInCode(Assembler * assembler, const char* str);
   const char* kHello = "Hello World!";
   word expected_length = static_cast<word>(strlen(kHello));
@@ -2753,7 +2760,7 @@ VM_TEST_CASE(EmbedStringInCode) {
 
 
 // Test for Embedded Smi object in the instructions.
-VM_TEST_CASE(EmbedSmiInCode) {
+ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
   const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
@@ -2770,7 +2777,7 @@ VM_TEST_CASE(EmbedSmiInCode) {
 
 #if defined(ARCH_IS_64_BIT)
 // Test for Embedded Smi object in the instructions.
-VM_TEST_CASE(EmbedSmiIn64BitCode) {
+ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
   const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
   Assembler _assembler_;
@@ -2786,17 +2793,21 @@ VM_TEST_CASE(EmbedSmiIn64BitCode) {
 #endif  // ARCH_IS_64_BIT
 
 
-VM_TEST_CASE(ExceptionHandlers) {
+ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   const int kNumEntries = 4;
   // Add an exception handler table to the code.
   ExceptionHandlers& exception_handlers = ExceptionHandlers::Handle();
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
   const bool kNeedsStackTrace = true;
   const bool kNoStackTrace = false;
-  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false);
-  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false);
-  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true);
-  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true);
+  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false,
+                                    TokenPosition::kNoSource, true);
+  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false,
+                                    TokenPosition::kNoSource, true);
+  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true,
+                                    TokenPosition::kNoSource, true);
+  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true,
+                                    TokenPosition::kNoSource, true);
 
   extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
@@ -2809,7 +2820,7 @@ VM_TEST_CASE(ExceptionHandlers) {
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(code.exception_handlers());
   EXPECT_EQ(kNumEntries, handlers.num_entries());
-  RawExceptionHandlers::HandlerInfo info;
+  ExceptionHandlerInfo info;
   handlers.GetHandlerInfo(0, &info);
   EXPECT_EQ(-1, handlers.OuterTryIndex(0));
   EXPECT_EQ(-1, info.outer_try_index);
@@ -2824,7 +2835,7 @@ VM_TEST_CASE(ExceptionHandlers) {
 }
 
 
-VM_TEST_CASE(PcDescriptors) {
+ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
@@ -2882,7 +2893,7 @@ VM_TEST_CASE(PcDescriptors) {
 }
 
 
-VM_TEST_CASE(PcDescriptorsLargeDeltas) {
+ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
@@ -2964,7 +2975,7 @@ static RawField* CreateTestField(const char* name) {
 }
 
 
-VM_TEST_CASE(ClassDictionaryIterator) {
+ISOLATE_UNIT_TEST_CASE(ClassDictionaryIterator) {
   Class& ae66 = Class::ZoneHandle(CreateTestClass("Ae6/6"));
   Class& re44 = Class::ZoneHandle(CreateTestClass("Re4/4"));
   Field& ce68 = Field::ZoneHandle(CreateTestField("Ce6/8"));
@@ -3003,7 +3014,7 @@ static RawFunction* GetDummyTarget(const char* name) {
 }
 
 
-VM_TEST_CASE(ICData) {
+ISOLATE_UNIT_TEST_CASE(ICData) {
   Function& function = Function::Handle(GetDummyTarget("Bern"));
   const intptr_t id = 12;
   const intptr_t num_args_tested = 1;
@@ -3076,7 +3087,7 @@ VM_TEST_CASE(ICData) {
 }
 
 
-VM_TEST_CASE(SubtypeTestCache) {
+ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
@@ -3102,7 +3113,7 @@ VM_TEST_CASE(SubtypeTestCache) {
 }
 
 
-VM_TEST_CASE(FieldTests) {
+ISOLATE_UNIT_TEST_CASE(FieldTests) {
   const String& f = String::Handle(String::New("oneField"));
   const String& getter_f = String::Handle(Field::GetterName(f));
   const String& setter_f = String::Handle(Field::SetterName(f));
@@ -3123,7 +3134,7 @@ VM_TEST_CASE(FieldTests) {
 bool EqualsIgnoringPrivate(const String& name, const String& private_name);
 
 
-VM_TEST_CASE(EqualsIgnoringPrivate) {
+ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   String& mangled_name = String::Handle();
   String& bare_name = String::Handle();
 
@@ -3256,7 +3267,7 @@ VM_TEST_CASE(EqualsIgnoringPrivate) {
 }
 
 
-VM_TEST_CASE(ArrayNew_Overflow_Crash) {
+ISOLATE_UNIT_TEST_CASE(ArrayNew_Overflow_Crash) {
   Array::Handle(Array::New(Array::kMaxElements + 1));
 }
 
@@ -3321,7 +3332,7 @@ TEST_CASE(StackTraceFormat) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveCrossGen) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
@@ -3433,7 +3444,7 @@ VM_TEST_CASE(WeakProperty_PreserveCrossGen) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveRecurse) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
   // This used to end in an infinite recursion. Caused by scavenging the weak
   // property before scavenging the key.
   Isolate* isolate = Isolate::Current();
@@ -3456,7 +3467,7 @@ VM_TEST_CASE(WeakProperty_PreserveRecurse) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3475,7 +3486,7 @@ VM_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
@@ -3504,7 +3515,7 @@ VM_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3531,7 +3542,7 @@ VM_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3550,7 +3561,7 @@ VM_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
@@ -3579,7 +3590,7 @@ VM_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3606,7 +3617,7 @@ VM_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
@@ -3627,7 +3638,7 @@ VM_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3654,7 +3665,7 @@ VM_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
@@ -3675,7 +3686,7 @@ VM_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
 }
 
 
-VM_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
+ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
@@ -3702,7 +3713,7 @@ VM_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
 }
 
 
-VM_TEST_CASE(MirrorReference) {
+ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
       MirrorReference::Handle(MirrorReference::New(Object::Handle()));
   Object& initial_referent = Object::Handle(reference.referent());
@@ -3760,7 +3771,7 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
-VM_TEST_CASE(FindClosureIndex) {
+ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
@@ -3798,7 +3809,7 @@ VM_TEST_CASE(FindClosureIndex) {
 }
 
 
-VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
+ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
@@ -4051,7 +4062,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 }
 
 
-VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
+ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Class& cls = Class::Handle();
   Object& array = Object::Handle();
@@ -4107,7 +4118,7 @@ class ObjectAccumulator : public ObjectVisitor {
 };
 
 
-VM_TEST_CASE(PrintJSON) {
+ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   GrowableArray<Object*> objects;
@@ -4121,7 +4132,7 @@ VM_TEST_CASE(PrintJSON) {
 }
 
 
-VM_TEST_CASE(PrintJSONPrimitives) {
+ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   char buffer[1024];
   Isolate* isolate = Isolate::Current();
 
@@ -4591,7 +4602,7 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
 }
 
 
-VM_TEST_CASE(Symbols_FromConcatAll) {
+ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
   {
     const String* data[3] = {&Symbols::FallThroughError(), &Symbols::Dot(),
                              &Symbols::isPaused()};
@@ -4661,7 +4672,7 @@ struct TestResult {
 };
 
 
-VM_TEST_CASE(String_ScrubName) {
+ISOLATE_UNIT_TEST_CASE(String_ScrubName) {
   TestResult tests[] = {
       {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
       {"_List@915557746", "_List"},
@@ -4688,7 +4699,7 @@ VM_TEST_CASE(String_ScrubName) {
 }
 
 
-VM_TEST_CASE(String_EqualsUTF32) {
+ISOLATE_UNIT_TEST_CASE(String_EqualsUTF32) {
   // Regression test for Issue 27433. Checks that comparisons between Strings
   // and utf32 arrays happens after conversion to utf16 instead of utf32, as
   // required for proper canonicalization of string literals with a lossy

@@ -94,7 +94,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = elementAt(i);
@@ -107,7 +107,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), { E orElse() }) {
+  E lastWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = elementAt(i);
@@ -183,7 +183,6 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
       }
-
     }
     return value;
   }
@@ -208,7 +207,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
 
-  List<E> toList({ bool growable: true }) {
+  List<E> toList({bool growable: true}) {
     List<E> result;
     if (growable) {
       result = new List<E>()..length = length;
@@ -231,7 +230,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 }
 
 class SubListIterable<E> extends ListIterable<E> {
-  final Iterable<E> _iterable;  // Has efficient length and elementAt.
+  final Iterable<E> _iterable; // Has efficient length and elementAt.
   final int _start;
   /** If null, represents the length of the iterable. */
   final int _endOrLength;
@@ -301,8 +300,8 @@ class SubListIterable<E> extends ListIterable<E> {
     if (_endOrLength != null && _endOrLength < end) end = _endOrLength;
     int length = end - start;
     if (length < 0) length = 0;
-    List<E> result = growable ? (new List<E>()..length = length)
-                              : new List<E>(length);
+    List<E> result =
+        growable ? (new List<E>()..length = length) : new List<E>(length);
     for (int i = 0; i < length; i++) {
       result[i] = _iterable.elementAt(start + i);
       if (_iterable.length < end) throw new ConcurrentModificationError(this);
@@ -325,7 +324,9 @@ class ListIterator<E> implements Iterator<E> {
   E _current;
 
   ListIterator(Iterable<E> iterable)
-      : _iterable = iterable, _length = iterable.length, _index = 0;
+      : _iterable = iterable,
+        _length = iterable.length,
+        _index = 0;
 
   E get current => _current;
 
@@ -357,7 +358,7 @@ class MappedIterable<S, T> extends Iterable<T> {
     return new MappedIterable<S, T>._(iterable, function);
   }
 
-  MappedIterable._(this._iterable, T this._f(S element));
+  MappedIterable._(this._iterable, this._f);
 
   Iterator<T> get iterator => new MappedIterator<S, T>(_iterable.iterator, _f);
 
@@ -383,7 +384,7 @@ class MappedIterator<S, T> extends Iterator<T> {
   final Iterator<S> _iterator;
   final _Transformation<S, T> _f;
 
-  MappedIterator(this._iterator, T this._f(S element));
+  MappedIterator(this._iterator, this._f);
 
   bool moveNext() {
     if (_iterator.moveNext()) {
@@ -406,12 +407,11 @@ class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
-  MappedListIterable(this._source, T this._f(S value));
+  MappedListIterable(this._source, this._f);
 
   int get length => _source.length;
   T elementAt(int index) => _f(_source.elementAt(index));
 }
-
 
 typedef bool _ElementPredicate<E>(E element);
 
@@ -419,7 +419,7 @@ class WhereIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
-  WhereIterable(this._iterable, bool this._f(E element));
+  WhereIterable(this._iterable, this._f);
 
   Iterator<E> get iterator => new WhereIterator<E>(_iterable.iterator, _f);
 
@@ -431,7 +431,7 @@ class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate _f;
 
-  WhereIterator(this._iterator, bool this._f(E element));
+  WhereIterator(this._iterator, this._f);
 
   bool moveNext() {
     while (_iterator.moveNext()) {
@@ -451,7 +451,7 @@ class ExpandIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _ExpandFunction<S, T> _f;
 
-  ExpandIterable(this._iterable, Iterable<T> this._f(S element));
+  ExpandIterable(this._iterable, this._f);
 
   Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, _f);
 }
@@ -465,7 +465,7 @@ class ExpandIterator<S, T> implements Iterator<T> {
   Iterator<T> _currentExpansion = const EmptyIterator();
   T _current;
 
-  ExpandIterator(this._iterator, Iterable<T> this._f(S element));
+  ExpandIterator(this._iterator, this._f);
 
   T get current => _current;
 
@@ -509,7 +509,7 @@ class TakeIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthTakeIterable<E> extends TakeIterable<E>
-                                     implements EfficientLengthIterable<E> {
+    implements EfficientLengthIterable<E> {
   EfficientLengthTakeIterable(Iterable<E> iterable, int takeCount)
       : super._(iterable, takeCount);
 
@@ -519,7 +519,6 @@ class EfficientLengthTakeIterable<E> extends TakeIterable<E>
     return iterableLength;
   }
 }
-
 
 class TakeIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
@@ -548,7 +547,7 @@ class TakeWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
-  TakeWhileIterable(this._iterable, bool this._f(E element));
+  TakeWhileIterable(this._iterable, this._f);
 
   Iterator<E> get iterator {
     return new TakeWhileIterator<E>(_iterable.iterator, _f);
@@ -560,7 +559,7 @@ class TakeWhileIterator<E> extends Iterator<E> {
   final _ElementPredicate<E> _f;
   bool _isFinished = false;
 
-  TakeWhileIterator(this._iterator, bool this._f(E element));
+  TakeWhileIterator(this._iterator, this._f);
 
   bool moveNext() {
     if (_isFinished) return false;
@@ -609,7 +608,7 @@ class SkipIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthSkipIterable<E> extends SkipIterable<E>
-                                     implements EfficientLengthIterable<E> {
+    implements EfficientLengthIterable<E> {
   EfficientLengthSkipIterable(Iterable<E> iterable, int skipCount)
       : super._(iterable, skipCount);
 
@@ -641,7 +640,7 @@ class SkipWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
-  SkipWhileIterable(this._iterable, bool this._f(E element));
+  SkipWhileIterable(this._iterable, this._f);
 
   Iterator<E> get iterator {
     return new SkipWhileIterator<E>(_iterable.iterator, _f);
@@ -653,7 +652,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
   final _ElementPredicate<E> _f;
   bool _hasSkipped = false;
 
-  SkipWhileIterator(this._iterator, bool this._f(E element));
+  SkipWhileIterator(this._iterator, this._f);
 
   bool moveNext() {
     if (!_hasSkipped) {
@@ -682,13 +681,21 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   int get length => 0;
 
-  E get first { throw IterableElementError.noElement(); }
+  E get first {
+    throw IterableElementError.noElement();
+  }
 
-  E get last { throw IterableElementError.noElement(); }
+  E get last {
+    throw IterableElementError.noElement();
+  }
 
-  E get single { throw IterableElementError.noElement(); }
+  E get single {
+    throw IterableElementError.noElement();
+  }
 
-  E elementAt(int index) { throw new RangeError.range(index, 0, 0, "index"); }
+  E elementAt(int index) {
+    throw new RangeError.range(index, 0, 0, "index");
+  }
 
   bool contains(Object element) => false;
 
@@ -696,17 +703,17 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   bool any(bool test(E element)) => false;
 
-  E firstWhere(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), {E orElse()}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), { E orElse() }) {
+  E lastWhere(bool test(E element), {E orElse()}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), { E orElse() }) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }

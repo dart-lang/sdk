@@ -23,7 +23,7 @@ import '../elements/elements.dart'
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_backend.dart'
-    show JavaScriptBackend, TypeVariableHandler;
+    show JavaScriptBackend, TypeVariableCodegenAnalysis;
 
 import 'code_emitter_task.dart' show Emitter;
 
@@ -116,8 +116,7 @@ class _MetadataList extends jsAst.DeferredExpression {
   jsAst.Expression _value;
 
   void setExpression(jsAst.Expression value) {
-    // TODO(herhut): Enable the below assertion once incremental mode is gone.
-    // assert(_value == null);
+    assert(_value == null);
     assert(value.precedenceLevel == this.precedenceLevel);
     _value = value;
   }
@@ -156,23 +155,18 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   Map<OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>> _typesMap =
       <OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>>{};
 
-  // To support incremental compilation, we have to be able to eagerly emit
-  // metadata and add metadata later on. We use the below two counters for
-  // this.
-  int _globalMetadataCounter = 0;
-  int _globalTypesCounter = 0;
-
   MetadataCollector(this._compiler, this._emitter) {
     _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
   }
 
   JavaScriptBackend get _backend => _compiler.backend;
-  TypeVariableHandler get _typeVariableHandler => _backend.typeVariableHandler;
+  TypeVariableCodegenAnalysis get _typeVariableCodegenAnalysis =>
+      _backend.typeVariableCodegenAnalysis;
   DiagnosticReporter get reporter => _compiler.reporter;
 
   bool _mustEmitMetadataFor(Element element) {
-    return _backend.mustRetainMetadata &&
-        _backend.referencedFromMirrorSystem(element);
+    return _backend.mirrorsData.mustRetainMetadata &&
+        _backend.mirrorsData.referencedFromMirrorSystem(element);
   }
 
   /// The metadata function returns the metadata associated with
@@ -320,11 +314,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     String printed =
         jsAst.prettyPrint(node, _compiler, renamerForNames: nameToKey);
     return _globalMetadataMap.putIfAbsent(printed, () {
-      _BoundMetadataEntry result = new _BoundMetadataEntry(node);
-      if (_compiler.options.hasIncrementalSupport) {
-        result.finalize(_globalMetadataCounter++);
-      }
-      return result;
+      return new _BoundMetadataEntry(node);
     });
   }
 
@@ -333,9 +323,9 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     jsAst.Expression representation =
         _backend.rtiEncoder.getTypeRepresentation(type, (variable) {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
-      return _typeVariableHandler.reifyTypeVariable(variable.element);
+      return _typeVariableCodegenAnalysis.reifyTypeVariable(variable.element);
     }, (ResolutionTypedefType typedef) {
-      return _backend.isAccessibleByReflection(typedef.element);
+      return _backend.mirrorsData.isAccessibleByReflection(typedef.element);
     });
 
     if (representation is jsAst.LiteralString) {
@@ -356,13 +346,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
           new Map<ResolutionDartType, _BoundMetadataEntry>();
     }
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      _BoundMetadataEntry result = new _BoundMetadataEntry(
-          _computeTypeRepresentation(type,
-              ignoreTypeVariables: ignoreTypeVariables));
-      if (_compiler.options.hasIncrementalSupport) {
-        result.finalize(_globalTypesCounter++);
-      }
-      return result;
+      return new _BoundMetadataEntry(_computeTypeRepresentation(type,
+          ignoreTypeVariables: ignoreTypeVariables));
     });
   }
 
@@ -399,11 +384,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     }
 
     jsAst.ArrayInitializer finalizeMap(Map<dynamic, _BoundMetadataEntry> map) {
-      // When in incremental mode, we allocate entries eagerly.
-      if (_compiler.options.hasIncrementalSupport) {
-        return new jsAst.ArrayInitializer(map.values.toList());
-      }
-
       bool isUsed(_BoundMetadataEntry entry) => entry.isUsed;
       List<_BoundMetadataEntry> entries = map.values.where(isUsed).toList();
       entries.sort();

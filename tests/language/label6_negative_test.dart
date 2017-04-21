@@ -7,8 +7,8 @@
 class Label6NegativeTest {
   static testMain() {
     L: while (false) {
-      break;    // ok;
-      break L;  // ok
+      break; //    ok;
+      break L; //  ok
       void innerfunc() {
         if (true) break L; // Illegal: jump target is outside of function
       }

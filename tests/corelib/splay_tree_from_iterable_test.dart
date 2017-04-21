@@ -145,7 +145,7 @@ void typedTest() {
 
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
-      key: id,     // wrong type.
+      key: id, //     wrong type.
       value: value
     );
   });
@@ -153,7 +153,7 @@ void typedTest() {
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
       key: key,
-      value: id    // wrong type.
+      value: id //    wrong type.
     );
   });
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'dart:async';
 import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
@@ -140,10 +139,6 @@ class Kernel {
       irLibrary = libraryToIr(element.library);
     }
     return new ir.Name(name, irLibrary);
-  }
-
-  Future<ir.Library> loadLibrary(Uri uri) async {
-    return libraryToIr(await compiler.libraryLoader.loadLibrary(uri));
   }
 
   ir.Library libraryToIr(LibraryElement library) {

@@ -94,7 +94,7 @@ class Isolate {
    * then calls to [pause] will have no effect.
    *
    * If the isolate is spawned in a paused state, use this capability as
-   * argument to [resume] to resume the isolate.
+   * argument to the [resume] method in order to resume the paused isolate.
    */
   final Capability pauseCapability;
 
@@ -133,8 +133,7 @@ class Isolate {
    * pause or terminate the isolate. All the untrusted code can do is to
    * inspect the isolate and see uncaught errors or when it terminates.
    */
-  Isolate(this.controlPort, {this.pauseCapability,
-                             this.terminateCapability});
+  Isolate(this.controlPort, {this.pauseCapability, this.terminateCapability});
 
   /**
    * Return an [Isolate] object representing the current isolate.
@@ -226,10 +225,10 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawn(void entryPoint(message), var message,
-                                        {bool paused: false,
-                                         bool errorsAreFatal,
-                                         SendPort onExit,
-                                         SendPort onError});
+      {bool paused: false,
+      bool errorsAreFatal,
+      SendPort onExit,
+      SendPort onError});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -308,18 +307,16 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri,
-      List<String> args,
-      var message,
+      Uri uri, List<String> args, var message,
       {bool paused: false,
-       SendPort onExit,
-       SendPort onError,
-       bool errorsAreFatal,
-       bool checked,
-       Map<String, String> environment,
-       Uri packageRoot,
-       Uri packageConfig,
-       bool automaticPackageResolution: false});
+      SendPort onExit,
+      SendPort onError,
+      bool errorsAreFatal,
+      bool checked,
+      Map<String, String> environment,
+      Uri packageRoot,
+      Uri packageConfig,
+      bool automaticPackageResolution: false});
 
   /**
    * Requests the isolate to pause.
@@ -379,16 +376,18 @@ class Isolate {
   external void resume(Capability resumeCapability);
 
   /**
-   * Asks the isolate to send [response] on [responsePort] when it terminates.
+   * Requests an exist message on [responsePort] when the isolate terminates.
    *
-   * The isolate will send a `response` message on `responsePort` as the last
+   * The isolate will send [response] as a message on [responsePort] as the last
    * thing before it terminates. It will run no further code after the message
    * has been sent.
    *
-   * Adding the same port more than once will only cause it to receive one
-   * message, using the last response value that was added.
+   * Adding the same port more than once will only cause it to receive one exit
+   * message, using the last response value that was added,
+   * and it only needs to be removed once using [removeOnExitListener].
    *
-   * If the isolate is already dead, no message will be sent.
+   * If the isolate has terminated before it can receive this request,
+   * no exit message will be sent.
    *
    * The [response] object must follow the same restrictions as enforced by
    * [SendPort.send].
@@ -408,13 +407,22 @@ class Isolate {
   external void addOnExitListener(SendPort responsePort, {Object response});
 
   /**
-   * Stop listening on exit messages from the isolate.
+   * Stop listening for exit messages from the isolate.
    *
-   * If a call has previously been made to [addOnExitListener] with the same
-   * send-port, this will unregister the port, and it will no longer receive
-   * a message when the isolate terminates.
-   * A response may still be sent until this operation is fully processed by
-   * the isolate.
+   * Requests for the isolate to not send exit messages on [responsePort].
+   * If the isolate isn't expecting to send exit messages on [responsePort],
+   * because the port hasn't been added using [addOnExitListener],
+   * or because it has already been removed, the request is ignored.
+   *
+   * If the same port has been passed via [addOnExitListener] more than once,
+   * only one call to `removeOnExitListener` is needed to stop it from receiving
+   * exit messagees.
+   *
+   * Closing the receive port at the end of the send port will not stop the
+   * isolate from sending exit messages, they are just going to be lost.
+   *
+   * An exit message may still be sent if the isolate terminates
+   * before this request is received and processed.
    */
   external void removeOnExitListener(SendPort responsePort);
 
@@ -425,7 +433,7 @@ class Isolate {
    * event loop and shut down the isolate.
    *
    * This call requires the [terminateCapability] for the isolate.
-   * If the capability absent or wrong, no change is made.
+   * If the capability is absent or incorrect, no change is made.
    *
    * Since isolates run concurrently, it's possible for it to exit due to an
    * error before errors are set non-fatal.
@@ -479,15 +487,15 @@ class Isolate {
    *
    * * `IMMEDIATE`: The isolate responds as soon as it receives the
    *     control message. This is after any previous control message
-   *     from the same isolate has been received, but may be during
-   *     execution of another event.
+   *     from the same isolate has been received and processed,
+   *     but may be during execution of another event.
    * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
    */
-  external void ping(SendPort responsePort, {Object response,
-                                             int priority: IMMEDIATE});
+  external void ping(SendPort responsePort,
+      {Object response, int priority: IMMEDIATE});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
@@ -499,8 +507,9 @@ class Isolate {
    * stack trace, or `null` if no stack trace was provided.
    * To convert this back to a [StackTrace] object, use [StackTrace.fromString].
    *
-   * Listening using the same port more than once does nothing. It will only
-   * get each error once.
+   * Listening using the same port more than once does nothing.
+   * A port will only receive each error once,
+   * and will only need to be removed once using [removeErrorListener].
    *
    * Since isolates run concurrently, it's possible for it to exit before the
    * error listener is established. To avoid this, start the isolate paused,
@@ -509,18 +518,22 @@ class Isolate {
   external void addErrorListener(SendPort port);
 
   /**
-   * Stop listening for uncaught errors through [port].
+   * Stop listening for uncaught errors from the isolate.
    *
-   * The `port` should be a port that is listening for errors through
-   * [addErrorListener]. This call requests that the isolate stops sending
-   * errors on the port.
+   * Requests for the isolate to not send uncaught errors on [responsePort].
+   * If the isolate isn't expecting to send uncaught errors on [responsePort],
+   * because the port hasn't been added using [addErrorListener],
+   * or because it has already been removed, the request is ignored.
    *
-   * If the same port has been passed via `addErrorListener` more than once,
+   * If the same port has been passed via [addErrorListener] more than once,
    * only one call to `removeErrorListener` is needed to stop it from receiving
-   * errors.
+   * unaught errors.
    *
    * Closing the receive port at the end of the send port will not stop the
-   * isolate from sending errors, they are just going to be lost.
+   * isolate from sending uncaught errors, they are just going to be lost.
+   *
+   * Uncaught errors message may still be sent by the isolate
+   * until this request is received and processed.
    */
   external void removeErrorListener(SendPort port);
 
@@ -544,6 +557,7 @@ class Isolate {
       var error = new RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }
+
     controller = new StreamController.broadcast(
         sync: true,
         onListen: () {
@@ -570,7 +584,6 @@ class Isolate {
  * when sent.
  */
 abstract class SendPort implements Capability {
-
   /**
    * Sends an asynchronous [message] through this send port, to its
    * corresponding `ReceivePort`.
@@ -595,7 +608,7 @@ abstract class SendPort implements Capability {
    * Tests whether [other] is a [SendPort] pointing to the same
    * [ReceivePort] as this one.
    */
-  bool operator==(var other);
+  bool operator ==(var other);
 
   /**
    * Returns an immutable hash code for this send port that is
@@ -620,7 +633,6 @@ abstract class SendPort implements Capability {
  * A [ReceivePort] may have many [SendPort]s.
  */
 abstract class ReceivePort implements Stream {
-
   /**
    * Opens a long-lived port for receiving messages.
    *
@@ -651,9 +663,7 @@ abstract class ReceivePort implements Stream {
    * The stream closes when [close] is called.
    */
   StreamSubscription listen(void onData(var message),
-                            { Function onError,
-                              void onDone(),
-                              bool cancelOnError });
+      {Function onError, void onDone(), bool cancelOnError});
 
   /**
    * Closes `this`.

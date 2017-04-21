@@ -67,7 +67,9 @@ abstract class CompilerConfiguration {
     bool hotReload = configuration['hot_reload'];
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
+    bool useKernelInDart2js = configuration['dart2js_with_kernel'];
     bool verifyKernel = configuration['verify-ir'];
+    bool treeShake = !configuration['no-tree-shake'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -86,10 +88,11 @@ abstract class CompilerConfiguration {
             useSdk: useSdk,
             isCsp: isCsp,
             useFastStartup: useFastStartup,
+            useKernel: useKernelInDart2js,
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'app_jit':
-        return new Dart2AppSnapshotCompilerConfiguration(
+        return new AppJitCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked);
       case 'precompiler':
         return new PrecompilerCompilerConfiguration(
@@ -99,22 +102,22 @@ abstract class CompilerConfiguration {
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android');
       case 'dartk':
-        return ComposedCompilerConfiguration.createDartKConfiguration(
-            isChecked: isChecked,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk,
-            verify: verifyKernel,
-            strong: isStrong);
+        return new NoneCompilerConfiguration(
+              isDebug: isDebug,
+              isChecked: isChecked,
+              isHostChecked: isHostChecked,
+              useSdk: useSdk,
+              hotReload: hotReload,
+              hotReloadRollback: hotReloadRollback,
+              useDFE: true);
       case 'dartkp':
-        return ComposedCompilerConfiguration.createDartKPConfiguration(
+        return new PrecompilerCompilerConfiguration(
+            isDebug: isDebug,
             isChecked: isChecked,
-            isHostChecked: isHostChecked,
             arch: configuration['arch'],
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android',
-            useSdk: useSdk,
-            verify: verifyKernel,
-            strong: isStrong);
+            useDFE: true);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -185,18 +188,18 @@ abstract class CompilerConfiguration {
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
   final bool hotReloadRollback;
+  final bool useDFE;
 
   NoneCompilerConfiguration(
       {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
-       bool hotReload,
-       bool hotReloadRollback})
+       bool this.hotReload,
+       bool this.hotReloadRollback,
+       this.useDFE: false})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
-            useSdk: useSdk),
-        this.hotReload = hotReload,
-        this.hotReloadRollback = hotReloadRollback;
+            useSdk: useSdk);
 
   bool get hasCompiler => false;
 
@@ -209,6 +212,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     List<String> args = [];
+    if (useDFE) {
+      args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
+    }
     if (isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
@@ -227,10 +233,10 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 /// The "dartk" compiler.
 class DartKCompilerConfiguration extends CompilerConfiguration {
-  final bool verify, strong;
+  final bool verify, strong, treeShake;
 
   DartKCompilerConfiguration({bool isChecked, bool isHostChecked, bool useSdk,
-        this.verify, this.strong})
+        this.verify, this.strong, this.treeShake})
       : super._subclass(isChecked: isChecked, isHostChecked: isHostChecked,
                         useSdk: useSdk);
 
@@ -250,6 +256,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
+      treeShake ? '--tree-shake' : null,
       strong ? '--strong' : null,
       verify ? '--verify-ir' : null,
       '--out',
@@ -406,14 +413,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKPConfiguration(
       {bool isChecked, bool isHostChecked, String arch, bool useBlobs,
-       bool isAndroid, bool useSdk, bool verify, bool strong}) {
+       bool isAndroid, bool useSdk, bool verify, bool strong, bool treeShake}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isChecked: isChecked,
             isHostChecked: isHostChecked, useSdk: useSdk, verify: verify,
-            strong: strong)));
+            strong: strong, treeShake: treeShake)));
 
     // Run the normal precompiler.
     nested.add(new PipelineCommand.runWithPreviousKernelOutput(
@@ -426,14 +433,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKConfiguration(
       {bool isChecked, bool isHostChecked, bool useSdk, bool verify,
-       bool strong}) {
+       bool strong, bool treeShake}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isChecked: isChecked,
             isHostChecked: isHostChecked, useSdk: useSdk,
-            verify: verify, strong: strong)));
+            verify: verify, strong: strong, treeShake: treeShake)));
 
     return new ComposedCompilerConfiguration(nested);
   }
@@ -505,6 +512,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
   final bool useCps;
   final bool useFastStartup;
+  final bool useKernel;
   final List<String> extraDart2jsOptions;
   // We cache the extended environment to save memory.
   static Map<String, String> cpsFlagCache;
@@ -518,6 +526,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       bool this.useCps,
       bool this.isCsp,
       bool this.useFastStartup,
+      this.useKernel,
       this.extraDart2jsOptions})
       : super('dart2js',
             isDebug: isDebug,
@@ -569,9 +578,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final String arch;
   final bool useBlobs;
   final bool isAndroid;
+  final bool useDFE;
 
   PrecompilerCompilerConfiguration({bool isDebug, bool isChecked,
-    this.arch, this.useBlobs, this.isAndroid})
+    this.arch, this.useBlobs, this.isAndroid, this.useDFE: false})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
@@ -606,12 +616,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec;
-    if (isAndroid && arch == 'arm') {
-      exec = "$buildDir/clang_x86/dart_bootstrap";
+    if (isAndroid) {
+      if (arch == "arm") {
+        exec = "$buildDir/clang_x86/dart_bootstrap";
+      } else if (arch == "arm64") {
+        exec = "$buildDir/clang_x64/dart_bootstrap";
+      }
     } else {
       exec = "$buildDir/dart_bootstrap";
     }
     var args = new List();
+    if (useDFE) {
+      args.add('--dfe=utils/kernel-service/kernel-service.dart');
+    }
     args.add("--snapshot-kind=app-aot");
     if (useBlobs) {
       args.add("--snapshot=$tempDir/out.aotsnapshot");
@@ -636,7 +653,23 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
 
     var cc, shared;
-    if (Platform.isLinux) {
+    if (isAndroid) {
+      var ndk = "third_party/android_tools/ndk";
+      var triple;
+      if (arch == "arm") {
+        triple = "arm-linux-androideabi";
+      } else if (arch == "arm64") {
+        triple = "aarch64-linux-android";
+      }
+      var host;
+      if (Platform.isLinux) {
+        host = "linux";
+      } else if (Platform.isMacOS) {
+        host = "darwin";
+      }
+      cc = "$ndk/toolchains/$triple-4.9/prebuilt/$host-x86_64/bin/$triple-gcc";
+      shared = '-shared';
+    } else if (Platform.isLinux) {
       cc = 'gcc';
       shared = '-shared';
     } else if (Platform.isMacOS) {
@@ -644,10 +677,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       shared = '-dynamiclib';
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
-    }
-    if (isAndroid) {
-      // TODO: If we're not using "--use-blobs" we need to use the arm cross
-      // compiler instead of just 'gcc' for .
     }
 
     var cc_flags;
@@ -663,6 +692,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       cc_flags = "-m32";
     } else if (arch == 'arm') {
       cc_flags = null;
+    } else if (arch == 'arm64') {
+      cc_flags = null;
     } else if (arch == 'mips') {
       cc_flags = "-EL";
     } else {
@@ -672,6 +703,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var exec = cc;
     var args = (cc_flags != null) ? [ shared, cc_flags ] : [ shared ];
     args.addAll([
+      '-nostdlib',
       '-o',
       '$tempDir/out.aotsnapshot',
       '$tempDir/out.S'
@@ -754,13 +786,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
-  Dart2AppSnapshotCompilerConfiguration({bool isDebug, bool isChecked})
+class AppJitCompilerConfiguration extends CompilerConfiguration {
+  AppJitCompilerConfiguration({bool isDebug, bool isChecked})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
-    int multiplier = 2;
-    if (isDebug) multiplier *= 4;
+    int multiplier = 1;
+    if (isDebug) multiplier *= 2;
     if (isChecked) multiplier *= 2;
     return multiplier;
   }

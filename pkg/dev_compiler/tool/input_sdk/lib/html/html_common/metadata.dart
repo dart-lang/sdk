@@ -20,13 +20,13 @@ class SupportedBrowser {
 
   /// The name of the browser.
   final String browserName;
+
   /// The minimum version of the browser that supports the feature, or null
   /// if supported on all versions.
   final String minimumVersion;
 
   const SupportedBrowser(this.browserName, [this.minimumVersion]);
 }
-
 
 /**
  * An annotation used to mark an API as being experimental.
@@ -42,7 +42,6 @@ class Experimental {
   const Experimental();
 }
 
-
 /**
  * Annotation that specifies that a member is editable through generate files.
  *
@@ -55,7 +54,6 @@ class DomName {
   const DomName(this.name);
 }
 
-
 /**
  * Metadata that specifies that that member is editable through generated
  * files.
@@ -63,7 +61,6 @@ class DomName {
 class DocsEditable {
   const DocsEditable();
 }
-
 
 /**
  * Annotation that indicates that an API is not expected to change but has

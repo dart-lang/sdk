@@ -5,10 +5,9 @@
 // Test the prohibited use of 'dynamic' in extending and implementing classes.
 
 class A
-  extends dynamic  /// 00: compile-time error
-  implements dynamic  /// 01: compile-time error
-{
-}
+  extends dynamic // //# 00: compile-time error
+  implements dynamic // //# 01: compile-time error
+{}
 
 main() {
   new A();

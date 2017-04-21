@@ -8,8 +8,8 @@ class MegamorphicCacheRefMock implements M.MegamorphicCacheRef {
   final String id;
   final String selector;
 
-  const MegamorphicCacheRefMock({this.id : 'megamorphiccache-id',
-                                 this.selector: 'selector'});
+  const MegamorphicCacheRefMock(
+      {this.id: 'megamorphiccache-id', this.selector: 'selector'});
 }
 
 class MegamorphicCacheMock implements M.MegamorphicCache {
@@ -22,12 +22,13 @@ class MegamorphicCacheMock implements M.MegamorphicCache {
   final M.InstanceRef buckets;
   final M.InstanceRef argumentsDescriptor;
 
-  const MegamorphicCacheMock({this.id : 'megamorphiccache-id',
-                              this.vmName: 'megamorphiccache-vmName',
-                              this.clazz: const ClassRefMock(),
-                              this.size: 1, this.selector: 'selector',
-                              this.mask: 0,
-                              this.buckets: const InstanceRefMock(),
-                              this.argumentsDescriptor: const InstanceRefMock()
-                             });
+  const MegamorphicCacheMock(
+      {this.id: 'megamorphiccache-id',
+      this.vmName: 'megamorphiccache-vmName',
+      this.clazz: const ClassRefMock(),
+      this.size: 1,
+      this.selector: 'selector',
+      this.mask: 0,
+      this.buckets: const InstanceRefMock(),
+      this.argumentsDescriptor: const InstanceRefMock()});
 }

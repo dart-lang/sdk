@@ -10,15 +10,14 @@ class A {
 }
 
 class B extends A {
-  foo(a) {}  /// 00: static type warning
+  foo(a) {} // //# 00: static type warning
 }
 
 main() {
   B instance = new B();
   try {
     instance.foo();
-  } on NoSuchMethodError catch (error) {  /// 00: continued
-  } finally {
-  }
+  } on NoSuchMethodError catch (error) { // //# 00: continued
+  } finally {}
   print("Success");
 }

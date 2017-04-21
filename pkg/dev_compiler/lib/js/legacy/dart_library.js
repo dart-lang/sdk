@@ -17,15 +17,40 @@ dart_library =
     throw Error(message);
   }
 
-  const dartLibraryName = Symbol('dartLibraryName');
-  dart_library.dartLibraryName = dartLibraryName;
-
   const libraryImports = Symbol('libraryImports');
   dart_library.libraryImports = libraryImports;
 
   // Module support.  This is a simplified module system for Dart.
   // Longer term, we can easily migrate to an existing JS module system:
   // ES6, AMD, RequireJS, ....
+
+  // Returns a proxy that delegates to the underlying loader.
+  // This defers loading of a module until a library is actually used.
+  const loadedModule = Symbol('loadedModule');
+  dart_library.defer = function(module, name, patch) {
+    let done = false;
+    function loadDeferred() {
+      done = true;
+      var mod = module[loadedModule];
+      var lib = mod[name];
+      // Install unproxied module and library in caller's context.
+      patch(mod, lib);
+    }
+    // The deferred library object.  Note, the only legal operations on a Dart
+    // library object should be get (to read a top-level variable, method, or
+    // Class) or set (to write a top-level variable).
+    return new Proxy({}, {
+      get: function(o, p) {
+        if (!done) loadDeferred();
+        return module[name][p];
+      },
+      set: function(o, p, value) {
+        if (!done) loadDeferred();
+        module[name][p] = value;
+        return true;
+      },
+    });
+  };
 
   class LibraryLoader {
 
@@ -65,11 +90,33 @@ dart_library =
       let args = this.loadImports();
 
       // Load the library
-      args.unshift(this._library);
-      this._loader.apply(null, args);
+      let loader = this;
+      let library = this._library;
+
+      library[libraryImports] = this._imports;
+      library[loadedModule] = library;
+      args.unshift(library);
+
+      if (this._name == 'dart_sdk') {
+        // Eagerly load the SDK.
+        this._loader.apply(null, args);
+        loader._loader = null;
+      } else {
+        // Load / parse other modules on demand.
+        let done = false;
+        this._library = new Proxy(library, {
+          get: function(o, name) {
+            if (!done) {
+              done = true;
+              loader._loader.apply(null, args);
+              loader._loader = null;
+            }
+            return o[name];
+          }
+        });
+      }
+
       this._state = LibraryLoader.READY;
-      this._library[dartLibraryName] = this._name;
-      this._library[libraryImports] = this._imports;
       return this._library;
     }
 
@@ -106,7 +153,6 @@ dart_library =
   dart_library.library = library;
 
   function import_(libraryName) {
-    bootstrap();
     let loader = libraries.get(libraryName);
     // TODO(vsm): A user might call this directly from JS (as we do in tests).
     // We may want a different error type.
@@ -121,29 +167,20 @@ dart_library =
     if (libraryName == null) libraryName = moduleName;
     let library = import_(moduleName)[libraryName];
     let dart_sdk = import_('dart_sdk');
+
     if (!_currentIsolate) {
-      // Create isolate and run main.
+      // This import is only needed for chrome debugging. We should provide an
+      // option to compile without it.
+      dart_sdk._debugger.registerDevtoolsFormatter();
+
+      // Create isolate.
       _currentIsolate = true;
-      dart_sdk._isolate_helper.startRootIsolate(library.main, []);
-    } else {
-      // Main isolate is already initialized - just run main.
-      library.main();
+      dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
     }
+
+    library.main();
   }
   dart_library.start = start;
-
-  let _bootstrapped = false;
-  function bootstrap() {
-    if (_bootstrapped) return;
-    _bootstrapped = true;
-
-    // Force import of core.
-    var dart_sdk = import_('dart_sdk');
-
-    // This import is only needed for chrome debugging. We should provide an
-    // option to compile without it.
-    dart_sdk._debugger.registerDevtoolsFormatter();
-  }
 
 })(dart_library);
 }

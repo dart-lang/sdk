@@ -12,6 +12,8 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'
     show NativeBehaviorSerialization;
@@ -19,13 +21,15 @@ import '../native/native.dart' show NativeBehavior;
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
-import '../tokens/token.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 import '../tree/nodes.dart';
 import '../universe/selector.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart';
 import '../util/util.dart';
 import 'resolved_ast_serialization.dart';
+
+typedef bool Equivalence<E>(E a, E b, {TestStrategy strategy});
 
 /// Equality based equivalence function.
 bool equality(a, b) => a == b;
@@ -90,31 +94,36 @@ bool areMapsEquivalent(Map map1, Map map2,
 }
 
 /// Returns `true` if elements [a] and [b] are equivalent.
-bool areElementsEquivalent(Element a, Element b) {
+bool areElementsEquivalent(Element a, Element b, {TestStrategy strategy}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
-  return const ElementIdentityEquivalence().visit(a, b);
+  return new ElementIdentityEquivalence(strategy ?? const TestStrategy())
+      .visit(a, b);
 }
 
 /// Returns `true` if types [a] and [b] are equivalent.
-bool areTypesEquivalent(ResolutionDartType a, ResolutionDartType b) {
+bool areTypesEquivalent(DartType a, DartType b, {TestStrategy strategy}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
-  return const TypeEquivalence().visit(a, b);
+  return new TypeEquivalence(strategy ?? const TestStrategy()).visit(a, b);
 }
 
 /// Returns `true` if constants [exp1] and [exp2] are equivalent.
-bool areConstantsEquivalent(ConstantExpression exp1, ConstantExpression exp2) {
+bool areConstantsEquivalent(ConstantExpression exp1, ConstantExpression exp2,
+    {TestStrategy strategy}) {
   if (identical(exp1, exp2)) return true;
   if (exp1 == null || exp2 == null) return false;
-  return const ConstantEquivalence().visit(exp1, exp2);
+  return new ConstantEquivalence(strategy ?? const TestStrategy())
+      .visit(exp1, exp2);
 }
 
 /// Returns `true` if constant values [value1] and [value2] are equivalent.
-bool areConstantValuesEquivalent(ConstantValue value1, ConstantValue value2) {
+bool areConstantValuesEquivalent(ConstantValue value1, ConstantValue value2,
+    {TestStrategy strategy}) {
   if (identical(value1, value2)) return true;
   if (value1 == null || value2 == null) return false;
-  return const ConstantValueEquivalence().visit(value1, value2);
+  return new ConstantValueEquivalence(strategy ?? const TestStrategy())
+      .visit(value1, value2);
 }
 
 /// Returns `true` if the lists of elements, [a] and [b], are equivalent.
@@ -141,48 +150,54 @@ bool areConstantValueListsEquivalent(
 }
 
 /// Returns `true` if the selectors [a] and [b] are equivalent.
-bool areSelectorsEquivalent(Selector a, Selector b) {
+bool areSelectorsEquivalent(Selector a, Selector b,
+    {TestStrategy strategy: const TestStrategy()}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return a.kind == b.kind &&
       a.callStructure == b.callStructure &&
-      areNamesEquivalent(a.memberName, b.memberName);
+      areNamesEquivalent(a.memberName, b.memberName, strategy: strategy);
 }
 
 /// Returns `true` if the names [a] and [b] are equivalent.
-bool areNamesEquivalent(Name a, Name b) {
-  LibraryElement library1 = a.library;
-  LibraryElement library2 = b.library;
+bool areNamesEquivalent(Name a, Name b,
+    {TestStrategy strategy: const TestStrategy()}) {
   return a.text == b.text &&
       a.isSetter == b.isSetter &&
-      areElementsEquivalent(library1, library2);
+      strategy.testElements(a, b, 'library', a.library, b.library);
 }
 
 /// Returns `true` if the dynamic uses [a] and [b] are equivalent.
-bool areDynamicUsesEquivalent(DynamicUse a, DynamicUse b) {
-  return areSelectorsEquivalent(a.selector, b.selector);
+bool areDynamicUsesEquivalent(DynamicUse a, DynamicUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return areSelectorsEquivalent(a.selector, b.selector, strategy: strategy);
 }
 
 /// Returns `true` if the static uses [a] and [b] are equivalent.
-bool areStaticUsesEquivalent(StaticUse a, StaticUse b) {
-  return a.kind == b.kind && areElementsEquivalent(a.element, b.element);
+bool areStaticUsesEquivalent(StaticUse a, StaticUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return a.kind == b.kind &&
+      strategy.testElements(a, b, 'element', a.element, b.element);
 }
 
 /// Returns `true` if the type uses [a] and [b] are equivalent.
-bool areTypeUsesEquivalent(TypeUse a, TypeUse b) {
-  return a.kind == b.kind && areTypesEquivalent(a.type, b.type);
+bool areTypeUsesEquivalent(TypeUse a, TypeUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return a.kind == b.kind && strategy.testTypes(a, b, 'type', a.type, b.type);
 }
 
 /// Returns `true` if the list literal uses [a] and [b] are equivalent.
-bool areListLiteralUsesEquivalent(ListLiteralUse a, ListLiteralUse b) {
-  return areTypesEquivalent(a.type, b.type) &&
+bool areListLiteralUsesEquivalent(ListLiteralUse a, ListLiteralUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return strategy.testTypes(a, b, 'type', a.type, b.type) &&
       a.isConstant == b.isConstant &&
       a.isEmpty == b.isEmpty;
 }
 
 /// Returns `true` if the map literal uses [a] and [b] are equivalent.
-bool areMapLiteralUsesEquivalent(MapLiteralUse a, MapLiteralUse b) {
-  return areTypesEquivalent(a.type, b.type) &&
+bool areMapLiteralUsesEquivalent(MapLiteralUse a, MapLiteralUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return strategy.testTypes(a, b, 'type', a.type, b.type) &&
       a.isConstant == b.isConstant &&
       a.isEmpty == b.isEmpty;
 }
@@ -331,7 +346,19 @@ bool areNodesEquivalent(Node node1, Node node2) {
 ///
 /// Use this strategy to determine equivalence without failing on inequivalence.
 class TestStrategy {
-  const TestStrategy();
+  final Equivalence<Entity> elementEquivalence;
+  final Equivalence<DartType> typeEquivalence;
+  final Equivalence<ConstantExpression> constantEquivalence;
+  final Equivalence<ConstantValue> constantValueEquivalence;
+
+  const TestStrategy(
+      {this.elementEquivalence: areElementsEquivalent,
+      this.typeEquivalence: areTypesEquivalent,
+      this.constantEquivalence: areConstantsEquivalent,
+      this.constantValueEquivalence: areConstantValuesEquivalent});
+
+  /// An equivalence [TestStrategy] that doesn't throw on inequivalence.
+  TestStrategy get testOnly => this;
 
   bool test(var object1, var object2, String property, var value1, var value2,
       [bool equivalence(a, b) = equality]) {
@@ -357,38 +384,45 @@ class TestStrategy {
   }
 
   bool testElements(Object object1, Object object2, String property,
-      Element element1, Element element2) {
-    return areElementsEquivalent(element1, element2);
+      Entity element1, Entity element2) {
+    return test(object1, object2, property, element1, element2,
+        (a, b) => elementEquivalence(a, b, strategy: this));
   }
 
   bool testTypes(Object object1, Object object2, String property,
-      ResolutionDartType type1, ResolutionDartType type2) {
-    return areTypesEquivalent(type1, type2);
+      DartType type1, DartType type2) {
+    return test(object1, object2, property, type1, type2,
+        (a, b) => typeEquivalence(a, b, strategy: this));
   }
 
   bool testConstants(Object object1, Object object2, String property,
       ConstantExpression exp1, ConstantExpression exp2) {
-    return areConstantsEquivalent(exp1, exp2);
+    return test(object1, object2, property, exp1, exp2,
+        (a, b) => constantEquivalence(a, b, strategy: this));
   }
 
   bool testConstantValues(Object object1, Object object2, String property,
       ConstantValue value1, ConstantValue value2) {
-    return areConstantValuesEquivalent(value1, value2);
+    return test(object1, object2, property, value1, value2,
+        (a, b) => constantValueEquivalence(a, b, strategy: this));
   }
 
   bool testTypeLists(Object object1, Object object2, String property,
-      List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
-    return areTypeListsEquivalent(list1, list2);
+      List<DartType> list1, List<DartType> list2) {
+    return testLists(object1, object2, property, list1, list2,
+        (a, b) => typeEquivalence(a, b, strategy: this));
   }
 
   bool testConstantLists(Object object1, Object object2, String property,
       List<ConstantExpression> list1, List<ConstantExpression> list2) {
-    return areConstantListsEquivalent(list1, list2);
+    return testLists(object1, object2, property, list1, list2,
+        (a, b) => constantEquivalence(a, b, strategy: this));
   }
 
   bool testConstantValueLists(Object object1, Object object2, String property,
       List<ConstantValue> list1, List<ConstantValue> list2) {
-    return areConstantValueListsEquivalent(list1, list2);
+    return testLists(object1, object2, property, list1, list2,
+        (a, b) => constantValueEquivalence(a, b, strategy: this));
   }
 
   bool testNodes(
@@ -519,9 +553,11 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   bool visitLocalFunctionElement(
       LocalFunctionElement element1, LocalFunctionElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
+    MemberElement member1 = element1.memberContext;
+    MemberElement member2 = element2.memberContext;
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
-        checkMembers(element1.memberContext, element2.memberContext);
+        checkMembers(member1, member2);
   }
 
   @override
@@ -774,8 +810,14 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitVariable(
-      VariableConstantExpression exp1, VariableConstantExpression exp2) {
+  bool visitField(FieldConstantExpression exp1, FieldConstantExpression exp2) {
+    return strategy.testElements(
+        exp1, exp2, 'element', exp1.element, exp2.element);
+  }
+
+  @override
+  bool visitLocalVariable(LocalVariableConstantExpression exp1,
+      LocalVariableConstantExpression exp2) {
     return strategy.testElements(
         exp1, exp2, 'element', exp1.element, exp2.element);
   }
@@ -981,7 +1023,7 @@ class ConstantValueEquivalence
 /// Tests the equivalence of [impact1] and [impact2] using [strategy].
 bool testResolutionImpactEquivalence(
     ResolutionImpact impact1, ResolutionImpact impact2,
-    [TestStrategy strategy = const TestStrategy()]) {
+    {TestStrategy strategy = const TestStrategy()}) {
   return strategy.testSets(impact1, impact2, 'constSymbolNames',
           impact1.constSymbolNames, impact2.constSymbolNames) &&
       strategy.testSets(
@@ -991,20 +1033,54 @@ bool testResolutionImpactEquivalence(
           impact1.constantLiterals,
           impact2.constantLiterals,
           areConstantsEquivalent) &&
-      strategy.testSets(impact1, impact2, 'dynamicUses', impact1.dynamicUses,
-          impact2.dynamicUses, areDynamicUsesEquivalent) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'dynamicUses',
+          impact1.dynamicUses,
+          impact2.dynamicUses,
+          (a, b) =>
+              areDynamicUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
       strategy.testSets(
           impact1, impact2, 'features', impact1.features, impact2.features) &&
-      strategy.testSets(impact1, impact2, 'listLiterals', impact1.listLiterals,
-          impact2.listLiterals, areListLiteralUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'mapLiterals', impact1.mapLiterals,
-          impact2.mapLiterals, areMapLiteralUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'staticUses', impact1.staticUses,
-          impact2.staticUses, areStaticUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'typeUses', impact1.typeUses,
-          impact2.typeUses, areTypeUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'nativeData', impact1.nativeData,
-          impact2.nativeData, testNativeBehavior);
+      strategy.testSets(
+          impact1,
+          impact2,
+          'listLiterals',
+          impact1.listLiterals,
+          impact2.listLiterals,
+          (a, b) => areListLiteralUsesEquivalent(a, b,
+              strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'mapLiterals',
+          impact1.mapLiterals,
+          impact2.mapLiterals,
+          (a, b) =>
+              areMapLiteralUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'staticUses',
+          impact1.staticUses,
+          impact2.staticUses,
+          (a, b) =>
+              areStaticUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'typeUses',
+          impact1.typeUses,
+          impact2.typeUses,
+          (a, b) => areTypeUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'nativeData',
+          impact1.nativeData,
+          impact2.nativeData,
+          (a, b) => testNativeBehavior(a, b, strategy: strategy));
 }
 
 /// Tests the equivalence of [resolvedAst1] and [resolvedAst2] using [strategy].
@@ -1072,7 +1148,7 @@ bool testTreeElementsEquivalence(
 }
 
 bool testNativeBehavior(NativeBehavior a, NativeBehavior b,
-    [TestStrategy strategy = const TestStrategy()]) {
+    {TestStrategy strategy = const TestStrategy()}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return strategy.test(
@@ -1159,7 +1235,7 @@ class TreeElementsEquivalenceVisitor extends Visitor {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
     if (a is NativeBehavior && b is NativeBehavior) {
-      return testNativeBehavior(a, b, strategy);
+      return testNativeBehavior(a, b, strategy: strategy);
     }
     return true;
   }
@@ -1367,7 +1443,10 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
         (Token t1, Token t2) {
       if (t1 == t2) return true;
       if (t1 == null || t2 == null) return false;
-      return strategy.test(t1, t2, 'hashCode', t1.hashCode, t2.hashCode);
+      return strategy.test(
+              t1, t2, 'charOffset', t1.charOffset, t2.charOffset) &&
+          strategy.test(t1, t2, 'info', t1.info, t2.info) &&
+          strategy.test(t1, t2, 'value', t1.lexeme, t2.lexeme);
     });
   }
 
@@ -1965,11 +2044,22 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTypeAnnotation(TypeAnnotation node1, TypeAnnotation node2) {
+  bool visitNominalTypeAnnotation(
+      NominalTypeAnnotation node1, NominalTypeAnnotation node2) {
     return testNodes(
             node1, node2, 'typeName', node1.typeName, node2.typeName) &&
         testNodes(node1, node2, 'typeArguments', node1.typeArguments,
             node2.typeArguments);
+  }
+
+  @override
+  bool visitFunctionTypeAnnotation(
+      FunctionTypeAnnotation node1, FunctionTypeAnnotation node2) {
+    return testNodes(
+            node1, node2, 'returnType', node1.returnType, node2.returnType) &&
+        testNodes(node1, node2, 'formals', node1.formals, node2.formals) &&
+        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+            node2.typeParameters);
   }
 
   @override
@@ -1986,8 +2076,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
         testNodes(
             node1, node2, 'returnType', node1.returnType, node2.returnType) &&
         testNodes(node1, node2, 'name', node1.name, node2.name) &&
-        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
-            node2.typeParameters) &&
+        testNodes(node1, node2, 'typeParameters', node1.templateParameters,
+            node2.templateParameters) &&
         testNodes(node1, node2, 'formals', node1.formals, node2.formals);
   }
 
@@ -2040,6 +2130,11 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitStringNode(StringNode node1, StringNode node2) {
+    throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
+  }
+
+  @override
+  bool visitTypeAnnotation(TypeAnnotation node1, TypeAnnotation node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 }

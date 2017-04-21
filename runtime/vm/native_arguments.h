@@ -33,7 +33,7 @@ class Thread;
     uword current_sp = Simulator::Current()->get_register(SPREG);              \
     ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
   }
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
 #define CHECK_STACK_ALIGNMENT                                                  \
   {}

@@ -8,13 +8,12 @@ import 'closure.dart' show ClosureClassElement, SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
-import 'core_types.dart' show CommonElements;
+import 'common_elements.dart' show CommonElements;
 import 'elements/entities.dart';
 import 'elements/elements.dart'
     show
         ClassElement,
         Element,
-        Entity,
         FunctionElement,
         MemberElement,
         MixinApplicationElement,
@@ -22,6 +21,8 @@ import 'elements/elements.dart'
         FieldElement;
 import 'elements/resolution_types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/interceptor_data.dart' show InterceptorData;
+import 'js_backend/native_data.dart' show NativeData;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
@@ -45,6 +46,10 @@ abstract class World {}
 abstract class ClosedWorld implements World {
   /// Access to core classes used by the backend.
   BackendClasses get backendClasses;
+
+  NativeData get nativeData;
+
+  InterceptorData get interceptorData;
 
   CommonElements get commonElements;
 
@@ -386,6 +391,7 @@ enum ClassQuery {
 class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   final JavaScriptBackend _backend;
   BackendClasses get backendClasses => _backend.backendClasses;
+  InterceptorData get interceptorData => _backend.interceptorData;
   FunctionSet _allFunctions;
 
   final Iterable<TypedefElement> _allTypedefs;
@@ -441,6 +447,8 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     _commonMasks = new CommonMasks(this);
     _allFunctions = functionSetBuilder.close(this);
   }
+
+  NativeData get nativeData => _backend.nativeData;
 
   @override
   ClosedWorld get closedWorld => this;
@@ -708,7 +716,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
     assert(isClosed);
-    if (_backend.isJsInterop(cls)) {
+    if (nativeData.isJsInteropClass(cls)) {
       return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
@@ -720,7 +728,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
     assert(isClosed);
-    if (_backend.isJsInterop(cls)) {
+    if (nativeData.isJsInteropClass(cls)) {
       return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassSet classSet = _classSets[cls.declaration];
@@ -1074,7 +1082,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     assert(isClosed);
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = _backend.hasInvokeOnSupport &&
+      canReachAll = _backend.backendUsage.isInvokeOnUsed &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? commonMasks.dynamicType : mask;
@@ -1090,7 +1098,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
   bool fieldNeverChanges(MemberElement element) {
     if (!element.isField) return false;
-    if (_backend.isNative(element)) {
+    if (nativeData.isNativeMember(element)) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
       // TODO(sra): Refine the effect classification so that native effects are

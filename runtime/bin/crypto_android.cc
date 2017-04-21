@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
@@ -41,4 +41,4 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)

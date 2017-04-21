@@ -25,7 +25,7 @@ import 'package:compiler/src/source_file_provider.dart';
 import '../memory_compiler.dart';
 import '../output_collector.dart';
 
-class SourceFileSink implements EventSink<String> {
+class SourceFileSink implements OutputSink {
   final String filename;
   StringBuffer sb = new StringBuffer();
   SourceFile sourceFile;
@@ -35,11 +35,6 @@ class SourceFileSink implements EventSink<String> {
   @override
   void add(String event) {
     sb.write(event);
-  }
-
-  @override
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    // Ignore.
   }
 
   @override
@@ -59,7 +54,8 @@ class OutputProvider implements CompilerOutput {
     return null;
   }
 
-  SourceFileSink createSourceFileSink(String name, String extension) {
+  SourceFileSink createSourceFileSink(
+      String name, String extension, OutputType type) {
     String filename = '$name.$extension';
     SourceFileSink sink = new SourceFileSink(filename);
     Uri uri = Uri.parse(filename);
@@ -68,8 +64,8 @@ class OutputProvider implements CompilerOutput {
   }
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    return createSourceFileSink(name, extension);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    return createSourceFileSink(name, extension, type);
   }
 }
 
@@ -80,10 +76,10 @@ class CloningOutputProvider extends OutputProvider {
       : outputProvider = new RandomAccessFileOutputProvider(jsUri, jsMapUri);
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    EventSink<String> output = outputProvider(name, extension);
-    return new CloningEventSink(
-        [output, createSourceFileSink(name, extension)]);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    OutputSink output = outputProvider.createOutputSink(name, extension, type);
+    return new CloningOutputSink(
+        [output, createSourceFileSink(name, extension, type)]);
   }
 }
 
@@ -123,6 +119,22 @@ class RecordingPrintingContext extends LenientPrintingContext {
 }
 
 /// A [SourceMapper] that records the source locations on each node.
+class RecordingSourceMapperProvider implements SourceMapperProvider {
+  final SourceMapperProvider sourceMapperProvider;
+  final _LocationRecorder nodeToSourceLocationsMap;
+
+  RecordingSourceMapperProvider(
+      this.sourceMapperProvider, this.nodeToSourceLocationsMap);
+
+  @override
+  SourceMapper createSourceMapper(String name) {
+    return new RecordingSourceMapper(
+        sourceMapperProvider.createSourceMapper(name),
+        nodeToSourceLocationsMap);
+  }
+}
+
+/// A [SourceMapper] that records the source locations on each node.
 class RecordingSourceMapper implements SourceMapper {
   final SourceMapper sourceMapper;
   final _LocationRecorder nodeToSourceLocationsMap;
@@ -138,8 +150,7 @@ class RecordingSourceMapper implements SourceMapper {
 
 /// A wrapper of [SourceInformationProcessor] that records source locations and
 /// code positions.
-class RecordingSourceInformationProcessor
-    implements SourceInformationProcessor {
+class RecordingSourceInformationProcessor extends SourceInformationProcessor {
   final RecordingSourceInformationStrategy wrapper;
   final SourceInformationProcessor processor;
   final CodePositionRecorder codePositions;
@@ -193,13 +204,16 @@ class RecordingSourceInformationStrategy
   }
 
   @override
-  SourceInformationProcessor createProcessor(SourceMapper sourceMapper) {
+  SourceInformationProcessor createProcessor(
+      SourceMapperProvider provider, SourceInformationReader reader) {
     LocationMap nodeToSourceLocationsMap = new _LocationRecorder();
     CodePositionRecorder codePositions = new CodePositionRecorder();
     return new RecordingSourceInformationProcessor(
         this,
         strategy.createProcessor(
-            new RecordingSourceMapper(sourceMapper, nodeToSourceLocationsMap)),
+            new RecordingSourceMapperProvider(
+                provider, nodeToSourceLocationsMap),
+            reader),
         codePositions,
         nodeToSourceLocationsMap);
   }
@@ -337,7 +351,9 @@ class SourceMapProcessor {
         CodePositionRecorder codePositions = subProcess.codePositions;
         CodePointComputer visitor =
             new CodePointComputer(sourceFileManager, code, nodeMap);
-        new JavaScriptTracer(codePositions, [visitor]).apply(node);
+        new JavaScriptTracer(
+                codePositions, const SourceInformationReader(), [visitor])
+            .apply(node);
         List<CodePoint> codePoints = visitor.codePoints;
         elementSourceMapInfos[element] = new SourceMapInfo(
             element, code, node, codePoints, codePositions, nodeMap);
@@ -355,7 +371,9 @@ class SourceMapProcessor {
       codePositions = process.codePositions;
       CodePointComputer visitor =
           new CodePointComputer(sourceFileManager, code, nodeMap);
-      new JavaScriptTracer(codePositions, [visitor]).apply(node);
+      new JavaScriptTracer(
+              codePositions, const SourceInformationReader(), [visitor])
+          .apply(node);
       List<CodePoint> codePoints = visitor.codePoints;
       mainSourceMapInfo = new SourceMapInfo(
           null, code, node, codePoints, codePositions, nodeMap);

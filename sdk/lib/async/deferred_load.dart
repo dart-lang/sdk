@@ -30,7 +30,7 @@ class DeferredLibrary {
  * Thrown when a deferred library fails to load.
  */
 class DeferredLoadException implements Exception {
-  DeferredLoadException(String this._s);
+  DeferredLoadException(this._s);
   String toString() => "DeferredLoadException: '$_s'";
   final String _s;
 }

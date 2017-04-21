@@ -7,7 +7,9 @@
 #include "vm/cha.h"
 #include "vm/bit_vector.h"
 #include "vm/il_printer.h"
+#include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
+#include "vm/resolver.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -39,9 +41,7 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
                           BitVector(flow_graph->zone(),
                                     flow_graph->reverse_postorder().length())),
       types_(flow_graph->current_ssa_temp_index()),
-      in_worklist_(new (flow_graph->zone())
-                       BitVector(flow_graph->zone(),
-                                 flow_graph->current_ssa_temp_index())),
+      in_worklist_(NULL),
       asserts_(NULL),
       collected_asserts_(NULL) {
   for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
@@ -61,7 +61,8 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
 
 
 void FlowGraphTypePropagator::Propagate() {
-  if (FLAG_trace_type_propagation) {
+  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
+      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
     FlowGraphPrinter::PrintGraph("Before type propagation", flow_graph_);
   }
 
@@ -73,6 +74,8 @@ void FlowGraphTypePropagator::Propagate() {
   // Reset compile type of all phis to None to ensure that
   // types are correctly propagated through the cycles of
   // phis.
+  in_worklist_ = new (flow_graph_->zone())
+      BitVector(flow_graph_->zone(), flow_graph_->current_ssa_temp_index());
   for (intptr_t i = 0; i < worklist_.length(); i++) {
     ASSERT(worklist_[i]->IsPhi());
     *worklist_[i]->Type() = CompileType::None();
@@ -82,12 +85,14 @@ void FlowGraphTypePropagator::Propagate() {
   // definitions.
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
-    if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
+    if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
+        FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
       THR_Print("recomputing type of v%" Pd ": %s\n", def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
-      if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
+      if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
+          FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
         THR_Print("  ... new type %s\n", def->Type()->ToCString());
       }
       for (Value::Iterator it(def->input_use_list()); !it.Done();
@@ -102,7 +107,8 @@ void FlowGraphTypePropagator::Propagate() {
     }
   }
 
-  if (FLAG_trace_type_propagation) {
+  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
+      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
     FlowGraphPrinter::PrintGraph("After type propagation", flow_graph_);
   }
 }
@@ -182,7 +188,7 @@ void FlowGraphTypePropagator::SetTypeOf(Definition* def, CompileType* type) {
 void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   CompileType* current = TypeOf(def);
   if (current->IsNone() || (current->ToCid() != cid)) {
-    SetTypeOf(def, ZoneCompileType::Wrap(CompileType::FromCid(cid)));
+    SetTypeOf(def, new CompileType(CompileType::FromCid(cid)));
   }
 }
 
@@ -191,7 +197,8 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   CompileType* type = TypeOf(value->definition());
   value->SetReachingType(type);
 
-  if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
+  if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
+      FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
     THR_Print("reaching type to %s for v%" Pd " is %s\n",
               value->instruction()->ToCString(),
               value->definition()->ssa_temp_index(), type->ToCString());
@@ -219,7 +226,7 @@ void FlowGraphTypePropagator::VisitCheckArrayBound(
 
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
-  if ((check->unary_checks().NumberOfChecks() != 1) ||
+  if (!check->unary_checks().NumberOfChecksIs(1) ||
       !check->Dependencies().IsNone()) {
     // TODO(vegorov): If check is affected by side-effect we can still propagate
     // the type further but not the cid.
@@ -232,15 +239,58 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
-  // Can't propagate the type/cid because it may cause illegal code motion and
-  // we don't track dependencies in all places via redefinitions.
+  if (!check->Dependencies().IsNone()) {
+    // TODO(vegorov): If check is affected by side-effect we can still propagate
+    // the type further but not the cid.
+    return;
+  }
+
+  LoadClassIdInstr* load_cid =
+      check->value()->definition()->OriginalDefinition()->AsLoadClassId();
+  if (load_cid != NULL) {
+    SetCid(load_cid->object()->definition(), check->cid());
+  }
+}
+
+
+void FlowGraphTypePropagator::CheckNonNullSelector(
+    Instruction* call,
+    Definition* receiver,
+    const String& function_name) {
+  if (!receiver->Type()->is_nullable()) {
+    // Nothing to do if type is already non-nullable.
+    return;
+  }
+  const Class& null_class =
+      Class::Handle(Isolate::Current()->object_store()->null_class());
+  const Function& target = Function::Handle(Resolver::ResolveDynamicAnyArgs(
+      Thread::Current()->zone(), null_class, function_name));
+  if (target.IsNull()) {
+    // If the selector is not defined on Null, we can propagate non-nullness.
+    CompileType* type = TypeOf(receiver);
+    if (type->is_nullable()) {
+      // Insert redefinition for the receiver to guard against invalid
+      // code motion.
+      RedefinitionInstr* redef = flow_graph_->EnsureRedefinition(
+          call, receiver, type->CopyNonNullable());
+      // Grow types array if a new redefinition was inserted.
+      if (redef != NULL) {
+        for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1;
+             ++i) {
+          types_.Add(NULL);
+        }
+      }
+    }
+  }
 }
 
 
 void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->has_unique_selector()) {
     SetCid(instr->ArgumentAt(0), instr->ic_data()->GetReceiverClassIdAt(0));
+    return;
   }
+  CheckNonNullSelector(instr, instr->ArgumentAt(0), instr->function_name());
 }
 
 
@@ -248,7 +298,10 @@ void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
   if (instr->instance_call()->has_unique_selector()) {
     SetCid(instr->ArgumentAt(0), instr->ic_data().GetReceiverClassIdAt(0));
+    return;
   }
+  CheckNonNullSelector(instr, instr->ArgumentAt(0),
+                       instr->instance_call()->function_name());
 }
 
 
@@ -266,7 +319,7 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
       (current->is_nullable() && !guard->field().is_nullable())) {
     const bool is_nullable =
         guard->field().is_nullable() && current->is_nullable();
-    SetTypeOf(def, ZoneCompileType::Wrap(CompileType(is_nullable, cid, NULL)));
+    SetTypeOf(def, new CompileType(is_nullable, cid, NULL));
   }
 }
 
@@ -274,7 +327,56 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
 void FlowGraphTypePropagator::VisitAssertAssignable(
     AssertAssignableInstr* instr) {
   SetTypeOf(instr->value()->definition(),
-            ZoneCompileType::Wrap(instr->ComputeType()));
+            new CompileType(instr->ComputeType()));
+}
+
+
+void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
+  StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
+  if (comparison == NULL) return;
+  bool negated = comparison->kind() == Token::kNE_STRICT;
+  LoadClassIdInstr* load_cid =
+      comparison->InputAt(0)->definition()->AsLoadClassId();
+  InstanceCallInstr* call =
+      comparison->InputAt(0)->definition()->AsInstanceCall();
+  RedefinitionInstr* redef = NULL;
+  if (load_cid != NULL && comparison->InputAt(1)->BindsToConstant()) {
+    intptr_t cid = Smi::Cast(comparison->InputAt(1)->BoundConstant()).Value();
+    BlockEntryInstr* true_successor =
+        negated ? instr->false_successor() : instr->true_successor();
+    redef = flow_graph_->EnsureRedefinition(true_successor,
+                                            load_cid->object()->definition(),
+                                            CompileType::FromCid(cid));
+  } else if ((call != NULL) &&
+             call->MatchesCoreName(Symbols::_simpleInstanceOf()) &&
+             comparison->InputAt(1)->BindsToConstant() &&
+             (comparison->InputAt(1)->BoundConstant().IsBool())) {
+    ASSERT(call->ArgumentAt(1)->IsConstant());
+    if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
+      negated = !negated;
+    }
+    BlockEntryInstr* true_successor =
+        negated ? instr->false_successor() : instr->true_successor();
+    const Object& type = call->ArgumentAt(1)->AsConstant()->value();
+    if (type.IsType() && !Type::Cast(type).IsDynamicType() &&
+        !Type::Cast(type).IsObjectType()) {
+      const bool is_nullable = Type::Cast(type).IsNullType()
+                                   ? CompileType::kNullable
+                                   : CompileType::kNonNullable;
+      redef = flow_graph_->EnsureRedefinition(
+          true_successor, call->ArgumentAt(0),
+          CompileType::FromAbstractType(Type::Cast(type), is_nullable));
+    }
+  }
+  // TODO(fschneider): Add propagation for null-comparisons.
+  // TODO(fschneider): Add propagation for generic is-tests.
+
+  // Grow types array if a new redefinition was inserted.
+  if (redef != NULL) {
+    for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1; ++i) {
+      types_.Add(NULL);
+    }
+  }
 }
 
 
@@ -664,6 +766,30 @@ bool PhiInstr::RecomputeType() {
 
 
 CompileType RedefinitionInstr::ComputeType() const {
+  if (constrained_type_ != NULL) {
+    // Check if the type associated with this redefinition is more specific
+    // than the type of its input. If yes, return it. Otherwise, fall back
+    // to the input's type.
+
+    // If either type has a concrete cid, stick with it.
+    if (value()->Type()->ToCid() != kDynamicCid) {
+      return *value()->Type();
+    }
+    if (constrained_type_->ToCid() != kDynamicCid) {
+      return *constrained_type_;
+    }
+    // If either type is non-nullable, the resulting type is non-nullable.
+    const bool is_nullable =
+        value()->Type()->is_nullable() && constrained_type_->is_nullable();
+    if (value()->Type()->IsMoreSpecificThan(
+            *constrained_type_->ToAbstractType())) {
+      return is_nullable ? *value()->Type()
+                         : value()->Type()->CopyNonNullable();
+    } else {
+      return is_nullable ? *constrained_type_
+                         : constrained_type_->CopyNonNullable();
+    }
+  }
   return *value()->Type();
 }
 

@@ -19,6 +19,7 @@ import 'package:compiler/src/constants/values.dart'
 import 'package:compiler/src/elements/elements.dart' show Element, Elements;
 
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
+import 'package:compiler/src/js_backend/mirrors_analysis.dart';
 
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
     show Emitter;
@@ -63,7 +64,7 @@ void main() {
     // 2. Some code was refactored, and there are more methods.
     // Either situation could be problematic, but in situation 2, it is often
     // acceptable to increase [expectedMethodCount] a little.
-    int expectedMethodCount = 466;
+    int expectedMethodCount = 477;
     Expect.isTrue(
         generatedCode.length <= expectedMethodCount,
         'Too many compiled methods: '
@@ -109,15 +110,18 @@ void main() {
       library.forEachLocalMember((member) {
         if (library == compiler.mainApp && member.name == 'Foo') {
           Expect.isTrue(
-              compiler.backend.isAccessibleByReflection(member), '$member');
+              compiler.backend.mirrorsData.isAccessibleByReflection(member),
+              '$member');
           member.forEachLocalMember((classMember) {
             Expect.isTrue(
-                compiler.backend.isAccessibleByReflection(classMember),
+                compiler.backend.mirrorsData
+                    .isAccessibleByReflection(classMember),
                 '$classMember');
           });
         } else {
           Expect.isFalse(
-              compiler.backend.isAccessibleByReflection(member), '$member');
+              compiler.backend.mirrorsData.isAccessibleByReflection(member),
+              '$member');
         }
       });
     }
@@ -126,8 +130,10 @@ void main() {
     Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    backend.processMetadata(compiler.enqueuer.resolution.processedEntities,
-        (metadata) {
+    MirrorsResolutionAnalysisImpl mirrorsResolutionAnalysis =
+        backend.mirrorsResolutionAnalysis;
+    mirrorsResolutionAnalysis.processMetadata(
+        compiler.enqueuer.resolution.processedEntities, (metadata) {
       ConstantValue constant =
           backend.constants.getConstantValueForMetadata(metadata);
       Expect.isFalse(

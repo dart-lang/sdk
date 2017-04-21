@@ -465,8 +465,9 @@ static void InspectStackTest(bool optimize) {
   int saved_threshold = FLAG_optimization_counter_threshold;
   const int kLowThreshold = 100;
   const int kHighThreshold = 10000;
-  bool saved_osr = FLAG_use_osr;
-  FLAG_use_osr = false;
+  Isolate* isolate = Isolate::Current();
+  const bool saved_use_osr = isolate->use_osr();
+  isolate->set_use_osr(false);
 
   if (optimize) {
     // Warm up the code to make sure it gets optimized.  We ignore any
@@ -511,7 +512,7 @@ static void InspectStackTest(bool optimize) {
   }
 
   FLAG_optimization_counter_threshold = saved_threshold;
-  FLAG_use_osr = saved_osr;
+  isolate->set_use_osr(saved_use_osr);
 }
 
 
@@ -1414,7 +1415,7 @@ static void TestIsolateID(Dart_IsolateId isolate_id, Dart_IsolateEvent kind) {
 }
 
 
-UNIT_TEST_CASE(Debug_IsolateID) {
+VM_UNIT_TEST_CASE(Debug_IsolateID) {
   const char* kScriptChars =
       "void moo(s) { }        \n"
       "class A {              \n"
@@ -1446,6 +1447,7 @@ UNIT_TEST_CASE(Debug_IsolateID) {
 static Monitor* sync = NULL;
 static bool isolate_interrupted = false;
 static bool pause_event_handled = false;
+static bool interrupt_thread_stopped = false;
 static Dart_IsolateId interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
 static volatile bool continue_isolate_loop = true;
 
@@ -1533,6 +1535,12 @@ static void InterruptIsolateRun(uword unused) {
   EXPECT_VALID(retval);
   Dart_ExitScope();
   Dart_ShutdownIsolate();
+  {
+    // Notify the waiting thread that we are done.
+    MonitorLocker ml(sync);
+    interrupt_thread_stopped = true;
+    ml.Notify();
+  }
 }
 
 
@@ -1543,6 +1551,10 @@ TEST_CASE(Debug_InterruptIsolate) {
   Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
   Dart_SetPausedEventHandler(InterruptIsolateHandler);
+  {
+    MonitorLocker ml(sync);
+    interrupt_thread_stopped = false;
+  }
   int result = OSThread::Start("DebugInterruptIsolate", InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
 
@@ -1580,6 +1592,17 @@ TEST_CASE(Debug_InterruptIsolate) {
     }
   }
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+
+  // Wait for the OSThread that we started above, if we do
+  // not wait we end up with a race between the process
+  // exiting and cleaning up while the thread above is cleaning
+  // up stuff from the isolate leading to flaky crashes.
+  {
+    MonitorLocker ml(sync);
+    while (!interrupt_thread_stopped) {
+      ml.Wait();
+    }
+  }
   OS::PrintErr("Complete\n");
   FLAG_trace_shutdown = saved_flag;
 }

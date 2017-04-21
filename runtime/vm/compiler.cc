@@ -543,33 +543,39 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
       Code::Handle(Code::FinalizeCode(function, assembler, optimized()));
   code.set_is_optimized(optimized());
   code.set_owner(function);
+#if !defined(PRODUCT)
+  if (FLAG_support_debugger) {
+    ZoneGrowableArray<TokenPosition>* await_token_positions =
+        flow_graph->await_token_positions();
+    if (await_token_positions != NULL) {
+      Smi& token_pos_value = Smi::Handle(zone);
+      if (await_token_positions->length() > 0) {
+        const Array& await_to_token_map = Array::Handle(
+            zone, Array::New(await_token_positions->length(), Heap::kOld));
+        ASSERT(!await_to_token_map.IsNull());
+        for (intptr_t i = 0; i < await_token_positions->length(); i++) {
+          TokenPosition token_pos =
+              await_token_positions->At(i).FromSynthetic();
+          if (!token_pos.IsReal()) {
+            // Some async machinary uses sentinel values. Map them to
+            // no source position.
+            token_pos_value = Smi::New(TokenPosition::kNoSourcePos);
+          } else {
+            token_pos_value = Smi::New(token_pos.value());
+          }
+          await_to_token_map.SetAt(i, token_pos_value);
+        }
+        code.SetAwaitTokenPositions(await_to_token_map);
+      }
+    }
+  }
+#endif  // !defined(PRODUCT)
+
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
     function.set_usage_counter(INT_MIN);
   }
-
-  const Array& intervals = graph_compiler->inlined_code_intervals();
-  INC_STAT(thread(), total_code_size, intervals.Length() * sizeof(uword));
-  code.SetInlinedIntervals(intervals);
-
-  const Array& inlined_id_array =
-      Array::Handle(zone, graph_compiler->InliningIdToFunction());
-  INC_STAT(thread(), total_code_size,
-           inlined_id_array.Length() * sizeof(uword));
-  code.SetInlinedIdToFunction(inlined_id_array);
-
-  const Array& caller_inlining_id_map_array =
-      Array::Handle(zone, graph_compiler->CallerInliningIdMap());
-  INC_STAT(thread(), total_code_size,
-           caller_inlining_id_map_array.Length() * sizeof(uword));
-  code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
-
-  const Array& inlined_id_to_token_pos =
-      Array::Handle(zone, graph_compiler->InliningIdToTokenPos());
-  INC_STAT(thread(), total_code_size,
-           inlined_id_to_token_pos.Length() * sizeof(uword));
-  code.SetInlinedIdToTokenPos(inlined_id_to_token_pos);
 
   graph_compiler->FinalizePcDescriptors(code);
   code.set_deopt_info_array(deopt_info_array);
@@ -577,18 +583,9 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeStackMaps(code);
   graph_compiler->FinalizeVarDescriptors(code);
   graph_compiler->FinalizeExceptionHandlers(code);
+  graph_compiler->FinalizeCatchEntryStateMap(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);
-
-#if !defined(PRODUCT)
-  // Set the code source map after setting the inlined information because
-  // we use the inlined information when printing.
-  const CodeSourceMap& code_source_map = CodeSourceMap::Handle(
-      zone, graph_compiler->code_source_map_builder()->Finalize());
-  code.set_code_source_map(code_source_map);
-  if (FLAG_print_code_source_map) {
-    CodeSourceMap::Dump(code_source_map, code, function);
-  }
-#endif  // !defined(PRODUCT)
+  graph_compiler->FinalizeCodeSourceMap(code);
 
   if (optimized()) {
     bool code_was_installed = false;
@@ -974,6 +971,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // it depends on the numbering of loads from the previous
           // load-elimination.
           if (FLAG_loop_invariant_code_motion) {
+            flow_graph->RenameUsesDominatedByRedefinitions();
+            DEBUG_ASSERT(flow_graph->VerifyRedefinitions());
             LICM licm(flow_graph);
             licm.Optimize();
             DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -1100,6 +1099,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
+        flow_graph->RemoveRedefinitions();
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "AllocateRegisters"));
@@ -1202,26 +1202,6 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return is_compiled;
 }
 
-
-#if defined(DEBUG)
-// Verifies that the inliner is always in the list of inlined functions.
-// If this fails run with --trace-inlining-intervals to get more information.
-static void CheckInliningIntervals(const Function& function) {
-  const Code& code = Code::Handle(function.CurrentCode());
-  const Array& intervals = Array::Handle(code.GetInlinedIntervals());
-  if (intervals.IsNull() || (intervals.Length() == 0)) return;
-  Smi& start = Smi::Handle();
-  GrowableArray<Function*> inlined_functions;
-  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
-    start ^= intervals.At(i + Code::kInlIntStart);
-    ASSERT(!start.IsNull());
-    if (start.IsNull()) continue;
-    code.GetInlinedFunctionsAt(start.Value(), &inlined_functions);
-    ASSERT(inlined_functions[inlined_functions.length() - 1]->raw() ==
-           function.raw());
-  }
-}
-#endif  // defined(DEBUG)
 
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
@@ -1361,7 +1341,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       Disassembler::DisassembleCode(function, true);
     }
 
-    DEBUG_ONLY(CheckInliningIntervals(function));
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();

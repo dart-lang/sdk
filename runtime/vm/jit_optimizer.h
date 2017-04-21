@@ -47,12 +47,16 @@ class JitOptimizer : public FlowGraphVisitor {
  private:
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
-  const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid);
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 
   bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 
+  void TryExpandClassesInICData(const ICData& ic_data);
+  bool LookupMethodFor(int class_id,
+                       const ArgumentsDescriptor& args_desc,
+                       const String& name,
+                       Function* fn_return);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);

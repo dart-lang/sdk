@@ -6,14 +6,21 @@
 
 library analyzer.test.generated.type_system_test;
 
+import 'package:analyzer/analyzer.dart' show ErrorReporter, StrongModeCode;
+import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
+import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart'
+    show NonExistingSource, UriKind;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -861,6 +868,7 @@ class StrongGenericFunctionInferenceTest {
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
   DartType get voidType => VoidTypeImpl.instance;
+  DartType get nullType => typeProvider.nullType;
 
   void setUp() {
     typeProvider = new TestTypeProvider();
@@ -973,7 +981,8 @@ class StrongGenericFunctionInferenceTest {
     expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
 
     // Something invalid...
-    expect(_inferCall(clone, [stringType, numType]), null);
+    expect(_inferCall(clone, [stringType, numType], expectError: true),
+        [objectType]);
   }
 
   void test_genericCastFunction() {
@@ -1036,6 +1045,21 @@ class StrongGenericFunctionInferenceTest {
         _inferCall(f, [
           TypeBuilder.function(required: [numType], result: intType)
         ]),
+        [intType]);
+  }
+
+  void test_returnFunctionWithGenericParameterAndContext() {
+    // <T>(T -> T) -> (T -> void)
+    var t = TypeBuilder.variable('T');
+    var f = TypeBuilder.function(types: [
+      t
+    ], required: [
+      TypeBuilder.function(required: [t], result: t)
+    ], result: TypeBuilder.function(required: [t], result: voidType));
+    expect(
+        _inferCall(f, [],
+            returnType:
+                TypeBuilder.function(required: [numType], result: intType)),
         [numType]);
   }
 
@@ -1051,7 +1075,7 @@ class StrongGenericFunctionInferenceTest {
         _inferCall(f, [
           TypeBuilder.function(required: [numType], result: intType)
         ]),
-        [numType]);
+        [intType]);
   }
 
   void test_returnFunctionWithGenericReturn() {
@@ -1073,21 +1097,21 @@ class StrongGenericFunctionInferenceTest {
     // <T>() -> T
     var t = TypeBuilder.variable('T');
     var f = TypeBuilder.function(types: [t], required: [], result: t);
-    expect(_inferCall(f, [], stringType), [stringType]);
+    expect(_inferCall(f, [], returnType: stringType), [stringType]);
   }
 
   void test_returnTypeWithBoundFromContext() {
     // <T extends num>() -> T
     var t = TypeBuilder.variable('T', bound: numType);
     var f = TypeBuilder.function(types: [t], required: [], result: t);
-    expect(_inferCall(f, [], doubleType), [doubleType]);
+    expect(_inferCall(f, [], returnType: doubleType), [doubleType]);
   }
 
   void test_returnTypeWithBoundFromInvalidContext() {
     // <T extends num>() -> T
     var t = TypeBuilder.variable('T', bound: numType);
     var f = TypeBuilder.function(types: [t], required: [], result: t);
-    expect(_inferCall(f, [], stringType), null);
+    expect(_inferCall(f, [], returnType: stringType), [nullType]);
   }
 
   void test_unifyParametersToFunctionParam() {
@@ -1104,7 +1128,7 @@ class StrongGenericFunctionInferenceTest {
           TypeBuilder.function(required: [intType], result: dynamicType),
           TypeBuilder.function(required: [doubleType], result: dynamicType)
         ]),
-        null);
+        [nullType]);
   }
 
   void test_unusedReturnTypeIsDynamic() {
@@ -1122,13 +1146,26 @@ class StrongGenericFunctionInferenceTest {
   }
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
-      [DartType returnType]) {
-    FunctionType inferred = typeSystem.inferGenericFunctionCall(
-        ft,
-        ft.parameters.map((p) => p.type).toList(),
-        arguments,
-        ft.returnType,
-        returnType);
+      {DartType returnType, bool expectError: false}) {
+    var listener = new RecordingErrorListener();
+
+    var reporter = new ErrorReporter(
+        listener,
+        new NonExistingSource(
+            '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
+
+    FunctionType inferred = typeSystem.inferGenericFunctionOrType(
+        ft, ft.parameters, arguments, returnType,
+        errorReporter: reporter,
+        errorNode: astFactory.nullLiteral(new KeywordToken(Keyword.NULL, 0)));
+
+    if (expectError) {
+      expect(listener.errors.map((e) => e.errorCode).toList(),
+          [StrongModeCode.COULD_NOT_INFER],
+          reason: 'expected exactly 1 could not infer error.');
+    } else {
+      expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
+    }
     return inferred?.typeArguments;
   }
 }

@@ -160,13 +160,14 @@ CheckClassInstr::CheckClassInstr(Value* value,
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
-  ASSERT(unary_checks_.NumberOfChecks() > 0);
+  const intptr_t number_of_checks = unary_checks_.NumberOfChecks();
+  ASSERT(number_of_checks > 0);
   ASSERT(unary_checks_.NumArgsTested() == 1);
   SetInputAt(0, value);
   // Otherwise use CheckSmiInstr.
-  ASSERT((unary_checks_.NumberOfChecks() != 1) ||
+  ASSERT(number_of_checks != 1 ||
          (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
-  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < number_of_checks; ++i) {
     cids_.Add(unary_checks.GetReceiverClassIdAt(i));
   }
   cids_.Sort(LowestFirst);
@@ -176,11 +177,11 @@ CheckClassInstr::CheckClassInstr(Value* value,
 bool CheckClassInstr::AttributesEqual(Instruction* other) const {
   CheckClassInstr* other_check = other->AsCheckClass();
   ASSERT(other_check != NULL);
-  if (unary_checks().NumberOfChecks() !=
-      other_check->unary_checks().NumberOfChecks()) {
+  const intptr_t number_of_checks = unary_checks_.NumberOfChecks();
+  if (number_of_checks != other_check->unary_checks().NumberOfChecks()) {
     return false;
   }
-  for (intptr_t i = 0; i < unary_checks().NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < number_of_checks; ++i) {
     // TODO(fschneider): Make sure ic_data are sorted to hit more cases.
     if (unary_checks().GetReceiverClassIdAt(i) !=
         other_check->unary_checks().GetReceiverClassIdAt(i)) {
@@ -219,7 +220,7 @@ EffectSet CheckClassIdInstr::Dependencies() const {
 
 
 bool CheckClassInstr::DeoptIfNull() const {
-  if (unary_checks().NumberOfChecks() != 1) {
+  if (!unary_checks().NumberOfChecksIs(1)) {
     return false;
   }
   CompileType* in_type = value()->Type();
@@ -234,7 +235,7 @@ bool CheckClassInstr::DeoptIfNull() const {
 // transitional temporaries). Instead of checking against the null class only
 // we can check against null instance instead.
 bool CheckClassInstr::DeoptIfNotNull() const {
-  if (unary_checks().NumberOfChecks() != 1) {
+  if (!unary_checks().NumberOfChecksIs(1)) {
     return false;
   }
   const intptr_t cid = unary_checks().GetCidAt(0);
@@ -246,10 +247,11 @@ bool CheckClassInstr::IsDenseCidRange(const ICData& unary_checks) {
   ASSERT(unary_checks.NumArgsTested() == 1);
   // TODO(fschneider): Support smis in dense cid checks.
   if (unary_checks.GetReceiverClassIdAt(0) == kSmiCid) return false;
-  if (unary_checks.NumberOfChecks() <= 2) return false;
+  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+  if (number_of_checks <= 2) return false;
   intptr_t max = 0;
   intptr_t min = kIntptrMax;
-  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < number_of_checks; ++i) {
     intptr_t cid = unary_checks.GetCidAt(i);
     if (cid < min) min = cid;
     if (cid > max) max = cid;
@@ -1936,6 +1938,18 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) {
+    return NULL;
+  }
+  if ((constrained_type() != NULL) &&
+      Type()->IsEqualTo(value()->definition()->Type())) {
+    return value()->definition();
+  }
+  return this;
+}
+
+
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (recognized_kind()) {
     case MethodRecognizer::kObjectArrayLength:
@@ -2055,16 +2069,20 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // are constant, instantiate the target type here.
   if (dst_type().IsInstantiated()) return this;
 
+  // TODO(regis): Only try to instantiate here if function_type_args is constant
+  // or null and dst_type does not refer to parent function type parameters.
   ConstantInstr* constant_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
-  if (constant_type_args != NULL && !constant_type_args->value().IsNull() &&
-      constant_type_args->value().IsTypeArguments()) {
-    const TypeArguments& instantiator_type_args =
-        TypeArguments::Cast(constant_type_args->value());
+  if (constant_type_args != NULL) {
+    ASSERT(constant_type_args->value().IsNull() ||
+           constant_type_args->value().IsTypeArguments());
+    TypeArguments& instantiator_type_args = TypeArguments::Handle();
+    instantiator_type_args ^= constant_type_args->value().raw();
     Error& bound_error = Error::Handle();
     AbstractType& new_dst_type =
         AbstractType::Handle(dst_type().InstantiateFrom(
-            instantiator_type_args, &bound_error, NULL, NULL, Heap::kOld));
+            instantiator_type_args, /* function_type_args, */
+            &bound_error, NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -2082,6 +2100,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
+    // TODO(regis): function_type_arguments()->BindTo(null_constant);
   }
   return this;
 }
@@ -3123,6 +3142,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNIMPLEMENTED();
       break;
   }
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                 token_pos());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kIcCall, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
@@ -3131,6 +3152,11 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ PopLocal(locs()->out(0).reg());
   }
 #endif  // !defined(TARGET_ARCH_DBC)
+}
+
+
+bool InstanceCallInstr::MatchesCoreName(const String& name) {
+  return function_name().raw() == Library::PrivateCoreLibName(name).raw();
 }
 
 
@@ -3161,7 +3187,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitPolymorphicInstanceCall(
       ic_data(), instance_call()->ArgumentCount(),
       instance_call()->argument_names(), deopt_id(),
-      instance_call()->token_pos(), locs(), complete());
+      instance_call()->token_pos(), locs(), complete(), total_call_count());
 }
 #endif
 
@@ -3189,6 +3215,28 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
   }
 
   return Type::null();
+}
+
+
+Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  const intptr_t receiver_cid = PushArgumentAt(0)->value()->Type()->ToCid();
+
+  if (!HasICData()) return this;
+
+  const ICData& new_ic_data =
+      FlowGraphCompiler::TrySpecializeICDataByReceiverCid(*ic_data(),
+                                                          receiver_cid);
+  if (new_ic_data.raw() == ic_data()->raw()) {
+    // No specialization.
+    return this;
+  }
+
+  const bool with_checks = false;
+  const bool complete = false;
+  PolymorphicInstanceCallInstr* specialized = new PolymorphicInstanceCallInstr(
+      this, new_ic_data, with_checks, complete);
+  flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
+  return specialized;
 }
 
 
@@ -3268,6 +3316,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           : Array::Handle(ic_data()->arguments_descriptor());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                 token_pos());
   if (compiler->is_optimizing()) {
     __ PushConstant(function());
     __ StaticCall(ArgumentCount(), argdesc_kidx);
@@ -3922,6 +3972,15 @@ void NativeCallInstr::SetupNative() {
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
+
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  set_is_bootstrap_native(is_bootstrap_native);
+
+  if (link_lazily() && !is_bootstrap_native) {
+    return;
+  }
+
   const int num_params =
       NativeArguments::ParameterCountForResolution(function());
   bool auto_setup_scope = true;
@@ -3935,9 +3994,6 @@ void NativeCallInstr::SetupNative() {
   }
   set_native_c_function(native_function);
   function().SetIsNativeAutoSetupScope(auto_setup_scope);
-  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
-  set_is_bootstrap_native(is_bootstrap_native);
 }
 
 #undef __

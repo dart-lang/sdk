@@ -9,14 +9,13 @@ class _ImmutableMap<K, V> implements Map<K, V> {
   const _ImmutableMap._create(_ImmutableList keyValuePairs)
       : _kvPairs = keyValuePairs;
 
-
   V operator [](Object key) {
     // To preserve the key-value order of the map literal, the keys are
     // not sorted. Need to do linear search or implement an additional
     // lookup table.
     for (int i = 0; i < _kvPairs.length - 1; i += 2) {
       if (key == _kvPairs[i]) {
-        return _kvPairs[i+1];
+        return _kvPairs[i + 1];
       }
     }
     return null;
@@ -34,7 +33,7 @@ class _ImmutableMap<K, V> implements Map<K, V> {
 
   void forEach(void f(K key, V value)) {
     for (int i = 0; i < _kvPairs.length; i += 2) {
-      f(_kvPairs[i], _kvPairs[i+1]);
+      f(_kvPairs[i], _kvPairs[i + 1]);
     }
   }
 

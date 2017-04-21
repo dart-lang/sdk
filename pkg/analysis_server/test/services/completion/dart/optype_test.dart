@@ -103,6 +103,90 @@ class OpTypeTest {
     assertOpType(namedArgs: true, returnValue: true, typeNames: true);
   }
 
+  test_ArgumentList_constructor_named_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A.b(^); }'
+        'class A{ A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_constructor_named_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A.b(o^); }'
+        'class A { A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_constructor_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A(^); }'
+        'class A{ A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_constructor_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A(o^); }'
+        'class A { A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_named_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A.b(^); }'
+        'class A{ factory A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_named_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A.b(o^); }'
+        'class A { factory A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A(^); }'
+        'class A{ factory A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A(o^); }'
+        'class A { factory A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_method_resolved_1_0() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('main() { foo(^);} foo({one, two}) {}', resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_method_resolved_1_1() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('main() { foo(o^);} foo({one, two}) {}', resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
   test_ArgumentList_namedParam() {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
@@ -120,18 +204,6 @@ class OpTypeTest {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('void main() {int.parse(^)}', resolved: true);
     assertOpType(returnValue: true, typeNames: true);
-  }
-
-  test_ArgumentList_resolved_1_0() {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('main() { foo(^);} foo({one, two}) {}', resolved: true);
-    assertOpType(namedArgs: true);
-  }
-
-  test_ArgumentList_resolved_1_1() {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('main() { foo(o^);} foo({one, two}) {}', resolved: true);
-    assertOpType(namedArgs: true);
   }
 
   test_ArgumentList_resolved_2_0() {
@@ -301,6 +373,122 @@ class OpTypeTest {
         }
       }''');
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_1a() async {
+    // '}'  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} ^}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_1b() async {
+    // [ExpressionStatement 'c']  Block  BlockFunctionBody
+    addTestSource('main() {try {} c^}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_1c() async {
+    // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} ^;}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_1d() async {
+    // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
+    addTestSource('main() {try {} ^ Foo foo;}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_2a() async {
+    // '}'  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} catch () {} ^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_2b() async {
+    // [ExpressionStatement 'c']  Block  BlockFunctionBody
+    addTestSource('main() {try {} catch () {} c^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_2c() async {
+    // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} catch () {} ^;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_2d() async {
+    // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
+    addTestSource('main() {try {} catch () {} ^ Foo foo;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3a() async {
+    // '}'  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} finally {} ^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3b() async {
+    // [ExpressionStatement 'c']  Block  BlockFunctionBody
+    addTestSource('main() {try {} finally {} c^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3c() async {
+    // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} finally {} ^;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3d() async {
+    // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
+    addTestSource('main() {try {} finally {} ^ Foo foo;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_catch_4a1() async {
+    addTestSource('main() {try {} ^ on SomeException {}}');
+    assertOpType();
+  }
+
+  test_catch_4a2() async {
+    addTestSource('main() {try {} c^ on SomeException {}}');
+    assertOpType();
+  }
+
+  test_catch_4b1() async {
+    addTestSource('main() {try {} ^ catch (e) {}}');
+    assertOpType();
+  }
+
+  test_catch_4b2() async {
+    addTestSource('main() {try {} c^ catch (e) {}}');
+    assertOpType();
+  }
+
+  test_catch_4c1() async {
+    addTestSource('main() {try {} ^ finally {}}');
+    assertOpType();
+  }
+
+  test_catch_4c2() async {
+    addTestSource('main() {try {} c^ finally {}}');
+    assertOpType();
+  }
+
+  test_catch_5a() async {
+    addTestSource('main() {try {} on ^ finally {}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_catch_5b() async {
+    addTestSource('main() {try {} on E^ finally {}}');
+    assertOpType(typeNames: true);
   }
 
   test_Block_empty() {
@@ -1557,6 +1745,12 @@ class C2 {
     // SimpleIdentifier  WhileStatement  Block
     addTestSource('mth() { while (b^) {} }}');
     assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_WithClause() {
+    // WithClause  ClassDeclaration
+    addTestSource('class x extends Object with ^\n{}');
+    assertOpType(typeNames: true);
   }
 }
 

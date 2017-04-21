@@ -4,6 +4,7 @@
 // Test explicit import of dart:core in the source code..
 
 library DynamicPrefixCoreTest.dart;
+
 import "package:expect/expect.dart";
 import "dart:core" as mycore;
 
@@ -11,7 +12,7 @@ void main() {
   // Should still be available because it is not a member of dart:core.
   Expect.isTrue(dynamic is mycore.Type);
 
-  Expect.throws(() => mycore.dynamic is mycore.Type,     /// 01: static type warning
-                (e) => e is mycore.NoSuchMethodError,    /// 01: continued
-                'dynamic is not a member of dart:core'); /// 01: continued
+  Expect.throws(() => mycore.dynamic is mycore.Type, //    //# 01: static type warning
+                (e) => e is mycore.NoSuchMethodError, //   //# 01: continued
+                'dynamic is not a member of dart:core'); //# 01: continued
 }

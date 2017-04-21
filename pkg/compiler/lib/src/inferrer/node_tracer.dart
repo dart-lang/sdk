@@ -244,75 +244,135 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   /**
-   * Checks whether this is a call to a list adding method. The definition
-   * of what list adding means has to stay in sync with
+   * Checks whether this is a call to a list adding method. The definition of
+   * what list adding means has to stay in sync with
    * [isParameterOfListAddingMethod].
    */
-  bool isAddedToContainer(DynamicCallSiteTypeInformation info) {
+  bool mightAddToContainer(DynamicCallSiteTypeInformation info) {
     if (info.arguments == null) return false;
-    var receiverType = info.receiver.type;
-    if (!receiverType.isContainer) return false;
+    if (info.arguments.named.isNotEmpty) return false;
     String selectorName = info.selector.name;
     List<TypeInformation> arguments = info.arguments.positional;
-    return (selectorName == '[]=' && currentUser == arguments[1]) ||
-        (selectorName == 'insert' && currentUser == arguments[1]) ||
-        (selectorName == 'add' && currentUser == arguments[0]);
+    if (arguments.length == 1) {
+      return (selectorName == 'add' && currentUser == arguments[0]);
+    } else if (arguments.length == 2) {
+      return (selectorName == 'insert' && currentUser == arguments[1]);
+    }
+    return false;
   }
 
-  bool isIndexSetOnMap(DynamicCallSiteTypeInformation info) {
-    if (info.arguments == null) return false;
-    var receiverType = info.receiver.type;
-    if (!receiverType.isMap) return false;
-    return info.selector.name == '[]=';
-  }
-
-  /**
-   * Checks whether this is a call to a map adding method for values. The
-   * definition of map adding method has to stay in sync with
-   * [isParameterOfMapAddingMethod].
-   */
-  bool isValueAddedToMap(DynamicCallSiteTypeInformation info) {
-    return isIndexSetOnMap(info) && currentUser == info.arguments.positional[1];
+  bool isIndexSetArgument(DynamicCallSiteTypeInformation info, int index) {
+    String selectorName = info.selector.name;
+    if (selectorName != '[]=') return false;
+    assert(info.arguments.length == 2);
+    List<TypeInformation> arguments = info.arguments.positional;
+    return currentUser == arguments[index];
   }
 
   /**
-   * Checks whether this is a call to a map adding method for keys. The
-   * definition of map adding method has to stay in sync with
+   * Checks whether the call site flows the currentUser to the key argument of
+   * an indexing setter. This must be kept in sync with
    * [isParameterOfMapAddingMethod].
    */
-  bool isKeyAddedToMap(DynamicCallSiteTypeInformation info) {
-    return isIndexSetOnMap(info) && currentUser == info.arguments.positional[0];
+  bool isIndexSetKey(DynamicCallSiteTypeInformation info) {
+    return isIndexSetArgument(info, 0);
+  }
+
+  /**
+   * Checks whether the call site flows the currentUser to the value argument of
+   * an indexing setter. This must be kept in sync with
+   * [isParameterOfListAddingMethod] and [isParameterOfMapAddingMethod].
+   */
+  bool isIndexSetValue(DynamicCallSiteTypeInformation info) {
+    return isIndexSetArgument(info, 1);
+  }
+
+  void bailoutIfReaches(bool predicate(Element e)) {
+    for (var user in currentUser.users) {
+      if (user is ParameterTypeInformation) {
+        if (predicate(user.element)) {
+          bailout('Reached suppressed parameter without precise receiver');
+          break;
+        }
+      }
+    }
   }
 
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
-    if (isAddedToContainer(info)) {
-      ContainerTypeMask mask = info.receiver.type;
-
+    void addsToContainer(ContainerTypeMask mask) {
       if (mask.allocationNode != null) {
         ListTypeInformation list =
             inferrer.types.allocatedLists[mask.allocationNode];
         listsToAnalyze.add(list);
       } else {
-        // The [ContainerTypeMask] is a union of two containers, and
-        // we lose track of where these containers have been allocated
-        // at this point.
+        // The [ContainerTypeMask] is a union of two containers, and we lose
+        // track of where these containers have been allocated at this point.
         bailout('Stored in too many containers');
       }
-    } else if (isValueAddedToMap(info)) {
-      MapTypeMask mask = info.receiver.type;
+    }
+
+    void addsToMapValue(MapTypeMask mask) {
       if (mask.allocationNode != null) {
         MapTypeInformation map =
             inferrer.types.allocatedMaps[mask.allocationNode];
         mapsToAnalyze.add(map);
       } else {
-        // The [MapTypeMask] is a union. See comment for
-        // [ContainerTypeMask] above.
+        // The [MapTypeMask] is a union. See comment for [ContainerTypeMask]
+        // above.
         bailout('Stored in too many maps');
       }
-    } else if (isKeyAddedToMap(info)) {
+    }
+
+    void addsToMapKey(MapTypeMask mask) {
       // We do not track the use of keys from a map, so we have to bail.
       bailout('Used as key in Map');
+    }
+
+    // "a[...] = x" could be a list (container) or map assignemnt.
+    if (isIndexSetValue(info)) {
+      var receiverType = info.receiver.type;
+      if (receiverType is ContainerTypeMask) {
+        addsToContainer(receiverType);
+      } else if (receiverType is MapTypeMask) {
+        addsToMapValue(receiverType);
+      } else {
+        // Not a container or map, so the targets could be any methods. There
+        // are edges from the [currentUser] to the parameters of the targets, so
+        // tracing will continue into the targets.  Tracing stops at parameters
+        // that match the targets corresponding to the receiverTypes above (to
+        // prevent imprecise results from tracing the implementation), so we
+        // need compensate if one of the targets is in the target set. If there
+        // is an edge to a parameter matching [isParameterOfListAddingMethod] or
+        // [isParameterOfMapAddingMethod] then the traced value is being stored
+        // into an untraced list or map.
+
+        // TODO(sra): It would be more precise to specifically match the `value'
+        // parameters of "operator []=".
+        bailoutIfReaches(isParameterOfListAddingMethod);
+        bailoutIfReaches(isParameterOfMapAddingMethod);
+      }
+    }
+
+    // Could be:  m[x] = ...;
+    if (isIndexSetKey(info)) {
+      var receiverType = info.receiver.type;
+      if (receiverType is MapTypeMask) {
+        addsToMapKey(receiverType);
+      } else {
+        bailoutIfReaches(isParameterOfListAddingMethod);
+        bailoutIfReaches(isParameterOfMapAddingMethod);
+      }
+    }
+
+    if (mightAddToContainer(info)) {
+      var receiverType = info.receiver.type;
+      if (receiverType is ContainerTypeMask) {
+        addsToContainer(receiverType);
+      } else {
+        // Not a container, see note above.
+        bailoutIfReaches(isParameterOfListAddingMethod);
+      }
     }
 
     if (info.targetsIncludeComplexNoSuchMethod(inferrer) &&
@@ -332,33 +392,29 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   /**
    * Check whether element is the parameter of a list adding method.
    * The definition of what a list adding method is has to stay in sync with
-   * [isAddedToContainer].
+   * [mightAddToContainer].
    */
   bool isParameterOfListAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass !=
-        compiler.backend.backendClasses.listImplementation) {
+    if (element.enclosingClass != compiler.backend.backendClasses.listClass) {
       return false;
     }
-    Element method = element.enclosingElement;
-    return (method.name == '[]=') ||
-        (method.name == 'add') ||
-        (method.name == 'insert');
+    String name = element.enclosingElement.name;
+    return (name == '[]=') || (name == 'add') || (name == 'insert');
   }
 
   /**
    * Check whether element is the parameter of a list adding method.
    * The definition of what a list adding method is has to stay in sync with
-   * [isValueAddedToMap] and [isKeyAddedToMap].
+   * [isIndexSetKey] and [isIndexSetValue].
    */
   bool isParameterOfMapAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass !=
-        compiler.backend.backendClasses.mapImplementation) {
+    if (element.enclosingClass != compiler.backend.backendClasses.mapClass) {
       return false;
     }
-    Element method = element.enclosingElement;
-    return (method.name == '[]=');
+    String name = element.enclosingElement.name;
+    return (name == '[]=');
   }
 
   bool isClosure(Element element) {
@@ -383,8 +439,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }
-    if (!inferrer.compiler.backend
-        .canBeUsedForGlobalOptimizations(info.element)) {
+    if (info.element.isField &&
+        !inferrer.compiler.backend
+            .canFieldBeUsedForGlobalOptimizations(info.element)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
@@ -392,15 +449,16 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
     ParameterElement element = info.element;
-    if (inferrer.isNativeElement(element.functionDeclaration)) {
+    if (inferrer.isNativeMember(element.functionDeclaration)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend
-        .canBeUsedForGlobalOptimizations(info.element)) {
+        .canFunctionParametersBeUsedForGlobalOptimizations(
+            element.functionDeclaration)) {
       bailout('Escape to code that has special backend treatment');
     }
-    if (isParameterOfListAddingMethod(info.element) ||
-        isParameterOfMapAddingMethod(info.element)) {
+    if (isParameterOfListAddingMethod(element) ||
+        isParameterOfMapAddingMethod(element)) {
       // These elements are being handled in
       // [visitDynamicCallSiteTypeInformation].
       return;

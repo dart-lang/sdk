@@ -7,15 +7,17 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/transformations/continuation.dart' as cont;
-import 'package:kernel/transformations/infer_values.dart' as infer_values;
-import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
+import 'package:kernel/transformations/continuation.dart' as cont;
+import 'package:kernel/transformations/empty.dart' as empty;
+import 'package:kernel/transformations/method_call.dart' as method_call;
+import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
+import 'package:kernel/verifier.dart';
 
 import 'batch_util.dart';
+import 'util.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -29,6 +31,10 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
+  ..addOption('embedder-entry-points-manifest',
+      allowMultiple: true,
+      help: 'A path to a file describing entrypoints '
+          '(lines of the form `<library>,<class>,<member>`).')
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
@@ -62,13 +68,15 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
   }
 
+  List<String> embedderEntryPointManifests =
+      options['embedder-entry-points-manifest'] as List<String>;
+  List<treeshaker.ProgramRoot> programRoots =
+      parseProgramRoots(embedderEntryPointManifests);
+
   var program = loadProgramFromBinary(input);
   switch (options['transformation']) {
     case 'continuation':
       program = cont.transformProgram(program);
-      break;
-    case 'infervalues':
-      program = infer_values.transformProgram(program);
       break;
     case 'resolve-mixins':
       program = mix.transformProgram(program);
@@ -77,7 +85,14 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       program = closures.transformProgram(program);
       break;
     case 'treeshake':
-      program = treeshaker.transformProgram(program);
+      program =
+          treeshaker.transformProgram(program, programRoots: programRoots);
+      break;
+    case 'methodcall':
+      program = method_call.transformProgram(program);
+      break;
+    case 'empty':
+      program = empty.transformProgram(program);
       break;
     default:
       throw 'Unknown transformation';

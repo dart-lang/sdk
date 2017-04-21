@@ -9,18 +9,15 @@ _parser(String src) =>
 _check(Node node, String expected) =>
     expect(node.toString(), 'js_ast `$expected`');
 
-_checkStatement(String src) =>
-    _check(_parser(src).parseStatement(), src);
+_checkStatement(String src) => _check(_parser(src).parseStatement(), src);
 
-_checkExpression(String src) =>
-    _check(_parser(src).parseExpression(), src);
+_checkExpression(String src) => _check(_parser(src).parseExpression(), src);
 
 main() {
   group('MiniJsParser', () {
     // TODO(ochafik): Add more coverage.
     test('parses classes with complex members', () {
-      _checkExpression(
-          'class Foo {\n'
+      _checkExpression('class Foo {\n'
           '  [foo](...args) {}\n'
           '  [#0](x) {}\n'
           '  static [foo](...args) {}\n'

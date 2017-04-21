@@ -58,6 +58,56 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about the context of an exception in analysis driver.
+ */
+@TopLevel('ADEC')
+abstract class AnalysisDriverExceptionContext extends base.SummaryClass {
+  factory AnalysisDriverExceptionContext.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverExceptionContext(buffer);
+
+  /**
+   * The exception string.
+   */
+  @Id(1)
+  String get exception;
+
+  /**
+   * The state of files when the exception happened.
+   */
+  @Id(3)
+  List<AnalysisDriverExceptionFile> get files;
+
+  /**
+   * The path of the file being analyzed when the exception happened.
+   */
+  @Id(0)
+  String get path;
+
+  /**
+   * The exception stack trace string.
+   */
+  @Id(2)
+  String get stackTrace;
+}
+
+/**
+ * Information about a single file in [AnalysisDriverExceptionContext].
+ */
+abstract class AnalysisDriverExceptionFile extends base.SummaryClass {
+  /**
+   * The content of the file.
+   */
+  @Id(1)
+  String get content;
+
+  /**
+   * The path of the file.
+   */
+  @Id(0)
+  String get path;
+}
+
+/**
  * Information about a resolved unit.
  */
 @TopLevel('ADRU')
@@ -264,6 +314,18 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
       generated.readAnalysisDriverUnlinkedUnit(buffer);
 
   /**
+   * List of class member names defined by the unit.
+   */
+  @Id(3)
+  List<String> get definedClassMemberNames;
+
+  /**
+   * List of top-level names defined by the unit.
+   */
+  @Id(2)
+  List<String> get definedTopLevelNames;
+
+  /**
    * List of external names referenced by the unit.
    */
   @Id(0)
@@ -294,10 +356,16 @@ abstract class CodeRange extends base.SummaryClass {
 }
 
 /**
- * Summary information about a reference to a an entity such as a type, top
- * level executable, or executable within a class.
+ * Summary information about a reference to an entity such as a type, top level
+ * executable, or executable within a class.
  */
 abstract class EntityRef extends base.SummaryClass {
+  /**
+   * The kind of entity being represented.
+   */
+  @Id(8)
+  EntityRefKind get entityKind;
+
   /**
    * If this is a reference to a function type implicitly defined by a
    * function-typed parameter, a list of zero-based indices indicating the path
@@ -386,6 +454,34 @@ abstract class EntityRef extends base.SummaryClass {
    */
   @Id(1)
   List<EntityRef> get typeArguments;
+
+  /**
+   * If this is a function type, the type parameters defined for the function
+   * type (if any).
+   */
+  @Id(7)
+  List<UnlinkedTypeParam> get typeParameters;
+}
+
+/**
+ * Enum used to indicate the kind of an entity reference.
+ */
+enum EntityRefKind {
+  /**
+   * The entity represents a named type.
+   */
+  named,
+
+  /**
+   * The entity represents a generic function type.
+   */
+  genericFunctionType,
+
+  /**
+   * The entity represents a function type that was synthesized by a LUB
+   * computation.
+   */
+  syntheticFunction
 }
 
 /**
@@ -534,18 +630,14 @@ enum IndexSyntheticElementKind {
  */
 abstract class LinkedDependency extends base.SummaryClass {
   /**
-   * URI for the compilation units listed in the library's `part` declarations.
-   * These URIs are relative to the importing library.
+   * Absolute URI for the compilation units listed in the library's `part`
+   * declarations, empty string for invalid URI.
    */
   @Id(1)
   List<String> get parts;
 
   /**
-   * The relative URI of the dependent library.  This URI is relative to the
-   * importing library, even if there are intervening `export` declarations.
-   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
-   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
-   * `b/d/e.dart`.
+   * The absolute URI of the dependent library, e.g. `package:foo/bar.dart`.
    */
   @Id(0)
   String get uri;
@@ -749,9 +841,9 @@ abstract class LinkedUnit extends base.SummaryClass {
   List<int> get constCycles;
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   @Id(3)
   List<int> get parametersInheritingCovariant;
@@ -766,6 +858,12 @@ abstract class LinkedUnit extends base.SummaryClass {
    */
   @Id(0)
   List<LinkedReference> get references;
+
+  /**
+   * The list of type inference errors.
+   */
+  @Id(4)
+  List<TopLevelInferenceError> get topLevelInferenceErrors;
 
   /**
    * List associating slot ids found inside the unlinked summary for the
@@ -908,8 +1006,8 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the identifier of the class member element name, or `null` if the element is
-   * a top-level element.  The list is sorted in ascending order, so that the
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
    * client can quickly check whether an element is referenced in this
    * [PackageIndex].
    */
@@ -1034,7 +1132,77 @@ enum ReferenceKind {
   /**
    * The entity being referred to does not exist.
    */
-  unresolved
+  unresolved,
+
+  /**
+   * The entity is a typedef expressed using generic function type syntax.
+   */
+  genericFunctionTypedef
+}
+
+/**
+ * Summary information about a top-level type inference error.
+ */
+abstract class TopLevelInferenceError extends base.SummaryClass {
+  /**
+   * The [kind] specific arguments.
+   */
+  @Id(2)
+  List<String> get arguments;
+
+  /**
+   * The kind of the error.
+   */
+  @Id(1)
+  TopLevelInferenceErrorKind get kind;
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
+   */
+  @Id(0)
+  int get slot;
+}
+
+/**
+ * Enum used to indicate the kind of the error during top-level inference.
+ */
+enum TopLevelInferenceErrorKind {
+  assignment,
+  instanceGetter,
+  dependencyCycle,
+  overrideConflictFieldType,
+  overrideConflictReturnType,
+  overrideConflictParameterType
+}
+
+/**
+ * Enum used to indicate the style of a typedef.
+ */
+enum TypedefStyle {
+  /**
+   * A typedef that defines a non-generic function type. The syntax is
+   * ```
+   * 'typedef' returnType? identifier typeParameters? formalParameterList ';'
+   * ```
+   * The typedef can have type parameters associated with it, but the function
+   * type that results from applying type arguments does not.
+   */
+  functionType,
+
+  /**
+   * A typedef expressed using generic function type syntax. The syntax is
+   * ```
+   * typeAlias ::=
+   *     'typedef' identifier typeParameters? '=' genericFunctionType ';'
+   * genericFunctionType ::=
+   *     returnType? 'Function' typeParameters? parameterTypeList
+   * ```
+   * Both the typedef itself and the function type that results from applying
+   * type arguments can have type parameters.
+   */
+  genericFunctionType
 }
 
 /**
@@ -2034,6 +2202,11 @@ enum UnlinkedExprOperation {
    * from [UnlinkedExpr.references], and push the resulting value back onto the
    * stack.
    *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
+   *
    * Note that for an invocation of the form `const a.b(...)` (where no type
    * arguments are specified), it is impossible to tell from the unresolved AST
    * alone whether `a` is a class name and `b` is a constructor name, or `a` is
@@ -2069,8 +2242,8 @@ enum UnlinkedExprOperation {
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
    * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
-   * [Map], and push the result back onto the stack.  The two type parameters for
-   * the [Map] are obtained from [UnlinkedExpr.references].
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are obtained from [UnlinkedExpr.references].
    */
   makeTypedMap,
 
@@ -2277,6 +2450,11 @@ enum UnlinkedExprOperation {
    * aforementioned method or function.  Push the result of the invocation onto
    * the stack.
    *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
+   *
    * In general `a.b` cannot not be distinguished between: `a` is a prefix and
    * `b` is a top-level function; or `a` is an object and `b` is the name of a
    * method.  This operation should be used for a sequence of identifiers
@@ -2297,6 +2475,11 @@ enum UnlinkedExprOperation {
    * arguments from [UnlinkedExpr.references] and use them as generic type
    * arguments for the aforementioned method.  Push the result of the
    * invocation onto the stack.
+   *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
    *
    * This operation should be used for invocation of a method invocation
    * where `target` is known to be an object instance.
@@ -2388,6 +2571,11 @@ enum UnlinkedExprOperation {
    * Push `this` expression onto the stack.
    */
   pushThis,
+
+  /**
+   * Push `super` expression onto the stack.
+   */
+  pushSuper,
 }
 
 /**
@@ -2555,8 +2743,8 @@ abstract class UnlinkedParam extends base.SummaryClass {
   int get inheritsCovariantSlot;
 
   /**
-   * The synthetic initializer function of the parameter.  Absent if the variable
-   * does not have an initializer.
+   * The synthetic initializer function of the parameter.  Absent if the
+   * variable does not have an initializer.
    */
   @Id(12)
   UnlinkedExecutable get initializer;
@@ -2574,7 +2762,14 @@ abstract class UnlinkedParam extends base.SummaryClass {
   bool get isFinal;
 
   /**
-   * Indicates whether this is a function-typed parameter.
+   * Indicates whether this is a function-typed parameter. A parameter is
+   * function-typed if the declaration of the parameter has explicit formal
+   * parameters
+   * ```
+   * int functionTyped(int p)
+   * ```
+   * but is not function-typed if it does not, even if the type of the parameter
+   * is a function type.
    */
   @Id(5)
   bool get isFunctionTyped;
@@ -2823,10 +3018,18 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   List<UnlinkedParam> get parameters;
 
   /**
-   * Return type of the typedef.
+   * If [style] is [TypedefStyle.functionType], the return type of the typedef.
+   * If [style] is [TypedefStyle.genericFunctionType], the function type being
+   * defined.
    */
   @Id(2)
   EntityRef get returnType;
+
+  /**
+   * The style of the typedef.
+   */
+  @Id(8)
+  TypedefStyle get style;
 
   /**
    * Type parameters of the typedef, if any.
@@ -3057,6 +3260,17 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(9)
   int get inferredTypeSlot;
+
+  /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  @Id(15)
+  int get inheritsCovariantSlot;
 
   /**
    * The synthetic initializer function of the variable.  Absent if the variable

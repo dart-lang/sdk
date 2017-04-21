@@ -18,7 +18,7 @@ import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'dart2js.dart' as dart2js;
 import 'elements/resolution_types.dart' as dart_types;
-import 'deferred_load.dart' as deferred;
+import 'deferred_load.dart' as deferred_load;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
@@ -70,9 +70,7 @@ void main(List<String> arguments) {
   useElements();
   useCompiler(null);
   useTypes();
-  useCodeEmitterTask(null);
   useScript(null);
-  useProgramBuilder(null);
   useSemanticVisitor();
   useDeferred();
 }
@@ -104,8 +102,8 @@ void useConstant(
     constants.Environment env]) {
   constant.isObject;
   cs.isBool(constant);
-  constructedConstant.computeInstanceType();
-  constructedConstant.computeInstanceFields();
+  constructedConstant.computeInstanceType(null);
+  constructedConstant.computeInstanceFields(null);
   expression.evaluate(null, null);
   new NullConstantConstructorVisitor()
     ..visit(null, null)
@@ -157,7 +155,7 @@ void useNode(tree.Node node) {
     ..asSwitchStatement()
     ..asSyncForIn()
     ..asTryStatement()
-    ..asTypeAnnotation()
+    ..asNominalTypeAnnotation()
     ..asTypeVariable()
     ..asTypedef()
     ..asWhile()
@@ -283,26 +281,14 @@ useCompiler(compiler.Compiler c) {
     ..reset()
     ..resetAsync(null)
     ..lookupLibrary(null);
-  c.forgetElement(null);
   c.backend.constantCompilerTask.copyConstantValues(null);
   c.currentlyInUserCode();
 }
 
 useTypes() {}
 
-useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
-  full.Emitter fullEmitter = codeEmitterTask.emitter;
-  fullEmitter.clearCspPrecompiledNodes();
-  fullEmitter.buildLazilyInitializedStaticField(null, isolateProperties: null);
-}
-
 useScript(Script script) {
   script.copyWithFile(null);
-}
-
-useProgramBuilder(program_builder.ProgramBuilder builder) {
-  builder.buildMethodHackForIncrementalCompilation(null);
-  builder.buildFieldsHackForIncrementalCompilation(null);
 }
 
 useSemanticVisitor() {
@@ -313,6 +299,6 @@ useSemanticVisitor() {
   new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }
 
-useDeferred([deferred.DeferredLoadTask task]) {
+useDeferred([deferred_load.DeferredLoadTask task]) {
   task.dump();
 }

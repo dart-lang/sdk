@@ -2486,7 +2486,7 @@ TEST_CASE(Float32x4List) {
 
 // Unit test for entering a scope, creating a local handle and exiting
 // the scope.
-UNIT_TEST_CASE(EnterExitScope) {
+VM_UNIT_TEST_CASE(EnterExitScope) {
   TestIsolateScope __test_isolate__;
 
   Thread* thread = Thread::Current();
@@ -2508,7 +2508,7 @@ UNIT_TEST_CASE(EnterExitScope) {
 
 
 // Unit test for creating and deleting persistent handles.
-UNIT_TEST_CASE(PersistentHandles) {
+VM_UNIT_TEST_CASE(PersistentHandles) {
   const char* kTestString1 = "Test String1";
   const char* kTestString2 = "Test String2";
   TestCase::CreateTestIsolate();
@@ -2577,7 +2577,7 @@ UNIT_TEST_CASE(PersistentHandles) {
 
 // Test that we are able to create a persistent handle from a
 // persistent handle.
-UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
+VM_UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
   TestIsolateScope __test_isolate__;
 
   Isolate* isolate = Isolate::Current();
@@ -2608,7 +2608,7 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 
 
 // Test that we can assign to a persistent handle.
-UNIT_TEST_CASE(AssignToPersistentHandle) {
+VM_UNIT_TEST_CASE(AssignToPersistentHandle) {
   const char* kTestString1 = "Test String1";
   const char* kTestString2 = "Test String2";
   TestIsolateScope __test_isolate__;
@@ -2866,7 +2866,7 @@ TEST_CASE(WeakPersistentHandleNoCallback) {
 }
 
 
-UNIT_TEST_CASE(WeakPersistentHandlesCallbackShutdown) {
+VM_UNIT_TEST_CASE(WeakPersistentHandlesCallbackShutdown) {
   TestCase::CreateTestIsolate();
   Dart_EnterScope();
   Dart_Handle ref = Dart_True();
@@ -3363,7 +3363,7 @@ TEST_CASE(SingleGarbageCollectionCallback) {
 // Unit test for creating multiple scopes and local handles within them.
 // Ensure that the local handles get all cleaned out when exiting the
 // scope.
-UNIT_TEST_CASE(LocalHandles) {
+VM_UNIT_TEST_CASE(LocalHandles) {
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -3427,7 +3427,7 @@ UNIT_TEST_CASE(LocalHandles) {
 // Unit test for creating multiple scopes and allocating objects in the
 // zone for the scope. Ensure that the memory is freed when the scope
 // exits.
-UNIT_TEST_CASE(LocalZoneMemory) {
+VM_UNIT_TEST_CASE(LocalZoneMemory) {
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread != NULL);
@@ -3469,7 +3469,7 @@ UNIT_TEST_CASE(LocalZoneMemory) {
 }
 
 
-UNIT_TEST_CASE(Isolates) {
+VM_UNIT_TEST_CASE(Isolates) {
   // This test currently assumes that the Dart_Isolate type is an opaque
   // representation of Isolate*.
   Dart_Isolate iso_1 = TestCase::CreateTestIsolate();
@@ -3493,7 +3493,7 @@ UNIT_TEST_CASE(Isolates) {
 }
 
 
-UNIT_TEST_CASE(CurrentIsolateData) {
+VM_UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
@@ -3507,7 +3507,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
 }
 
 
-UNIT_TEST_CASE(IsolateSetCheckedMode) {
+VM_UNIT_TEST_CASE(IsolateSetCheckedMode) {
   const char* kScriptChars =
       "int bad1() {\n"
       "  int foo = 'string';\n"
@@ -3521,7 +3521,7 @@ UNIT_TEST_CASE(IsolateSetCheckedMode) {
 
   // Create an isolate with checked mode flags.
   Dart_IsolateFlags api_flags;
-  api_flags.version = DART_FLAGS_CURRENT_VERSION;
+  Isolate::FlagsInitialize(&api_flags);
   api_flags.enable_type_checks = true;
   api_flags.enable_asserts = true;
   api_flags.enable_error_on_bad_type = true;
@@ -3574,7 +3574,7 @@ TEST_CASE(DebugName) {
 static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {}
 
 
-UNIT_TEST_CASE(SetMessageCallbacks) {
+VM_UNIT_TEST_CASE(SetMessageCallbacks) {
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
   Dart_SetMessageNotifyCallback(&MyMessageNotifyCallback);
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
@@ -7196,7 +7196,7 @@ TEST_CASE(IllegalPost) {
 }
 
 
-UNIT_TEST_CASE(NewNativePort) {
+VM_UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
   EXPECT_EQ(ILLEGAL_PORT, error_port);
@@ -7518,12 +7518,12 @@ static void RunLoopTest(bool throw_exception) {
 }
 
 
-UNIT_TEST_CASE(RunLoop_Success) {
+VM_UNIT_TEST_CASE(RunLoop_Success) {
   RunLoopTest(false);
 }
 
 
-UNIT_TEST_CASE(RunLoop_Exception) {
+VM_UNIT_TEST_CASE(RunLoop_Exception) {
   RunLoopTest(true);
 }
 
@@ -7616,7 +7616,7 @@ static void IsolateShutdownTestCallback(void* callback_data) {
   saved_callback_data = callback_data;
 }
 
-UNIT_TEST_CASE(IsolateShutdown) {
+VM_UNIT_TEST_CASE(IsolateShutdown) {
   Dart_IsolateShutdownCallback saved = Isolate::ShutdownCallback();
   Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
 
@@ -7664,7 +7664,7 @@ static void IsolateShutdownRunDartCodeTestCallback(void* callback_data) {
   Dart_ExitScope();
 }
 
-UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
+VM_UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   const char* kScriptChars =
       "int add(int a, int b) {\n"
       "  return a + b;\n"

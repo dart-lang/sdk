@@ -4,9 +4,8 @@
 
 library tracer;
 
-import 'dart:async' show EventSink;
-
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
+import 'compiler.dart' show Compiler;
 import 'js_backend/namer.dart' show Namer;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
@@ -17,10 +16,12 @@ import 'world.dart' show ClosedWorld;
  * If non-null, we only trace methods whose name match the regexp defined by the
  * given pattern.
  */
-const String TRACE_FILTER_PATTERN = const String.fromEnvironment("DUMP_IR");
+String get TRACE_FILTER_PATTERN =>
+    TRACE_FILTER_PATTERN_FROM_ENVIRONMENT ?? TRACE_FILTER_PATTERN_FOR_TEST;
 
-final RegExp TRACE_FILTER =
-    TRACE_FILTER_PATTERN == null ? null : new RegExp(TRACE_FILTER_PATTERN);
+const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
+    const String.fromEnvironment("DUMP_IR");
+String TRACE_FILTER_PATTERN_FOR_TEST;
 
 /**
  * Dumps the intermediate representation after each phase in a format
@@ -30,16 +31,22 @@ class Tracer extends TracerUtil {
   final ClosedWorld closedWorld;
   final Namer namer;
   bool traceActive = false;
-  final EventSink<String> output;
-  final bool isEnabled = TRACE_FILTER != null;
+  final api.OutputSink output;
+  final RegExp traceFilter;
 
-  Tracer(
-      this.closedWorld, this.namer, api.CompilerOutputProvider outputProvider)
-      : output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
+  Tracer(this.closedWorld, this.namer, Compiler compiler)
+      : traceFilter = TRACE_FILTER_PATTERN == null
+            ? null
+            : new RegExp(TRACE_FILTER_PATTERN),
+        output = TRACE_FILTER_PATTERN != null
+            ? compiler.outputProvider('dart', 'cfg', api.OutputType.debug)
+            : null;
+
+  bool get isEnabled => traceFilter != null;
 
   void traceCompilation(String methodName) {
     if (!isEnabled) return;
-    traceActive = TRACE_FILTER.hasMatch(methodName);
+    traceActive = traceFilter.hasMatch(methodName);
     if (!traceActive) return;
     tag("compilation", () {
       printProperty("name", methodName);
@@ -63,7 +70,7 @@ class Tracer extends TracerUtil {
 }
 
 abstract class TracerUtil {
-  EventSink<String> get output;
+  api.OutputSink get output;
   final Indentation _ind = new Indentation();
 
   void tag(String tagName, Function f) {

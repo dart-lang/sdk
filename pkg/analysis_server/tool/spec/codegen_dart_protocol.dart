@@ -7,6 +7,7 @@ library codegen.protocol;
 import 'dart:convert';
 
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
@@ -216,7 +217,14 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         toHtmlVisitor.write(disclaimer);
       });
     }));
-    writeln('class $className {');
+    write('class $className');
+    if (impliedType.kind == 'refactoringFeedback') {
+      writeln(' extends RefactoringFeedback {');
+    } else if (impliedType.kind == 'refactoringOptions') {
+      writeln(' extends RefactoringOptions {');
+    } else {
+      writeln(' {');
+    }
     indent(() {
       if (emitToRequestMember(impliedType)) {
         writeln();
@@ -378,12 +386,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }));
     write('class $className');
     if (impliedType.kind == 'refactoringFeedback') {
-      write(' extends RefactoringFeedback');
+      writeln(' extends RefactoringFeedback {');
+    } else if (impliedType.kind == 'refactoringOptions') {
+      writeln(' extends RefactoringOptions {');
+    } else {
+      writeln(' implements HasToJson {');
     }
-    if (impliedType.kind == 'refactoringOptions') {
-      write(' extends RefactoringOptions');
-    }
-    writeln(' implements HasToJson {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
@@ -524,7 +532,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   void emitObjectEqualsMember(TypeObject type, String className) {
     writeln('@override');
-    writeln('bool operator==(other) {');
+    writeln('bool operator ==(other) {');
     indent(() {
       writeln('if (other is $className) {');
       indent(() {

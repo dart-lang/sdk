@@ -137,7 +137,8 @@ class _Visitor extends LocalDeclarationVisitor {
         }
       }
       if (elem != null) {
-        CompletionSuggestion suggestion = createSuggestion(elem,
+        CompletionSuggestion suggestion = createSuggestion(
+            elem, request.ideOptions,
             completion: completion, relevance: relevance);
         if (suggestion != null) {
           suggestions.add(suggestion);

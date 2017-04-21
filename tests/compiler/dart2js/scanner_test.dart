@@ -3,17 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/scanner/utf8_bytes_scanner.dart';
-import 'package:compiler/src/tokens/precedence_constants.dart';
-import 'package:compiler/src/tokens/token.dart';
-import 'package:compiler/src/util/characters.dart';
+import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'dart:typed_data';
 
 Token scan(List<int> bytes) {
   List<int> zeroTerminated = new Uint8List(bytes.length + 1);
   zeroTerminated.setRange(0, bytes.length, bytes);
   zeroTerminated[bytes.length] = 0;
-  return new Utf8BytesScanner.fromBytes(zeroTerminated).tokenize();
+  return new Utf8BytesScanner(zeroTerminated).tokenize();
 }
 
 Token scanUTF8(List<int> bytes) {
@@ -26,7 +25,7 @@ Token scanUTF8(List<int> bytes) {
   for (int i = 0; i < l; i++) {
     stringLiteral[i + 1] = bytes[i];
   }
-  return new Utf8BytesScanner.fromBytes(stringLiteral).tokenize();
+  return new Utf8BytesScanner(stringLiteral).tokenize();
 }
 
 bool isRunningOnJavaScript() => identical(1, 1.0);
@@ -75,7 +74,7 @@ main() {
     0xc3,
     0xb1
   ]);
-  Expect.stringEquals("'Îñţérñåţîöñåļîžåţîờñ'", token.value);
+  Expect.stringEquals("'Îñţérñåţîöñåļîžåţîờñ'", token.lexeme);
 
   // Blueberry porridge in Danish: "blåbærgrød".
   token = scanUTF8([
@@ -93,7 +92,7 @@ main() {
     0xb8,
     0x64
   ]);
-  Expect.stringEquals("'blåbærgrød'", token.value);
+  Expect.stringEquals("'blåbærgrød'", token.lexeme);
 
   // "சிவா அணாமாைல", that is "Siva Annamalai" in Tamil.
   token = scanUTF8([
@@ -132,7 +131,7 @@ main() {
     0xae,
     0xb2
   ]);
-  Expect.stringEquals("'சிவா அணாமாைல'", token.value);
+  Expect.stringEquals("'சிவா அணாமாைல'", token.lexeme);
 
   // "िसवा अणामालै", that is "Siva Annamalai" in Devanagari.
   token = scanUTF8([
@@ -171,13 +170,13 @@ main() {
     0xa5,
     0x88
   ]);
-  Expect.stringEquals("'िसवा अणामालै'", token.value);
+  Expect.stringEquals("'िसवा अणामालै'", token.lexeme);
 
   if (!isRunningOnJavaScript()) {
     // DESERET CAPITAL LETTER BEE, unicode 0x10412(0xD801+0xDC12)
     // UTF-8: F0 90 90 92
     token = scanUTF8([0xf0, 0x90, 0x90, 0x92]);
-    Expect.stringEquals("'𐐒'", token.value);
+    Expect.stringEquals("'𐐒'", token.lexeme);
   } else {
     print('Skipping non-BMP character test');
   }
@@ -185,7 +184,7 @@ main() {
   // Regression test for issue 1761.
   // "#!"
   token = scan([0x23, 0x21]);
-  Expect.equals(token.info, EOF_INFO); // Treated as a comment.
+  Expect.equals(token.info, SCRIPT_INFO); // Treated as a comment.
 
   // Regression test for issue 1761.
   // "#! Hello, World!"
@@ -207,5 +206,5 @@ main() {
     0x64,
     0x21
   ]);
-  Expect.equals(token.info, EOF_INFO); // Treated as a comment.
+  Expect.equals(token.info, SCRIPT_INFO); // Treated as a comment.
 }

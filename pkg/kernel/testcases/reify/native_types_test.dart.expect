@@ -1,0 +1,453 @@
+library native_types;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "dart:mock" as mock;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+abstract class C extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class D extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function::context = context
+    ;
+  method call() → self::C {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function::context};
+    return throw int::attachType(new core::AbstractClassInstantiationError::•("C"), new typ::Interface::•(self::$declarations.[](3)));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#1 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#1::context = context
+    ;
+  method call(dynamic e) → core::bool {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#1::context};
+    return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](3)));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](4));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#2 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#2::context = context
+    ;
+  method call() → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#2::context};
+    return new self::D::•().foo();
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](5));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#3 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#3::context = context
+    ;
+  method call(dynamic e) → core::bool {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#3::context};
+    return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](7)));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](6));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#4 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#4::context = context
+    ;
+  method call() → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#4::context};
+    return self::foo;
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](8));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#5 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#5::context = context
+    ;
+  method call(dynamic e) → core::bool {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#5::context};
+    return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](10)));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](9));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#6 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#6::context = context
+    ;
+  method call() → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#6::context};
+    return int::attachType(<dynamic>[], new typ::Interface::•(self::$declarations.[](12), <dynamic>[const typ::Dynamic::•()])).{core::List::[]}(1);
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](11));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+class Closure#main#function#7 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#7::context = context
+    ;
+  method call(dynamic e) → core::bool {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#7::context};
+    return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](14)));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](13));
+  get $is$AbstractClassInstantiationError() → core::bool
+    return false;
+  get $is$NoSuchMethodError() → core::bool
+    return false;
+  get $is$CyclicInitializationError() → core::bool
+    return false;
+  get $is$RangeError() → core::bool
+    return false;
+  get $is$int() → core::bool
+    return false;
+  get $is$double() → core::bool
+    return false;
+  get $is$List() → core::bool
+    return false;
+  get $is$String() → core::bool
+    return false;
+  get $is$Object() → core::bool
+    return true;
+  get $is$bool() → core::bool
+    return false;
+  get $is$UnsupportedError() → core::bool
+    return false;
+  get $is$ArgumentError() → core::bool
+    return false;
+  get $is$IntegerDivisionByZeroException() → core::bool
+    return false;
+}
+static field dynamic foo = self::bar;
+static field dynamic bar = self::foo;
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](18)));
+  dec::init(d, 1, new typ::Interface::•(d.[](18)));
+  dec::init(d, 2, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](0)), 0, <dynamic>[]));
+  dec::init(d, 3, new typ::Interface::•(d.[](27)));
+  dec::init(d, 4, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 5, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
+  dec::init(d, 6, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 7, new typ::Interface::•(d.[](27)));
+  dec::init(d, 8, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
+  dec::init(d, 9, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 10, new typ::Interface::•(d.[](27)));
+  dec::init(d, 11, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
+  dec::init(d, 12, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](28), <dynamic>[d.[](12).variables.[](0)])]);
+  dec::init(d, 13, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 14, new typ::Interface::•(d.[](21)));
+  dec::init(d, 15, new typ::Interface::•(d.[](29)));
+  dec::init(d, 16, new typ::Interface::•(d.[](29)));
+  dec::init(d, 17, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](30), <dynamic>[new typ::Interface::•(d.[](17))]), new typ::Interface::•(d.[](31))]);
+  dec::init(d, 18, null);
+  dec::init(d, 19, new typ::Interface::•(d.[](18)));
+  dec::init(d, 20, new typ::Interface::•(d.[](27)));
+  dec::init(d, 21, new typ::Interface::•(d.[](27)));
+  dec::init(d, 22, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](32))]);
+  dec::init(d, 23, new typ::Interface::•(d.[](18)));
+  dec::init(d, 24, new typ::Interface::•(d.[](18)));
+  dec::init(d, 26, new typ::Interface::•(d.[](18)));
+  dec::init(d, 27, new typ::Interface::•(d.[](18)));
+  dec::init(d, 28, new typ::Interface::•(d.[](33), <dynamic>[d.[](28).variables.[](0)]));
+  dec::init(d, 29, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](30), <dynamic>[new typ::Interface::•(d.[](29))])]);
+  dec::init(d, 30, new typ::Interface::•(d.[](18)));
+  dec::init(d, 31, new typ::Interface::•(d.[](18)));
+  dec::init(d, 32, new typ::Interface::•(d.[](18)));
+  dec::init(d, 33, new typ::Interface::•(d.[](18)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["C", "D", "Closure#main#function", "AbstractClassInstantiationError", "Closure#main#function#1", "Closure#main#function#2", "Closure#main#function#3", "NoSuchMethodError", "Closure#main#function#4", "Closure#main#function#5", "CyclicInitializationError", "Closure#main#function#6", "List", "Closure#main#function#7", "RangeError", "int", "double", "String", "Object", "bool", "UnsupportedError", "ArgumentError", "IntegerDivisionByZeroException", "Null", "Type", "HasRuntimeTypeGetter", "Function", "Error", "EfficientLengthIterable", "num", "Comparable", "Pattern", "Exception", "Iterable"], <dynamic>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1]));
+static method main() → dynamic {
+  tes::expectTrue(typ::isSubtypeOf(int::type(1), new typ::Interface::•(self::$declarations.[](15))));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(1), new typ::Interface::•(self::$declarations.[](16))));
+  tes::expectTrue(typ::isSubtypeOf(int::type(int::attachType(core::List::_internal<core::int>(), new typ::Interface::•(self::$declarations.[](12), <dynamic>[new typ::Interface::•(self::$declarations.[](15))]))), new typ::Interface::•(self::$declarations.[](12), <dynamic>[new typ::Interface::•(self::$declarations.[](15))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(int::attachType(core::List::_internal<core::int>(), new typ::Interface::•(self::$declarations.[](12), <dynamic>[new typ::Interface::•(self::$declarations.[](15))]))), new typ::Interface::•(self::$declarations.[](12), <dynamic>[new typ::Interface::•(self::$declarations.[](16))])));
+  tes::expectTrue(typ::isSubtypeOf(int::type("hest"), new typ::Interface::•(self::$declarations.[](17))));
+  tes::expectTrue(!typ::isSubtypeOf(int::type("hest"), new typ::Interface::•(self::$declarations.[](15))));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(null), new typ::Interface::•(self::$declarations.[](17))));
+  tes::expectTrue(typ::isSubtypeOf(int::type(null), const typ::Dynamic::•()));
+  tes::expectTrue(typ::isSubtypeOf(int::type(null), new typ::Interface::•(self::$declarations.[](18))));
+  tes::expectTrue(typ::isSubtypeOf(int::type(true), new typ::Interface::•(self::$declarations.[](19))));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(true), new typ::Interface::•(self::$declarations.[](15))));
+  tes::expectThrows(new self::Closure#main#function::•(null), new self::Closure#main#function#1::•(null));
+  tes::expectThrows(new self::Closure#main#function#2::•(null), new self::Closure#main#function#3::•(null));
+  tes::expectThrows(new self::Closure#main#function#4::•(null), new self::Closure#main#function#5::•(null));
+  tes::expectThrows(new self::Closure#main#function#6::•(null), new self::Closure#main#function#7::•(null));
+  tes::expectTrue(typ::isSubtypeOf(int::type(int::attachType(new core::UnsupportedError::•(""), new typ::Interface::•(self::$declarations.[](20)))), new typ::Interface::•(self::$declarations.[](20))));
+  tes::expectTrue(typ::isSubtypeOf(int::type(int::attachType(new core::ArgumentError::•(), new typ::Interface::•(self::$declarations.[](21)))), new typ::Interface::•(self::$declarations.[](21))));
+  tes::expectTrue(typ::isSubtypeOf(int::type(int::attachType(new core::IntegerDivisionByZeroException::•(), new typ::Interface::•(self::$declarations.[](22)))), new typ::Interface::•(self::$declarations.[](22))));
+}

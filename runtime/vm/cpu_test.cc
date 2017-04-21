@@ -9,7 +9,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(Id) {
+VM_UNIT_TEST_CASE(Id) {
 #if defined(TARGET_ARCH_IA32)
   EXPECT_STREQ("ia32", CPU::Id());
 #elif defined(TARGET_ARCH_X64)

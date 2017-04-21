@@ -2158,6 +2158,150 @@ class B extends A implements Function {
     verify([source]);
   }
 
+  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
+    Source source = addSource('''
+typedef Foo<S> = S Function<T>(T x);
+
+main(Object p) {
+  (p as Foo)<int>(3);
+  if (p is Foo) {
+    p<int>(3);
+  }
+  (p as Foo<String>)<int>(3);
+  if (p is Foo<String>) {
+    p<int>(3);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
+    Source source = addSource('''
+typedef Foo = T Function<T>(T x);
+
+main(Object p) {
+  (p as Foo)<int>(3);
+  if (p is Foo) {
+    p<int>(3);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
+    Source source = addSource(r'''
+typedef Foo = int Function<T>(T x);
+int foo<T>(T x) => 3;
+Foo bar() => foo;
+void test1() {
+  bar()<String>("hello");
+}
+
+class A {
+  Foo f;
+  void test() {
+    f<String>("hello");
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
+    Source source = addSource(r'''
+typedef Foo<S> = S Function<T>(T x);
+int foo<T>(T x) => 3;
+Foo<int> bar() => foo;
+void test1() {
+  bar()<String>("hello");
+}
+
+class A {
+  Foo<int> f;
+  void test() {
+    f<String>("hello");
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
+    Source source = addSource(r'''
+typedef Foo<S> = S Function<T>(T x);
+int foo<T>(T x) => 3;
+Foo bar() => foo;
+void test1() {
+  bar()<String>("hello");
+}
+
+class A {
+  Foo f;
+  void test() {
+    f<String>("hello");
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_invalidGenericFunctionType() async {
+    Source source = addSource('''
+typedef F = int;
+main(p) {
+  p is F;
+}
+''');
+    await computeAnalysisResult(source);
+    // There is a parse error, but no crashes.
+    assertErrors(source, [ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE]);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_noTypeParameters() async {
+    Source source = addSource(r'''
+typedef Foo = int Function<T>(T x);
+int foo<T>(T x) => 3;
+void test1() {
+  Foo y = foo;
+  // These two should be equivalent
+  foo<String>("hello");
+  y<String>("hello");
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_typeParameters() async {
+    Source source = addSource(r'''
+typedef Foo<S> = S Function<T>(T x);
+int foo<T>(T x) => 3;
+void test1() {
+  Foo<int> y = foo;
+  // These two should be equivalent
+  foo<String>("hello");
+  y<String>("hello");
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_implicitConstructorDependencies() async {
     // No warning should be generated for the code below; this requires that
     // implicit constructors are generated for C1 before C2, even though C1
@@ -2189,17 +2333,6 @@ class A {
 class B {
   var v;
   B() : v = new A.named();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_implicitThisReferenceInInitializer_importPrefix() async {
-    Source source = addSource(r'''
-import 'dart:async' as abstract;
-class A {
-  var v = new abstract.Completer();
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -6263,9 +6396,5 @@ class A {
 
   Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "a");
-  }
-
-  Future<CompilationUnit> _getResolvedLibraryUnit(Source source) async {
-    return analysisContext.getResolvedCompilationUnit2(source, source);
   }
 }

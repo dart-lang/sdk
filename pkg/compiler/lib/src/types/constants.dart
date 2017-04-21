@@ -5,11 +5,8 @@
 library types.constants;
 
 import '../common.dart';
-import '../constants/constant_system.dart' show ConstantSystem;
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../js_backend/js_backend.dart'
-    show JavaScriptBackend, SyntheticConstantKind;
+import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import '../world.dart' show ClosedWorld;
 import 'masks.dart';
 
@@ -25,7 +22,7 @@ class ConstantValueTypeMasks
   @override
   TypeMask visitConstructed(
       ConstructedConstantValue constant, ClosedWorld closedWorld) {
-    if (closedWorld.backendClasses.isInterceptorClass(constant.type.element)) {
+    if (closedWorld.interceptorData.isInterceptedClass(constant.type.element)) {
       return closedWorld.commonMasks.nonNullType;
     }
     return new TypeMask.nonNullExact(constant.type.element, closedWorld);

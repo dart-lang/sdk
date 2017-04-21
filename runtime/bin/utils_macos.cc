@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include <errno.h>           // NOLINT
 #include <mach/clock.h>      // NOLINT
 #include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
 #include <netdb.h>           // NOLINT
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
 #include <sys/sysctl.h>  // NOLINT
 #endif
 #include <sys/time.h>  // NOLINT
@@ -124,7 +124,7 @@ int64_t TimerUtils::GetCurrentMonotonicMillis() {
 }
 
 
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
 static int64_t GetCurrentTimeMicros() {
   // gettimeofday has microsecond resolution.
   struct timeval tv;
@@ -134,11 +134,11 @@ static int64_t GetCurrentTimeMicros() {
   }
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
-#endif  // TARGET_OS_IOS
+#endif  // HOST_OS_IOS
 
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
   // On iOS mach_absolute_time stops while the device is sleeping. Instead use
   // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
   // changes. KERN_BOOTTIME will be updated by the system whenever the system
@@ -160,7 +160,7 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
-#endif  // TARGET_OS_IOS
+#endif  // HOST_OS_IOS
 }
 
 
@@ -188,4 +188,4 @@ void TimerUtils::Sleep(int64_t millis) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

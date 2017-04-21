@@ -63,16 +63,13 @@ class Duration implements Comparable<Duration> {
       MICROSECONDS_PER_SECOND * SECONDS_PER_MINUTE;
   static const int MICROSECONDS_PER_HOUR =
       MICROSECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-  static const int MICROSECONDS_PER_DAY =
-      MICROSECONDS_PER_HOUR * HOURS_PER_DAY;
-
+  static const int MICROSECONDS_PER_DAY = MICROSECONDS_PER_HOUR * HOURS_PER_DAY;
 
   static const int MILLISECONDS_PER_MINUTE =
       MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE;
   static const int MILLISECONDS_PER_HOUR =
       MILLISECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-  static const int MILLISECONDS_PER_DAY =
-      MILLISECONDS_PER_HOUR * HOURS_PER_DAY;
+  static const int MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * HOURS_PER_DAY;
 
   static const int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
   static const int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
@@ -96,14 +93,14 @@ class Duration implements Comparable<Duration> {
    * All individual parts are allowed to be negative.
    * All arguments are 0 by default.
    */
-  const Duration({int days: 0,
-                  int hours: 0,
-                  int minutes: 0,
-                  int seconds: 0,
-                  int milliseconds: 0,
-                  int microseconds: 0})
-      : this._microseconds(
-            MICROSECONDS_PER_DAY * days +
+  const Duration(
+      {int days: 0,
+      int hours: 0,
+      int minutes: 0,
+      int seconds: 0,
+      int milliseconds: 0,
+      int microseconds: 0})
+      : this._microseconds(MICROSECONDS_PER_DAY * days +
             MICROSECONDS_PER_HOUR * hours +
             MICROSECONDS_PER_MINUTE * minutes +
             MICROSECONDS_PER_SECOND * seconds +
@@ -220,7 +217,7 @@ class Duration implements Comparable<Duration> {
    * Returns `true` if this Duration is the same object as [other].
    */
   bool operator ==(other) {
-    if (other is !Duration) return false;
+    if (other is! Duration) return false;
     return _duration == other._duration;
   }
 
@@ -257,6 +254,7 @@ class Duration implements Comparable<Duration> {
       if (n >= 10) return "0000$n";
       return "00000$n";
     }
+
     String twoDigits(int n) {
       if (n >= 10) return "$n";
       return "0$n";
@@ -295,5 +293,6 @@ class Duration implements Comparable<Duration> {
    * The returned `Duration` has the same length as this one, but will have the
    * opposite sign of this one.
    */
-  Duration operator -() => new Duration._microseconds(-_duration);
+  // Using subtraction helps dart2js avoid negative zeros.
+  Duration operator -() => new Duration._microseconds(0 - _duration);
 }

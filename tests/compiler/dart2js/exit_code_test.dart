@@ -54,7 +54,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
   }
 
   @override
-  Backend createBackend() {
+  JavaScriptBackend createBackend() {
     return new TestBackend(this);
   }
 
@@ -74,14 +74,9 @@ class TestCompiler extends apiimpl.CompilerImpl {
     return super.run(uri);
   }
 
-  Future onLibraryScanned(LibraryElement element, LibraryLoader loader) {
-    test('Compiler.onLibraryScanned');
-    return super.onLibraryScanned(element, loader);
-  }
-
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
-    test('Compiler.onLibrariesLoaded');
-    return super.onLibrariesLoaded(loadedLibraries);
+  LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
+    test('Compiler.processLoadedLibraries');
+    return super.processLoadedLibraries(loadedLibraries);
   }
 
   test(String marker) {
@@ -128,6 +123,7 @@ class TestBackend extends JavaScriptBackend {
         super(compiler,
             generateSourceMap: compiler.options.generateSourceMap,
             useStartupEmitter: compiler.options.useStartupEmitter,
+            useMultiSourceInfo: compiler.options.useMultiSourceInfo,
             useNewSourceInfo: compiler.options.useNewSourceInfo,
             useKernel: compiler.options.useKernel);
 
@@ -266,6 +262,8 @@ void main() {
   bool isCheckedMode = false;
   assert((isCheckedMode = true));
 
+  entry.enableWriteString = false;
+
   Map _expectedExitCode({bool beforeRun: false, bool fatalWarnings: false}) {
     if (beforeRun) {
       return {
@@ -293,8 +291,7 @@ void main() {
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
-    'Compiler.onLibraryScanned': beforeRun,
-    'Compiler.onLibrariesLoaded': beforeRun,
+    'Compiler.processLoadedLibraries': beforeRun,
     'ScannerTask.scanElements': duringRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.analyzeElement': duringRun,

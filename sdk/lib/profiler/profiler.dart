@@ -6,9 +6,5 @@
 @Deprecated("Dart SDK 1.12")
 library dart.profiler;
 
-export 'dart:developer' show getCurrentTag,
-                             Counter,
-                             Gauge,
-                             Metric,
-                             Metrics,
-                             UserTag;
+export 'dart:developer'
+    show getCurrentTag, Counter, Gauge, Metric, Metrics, UserTag;

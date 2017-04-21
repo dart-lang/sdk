@@ -13,10 +13,11 @@ class A {
   const A(this.f);
 }
 
-int  /// 00: static type warning, checked mode compile-time error
+int // //# 00: static type warning, checked mode compile-time error
 foo(
-String  /// 00: continued
-x) => 499;
+String // //# 00: continued
+        x) =>
+    499;
 
 const a = const A(foo);
 

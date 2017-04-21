@@ -42,7 +42,7 @@ abstract class num implements Comparable<num> {
    * Use [compareTo] for a comparison that distinguishes zero and minus zero,
    * and that considers NaN values as equal.
    */
-  bool operator==(Object other);
+  bool operator ==(Object other);
 
   /**
    * Returns a hash code for a numerical value.
@@ -146,7 +146,7 @@ abstract class num implements Comparable<num> {
   /** Negate operator. */
   num operator -();
 
- /**
+  /**
    * Returns the remainder of the truncating division of `this` by [other].
    *
    * The result `r` of this operation satisfies:

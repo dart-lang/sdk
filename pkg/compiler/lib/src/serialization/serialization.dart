@@ -4,6 +4,9 @@
 
 library dart2js.serialization;
 
+import 'package:front_end/src/fasta/scanner/precedence.dart'
+    show PrecedenceInfo;
+
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
@@ -19,6 +22,16 @@ import 'type_serialization.dart';
 import 'values.dart';
 
 export 'task.dart' show LibraryDeserializer;
+
+final Map<String, String> canonicalNames = computeCanonicalNames();
+
+Map<String, String> computeCanonicalNames() {
+  Map<String, String> result = <String, String>{};
+  for (PrecedenceInfo info in PrecedenceInfo.all) {
+    result[info.value] = info.value;
+  }
+  return result;
+}
 
 /// An object that supports the encoding an [ObjectValue] for serialization.
 ///
@@ -471,7 +484,7 @@ abstract class AbstractDecoder<K> {
       }
       throw new StateError("String value '$key' not found in $_map.");
     }
-    return value;
+    return canonicalNames[value] ?? value;
   }
 
   /// Returns the list of [String] values associated with [key] in the decoded
@@ -659,7 +672,6 @@ bool includeAllElements(Element element) => true;
 class Serializer {
   List<SerializerPlugin> plugins = <SerializerPlugin>[];
 
-  Map<Uri, dynamic> _dependencyMap = <Uri, dynamic>{};
   Map<Element, DataObject> _elementMap = <Element, DataObject>{};
   Map<ConstantExpression, DataObject> _constantMap =
       <ConstantExpression, DataObject>{};

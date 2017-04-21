@@ -9,11 +9,11 @@ class Class {
 
   method() {
     try {
-      getter++; /// 01: static type warning
-    } on NoSuchMethodError catch(e) {
+      getter++; //# 01: static type warning
+    } on NoSuchMethodError catch (e) {
       return;
     }
-    Expect.fail('Expected NoSuchMethodError'); /// 01: continued
+    Expect.fail('Expected NoSuchMethodError'); //# 01: continued
   }
 
   noSuchMethod(i) {
@@ -23,7 +23,7 @@ class Class {
 
 class Subclass extends Class {
   method() {
-    print(getter); /// 01: continued
+    print(getter); //# 01: continued
     super.method();
   }
 }

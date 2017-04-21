@@ -82,7 +82,9 @@ class DartUnitHoverComputer {
         AstNode parent = expression.parent;
         DartType staticType = null;
         DartType propagatedType = expression.propagatedType;
-        if (element == null || element is VariableElement) {
+        if (element is ParameterElement) {
+          staticType = element.type;
+        } else if (element == null || element is VariableElement) {
           staticType = expression.staticType;
         }
         if (parent is MethodInvocation && parent.methodName == expression) {
@@ -106,8 +108,16 @@ class DartUnitHoverComputer {
   }
 
   String _computeDocumentation(Element element) {
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
     if (element is ParameterElement) {
       element = element.enclosingElement;
+    }
+    if (element == null) {
+      // This can happen when the code is invalid, such as having a field formal
+      // parameter for a field that does not exist.
+      return null;
     }
     // The documentation of the element itself.
     if (element.documentationComment != null) {

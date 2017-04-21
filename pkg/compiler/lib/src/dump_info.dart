@@ -9,6 +9,7 @@ import 'dart:convert'
 
 import 'package:dart2js_info/info.dart';
 
+import '../compiler_new.dart';
 import 'closure.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
@@ -16,10 +17,10 @@ import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/visitor.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'types/types.dart' show TypeMask;
 import 'universe/world_builder.dart' show ReceiverConstraint;
 import 'universe/world_impact.dart'
@@ -130,9 +131,6 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
     FieldInfo info = new FieldInfo(
         name: element.name,
-        // We use element.hashCode because it is globally unique and it is
-        // available while we are doing codegen.
-        coverageId: '${element.hashCode}',
         type: '${element.type}',
         inferredType: '$inferredType',
         code: code,
@@ -145,6 +143,12 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       if (value != null) {
         info.initializer = _constantToInfo[value];
       }
+    }
+
+    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+      // We use element.hashCode because it is globally unique and it is
+      // available while we are doing codegen.
+      info.coverageId = '${element.hashCode}';
     }
 
     int closureSize = _addClosureInfo(info, element);
@@ -274,9 +278,6 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     FunctionInfo info = new FunctionInfo(
         name: name,
         functionKind: kind,
-        // We use element.hashCode because it is globally unique and it is
-        // available while we are doing codegen.
-        coverageId: '${element.hashCode}',
         modifiers: modifiers,
         returnType: returnType,
         inferredReturnType: inferredReturnType,
@@ -293,6 +294,12 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       size += closureSize;
     } else {
       info.closures = <ClosureInfo>[];
+    }
+
+    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+      // We use element.hashCode because it is globally unique and it is
+      // available while we are doing codegen.
+      info.coverageId = '${element.hashCode}';
     }
 
     info.size = size;
@@ -412,19 +419,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void reportInlined(Element element, Element inlinedFrom) {
+    element = element.declaration;
+    inlinedFrom = inlinedFrom.declaration;
+
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Element>());
     inlineMap[inlinedFrom].add(element);
-  }
-
-  final Map<Element, Set<Element>> _dependencies = {};
-  void registerDependency(Element target) {
-    if (compiler.options.dumpInfo) {
-      _dependencies
-          .putIfAbsent(compiler.currentElement, () => new Set())
-          .add(target);
-    }
   }
 
   void registerImpact(Element element, WorldImpact impact) {
@@ -533,7 +534,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer, closedWorld);
-      compiler.outputProvider('', 'info.json')
+      compiler.outputProvider(compiler.options.outputUri.pathSegments.last,
+          'info.json', OutputType.info)
         ..add(jsonBuffer.toString())
         ..close();
     });
@@ -543,6 +545,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();
+
+    AllInfo result = infoCollector.result;
 
     // Recursively build links to function uses
     Iterable<Element> functionElements =
@@ -558,6 +562,21 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
       }
     }
+
+    // Recursively build links to field uses
+    Iterable<Element> fieldElements =
+        infoCollector._elementToInfo.keys.where((k) => k is FieldElement);
+    for (FieldElement element in fieldElements) {
+      FieldInfo info = infoCollector._elementToInfo[element];
+      Iterable<Selection> uses = getRetaining(element, closedWorld);
+      // Don't bother recording an empty list of dependencies.
+      for (Selection selection in uses) {
+        Info useInfo = infoCollector._elementToInfo[selection.selectedElement];
+        if (useInfo == null) continue;
+        info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
+      }
+    }
+
     // Notify the impact strategy impacts are no longer needed for dump info.
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);
 
@@ -572,17 +591,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    AllInfo result = infoCollector.result;
-
-    for (Element element in _dependencies.keys) {
-      var a = infoCollector._elementToInfo[element];
-      if (a == null) continue;
-      result.dependencies[a] = _dependencies[element]
-          .map((o) => infoCollector._elementToInfo[o])
-          .where((o) => o != null)
-          .toList();
-    }
-
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
@@ -595,7 +603,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         toJsonDuration:
             new Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: new Duration(milliseconds: this.timing),
-        noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,
+        noSuchMethodEnabled: compiler.backend.backendUsage.isNoSuchMethodUsed,
         minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(

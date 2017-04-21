@@ -4,14 +4,15 @@
 
 [ $compiler == dart2analyzer ]
 
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_local_functions_test: CompileTimeError # Issue 28515
+
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
+regress_29025_test: StaticWarning # Issue 29081
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
-
-# No longer support the old use of typedef to define a mixin
-mixin_illegal_syntax_test/00: Crash
 
 deep_nesting1_negative_test: Crash # Issue 25558
 deep_nesting2_negative_test: Crash # Issue 25558
@@ -44,10 +45,6 @@ multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
-
-generic_function_typedef_test: Crash # Issue 27969
-generic_function_typedef2_test: Crash # Issue 27969
-generalized_function_type_test: Crash # Issue 27969
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -496,3 +493,9 @@ for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does n
 initializing_formal_type_test: StaticWarning # Issue 26658
 
 regress_27572_test: StaticWarning # Warning about undefined method expected.
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
+[ $compiler == dart2analyzer && $system != windows ]
+bad_raw_string_test/03: MissingCompileTimeError # Issue 28664

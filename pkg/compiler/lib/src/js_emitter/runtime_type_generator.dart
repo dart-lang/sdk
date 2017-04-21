@@ -8,7 +8,7 @@ import '../closure.dart' show ClosureClassMap, ClosureFieldElement;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypeVariableType;
 import '../elements/elements.dart'
@@ -24,8 +24,8 @@ import '../js_backend/js_backend.dart'
     show
         JavaScriptBackend,
         Namer,
-        RuntimeTypes,
         RuntimeTypesEncoder,
+        RuntimeTypesSubstitutions,
         Substitution,
         TypeCheck,
         TypeChecks;
@@ -72,8 +72,6 @@ class RuntimeTypeGenerator {
 
   Iterable<ClassElement> get classesUsingTypeVariableTests =>
       typeTestRegistry.classesUsingTypeVariableTests;
-  Iterable<ClassElement> get classesUsingTypeVariableExpression =>
-      backend.rti.classesUsingTypeVariableExpression;
 
   Set<ResolutionFunctionType> get checkedFunctionTypes =>
       typeTestRegistry.checkedFunctionTypes;
@@ -99,8 +97,9 @@ class RuntimeTypeGenerator {
     /// dynamically at runtime. We also always generate tests against
     /// native classes.
     /// TODO(herhut): Generate tests for native classes dynamically, as well.
-    void generateIsTest(Element other) {
-      if (backend.isNative(classElement) || !classElement.isSubclassOf(other)) {
+    void generateIsTest(ClassElement other) {
+      if (backend.nativeData.isNativeClass(classElement) ||
+          !classElement.isSubclassOf(other)) {
         result.properties[namer.operatorIs(other)] = js('1');
       }
     }
@@ -136,12 +135,13 @@ class RuntimeTypeGenerator {
 
     void generateSubstitution(ClassElement cls, {bool emitNull: false}) {
       if (cls.typeVariables.isEmpty) return;
-      RuntimeTypes rti = backend.rti;
+      RuntimeTypesSubstitutions rtiSubstitutions = backend.rtiSubstitutions;
       RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
       jsAst.Expression expression;
       bool needsNativeCheck =
           emitterTask.nativeEmitter.requiresNativeIsCheck(cls);
-      Substitution substitution = rti.getSubstitution(classElement, cls);
+      Substitution substitution =
+          rtiSubstitutions.getSubstitution(classElement, cls);
       if (substitution != null) {
         expression = rtiEncoder.getSubstitutionCode(substitution);
       }
@@ -203,7 +203,7 @@ class RuntimeTypeGenerator {
     }
 
     // Precomputed is checks.
-    TypeChecks typeChecks = backend.rti.requiredChecks;
+    TypeChecks typeChecks = backend.rtiChecks.requiredChecks;
     Iterable<TypeCheck> classChecks = typeChecks[cls];
     if (classChecks != null) {
       for (TypeCheck check in classChecks) {
@@ -218,7 +218,7 @@ class RuntimeTypeGenerator {
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
       if (a.isClosure) return true;
-      return backend.rti.isTrivialSubstitution(a, b);
+      return backend.rtiSubstitutions.isTrivialSubstitution(a, b);
     }
 
     bool supertypesNeedSubstitutions = false;
@@ -234,7 +234,7 @@ class RuntimeTypeGenerator {
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
       while (superclass != null) {
-        if (backend.classNeedsRti(superclass)) {
+        if (backend.rtiNeed.classNeedsRti(superclass)) {
           generateSubstitution(superclass, emitNull: true);
           generated.add(superclass);
         }
@@ -253,7 +253,7 @@ class RuntimeTypeGenerator {
         if (generated.contains(superclass)) continue;
 
         if (classesUsingTypeVariableTests.contains(superclass) ||
-            classesUsingTypeVariableExpression.contains(superclass) ||
+            backend.rtiNeed.classUsesTypeVariableExpression(superclass) ||
             checkedClasses.contains(superclass)) {
           // Generate substitution.  If no substitution is necessary, emit
           // `null` to overwrite a (possibly) existing substitution from the
@@ -328,49 +328,5 @@ class RuntimeTypeGenerator {
       _generateInterfacesIsTests(
           superclass, generateIsTest, generateSubstitution, alreadyGenerated);
     }
-  }
-
-  List<StubMethod> generateTypeVariableReaderStubs(ClassElement classElement) {
-    List<StubMethod> stubs = <StubMethod>[];
-    ClassElement superclass = classElement;
-    while (superclass != null) {
-      for (ResolutionTypeVariableType parameter in superclass.typeVariables) {
-        if (backend.emitter.readTypeVariables.contains(parameter.element)) {
-          stubs.add(
-              _generateTypeVariableReader(classElement, parameter.element));
-        }
-      }
-      superclass = superclass.superclass;
-    }
-
-    return stubs;
-  }
-
-  StubMethod _generateTypeVariableReader(
-      ClassElement cls, TypeVariableElement element) {
-    jsAst.Name name = namer.nameForReadTypeVariable(element);
-    int index = element.index;
-    jsAst.Expression computeTypeVariable;
-
-    Substitution substitution =
-        backend.rti.getSubstitution(cls, element.typeDeclaration);
-    jsAst.Name rtiFieldName = backend.namer.rtiFieldName;
-    if (substitution != null) {
-      computeTypeVariable = js(r'#.apply(null, this.#)', [
-        backend.rtiEncoder.getSubstitutionCodeForVariable(substitution, index),
-        rtiFieldName
-      ]);
-    } else {
-      // TODO(ahe): These can be generated dynamically.
-      computeTypeVariable = js(r'this.# && this.#[#]',
-          [rtiFieldName, rtiFieldName, js.number(index)]);
-    }
-    jsAst.Expression convertRtiToRuntimeType = backend.emitter
-        .staticFunctionAccess(backend.helpers.convertRtiToRuntimeType);
-
-    return new StubMethod(
-        name,
-        js('function () { return #(#) }',
-            [convertRtiToRuntimeType, computeTypeVariable]));
   }
 }

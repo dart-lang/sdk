@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -18,12 +19,16 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
+import '../../correction/flutter_util.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -32,6 +37,7 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 }
 
 abstract class DartCompletionContributorTest extends AbstractContextTest {
+  static const String _UNCHECKED = '__UNCHECKED__';
   Index index;
   SearchEngineImpl searchEngine;
   String testFile = '/completionTest.dart';
@@ -113,7 +119,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       String elemFile,
       int elemOffset,
       String paramName,
-      String paramType}) {
+      String paramType,
+      String defaultArgListString: _UNCHECKED,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -149,6 +157,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     }
     if (paramType != null) {
       expect(cs.parameterType, paramType);
+    }
+    if (defaultArgListString != _UNCHECKED) {
+      expect(cs.defaultArgumentListString, defaultArgListString);
+    }
+    if (defaultArgumentListTextRanges != null) {
+      expect(cs.defaultArgumentListTextRanges, defaultArgumentListTextRanges);
     }
     return cs;
   }
@@ -196,9 +210,15 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestConstructor(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
-      int elemOffset}) {
+      int elemOffset,
+      String defaultArgListString: _UNCHECKED,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
-        relevance: relevance, importUri: importUri, elemOffset: elemOffset);
+        relevance: relevance,
+        importUri: importUri,
+        elemOffset: elemOffset,
+        defaultArgListString: defaultArgListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
@@ -254,12 +274,16 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri}) {
+      String importUri,
+      String defaultArgListString: _UNCHECKED,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        defaultArgListString: defaultArgListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     if (returnType != null) {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
@@ -346,12 +370,16 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false}) {
+      bool isDeprecated: false,
+      String defaultArgListString: _UNCHECKED,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        defaultArgListString: defaultArgListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
@@ -455,7 +483,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         Duration.ZERO, () => computeLibrariesContaining(times - 1));
   }
 
-  Future computeSuggestions([int times = 200]) async {
+  Future computeSuggestions({int times = 200, IdeOptions options}) async {
     AnalysisResult analysisResult = null;
     if (enableNewAnalysisDriver) {
       analysisResult = await driver.getResult(testFile);
@@ -465,12 +493,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     }
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,
-        enableNewAnalysisDriver ? null: context,
+        enableNewAnalysisDriver ? null : context,
         provider,
         searchEngine,
         testSource,
         completionOffset,
-        new CompletionPerformance());
+        new CompletionPerformance(),
+        options);
 
     // Build the request
     Completer<DartCompletionRequest> requestCompleter =
@@ -499,6 +528,34 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // or the max analysis cycles ([times]) has been reached
     suggestions = await performAnalysis(times, suggestionCompleter);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
+  }
+
+  /**
+   * Configures the [SourceFactory] to have the `flutter` package in
+   * `/packages/flutter/lib` folder.
+   */
+  void configureFlutterPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('$flutterPkgLibPath/$path', code);
+    });
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'flutter': [myPkgFolder]
+    });
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      context.sourceFactory = sourceFactory;
+    }
+    // force 'flutter' resolution
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:flutter/$path';")
+            .join('\n'));
   }
 
   DartCompletionContributor createContributor();
@@ -547,7 +604,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future/*<E>*/ performAnalysis/*<E>*/(int times, Completer/*<E>*/ completer) async {
+  Future/*<E>*/ performAnalysis/*<E>*/(
+      int times, Completer/*<E>*/ completer) async {
     if (completer.isCompleted) {
       return completer.future;
     }
@@ -579,7 +637,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     index = createMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
+    searchEngine =
+        new SearchEngineImpl(index, (_) => new AstProviderForContext(context));
     contributor = createContributor();
   }
 }

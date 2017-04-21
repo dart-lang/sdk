@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
 
 #include "vm/proccpuinfo.h"
 
@@ -153,4 +153,4 @@ bool ProcCpuInfo::HasField(const char* field) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)

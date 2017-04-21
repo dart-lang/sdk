@@ -14,7 +14,7 @@ import 'dart:mirrors';
 abstract class C {
   int _a;
 // This is a syntax error on purpose.
-  C([this._a: 0]); /// 01: compile-time error
+  C([this._a: 0]); //# 01: compile-time error
 }
 
 final int staticField = () {

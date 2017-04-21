@@ -45,8 +45,7 @@ class JSNumber extends Interceptor implements num {
   bool get isNaN => JS('bool', r'isNaN(#)', this);
 
   bool get isInfinite {
-    return JS('bool', r'# == (1/0)', this)
-        || JS('bool', r'# == (-1/0)', this);
+    return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
   }
 
   bool get isFinite => JS('bool', r'isFinite(#)', this);
@@ -70,7 +69,7 @@ class JSNumber extends Interceptor implements num {
       return JS('int', '# | 0', this);
     }
     if (JS('bool', r'isFinite(#)', this)) {
-      return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
+      return JS('int', r'# + 0', truncateToDouble()); // Converts -0.0 to +0.0.
     }
     // [this] is either NaN, Infinity or -Infinity.
     throw new UnsupportedError(JS("String", '"" + # + ".toInt()"', this));
@@ -81,7 +80,7 @@ class JSNumber extends Interceptor implements num {
   int ceil() {
     if (this >= 0) {
       if (this <= _MAX_INT32) {
-        int truncated = JS('int', '# | 0', this);  // converts -0.0 to 0.
+        int truncated = JS('int', '# | 0', this); // converts -0.0 to 0.
         return this == truncated ? truncated : truncated + 1;
       }
     } else {
@@ -194,8 +193,7 @@ class JSNumber extends Interceptor implements num {
     if (precision < 1 || precision > 21) {
       throw new RangeError.range(precision, 1, 21, "precision");
     }
-    String result = JS('String', r'#.toPrecision(#)',
-                       this, precision);
+    String result = JS('String', r'#.toPrecision(#)', this, precision);
     if (this == 0 && isNegative) return "-$result";
     return result;
   }
@@ -217,8 +215,7 @@ class JSNumber extends Interceptor implements num {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
     var match = JS('List|Null',
-                   r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)',
-                   result);
+        r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.
       throw new UnsupportedError("Unexpected toString result: $result");
@@ -246,30 +243,30 @@ class JSNumber extends Interceptor implements num {
   num operator -() => JS('num', r'-#', this);
 
   num operator +(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# + #', this, other);
   }
 
   num operator -(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# - #', this, other);
   }
 
   num operator /(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# / #', this, other);
   }
 
   num operator *(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# * #', this, other);
   }
 
   num operator %(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
-    if (result == 0) return 0;  // Make sure we don't return -0.0.
+    if (result == 0) return 0; // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
       return result - JS('num', '#', other);
@@ -281,7 +278,7 @@ class JSNumber extends Interceptor implements num {
   bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
 
   int operator ~/(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     if (false) _tdivFast(other); // Ensure resolution.
     if (_isInt32(this)) {
       if (other >= 1 || other < -1) {
@@ -326,7 +323,7 @@ class JSNumber extends Interceptor implements num {
   // the grain at which we do the type checks.
 
   num operator <<(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
@@ -341,7 +338,7 @@ class JSNumber extends Interceptor implements num {
 
   num operator >>(num other) {
     if (false) _shrReceiverPositive(other);
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrOtherPositive(other);
   }
@@ -374,37 +371,37 @@ class JSNumber extends Interceptor implements num {
   }
 
   num operator &(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# & #) >>> 0', this, other);
   }
 
   num operator |(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# | #) >>> 0', this, other);
   }
 
   num operator ^(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# < #', this, other);
   }
 
   bool operator >(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# > #', this, other);
   }
 
   bool operator <=(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# <= #', this, other);
   }
 
   bool operator >=(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# >= #', this, other);
   }
 
@@ -489,10 +486,7 @@ class JSInt extends JSNumber implements int, double {
     final bool ac = x.isEven;
     int u = x;
     int v = y;
-    int a = 1,
-        b = 0,
-        c = 0,
-        d = 1;
+    int a = 1, b = 0, c = 0, d = 1;
     do {
       while (u.isEven) {
         u ~/= 2;
@@ -530,7 +524,7 @@ class JSInt extends JSNumber implements int, double {
         d -= b;
       }
     } while (u != 0);
-    if (!inv) return s*v;
+    if (!inv) return s * v;
     if (v != 1) throw new Exception("Not coprime");
     if (d < 0) {
       d += x;
@@ -623,5 +617,7 @@ class JSDouble extends JSNumber implements double {
 }
 
 class JSPositiveInt extends JSInt {}
+
 class JSUInt32 extends JSPositiveInt {}
+
 class JSUInt31 extends JSUInt32 {}

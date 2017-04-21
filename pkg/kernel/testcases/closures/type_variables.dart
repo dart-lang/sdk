@@ -4,11 +4,11 @@
 
 class C<T, S> {
   foo(S s) => (T x) {
-    T y = x;
-    Object z = y;
-    C<T, S> self = this;
-    return z as T;
-  };
+        T y = x;
+        Object z = y;
+        C<T, S> self = this;
+        return z as T;
+      };
 
   bar() {
     C<T, S> self = this;
@@ -23,6 +23,7 @@ class C<T, S> {
       C<T, S> self = new C<T, S>.internal();
       return self;
     }
+
     return local();
   }
   C.internal();

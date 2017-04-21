@@ -8,8 +8,8 @@ import 'package:microlytics/microlytics.dart';
 
 void main(List<String> arguments) {
   // Create the channel that will be used to communicate to analytics.
-  var channel = new RateLimitingBufferedChannel(
-      new HttpClientChannel(), packetsPerSecond: 1.0);
+  var channel = new RateLimitingBufferedChannel(new HttpClientChannel(),
+      packetsPerSecond: 1.0);
 
   if (arguments.length != 1) {
     print("usage: dart simple.dart GA-Client-ID");

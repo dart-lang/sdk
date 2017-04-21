@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:args/args.dart';
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:package_config/discovery.dart';
 
@@ -48,7 +48,7 @@ main(List<String> args) {
   var uri = new Uri(scheme: 'file', path: new File(path).absolute.path);
   var packages =
       getPackagesDirectory(new Uri(scheme: 'file', path: packagePath));
-  Repository repository = new Repository();
+  Program repository = new Program();
 
   new DartLoader(
           repository,

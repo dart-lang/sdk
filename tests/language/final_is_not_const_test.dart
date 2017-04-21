@@ -5,9 +5,9 @@
 import "package:expect/expect.dart";
 
 final F0 = 42;
-const C0 = F0;  /// 01: compile-time error
+const C0 = F0; // //# 01: compile-time error
 
 main() {
   Expect.equals(42, F0);
-  Expect.equals(42, C0);  /// 01: continued
+  Expect.equals(42, C0); // //# 01: continued
 }

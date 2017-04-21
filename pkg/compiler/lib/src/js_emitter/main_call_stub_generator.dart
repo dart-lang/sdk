@@ -17,10 +17,8 @@ import 'code_emitter_task.dart' show CodeEmitterTask;
 class MainCallStubGenerator {
   final JavaScriptBackend backend;
   final CodeEmitterTask emitterTask;
-  final bool hasIncrementalSupport;
 
-  MainCallStubGenerator(this.backend, this.emitterTask,
-      {this.hasIncrementalSupport: false});
+  MainCallStubGenerator(this.backend, this.emitterTask);
 
   BackendHelpers get helpers => backend.helpers;
 
@@ -38,12 +36,9 @@ class MainCallStubGenerator {
 
   jsAst.Statement generateInvokeMain(FunctionEntity main) {
     jsAst.Expression mainCallClosure = null;
-    if (backend.hasIsolateSupport) {
+    if (backend.backendUsage.isIsolateInUse) {
       FunctionEntity isolateMain = helpers.startRootIsolate;
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
-    } else if (hasIncrementalSupport) {
-      mainCallClosure = js(
-          'function() { return #(); }', emitterTask.staticFunctionAccess(main));
     } else {
       mainCallClosure = emitterTask.staticFunctionAccess(main);
     }

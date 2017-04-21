@@ -14,6 +14,7 @@ import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/library_loader.dart';
@@ -205,8 +206,9 @@ class ConstantConstructorEquivalence
   @override
   visitGenerative(GenerativeConstantConstructor constructor1,
       GenerativeConstantConstructor constructor2) {
-    checkTypes(constructor1, constructor2, 'type', constructor1.type,
-        constructor2.type);
+    ResolutionInterfaceType type1 = constructor1.type;
+    ResolutionInterfaceType type2 = constructor2.type;
+    checkTypes(constructor1, constructor2, 'type', type1, type2);
     check(constructor1, constructor2, 'defaultValues.length',
         constructor1.defaultValues.length, constructor2.defaultValues.length);
     constructor1.defaultValues.forEach((k, v) {

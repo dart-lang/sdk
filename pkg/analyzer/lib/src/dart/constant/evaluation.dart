@@ -305,12 +305,14 @@ class ConstantEvaluationEngine {
         bool defaultSuperInvocationNeeded = true;
         List<ConstructorInitializer> initializers =
             constant.constantInitializers;
-        for (ConstructorInitializer initializer in initializers) {
-          if (initializer is SuperConstructorInvocation ||
-              initializer is RedirectingConstructorInvocation) {
-            defaultSuperInvocationNeeded = false;
+        if (initializers != null) {
+          for (ConstructorInitializer initializer in initializers) {
+            if (initializer is SuperConstructorInvocation ||
+                initializer is RedirectingConstructorInvocation) {
+              defaultSuperInvocationNeeded = false;
+            }
+            initializer.accept(referenceFinder);
           }
-          initializer.accept(referenceFinder);
         }
         if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to
@@ -420,7 +422,8 @@ class ConstantEvaluationEngine {
       List<Expression> arguments,
       ConstructorElement constructor,
       ConstantVisitor constantVisitor,
-      ErrorReporter errorReporter) {
+      ErrorReporter errorReporter,
+      {ConstructorInvocation invocation}) {
     if (!getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
@@ -432,6 +435,7 @@ class ConstantEvaluationEngine {
     int argumentCount = arguments.length;
     List<DartObjectImpl> argumentValues =
         new List<DartObjectImpl>(argumentCount);
+    List<DartObjectImpl> positionalArguments = <DartObjectImpl>[];
     List<Expression> argumentNodes = new List<Expression>(argumentCount);
     HashMap<String, DartObjectImpl> namedArgumentValues =
         new HashMap<String, DartObjectImpl>();
@@ -446,9 +450,15 @@ class ConstantEvaluationEngine {
         namedArgumentNodes[name] = argument;
         argumentValues[i] = typeProvider.nullObject;
       } else {
-        argumentValues[i] = constantVisitor._valueOf(argument);
+        var argumentValue = constantVisitor._valueOf(argument);
+        argumentValues[i] = argumentValue;
+        positionalArguments.add(argumentValue);
         argumentNodes[i] = argument;
       }
+    }
+    if (invocation == null) {
+      invocation = new ConstructorInvocation(
+          constructor, positionalArguments, namedArgumentValues);
     }
     constructor = followConstantRedirectionChain(constructor);
     InterfaceType definingClass = constructor.returnType as InterfaceType;
@@ -707,7 +717,8 @@ class ConstantEvaluationEngine {
               initializer.argumentList.arguments,
               constructor,
               initializerVisitor,
-              errorReporter);
+              errorReporter,
+              invocation: invocation);
         }
       }
     }
@@ -725,7 +736,8 @@ class ConstantEvaluationEngine {
             superArguments, initializerVisitor, errorReporter);
       }
     }
-    return new DartObjectImpl(definingClass, new GenericState(fieldMap));
+    return new DartObjectImpl(
+        definingClass, new GenericState(fieldMap, invocation: invocation));
   }
 
   void evaluateSuperConstructorCall(

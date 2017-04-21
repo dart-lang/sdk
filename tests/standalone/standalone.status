@@ -9,7 +9,6 @@
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
-
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
@@ -22,14 +21,19 @@ package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTim
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
+
 [ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 package/package_isolate_test: Fail # Issue 12474
-io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
+# This test checks that the test runner correctly detects and reports non-utf8
+# output from a test.
+io/non_utf8_output_test: NonUtf8Output, OK
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
@@ -73,6 +77,9 @@ io/http_launch_test: Pass, Slow, Timeout  # Issue 28046
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_array_int64_uint64_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_data_isolate_test: SkipByDesign # This test uses dart:io
+dwarf_stack_trace_test: SkipByDesign # This test uses dart:io
+regress_28854_1_test: SkipByDesign # Uses Isolate.spawn
+regress_28854_2_test: SkipByDesign # Uses Isolate.spawn
 io/*: SkipByDesign # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 http_launch_test: Skip
@@ -84,6 +91,7 @@ map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 regress_26031_test: SkipByDesign # Standalone only test
 env_test: Skip # This is testing a vm command line parsing scenario.
+dart_developer_disabled_env_test: SkipByDesign # Dartium does not respect VMOptions
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -93,6 +101,14 @@ io/file_constructor_test: fail
 
 # This is runtime test.
 io/process_exit_negative_test: Skip
+
+io/http_parser_test: Pass, CompileTimeError # Issue 28843
+io/http_headers_test: Pass, CompileTimeError # Issue 28843
+io/http_cookie_date_test: Pass, CompileTimeError # Issue 28843
+io/web_socket_protocol_processor_test: Pass, CompileTimeError # Issue 28843
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
@@ -122,9 +138,8 @@ unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
-
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented
+dart_developer_env_test: SkipByDesign # Unsupported by dart2js
+dart_developer_disabled_env_test: SkipByDesign # Unsupported by dart2js
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
@@ -143,7 +158,6 @@ medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
 [ $compiler == dart2js && $fast_startup ]
-io/observatory_test: Fail # mirrors not supported.
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
 io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
 io/test_runner_test: CompileTimeError # Imports dart:mirrors
@@ -157,6 +171,7 @@ oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == simmips ]
 io/socket_bind_test: Pass, Fail # Issue 28315
+io/http_server_response_test: Pass, Crash # Issue 29012
 
 [ ($arch == simarm || $arch == simdbc || $arch == simdbc64) && $mode == debug && $checked ]
 io/web_socket_test: Pass, Fail # Issue 26814
@@ -205,13 +220,26 @@ package/scenarios/invalid/invalid_package_name_test: Crash, OK # Analyzer exits 
 package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on invalid package config
 
 [ $system == windows ]
-io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
-io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
-io/socket_info_ipv6_test: RuntimeError # Issue 27876
 io/http_server_early_client_close2_test: Pass, Crash  # Issue 28197
+io/process_stdin_transform_unsubscribe_test: Pass, Timeout # Issue #28558
+
+[ $system == windows && $compiler != dart2analyzer ]
+io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
+io/skipping_dart2js_compilations_test: Fail # Issue 19551.
+io/socket_info_ipv6_test: RuntimeError # Issue 27876
+
+[ $system == windows && $compiler == dart2analyzer ]
+package/package_isolate_test: Crash # Issue 28645
+package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Crash # Issue 28645
+package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
+package/scenarios/packages_file_strange_formatting/empty_lines_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_noimports_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_test: Crash, CompileTimeError # Issue 28645
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
@@ -229,8 +257,6 @@ no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
 [ $compiler == precompiler ]
-# Stacktraces in precompilation omit inlined frames.
-assert_test: Pass, RuntimeError
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 
@@ -278,8 +304,9 @@ io/signals_test: Skip
 io/stdin_sync_test: Skip
 io/stdio_implicit_close_test: Skip
 io/stdio_nonblocking_test: Skip
-io/test_extension_test: Skip
 io/test_extension_fail_test: Skip
+io/test_extension_test: Skip
+io/windows_environment_test: Skip
 verbose_gc_to_bmu_test: Skip
 
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
@@ -288,6 +315,9 @@ io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory 
 [ $runtime == vm && $system == windows && $mode == release ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
+
+[ $runtime == vm && $system == macos && $mode == release ]
+io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
 io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
@@ -315,6 +345,7 @@ no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
 io/stdio_implicit_close_test: Skip # SkipByDesign
+dart_developer_env_test: SkipByDesign
 
 # Following tests are skipped on dart_app as package mapping is not supported.
 [ $runtime == dart_precompiled || $compiler == app_jit ]
@@ -333,6 +364,8 @@ link_natives_lazily_test: SkipByDesign
 
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
+
+io/secure_unauthorized_test: Pass, RuntimeError # Issue 28719
 
 [ $system == android ]
 # Issue 26376
@@ -365,6 +398,9 @@ io/secure_socket_test: RuntimeError
 io/raw_secure_socket_test: RuntimeError
 io/https_bad_certificate_test: RuntimeError
 io/secure_server_closing_test: RuntimeError
+# The Android command runner doesn't correctly handle non-UTF8 formatted output.
+# https://github.com/dart-lang/sdk/issues/28872
+io/non_utf8_output_test: Skip
 
 [ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
@@ -380,7 +416,6 @@ io/test_runner_test: Pass, Slow # Slow.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 
 [ $builder_tag == no_ipv6 ]
-io/http_bind_test: SkipByDesign
 io/raw_datagram_socket_test: SkipByDesign
 io/socket_source_address_test: SkipByDesign
 io/socket_bind_test: SkipByDesign
@@ -392,3 +427,33 @@ io/socket_info_ipv6_test: SkipByDesign
 [ $builder_tag == asan && $arch == x64 ]
 io/process_detached_test: Pass, Slow
 io/named_pipe_script_test: RuntimeError
+
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+assert_test: RuntimeError
+io/compile_all_test: Crash
+io/directory_chdir_test: DartkCrash
+io/directory_test: DartkCrash
+io/directory_uri_test: DartkCrash
+io/file_absolute_path_test: DartkCrash
+io/file_uri_test: DartkCrash
+io/http_cookie_test: RuntimeError
+io/http_proxy_advanced_test: RuntimeError
+io/link_async_test: DartkCrash
+io/link_test: DartkCrash
+io/link_uri_test: DartkCrash
+io/platform_test: DartkCrash
+io/resolve_symbolic_links_test: DartkCrash
+io/skipping_dart2js_compilations_test: DartkCrash
+io/socket_many_connections_test: RuntimeError
+io/test_harness_analyzer_test: DartkCrash
+io/test_runner_test: DartkCrash
+io/uri_platform_test: DartkCrash
+map_insert_remove_oom_test: Crash
+package/package1_test: CompileTimeError
+package/package_test: CompileTimeError
+package/scenarios/invalid/invalid_package_name_test: DartkCrash
+package/scenarios/invalid/invalid_utf8_test: DartkCrash
+package/scenarios/invalid/non_existent_packages_file_test: DartkCrash
+package/scenarios/invalid/same_package_twice_test: DartkCrash
+package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
+verbose_gc_to_bmu_test: RuntimeError

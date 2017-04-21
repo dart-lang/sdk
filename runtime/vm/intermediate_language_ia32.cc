@@ -2009,8 +2009,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == EAX);  // Value.
   ASSERT(locs()->in(1).reg() == EDX);  // Instantiator type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), negate_result(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
@@ -2117,8 +2116,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(compiler->zone(),
                                       StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
-  compiler->GenerateCall(token_pos(), *StubCode::AllocateArray_entry(),
-                         RawPcDescriptors::kOther, locs());
+  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                  *StubCode::AllocateArray_entry(),
+                                  RawPcDescriptors::kOther, locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -2515,6 +2515,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(), try_index(),
                                 compiler->assembler()->CodeSize(),
+                                handler_token_pos(), is_generated(),
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
@@ -2564,7 +2565,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
+    if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
       __ movl(Address(THR, Thread::stack_overflow_flags_offset()),
@@ -2582,7 +2583,8 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
         instruction_->token_pos(), instruction_->deopt_id(),
         kStackOverflowRuntimeEntry, 0, instruction_->locs());
 
-    if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
+    if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
+        instruction_->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
@@ -2594,7 +2596,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   }
 
   Label* osr_entry_label() {
-    ASSERT(FLAG_use_osr);
+    ASSERT(Isolate::Current()->use_osr());
     return &osr_entry_label_;
   }
 
@@ -5314,7 +5316,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(value_obj);
   ASSERT(instance_call()->HasICData());
   const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT((ic_data.NumberOfChecks() == 1));
+  ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
 
   const intptr_t kNumberOfArguments = 1;
@@ -5798,12 +5800,17 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
   }
-  __ LoadClassId(temp, value);
+  Register biased_cid = temp;
+  __ LoadClassId(biased_cid, value);
+
+  GrowableArray<CidRangeTarget> sorted_ic_data;
+  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
+                                       /* drop_smi = */ true);
 
   if (IsDenseSwitch()) {
     ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ subl(temp, Immediate(cids_[0]));
-    __ cmpl(temp, Immediate(cids_[cids_.length() - 1] - cids_[0]));
+    __ subl(biased_cid, Immediate(cids_[0]));
+    __ cmpl(biased_cid, Immediate(cids_[cids_.length() - 1] - cids_[0]));
     __ j(ABOVE, deopt);
 
     intptr_t mask = ComputeCidMask();
@@ -5812,26 +5819,39 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(cids_.length() > 2);
       Register mask_reg = locs()->temp(1).reg();
       __ movl(mask_reg, Immediate(mask));
-      __ bt(mask_reg, temp);
+      __ bt(mask_reg, biased_cid);
       __ j(NOT_CARRY, deopt);
     }
   } else {
-    GrowableArray<CidTarget> sorted_ic_data;
-    FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                         /* drop_smi = */ true);
     const intptr_t num_checks = sorted_ic_data.length();
     const bool use_near_jump = num_checks < 5;
+    int bias = 0;
     for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid = sorted_ic_data[i].cid;
-      ASSERT(cid != kSmiCid);
-      __ cmpl(temp, Immediate(cid));
-      if (i == (num_checks - 1)) {
-        __ j(NOT_EQUAL, deopt);
+      const intptr_t cid_start = sorted_ic_data[i].cid_start;
+      const intptr_t cid_end = sorted_ic_data[i].cid_end;
+      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
+      Condition no_match, match;
+      if (cid_start == cid_end) {
+        __ cmpl(biased_cid, Immediate(cid_start - bias));
+        no_match = NOT_EQUAL;
+        match = EQUAL;
+      } else {
+        // For class ID ranges use a subtract followed by an unsigned
+        // comparison to check both ends of the ranges with one comparison.
+        __ addl(biased_cid, Immediate(bias - cid_start));
+        bias = cid_start;
+        __ cmpl(biased_cid, Immediate(cid_end - cid_start));
+        no_match = ABOVE;
+        match = BELOW_EQUAL;
+      }
+
+      if (i == num_checks - 1) {
+        __ j(no_match, deopt);
       } else {
         if (use_near_jump) {
-          __ j(EQUAL, &is_ok, Assembler::kNearJump);
+          __ j(match, &is_ok, Assembler::kNearJump);
         } else {
-          __ j(EQUAL, &is_ok);
+          __ j(match, &is_ok);
         }
       }
     }

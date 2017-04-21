@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("runtime_args.gni")
+
 declare_args() {
   # Instead of using is_debug, we introduce a different flag for specifying a
   # Debug build of Dart so that clients can still use a Release build of Dart
@@ -106,23 +108,34 @@ config("dart_config") {
     dart_target_arch = "dbc"
   }
 
+  if (target_os == "android") {
+    defines += [ "TARGET_OS_ANDROID" ]
+  } else if (target_os == "fuchsia") {
+    defines += [ "TARGET_OS_FUCHSIA" ]
+  } else if (target_os == "ios") {
+    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "linux") {
+    defines += [ "TARGET_OS_LINUX" ]
+  } else if (target_os == "mac") {
+    defines += [ "TARGET_OS_MACOS" ]
+  } else if (target_os == "win") {
+    defines += [ "TARGET_OS_WINDOWS" ]
+  } else {
+    print("Unknown target_os: $target_os")
+    assert(false)
+  }
+
   if (dart_target_arch != "") {
     if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
       defines += [ "TARGET_ARCH_ARM" ]
-      if (target_os == "mac" || target_os == "ios") {
-        defines += [ "TARGET_ABI_IOS" ]
-      } else {
-        defines += [ "TARGET_ABI_EABI" ]
-      }
     } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
       defines += [ "TARGET_ARCH_ARM" ]
       defines += [ "TARGET_ARCH_ARM_6" ]
-      defines += [ "TARGET_ABI_EABI" ]
     } else if (dart_target_arch == "armv5te" ||
                dart_target_arch == "simarmv5te") {
       defines += [ "TARGET_ARCH_ARM" ]
       defines += [ "TARGET_ARCH_ARM_5TE" ]
-      defines += [ "TARGET_ABI_EABI" ]
     } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
       defines += [ "TARGET_ARCH_ARM64" ]
     } else if (dart_target_arch == "mips" || dart_target_arch == "simmips") {
@@ -138,7 +151,7 @@ config("dart_config") {
       defines += [ "TARGET_ARCH_DBC" ]
       defines += [ "USING_SIMULATOR" ]
     } else {
-      print("Invalid $dart_target_arch")
+      print("Invalid dart_target_arch: $dart_target_arch")
       assert(false)
     }
   }
@@ -147,6 +160,12 @@ config("dart_config") {
     defines += [ "DEBUG" ]
   } else {
     defines += [ "NDEBUG" ]
+  }
+
+  include_dirs = []
+  if (dart_use_tcmalloc) {
+    defines += [ "DART_USE_TCMALLOC" ]
+    include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
   if (!is_win) {
@@ -256,6 +275,14 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
   extra_deps = [
     "vm:libdart_lib_nosnapshot_with_precompiler",
     "vm:libdart_vm_nosnapshot_with_precompiler",
+  ]
+}
+
+libdart_library("libdart_with_precompiler") {
+  extra_configs = [ ":dart_precompiler_config" ]
+  extra_deps = [
+    "vm:libdart_lib_with_precompiler",
+    "vm:libdart_vm_with_precompiler",
   ]
 }
 

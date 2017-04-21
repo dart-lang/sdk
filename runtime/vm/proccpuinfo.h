@@ -6,7 +6,7 @@
 #define RUNTIME_VM_PROCCPUINFO_H_
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
 
 #include "vm/allocation.h"
 
@@ -29,6 +29,6 @@ class ProcCpuInfo : public AllStatic {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
 
 #endif  // RUNTIME_VM_PROCCPUINFO_H_

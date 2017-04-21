@@ -42,7 +42,7 @@ class Utf8Codec extends Encoding {
    * sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
    * they throw a [FormatException].
    */
-  const Utf8Codec({ bool allowMalformed: false })
+  const Utf8Codec({bool allowMalformed: false})
       : _allowMalformed = allowMalformed;
 
   String get name => "utf-8";
@@ -51,8 +51,8 @@ class Utf8Codec extends Encoding {
    * Decodes the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
    * corresponding string.
    *
-   * If the [codeUnits] start with a leading [UNICODE_BOM_CHARACTER_RUNE] this
-   * character is discarded.
+   * If the [codeUnits] start with the encoding of a
+   * [UNICODE_BOM_CHARACTER_RUNE], that character is discarded.
    *
    * If [allowMalformed] is `true` the decoder replaces invalid (or
    * unterminated) character sequences with the Unicode Replacement character
@@ -61,7 +61,7 @@ class Utf8Codec extends Encoding {
    * If [allowMalformed] is not given, it defaults to the `allowMalformed` that
    * was used to instantiate `this`.
    */
-  String decode(List<int> codeUnits, { bool allowMalformed }) {
+  String decode(List<int> codeUnits, {bool allowMalformed}) {
     if (allowMalformed == null) allowMalformed = _allowMalformed;
     return new Utf8Decoder(allowMalformed: allowMalformed).convert(codeUnits);
   }
@@ -78,7 +78,6 @@ class Utf8Codec extends Encoding {
  */
 class Utf8Encoder extends Converter<String, List<int>>
     implements ChunkedConverter<String, List<int>, String, List<int>> {
-
   const Utf8Encoder();
 
   /**
@@ -240,7 +239,6 @@ class _Utf8Encoder {
  * integers).
  */
 class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
-
   final ByteConversionSink _sink;
 
   _Utf8EncoderSink(this._sink);
@@ -270,7 +268,7 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
       }
       bool wasCombined = _writeSurrogate(_carry, nextCodeUnit);
       // Either we got a non-empty string, or we must not have been combined.
-      assert(!wasCombined || start != end );
+      assert(!wasCombined || start != end);
       if (wasCombined) start++;
       _carry = 0;
     }
@@ -307,7 +305,6 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
  */
 class Utf8Decoder extends Converter<List<int>, String>
     implements ChunkedConverter<List<int>, String, List<int>, String> {
-
   final bool _allowMalformed;
 
   /**
@@ -320,7 +317,7 @@ class Utf8Decoder extends Converter<List<int>, String>
    * sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
    * it throws a [FormatException].
    */
-  const Utf8Decoder({ bool allowMalformed: false })
+  const Utf8Decoder({bool allowMalformed: false})
       : this._allowMalformed = allowMalformed;
 
   /**
@@ -330,8 +327,8 @@ class Utf8Decoder extends Converter<List<int>, String>
    * Uses the code units from [start] to, but no including, [end].
    * If [end] is omitted, it defaults to `codeUnits.length`.
    *
-   * If the [codeUnits] start with a leading [UNICODE_BOM_CHARACTER_RUNE] this
-   * character is discarded.
+   * If the [codeUnits] start with the encoding of a
+   * [UNICODE_BOM_CHARACTER_RUNE], that character is discarded.
    */
   String convert(List<int> codeUnits, [int start = 0, int end]) {
     // Allow the implementation to intercept and specialize based on the type
@@ -377,10 +374,10 @@ class Utf8Decoder extends Converter<List<int>, String>
 }
 
 // UTF-8 constants.
-const int _ONE_BYTE_LIMIT = 0x7f;   // 7 bits
-const int _TWO_BYTE_LIMIT = 0x7ff;  // 11 bits
-const int _THREE_BYTE_LIMIT = 0xffff;  // 16 bits
-const int _FOUR_BYTE_LIMIT = 0x10ffff;  // 21 bits, truncated to Unicode max.
+const int _ONE_BYTE_LIMIT = 0x7f; // 7 bits
+const int _TWO_BYTE_LIMIT = 0x7ff; // 11 bits
+const int _THREE_BYTE_LIMIT = 0xffff; // 16 bits
+const int _FOUR_BYTE_LIMIT = 0x10ffff; // 21 bits, truncated to Unicode max.
 
 // UTF-16 constants.
 const int _SURROGATE_MASK = 0xF800;
@@ -394,8 +391,8 @@ bool _isLeadSurrogate(int codeUnit) =>
 bool _isTailSurrogate(int codeUnit) =>
     (codeUnit & _SURROGATE_TAG_MASK) == _TAIL_SURROGATE_MIN;
 int _combineSurrogatePair(int lead, int tail) =>
-    0x10000 + ((lead & _SURROGATE_VALUE_MASK) << 10)
-            | (tail & _SURROGATE_VALUE_MASK);
+    0x10000 + ((lead & _SURROGATE_VALUE_MASK) << 10) |
+    (tail & _SURROGATE_VALUE_MASK);
 
 /**
  * Decodes UTF-8.
@@ -417,10 +414,11 @@ class _Utf8Decoder {
 
   // Limits of one through four byte encodings.
   static const List<int> _LIMITS = const <int>[
-      _ONE_BYTE_LIMIT,
-      _TWO_BYTE_LIMIT,
-      _THREE_BYTE_LIMIT,
-      _FOUR_BYTE_LIMIT ];
+    _ONE_BYTE_LIMIT,
+    _TWO_BYTE_LIMIT,
+    _THREE_BYTE_LIMIT,
+    _FOUR_BYTE_LIMIT
+  ];
 
   void close() {
     flush();
@@ -438,8 +436,8 @@ class _Utf8Decoder {
   void flush([List<int> source, int offset]) {
     if (hasPartialInput) {
       if (!_allowMalformed) {
-        throw new FormatException("Unfinished UTF-8 octet sequence",
-                                  source, offset);
+        throw new FormatException(
+            "Unfinished UTF-8 octet sequence", source, offset);
       }
       _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
       _value = 0;
@@ -473,8 +471,10 @@ class _Utf8Decoder {
     }
 
     int i = startIndex;
-    loop: while (true) {
-      multibyte: if (expectedUnits > 0) {
+    loop:
+    while (true) {
+      multibyte:
+      if (expectedUnits > 0) {
         do {
           if (i == endIndex) {
             break loop;
@@ -485,7 +485,8 @@ class _Utf8Decoder {
             if (!_allowMalformed) {
               throw new FormatException(
                   "Bad UTF-8 encoding 0x${unit.toRadixString(16)}",
-                  codeUnits, i);
+                  codeUnits,
+                  i);
             }
             _isFirstCharacter = false;
             _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -502,16 +503,19 @@ class _Utf8Decoder {
           if (!_allowMalformed) {
             throw new FormatException(
                 "Overlong encoding of 0x${value.toRadixString(16)}",
-                codeUnits, i - extraUnits - 1);
+                codeUnits,
+                i - extraUnits - 1);
           }
           expectedUnits = extraUnits = 0;
           value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
         }
         if (value > _FOUR_BYTE_LIMIT) {
           if (!_allowMalformed) {
-            throw new FormatException("Character outside valid Unicode range: "
-                                      "0x${value.toRadixString(16)}",
-                                      codeUnits, i - extraUnits - 1);
+            throw new FormatException(
+                "Character outside valid Unicode range: "
+                "0x${value.toRadixString(16)}",
+                codeUnits,
+                i - extraUnits - 1);
           }
           value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
         }
@@ -540,7 +544,8 @@ class _Utf8Decoder {
           if (!_allowMalformed) {
             throw new FormatException(
                 "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}",
-                codeUnits, i - 1);
+                codeUnits,
+                i - 1);
           }
           _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
         } else {
@@ -564,7 +569,8 @@ class _Utf8Decoder {
           if (!_allowMalformed) {
             throw new FormatException(
                 "Bad UTF-8 encoding 0x${unit.toRadixString(16)}",
-                codeUnits, i - 1);
+                codeUnits,
+                i - 1);
           }
           value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           expectedUnits = extraUnits = 0;

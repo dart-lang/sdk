@@ -34,16 +34,6 @@ DEFINE_FLAG(bool,
             enable_simd_inline,
             true,
             "Enable inlining of SIMD related method calls.");
-DEFINE_FLAG(
-    bool,
-    inline_smi_string_hashcode,
-    true,
-    "Inline hashcode for Smi and one-byte strings in case of megamorphic call");
-DEFINE_FLAG(
-    int,
-    inline_smi_string_hashcode_ratio,
-    50,
-    "Minimal hotness (0..100) of one-byte-string before inlining its hashcode");
 DEFINE_FLAG(int,
             min_optimization_counter_threshold,
             5000,
@@ -152,31 +142,6 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 }
 
 
-// Returns true if OnebyteString is a frequent receiver class. We inline
-// Smi check as well, since a Smi check must be done anyway.
-// TODO(srdjan): Add check and code if Smi class is hot.
-bool FlowGraphCompiler::ShouldInlineSmiStringHashCode(const ICData& ic_data) {
-  if (!FLAG_inline_smi_string_hashcode ||
-      (ic_data.target_name() != Symbols::hashCode().raw())) {
-    return false;
-  }
-  // Precompiled code has no ICData, optimistically inline it.
-  if (ic_data.IsNull() || (ic_data.NumberOfChecks() == 0)) {
-    return true;
-  }
-  // Check if OneByteString is hot enough.
-  const ICData& ic_data_sorted =
-      ICData::Handle(ic_data.AsUnaryClassChecksSortedByCount());
-  ASSERT(ic_data_sorted.NumberOfChecks() > 0);
-  if (ic_data_sorted.GetReceiverClassIdAt(0) == kOneByteStringCid) {
-    const intptr_t total_count = ic_data_sorted.AggregateCount();
-    const intptr_t ratio = (ic_data_sorted.GetCountAt(0) * 100) / total_count;
-    return ratio > FLAG_inline_smi_string_hashcode_ratio;
-  }
-  return false;
-}
-
-
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     FlowGraph* flow_graph,
@@ -196,7 +161,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       pc_descriptors_list_(NULL),
       stackmap_table_builder_(NULL),
       code_source_map_builder_(NULL),
-      saved_code_size_(0),
+      catch_entry_state_maps_builder_(NULL),
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
@@ -217,11 +182,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL),
       deopt_id_to_ic_data_(NULL),
-      edge_counters_array_(Array::ZoneHandle()),
-      inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
-      inline_id_to_function_(inline_id_to_function),
-      inline_id_to_token_pos_(inline_id_to_token_pos),
-      caller_inline_id_(caller_inline_id) {
+      edge_counters_array_(Array::ZoneHandle()) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
   if (!is_optimizing) {
@@ -244,6 +205,11 @@ FlowGraphCompiler::FlowGraphCompiler(
   }
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
+
+  bool stack_traces_only = !FLAG_profiler;
+  code_source_map_builder_ = new (zone_)
+      CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
+                           inline_id_to_token_pos, inline_id_to_function);
 }
 
 
@@ -267,6 +233,7 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new (zone()) DescriptorList(64);
   exception_handlers_list_ = new (zone()) ExceptionHandlerList();
+  catch_entry_state_maps_builder_ = new (zone()) CatchEntryStateMapBuilder();
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
@@ -333,7 +300,7 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 
 
 bool FlowGraphCompiler::CanOSRFunction() const {
-  return FLAG_use_osr & CanOptimizeFunction() && !is_optimizing();
+  return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
 }
 
 
@@ -412,6 +379,91 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 
+void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
+                                            intptr_t try_index) {
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+  env = env ? env : pending_deoptimization_env_;
+  try_index = try_index != CatchClauseNode::kInvalidTryIndex
+                  ? try_index
+                  : CurrentTryIndex();
+  if (is_optimizing() && env != NULL &&
+      (try_index != CatchClauseNode::kInvalidTryIndex)) {
+    env = env->Outermost();
+    CatchBlockEntryInstr* catch_block =
+        flow_graph().graph_entry()->GetCatchEntry(try_index);
+    const GrowableArray<Definition*>* idefs =
+        catch_block->initial_definitions();
+    catch_entry_state_maps_builder_->NewMapping(assembler()->CodeSize());
+    // Parameters first.
+    intptr_t i = 0;
+    const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
+    for (; i < num_non_copied_params; ++i) {
+      // Don't sync captured parameters. They are not in the environment.
+      if (flow_graph().captured_parameters()->Contains(i)) continue;
+      if ((*idefs)[i]->IsConstant()) continue;  // Common constants.
+      Location src = env->LocationAt(i);
+      intptr_t dest_index = i - num_non_copied_params;
+      if (!src.IsStackSlot()) {
+        ASSERT(src.IsConstant());
+        // Skip dead locations.
+        if (src.constant().raw() == Symbols::OptimizedOut().raw()) {
+          continue;
+        }
+        intptr_t id =
+            assembler()->object_pool_wrapper().FindObject(src.constant());
+        catch_entry_state_maps_builder_->AppendConstant(id, dest_index);
+        continue;
+      }
+      if (src.stack_index() != dest_index) {
+        catch_entry_state_maps_builder_->AppendMove(src.stack_index(),
+                                                    dest_index);
+      }
+    }
+
+    // Process locals. Skip exception_var and stacktrace_var.
+    intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+    intptr_t ex_idx = local_base - catch_block->exception_var().index();
+    intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
+    for (; i < flow_graph().variable_count(); ++i) {
+      // Don't sync captured parameters. They are not in the environment.
+      if (flow_graph().captured_parameters()->Contains(i)) continue;
+      if (i == ex_idx || i == st_idx) continue;
+      if ((*idefs)[i]->IsConstant()) continue;  // Common constants.
+      Location src = env->LocationAt(i);
+      if (src.IsInvalid()) continue;
+      intptr_t dest_index = i - num_non_copied_params;
+      if (!src.IsStackSlot()) {
+        ASSERT(src.IsConstant());
+        // Skip dead locations.
+        if (src.constant().raw() == Symbols::OptimizedOut().raw()) {
+          continue;
+        }
+        intptr_t id =
+            assembler()->object_pool_wrapper().FindObject(src.constant());
+        catch_entry_state_maps_builder_->AppendConstant(id, dest_index);
+        continue;
+      }
+      if (src.stack_index() != dest_index) {
+        catch_entry_state_maps_builder_->AppendMove(src.stack_index(),
+                                                    dest_index);
+      }
+    }
+    catch_entry_state_maps_builder_->EndMapping();
+  }
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+}
+
+
+void FlowGraphCompiler::EmitCallsiteMetaData(TokenPosition token_pos,
+                                             intptr_t deopt_id,
+                                             RawPcDescriptors::Kind kind,
+                                             LocationSummary* locs) {
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  EmitCatchEntryState();
+}
+
+
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
@@ -422,10 +474,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
                            instr->token_pos());
     }
     AllocateRegistersLocally(instr);
-  } else if (instr->MayThrow() &&
-             (CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
-    // Optimized try-block: Sync locals to fixed stack locations.
-    EmitTrySync(instr, CurrentTryIndex());
   }
 }
 
@@ -463,22 +511,6 @@ static void LoopInfoComment(
 }
 
 
-// We collect intervals while generating code.
-struct IntervalStruct {
-  // 'start' is the pc-offsets where the inlined code started.
-  // 'pos' is the token position where the inlined call occured.
-  intptr_t start;
-  TokenPosition pos;
-  intptr_t inlining_id;
-  IntervalStruct(intptr_t s, TokenPosition tp, intptr_t id)
-      : start(s), pos(tp), inlining_id(id) {}
-  void Dump() {
-    THR_Print("start: 0x%" Px " iid: %" Pd " pos: %s", start, inlining_id,
-              pos.ToCString());
-  }
-};
-
-
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
@@ -488,12 +520,6 @@ void FlowGraphCompiler::VisitBlocks() {
     ASSERT(loop_headers != NULL);
   }
 
-  // For collecting intervals of inlined code.
-  GrowableArray<IntervalStruct> intervals;
-  intptr_t prev_offset = 0;
-  intptr_t prev_inlining_id = 0;
-  TokenPosition prev_inlining_pos = parsed_function_.function().token_pos();
-  intptr_t max_inlining_id = 0;
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -523,24 +549,8 @@ void FlowGraphCompiler::VisitBlocks() {
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       // Compose intervals.
-      if (instr->has_inlining_id() && is_optimizing()) {
-        if (prev_inlining_id != instr->inlining_id()) {
-          intervals.Add(
-              IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
-          prev_offset = assembler()->CodeSize();
-          prev_inlining_id = instr->inlining_id();
-          if (prev_inlining_id < inline_id_to_token_pos_.length()) {
-            prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
-          } else {
-            // We will add this token position later when generating the
-            // profile.
-            prev_inlining_pos = TokenPosition::kNoSource;
-          }
-          if (prev_inlining_id > max_inlining_id) {
-            max_inlining_id = prev_inlining_id;
-          }
-        }
-      }
+      code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
+                                                      instr->inlining_id());
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {
         if (FLAG_source_lines) {
@@ -573,121 +583,12 @@ void FlowGraphCompiler::VisitBlocks() {
 #endif
   }
 
-  if (is_optimizing()) {
-    LogBlock lb;
-    intervals.Add(
-        IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
-    inlined_code_intervals_ =
-        Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
-    Smi& start_h = Smi::Handle();
-    Smi& caller_inline_id = Smi::Handle();
-    Smi& inline_id = Smi::Handle();
-    for (intptr_t i = 0; i < intervals.length(); i++) {
-      if (FLAG_trace_inlining_intervals && is_optimizing()) {
-        const Function& function =
-            *inline_id_to_function_.At(intervals[i].inlining_id);
-        intervals[i].Dump();
-        THR_Print(" parent iid %" Pd " %s\n",
-                  caller_inline_id_[intervals[i].inlining_id],
-                  function.ToQualifiedCString());
-      }
-
-      const intptr_t id = intervals[i].inlining_id;
-      start_h = Smi::New(intervals[i].start);
-      inline_id = Smi::New(id);
-      caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
-
-      const intptr_t p = i * Code::kInlIntNumEntries;
-      inlined_code_intervals_.SetAt(p + Code::kInlIntStart, start_h);
-      inlined_code_intervals_.SetAt(p + Code::kInlIntInliningId, inline_id);
-    }
-  }
   set_current_block(NULL);
-  if (FLAG_trace_inlining_intervals && is_optimizing()) {
-    LogBlock lb;
-    THR_Print("Intervals:\n");
-    for (intptr_t cc = 0; cc < caller_inline_id_.length(); cc++) {
-      THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", cc,
-                caller_inline_id_[cc]);
-    }
-    Smi& temp = Smi::Handle();
-    for (intptr_t i = 0; i < inlined_code_intervals_.Length();
-         i += Code::kInlIntNumEntries) {
-      temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
-      ASSERT(!temp.IsNull());
-      THR_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
-      temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
-      THR_Print("iid: %" Pd " ", temp.Value());
-    }
-  }
 }
 
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   parsed_function_.Bailout("FlowGraphCompiler", reason);
-}
-
-
-void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
-  ASSERT(is_optimizing());
-  Environment* env = instr->env()->Outermost();
-  CatchBlockEntryInstr* catch_block =
-      flow_graph().graph_entry()->GetCatchEntry(try_index);
-  const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();
-
-  // Construct a ParallelMove instruction for parameters and locals. Skip the
-  // special locals exception_var and stacktrace_var since they will be filled
-  // when an exception is thrown. Constant locations are known to be the same
-  // at all instructions that may throw, and do not need to be materialized.
-
-  // Parameters first.
-  intptr_t i = 0;
-  const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
-  ParallelMoveInstr* move_instr = new (zone()) ParallelMoveInstr();
-  for (; i < num_non_copied_params; ++i) {
-    // Don't sync captured parameters. They are not in the environment.
-    if (flow_graph().captured_parameters()->Contains(i)) continue;
-    if ((*idefs)[i]->IsConstant()) continue;  // Common constants
-    Location src = env->LocationAt(i);
-#if defined(TARGET_ARCH_DBC)
-    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
-    Location dest = Location::RegisterLocation(dest_index);
-    // Update safepoint bitmap to indicate that the target location
-    // now contains a pointer. With DBC parameters are copied into
-    // the locals area.
-    instr->locs()->SetStackBit(dest_index);
-#else
-    intptr_t dest_index = i - num_non_copied_params;
-    Location dest = Location::StackSlot(dest_index);
-#endif
-    move_instr->AddMove(dest, src);
-  }
-
-  // Process locals. Skip exception_var and stacktrace_var.
-  intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
-  intptr_t ex_idx = local_base - catch_block->exception_var().index();
-  intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
-  for (; i < flow_graph().variable_count(); ++i) {
-    // Don't sync captured parameters. They are not in the environment.
-    if (flow_graph().captured_parameters()->Contains(i)) continue;
-    if (i == ex_idx || i == st_idx) continue;
-    if ((*idefs)[i]->IsConstant()) continue;
-    Location src = env->LocationAt(i);
-    ASSERT(!src.IsFpuRegister());
-    ASSERT(!src.IsDoubleStackSlot());
-#if defined(TARGET_ARCH_DBC)
-    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
-    Location dest = Location::RegisterLocation(dest_index);
-#else
-    intptr_t dest_index = i - num_non_copied_params;
-    Location dest = Location::StackSlot(dest_index);
-#endif
-    move_instr->AddMove(dest, src);
-    // Update safepoint bitmap to indicate that the target location
-    // now contains a pointer.
-    instr->locs()->SetStackBit(dest_index);
-  }
-  parallel_move_resolver()->EmitNativeCode(move_instr);
 }
 
 
@@ -755,10 +656,13 @@ void FlowGraphCompiler::GenerateDeferredCode() {
 void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
                                             intptr_t outer_try_index,
                                             intptr_t pc_offset,
+                                            TokenPosition token_pos,
+                                            bool is_generated,
                                             const Array& handler_types,
                                             bool needs_stacktrace) {
   exception_handlers_list_->AddHandler(try_index, outer_try_index, pc_offset,
-                                       handler_types, needs_stacktrace);
+                                       token_pos, is_generated, handler_types,
+                                       needs_stacktrace);
 }
 
 
@@ -767,14 +671,25 @@ void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
 }
 
 
+void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
+                                      intptr_t pc_offset,
+                                      intptr_t deopt_id,
+                                      TokenPosition token_pos,
+                                      intptr_t try_index) {
+  code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
+  // When running with optimizations disabled, don't emit deopt-descriptors.
+  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
+  pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
+                                      try_index);
+}
+
+
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              TokenPosition token_pos) {
-  // When running with optimizations disabled, don't emit deopt-descriptors.
-  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
-  pc_descriptors_list()->AddDescriptor(kind, assembler()->CodeSize(), deopt_id,
-                                       token_pos, CurrentTryIndex());
+  AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
+                CurrentTryIndex());
 }
 
 
@@ -1085,6 +1000,15 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
   code.set_var_descriptors(var_descs);
 }
 
+void FlowGraphCompiler::FinalizeCatchEntryStateMap(const Code& code) {
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+  TypedData& maps = TypedData::Handle(
+      catch_entry_state_maps_builder_->FinalizeCatchEntryStateMap());
+  code.set_catch_entry_state_maps(maps);
+#else
+  code.set_variables(Smi::Handle(Smi::New(flow_graph().variable_count())));
+#endif
+}
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   ASSERT(code.static_calls_target_table() == Array::null());
@@ -1112,6 +1036,29 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 }
 
 
+void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
+  const Array& inlined_id_array =
+      Array::Handle(zone(), code_source_map_builder_->InliningIdToFunction());
+  INC_STAT(Thread::Current(), total_code_size,
+           inlined_id_array.Length() * sizeof(uword));
+  code.set_inlined_id_to_function(inlined_id_array);
+
+  const CodeSourceMap& map =
+      CodeSourceMap::Handle(code_source_map_builder_->Finalize());
+  INC_STAT(Thread::Current(), total_code_size, map.Length() * sizeof(uint8_t));
+  code.set_code_source_map(map);
+
+#if defined(DEBUG)
+  // Force simulation through the last pc offset. This checks we can decode
+  // the whole CodeSourceMap without hitting an unknown opcode, stack underflow,
+  // etc.
+  GrowableArray<const Function*> fs;
+  GrowableArray<TokenPosition> tokens;
+  code.GetInlinedFunctionsAtInstruction(code.Size() - 1, &fs, &tokens);
+#endif
+}
+
+
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
@@ -1131,7 +1078,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       if (field.is_instance() &&
           (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
         GenerateInlinedGetter(field.Offset());
-        return !FLAG_use_field_guards;
+        return !isolate()->use_field_guards();
       }
       return false;
     }
@@ -1144,7 +1091,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       if (field.is_instance() &&
           (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
         GenerateInlinedSetter(field.Offset());
-        return !FLAG_use_field_guards;
+        return !isolate()->use_field_guards();
       }
       return false;
     }
@@ -1170,6 +1117,23 @@ bool FlowGraphCompiler::TryIntrinsify() {
 // DBC is very different from other architectures in how it performs instance
 // and static calls because it does not use stubs.
 #if !defined(TARGET_ARCH_DBC)
+void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
+                                              intptr_t deopt_id,
+                                              const StubEntry& stub_entry,
+                                              RawPcDescriptors::Kind kind,
+                                              LocationSummary* locs) {
+  GenerateCall(token_pos, stub_entry, kind, locs);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
+}
+
+
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
                                              intptr_t argument_count,
@@ -1665,29 +1629,53 @@ ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
 }
 
 
-static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
+template <typename T>
+static int HighestCountFirst(const T* a, const T* b) {
   // Negative if 'a' should sort before 'b'.
   return b->count - a->count;
 }
 
 
+static int LowestCidFirst(const CidRangeTarget* a, const CidRangeTarget* b) {
+  // Negative if 'a' should sort before 'b'.
+  return a->cid_start - b->cid_start;
+}
+
+
 // Returns 'sorted' array in decreasing count order.
 // The expected number of elements to sort is less than 10.
-void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
-                                          GrowableArray<CidTarget>* sorted,
-                                          bool drop_smi) {
+void FlowGraphCompiler::SortICDataByCount(
+    const ICData& ic_data,
+    GrowableArray<CidRangeTarget>* sorted_arg,
+    bool drop_smi) {
+  GrowableArray<CidRangeTarget>& sorted = *sorted_arg;
   ASSERT(ic_data.NumArgsTested() == 1);
   const intptr_t len = ic_data.NumberOfChecks();
-  sorted->Clear();
+  sorted.Clear();
 
   for (int i = 0; i < len; i++) {
     intptr_t receiver_cid = ic_data.GetReceiverClassIdAt(i);
     if (drop_smi && (receiver_cid == kSmiCid)) continue;
-    sorted->Add(CidTarget(receiver_cid,
-                          &Function::ZoneHandle(ic_data.GetTargetAt(i)),
-                          ic_data.GetCountAt(i)));
+    Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
+    sorted.Add(CidRangeTarget(receiver_cid, receiver_cid, &target,
+                              ic_data.GetCountAt(i)));
   }
-  sorted->Sort(HighestCountFirst);
+  sorted.Sort(LowestCidFirst);
+  int dest = 0;
+
+  // Merge adjacent ranges.
+  for (int src = 0; src < sorted.length(); src++) {
+    if (src > 0 && sorted[src - 1].cid_end + 1 == sorted[src].cid_start &&
+        sorted[src - 1].target->raw() == sorted[src].target->raw()) {
+      sorted[dest - 1].cid_end++;
+      sorted[dest - 1].count += sorted[dest].count;
+    } else {
+      sorted[dest++] = sorted[src];
+    }
+  }
+
+  sorted.SetLength(dest);
+  sorted.Sort(HighestCountFirst);
 }
 
 
@@ -1788,70 +1776,76 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
 }
 
 
-RawArray* FlowGraphCompiler::InliningIdToFunction() const {
-  if (inline_id_to_function_.length() == 0) {
-    return Object::empty_array().raw();
-  }
-  const Array& res =
-      Array::Handle(Array::New(inline_id_to_function_.length(), Heap::kOld));
-  for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
-    res.SetAt(i, *inline_id_to_function_[i]);
-  }
-  return res.raw();
-}
-
-
-RawArray* FlowGraphCompiler::InliningIdToTokenPos() const {
-  if (inline_id_to_token_pos_.length() == 0) {
-    return Object::empty_array().raw();
-  }
-  const Array& res = Array::Handle(
-      zone(), Array::New(inline_id_to_token_pos_.length(), Heap::kOld));
-  Smi& smi = Smi::Handle(zone());
-  for (intptr_t i = 0; i < inline_id_to_token_pos_.length(); i++) {
-    smi = Smi::New(inline_id_to_token_pos_[i].value());
-    res.SetAt(i, smi);
-  }
-  return res.raw();
-}
-
-
-RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
-  if (caller_inline_id_.length() == 0) {
-    return Object::empty_array().raw();
-  }
-  const Array& res =
-      Array::Handle(Array::New(caller_inline_id_.length(), Heap::kOld));
-  Smi& smi = Smi::Handle();
-  for (intptr_t i = 0; i < caller_inline_id_.length(); i++) {
-    smi = Smi::New(caller_inline_id_[i]);
-    res.SetAt(i, smi);
-  }
-  return res.raw();
-}
-
-
 void FlowGraphCompiler::BeginCodeSourceRange() {
-#if !defined(PRODUCT)
-  // Remember how many bytes of code we emitted so far. This function
-  // is called before we call into an instruction's EmitNativeCode.
-  saved_code_size_ = assembler()->CodeSize();
-#endif  // !defined(PRODUCT)
+  code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize());
 }
 
 
-bool FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
-#if !defined(PRODUCT)
-  // This function is called after each instructions' EmitNativeCode.
-  if (saved_code_size_ < assembler()->CodeSize()) {
-    // We emitted more code, now associate the emitted code chunk with
-    // |token_pos|.
-    code_source_map_builder()->AddEntry(saved_code_size_, token_pos);
-    BeginCodeSourceRange();
-    return true;
+void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
+  code_source_map_builder_->EndCodeSourceRange(assembler()->CodeSize(),
+                                               token_pos);
+}
+
+
+const ICData& FlowGraphCompiler::TrySpecializeICDataByReceiverCid(
+    const ICData& ic_data,
+    intptr_t cid) {
+  Zone* zone = Thread::Current()->zone();
+  if (ic_data.NumArgsTested() != 1) return ic_data;
+
+  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
+    return ic_data;  // Nothing to do
   }
-#endif  // !defined(PRODUCT)
-  return false;
+
+  intptr_t count = 1;
+  const Function& function =
+      Function::Handle(zone, ic_data.GetTargetForReceiverClassId(cid, &count));
+  // TODO(fschneider): Try looking up the function on the class if it is
+  // not found in the ICData.
+  if (!function.IsNull()) {
+    const ICData& new_ic_data = ICData::ZoneHandle(
+        zone, ICData::New(Function::Handle(zone, ic_data.Owner()),
+                          String::Handle(zone, ic_data.target_name()),
+                          Object::empty_array(),  // Dummy argument descriptor.
+                          ic_data.deopt_id(), ic_data.NumArgsTested(), false));
+    new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
+    new_ic_data.AddReceiverCheck(cid, function, count);
+    return new_ic_data;
+  }
+
+  return ic_data;
+}
+
+
+intptr_t FlowGraphCompiler::ComputeGoodBiasForCidComparison(
+    const GrowableArray<CidRangeTarget>& sorted,
+    intptr_t max_immediate) {
+  // Sometimes a bias can be useful so we can emit more compact compare
+  // instructions.
+  intptr_t min_cid = 1000000;
+  intptr_t max_cid = -1;
+
+  const intptr_t sorted_len = sorted.length();
+
+  for (intptr_t i = 0; i < sorted_len + 1; i++) {
+    bool done = (i == sorted_len);
+    intptr_t start = done ? 0 : sorted[i].cid_start;
+    intptr_t end = done ? 0 : sorted[i].cid_end;
+    bool is_range = start != end;
+    bool spread_too_big = start - min_cid > max_immediate;
+    if (done || is_range || spread_too_big) {
+      if (i >= 2 && max_cid - min_cid <= max_immediate &&
+          max_cid > max_immediate) {
+        return min_cid;
+      } else {
+        return 0;
+      }
+    }
+    min_cid = Utils::Minimum(min_cid, start);
+    max_cid = Utils::Maximum(max_cid, end);
+  }
+  UNREACHABLE();
+  return 0;
 }
 
 
@@ -1864,7 +1858,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
                                                     intptr_t deopt_id,
                                                     TokenPosition token_pos,
                                                     LocationSummary* locs,
-                                                    bool complete) {
+                                                    bool complete,
+                                                    intptr_t total_ic_calls) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt =
         AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
@@ -1872,7 +1867,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
     EmitTestAndCall(ic_data, argument_count, argument_names,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
-                    deopt_id, token_pos, locs, complete);
+                    deopt_id, token_pos, locs, complete, total_ic_calls);
     assembler()->Bind(&ok);
   } else {
     if (complete) {
@@ -1880,7 +1875,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
       EmitTestAndCall(ic_data, argument_count, argument_names,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
-                      deopt_id, token_pos, locs, true);
+                      deopt_id, token_pos, locs, true, total_ic_calls);
       assembler()->Bind(&ok);
     } else {
       EmitSwitchableInstanceCall(ic_data, argument_count, deopt_id, token_pos,

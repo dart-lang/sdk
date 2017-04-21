@@ -33,8 +33,7 @@ enum Tag {
   kNothing = 0,
   kSomething = 1,
 
-  kNormalClass = 2,
-  kMixinClass = 3,
+  kClass = 2,
 
   kField = 4,
   kConstructor = 5,
@@ -123,16 +122,6 @@ enum Tag {
   kSimpleInterfaceType = 96,
   kSimpleFunctionType = 97,
 
-  kNullReference = 99,
-  kNormalClassReference = 100,
-  kMixinClassReference = 101,
-
-  kLibraryFieldReference = 102,
-  kClassFieldReference = 103,
-  kClassConstructorReference = 104,
-  kLibraryProcedureReference = 105,
-  kClassProcedureReference = 106,
-
   kSpecializedTagHighBit = 0x80,  // 10000000
   kSpecializedTagMask = 0xF8,     // 11111000
   kSpecializedPayloadMask = 0x7,  // 00000111
@@ -173,7 +162,7 @@ class BlockStack {
   }
 
   void Push(List<T>* decl) {
-    for (int i = 0; i < decl->length(); i++) {
+    for (intptr_t i = 0; i < decl->length(); i++) {
       variables_.Add(decl[i]);
       current_count_++;
     }
@@ -233,7 +222,7 @@ class BlockMap {
   }
 
   void Push(List<T>* decl) {
-    for (int i = 0; i < decl->length(); i++) {
+    for (intptr_t i = 0; i < decl->length(); i++) {
       Push(decl[i]);
     }
   }
@@ -321,8 +310,15 @@ class ReaderHelper {
   BlockStack<LabeledStatement>* labels() { return labels_; }
   void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
 
+  CanonicalName* GetCanonicalName(int index) { return canonical_names_[index]; }
+  void SetCanonicalName(int index, CanonicalName* name) {
+    canonical_names_[index] = name;
+  }
+  void SetCanonicalNameCount(int count) { canonical_names_.SetLength(count); }
+
  private:
   Program* program_;
+  MallocGrowableArray<CanonicalName*> canonical_names_;
   BlockStack<VariableDeclaration> scope_;
   BlockStack<TypeParameter> type_parameters_;
   BlockStack<SwitchCase> switch_cases_;
@@ -332,7 +328,7 @@ class ReaderHelper {
 
 class Reader {
  public:
-  Reader(const uint8_t* buffer, int64_t size)
+  Reader(const uint8_t* buffer, intptr_t size)
       : buffer_(buffer), size_(size), offset_(0) {}
 
   uint32_t ReadUInt32() {
@@ -369,10 +365,36 @@ class Reader {
     }
   }
 
+  void add_token_position(
+      MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list,
+      TokenPosition position) {
+    intptr_t size = list->length();
+    while (size <= current_script_id_) {
+      MallocGrowableArray<intptr_t>* tmp = new MallocGrowableArray<intptr_t>();
+      list->Add(tmp);
+      size = list->length();
+    }
+    list->At(current_script_id_)->Add(position.value());
+  }
+
+  void record_token_position(TokenPosition position) {
+    if (position.IsReal()) {
+      add_token_position(&helper()->program()->valid_token_positions, position);
+    }
+  }
+
+  void record_yield_token_position(TokenPosition position) {
+    add_token_position(&helper()->program()->yield_token_positions, position);
+  }
+
   /**
    * Read and return a TokenPosition from this reader.
+   * @param record specifies whether or not the read position is saved as a
+   * valid token position in the current script.
+   * If not be sure to record it later by calling record_token_position (after
+   * setting the correct current_script_id).
    */
-  TokenPosition ReadPosition() {
+  TokenPosition ReadPosition(bool record = true) {
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
     intptr_t value = ReadUInt() - 1;
@@ -384,6 +406,9 @@ class Reader {
       min_position_ = Utils::Minimum(min_position_, result);
     }
 
+    if (record) {
+      record_token_position(result);
+    }
     return result;
   }
 
@@ -419,13 +444,13 @@ class Reader {
     if (offset_ != size_) {
       FATAL2(
           "Reading Kernel file: Expected to be at EOF "
-          "(offset: %" Pd64 ", size: %" Pd64 ")",
+          "(offset: %" Pd ", size: %" Pd ")",
           offset_, size_);
     }
   }
 
   void DumpOffset(const char* str) {
-    OS::PrintErr("@%" Pd64 " %s\n", offset_, str);
+    OS::PrintErr("@%" Pd " %s\n", offset_, str);
   }
 
   // The largest position read yet (since last reset).
@@ -461,10 +486,20 @@ class Reader {
 
   ReaderHelper* helper() { return &builder_; }
 
+  CanonicalName* ReadCanonicalNameReference() {
+    int index = ReadUInt();
+    if (index == 0) return NULL;
+    CanonicalName* name = builder_.GetCanonicalName(index - 1);
+    ASSERT(name != NULL);
+    return name;
+  }
+
+  intptr_t offset() { return offset_; }
+
  private:
   const uint8_t* buffer_;
-  int64_t size_;
-  int64_t offset_;
+  intptr_t size_;
+  intptr_t offset_;
   ReaderHelper builder_;
   TokenPosition max_position_;
   TokenPosition min_position_;
@@ -511,7 +546,7 @@ void List<T>::ReadFrom(Reader* reader, TreeNode* parent) {
   int length = reader->ReadListLength();
   EnsureInitialized(length);
 
-  for (int i = 0; i < length_; i++) {
+  for (intptr_t i = 0; i < length_; i++) {
     IT* object = GetOrCreate<IT>(i, parent);
     object->ReadFrom(reader);
   }
@@ -525,7 +560,7 @@ void List<T>::ReadFrom(Reader* reader) {
   int length = reader->ReadListLength();
   EnsureInitialized(length);
 
-  for (int i = 0; i < length_; i++) {
+  for (intptr_t i = 0; i < length_; i++) {
     GetOrCreate<IT>(i)->ReadFrom(reader);
   }
 }
@@ -538,7 +573,7 @@ void List<T>::ReadFromStatic(Reader* reader) {
   int length = reader->ReadListLength();
   EnsureInitialized(length);
 
-  for (int i = 0; i < length_; i++) {
+  for (intptr_t i = 0; i < length_; i++) {
     ASSERT(array_[i] == NULL);
     array_[i] = IT::ReadFrom(reader);
   }
@@ -552,13 +587,13 @@ void TypeParameterList::ReadFrom(Reader* reader) {
   EnsureInitialized(length);
 
   // Make all [TypeParameter]s available in scope.
-  for (int i = 0; i < length; i++) {
+  for (intptr_t i = 0; i < length; i++) {
     TypeParameter* parameter = (*this)[i] = new TypeParameter();
     reader->helper()->type_parameters().Push(parameter);
   }
 
   // Read all [TypeParameter]s and their bounds.
-  for (int i = 0; i < length; i++) {
+  for (intptr_t i = 0; i < length; i++) {
     (*this)[i]->ReadFrom(reader);
   }
 }
@@ -596,7 +631,7 @@ class VariableDeclarationImpl {
  public:
   static VariableDeclaration* ReadFrom(Reader* reader) {
     TRACE_READ_OFFSET();
-    return VariableDeclaration::ReadFromImpl(reader);
+    return VariableDeclaration::ReadFromImpl(reader, false);
   }
 };
 
@@ -644,23 +679,24 @@ Library* Library::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   int flags = reader->ReadFlags();
   ASSERT(flags == 0);  // external libraries not supported
+
+  canonical_name_ = reader->ReadCanonicalNameReference();
   name_ = Reference::ReadStringFrom(reader);
-  import_uri_ = Reference::ReadStringFrom(reader);
+  import_uri_ = canonical_name_->name();
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
+  int num_imports = reader->ReadUInt();
+  if (num_imports != 0) {
+    FATAL("Deferred imports not implemented in VM");
+  }
   int num_classes = reader->ReadUInt();
   classes().EnsureInitialized(num_classes);
-  for (int i = 0; i < num_classes; i++) {
+  for (intptr_t i = 0; i < num_classes; i++) {
     Tag tag = reader->ReadTag();
-    if (tag == kNormalClass) {
-      NormalClass* klass = classes().GetOrCreate<NormalClass>(i, this);
-      klass->ReadFrom(reader);
-    } else {
-      ASSERT(tag == kMixinClass);
-      MixinClass* klass = classes().GetOrCreate<MixinClass>(i, this);
-      klass->ReadFrom(reader);
-    }
+    ASSERT(tag == kClass);
+    NormalClass* klass = classes().GetOrCreate<NormalClass>(i, this);
+    klass->ReadFrom(reader);
   }
 
   fields().ReadFrom<Field>(reader, this);
@@ -672,11 +708,13 @@ Library* Library::ReadFrom(Reader* reader) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
-  position_ = reader->ReadPosition();
+  canonical_name_ = reader->ReadCanonicalNameReference();
+  position_ = reader->ReadPosition(false);
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
+  reader->record_token_position(position_);
   annotations_.ReadFromStatic<Expression>(reader);
 
   return this;
@@ -692,6 +730,7 @@ NormalClass* NormalClass::ReadFrom(Reader* reader) {
   DartType* type = reader->ReadOptional<DartType>();
 
   super_class_ = InterfaceType::Cast(type);
+  reader->ReadOptional<DartType>();  // Mixed-in type is unused.
   implemented_classes_.ReadFromStatic<DowncastReader<DartType, InterfaceType> >(
       reader);
   fields_.ReadFrom<Field>(reader, this);
@@ -717,82 +756,35 @@ MixinClass* MixinClass::ReadFrom(Reader* reader) {
 }
 
 
-Member* Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
+CanonicalName* Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
 
-  Program* program = reader->helper()->program();
-  Tag tag = reader->ReadTag();
-  switch (tag) {
-    case kLibraryFieldReference: {
-      int library_idx = reader->ReadUInt();
-      int field_idx = reader->ReadUInt();
-      Library* library = program->libraries().GetOrCreate<Library>(library_idx);
-      return library->fields().GetOrCreate<Field>(field_idx, library);
-    }
-    case kLibraryProcedureReference: {
-      int library_idx = reader->ReadUInt();
-      int procedure_idx = reader->ReadUInt();
-      Library* library = program->libraries().GetOrCreate<Library>(library_idx);
-      return library->procedures().GetOrCreate<Procedure>(procedure_idx,
-                                                          library);
-    }
-    case kClassFieldReference:
-    case kClassConstructorReference:
-    case kClassProcedureReference: {
-      Class* klass = Reference::ReadClassFrom(reader);
-      if (tag == kClassFieldReference) {
-        int field_idx = reader->ReadUInt();
-        return klass->fields().GetOrCreate<Field>(field_idx, klass);
-      } else if (tag == kClassConstructorReference) {
-        int constructor_idx = reader->ReadUInt();
-        return klass->constructors().GetOrCreate<Constructor>(constructor_idx,
-                                                              klass);
-      } else {
-        ASSERT(tag == kClassProcedureReference);
-        int procedure_idx = reader->ReadUInt();
-        return klass->procedures().GetOrCreate<Procedure>(procedure_idx, klass);
-      }
-    }
-    case kNullReference:
-      if (allow_null) {
-        return NULL;
-      } else {
-        FATAL("Expected a valid member reference, but got `null`");
-      }
-    default:
-      UNREACHABLE();
-      break;
+  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
+  if (canonical_name == NULL && !allow_null) {
+    FATAL("Expected a valid member reference, but got `null`");
   }
 
-  UNREACHABLE();
-  return NULL;
+  if (canonical_name != NULL) {
+    canonical_name->set_referenced(true);
+  }
+
+  return canonical_name;
 }
 
 
-Class* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
+CanonicalName* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
-  Program* program = reader->helper()->program();
 
-  Tag klass_member_tag = reader->ReadTag();
-  if (klass_member_tag == kNullReference) {
-    if (allow_null) {
-      return NULL;
-    } else {
-      FATAL("Expected a valid class reference but got `null`.");
-    }
+  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
+  if (canonical_name == NULL && !allow_null) {
+    FATAL("Expected a valid class reference, but got `null`");
   }
-  int library_idx = reader->ReadUInt();
-  int class_idx = reader->ReadUInt();
 
-  Library* library = program->libraries().GetOrCreate<Library>(library_idx);
-  Class* klass;
-  if (klass_member_tag == kNormalClassReference) {
-    klass = library->classes().GetOrCreate<NormalClass>(class_idx, library);
-  } else {
-    ASSERT(klass_member_tag == kMixinClassReference);
-    klass = library->classes().GetOrCreate<MixinClass>(class_idx, library);
+  if (canonical_name != NULL) {
+    canonical_name->set_referenced(true);
   }
-  return klass;
+
+  return canonical_name;
 }
 
 
@@ -804,18 +796,21 @@ String* Reference::ReadStringFrom(Reader* reader) {
 
 Field* Field::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  kernel_offset_ = reader->offset();  // Notice the ReadTag() below.
   Tag tag = reader->ReadTag();
   ASSERT(tag == kField);
 
-  position_ = reader->ReadPosition();
-  end_position_ = reader->ReadPosition();
+  canonical_name_ = reader->ReadCanonicalNameReference();
+  position_ = reader->ReadPosition(false);
+  end_position_ = reader->ReadPosition(false);
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
+  reader->record_token_position(position_);
+  reader->record_token_position(end_position_);
   annotations_.ReadFromStatic<Expression>(reader);
   type_ = DartType::ReadFrom(reader);
-  inferred_value_ = reader->ReadOptional<InferredValue>();
   initializer_ = reader->ReadOptional<Expression>();
   return this;
 }
@@ -826,6 +821,7 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kConstructor);
 
+  canonical_name_ = reader->ReadCanonicalNameReference();
   VariableScope<ReaderHelper> parameters(reader->helper());
   position_ = reader->ReadPosition();
   end_position_ = reader->ReadPosition();
@@ -843,14 +839,17 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kProcedure);
 
+  canonical_name_ = reader->ReadCanonicalNameReference();
   VariableScope<ReaderHelper> parameters(reader->helper());
-  position_ = reader->ReadPosition();
-  end_position_ = reader->ReadPosition();
+  position_ = reader->ReadPosition(false);
+  end_position_ = reader->ReadPosition(false);
   kind_ = static_cast<ProcedureKind>(reader->ReadByte());
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
+  reader->record_token_position(position_);
+  reader->record_token_position(end_position_);
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = reader->ReadOptional<FunctionNode>();
   return this;
@@ -887,7 +886,7 @@ InvalidInitializer* InvalidInitializer::ReadFromImpl(Reader* reader) {
 FieldInitializer* FieldInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   FieldInitializer* initializer = new FieldInitializer();
-  initializer->field_ = Field::Cast(Reference::ReadMemberFrom(reader));
+  initializer->field_reference_ = Reference::ReadMemberFrom(reader);
   initializer->value_ = Expression::ReadFrom(reader);
   return initializer;
 }
@@ -896,7 +895,7 @@ FieldInitializer* FieldInitializer::ReadFromImpl(Reader* reader) {
 SuperInitializer* SuperInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   SuperInitializer* init = new SuperInitializer();
-  init->target_ = Constructor::Cast(Reference::ReadMemberFrom(reader));
+  init->target_reference_ = Reference::ReadMemberFrom(reader);
   init->arguments_ = Arguments::ReadFrom(reader);
   return init;
 }
@@ -905,7 +904,7 @@ SuperInitializer* SuperInitializer::ReadFromImpl(Reader* reader) {
 RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   RedirectingInitializer* init = new RedirectingInitializer();
-  init->target_ = Constructor::Cast(Reference::ReadMemberFrom(reader));
+  init->target_reference_ = Reference::ReadMemberFrom(reader);
   init->arguments_ = Arguments::ReadFrom(reader);
   return init;
 }
@@ -914,7 +913,7 @@ RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
 LocalInitializer* LocalInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   LocalInitializer* init = new LocalInitializer();
-  init->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  init->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   return init;
 }
 
@@ -1070,7 +1069,7 @@ PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
   get->position_ = reader->ReadPosition();
   get->receiver_ = Expression::ReadFrom(reader);
   get->name_ = Name::ReadFrom(reader);
-  get->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
+  get->interface_target_reference_ = Reference::ReadMemberFrom(reader, true);
   return get;
 }
 
@@ -1082,7 +1081,7 @@ PropertySet* PropertySet::ReadFrom(Reader* reader) {
   set->receiver_ = Expression::ReadFrom(reader);
   set->name_ = Name::ReadFrom(reader);
   set->value_ = Expression::ReadFrom(reader);
-  set->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
+  set->interface_target_reference_ = Reference::ReadMemberFrom(reader, true);
   return set;
 }
 
@@ -1090,8 +1089,9 @@ PropertySet* PropertySet::ReadFrom(Reader* reader) {
 DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertyGet* get = new DirectPropertyGet();
+  get->position_ = reader->ReadPosition();
   get->receiver_ = Expression::ReadFrom(reader);
-  get->target_ = Reference::ReadMemberFrom(reader);
+  get->target_reference_ = Reference::ReadMemberFrom(reader);
   return get;
 }
 
@@ -1099,8 +1099,9 @@ DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
 DirectPropertySet* DirectPropertySet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertySet* set = new DirectPropertySet();
+  set->position_ = reader->ReadPosition();
   set->receiver_ = Expression::ReadFrom(reader);
-  set->target_ = Reference::ReadMemberFrom(reader);
+  set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->value_ = Expression::ReadFrom(reader);
   return set;
 }
@@ -1110,7 +1111,7 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticGet* get = new StaticGet();
   get->position_ = reader->ReadPosition();
-  get->target_ = Reference::ReadMemberFrom(reader);
+  get->target_reference_ = Reference::ReadMemberFrom(reader);
   return get;
 }
 
@@ -1118,7 +1119,8 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
 StaticSet* StaticSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticSet* set = new StaticSet();
-  set->target_ = Reference::ReadMemberFrom(reader);
+  set->position_ = reader->ReadPosition();
+  set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->expression_ = Expression::ReadFrom(reader);
   return set;
 }
@@ -1149,7 +1151,8 @@ MethodInvocation* MethodInvocation::ReadFrom(Reader* reader) {
   invocation->receiver_ = Expression::ReadFrom(reader);
   invocation->name_ = Name::ReadFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
-  invocation->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
+  invocation->interface_target_reference_ =
+      Reference::ReadMemberFrom(reader, true);
   return invocation;
 }
 
@@ -1158,7 +1161,7 @@ DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectMethodInvocation* invocation = new DirectMethodInvocation();
   invocation->receiver_ = Expression::ReadFrom(reader);
-  invocation->target_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
+  invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
 }
@@ -1169,7 +1172,7 @@ StaticInvocation* StaticInvocation::ReadFrom(Reader* reader, bool is_const) {
   StaticInvocation* invocation = new StaticInvocation();
   invocation->is_const_ = is_const;
   invocation->position_ = reader->ReadPosition();
-  invocation->procedure_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
+  invocation->procedure_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
 }
@@ -1181,7 +1184,7 @@ ConstructorInvocation* ConstructorInvocation::ReadFrom(Reader* reader,
   ConstructorInvocation* invocation = new ConstructorInvocation();
   invocation->is_const_ = is_const;
   invocation->position_ = reader->ReadPosition();
-  invocation->target_ = Constructor::Cast(Reference::ReadMemberFrom(reader));
+  invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
 }
@@ -1238,6 +1241,7 @@ IsExpression* IsExpression::ReadFrom(Reader* reader) {
 AsExpression* AsExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AsExpression* expr = new AsExpression();
+  expr->position_ = reader->ReadPosition();
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
   return expr;
@@ -1319,7 +1323,9 @@ ThisExpression* ThisExpression::ReadFrom(Reader* reader) {
 
 Rethrow* Rethrow::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new Rethrow();
+  Rethrow* rethrow = new Rethrow();
+  rethrow->position_ = reader->ReadPosition();
+  return rethrow;
 }
 
 
@@ -1336,6 +1342,7 @@ ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   ListLiteral* literal = new ListLiteral();
   literal->is_const_ = is_const;
+  literal->position_ = reader->ReadPosition();
   literal->type_ = DartType::ReadFrom(reader);
   literal->expressions_.ReadFromStatic<Expression>(reader);
   return literal;
@@ -1374,6 +1381,7 @@ FunctionExpression* FunctionExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> parameters(reader->helper());
   FunctionExpression* expr = new FunctionExpression();
+  expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->function_ = FunctionNode::ReadFrom(reader);
   return expr;
 }
@@ -1385,7 +1393,8 @@ Let* Let::ReadFrom(Reader* reader) {
   PositionScope scope(reader);
 
   Let* let = new Let();
-  let->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  let->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
+  let->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   let->body_ = Expression::ReadFrom(reader);
   let->position_ = reader->min_position();
   let->end_position_ = reader->max_position();
@@ -1437,7 +1446,7 @@ Statement* Statement::ReadFrom(Reader* reader) {
     case kYieldStatement:
       return YieldStatement::ReadFrom(reader);
     case kVariableDeclaration:
-      return VariableDeclaration::ReadFromImpl(reader);
+      return VariableDeclaration::ReadFromImpl(reader, true);
     case kFunctionDeclaration:
       return FunctionDeclaration::ReadFrom(reader);
     default:
@@ -1465,6 +1474,7 @@ Block* Block::ReadFromImpl(Reader* reader) {
 
   VariableScope<ReaderHelper> vars(reader->helper());
   Block* block = new Block();
+  block->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   block->statements().ReadFromStatic<Statement>(reader);
   block->position_ = reader->min_position();
   block->end_position_ = reader->max_position();
@@ -1501,6 +1511,7 @@ LabeledStatement* LabeledStatement::ReadFrom(Reader* reader) {
 BreakStatement* BreakStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   BreakStatement* stmt = new BreakStatement();
+  stmt->position_ = reader->ReadPosition();
   stmt->target_ = reader->helper()->labels()->Lookup(reader->ReadUInt());
   return stmt;
 }
@@ -1530,6 +1541,7 @@ ForStatement* ForStatement::ReadFrom(Reader* reader) {
   PositionScope scope(reader);
 
   ForStatement* forstmt = new ForStatement();
+  forstmt->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   forstmt->variables_.ReadFromStatic<VariableDeclarationImpl>(reader);
   forstmt->condition_ = reader->ReadOptional<Expression>();
   forstmt->updates_.ReadFromStatic<Expression>(reader);
@@ -1547,12 +1559,17 @@ ForInStatement* ForInStatement::ReadFrom(Reader* reader, bool is_async) {
   PositionScope scope(reader);
 
   ForInStatement* forinstmt = new ForInStatement();
+  forinstmt->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   forinstmt->is_async_ = is_async;
-  forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  forinstmt->position_ = reader->ReadPosition();
+  forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   forinstmt->iterable_ = Expression::ReadFrom(reader);
   forinstmt->body_ = Statement::ReadFrom(reader);
   forinstmt->end_position_ = reader->max_position();
-  forinstmt->position_ = reader->min_position();
+  if (!forinstmt->position_.IsReal()) {
+    forinstmt->position_ = reader->min_position();
+  }
+  forinstmt->variable_->set_end_position(forinstmt->position_);
 
   return forinstmt;
 }
@@ -1567,11 +1584,11 @@ SwitchStatement* SwitchStatement::ReadFrom(Reader* reader) {
   // to the [SwitchCaseScope]. This is necessary since a [Statement] in a switch
   // case can refer to one defined later on.
   int count = reader->ReadUInt();
-  for (int i = 0; i < count; i++) {
+  for (intptr_t i = 0; i < count; i++) {
     SwitchCase* sc = stmt->cases_.GetOrCreate<SwitchCase>(i);
     reader->helper()->switch_cases().Push(sc);
   }
-  for (int i = 0; i < count; i++) {
+  for (intptr_t i = 0; i < count; i++) {
     SwitchCase* sc = stmt->cases_[i];
     sc->ReadFrom(reader);
   }
@@ -1582,6 +1599,9 @@ SwitchStatement* SwitchStatement::ReadFrom(Reader* reader) {
 SwitchCase* SwitchCase::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   expressions_.ReadFromStatic<Expression>(reader);
+  for (intptr_t i = 0; i < expressions_.length(); ++i) {
+    expressions_[i]->set_position(reader->ReadPosition());
+  }
   is_default_ = reader->ReadBool();
   body_ = Statement::ReadFrom(reader);
   return this;
@@ -1634,6 +1654,7 @@ Catch* Catch::ReadFrom(Reader* reader) {
   PositionScope scope(reader);
 
   Catch* c = new Catch();
+  c->kernel_offset_ = reader->offset();  // Catch has no tag.
   c->guard_ = DartType::ReadFrom(reader);
   c->exception_ =
       reader->ReadOptional<VariableDeclaration, VariableDeclarationImpl>();
@@ -1660,6 +1681,7 @@ YieldStatement* YieldStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   YieldStatement* stmt = new YieldStatement();
   stmt->position_ = reader->ReadPosition();
+  reader->record_yield_token_position(stmt->position_);
   stmt->flags_ = reader->ReadByte();
   stmt->expression_ = Expression::ReadFrom(reader);
   return stmt;
@@ -1670,20 +1692,23 @@ VariableDeclaration* VariableDeclaration::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Tag tag = reader->ReadTag();
   ASSERT(tag == kVariableDeclaration);
-  return VariableDeclaration::ReadFromImpl(reader);
+  return VariableDeclaration::ReadFromImpl(reader, true);
 }
 
 
-VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
+VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader,
+                                                       bool read_tag) {
   TRACE_READ_OFFSET();
   PositionScope scope(reader);
 
   VariableDeclaration* decl = new VariableDeclaration();
+  // -1 or -0 depending on whether there's a tag or not.
+  decl->kernel_offset_ = reader->offset() - (read_tag ? 1 : 0);
   decl->position_ = reader->ReadPosition();
+  decl->equals_position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
   decl->name_ = Reference::ReadStringFrom(reader);
   decl->type_ = DartType::ReadFrom(reader);
-  decl->inferred_value_ = reader->ReadOptional<InferredValue>();
   decl->initializer_ = reader->ReadOptional<Expression>();
 
   // Go to next token position so it ends *after* the last potentially
@@ -1700,8 +1725,9 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
 FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   FunctionDeclaration* decl = new FunctionDeclaration();
+  decl->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   decl->position_ = reader->ReadPosition();
-  decl->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  decl->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   VariableScope<ReaderHelper> parameters(reader->helper());
   decl->function_ = FunctionNode::ReadFrom(reader);
   return decl;
@@ -1711,23 +1737,11 @@ FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
 Name* Name::ReadFrom(Reader* reader) {
   String* string = Reference::ReadStringFrom(reader);
   if (string->size() >= 1 && string->buffer()[0] == '_') {
-    int lib_index = reader->ReadUInt();
-    Library* library =
-        reader->helper()->program()->libraries().GetOrCreate<Library>(
-            lib_index);
-    return new Name(string, library);
+    CanonicalName* library_reference = reader->ReadCanonicalNameReference();
+    return new Name(string, library_reference);
   } else {
     return new Name(string, NULL);
   }
-}
-
-
-InferredValue* InferredValue::ReadFrom(Reader* reader) {
-  InferredValue* type = new InferredValue();
-  type->klass_ = Reference::ReadClassFrom(reader, true);
-  type->kind_ = static_cast<BaseClassKind>(reader->ReadByte());
-  type->value_bits_ = reader->ReadByte();
-  return type;
 }
 
 
@@ -1779,8 +1793,8 @@ VoidType* VoidType::ReadFrom(Reader* reader) {
 
 InterfaceType* InterfaceType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  Class* klass = Reference::ReadClassFrom(reader);
-  InterfaceType* type = new InterfaceType(klass);
+  CanonicalName* klass_name = Reference::ReadClassFrom(reader);
+  InterfaceType* type = new InterfaceType(klass_name);
   type->type_arguments().ReadFromStatic<DartType>(reader);
   return type;
 }
@@ -1789,8 +1803,8 @@ InterfaceType* InterfaceType::ReadFrom(Reader* reader) {
 InterfaceType* InterfaceType::ReadFrom(Reader* reader,
                                        bool _without_type_arguments_) {
   TRACE_READ_OFFSET();
-  Class* klass = Reference::ReadClassFrom(reader);
-  InterfaceType* type = new InterfaceType(klass);
+  CanonicalName* klass_name = Reference::ReadClassFrom(reader);
+  InterfaceType* type = new InterfaceType(klass_name);
   ASSERT(_without_type_arguments_);
   return type;
 }
@@ -1835,19 +1849,37 @@ Program* Program::ReadFrom(Reader* reader) {
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
 
   Program* program = new Program();
+  program->canonical_name_root_ = CanonicalName::NewRoot();
   reader->helper()->set_program(program);
 
   program->string_table_.ReadFrom(reader);
   program->source_uri_table_.ReadFrom(reader);
   program->source_table_.ReadFrom(reader);
 
+  int canonical_names = reader->ReadUInt();
+  reader->helper()->SetCanonicalNameCount(canonical_names);
+  for (int i = 0; i < canonical_names; ++i) {
+    int biased_parent_index = reader->ReadUInt();
+    CanonicalName* parent;
+    if (biased_parent_index != 0) {
+      parent = reader->helper()->GetCanonicalName(biased_parent_index - 1);
+    } else {
+      parent = program->canonical_name_root();
+    }
+    ASSERT(parent != NULL);
+    int name_index = reader->ReadUInt();
+    String* name = program->string_table().strings()[name_index];
+    CanonicalName* canonical_name = parent->AddChild(name);
+    reader->helper()->SetCanonicalName(i, canonical_name);
+  }
+
   int libraries = reader->ReadUInt();
   program->libraries().EnsureInitialized(libraries);
-  for (int i = 0; i < libraries; i++) {
+  for (intptr_t i = 0; i < libraries; i++) {
     program->libraries().GetOrCreate<Library>(i)->ReadFrom(reader);
   }
 
-  program->main_method_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
+  program->main_method_reference_ = Reference::ReadMemberFrom(reader);
 
   return program;
 }
@@ -1858,18 +1890,19 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   TypeParameterScope<ReaderHelper> scope(reader->helper());
 
   FunctionNode* function = new FunctionNode();
+  function->kernel_offset_ = reader->offset();  // FunctionNode has no tag.
   function->position_ = reader->ReadPosition();
   function->end_position_ = reader->ReadPosition();
   function->async_marker_ =
       static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
-  function->debuggable_ = reader->ReadByte() == 1 ? true : false;
+  function->dart_async_marker_ =
+      static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
   function->type_parameters().ReadFrom(reader);
   function->required_parameter_count_ = reader->ReadUInt();
   function->positional_parameters().ReadFromStatic<VariableDeclarationImpl>(
       reader);
   function->named_parameters().ReadFromStatic<VariableDeclarationImpl>(reader);
   function->return_type_ = DartType::ReadFrom(reader);
-  function->inferred_return_value_ = reader->ReadOptional<InferredValue>();
 
   LabelScope<ReaderHelper, BlockStack<LabeledStatement> > labels(
       reader->helper());

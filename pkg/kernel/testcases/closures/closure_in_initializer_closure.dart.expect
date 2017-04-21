@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic t;
+  constructor foo(dynamic f) → void
+    : self::C::t = let final Vector #context = MakeVector(2) in let dynamic #t1 = #context[1] = f in new self::Closure#C#foo#function::•(#context), super core::Object::•() {
+    final Vector #context = MakeVector(2);
+    #context[1] = f;
+    core::print(1);
+  }
+}
+class Closure#C#foo#function#function extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field Vector context;
+  constructor •(final Vector context) → dynamic
+    : self::Closure#C#foo#function#function::context = context
+    ;
+  method call(dynamic x) → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final Vector #contextParameter = this.{self::Closure#C#foo#function#function::context};
+    (#contextParameter[0][1]).call("${#contextParameter[1]}${x}");
+  }
+}
+class Closure#C#foo#function extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field Vector context;
+  constructor •(final Vector context) → dynamic
+    : self::Closure#C#foo#function::context = context
+    ;
+  method call() → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final Vector #contextParameter = this.{self::Closure#C#foo#function::context};
+    final Vector #context = MakeVector(2);
+    #context[0] = #contextParameter;
+    #context[1] = null;
+    dynamic g = new self::Closure#C#foo#function#function::•(#context);
+    #context[1] = "hest";
+    return g;
+  }
+}
+class Closure#main#function extends core::Object implements core::Function {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field Vector context;
+  constructor •(final Vector context) → dynamic
+    : self::Closure#main#function::context = context
+    ;
+  method call(dynamic x) → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final Vector #contextParameter = this.{self::Closure#main#function::context};
+    return core::print(x);
+  }
+}
+static method main() → dynamic {
+  core::print(0);
+  dynamic c = new self::C::foo(new self::Closure#main#function::•(null));
+  core::print(2);
+  c.t().call("fisk");
+  core::print(3);
+}

@@ -153,6 +153,22 @@ class OpType {
       !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
+
+  /// Return the statement before [entity]
+  /// where [entity] can be a statement or the `}` closing the given block.
+  static Statement getPreviousStatement(Block node, Object entity) {
+    if (entity == node.rightBracket) {
+      return node.statements.isNotEmpty ? node.statements.last : null;
+    }
+    if (entity is Statement) {
+      int index = node.statements.indexOf(entity);
+      if (index > 0) {
+        return node.statements[index - 1];
+      }
+      return null;
+    }
+    return null;
+  }
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
@@ -189,38 +205,57 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitArgumentList(ArgumentList node) {
     AstNode parent = node.parent;
-    if (parent is InvocationExpression) {
+    List<ParameterElement> parameters;
+    if (parent is InstanceCreationExpression) {
+      Element constructor;
+      SimpleIdentifier name = parent.constructorName?.name;
+      if (name != null) {
+        constructor = name.bestElement;
+      } else {
+        var classElem = parent.constructorName?.type?.name?.bestElement;
+        if (classElem is ClassElement) {
+          constructor = classElem.unnamedConstructor;
+        }
+      }
+      if (constructor is ConstructorElement) {
+        parameters = constructor.parameters;
+      } else if (constructor == null) {
+        // If unresolved, then include named arguments
+        optype.includeNamedArgumentSuggestions = true;
+      }
+    } else if (parent is InvocationExpression) {
       Expression function = parent.function;
       if (function is SimpleIdentifier) {
         var elem = function.bestElement;
         if (elem is FunctionTypedElement) {
-          List<ParameterElement> parameters = elem.parameters;
-          if (parameters != null) {
-            int index;
-            if (node.arguments.isEmpty) {
-              index = 0;
-            } else if (entity == node.rightParenthesis) {
-              // Parser ignores trailing commas
-              if (node.rightParenthesis.previous?.lexeme == ',') {
-                index = node.arguments.length;
-              } else {
-                index = node.arguments.length - 1;
-              }
-            } else {
-              index = node.arguments.indexOf(entity);
-            }
-            if (0 <= index && index < parameters.length) {
-              ParameterElement param = parameters[index];
-              if (param?.parameterKind == ParameterKind.NAMED) {
-                optype.includeNamedArgumentSuggestions = true;
-                return;
-              }
-            }
-          }
+          parameters = elem.parameters;
         } else if (elem == null) {
           // If unresolved, then include named arguments
           optype.includeNamedArgumentSuggestions = true;
-          // fall through to include others as well
+        }
+      }
+    }
+    // Based upon the insertion location and declared parameters
+    // determine whether only named arguments should be suggested
+    if (parameters != null) {
+      int index;
+      if (node.arguments.isEmpty) {
+        index = 0;
+      } else if (entity == node.rightParenthesis) {
+        // Parser ignores trailing commas
+        if (node.rightParenthesis.previous?.lexeme == ',') {
+          index = node.arguments.length;
+        } else {
+          index = node.arguments.length - 1;
+        }
+      } else {
+        index = node.arguments.indexOf(entity);
+      }
+      if (0 <= index && index < parameters.length) {
+        ParameterElement param = parameters[index];
+        if (param?.parameterKind == ParameterKind.NAMED) {
+          optype.includeNamedArgumentSuggestions = true;
+          return;
         }
       }
     }
@@ -278,6 +313,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitBlock(Block node) {
+    Statement prevStmt = OpType.getPreviousStatement(node, entity);
+    if (prevStmt is TryStatement) {
+      if (prevStmt.catchClauses.isEmpty && prevStmt.finallyBlock == null) {
+        return;
+      }
+    }
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
     optype.includeVoidReturnSuggestions = true;
@@ -904,6 +945,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitWithClause(WithClause node) {
+    optype.includeTypeNameSuggestions = true;
   }
 
   bool _isEntityPrevTokenSynthetic() {

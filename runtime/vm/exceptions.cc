@@ -6,9 +6,13 @@
 
 #include "platform/address_sanitizer.h"
 
+#include "lib/stacktrace.h"
+
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/datastream.h"
 #include "vm/debugger.h"
+#include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
@@ -18,6 +22,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+
 
 namespace dart {
 
@@ -98,7 +103,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
     dropped_frames_++;
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
-    if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
+    if (stacktrace_.CodeAtFrame(null_slot) != Code::null()) {
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
       // We drop an extra frame here too.
       dropped_frames_++;
@@ -140,50 +145,203 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
 }
 
 
-// Iterate through the stack frames and try to find a frame with an
-// exception handler. Once found, set the pc, sp and fp so that execution
-// can continue in that frame. Sets 'needs_stacktrace' if there is no
-// cath-all handler or if a stack-trace is specified in the catch.
-static bool FindExceptionHandler(Thread* thread,
-                                 uword* handler_pc,
-                                 uword* handler_sp,
-                                 uword* handler_fp,
-                                 bool* needs_stacktrace) {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
-  StackFrame* frame = frames.NextFrame();
-  if (frame == NULL) return false;  // No Dart frame.
-  bool handler_pc_set = false;
-  *needs_stacktrace = false;
-  bool is_catch_all = false;
-  uword temp_handler_pc = kUwordMax;
-  while (!frame->IsEntryFrame()) {
-    if (frame->IsDartFrame()) {
-      if (frame->FindExceptionHandler(thread, &temp_handler_pc,
-                                      needs_stacktrace, &is_catch_all)) {
-        if (!handler_pc_set) {
-          handler_pc_set = true;
-          *handler_pc = temp_handler_pc;
-          *handler_sp = frame->sp();
-          *handler_fp = frame->fp();
+static RawObject** VariableAt(uword fp, int stack_slot) {
+#if defined(TARGET_ARCH_DBC)
+  return reinterpret_cast<RawObject**>(fp + stack_slot * kWordSize);
+#else
+  if (stack_slot < 0) {
+    return reinterpret_cast<RawObject**>(ParamAddress(fp, -stack_slot));
+  } else {
+    return reinterpret_cast<RawObject**>(
+        LocalVarAddress(fp, kFirstLocalSlotFromFp - stack_slot));
+  }
+#endif
+}
+
+
+class ExceptionHandlerFinder : public StackResource {
+ public:
+  explicit ExceptionHandlerFinder(Thread* thread)
+      : StackResource(thread), thread_(thread), cache_(NULL), metadata_(NULL) {}
+
+  // Iterate through the stack frames and try to find a frame with an
+  // exception handler. Once found, set the pc, sp and fp so that execution
+  // can continue in that frame. Sets 'needs_stacktrace' if there is no
+  // cath-all handler or if a stack-trace is specified in the catch.
+  bool Find() {
+    StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+    StackFrame* frame = frames.NextFrame();
+    if (frame == NULL) return false;  // No Dart frame.
+    handler_pc_set_ = false;
+    needs_stacktrace = false;
+    bool is_catch_all = false;
+    uword temp_handler_pc = kUwordMax;
+    bool is_optimized = false;
+    code_ = NULL;
+    cache_ = thread_->isolate()->catch_entry_state_cache();
+
+    while (!frame->IsEntryFrame()) {
+      if (frame->IsDartFrame()) {
+        if (frame->FindExceptionHandler(thread_, &temp_handler_pc,
+                                        &needs_stacktrace, &is_catch_all,
+                                        &is_optimized)) {
+          if (!handler_pc_set_) {
+            handler_pc_set_ = true;
+            handler_pc = temp_handler_pc;
+            handler_sp = frame->sp();
+            handler_fp = frame->fp();
+            if (is_optimized) {
+              pc_ = frame->pc();
+              code_ = &Code::Handle(frame->LookupDartCode());
+              CatchEntryState* state = cache_->Lookup(pc_);
+              if (state != NULL) cached_ = *state;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+              intptr_t num_vars = Smi::Value(code_->variables());
+              if (cached_.Empty()) GetMetaDataFromDeopt(num_vars, frame);
+#else
+              if (cached_.Empty()) ReadCompressedMetaData();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+            }
+          }
+          if (needs_stacktrace || is_catch_all) {
+            return true;
+          }
         }
-        if (*needs_stacktrace || is_catch_all) {
-          return true;
+      }  // if frame->IsDartFrame
+      frame = frames.NextFrame();
+      ASSERT(frame != NULL);
+    }  // while !frame->IsEntryFrame
+    ASSERT(frame->IsEntryFrame());
+    if (!handler_pc_set_) {
+      handler_pc = frame->pc();
+      handler_sp = frame->sp();
+      handler_fp = frame->fp();
+    }
+    // No catch-all encountered, needs stacktrace.
+    needs_stacktrace = true;
+    return handler_pc_set_;
+  }
+
+  void TrySync() {
+    if (code_ == NULL || !code_->is_optimized()) {
+      return;
+    }
+    if (!cached_.Empty()) {
+      // Cache hit.
+      TrySyncCached(&cached_);
+    } else {
+      // New cache entry.
+      CatchEntryState m(metadata_);
+      TrySyncCached(&m);
+      cache_->Insert(pc_, m);
+    }
+  }
+
+  void TrySyncCached(CatchEntryState* md) {
+    uword fp = handler_fp;
+    ObjectPool* pool = NULL;
+    intptr_t pairs = md->Pairs();
+    for (int j = 0; j < pairs; j++) {
+      intptr_t src = md->Src(j);
+      intptr_t dest = md->Dest(j);
+      if (md->isMove(j)) {
+        *VariableAt(fp, dest) = *VariableAt(fp, src);
+      } else {
+        if (pool == NULL) {
+          pool = &ObjectPool::Handle(code_->object_pool());
+        }
+        RawObject* obj = pool->ObjectAt(src);
+        *VariableAt(fp, dest) = obj;
+      }
+    }
+  }
+
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+  void ReadCompressedMetaData() {
+    intptr_t pc_offset = pc_ - code_->PayloadStart();
+    const TypedData& td = TypedData::Handle(code_->catch_entry_state_maps());
+    NoSafepointScope no_safepoint;
+    ReadStream stream(static_cast<uint8_t*>(td.DataAddr(0)), td.Length());
+
+    bool found_metadata = false;
+    while (stream.PendingBytes() > 0) {
+      intptr_t target_pc_offset = Reader::Read(&stream);
+      intptr_t variables = Reader::Read(&stream);
+      intptr_t suffix_length = Reader::Read(&stream);
+      intptr_t suffix_offset = Reader::Read(&stream);
+      if (pc_offset == target_pc_offset) {
+        metadata_ = new intptr_t[2 * (variables + suffix_length) + 1];
+        metadata_[0] = variables + suffix_length;
+        for (int j = 0; j < variables; j++) {
+          intptr_t src = Reader::Read(&stream);
+          intptr_t dest = Reader::Read(&stream);
+          metadata_[1 + 2 * j] = src;
+          metadata_[2 + 2 * j] = dest;
+        }
+        ReadCompressedSuffix(&stream, suffix_offset, suffix_length, metadata_,
+                             2 * variables + 1);
+        found_metadata = true;
+        break;
+      } else {
+        for (intptr_t j = 0; j < 2 * variables; j++) {
+          Reader::Read(&stream);
         }
       }
-    }  // if frame->IsDartFrame
-    frame = frames.NextFrame();
-    ASSERT(frame != NULL);
-  }  // while !frame->IsEntryFrame
-  ASSERT(frame->IsEntryFrame());
-  if (!handler_pc_set) {
-    *handler_pc = frame->pc();
-    *handler_sp = frame->sp();
-    *handler_fp = frame->fp();
+    }
+    ASSERT(found_metadata);
   }
-  // No catch-all encountered, needs stacktrace.
-  *needs_stacktrace = true;
-  return handler_pc_set;
-}
+
+  void ReadCompressedSuffix(ReadStream* stream,
+                            intptr_t offset,
+                            intptr_t length,
+                            intptr_t* target,
+                            intptr_t target_offset) {
+    stream->SetPosition(offset);
+    Reader::Read(stream);  // skip pc_offset
+    Reader::Read(stream);  // skip variables
+    intptr_t suffix_length = Reader::Read(stream);
+    intptr_t suffix_offset = Reader::Read(stream);
+    intptr_t to_read = length - suffix_length;
+    for (int j = 0; j < to_read; j++) {
+      target[target_offset + 2 * j] = Reader::Read(stream);
+      target[target_offset + 2 * j + 1] = Reader::Read(stream);
+    }
+    if (suffix_length > 0) {
+      ReadCompressedSuffix(stream, suffix_offset, suffix_length, target,
+                           target_offset + to_read * 2);
+    }
+  }
+
+#else
+  void GetMetaDataFromDeopt(intptr_t num_vars, StackFrame* frame) {
+    Isolate* isolate = thread_->isolate();
+    DeoptContext* deopt_context =
+        new DeoptContext(frame, *code_, DeoptContext::kDestIsAllocated, NULL,
+                         NULL, true, false /* deoptimizing_code */);
+    isolate->set_deopt_context(deopt_context);
+
+    metadata_ = deopt_context->CatchEntryState(num_vars);
+
+    isolate->set_deopt_context(NULL);
+    delete deopt_context;
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+
+  bool needs_stacktrace;
+  uword handler_pc;
+  uword handler_sp;
+  uword handler_fp;
+
+ private:
+  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
+  Thread* thread_;
+  CatchEntryStateCache* cache_;
+  Code* code_;
+  bool handler_pc_set_;
+  intptr_t* metadata_;      // MetaData generated from deopt.
+  CatchEntryState cached_;  // Value of per PC MetaData cache.
+  intptr_t pc_;             // Current pc in the handler frame.
+};
 
 
 static void FindErrorHandler(uword* handler_pc,
@@ -369,18 +527,7 @@ static RawField* LookupStackTraceField(const Instance& instance) {
 
 
 RawStackTrace* Exceptions::CurrentStackTrace() {
-  Zone* zone = Thread::Current()->zone();
-  RegularStackTraceBuilder frame_builder(zone);
-  BuildStackTrace(&frame_builder);
-
-  // Create arrays for code and pc_offset tuples of each frame.
-  const Array& full_code_array =
-      Array::Handle(zone, Array::MakeArray(frame_builder.code_list()));
-  const Array& full_pc_offset_array =
-      Array::Handle(zone, Array::MakeArray(frame_builder.pc_offset_list()));
-  const StackTrace& full_stacktrace = StackTrace::Handle(
-      StackTrace::New(full_code_array, full_pc_offset_array));
-  return full_stacktrace.raw();
+  return GetStackTraceForException();
 }
 
 
@@ -399,16 +546,15 @@ static void ThrowExceptionHelper(Thread* thread,
              exception.raw() == isolate->object_store()->stack_overflow()) {
     use_preallocated_stacktrace = true;
   }
-  uword handler_pc = 0;
-  uword handler_sp = 0;
-  uword handler_fp = 0;
-  Instance& stacktrace = Instance::Handle(zone);
-  bool handler_exists = false;
-  bool handler_needs_stacktrace = false;
   // Find the exception handler and determine if the handler needs a
   // stacktrace.
-  handler_exists = FindExceptionHandler(thread, &handler_pc, &handler_sp,
-                                        &handler_fp, &handler_needs_stacktrace);
+  ExceptionHandlerFinder finder(thread);
+  bool handler_exists = finder.Find();
+  uword handler_pc = finder.handler_pc;
+  uword handler_sp = finder.handler_sp;
+  uword handler_fp = finder.handler_fp;
+  bool handler_needs_stacktrace = finder.needs_stacktrace;
+  Instance& stacktrace = Instance::Handle(zone);
   if (use_preallocated_stacktrace) {
     if (handler_pc == 0) {
       // No Dart frame.
@@ -421,7 +567,10 @@ static void ThrowExceptionHelper(Thread* thread,
     }
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
-    if (handler_needs_stacktrace) {
+    ASSERT(existing_stacktrace.IsNull() ||
+           (existing_stacktrace.raw() == stacktrace.raw()));
+    ASSERT(existing_stacktrace.IsNull() || is_rethrow);
+    if (handler_needs_stacktrace && existing_stacktrace.IsNull()) {
       BuildStackTrace(&frame_builder);
     }
   } else {
@@ -460,6 +609,7 @@ static void ThrowExceptionHelper(Thread* thread,
     THR_Print("%s\n", stacktrace.ToCString());
   }
   if (handler_exists) {
+    finder.TrySync();
     // Found a dart handler for the exception, jump to it.
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            exception, stacktrace);
@@ -724,6 +874,13 @@ void Exceptions::ThrowRangeError(const char* argument_name,
 }
 
 
+void Exceptions::ThrowRangeErrorMsg(const char* msg) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, String::Handle(String::New(msg)));
+  Exceptions::ThrowByType(Exceptions::kRangeMsg, args);
+}
+
+
 void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(error.FormatMessage()));
@@ -745,6 +902,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::RangeError();
       constructor_name = &Symbols::DotRange();
+      break;
+    case kRangeMsg:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::RangeError();
+      constructor_name = &Symbols::Dot();
       break;
     case kArgument:
       library = Library::CoreLibrary();

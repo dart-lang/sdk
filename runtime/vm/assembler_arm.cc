@@ -15,7 +15,7 @@
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
 #if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
-    !TARGET_OS_IOS
+    !HOST_OS_IOS
 #error ARM cross-compile only supported on Linux
 #endif
 
@@ -1791,8 +1791,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, Operand(object));
   }
-  ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   blx(LR);
   PopList(regs);
   Bind(&done);
@@ -3047,9 +3047,12 @@ void Assembler::AddImmediate(Register rd,
     } else if (Operand::CanHold(~(-value), &o)) {
       mvn(IP, o, cond);
       sub(rd, rn, Operand(IP), cond);
-    } else {
+    } else if (value > 0) {
       LoadDecodableImmediate(IP, value, cond);
       add(rd, rn, Operand(IP), cond);
+    } else {
+      LoadDecodableImmediate(IP, -value, cond);
+      sub(rd, rn, Operand(IP), cond);
     }
   }
 }
@@ -3190,7 +3193,9 @@ void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
     // Set FP to the saved previous FP.
     add(FP, SP, Operand(4 * NumRegsBelowFP(regs)));
   }
-  AddImmediate(SP, -frame_size);
+  if (frame_size != 0) {
+    AddImmediate(SP, -frame_size);
+  }
 }
 
 

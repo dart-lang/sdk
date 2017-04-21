@@ -10,7 +10,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(AllocateZone) {
+VM_UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -22,7 +22,7 @@ UNIT_TEST_CASE(AllocateZone) {
     StackZone stack_zone(thread);
     EXPECT(thread->zone() != NULL);
     Zone* zone = stack_zone.GetZone();
-    intptr_t allocated_size = 0;
+    uintptr_t allocated_size = 0;
 
     // The loop is to make sure we overflow one segment and go on
     // to the next segment.
@@ -72,7 +72,7 @@ UNIT_TEST_CASE(AllocateZone) {
 }
 
 
-UNIT_TEST_CASE(AllocGeneric_Success) {
+VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -83,7 +83,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
   {
     StackZone zone(thread);
     EXPECT(thread->zone() != NULL);
-    intptr_t allocated_size = 0;
+    uintptr_t allocated_size = 0;
 
     const intptr_t kNumElements = 1000;
     zone.GetZone()->Alloc<uint32_t>(kNumElements);
@@ -96,7 +96,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 
 
 // This test is expected to crash.
-UNIT_TEST_CASE(AllocGeneric_Overflow) {
+VM_UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -115,7 +115,7 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 }
 
 
-UNIT_TEST_CASE(ZoneAllocated) {
+VM_UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -139,13 +139,13 @@ UNIT_TEST_CASE(ZoneAllocated) {
   // Create a few zone allocated objects.
   {
     StackZone zone(thread);
-    EXPECT_EQ(0, zone.SizeInBytes());
+    EXPECT_EQ(0UL, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
     EXPECT(first != NULL);
     SimpleZoneObject* second = new SimpleZoneObject();
     EXPECT(second != NULL);
     EXPECT(first != second);
-    intptr_t expected_size = (2 * sizeof(SimpleZoneObject));
+    uintptr_t expected_size = (2 * sizeof(SimpleZoneObject));
     EXPECT_LE(expected_size, zone.SizeInBytes());
 
     // Make sure the constructors were invoked.
@@ -170,69 +170,10 @@ TEST_CASE(PrintToString) {
 }
 
 
-#ifndef PRODUCT
-UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
-#if defined(DEBUG)
-  FLAG_trace_zones = true;
-#endif
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
-  Thread* thread = Thread::Current();
-  EXPECT(thread->zone() == NULL);
-  {
-    StackZone zone(thread);
-    StackZone string_stack_zone(thread);
-    EXPECT(thread->zone() != NULL);
-
-    intptr_t allocated_size = 0;
-    const intptr_t kNumElements = 1000;
-
-    zone.GetZone()->Alloc<uint32_t>(kNumElements);
-    allocated_size += sizeof(uint32_t) * kNumElements;
-
-    EXPECT_LE(allocated_size, zone.SizeInBytes());
-    {
-      JSONStream stream;
-      // Get the JSON formated zone information.
-      zone.GetZone()->PrintJSON(&stream);
-      const char* json = stream.ToCString();
-      // Ensure that  matches actual values.
-      char* size_buf =
-          OS::SCreate(string_stack_zone.GetZone(), "\"capacity\":%" Pd
-                                                   ","
-                                                   "\"used\":%" Pd "",
-                      zone.CapacityInBytes(), zone.SizeInBytes());
-      EXPECT_LE(zone.SizeInBytes(), zone.CapacityInBytes());
-      EXPECT_SUBSTRING(size_buf, json);
-    }
-
-    // Expand the zone to ensure that JSON is updated accordingly.
-    zone.GetZone()->Alloc<uint32_t>(kNumElements);
-    allocated_size += sizeof(uint32_t) * kNumElements;
-    EXPECT_LE(allocated_size, zone.SizeInBytes());
-    {
-      JSONStream stream;
-      zone.GetZone()->PrintJSON(&stream);
-      const char* json = stream.ToCString();
-      char* size_buf =
-          OS::SCreate(string_stack_zone.GetZone(), "\"capacity\":%" Pd
-                                                   ","
-                                                   "\"used\":%" Pd "",
-                      zone.CapacityInBytes(), zone.SizeInBytes());
-      EXPECT_LE(zone.SizeInBytes(), zone.CapacityInBytes());
-      EXPECT_SUBSTRING(size_buf, json);
-    }
-  }
-  EXPECT(thread->zone() == NULL);
-  Dart_ShutdownIsolate();
-}
-#endif
-
-
-UNIT_TEST_CASE(NativeScopeZoneAllocation) {
+VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
   ASSERT(ApiNativeScope::Current() == NULL);
   ASSERT(Thread::Current() == NULL);
-  EXPECT_EQ(0, ApiNativeScope::current_memory_usage());
+  EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
   {
     ApiNativeScope scope;
     EXPECT_EQ(scope.zone()->CapacityInBytes(),
@@ -241,7 +182,7 @@ UNIT_TEST_CASE(NativeScopeZoneAllocation) {
     EXPECT_EQ(scope.zone()->CapacityInBytes(),
               ApiNativeScope::current_memory_usage());
   }
-  EXPECT_EQ(0, ApiNativeScope::current_memory_usage());
+  EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
 }
 
 }  // namespace dart

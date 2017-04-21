@@ -53,8 +53,8 @@ library kernel.ast;
 import 'visitor.dart';
 export 'visitor.dart';
 
-import 'type_propagation/type_propagation.dart';
-export 'type_propagation/type_propagation.dart';
+import 'canonical_name.dart' show CanonicalName;
+export 'canonical_name.dart' show CanonicalName;
 
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
@@ -92,9 +92,10 @@ abstract class TreeNode extends Node {
 
   TreeNode parent;
 
-  /// Offset in the source file it comes from. Valid values are from 0 and up,
-  /// or -1 ([noOffset]) if the file offset is not available
-  /// (this is the default if none is specifically set).
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([noOffset]) if the file offset is
+  /// not available (this is the default if none is specifically set).
   int fileOffset = noOffset;
 
   accept(TreeVisitor v);
@@ -152,11 +153,86 @@ abstract class TreeNode extends Node {
   }
 }
 
+/// An AST node that can be referenced by other nodes.
+///
+/// There is a single [reference] belonging to this node, providing a level of
+/// indirection that is needed during serialization.
+abstract class NamedNode extends TreeNode {
+  final Reference reference;
+
+  NamedNode(Reference reference)
+      : this.reference = reference ?? new Reference() {
+    this.reference.node = this;
+  }
+
+  CanonicalName get canonicalName => reference?.canonicalName;
+}
+
+/// Indirection between a reference and its definition.
+///
+/// There is only one reference object per [NamedNode].
+class Reference {
+  CanonicalName canonicalName;
+  NamedNode node;
+
+  String toString() {
+    if (canonicalName != null) {
+      return 'Reference to $canonicalName';
+    }
+    if (node != null) {
+      return 'Reference to $node';
+    }
+    return 'Unbound reference';
+  }
+
+  Library get asLibrary {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A library was expected';
+    }
+    return node as Library;
+  }
+
+  Class get asClass {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A class was expected';
+    }
+    return node as Class;
+  }
+
+  Member get asMember {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A member was expected';
+    }
+    return node as Member;
+  }
+
+  Field get asField {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A field was expected';
+    }
+    return node as Field;
+  }
+
+  Constructor get asConstructor {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A constructor was expected';
+    }
+    return node as Constructor;
+  }
+
+  Procedure get asProcedure {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A procedure was expected';
+    }
+    return node as Procedure;
+  }
+}
+
 // ------------------------------------------------------------------------
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-class Library extends TreeNode implements Comparable<Library> {
+class Library extends NamedNode implements Comparable<Library> {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -179,6 +255,7 @@ class Library extends TreeNode implements Comparable<Library> {
   bool isExternal;
 
   String name;
+  final List<DeferredImport> deferredImports;
   final List<Class> classes;
   final List<Procedure> procedures;
   final List<Field> fields;
@@ -186,12 +263,17 @@ class Library extends TreeNode implements Comparable<Library> {
   Library(this.importUri,
       {this.name,
       this.isExternal: false,
+      List<DeferredImport> imports,
       List<Class> classes,
       List<Procedure> procedures,
-      List<Field> fields})
-      : this.classes = classes ?? <Class>[],
+      List<Field> fields,
+      this.fileUri,
+      Reference reference})
+      : this.deferredImports = imports ?? <DeferredImport>[],
+        this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
-        this.fields = fields ?? <Field>[] {
+        this.fields = fields ?? <Field>[],
+        super(reference) {
     setParents(this.classes, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
@@ -218,6 +300,20 @@ class Library extends TreeNode implements Comparable<Library> {
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
+  }
+
+  void computeCanonicalNames() {
+    assert(canonicalName != null);
+    for (var field in fields) {
+      canonicalName.getChildFromMember(field).bindTo(field.reference);
+    }
+    for (var member in procedures) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var class_ in classes) {
+      canonicalName.getChild(class_.name).bindTo(class_.reference);
+      class_.computeCanonicalNames();
+    }
   }
 
   accept(TreeVisitor v) => v.visitLibrary(this);
@@ -248,6 +344,26 @@ class Library extends TreeNode implements Comparable<Library> {
   }
 }
 
+/// An import of form: `import <url> deferred as <name>;`.
+class DeferredImport extends TreeNode {
+  Reference importedLibraryReference;
+  String name;
+
+  DeferredImport(Library importedLibrary, String name)
+      : this.byReference(importedLibrary.reference, name);
+
+  DeferredImport.byReference(this.importedLibraryReference, this.name);
+
+  Library get enclosingLibrary => parent;
+  Library get importedLibrary => importedLibraryReference.asLibrary;
+
+  accept(TreeVisitor v) => v.visitDeferredImport(this);
+
+  visitChildren(Visitor v) {}
+
+  transformChildren(Transformer v) {}
+}
+
 /// The degree to which the contents of a class have been loaded into memory.
 ///
 /// Each level imply the requirements of the previous ones.
@@ -274,6 +390,18 @@ enum ClassLevel {
   /// members needed to detect override constraints.
   Hierarchy,
 
+  /// All instance members of the class have their body loaded, and their
+  /// annotations are present.
+  ///
+  /// All supertypes of this class are at [Hierarchy] level or higher.
+  ///
+  /// If this class is a mixin application, then its mixin is loaded at [Mixin]
+  /// level or higher.
+  ///
+  /// This level exists so the contents of a mixin can be cloned into a
+  /// mixin application.
+  Mixin,
+
   /// All members of the class are fully loaded and are in the correct order.
   ///
   /// Annotations are present on classes and members.
@@ -289,7 +417,7 @@ enum ClassLevel {
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends TreeNode {
+class Class extends NamedNode {
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -346,16 +474,31 @@ class Class extends TreeNode {
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,
-      this.fileUri})
+      this.fileUri,
+      Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
-        this.procedures = procedures ?? <Procedure>[] {
+        this.procedures = procedures ?? <Procedure>[],
+        super(reference) {
     setParents(this.typeParameters, this);
     setParents(this.constructors, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+  }
+
+  void computeCanonicalNames() {
+    assert(canonicalName != null);
+    for (var member in fields) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in procedures) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in constructors) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
   }
 
   /// The immediate super class, or `null` if this is the root class.
@@ -490,14 +633,7 @@ class Class extends TreeNode {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-/// A indirect reference to a member, which can be updated to point at another
-/// member at a later time.
-class _MemberAccessor {
-  Member target;
-  _MemberAccessor(this.target);
-}
-
-abstract class Member extends TreeNode {
+abstract class Member extends NamedNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -527,7 +663,7 @@ abstract class Member extends TreeNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name);
+  Member(this.name, Reference reference) : super(reference);
 
   Class get enclosingClass => parent is Class ? parent : null;
   Library get enclosingLibrary => parent is Class ? parent.parent : parent;
@@ -585,9 +721,6 @@ abstract class Member extends TreeNode {
   bool get containsSuperCalls {
     return transformerFlags & TransformerFlag.superCalls != 0;
   }
-
-  _MemberAccessor get _getterInterface;
-  _MemberAccessor get _setterInterface;
 }
 
 /// A field declaration.
@@ -595,10 +728,7 @@ abstract class Member extends TreeNode {
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
 class Field extends Member {
-  _MemberAccessor _getterInterface, _setterInterface;
-
   DartType type; // Not null. Defaults to DynamicType.
-  InferredValue inferredValue; // May be null.
   int flags = 0;
   Expression initializer; // May be null.
 
@@ -607,7 +737,6 @@ class Field extends Member {
 
   Field(Name name,
       {this.type: const DynamicType(),
-      this.inferredValue,
       this.initializer,
       bool isFinal: false,
       bool isConst: false,
@@ -615,10 +744,9 @@ class Field extends Member {
       bool hasImplicitGetter,
       bool hasImplicitSetter,
       int transformerFlags: 0,
-      this.fileUri})
-      : super(name) {
-    _getterInterface = new _MemberAccessor(this);
-    _setterInterface = new _MemberAccessor(this);
+      this.fileUri,
+      Reference reference})
+      : super(name, reference) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
@@ -701,7 +829,6 @@ class Field extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     type?.accept(v);
-    inferredValue?.accept(v);
     name?.accept(v);
     initializer?.accept(v);
   }
@@ -717,46 +844,6 @@ class Field extends Member {
 
   DartType get getterType => type;
   DartType get setterType => isMutable ? type : const BottomType();
-
-  /// Makes all [PropertyGet]s that have this field as its interface target
-  /// use [getter] as its interface target instead.
-  ///
-  /// That can be used to introduce an explicit getter for a field instead of
-  /// its implicit getter.
-  ///
-  /// This method only updates the stored interface target -- the caller must
-  /// ensure that [getter] actually becomes the target for dispatches that
-  /// would previously hit the implicit field getter.
-  ///
-  /// [DirectPropertyGet]s are not affected, and will continue to access the
-  /// field directly. [PropertyGet] nodes created after the call will not be
-  /// affected until the method is called again.
-  ///
-  /// Existing [ClassHierarchy] instances are not affected by this call.
-  void replaceGetterInterfaceWith(Procedure getter) {
-    _getterInterface.target = getter;
-    _getterInterface = new _MemberAccessor(this);
-  }
-
-  /// Makes all [PropertySet]s that have this field as its interface target
-  /// use [setter] as its interface target instead.
-  ///
-  /// That can be used to introduce an explicit setter for a field instead of
-  /// its implicit setter.
-  ///
-  /// This method only updates the stored interface target -- the caller must
-  /// ensure that [setter] actually becomes the target for dispatches that
-  /// would previously hit the implicit field setter.
-  ///
-  /// [DirectPropertySet] and [FieldInitializer]s are not affected, and will
-  /// continue to access the field directly.  [PropertySet] nodes created after
-  /// the call will not be affected until the method is called again.
-  ///
-  /// Existing [ClassHierarchy] instances are not affected by this call.
-  void replaceSetterInterfaceWith(Procedure setter) {
-    _setterInterface.target = setter;
-    _setterInterface = new _MemberAccessor(this);
-  }
 
   Location _getLocationInEnclosingFile(int offset) {
     return enclosingProgram.getLocation(fileUri, offset);
@@ -781,9 +868,10 @@ class Constructor extends Member {
       bool isConst: false,
       bool isExternal: false,
       List<Initializer> initializers,
-      int transformerFlags: 0})
+      int transformerFlags: 0,
+      Reference reference})
       : this.initializers = initializers ?? <Initializer>[],
-        super(name) {
+        super(name, reference) {
     function?.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
@@ -832,14 +920,6 @@ class Constructor extends Member {
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
-
-  _MemberAccessor get _getterInterface {
-    throw 'Constructors cannot be used as getters';
-  }
-
-  _MemberAccessor get _setterInterface {
-    throw 'Constructors cannot be used as setters';
-  }
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -858,7 +938,6 @@ class Constructor extends Member {
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
 class Procedure extends Member {
-  _MemberAccessor _reference;
   ProcedureKind kind;
   int flags = 0;
   FunctionNode function; // Body is null if and only if abstract or external.
@@ -872,9 +951,9 @@ class Procedure extends Member {
       bool isExternal: false,
       bool isConst: false,
       int transformerFlags: 0,
-      this.fileUri})
-      : super(name) {
-    _reference = new _MemberAccessor(this);
+      this.fileUri,
+      Reference reference})
+      : super(name, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -918,6 +997,7 @@ class Procedure extends Member {
   bool get isAccessor => isGetter || isSetter;
   bool get hasGetter => kind != ProcedureKind.Setter;
   bool get hasSetter => kind == ProcedureKind.Setter;
+  bool get isFactory => kind == ProcedureKind.Factory;
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 
@@ -946,9 +1026,6 @@ class Procedure extends Member {
         ? function.positionalParameters[0].type
         : const BottomType();
   }
-
-  _MemberAccessor get _getterInterface => _reference;
-  _MemberAccessor get _setterInterface => _reference;
 
   Location _getLocationInEnclosingFile(int offset) {
     return enclosingProgram.getLocation(fileUri, offset);
@@ -995,11 +1072,20 @@ class InvalidInitializer extends Initializer {
 //  exactly once, and that no fields are assigned twice in the initializer list.
 class FieldInitializer extends Initializer {
   /// Reference to the field being initialized.  Not null.
-  Field field;
+  Reference fieldReference;
   Expression value;
 
-  FieldInitializer(this.field, this.value) {
+  FieldInitializer(Field field, Expression value)
+      : this.byReference(field?.reference, value);
+
+  FieldInitializer.byReference(this.fieldReference, this.value) {
     value?.parent = this;
+  }
+
+  Field get field => fieldReference?.node;
+
+  void set field(Field field) {
+    fieldReference = field?.reference;
   }
 
   accept(InitializerVisitor v) => v.visitFieldInitializer(this);
@@ -1028,11 +1114,20 @@ class FieldInitializer extends Initializer {
 // from the extends clause.
 class SuperInitializer extends Initializer {
   /// Reference to the constructor being invoked in the super class. Not null.
-  Constructor target;
+  Reference targetReference;
   Arguments arguments;
 
-  SuperInitializer(this.target, this.arguments) {
+  SuperInitializer(Constructor target, Arguments arguments)
+      : this.byReference(getMemberReference(target), arguments);
+
+  SuperInitializer.byReference(this.targetReference, this.arguments) {
     arguments?.parent = this;
+  }
+
+  Constructor get target => targetReference?.asConstructor;
+
+  void set target(Constructor target) {
+    targetReference = getMemberReference(target);
   }
 
   accept(InitializerVisitor v) => v.visitSuperInitializer(this);
@@ -1057,11 +1152,20 @@ class SuperInitializer extends Initializer {
 // constructor has a body or if there is a cycle in the initializer calls.
 class RedirectingInitializer extends Initializer {
   /// Reference to the constructor being invoked in the same class. Not null.
-  Constructor target;
+  Reference targetReference;
   Arguments arguments;
 
-  RedirectingInitializer(this.target, this.arguments) {
+  RedirectingInitializer(Constructor target, Arguments arguments)
+      : this.byReference(getMemberReference(target), arguments);
+
+  RedirectingInitializer.byReference(this.targetReference, this.arguments) {
     arguments?.parent = this;
+  }
+
+  Constructor get target => targetReference?.asConstructor;
+
+  void set target(Constructor target) {
+    targetReference = getMemberReference(target);
   }
 
   accept(InitializerVisitor v) => v.visitRedirectingInitializer(this);
@@ -1118,13 +1222,25 @@ class FunctionNode extends TreeNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
+  /// Kernel async marker for the function.
+  ///
+  /// See also [dartAsyncMarker].
   AsyncMarker asyncMarker;
-  bool debuggable = true;
+
+  /// Dart async marker for the function.
+  ///
+  /// See also [asyncMarker].
+  ///
+  /// A Kernel function can represent a Dart function with a different async
+  /// marker.
+  ///
+  /// For example, when async/await is translated away,
+  /// a Dart async function might be represented by a Kernel sync function.
+  AsyncMarker dartAsyncMarker;
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
-  InferredValue inferredReturnValue; // May be null.
   DartType returnType; // Not null.
   Statement body;
 
@@ -1134,8 +1250,8 @@ class FunctionNode extends TreeNode {
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
       this.returnType: const DynamicType(),
-      this.inferredReturnValue,
-      this.asyncMarker: AsyncMarker.Sync})
+      this.asyncMarker: AsyncMarker.Sync,
+      this.dartAsyncMarker})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =
@@ -1147,6 +1263,7 @@ class FunctionNode extends TreeNode {
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
     body?.parent = this;
+    dartAsyncMarker ??= asyncMarker;
   }
 
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;
@@ -1177,7 +1294,6 @@ class FunctionNode extends TreeNode {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType?.accept(v);
-    inferredReturnValue?.accept(v);
     body?.accept(v);
   }
 
@@ -1284,6 +1400,7 @@ abstract class Expression extends TreeNode {
   }
 
   accept(ExpressionVisitor v);
+  accept1(ExpressionVisitor1 v, arg);
 }
 
 /// An expression containing compile-time errors.
@@ -1293,6 +1410,7 @@ class InvalidExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitInvalidExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInvalidExpression(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -1310,6 +1428,7 @@ class VariableGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitVariableGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVariableGet(this, arg);
 
   visitChildren(Visitor v) {
     promotedType?.accept(v);
@@ -1336,6 +1455,7 @@ class VariableSet extends Expression {
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitVariableSet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVariableSet(this, arg);
 
   visitChildren(Visitor v) {
     value?.accept(v);
@@ -1356,17 +1476,20 @@ class PropertyGet extends Expression {
   Expression receiver;
   Name name;
 
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  PropertyGet(this.receiver, this.name, [Member interfaceTarget]) {
+  PropertyGet(Expression receiver, Name name, [Member interfaceTarget])
+      : this.byReference(receiver, name, getMemberReference(interfaceTarget));
+
+  PropertyGet.byReference(
+      this.receiver, this.name, this.interfaceTargetReference) {
     receiver?.parent = this;
-    this.interfaceTarget = interfaceTarget;
   }
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._getterInterface;
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1389,6 +1512,7 @@ class PropertyGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitPropertyGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1413,23 +1537,29 @@ class PropertySet extends Expression {
   Name name;
   Expression value;
 
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  PropertySet(this.receiver, this.name, this.value, [Member interfaceTarget]) {
+  PropertySet(Expression receiver, Name name, Expression value,
+      [Member interfaceTarget])
+      : this.byReference(
+            receiver, name, value, getMemberReference(interfaceTarget));
+
+  PropertySet.byReference(
+      this.receiver, this.name, this.value, this.interfaceTargetReference) {
     receiver?.parent = this;
     value?.parent = this;
-    this.interfaceTarget = interfaceTarget;
   }
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._setterInterface;
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitPropertySet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitPropertySet(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1452,10 +1582,19 @@ class PropertySet extends Expression {
 /// Directly read a field, call a getter, or tear off a method.
 class DirectPropertyGet extends Expression {
   Expression receiver;
-  Member target;
+  Reference targetReference;
 
-  DirectPropertyGet(this.receiver, this.target) {
+  DirectPropertyGet(Expression receiver, Member target)
+      : this.byReference(receiver, getMemberReference(target));
+
+  DirectPropertyGet.byReference(this.receiver, this.targetReference) {
     receiver?.parent = this;
+  }
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
   }
 
   visitChildren(Visitor v) {
@@ -1471,6 +1610,7 @@ class DirectPropertyGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitDirectPropertyGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitDirectPropertyGet(this, arg);
 
   DartType getStaticType(TypeEnvironment types) {
     Class superclass = target.enclosingClass;
@@ -1486,12 +1626,22 @@ class DirectPropertyGet extends Expression {
 /// Evaluates to the value of [value].
 class DirectPropertySet extends Expression {
   Expression receiver;
-  Member target;
+  Reference targetReference;
   Expression value;
 
-  DirectPropertySet(this.receiver, this.target, this.value) {
+  DirectPropertySet(Expression receiver, Member target, Expression value)
+      : this.byReference(receiver, getMemberReference(target), value);
+
+  DirectPropertySet.byReference(
+      this.receiver, this.targetReference, this.value) {
     receiver?.parent = this;
     value?.parent = this;
+  }
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
   }
 
   visitChildren(Visitor v) {
@@ -1512,20 +1662,34 @@ class DirectPropertySet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitDirectPropertySet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitDirectPropertySet(this, arg);
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 }
 
 /// Directly call an instance method, bypassing ordinary dispatch.
-class DirectMethodInvocation extends Expression {
+class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
-  Procedure target;
+  Reference targetReference;
   Arguments arguments;
 
-  DirectMethodInvocation(this.receiver, this.target, this.arguments) {
+  DirectMethodInvocation(
+      Expression receiver, Procedure target, Arguments arguments)
+      : this.byReference(receiver, getMemberReference(target), arguments);
+
+  DirectMethodInvocation.byReference(
+      this.receiver, this.targetReference, this.arguments) {
     receiver?.parent = this;
     arguments?.parent = this;
   }
+
+  Procedure get target => targetReference?.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getMemberReference(target);
+  }
+
+  Name get name => target?.name;
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1545,6 +1709,8 @@ class DirectMethodInvocation extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitDirectMethodInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) =>
+      v.visitDirectMethodInvocation(this, arg);
 
   DartType getStaticType(TypeEnvironment types) {
     if (types.isOverloadedArithmeticOperator(target)) {
@@ -1567,16 +1733,17 @@ class DirectMethodInvocation extends Expression {
 /// This may invoke a getter, read a field, or tear off a method.
 class SuperPropertyGet extends Expression {
   Name name;
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertyGet(this.name, [Member interfaceTarget]) {
-    _interfaceTargetReference = interfaceTarget?._getterInterface;
-  }
+  SuperPropertyGet(Name name, [Member interfaceTarget])
+      : this.byReference(name, getMemberReference(interfaceTarget));
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._getterInterface;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1592,6 +1759,7 @@ class SuperPropertyGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitSuperPropertyGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSuperPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -1608,22 +1776,26 @@ class SuperPropertyGet extends Expression {
 class SuperPropertySet extends Expression {
   Name name;
   Expression value;
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertySet(this.name, this.value, [Member interfaceTarget]) {
+  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
+      : this.byReference(name, value, getMemberReference(interfaceTarget));
+
+  SuperPropertySet.byReference(
+      this.name, this.value, this.interfaceTargetReference) {
     value?.parent = this;
-    _interfaceTargetReference = interfaceTarget?._setterInterface;
   }
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._setterInterface;
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitSuperPropertySet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSuperPropertySet(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -1641,13 +1813,22 @@ class SuperPropertySet extends Expression {
 /// Read a static field, call a static getter, or tear off a static method.
 class StaticGet extends Expression {
   /// A static field, getter, or method (for tear-off).
-  Member target;
+  Reference targetReference;
 
-  StaticGet(this.target);
+  StaticGet(Member target) : this.byReference(getMemberReference(target));
+
+  StaticGet.byReference(this.targetReference);
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
+  }
 
   DartType getStaticType(TypeEnvironment types) => target.getterType;
 
   accept(ExpressionVisitor v) => v.visitStaticGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStaticGet(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -1661,16 +1842,26 @@ class StaticGet extends Expression {
 /// Evaluates to the value of [value].
 class StaticSet extends Expression {
   /// A mutable static field or a static setter.
-  Member target;
+  Reference targetReference;
   Expression value;
 
-  StaticSet(this.target, this.value) {
+  StaticSet(Member target, Expression value)
+      : this.byReference(getMemberReference(target), value);
+
+  StaticSet.byReference(this.targetReference, this.value) {
     value?.parent = this;
+  }
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitStaticSet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStaticSet(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -1761,12 +1952,23 @@ class MethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
 
-  Procedure interfaceTarget;
+  Reference interfaceTargetReference;
 
-  MethodInvocation(this.receiver, this.name, this.arguments,
-      [this.interfaceTarget]) {
+  MethodInvocation(Expression receiver, Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : this.byReference(
+            receiver, name, arguments, getMemberReference(interfaceTarget));
+
+  MethodInvocation.byReference(
+      this.receiver, this.name, this.arguments, this.interfaceTargetReference) {
     receiver?.parent = this;
     arguments?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Member target) {
+    interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1804,6 +2006,7 @@ class MethodInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitMethodInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1830,10 +2033,21 @@ class SuperMethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
 
-  Member interfaceTarget;
+  Reference interfaceTargetReference;
 
-  SuperMethodInvocation(this.name, this.arguments, this.interfaceTarget) {
+  SuperMethodInvocation(Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : this.byReference(name, arguments, getMemberReference(interfaceTarget));
+
+  SuperMethodInvocation.byReference(
+      this.name, this.arguments, this.interfaceTargetReference) {
     arguments?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Procedure target) {
+    interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1850,6 +2064,7 @@ class SuperMethodInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitSuperMethodInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSuperMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -1869,7 +2084,7 @@ class SuperMethodInvocation extends InvocationExpression {
 ///
 /// The provided arguments might not match the parameters of the target.
 class StaticInvocation extends InvocationExpression {
-  Procedure target;
+  Reference targetReference;
   Arguments arguments;
 
   /// True if this is a constant call to an external constant factory.
@@ -1877,8 +2092,19 @@ class StaticInvocation extends InvocationExpression {
 
   Name get name => target?.name;
 
-  StaticInvocation(this.target, this.arguments, {this.isConst: false}) {
+  StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
+      : this.byReference(getMemberReference(target), arguments,
+            isConst: isConst);
+
+  StaticInvocation.byReference(this.targetReference, this.arguments,
+      {this.isConst: false}) {
     arguments?.parent = this;
+  }
+
+  Procedure get target => targetReference?.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1888,6 +2114,7 @@ class StaticInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitStaticInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStaticInvocation(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -1910,14 +2137,26 @@ class StaticInvocation extends InvocationExpression {
 // `classTypeArguments`? They are quite different from type arguments to
 // generic functions.
 class ConstructorInvocation extends InvocationExpression {
-  Constructor target;
+  Reference targetReference;
   Arguments arguments;
   bool isConst;
 
   Name get name => target?.name;
 
-  ConstructorInvocation(this.target, this.arguments, {this.isConst: false}) {
+  ConstructorInvocation(Constructor target, Arguments arguments,
+      {bool isConst: false})
+      : this.byReference(getMemberReference(target), arguments,
+            isConst: isConst);
+
+  ConstructorInvocation.byReference(this.targetReference, this.arguments,
+      {this.isConst: false}) {
     arguments?.parent = this;
+  }
+
+  Constructor get target => targetReference?.asConstructor;
+
+  void set target(Constructor target) {
+    targetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1927,6 +2166,7 @@ class ConstructorInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitConstructorInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConstructorInvocation(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -1961,6 +2201,7 @@ class Not extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitNot(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitNot(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -1988,6 +2229,7 @@ class LogicalExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitLogicalExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitLogicalExpression(this, arg);
 
   visitChildren(Visitor v) {
     left?.accept(v);
@@ -2025,6 +2267,7 @@ class ConditionalExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => staticType;
 
   accept(ExpressionVisitor v) => v.visitConditionalExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConditionalExpression(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2069,6 +2312,7 @@ class StringConcatenation extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.stringType;
 
   accept(ExpressionVisitor v) => v.visitStringConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStringConcatenation(this, arg);
 
   visitChildren(Visitor v) {
     visitList(expressions, v);
@@ -2091,6 +2335,7 @@ class IsExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitIsExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitIsExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2118,6 +2363,7 @@ class AsExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => type;
 
   accept(ExpressionVisitor v) => v.visitAsExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitAsExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2149,6 +2395,7 @@ class StringLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.stringType;
 
   accept(ExpressionVisitor v) => v.visitStringLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStringLiteral(this, arg);
 }
 
 class IntLiteral extends BasicLiteral {
@@ -2159,6 +2406,7 @@ class IntLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.intType;
 
   accept(ExpressionVisitor v) => v.visitIntLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitIntLiteral(this, arg);
 }
 
 class DoubleLiteral extends BasicLiteral {
@@ -2169,6 +2417,7 @@ class DoubleLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.doubleType;
 
   accept(ExpressionVisitor v) => v.visitDoubleLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitDoubleLiteral(this, arg);
 }
 
 class BoolLiteral extends BasicLiteral {
@@ -2179,6 +2428,7 @@ class BoolLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitBoolLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitBoolLiteral(this, arg);
 }
 
 class NullLiteral extends BasicLiteral {
@@ -2187,6 +2437,7 @@ class NullLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitNullLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitNullLiteral(this, arg);
 }
 
 class SymbolLiteral extends Expression {
@@ -2197,6 +2448,7 @@ class SymbolLiteral extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.symbolType;
 
   accept(ExpressionVisitor v) => v.visitSymbolLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSymbolLiteral(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2210,6 +2462,7 @@ class TypeLiteral extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.typeType;
 
   accept(ExpressionVisitor v) => v.visitTypeLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitTypeLiteral(this, arg);
 
   visitChildren(Visitor v) {
     type?.accept(v);
@@ -2224,6 +2477,7 @@ class ThisExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.thisType;
 
   accept(ExpressionVisitor v) => v.visitThisExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitThisExpression(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2233,6 +2487,7 @@ class Rethrow extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitRethrow(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitRethrow(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2248,6 +2503,7 @@ class Throw extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitThrow(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitThrow(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2277,6 +2533,7 @@ class ListLiteral extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitListLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -2309,6 +2566,7 @@ class MapLiteral extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitMapLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitMapLiteral(this, arg);
 
   visitChildren(Visitor v) {
     keyType?.accept(v);
@@ -2364,6 +2622,7 @@ class AwaitExpression extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitAwaitExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitAwaitExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2390,6 +2649,7 @@ class FunctionExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => function.functionType;
 
   accept(ExpressionVisitor v) => v.visitFunctionExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitFunctionExpression(this, arg);
 
   visitChildren(Visitor v) {
     function?.accept(v);
@@ -2416,6 +2676,7 @@ class Let extends Expression {
   DartType getStaticType(TypeEnvironment types) => body.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitLet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitLet(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -2434,12 +2695,173 @@ class Let extends Expression {
   }
 }
 
+/// Attempt to load the library referred to by a deferred import.
+///
+/// This instruction is concerned with:
+/// - keeping track whether the deferred import is marked as 'loaded'
+/// - keeping track of whether the library code has already been downloaded
+/// - actually downloading and linking the library
+///
+/// Should return a future.  The value in this future will be the same value
+/// seen by callers of `loadLibrary` functions.
+///
+/// On backends that link the entire program eagerly, this instruction needs
+/// to mark the deferred import as 'loaded' and return a future.
+class LoadLibrary extends Expression {
+  /// Reference to a deferred import in the enclosing library.
+  DeferredImport import;
+
+  LoadLibrary(this.import);
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.futureType(const DynamicType());
+  }
+
+  accept(ExpressionVisitor v) => v.visitLoadLibrary(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitLoadLibrary(this, arg);
+
+  visitChildren(Visitor v) {}
+  transformChildren(Transformer v) {}
+}
+
+/// Checks that the given deferred import has been marked as 'loaded'.
+class CheckLibraryIsLoaded extends Expression {
+  /// Reference to a deferred import in the enclosing library.
+  DeferredImport import;
+
+  CheckLibraryIsLoaded(this.import);
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.objectType;
+  }
+
+  accept(ExpressionVisitor v) => v.visitCheckLibraryIsLoaded(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitCheckLibraryIsLoaded(this, arg);
+
+  visitChildren(Visitor v) {}
+  transformChildren(Transformer v) {}
+}
+
+/// Expression of the form `MakeVector(N)` where `N` is an integer representing
+/// the length of the vector.
+///
+/// For detailed comment about Vectors see [VectorType].
+class VectorCreation extends Expression {
+  int length;
+
+  VectorCreation(this.length);
+
+  accept(ExpressionVisitor v) => v.visitVectorCreation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorCreation(this, arg);
+
+  visitChildren(Visitor v) {}
+
+  transformChildren(Transformer v) {}
+
+  DartType getStaticType(TypeEnvironment types) {
+    return const VectorType();
+  }
+}
+
+/// Expression of the form `v[i]` where `v` is a vector expression, and `i` is
+/// an integer index.
+class VectorGet extends Expression {
+  Expression vectorExpression;
+  int index;
+
+  VectorGet(this.vectorExpression, this.index) {
+    vectorExpression?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitVectorGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorGet(this, arg);
+
+  visitChildren(Visitor v) {
+    vectorExpression.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (vectorExpression != null) {
+      vectorExpression = vectorExpression.accept(v);
+      vectorExpression?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return const DynamicType();
+  }
+}
+
+/// Expression of the form `v[i] = x` where `v` is a vector expression, `i` is
+/// an integer index, and `x` is an arbitrary expression.
+class VectorSet extends Expression {
+  Expression vectorExpression;
+  int index;
+  Expression value;
+
+  VectorSet(this.vectorExpression, this.index, this.value) {
+    vectorExpression?.parent = this;
+    value?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitVectorSet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorSet(this, arg);
+
+  visitChildren(Visitor v) {
+    vectorExpression.accept(v);
+    value.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (vectorExpression != null) {
+      vectorExpression = vectorExpression.accept(v);
+      vectorExpression?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return value.getStaticType(types);
+  }
+}
+
+/// Expression of the form `CopyVector(v)` where `v` is a vector expression.
+class VectorCopy extends Expression {
+  Expression vectorExpression;
+
+  VectorCopy(this.vectorExpression) {
+    vectorExpression?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitVectorCopy(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorCopy(this, arg);
+
+  visitChildren(Visitor v) {
+    vectorExpression.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (vectorExpression != null) {
+      vectorExpression = vectorExpression.accept(v);
+      vectorExpression?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return const VectorType();
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------
 
 abstract class Statement extends TreeNode {
   accept(StatementVisitor v);
+  accept1(StatementVisitor1 v, arg);
 }
 
 /// A statement with a compile-time error.
@@ -2447,6 +2869,7 @@ abstract class Statement extends TreeNode {
 /// Should throw an exception at runtime.
 class InvalidStatement extends Statement {
   accept(StatementVisitor v) => v.visitInvalidStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitInvalidStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2460,6 +2883,7 @@ class ExpressionStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitExpressionStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitExpressionStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2481,6 +2905,7 @@ class Block extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitBlock(this);
+  accept1(StatementVisitor1 v, arg) => v.visitBlock(this, arg);
 
   visitChildren(Visitor v) {
     visitList(statements, v);
@@ -2498,6 +2923,7 @@ class Block extends Statement {
 
 class EmptyStatement extends Statement {
   accept(StatementVisitor v) => v.visitEmptyStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitEmptyStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2513,6 +2939,7 @@ class AssertStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitAssertStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitAssertStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2544,6 +2971,7 @@ class LabeledStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitLabeledStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitLabeledStatement(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -2583,6 +3011,7 @@ class BreakStatement extends Statement {
   BreakStatement(this.target);
 
   accept(StatementVisitor v) => v.visitBreakStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitBreakStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2598,6 +3027,7 @@ class WhileStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitWhileStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitWhileStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2626,6 +3056,7 @@ class DoStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitDoStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitDoStatement(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -2658,6 +3089,7 @@ class ForStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitForStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitForStatement(this, arg);
 
   visitChildren(Visitor v) {
     visitList(variables, v);
@@ -2694,6 +3126,7 @@ class ForInStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitForInStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitForInStatement(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -2731,6 +3164,7 @@ class SwitchStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitSwitchStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitSwitchStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2751,22 +3185,26 @@ class SwitchStatement extends Statement {
 /// This is a potential target of [ContinueSwitchStatement].
 class SwitchCase extends TreeNode {
   final List<Expression> expressions;
+  final List<int> expressionOffsets;
   Statement body;
   bool isDefault;
 
-  SwitchCase(this.expressions, this.body, {this.isDefault: false}) {
+  SwitchCase(this.expressions, this.expressionOffsets, this.body,
+      {this.isDefault: false}) {
     setParents(expressions, this);
     body?.parent = this;
   }
 
   SwitchCase.defaultCase(this.body)
       : isDefault = true,
-        expressions = <Expression>[] {
+        expressions = <Expression>[],
+        expressionOffsets = <int>[] {
     body?.parent = this;
   }
 
   SwitchCase.empty()
       : expressions = <Expression>[],
+        expressionOffsets = <int>[],
         body = null,
         isDefault = false;
 
@@ -2793,6 +3231,8 @@ class ContinueSwitchStatement extends Statement {
   ContinueSwitchStatement(this.target);
 
   accept(StatementVisitor v) => v.visitContinueSwitchStatement(this);
+  accept1(StatementVisitor1 v, arg) =>
+      v.visitContinueSwitchStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2810,6 +3250,7 @@ class IfStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitIfStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitIfStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2841,6 +3282,7 @@ class ReturnStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitReturnStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitReturnStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2864,6 +3306,7 @@ class TryCatch extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitTryCatch(this);
+  accept1(StatementVisitor1 v, arg) => v.visitTryCatch(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -2929,6 +3372,7 @@ class TryFinally extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitTryFinally(this);
+  accept1(StatementVisitor1 v, arg) => v.visitTryFinally(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -2976,6 +3420,7 @@ class YieldStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitYieldStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitYieldStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2998,6 +3443,13 @@ class YieldStatement extends Statement {
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
 class VariableDeclaration extends Statement {
+  /// Offset of the equals sign in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
+  /// if the equals sign offset is not available (e.g. if not initialized)
+  /// (this is the default if none is specifically set).
+  int fileEqualsOffset = TreeNode.noOffset;
+
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -3006,7 +3458,6 @@ class VariableDeclaration extends Statement {
   String name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
-  InferredValue inferredValue; // May be null.
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
@@ -3017,7 +3468,6 @@ class VariableDeclaration extends Statement {
   VariableDeclaration(this.name,
       {this.initializer,
       this.type: const DynamicType(),
-      this.inferredValue,
       bool isFinal: false,
       bool isConst: false}) {
     assert(type != null);
@@ -3053,10 +3503,10 @@ class VariableDeclaration extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
+  accept1(StatementVisitor1 v, arg) => v.visitVariableDeclaration(this, arg);
 
   visitChildren(Visitor v) {
     type?.accept(v);
-    inferredValue?.accept(v);
     initializer?.accept(v);
   }
 
@@ -3086,6 +3536,7 @@ class FunctionDeclaration extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitFunctionDeclaration(this);
+  accept1(StatementVisitor1 v, arg) => v.visitFunctionDeclaration(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -3121,17 +3572,21 @@ class FunctionDeclaration extends Statement {
 abstract class Name implements Node {
   final int hashCode;
   final String name;
+  Reference get libraryName;
   Library get library;
   bool get isPrivate;
 
   Name._internal(this.hashCode, this.name);
 
-  factory Name(String name, [Library library]) {
+  factory Name(String name, [Library library]) =>
+      new Name.byReference(name, library?.reference);
+
+  factory Name.byReference(String name, Reference libraryName) {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
     if (name.startsWith('_')) {
-      assert(library != null);
-      return new _PrivateName(name, library);
+      assert(libraryName != null);
+      return new _PrivateName(name, libraryName);
     } else {
       return new _PublicName(name);
     }
@@ -3149,21 +3604,24 @@ abstract class Name implements Node {
 }
 
 class _PrivateName extends Name {
-  final Library library;
+  final Reference libraryName;
   bool get isPrivate => true;
 
-  _PrivateName(String name, Library library)
-      : this.library = library,
-        super._internal(_computeHashCode(name, library), name);
+  _PrivateName(String name, Reference libraryName)
+      : this.libraryName = libraryName,
+        super._internal(_computeHashCode(name, libraryName), name);
 
   String toString() => library != null ? '$library::$name' : name;
 
-  static int _computeHashCode(String name, Library library) {
-    return 131 * name.hashCode + 17 * library.hashCode;
+  Library get library => libraryName.asLibrary;
+
+  static int _computeHashCode(String name, Reference libraryName) {
+    return 131 * name.hashCode + 17 * libraryName.hashCode;
   }
 }
 
 class _PublicName extends Name {
+  Reference get libraryName => null;
   Library get library => null;
   bool get isPrivate => false;
 
@@ -3243,14 +3701,18 @@ class BottomType extends DartType {
 }
 
 class InterfaceType extends DartType {
-  final Class classNode;
+  final Reference className;
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
   InterfaceType(Class classNode, [List<DartType> typeArguments])
-      : this.classNode = classNode,
-        this.typeArguments = typeArguments ?? _defaultTypeArguments(classNode);
+      : this.byReference(getClassReference(classNode),
+            typeArguments ?? _defaultTypeArguments(classNode));
+
+  InterfaceType.byReference(this.className, this.typeArguments);
+
+  Class get classNode => className.asClass;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -3272,7 +3734,7 @@ class InterfaceType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is InterfaceType) {
-      if (classNode != other.classNode) return false;
+      if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (typeArguments[i] != other.typeArguments[i]) return false;
@@ -3284,12 +3746,42 @@ class InterfaceType extends DartType {
   }
 
   int get hashCode {
-    int hash = 0x3fffffff & classNode.hashCode;
+    int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
     return hash;
   }
+}
+
+/// [VectorType] represents Vectors, a special kind of data that is not
+/// available for use by Dart programmers directly. It is used by Kernel
+/// transformations as efficient index-based storage.
+///
+/// * Vectors aren't user-visible. For example, they are not supposed to be
+/// exposed to Dart programs through variables or be visible in stack traces.
+///
+/// * Vectors have fixed length at runtime. The length is known at compile
+/// time, and [VectorCreation] AST node stores it in a field.
+///
+/// * Indexes for accessing and assigning Vector items are known at compile
+/// time. The corresponding [VectorGet] and [VectorSet] AST nodes store the
+/// index in a field.
+///
+/// * For efficiency considerations, bounds checks aren't performed for Vectors.
+/// If necessary, a transformer or verifier can do this checks at compile-time,
+/// after adding length field to [VectorType], to make sure that previous
+/// transformations didn't introduce any access errors.
+///
+/// * Access to Vectors is untyped.
+///
+/// * Vectors can be used by various transformations of Kernel programs.
+/// Currently they are used by Closure Conversion to represent closure contexts.
+class VectorType extends DartType {
+  const VectorType();
+
+  accept(DartTypeVisitor v) => v.visitVectorType(this);
+  visitChildren(Visitor v) {}
 }
 
 /// A possibly generic function type.
@@ -3472,10 +3964,15 @@ class TypeParameter extends TreeNode {
 }
 
 class Supertype extends Node {
-  final Class classNode;
+  final Reference className;
   final List<DartType> typeArguments;
 
-  Supertype(this.classNode, this.typeArguments);
+  Supertype(Class classNode, List<DartType> typeArguments)
+      : this.byReference(getClassReference(classNode), typeArguments);
+
+  Supertype.byReference(this.className, this.typeArguments);
+
+  Class get classNode => className.asClass;
 
   accept(Visitor v) => v.visitSupertype(this);
 
@@ -3491,7 +3988,7 @@ class Supertype extends Node {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Supertype) {
-      if (classNode != other.classNode) return false;
+      if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (typeArguments[i] != other.typeArguments[i]) return false;
@@ -3503,7 +4000,7 @@ class Supertype extends Node {
   }
 
   int get hashCode {
-    int hash = 0x3fffffff & classNode.hashCode;
+    int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
@@ -3517,6 +4014,8 @@ class Supertype extends Node {
 
 /// A way to bundle up all the libraries in a program.
 class Program extends TreeNode {
+  final CanonicalName root = new CanonicalName.root();
+
   final List<Library> libraries;
 
   /// Map from a source file uri to a line-starts table and source code.
@@ -3525,12 +4024,29 @@ class Program extends TreeNode {
   final Map<String, Source> uriToSource;
 
   /// Reference to the main method in one of the libraries.
-  Procedure mainMethod;
+  Reference mainMethodName;
 
   Program([List<Library> libraries, Map<String, Source> uriToSource])
       : libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
-    setParents(libraries, this);
+    setParents(this.libraries, this);
+  }
+
+  void computeCanonicalNames() {
+    for (var library in libraries) {
+      root.getChildFromUri(library.importUri).bindTo(library.reference);
+      library.computeCanonicalNames();
+    }
+  }
+
+  void unbindCanonicalNames() {
+    root.unbindAll();
+  }
+
+  Procedure get mainMethod => mainMethodName?.asProcedure;
+
+  void set mainMethod(Procedure main) {
+    mainMethodName = getMemberReference(main);
   }
 
   accept(TreeVisitor v) => v.visitProgram(this);
@@ -3669,7 +4185,57 @@ class _ChildReplacer extends Transformer {
 
 class Source {
   final List<int> lineStarts;
-  final String source;
+  final List<int> source;
 
   Source(this.lineStarts, this.source);
+}
+
+/// Returns the [Reference] object for the given member.
+///
+/// Returns `null` if the member is `null`.
+Reference getMemberReference(Member member) {
+  return member?.reference;
+}
+
+/// Returns the [Reference] object for the given class.
+///
+/// Returns `null` if the class is `null`.
+Reference getClassReference(Class class_) {
+  return class_?.reference;
+}
+
+/// Returns the canonical name of [member], or throws an exception if the
+/// member has not been assigned a canonical name yet.
+///
+/// Returns `null` if the member is `null`.
+CanonicalName getCanonicalNameOfMember(Member member) {
+  if (member == null) return null;
+  if (member.canonicalName == null) {
+    throw '$member has no canonical name';
+  }
+  return member.canonicalName;
+}
+
+/// Returns the canonical name of [class_], or throws an exception if the
+/// class has not been assigned a canonical name yet.
+///
+/// Returns `null` if the class is `null`.
+CanonicalName getCanonicalNameOfClass(Class class_) {
+  if (class_ == null) return null;
+  if (class_.canonicalName == null) {
+    throw '$class_ has no canonical name';
+  }
+  return class_.canonicalName;
+}
+
+/// Returns the canonical name of [library], or throws an exception if the
+/// library has not been assigned a canonical name yet.
+///
+/// Returns `null` if the library is `null`.
+CanonicalName getCanonicalNameOfLibrary(Library library) {
+  if (library == null) return null;
+  if (library.canonicalName == null) {
+    throw '$library has no canonical name';
+  }
+  return library.canonicalName;
 }

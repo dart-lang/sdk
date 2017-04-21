@@ -17,10 +17,9 @@ part of dart.convert;
  */
 abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
   ByteConversionSink();
-  factory ByteConversionSink.withCallback(void callback(List<int> accumulated))
-      = _ByteCallbackSink;
-  factory ByteConversionSink.from(Sink<List<int>> sink)
-      = _ByteAdapterSink;
+  factory ByteConversionSink.withCallback(
+      void callback(List<int> accumulated)) = _ByteCallbackSink;
+  factory ByteConversionSink.from(Sink<List<int>> sink) = _ByteAdapterSink;
 
   /**
    * Adds the next [chunk] to `this`.
@@ -43,7 +42,6 @@ abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
  * inputs.
  */
 abstract class ByteConversionSinkBase extends ByteConversionSink {
-
   void add(List<int> chunk);
   void close();
 
@@ -64,8 +62,13 @@ class _ByteAdapterSink extends ByteConversionSinkBase {
 
   _ByteAdapterSink(this._sink);
 
-  void add(List<int> chunk) { _sink.add(chunk); }
-  void close() { _sink.close(); }
+  void add(List<int> chunk) {
+    _sink.add(chunk);
+  }
+
+  void close() {
+    _sink.close();
+  }
 }
 
 /**

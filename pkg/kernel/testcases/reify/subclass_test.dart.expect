@@ -1,0 +1,119 @@
+library superclass_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class X extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+  get $is$R() → core::bool
+    return false;
+}
+class Y extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+  get $is$R() → core::bool
+    return false;
+}
+class R extends core::Object implements int::HasRuntimeTypeGetter {
+  final field typ::ReifiedType $type;
+  constructor •(typ::ReifiedType $type) → void
+    : self::R::$type = $type, super core::Object::•()
+    ;
+  get $R$T() → typ::ReifiedType
+    return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](2))).[](0);
+  get $is$R() → core::bool
+    return true;
+  get runtimeType() → core::Type
+    return this.{=self::R::$type};
+}
+class A extends core::Object implements int::HasRuntimeTypeGetter {
+  final field typ::ReifiedType $type;
+  constructor •(typ::ReifiedType $type) → void
+    : self::A::$type = $type, super core::Object::•()
+    ;
+  method foo() → dynamic {
+    return new self::R::•(new typ::Interface::•(self::$declarations.[](2), typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](3)))));
+  }
+  get $A$T() → typ::ReifiedType
+    return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](3))).[](0);
+  get $is$R() → core::bool
+    return false;
+  get runtimeType() → core::Type
+    return this.{=self::A::$type};
+}
+class B extends self::A implements int::HasRuntimeTypeGetter {
+  constructor •(typ::ReifiedType $type) → void
+    : super self::A::•($type)
+    ;
+  get $B$T() → typ::ReifiedType
+    return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](4))).[](0);
+  get $is$R() → core::bool
+    return false;
+}
+class C extends self::A implements int::HasRuntimeTypeGetter {
+  constructor •(typ::ReifiedType $type) → void
+    : super self::A::•($type)
+    ;
+  get $C$T() → typ::ReifiedType
+    return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](5))).[](0);
+  get $is$R() → core::bool
+    return false;
+}
+class D extends self::B implements int::HasRuntimeTypeGetter {
+  constructor •(typ::ReifiedType $type) → void
+    : super self::B::•($type)
+    ;
+  get $D$T() → typ::ReifiedType
+    return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](6))).[](0);
+  get $is$R() → core::bool
+    return false;
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](20)));
+  dec::init(d, 1, new typ::Interface::•(d.[](20)));
+  dec::init(d, 2, new typ::Interface::•(d.[](20)));
+  dec::init(d, 3, new typ::Interface::•(d.[](20)));
+  dec::init(d, 4, new typ::Interface::•(d.[](3), <dynamic>[d.[](4).variables.[](0)]));
+  dec::init(d, 5, new typ::Interface::•(d.[](3), <dynamic>[new typ::Interface::•(d.[](1))]));
+  dec::init(d, 6, new typ::Interface::•(d.[](4), <dynamic>[new typ::Interface::•(d.[](2), <dynamic>[d.[](6).variables.[](0)])]));
+  dec::init(d, 7, new typ::Interface::•(d.[](20)));
+  dec::init(d, 8, new typ::Interface::•(d.[](20)));
+  dec::init(d, 9, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](22), <dynamic>[new typ::Interface::•(d.[](9))]), new typ::Interface::•(d.[](23))]);
+  dec::init(d, 10, new typ::Interface::•(d.[](24)));
+  dec::init(d, 11, new typ::Interface::•(d.[](24)));
+  dec::init(d, 12, new typ::Interface::•(d.[](20)));
+  dec::init(d, 13, new typ::Interface::•(d.[](25)));
+  dec::init(d, 14, new typ::Interface::•(d.[](25)));
+  dec::init(d, 15, new typ::Interface::•(d.[](25)));
+  dec::init(d, 16, new typ::Interface::•(d.[](25)));
+  dec::init(d, 17, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](26))]);
+  dec::init(d, 18, new typ::Interface::•(d.[](19)));
+  dec::init(d, 19, new typ::Interface::•(d.[](25)));
+  dec::init(d, 20, null);
+  dec::init(d, 22, new typ::Interface::•(d.[](20)));
+  dec::init(d, 23, new typ::Interface::•(d.[](20)));
+  dec::init(d, 24, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](22), <dynamic>[new typ::Interface::•(d.[](24))])]);
+  dec::init(d, 25, new typ::Interface::•(d.[](20)));
+  dec::init(d, 26, new typ::Interface::•(d.[](20)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["X", "Y", "R", "A", "B", "C", "D", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
+static method main() → dynamic {
+  tes::expectTrue(let dynamic #t1 = new self::A::•(new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t1 is int::HasRuntimeTypeGetter && #t1.$is$R && (let dynamic #t2 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]) in typ::isSubtypeOf(#t1.$type, #t2)));
+  tes::expectTrue(let dynamic #t3 = new self::B::•(new typ::Interface::•(self::$declarations.[](4), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t3 is int::HasRuntimeTypeGetter && #t3.$is$R && (let dynamic #t4 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]) in typ::isSubtypeOf(#t3.$type, #t4)));
+  tes::expectTrue(let dynamic #t5 = new self::C::•(new typ::Interface::•(self::$declarations.[](5), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t5 is int::HasRuntimeTypeGetter && #t5.$is$R && (let dynamic #t6 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]) in typ::isSubtypeOf(#t5.$type, #t6)));
+  tes::expectTrue(let dynamic #t7 = new self::D::•(new typ::Interface::•(self::$declarations.[](6), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t7 is int::HasRuntimeTypeGetter && #t7.$is$R && (let dynamic #t8 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])]) in typ::isSubtypeOf(#t7.$type, #t8)));
+  tes::expectTrue(!(let dynamic #t9 = new self::A::•(new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t9 is int::HasRuntimeTypeGetter && #t9.$is$R && (let dynamic #t10 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]) in typ::isSubtypeOf(#t9.$type, #t10))));
+  tes::expectTrue(!(let dynamic #t11 = new self::B::•(new typ::Interface::•(self::$declarations.[](4), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t11 is int::HasRuntimeTypeGetter && #t11.$is$R && (let dynamic #t12 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]) in typ::isSubtypeOf(#t11.$type, #t12))));
+  tes::expectTrue(!(let dynamic #t13 = new self::C::•(new typ::Interface::•(self::$declarations.[](5), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t13 is int::HasRuntimeTypeGetter && #t13.$is$R && (let dynamic #t14 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]) in typ::isSubtypeOf(#t13.$type, #t14))));
+  tes::expectTrue(!(let dynamic #t15 = new self::D::•(new typ::Interface::•(self::$declarations.[](6), <dynamic>[new typ::Interface::•(self::$declarations.[](0))])).{self::A::foo}() in #t15 is int::HasRuntimeTypeGetter && #t15.$is$R && (let dynamic #t16 = new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](2), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])]) in typ::isSubtypeOf(#t15.$type, #t16))));
+}

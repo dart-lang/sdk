@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS) && !TARGET_OS_IOS
+#if defined(HOST_OS_MACOS) && !HOST_OS_IOS
 
 #include "bin/secure_socket.h"
 #include "bin/secure_socket_macos.h"
@@ -1809,7 +1809,7 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS) && !TARGET_OS_IOS
+#endif  // defined(HOST_OS_MACOS) && !HOST_OS_IOS
 
 #endif  // !defined(DART_IO_DISABLED) &&
         // !defined(DART_IO_SECURE_SOCKET_DISABLED)

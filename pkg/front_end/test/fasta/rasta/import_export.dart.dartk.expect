@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "./foo.dart" as foo;
+
+static method main() → dynamic {
+  foo::foo();
+}

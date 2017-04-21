@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal";
+import "dart:_internal" hide Symbol;
+
+// Equivalent of calling FATAL from C++ code.
+_fatal(msg) native "DartAsync_fatal";
 
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
@@ -42,7 +45,7 @@ Function _asyncErrorWrapperHelper(continuation) {
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(
-    var object, Function thenCallback, Function errorCallback) {
+    var object, Function thenCallback, Function errorCallback, var awaiter) {
   if (object is! Future) {
     object = new _Future().._setValue(object);
   } else if (object is! _Future) {
@@ -56,7 +59,30 @@ Future _awaitHelper(
   //
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
+  object._awaiter = awaiter;
   return object._thenNoZoneRegistration(thenCallback, errorCallback);
+}
+
+// Called as part of the 'await for (...)' construct. Registers the
+// awaiter on the stream.
+void _asyncStarListenHelper(var object, var awaiter) {
+  if (object is! _StreamImpl) {
+    return;
+  }
+  // `object` is a `_StreamImpl`.
+  object._awaiter = awaiter;
+}
+
+void _asyncStarMoveNextHelper(var stream) {
+  if (stream is! _StreamImpl) {
+    return;
+  }
+  // stream is a _StreamImpl.
+  if (stream._generator == null) {
+    // No generator registered, this isn't an async* Stream.
+    return;
+  }
+  _moveNextDebuggerStepCheck(stream._generator);
 }
 
 // _AsyncStarStreamController is used by the compiler to implement
@@ -70,7 +96,14 @@ class _AsyncStarStreamController {
   bool isSuspendedAtYield = false;
   Completer cancellationCompleter = null;
 
-  Stream get stream => controller.stream;
+  Stream get stream {
+    Stream local = controller.stream;
+    if (local is! _StreamImpl) {
+      return local;
+    }
+    local._generator = asyncStarBody;
+    return local;
+  }
 
   void runBody() {
     isScheduled = false;
@@ -97,7 +130,7 @@ class _AsyncStarStreamController {
   // suspend;
   // if (controller.isCancelled) return;
   bool add(event) {
-    if (!onListenReceived) _fatal("yield before stream is listened to!");
+    if (!onListenReceived) _fatal("yield before stream is listened to");
     if (isSuspendedAtYield) _fatal("unexpected yield");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) {
@@ -115,7 +148,7 @@ class _AsyncStarStreamController {
   // Returns true if the caller should terminate
   // execution of the generator.
   bool addStream(Stream stream) {
-    if (!onListenReceived) _fatal("yield before stream is listened to!");
+    if (!onListenReceived) _fatal("yield before stream is listened to");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) return true;
     isAdding = true;
@@ -155,9 +188,10 @@ class _AsyncStarStreamController {
   }
 
   _AsyncStarStreamController(this.asyncStarBody) {
-    controller = new StreamController(onListen: this.onListen,
-                                      onResume: this.onResume,
-                                      onCancel: this.onCancel);
+    controller = new StreamController(
+        onListen: this.onListen,
+        onResume: this.onResume,
+        onCancel: this.onCancel);
   }
 
   onListen() {
@@ -189,4 +223,39 @@ class _AsyncStarStreamController {
   }
 }
 
-@patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+@patch
+void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+
+@patch
+class _Future<T> {
+  /// The closure implementing the async[*]-body that is `await`ing this future.
+  Function _awaiter;
+}
+
+@patch
+class _StreamImpl<T> {
+  /// The closure implementing the async[*]-body that is `await`ing this future.
+  Function _awaiter;
+
+  /// The closure implementing the async-generator body that is creating events
+  /// for this stream.
+  Function _generator;
+}
+
+void _completeOnAsyncReturn(Object completer, Object value) {
+  completer.complete(value);
+}
+
+/// Returns a [StackTrace] object containing the synchronous prefix for this
+/// asynchronous method.
+Object _asyncStackTraceHelper(Function async_op)
+    native "StackTrace_asyncStackTraceHelper";
+
+void _clearAsyncThreadStackTrace()
+    native "StackTrace_clearAsyncThreadStackTrace";
+
+void _setAsyncThreadStackTrace(StackTrace stackTrace)
+    native "StackTrace_setAsyncThreadStackTrace";
+
+void _moveNextDebuggerStepCheck(Function async_op)
+    native "AsyncStarMoveNext_debuggerStepCheck";

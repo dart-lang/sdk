@@ -24,7 +24,7 @@ void Shutdown() {
 }
 
 
-UNIT_TEST_CASE(VerifiedMemoryReserve) {
+VM_UNIT_TEST_CASE(VerifiedMemoryReserve) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
@@ -34,7 +34,7 @@ UNIT_TEST_CASE(VerifiedMemoryReserve) {
 }
 
 
-UNIT_TEST_CASE(VerifiedMemoryCommit) {
+VM_UNIT_TEST_CASE(VerifiedMemoryCommit) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
@@ -45,7 +45,7 @@ UNIT_TEST_CASE(VerifiedMemoryCommit) {
 }
 
 
-UNIT_TEST_CASE(VerifiedMemoryBasic) {
+VM_UNIT_TEST_CASE(VerifiedMemoryBasic) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
@@ -68,7 +68,7 @@ UNIT_TEST_CASE(VerifiedMemoryBasic) {
 }
 
 
-UNIT_TEST_CASE(VerifiedMemoryAccept) {
+VM_UNIT_TEST_CASE(VerifiedMemoryAccept) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
@@ -90,7 +90,7 @@ UNIT_TEST_CASE(VerifiedMemoryAccept) {
 
 // Negative tests below.
 
-UNIT_TEST_CASE(VerifyImplicit_Crash) {
+VM_UNIT_TEST_CASE(VerifyImplicit_Crash) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
@@ -103,7 +103,7 @@ UNIT_TEST_CASE(VerifyImplicit_Crash) {
 }
 
 
-UNIT_TEST_CASE(VerifyExplicit_Crash) {
+VM_UNIT_TEST_CASE(VerifyExplicit_Crash) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);

@@ -1,0 +1,66 @@
+library runtime_type_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class A extends core::Object implements int::HasRuntimeTypeGetter {
+  final field typ::ReifiedType $type;
+  constructor •(typ::ReifiedType $type) → void
+    : self::A::$type = $type, super core::Object::•()
+    ;
+  get $A$T() → typ::ReifiedType
+    return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](0))).[](0);
+  get runtimeType() → core::Type
+    return this.{=self::A::$type};
+}
+class X extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+}
+class Y extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](16)));
+  dec::init(d, 1, new typ::Interface::•(d.[](16)));
+  dec::init(d, 2, new typ::Interface::•(d.[](16)));
+  dec::init(d, 3, new typ::Interface::•(d.[](16)));
+  dec::init(d, 4, new typ::Interface::•(d.[](16)));
+  dec::init(d, 5, new typ::Interface::•(d.[](16)), <dynamic>[new typ::Interface::•(d.[](18), <dynamic>[new typ::Interface::•(d.[](5))]), new typ::Interface::•(d.[](19))]);
+  dec::init(d, 6, new typ::Interface::•(d.[](20)));
+  dec::init(d, 7, new typ::Interface::•(d.[](20)));
+  dec::init(d, 8, new typ::Interface::•(d.[](16)));
+  dec::init(d, 9, new typ::Interface::•(d.[](21)));
+  dec::init(d, 10, new typ::Interface::•(d.[](21)));
+  dec::init(d, 11, new typ::Interface::•(d.[](21)));
+  dec::init(d, 12, new typ::Interface::•(d.[](21)));
+  dec::init(d, 13, new typ::Interface::•(d.[](16)), <dynamic>[new typ::Interface::•(d.[](22))]);
+  dec::init(d, 14, new typ::Interface::•(d.[](15)));
+  dec::init(d, 15, new typ::Interface::•(d.[](21)));
+  dec::init(d, 16, null);
+  dec::init(d, 18, new typ::Interface::•(d.[](16)));
+  dec::init(d, 19, new typ::Interface::•(d.[](16)));
+  dec::init(d, 20, new typ::Interface::•(d.[](16)), <dynamic>[new typ::Interface::•(d.[](18), <dynamic>[new typ::Interface::•(d.[](20))])]);
+  dec::init(d, 21, new typ::Interface::•(d.[](16)));
+  dec::init(d, 22, new typ::Interface::•(d.[](16)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["A", "X", "Y", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
+static method eqt(dynamic a, dynamic b) → core::bool {
+  return a.runtimeType.==(b.runtimeType);
+}
+static method main() → dynamic {
+  tes::expectTrue(self::eqt(new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])), new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()]))));
+  tes::expectTrue(self::eqt(new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])), new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]))));
+  tes::expectFalse(self::eqt(new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])), new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()]))));
+  tes::expectFalse(self::eqt(new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])), new self::A::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](2))]))));
+}

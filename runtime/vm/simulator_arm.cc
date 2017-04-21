@@ -3776,7 +3776,7 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r6_val = get_register(R6);
   int32_t r7_val = get_register(R7);
   int32_t r8_val = get_register(R8);
-#if defined(TARGET_ABI_EABI)
+#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   int32_t r9_val = get_register(R9);
 #endif
   int32_t r10_val = get_register(R10);
@@ -3810,7 +3810,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, callee_saved_value);
   set_register(R7, callee_saved_value);
   set_register(R8, callee_saved_value);
-#if defined(TARGET_ABI_EABI)
+#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   set_register(R9, callee_saved_value);
 #endif
   set_register(R10, callee_saved_value);
@@ -3838,7 +3838,7 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R6));
   ASSERT(callee_saved_value == get_register(R7));
   ASSERT(callee_saved_value == get_register(R8));
-#if defined(TARGET_ABI_EABI)
+#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   ASSERT(callee_saved_value == get_register(R9));
 #endif
   ASSERT(callee_saved_value == get_register(R10));
@@ -3861,7 +3861,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, r6_val);
   set_register(R7, r7_val);
   set_register(R8, r8_val);
-#if defined(TARGET_ABI_EABI)
+#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   set_register(R9, r9_val);
 #endif
   set_register(R10, r10_val);

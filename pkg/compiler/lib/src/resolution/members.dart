@@ -12,7 +12,7 @@ import '../constants/constructors.dart'
     show RedirectingFactoryConstantConstructor;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -27,7 +27,7 @@ import '../elements/modelx.dart'
         VariableElementX,
         VariableList;
 import '../options.dart';
-import '../tokens/token.dart' show isUserDefinableOperator;
+import 'package:front_end/src/fasta/scanner.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart' show Feature;
@@ -1808,7 +1808,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node,
         name.text,
         MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.libraryOrScriptName, 'name': name});
+        {'libraryName': member.library.name, 'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
     return handleErroneousAccess(
@@ -1825,7 +1825,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node,
         name.text,
         MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.libraryOrScriptName, 'name': name});
+        {'libraryName': member.library.name, 'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
     return handleUpdate(node, name, new StaticAccess.unresolved(error));
@@ -2061,7 +2061,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node, Name name, TypedefElement typdef) {
     typdef.ensureResolved(resolution);
     ResolutionDartType type = typdef.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(node, name, typdef, type, semantics);
   }
@@ -2072,7 +2072,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node, Name name, TypedefElement typdef) {
     typdef.ensureResolved(resolution);
     ResolutionDartType type = typdef.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
     return handleConstantTypeLiteralUpdate(node, name, typdef, type, semantics);
   }
@@ -2084,7 +2084,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant = new TypeConstantExpression(
         // TODO(johnniwinther): Use [type] when evaluation of constants is done
         // directly on the constant expressions.
-        node.isCall ? commonElements.typeType : type);
+        node.isCall ? commonElements.typeType : type,
+        'dynamic');
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     ClassElement typeClass = commonElements.typeClass;
     return handleConstantTypeLiteralAccess(
@@ -2096,7 +2097,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleDynamicTypeLiteralUpdate(SendSet node) {
     ResolutionDartType type = const ResolutionDynamicType();
     ConstantExpression constant =
-        new TypeConstantExpression(const ResolutionDynamicType());
+        new TypeConstantExpression(const ResolutionDynamicType(), 'dynamic');
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     ClassElement typeClass = commonElements.typeClass;
     return handleConstantTypeLiteralUpdate(
@@ -2109,7 +2110,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node, Name name, ClassElement cls) {
     cls.ensureResolved(resolution);
     ResolutionDartType type = cls.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(node, name, cls, type, semantics);
   }
@@ -2120,7 +2121,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node, Name name, ClassElement cls) {
     cls.ensureResolved(resolution);
     ResolutionDartType type = cls.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
     return handleConstantTypeLiteralUpdate(node, name, cls, type, semantics);
   }
@@ -2551,8 +2552,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           break;
         case AccessKind.FINAL_LOCAL_VARIABLE:
           if (element.isConst) {
+            LocalVariableElement local = element;
             result = new ConstantResult(
-                node, new VariableConstantExpression(element),
+                node, new LocalVariableConstantExpression(local),
                 element: element);
           } else {
             result = new ElementResult(element);
@@ -2747,7 +2749,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerSendStructure(node, new GetStructure(semantics));
       if (member.isConst) {
         FieldElement field = member;
-        result = new ConstantResult(node, new VariableConstantExpression(field),
+        result = new ConstantResult(node, new FieldConstantExpression(field),
             element: field);
       } else {
         result = new ElementResult(member);
@@ -2841,7 +2843,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else if (member.isFunction) {
         // `a = b`, `a++` or `a += b` where `a` is a function.
         MethodElement method = member;
-        ErroneousElement error = reportAndCreateErroneousElement(
+        reportAndCreateErroneousElement(
             node.selector, name.text, MessageKind.ASSIGNING_METHOD, const {});
         registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
         if (node.isComplex) {
@@ -2860,11 +2862,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerStaticUse(new StaticUse.staticGet(member));
         }
         if (member.isFinal || member.isConst) {
-          ErroneousElement error = reportAndCreateErroneousElement(
-              node.selector,
-              name.text,
-              MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
-              {'name': name});
+          reportAndCreateErroneousElement(node.selector, name.text,
+              MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER, {'name': name});
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           semantics = member.isTopLevel
               ? new StaticAccess.finalTopLevelField(member)
@@ -3612,8 +3611,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitYield(Yield node) {
     if (!resolution.target.supportsAsyncAwait) {
-      reporter.reportErrorMessage(
-          node.yieldToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+      reporter.reportErrorMessage(reporter.spanFromToken(node.yieldToken),
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isYielding) {
         reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
@@ -3753,8 +3752,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAwait(Await node) {
     if (!resolution.target.supportsAsyncAwait) {
-      reporter.reportErrorMessage(
-          node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+      reporter.reportErrorMessage(reporter.spanFromToken(node.awaitToken),
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isAsync) {
         reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
@@ -3981,12 +3980,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // TODO(johnniwinther): Remove this when all constants are computed
           // in resolution.
           !constructor.isFromEnvironmentConstructor) {
+        ResolutionInterfaceType interfaceType = type;
         CallStructure callStructure = argumentsResult.callStructure;
         List<ConstantExpression> arguments = argumentsResult.constantArguments;
 
         ConstructedConstantExpression constant =
             new ConstructedConstantExpression(
-                type, constructor, callStructure, arguments);
+                interfaceType, constructor, callStructure, arguments);
         registry.registerNewStructure(node,
             new ConstInvokeStructure(ConstantInvokeKind.CONSTRUCTED, constant));
         resolutionResult = new ConstantResult(node, constant);
@@ -4017,7 +4017,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (resolution.commonElements.isSymbolConstructor(constructor) &&
           !resolution.mirrorUsageAnalyzerTask
               .hasMirrorUsage(enclosingElement)) {
-        reporter.reportHintMessage(node.newToken, MessageKind.NON_CONST_BLOAT,
+        reporter.reportHintMessage(
+            reporter.spanFromToken(node.newToken),
+            MessageKind.NON_CONST_BLOAT,
             {'name': commonElements.symbolClass.name});
       }
       registry.registerNewStructure(
@@ -4288,12 +4290,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
     if (!resolution.target.supportsAsyncAwait) {
-      reporter.reportErrorMessage(
-          node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+      reporter.reportErrorMessage(reporter.spanFromToken(node.awaitToken),
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isAsync) {
-        reporter.reportErrorMessage(
-            node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+        reporter.reportErrorMessage(reporter.spanFromToken(node.awaitToken),
+            MessageKind.INVALID_AWAIT_FOR_IN);
       }
       registry.registerFeature(Feature.ASYNC_FOR_IN);
       registry.registerDynamicUse(new DynamicUse(Selectors.current, null));
@@ -4593,6 +4595,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     JumpTarget breakElement = getOrDefineTarget(node);
     Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
+    Set<SwitchCase> switchCasesWithContinues = new Set<SwitchCase>();
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty) {
       SwitchCase switchCase = cases.head;
@@ -4660,12 +4663,22 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     node.cases.accept(this);
     statementScope.exitSwitch();
 
+    continueLabels.forEach((String key, LabelDefinition label) {
+      if (label.isContinueTarget) {
+        JumpTarget targetElement = label.target;
+        SwitchCase switchCase = targetElement.statement;
+        switchCasesWithContinues.add(switchCase);
+      }
+    });
+
     // Clean-up unused labels.
     continueLabels.forEach((String key, LabelDefinition label) {
       if (!label.isContinueTarget) {
         JumpTarget targetElement = label.target;
         SwitchCase switchCase = targetElement.statement;
-        registry.undefineTarget(switchCase);
+        if (!switchCasesWithContinues.contains(switchCase)) {
+          registry.undefineTarget(switchCase);
+        }
         registry.undefineLabel(label.label);
       }
     });
@@ -4693,7 +4706,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     visit(node.tryBlock);
     if (node.catchBlocks.isEmpty && node.finallyBlock == null) {
       reporter.reportErrorMessage(
-          node.getEndToken().next, MessageKind.NO_CATCH_NOR_FINALLY);
+          reporter.spanFromToken(node.getEndToken().next),
+          MessageKind.NO_CATCH_NOR_FINALLY);
     }
     visit(node.catchBlocks);
     visit(node.finallyBlock);

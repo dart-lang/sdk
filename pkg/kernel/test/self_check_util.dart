@@ -26,6 +26,7 @@ runSelfCheck(List<String> args, Future runTest(String filename)) {
     await runTest(filename);
     return CompilerOutcome.Ok;
   }
+
   if (args.length == 1 && args[0] == '--batch') {
     runBatch(batchMain);
   } else {

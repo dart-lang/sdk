@@ -33,7 +33,7 @@ class PatchResolverTask extends CompilerTask {
       });
       checkMatchingPatchSignatures(element, patch);
       element = patch;
-    } else if (!compiler.backend.isJsInterop(element)) {
+    } else {
       reporter.reportErrorMessage(
           element, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
     }
@@ -42,6 +42,9 @@ class PatchResolverTask extends CompilerTask {
 
   void checkMatchingPatchParameters(FunctionElement origin,
       List<Element> originParameters, List<Element> patchParameters) {
+    bool isUnnamedListConstructor = origin is ConstructorElement &&
+        compiler.commonElements.isUnnamedListConstructor(origin);
+
     assert(originParameters.length == patchParameters.length);
     for (int index = 0; index < originParameters.length; index++) {
       ParameterElementX originParameter = originParameters[index];
@@ -86,7 +89,7 @@ class PatchResolverTask extends CompilerTask {
             // We special case the list constructor because of the
             // optional parameter.
             &&
-            origin != compiler.commonElements.unnamedListConstructor) {
+            !isUnnamedListConstructor) {
           reporter.reportError(
               reporter.createMessage(
                   originParameter, MessageKind.PATCH_PARAMETER_MISMATCH, {

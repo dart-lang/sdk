@@ -26,7 +26,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/codegen/tools.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -34,6 +33,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
 
@@ -189,41 +189,57 @@ ${generateGraphData()}
         .instantiate([dynamicType]);
     listOfResultDescriptorType =
         context.typeProvider.listType.instantiate([resultDescriptorType]);
-    CompilationUnitElement enginePluginUnitElement =
-        getUnit(enginePluginSource).element;
-    enginePluginClass = enginePluginUnitElement.getType('EnginePlugin');
+    CompilationUnit enginePluginUnit = getUnit(enginePluginSource);
+    enginePluginClass = enginePluginUnit.element.getType('EnginePlugin');
     extensionPointIdType =
-        enginePluginUnitElement.getType('ExtensionPointId').type;
+        enginePluginUnit.element.getType('ExtensionPointId').type;
     CompilationUnit dartDartUnit = getUnit(dartDartSource);
-    CompilationUnitElement dartDartUnitElement = dartDartUnit.element;
     CompilationUnit taskUnit = getUnit(taskSource);
     taskUnitElement = taskUnit.element;
     Set<String> results = new Set<String>();
     Set<String> resultLists = new Set<String>();
-    for (ClassElement cls in dartDartUnitElement.types) {
-      if (!cls.isAbstract && cls.type.isSubtypeOf(analysisTaskType)) {
-        String task = cls.name;
-        AstNode buildInputsAst = cls.getMethod('buildInputs').computeNode();
-        findResultDescriptors(buildInputsAst, (String input) {
-          results.add(input);
-          lines.add('  $input -> $task');
-        });
-        findResultDescriptorLists(buildInputsAst, (String input) {
-          resultLists.add(input);
-          lines.add('  $input -> $task');
-        });
-        findResultDescriptors(cls.getField('DESCRIPTOR').computeNode(),
-            (String out) {
-          results.add(out);
-          lines.add('  $task -> $out');
-        });
+    for (CompilationUnitMember dartUnitMember in dartDartUnit.declarations) {
+      if (dartUnitMember is ClassDeclaration) {
+        ClassDeclaration clazz = dartUnitMember;
+        if (!clazz.isAbstract &&
+            clazz.element.type.isSubtypeOf(analysisTaskType)) {
+          String task = clazz.name.name;
+
+          MethodDeclaration buildInputsAst;
+          VariableDeclaration descriptorField;
+          for (ClassMember classMember in clazz.members) {
+            if (classMember is MethodDeclaration &&
+                classMember.name.name == 'buildInputs') {
+              buildInputsAst = classMember;
+            }
+            if (classMember is FieldDeclaration) {
+              for (VariableDeclaration field in classMember.fields.variables) {
+                if (field.name.name == 'DESCRIPTOR') {
+                  descriptorField = field;
+                }
+              }
+            }
+          }
+
+          findResultDescriptors(buildInputsAst, (String input) {
+            results.add(input);
+            lines.add('  $input -> $task');
+          });
+          findResultDescriptorLists(buildInputsAst, (String input) {
+            resultLists.add(input);
+            lines.add('  $input -> $task');
+          });
+          findResultDescriptors(descriptorField, (String out) {
+            results.add(out);
+            lines.add('  $task -> $out');
+          });
+        }
       }
     }
-    AstNode enginePluginAst = enginePluginUnitElement.computeNode();
     for (String resultList in resultLists) {
       lines.add('  $resultList [shape=hexagon]');
       TopLevelVariableElement extensionIdVariable = _getExtensionId(resultList);
-      findExtensions(enginePluginAst, extensionIdVariable, (String extension) {
+      findExtensions(enginePluginUnit, extensionIdVariable, (String extension) {
         results.add(extension);
         lines.add('  $extension -> $resultList');
       });

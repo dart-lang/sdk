@@ -249,6 +249,20 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try marking the function body with either 'async' or 'async*'.");
 
   /**
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
+   *
+   * Parameters:
+   * 0: the built-in identifier that is being used
+   */
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_PREFIX_NAME =
+      const CompileTimeErrorCode(
+          'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+          "The built-in identifier '{0}' can't be used as a prefix name.",
+          "Try choosing a different name for the prefix.");
+
+  /**
    * 12.30 Identifier Reference: It is a compile-time error to use a built-in
    * identifier other than dynamic as a type annotation.
    *
@@ -262,9 +276,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try correcting the name to match an existing type.");
 
   /**
-   * 12.30 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a class, type parameter or type
-   * alias.
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
    *
    * Parameters:
    * 0: the built-in identifier that is being used
@@ -276,9 +290,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try choosing a different name for the type.");
 
   /**
-   * 12.30 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a class, type parameter or type
-   * alias.
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
    *
    * Parameters:
    * 0: the built-in identifier that is being used
@@ -290,9 +304,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try choosing a different name for the typedef.");
 
   /**
-   * 12.30 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a class, type parameter or type
-   * alias.
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
    *
    * Parameters:
    * 0: the built-in identifier that is being used
@@ -1046,6 +1060,22 @@ class CompileTimeErrorCode extends ErrorCode {
           'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
           "The redirecting constructor can't have a field initializer.",
           "Try using a normal parameter.");
+
+  /**
+   * Temporary error to work around dartbug.com/28515.
+   *
+   * We cannot yet properly summarize function-typed parameters with generic
+   * arguments, so to prevent confusion, we produce an error for any such
+   * constructs (regardless of whether summaries are in use).
+   *
+   * TODO(paulberry): remove this once dartbug.com/28515 is fixed.
+   */
+  static const GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED =
+      const CompileTimeErrorCode(
+          'GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED',
+          "Analysis of generic function typed parameters is not yet supported.",
+          "Try using an explicit typedef, or changing type parameters to "
+          "`dynamic`.");
 
   /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a
@@ -2028,6 +2058,17 @@ class CompileTimeErrorCode extends ErrorCode {
           "by '.'.",
           "Try correcting the name to refer to something other than a prefix, or "
           "renaming the prefix.");
+
+  /**
+   * It is an error for a mixin to add a private name that conflicts with a
+   * private name added by a superclass or another mixin.
+   */
+  static const CompileTimeErrorCode PRIVATE_COLLISION_IN_MIXIN_APPLICATION =
+      const CompileTimeErrorCode(
+          'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+          "The private name {0}, defined by {1}, conflicts with the same name "
+          "defined by {2}.",
+          "Try removing {1} from the 'with' clause.");
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
@@ -4542,7 +4583,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT =
       const StaticWarningCode(
           'UNDEFINED_IDENTIFIER_AWAIT',
-          "Undefined name 'await'.",
+          "Undefined name 'await' in function body not marked with 'async'.",
           "Try correcting the name to one that is defined, "
           "defining the name, or "
           "adding 'async' to the enclosing function body.");
@@ -4703,7 +4744,7 @@ class StrongModeCode extends ErrorCode {
   static const String _inferredTypeMessage = "'{0}' has inferred type '{1}'.";
 
   static const StrongModeCode DOWN_CAST_COMPOSITE = const StrongModeCode(
-      ErrorType.STATIC_WARNING,
+      ErrorType.HINT,
       'DOWN_CAST_COMPOSITE',
       _implicitCastMessage,
       _implicitCastCorrection);
@@ -4741,7 +4782,7 @@ class StrongModeCode extends ErrorCode {
   static const StrongModeCode COULD_NOT_INFER = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'COULD_NOT_INFER',
-      "Couldn't infer type parameter '{0}'; '{1}' must be of type '{2}'.");
+      "Couldn't infer type parameter '{0}'.{1}");
 
   static const StrongModeCode INFERRED_TYPE = const StrongModeCode(
       ErrorType.HINT, 'INFERRED_TYPE', _inferredTypeMessage);
@@ -4909,6 +4950,55 @@ class StrongModeCode extends ErrorCode {
       'NOT_INSTANTIATED_BOUND',
       "Type parameter bound types must be instantiated.",
       "Try adding type arguments.");
+
+  /*
+   * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than
+   * hints and then clean up the function _errorSeverity in
+   * test/src/task/strong/strong_test_helper.dart.
+   */
+  static const StrongModeCode TOP_LEVEL_CYCLE = const StrongModeCode(
+      ErrorType.HINT,
+      'TOP_LEVEL_CYCLE',
+      "The type of '{0}' can't be inferred because it depends on itself through the cycle: {1}.",
+      "Try adding an explicit type to one or more of the variables in the cycle in order to break the cycle.");
+
+  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_BLOCK =
+      const StrongModeCode(
+          ErrorType.HINT,
+          'TOP_LEVEL_FUNCTION_LITERAL_BLOCK',
+          "The type of the function literal can't be inferred because the literal has a block as its body.",
+          "Try adding an explicit type to the variable.");
+
+  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_PARAMETER =
+      const StrongModeCode(
+          ErrorType.HINT,
+          'TOP_LEVEL_FUNCTION_LITERAL_PARAMETER',
+          "The type of '{0}' can't be inferred because the parameter '{1}' does not have an explicit type.",
+          "Try adding an explicit type to the parameter '{1}', or add an explicit type for '{0}'.");
+
+  static const StrongModeCode TOP_LEVEL_IDENTIFIER_NO_TYPE = const StrongModeCode(
+      ErrorType.HINT,
+      'TOP_LEVEL_IDENTIFIER_NO_TYPE',
+      "The type of '{0}' can't be inferred because the type of '{1}' couldn't be inferred.",
+      "Try adding an explicit type to either the variable '{0}' or the variable '{1}'.");
+
+  static const StrongModeCode TOP_LEVEL_INSTANCE_GETTER = const StrongModeCode(
+      ErrorType.HINT,
+      'TOP_LEVEL_INSTANCE_GETTER',
+      "The type of '{0}' can't be inferred because of the use of the instance getter '{1}'.",
+      "Try removing the use of the instance getter {1}, or add an explicit type for '{0}'.");
+
+  static const StrongModeCode TOP_LEVEL_TYPE_ARGUMENTS = const StrongModeCode(
+      ErrorType.HINT,
+      'TOP_LEVEL_TYPE_ARGUMENTS',
+      "The type of '{0}' can't be inferred because type arguments were not given for '{1}'.",
+      "Try adding type arguments for '{1}', or add an explicit type for '{0}'.");
+
+  static const StrongModeCode TOP_LEVEL_UNSUPPORTED = const StrongModeCode(
+      ErrorType.HINT,
+      'TOP_LEVEL_UNSUPPORTED',
+      "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
+      "Try adding an explicit type for '{0}'.");
 
   static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
       ErrorType.STATIC_WARNING,

@@ -141,6 +141,7 @@ void MethodRecognizer::InitializeState() {
   libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
+  libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   Function& func = Function::Handle();
 
 #define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, type, fp)    \

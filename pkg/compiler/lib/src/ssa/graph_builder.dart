@@ -2,25 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart';
-import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../compiler.dart';
-import '../constants/constant_system.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../io/source_information.dart';
+import '../elements/entities.dart' show Entity, Local;
+import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart' show TypeUse;
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
-import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
 
 /// Base class for objects that build up an SSA graph.
@@ -195,14 +189,6 @@ abstract class GraphBuilder {
     return new HSubExpressionBlockInformation(expression);
   }
 
-  HInstruction buildFunctionType(ResolutionFunctionType type) {
-    type.accept(new ReifiedTypeRepresentationBuilder(closedWorld), this);
-    return pop();
-  }
-
-  HInstruction buildFunctionTypeConversion(
-      HInstruction original, ResolutionDartType type, int kind);
-
   /// Returns the current source element.
   ///
   /// The returned element is a declaration element.
@@ -218,7 +204,7 @@ abstract class GraphBuilder {
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(ResolutionDartType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.classNeedsRti(type.element)) {
+    if (!backend.rtiNeed.classNeedsRti(type.element)) {
       return newObject;
     }
 
@@ -247,98 +233,4 @@ abstract class GraphBuilder {
   /// The element for which this SSA builder is being used.
   Element get targetElement;
   TypeBuilder get typeBuilder;
-}
-
-class ReifiedTypeRepresentationBuilder
-    implements DartTypeVisitor<dynamic, GraphBuilder> {
-  final ClosedWorld closedWorld;
-
-  ReifiedTypeRepresentationBuilder(this.closedWorld);
-
-  void visit(ResolutionDartType type, GraphBuilder builder) =>
-      type.accept(this, builder);
-
-  void visitVoidType(ResolutionVoidType type, GraphBuilder builder) {
-    ClassElement cls = builder.backend.helpers.VoidRuntimeType;
-    builder.push(new HVoidType(type, new TypeMask.exact(cls, closedWorld)));
-  }
-
-  void visitTypeVariableType(
-      ResolutionTypeVariableType type, GraphBuilder builder) {
-    ClassElement cls = builder.backend.helpers.RuntimeType;
-    TypeMask instructionType = new TypeMask.subclass(cls, closedWorld);
-    if (!builder.sourceElement.enclosingElement.isClosure &&
-        builder.sourceElement.isInstanceMember) {
-      HInstruction receiver = builder.localsHandler.readThis();
-      builder.push(new HReadTypeVariable(type, receiver, instructionType));
-    } else {
-      builder.push(new HReadTypeVariable.noReceiver(
-          type,
-          builder.typeBuilder
-              .addTypeVariableReference(type, builder.sourceElement),
-          instructionType));
-    }
-  }
-
-  void visitFunctionType(ResolutionFunctionType type, GraphBuilder builder) {
-    type.returnType.accept(this, builder);
-    HInstruction returnType = builder.pop();
-    List<HInstruction> inputs = <HInstruction>[returnType];
-
-    for (ResolutionDartType parameter in type.parameterTypes) {
-      parameter.accept(this, builder);
-      inputs.add(builder.pop());
-    }
-
-    for (ResolutionDartType parameter in type.optionalParameterTypes) {
-      parameter.accept(this, builder);
-      inputs.add(builder.pop());
-    }
-
-    List<ResolutionDartType> namedParameterTypes = type.namedParameterTypes;
-    List<String> names = type.namedParameters;
-    for (int index = 0; index < names.length; index++) {
-      ast.DartString dartString = new ast.DartString.literal(names[index]);
-      inputs.add(
-          builder.graph.addConstantString(dartString, builder.closedWorld));
-      namedParameterTypes[index].accept(this, builder);
-      inputs.add(builder.pop());
-    }
-
-    ClassElement cls = builder.backend.helpers.RuntimeFunctionType;
-    builder.push(
-        new HFunctionType(inputs, type, new TypeMask.exact(cls, closedWorld)));
-  }
-
-  void visitMalformedType(MalformedType type, GraphBuilder builder) {
-    visitDynamicType(const ResolutionDynamicType(), builder);
-  }
-
-  void visitInterfaceType(ResolutionInterfaceType type, GraphBuilder builder) {
-    List<HInstruction> inputs = <HInstruction>[];
-    for (ResolutionDartType typeArgument in type.typeArguments) {
-      typeArgument.accept(this, builder);
-      inputs.add(builder.pop());
-    }
-    ClassElement cls;
-    if (type.typeArguments.isEmpty) {
-      cls = builder.backend.helpers.RuntimeTypePlain;
-    } else {
-      cls = builder.backend.helpers.RuntimeTypeGeneric;
-    }
-    builder.push(
-        new HInterfaceType(inputs, type, new TypeMask.exact(cls, closedWorld)));
-  }
-
-  void visitTypedefType(ResolutionTypedefType type, GraphBuilder builder) {
-    ResolutionDartType unaliased = type.unaliased;
-    if (unaliased is ResolutionTypedefType) throw 'unable to unalias $type';
-    unaliased.accept(this, builder);
-  }
-
-  void visitDynamicType(ResolutionDynamicType type, GraphBuilder builder) {
-    JavaScriptBackend backend = builder.compiler.backend;
-    ClassElement cls = backend.helpers.DynamicRuntimeType;
-    builder.push(new HDynamicType(type, new TypeMask.exact(cls, closedWorld)));
-  }
 }

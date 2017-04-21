@@ -369,13 +369,14 @@ class CE implements Comparable<CE> {
   String toString() => "CE($id)";
 }
 
+typedef int CECompare(CE e1, CE e2);
 // Equality of Id objects based on id modulo value.
 Function customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
 Function customHash(int mod) => (CE e) => e.id % mod;
-Function customCompare(int mod) => (CE e1, CE e2) =>
+CECompare customCompare(int mod) => (CE e1, CE e2) =>
     (e1.id % mod) - (e2.id % mod);
 bool validKey(Object o) => o is CE;
-final customId = new Map.identity();
+final customId = new Map<dynamic, dynamic>.identity();
 int counter = 0;
 int identityCompare(e1, e2) {
   if (identical(e1, e2)) return 0;
@@ -427,8 +428,8 @@ void testIntSetFrom(setFrom) {
 }
 
 void testCESetFrom(setFrom) {
-  List<Object> ceList = [new CE(2), new CE(3), new CE(5),
-                         new CE(7), new CE(11), new CE(13)];
+  var ceList = [new CE(2), new CE(3), new CE(5),
+                new CE(7), new CE(11), new CE(13)];
 
   Set<CE> set1 = setFrom(ceList);
   Expect.listEquals(ceList, set1.toList()..sort());

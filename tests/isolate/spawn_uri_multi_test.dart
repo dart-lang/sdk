@@ -7,6 +7,7 @@
 // other isolate's code.
 // OtherScripts=spawn_uri_child_isolate.dart
 library spawn_tests;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 
@@ -20,11 +21,11 @@ main() {
     port.first.then(expectAsync((msg) {
       String expectedMessage = 're: hi';
       // Should be hi, not hello.
-      expectedMessage = 're: hello'; /// 01: runtime error
+      expectedMessage = 're: hello'; //# 01: runtime error
       expect(msg, equals(expectedMessage));
     }));
 
-    Isolate.spawnUri(Uri.parse('spawn_uri_child_isolate.dart'),
-                     ['hi'], port.sendPort);
+    Isolate.spawnUri(
+        Uri.parse('spawn_uri_child_isolate.dart'), ['hi'], port.sendPort);
   });
 }

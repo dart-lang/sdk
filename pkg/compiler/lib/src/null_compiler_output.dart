@@ -6,8 +6,6 @@
 
 library compiler.null_api;
 
-import 'dart:async';
-
 import '../compiler_new.dart';
 
 /// Null pattern implementation of the [CompilerOutput] interface.
@@ -15,27 +13,26 @@ class NullCompilerOutput implements CompilerOutput {
   const NullCompilerOutput();
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    return NullSink.outputProvider(name, extension);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    return NullSink.outputProvider(name, extension, type);
   }
 }
 
 /// A sink that drains into /dev/null.
-class NullSink implements EventSink<String> {
+class NullSink implements OutputSink {
   final String name;
 
   NullSink(this.name);
 
   add(String value) {}
 
-  void addError(Object error, [StackTrace stackTrace]) {}
-
   void close() {}
 
   toString() => name;
 
   /// Convenience method for getting an [api.CompilerOutputProvider].
-  static NullSink outputProvider(String name, String extension) {
-    return new NullSink('$name.$extension');
+  static NullSink outputProvider(
+      String name, String extension, OutputType type) {
+    return new NullSink('$name.$extension.$type');
   }
 }

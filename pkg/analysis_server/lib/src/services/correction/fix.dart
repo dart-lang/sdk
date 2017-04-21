@@ -105,6 +105,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
     errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
     errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.annotate_overrides ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interp));
@@ -123,6 +124,8 @@ class DartFixKind {
       "Add optional positional parameter");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
+  static const ADD_MISSING_REQUIRED_ARGUMENT = const FixKind(
+      'ADD_MISSING_REQUIRED_ARGUMENT', 30, "Add required argument '{0}'");
   static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
@@ -135,6 +138,8 @@ class DartFixKind {
       'CHANGE_TO_STATIC_ACCESS', 50, "Change access to static using '{0}'");
   static const CHANGE_TYPE_ANNOTATION = const FixKind(
       'CHANGE_TYPE_ANNOTATION', 50, "Change '{0}' to '{1}' type annotation");
+  static const CONVERT_FLUTTER_CHILD =
+      const FixKind('CONVERT_FLUTTER_CHILD', 50, "Convert to children:");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =

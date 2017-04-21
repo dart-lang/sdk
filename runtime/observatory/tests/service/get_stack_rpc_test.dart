@@ -17,7 +17,7 @@ const stoppedAtLine = 25;
 var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.
-void msgHandler(_) { }
+void msgHandler(_) {}
 
 void periodicTask(_) {
   port.sendPort.send(34);
@@ -29,67 +29,65 @@ void periodicTask(_) {
 }
 
 void startTimer() {
-  new Timer.periodic(const Duration(milliseconds:10), periodicTask);
+  new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
 var tests = [
-
 // Initial data fetch and verify we've hit the breakpoint.
-(Isolate isolate) async {
-  await isolate.rootLibrary.load();
-  var script = isolate.rootLibrary.scripts[0];
-  await script.load();
-  await hasStoppedAtBreakpoint(isolate);
-  // Sanity check.
-  expect(isolate.pauseEvent is M.PauseBreakpointEvent, isTrue);
-},
+  (Isolate isolate) async {
+    await isolate.rootLibrary.load();
+    var script = isolate.rootLibrary.scripts[0];
+    await script.load();
+    await hasStoppedAtBreakpoint(isolate);
+    // Sanity check.
+    expect(isolate.pauseEvent is M.PauseBreakpointEvent, isTrue);
+  },
 
 // Get stack
-(Isolate isolate) async {
-  var stack = await isolate.getStack();
-  expect(stack.type, equals('Stack'));
+  (Isolate isolate) async {
+    var stack = await isolate.getStack();
+    expect(stack.type, equals('Stack'));
 
-  // Sanity check.
-  expect(stack['frames'].length, greaterThanOrEqualTo(1));
-  Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos),
-         equals(stoppedAtLine));
+    // Sanity check.
+    expect(stack['frames'].length, greaterThanOrEqualTo(1));
+    Script script = stack['frames'][0].location.script;
+    expect(script.tokenToLine(stack['frames'][0].location.tokenPos),
+        equals(stoppedAtLine));
 
-  // Iterate over frames.
-  var frameDepth = 0;
-  for (var frame in stack['frames']) {
-    print('checking frame $frameDepth');
-    expect(frame.type, equals('Frame'));
-    expect(frame.index, equals(frameDepth++));
-    expect(frame.code.type, equals('Code'));
-    expect(frame.function.type, equals('Function'));
-    expect(frame.location.type, equals('SourceLocation'));
-  }
-
-  // Sanity check.
-  expect(stack['messages'].length, greaterThanOrEqualTo(1));
-
-  // Iterate over messages.
-  var messageDepth = 0;
-  // objectId of message to be handled by msgHandler.
-  var msgHandlerObjectId;
-  for (var message in stack['messages']) {
-    print('checking message $messageDepth');
-    expect(message.index, equals(messageDepth++));
-    expect(message.size, greaterThanOrEqualTo(0));
-    expect(message.handler.type, equals('Function'));
-    expect(message.location.type, equals('SourceLocation'));
-    if (message.handler.name.contains('msgHandler')) {
-      msgHandlerObjectId = message.messageObjectId;
+    // Iterate over frames.
+    var frameDepth = 0;
+    for (var frame in stack['frames']) {
+      print('checking frame $frameDepth');
+      expect(frame.type, equals('Frame'));
+      expect(frame.index, equals(frameDepth++));
+      expect(frame.code.type, equals('Code'));
+      expect(frame.function.type, equals('Function'));
+      expect(frame.location.type, equals('SourceLocation'));
     }
+
+    // Sanity check.
+    expect(stack['messages'].length, greaterThanOrEqualTo(1));
+
+    // Iterate over messages.
+    var messageDepth = 0;
+    // objectId of message to be handled by msgHandler.
+    var msgHandlerObjectId;
+    for (var message in stack['messages']) {
+      print('checking message $messageDepth');
+      expect(message.index, equals(messageDepth++));
+      expect(message.size, greaterThanOrEqualTo(0));
+      expect(message.handler.type, equals('Function'));
+      expect(message.location.type, equals('SourceLocation'));
+      if (message.handler.name.contains('msgHandler')) {
+        msgHandlerObjectId = message.messageObjectId;
+      }
+    }
+    expect(msgHandlerObjectId, isNotNull);
+
+    // Get object.
+    var object = await isolate.getObject(msgHandlerObjectId);
+    expect(object.valueAsString, equals('34'));
   }
-  expect(msgHandlerObjectId, isNotNull);
-
-  // Get object.
-  var object = await isolate.getObject(msgHandlerObjectId);
-  expect(object.valueAsString, equals('34'));
-}
-
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: startTimer);

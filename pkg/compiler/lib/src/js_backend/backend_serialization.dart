@@ -5,8 +5,9 @@
 library js_backend.serialization;
 
 import '../common/backend_api.dart' show BackendSerialization;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';
 import '../serialization/keys.dart';
@@ -14,6 +15,7 @@ import '../serialization/serialization.dart'
     show DeserializerPlugin, ObjectDecoder, ObjectEncoder, SerializerPlugin;
 import '../universe/side_effects.dart';
 import 'js_backend.dart';
+import 'native_data.dart';
 
 const String _BACKEND_DATA_TAG = 'jsBackendData';
 const Key DART_TYPES_RETURNED = const Key('dartTypesReturned');
@@ -37,7 +39,9 @@ class JavaScriptBackendSerialization implements BackendSerialization {
         deserializer = new JavaScriptBackendDeserializer(backend);
 }
 
-const Key JS_INTEROP_NAME = const Key('jsInteropName');
+const Key JS_INTEROP_LIBRARY_NAME = const Key('jsInteropLibraryName');
+const Key JS_INTEROP_CLASS_NAME = const Key('jsInteropClassName');
+const Key JS_INTEROP_MEMBER_NAME = const Key('jsInteropMemberName');
 const Key NATIVE_MEMBER_NAME = const Key('nativeMemberName');
 const Key NATIVE_CLASS_TAG_INFO = const Key('nativeClassTagInfo');
 const Key NATIVE_METHOD_BEHAVIOR = const Key('nativeMethodBehavior');
@@ -45,9 +49,12 @@ const Key NATIVE_FIELD_LOAD_BEHAVIOR = const Key('nativeFieldLoadBehavior');
 const Key NATIVE_FIELD_STORE_BEHAVIOR = const Key('nativeFieldStoreBehavior');
 
 class JavaScriptBackendSerializer implements SerializerPlugin {
-  final JavaScriptBackend backend;
+  final JavaScriptBackend _backend;
 
-  JavaScriptBackendSerializer(this.backend);
+  JavaScriptBackendSerializer(this._backend);
+
+  NativeBasicDataImpl get nativeBasicData => _backend.nativeBasicData;
+  NativeDataImpl get nativeData => _backend.nativeData;
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
@@ -56,33 +63,42 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
       return encoder ??= createEncoder(_BACKEND_DATA_TAG);
     }
 
-    String jsInteropName = backend.nativeData.jsInteropNames[element];
-    if (jsInteropName != null) {
-      getEncoder().setString(JS_INTEROP_NAME, jsInteropName);
+    String jsInteropLibraryName = nativeData.jsInteropLibraryNames[element];
+    if (jsInteropLibraryName != null) {
+      getEncoder().setString(JS_INTEROP_LIBRARY_NAME, jsInteropLibraryName);
     }
-    String nativeMemberName = backend.nativeData.nativeMemberName[element];
+    String jsInteropClassName = nativeData.jsInteropClassNames[element];
+    if (jsInteropClassName != null) {
+      getEncoder().setString(JS_INTEROP_CLASS_NAME, jsInteropClassName);
+    }
+    String jsInteropMemberName = nativeData.jsInteropMemberNames[element];
+    if (jsInteropMemberName != null) {
+      getEncoder().setString(JS_INTEROP_MEMBER_NAME, jsInteropMemberName);
+    }
+    String nativeMemberName = nativeData.nativeMemberName[element];
     if (nativeMemberName != null) {
       getEncoder().setString(NATIVE_MEMBER_NAME, nativeMemberName);
     }
-    String nativeClassTagInfo = backend.nativeData.nativeClassTagInfo[element];
+    NativeClassTag nativeClassTagInfo =
+        nativeBasicData.nativeClassTagInfo[element];
     if (nativeClassTagInfo != null) {
-      getEncoder().setString(NATIVE_CLASS_TAG_INFO, nativeClassTagInfo);
+      getEncoder().setString(NATIVE_CLASS_TAG_INFO, nativeClassTagInfo.text);
     }
     NativeBehavior nativeMethodBehavior =
-        backend.nativeData.nativeMethodBehavior[element];
+        nativeData.nativeMethodBehavior[element];
     if (nativeMethodBehavior != null) {
       NativeBehaviorSerialization.serializeNativeBehavior(nativeMethodBehavior,
           getEncoder().createObject(NATIVE_METHOD_BEHAVIOR));
     }
     NativeBehavior nativeFieldLoadBehavior =
-        backend.nativeData.nativeFieldLoadBehavior[element];
+        nativeData.nativeFieldLoadBehavior[element];
     if (nativeFieldLoadBehavior != null) {
       NativeBehaviorSerialization.serializeNativeBehavior(
           nativeFieldLoadBehavior,
           getEncoder().createObject(NATIVE_FIELD_LOAD_BEHAVIOR));
     }
     NativeBehavior nativeFieldStoreBehavior =
-        backend.nativeData.nativeFieldStoreBehavior[element];
+        nativeData.nativeFieldStoreBehavior[element];
     if (nativeFieldStoreBehavior != null) {
       NativeBehaviorSerialization.serializeNativeBehavior(
           nativeFieldStoreBehavior,
@@ -97,49 +113,72 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
 }
 
 class JavaScriptBackendDeserializer implements DeserializerPlugin {
-  final JavaScriptBackend backend;
+  final JavaScriptBackend _backend;
 
-  JavaScriptBackendDeserializer(this.backend);
+  JavaScriptBackendDeserializer(this._backend);
+
+  NativeBasicDataBuilderImpl get nativeBasicData =>
+      _backend.nativeBasicDataBuilder;
+  NativeDataImpl get nativeData => _backend.nativeData;
 
   @override
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(_BACKEND_DATA_TAG);
     if (decoder != null) {
-      String jsInteropName =
-          decoder.getString(JS_INTEROP_NAME, isOptional: true);
-      if (jsInteropName != null) {
-        backend.nativeData.jsInteropNames[element] = jsInteropName;
-      }
-      String nativeMemberName =
-          decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);
-      if (nativeMemberName != null) {
-        backend.nativeData.nativeMemberName[element] = nativeMemberName;
-      }
-      String nativeClassTagInfo =
-          decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
-      if (nativeClassTagInfo != null) {
-        backend.nativeData.nativeClassTagInfo[element] = nativeClassTagInfo;
-      }
-      ObjectDecoder nativeMethodBehavior =
-          decoder.getObject(NATIVE_METHOD_BEHAVIOR, isOptional: true);
-      if (nativeMethodBehavior != null) {
-        backend.nativeData.nativeMethodBehavior[element] =
-            NativeBehaviorSerialization
-                .deserializeNativeBehavior(nativeMethodBehavior);
-      }
-      ObjectDecoder nativeFieldLoadBehavior =
-          decoder.getObject(NATIVE_FIELD_LOAD_BEHAVIOR, isOptional: true);
-      if (nativeFieldLoadBehavior != null) {
-        backend.nativeData.nativeFieldLoadBehavior[element] =
-            NativeBehaviorSerialization
-                .deserializeNativeBehavior(nativeFieldLoadBehavior);
-      }
-      ObjectDecoder nativeFieldStoreBehavior =
-          decoder.getObject(NATIVE_FIELD_STORE_BEHAVIOR, isOptional: true);
-      if (nativeFieldStoreBehavior != null) {
-        backend.nativeData.nativeFieldStoreBehavior[element] =
-            NativeBehaviorSerialization
-                .deserializeNativeBehavior(nativeFieldStoreBehavior);
+      if (element is LibraryElement) {
+        String jsInteropLibraryName =
+            decoder.getString(JS_INTEROP_LIBRARY_NAME, isOptional: true);
+        if (jsInteropLibraryName != null) {
+          nativeData.jsInteropLibraryNames[element] = jsInteropLibraryName;
+        }
+      } else if (element is ClassElement) {
+        String jsInteropClassName =
+            decoder.getString(JS_INTEROP_CLASS_NAME, isOptional: true);
+        if (jsInteropClassName != null) {
+          nativeData.jsInteropClassNames[element] = jsInteropClassName;
+        }
+        String nativeClassTagInfo =
+            decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
+        if (nativeClassTagInfo != null) {
+          nativeBasicData.nativeClassTagInfo[element] =
+              new NativeClassTag(nativeClassTagInfo);
+        }
+      } else if (element is MemberElement) {
+        String jsInteropMemberName =
+            decoder.getString(JS_INTEROP_MEMBER_NAME, isOptional: true);
+        if (jsInteropMemberName != null) {
+          nativeData.jsInteropMemberNames[element] = jsInteropMemberName;
+        }
+        String nativeMemberName =
+            decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);
+        if (nativeMemberName != null) {
+          nativeData.nativeMemberName[element] = nativeMemberName;
+        }
+
+        if (element is MethodElement) {
+          ObjectDecoder nativeMethodBehavior =
+              decoder.getObject(NATIVE_METHOD_BEHAVIOR, isOptional: true);
+          if (nativeMethodBehavior != null) {
+            nativeData.nativeMethodBehavior[element] =
+                NativeBehaviorSerialization
+                    .deserializeNativeBehavior(nativeMethodBehavior);
+          }
+        } else if (element is FieldElement) {
+          ObjectDecoder nativeFieldLoadBehavior =
+              decoder.getObject(NATIVE_FIELD_LOAD_BEHAVIOR, isOptional: true);
+          if (nativeFieldLoadBehavior != null) {
+            nativeData.nativeFieldLoadBehavior[element] =
+                NativeBehaviorSerialization
+                    .deserializeNativeBehavior(nativeFieldLoadBehavior);
+          }
+          ObjectDecoder nativeFieldStoreBehavior =
+              decoder.getObject(NATIVE_FIELD_STORE_BEHAVIOR, isOptional: true);
+          if (nativeFieldStoreBehavior != null) {
+            nativeData.nativeFieldStoreBehavior[element] =
+                NativeBehaviorSerialization
+                    .deserializeNativeBehavior(nativeFieldStoreBehavior);
+          }
+        }
       }
     }
   }
@@ -156,12 +195,12 @@ class NativeBehaviorSerialization {
   static const int SPECIAL_TYPE = 2;
 
   static int getTypeKind(var type) {
-    if (type is ResolutionDartType) {
+    if (type is DartType) {
       // TODO(johnniwinther): Remove this when annotation are no longer resolved
       // to this-types.
-      if (type is GenericType &&
-          type.isGeneric &&
-          type == type.element.thisType) {
+      if (type is InterfaceType &&
+          type.typeArguments.isNotEmpty &&
+          type.typeArguments.first is TypeVariableType) {
         return THIS_TYPE;
       }
       return NORMAL_TYPE;

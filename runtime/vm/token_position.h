@@ -79,10 +79,14 @@ class TokenPosition {
 
   static const intptr_t kMaxSentinelDescriptors = 64;
 
-#define DECLARE_VALUES(name, value) static const TokenPosition k##name;
+#define DECLARE_VALUES(name, value)                                            \
+  static const intptr_t k##name##Pos = value;                                  \
+  static const TokenPosition k##name;
   SENTINEL_TOKEN_DESCRIPTORS(DECLARE_VALUES);
 #undef DECLARE_VALUES
+  static const intptr_t kMinSourcePos = 0;
   static const TokenPosition kMinSource;
+  static const intptr_t kMaxSourcePos = kSmiMax32 - kMaxSentinelDescriptors - 2;
   static const TokenPosition kMaxSource;
 
   // Decode from a snapshot.
@@ -110,11 +114,6 @@ class TokenPosition {
     return value_;
   }
 
-  // Token position constants.
-  static const intptr_t kNoSourcePos = -1;
-  static const intptr_t kMinSourcePos = 0;
-  static const intptr_t kMaxSourcePos = kSmiMax32 - kMaxSentinelDescriptors - 2;
-
   // Is |this| a classifying sentinel source position?
   // Classifying positions are used by the profiler to group instructions whose
   // cost isn't naturally attributable to a source location.
@@ -134,9 +133,11 @@ class TokenPosition {
   bool IsReal() const { return value_ >= kMinSourcePos; }
 
   // Is |this| a source position?
-  bool IsSourcePosition() const {
-    return IsReal() || IsNoSource() || IsSynthetic();
-  }
+  bool IsSourcePosition() const { return IsReal() || IsSynthetic(); }
+
+  // Convert |this| into a real source position. Sentinel values remain
+  // unchanged.
+  TokenPosition SourcePosition() const { return FromSynthetic(); }
 
   // Is |this| a debug pause source position?
   bool IsDebugPause() const {

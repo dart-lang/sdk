@@ -12,7 +12,7 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpc('_respondWithMalformedObject', {});
-      expect(false, isTrue, reason:'Unreachable');
+      expect(false, isTrue, reason: 'Unreachable');
     } on MalformedResponseRpcException catch (e) {
       caughtException = true;
       expect(e.message, equals("Response is missing the 'type' field"));
@@ -25,13 +25,14 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpc('_respondWithMalformedJson', {});
-      expect(false, isTrue, reason:'Unreachable');
+      expect(false, isTrue, reason: 'Unreachable');
     } on NetworkRpcException catch (e) {
       caughtException = true;
-      expect(e.message,
-             startsWith("Canceling request: "
-                        "Connection saw corrupt JSON message: "
-                        "FormatException: Unexpected character"));
+      expect(
+          e.message,
+          startsWith("Canceling request: "
+              "Connection saw corrupt JSON message: "
+              "FormatException: Unexpected character"));
     }
     expect(caughtException, isTrue);
   },

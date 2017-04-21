@@ -4,12 +4,9 @@
 
 library test.domain.execution;
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -22,11 +19,9 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import 'analysis_abstract.dart';
 import 'mocks.dart';
-import 'operation/operation_queue_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -198,77 +193,6 @@ main() {
         expect(response, isResponseSuccess('0'));
         expect(handler.onFileAnalyzed, isNull);
       });
-    });
-
-    test('onAnalysisComplete - success - setting and clearing', () {
-      Source source1 = new TestSource('/a.dart');
-      Source source2 = new TestSource('/b.dart');
-      Source source3 = new TestSource('/c.dart');
-      Source source4 = new TestSource('/d.dart');
-      Source source5 = new TestSource('/e.html');
-      Source source6 = new TestSource('/f.html');
-      Source source7 = new TestSource('/g.html');
-
-      AnalysisContext context = new AnalysisContextMock();
-      when(context.launchableClientLibrarySources)
-          .thenReturn([source1, source2]);
-      when(context.launchableServerLibrarySources)
-          .thenReturn([source2, source3]);
-      when(context.librarySources).thenReturn([source4]);
-      when(context.htmlSources).thenReturn([source5]);
-      when(context.getLibrariesReferencedFromHtml(anyObject))
-          .thenReturn([source6, source7]);
-
-      ContextManager manager = new ServerContextManagerMock();
-      when(manager.isInAnalysisRoot(anyString)).thenReturn(true);
-
-      AnalysisServer server = new AnalysisServerMock();
-      when(server.analysisContexts).thenReturn([context]);
-      when(server.contextManager).thenReturn(manager);
-
-      StreamController controller = new StreamController.broadcast(sync: true);
-      when(server.onFileAnalyzed).thenReturn(controller.stream);
-
-      List<String> unsentNotifications = <String>[
-        source1.fullName,
-        source2.fullName,
-        source3.fullName,
-        source4.fullName,
-        source5.fullName
-      ];
-      when(server.sendNotification(anyObject))
-          .thenInvoke((Notification notification) {
-        ExecutionLaunchDataParams params =
-            new ExecutionLaunchDataParams.fromNotification(notification);
-
-        String fileName = params.file;
-        expect(unsentNotifications.remove(fileName), isTrue);
-
-        if (fileName == source1.fullName) {
-          expect(params.kind, ExecutableKind.CLIENT);
-        } else if (fileName == source2.fullName) {
-          expect(params.kind, ExecutableKind.EITHER);
-        } else if (fileName == source3.fullName) {
-          expect(params.kind, ExecutableKind.SERVER);
-        } else if (fileName == source4.fullName) {
-          expect(params.kind, ExecutableKind.NOT_EXECUTABLE);
-        } else if (fileName == source5.fullName) {
-          var referencedFiles = params.referencedFiles;
-          expect(referencedFiles, isNotNull);
-          expect(referencedFiles.length, equals(2));
-          expect(referencedFiles[0], equals(source6.fullName));
-          expect(referencedFiles[1], equals(source7.fullName));
-        }
-      });
-
-      ExecutionDomainHandler handler = new ExecutionDomainHandler(server);
-      Request request =
-          new ExecutionSetSubscriptionsParams([ExecutionService.LAUNCH_DATA])
-              .toRequest('0');
-      handler.handleRequest(request);
-
-//      controller.add(null);
-      expect(unsentNotifications, isEmpty);
     });
   });
 }

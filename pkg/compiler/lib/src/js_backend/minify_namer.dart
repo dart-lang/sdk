@@ -12,9 +12,9 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(JavaScriptBackend backend, ClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder)
-      : super(backend, closedWorld, codegenWorldBuilder) {
+  MinifyNamer(BackendHelpers helpers, NativeData nativeData,
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+      : super(helpers, nativeData, closedWorld, codegenWorldBuilder) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
@@ -292,7 +292,7 @@ class MinifyNamer extends Namer
   }
 
   @override
-  jsAst.Name instanceFieldPropertyName(Element element) {
+  jsAst.Name instanceFieldPropertyName(FieldElement element) {
     jsAst.Name proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;
@@ -317,25 +317,20 @@ class _ConstructorBodyNamingScope {
 
   int get numberOfConstructors => _constructors.length;
 
-  _ConstructorBodyNamingScope _superScope;
-
   _ConstructorBodyNamingScope.rootScope(ClassElement cls)
-      : _superScope = null,
-        _startIndex = 0,
+      : _startIndex = 0,
         _constructors = cls.constructors.toList(growable: false);
 
   _ConstructorBodyNamingScope.forClass(
       ClassElement cls, _ConstructorBodyNamingScope superScope)
-      : _superScope = superScope,
-        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+      : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = cls.constructors.toList(growable: false);
 
   // Mixin Applications have constructors but we never generate code for them,
   // so they do not count in the inheritance chain.
   _ConstructorBodyNamingScope.forMixinApplication(
       ClassElement cls, _ConstructorBodyNamingScope superScope)
-      : _superScope = superScope,
-        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+      : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = const [];
 
   factory _ConstructorBodyNamingScope(ClassElement cls,
@@ -379,7 +374,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
   /// [selector] and return-type specialization.
   @override
   jsAst.Name nameForGetOneShotInterceptor(
-      Selector selector, Iterable<ClassElement> classes) {
+      Selector selector, Iterable<ClassEntity> classes) {
     String root = selector.isOperator
         ? operatorNameToIdentifier(selector.name)
         : privateName(selector.memberName);

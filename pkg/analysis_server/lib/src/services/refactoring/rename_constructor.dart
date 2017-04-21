@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -26,8 +27,10 @@ import 'package:analyzer/src/generated/source.dart';
  * A [Refactoring] for renaming [ConstructorElement]s.
  */
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
+  final AstProvider astProvider;
+
   RenameConstructorRefactoringImpl(
-      SearchEngine searchEngine, ConstructorElement element)
+      SearchEngine searchEngine, this.astProvider, ConstructorElement element)
       : super(searchEngine, element);
 
   @override
@@ -61,7 +64,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     List<SourceReference> references = getSourceReferences(matches);
     // append declaration
     if (element.isSynthetic) {
-      _replaceSynthetic();
+      await _replaceSynthetic();
     } else {
       references.add(_createDeclarationReference());
     }
@@ -107,9 +110,10 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         true));
   }
 
-  void _replaceSynthetic() {
+  Future<Null> _replaceSynthetic() async {
     ClassElement classElement = element.enclosingElement;
-    ClassDeclaration classNode = classElement.computeNode();
+    AstNode name = await astProvider.getResolvedNameForElement(classElement);
+    ClassDeclaration classNode = name.parent as ClassDeclaration;
     CorrectionUtils utils = new CorrectionUtils(classNode.parent);
     ClassMemberLocation location =
         utils.prepareNewConstructorLocation(classNode);

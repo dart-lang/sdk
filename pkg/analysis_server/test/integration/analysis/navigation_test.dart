@@ -17,7 +17,7 @@ main() {
 
 class AbstractAnalysisNavigationTest
     extends AbstractAnalysisServerIntegrationTest {
-  test_navigation() {
+  test_navigation() async {
     String pathname1 = sourcePath('test1.dart');
     String text1 = r'''
 library foo;
@@ -67,71 +67,71 @@ part of foo;
       targets = params.targets;
       targetFiles = params.files;
     });
-    return analysisFinished.then((_) {
-      // There should be a single error, due to the fact that 'dart:async' is
-      // not used.
-      expect(currentAnalysisErrors[pathname1], hasLength(1));
-      expect(currentAnalysisErrors[pathname2], isEmpty);
-      NavigationTarget findTargetElement(int index) {
-        for (NavigationRegion region in regions) {
-          if (region.offset <= index && index < region.offset + region.length) {
-            expect(region.targets, hasLength(1));
-            int targetIndex = region.targets[0];
-            return targets[targetIndex];
-          }
+
+    await analysisFinished;
+
+    // There should be a single error, due to the fact that 'dart:async' is not
+    // used.
+    expect(currentAnalysisErrors[pathname1], hasLength(1));
+    expect(currentAnalysisErrors[pathname2], isEmpty);
+    NavigationTarget findTargetElement(int index) {
+      for (NavigationRegion region in regions) {
+        if (region.offset <= index && index < region.offset + region.length) {
+          expect(region.targets, hasLength(1));
+          int targetIndex = region.targets[0];
+          return targets[targetIndex];
         }
-        fail('No element found for index $index');
-        return null;
       }
+      fail('No element found for index $index');
+      return null;
+    }
 
-      void checkLocal(
-          String source, String expectedTarget, ElementKind expectedKind) {
-        int sourceIndex = text1.indexOf(source);
-        int targetIndex = text1.indexOf(expectedTarget);
-        NavigationTarget element = findTargetElement(sourceIndex);
-        expect(targetFiles[element.fileIndex], equals(pathname1));
-        expect(element.offset, equals(targetIndex));
-        expect(element.kind, equals(expectedKind));
-      }
+    void checkLocal(
+        String source, String expectedTarget, ElementKind expectedKind) {
+      int sourceIndex = text1.indexOf(source);
+      int targetIndex = text1.indexOf(expectedTarget);
+      NavigationTarget element = findTargetElement(sourceIndex);
+      expect(targetFiles[element.fileIndex], equals(pathname1));
+      expect(element.offset, equals(targetIndex));
+      expect(element.kind, equals(expectedKind));
+    }
 
-      void checkRemote(String source, String expectedTargetRegexp,
-          ElementKind expectedKind) {
-        int sourceIndex = text1.indexOf(source);
-        NavigationTarget element = findTargetElement(sourceIndex);
-        expect(targetFiles[element.fileIndex], matches(expectedTargetRegexp));
-        expect(element.kind, equals(expectedKind));
-      }
+    void checkRemote(
+        String source, String expectedTargetRegexp, ElementKind expectedKind) {
+      int sourceIndex = text1.indexOf(source);
+      NavigationTarget element = findTargetElement(sourceIndex);
+      expect(targetFiles[element.fileIndex], matches(expectedTargetRegexp));
+      expect(element.kind, equals(expectedKind));
+    }
 
-      // TODO(paulberry): will the element type 'CLASS_TYPE_ALIAS' ever appear
-      // as a navigation target?
-      checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
-      checkRemote(
-          "'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
-      checkLocal(
-          'Class<int>.constructor',
-          'constructor(); /* constructor declaration */',
-          ElementKind.CONSTRUCTOR);
-      checkLocal(
-          'constructor(); // usage',
-          'constructor(); /* constructor declaration */',
-          ElementKind.CONSTRUCTOR);
-      checkLocal('field;', 'field;', ElementKind.FIELD);
-      checkLocal('function(() => localVariable.field)',
-          'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
-      checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
-          ElementKind.FUNCTION_TYPE_ALIAS);
-      checkLocal('field)', 'field;', ElementKind.GETTER);
-      checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
-      checkLocal(
-          'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
-      checkLocal('method();', 'method() {', ElementKind.METHOD);
-      checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
-      checkLocal('field = 1', 'field;', ElementKind.SETTER);
-      checkLocal('topLevelVariable;', 'topLevelVariable;',
-          ElementKind.TOP_LEVEL_VARIABLE);
-      checkLocal(
-          'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
-    });
+    // TODO(paulberry): will the element type 'CLASS_TYPE_ALIAS' ever appear as
+    // a navigation target?
+    checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
+    checkRemote("'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
+    checkLocal(
+        'Class<int>.constructor',
+        'constructor(); /* constructor declaration */',
+        ElementKind.CONSTRUCTOR);
+    checkLocal(
+        'constructor(); // usage',
+        'constructor(); /* constructor declaration */',
+        ElementKind.CONSTRUCTOR);
+    checkLocal('field;', 'field;', ElementKind.FIELD);
+    checkLocal('function(() => localVariable.field)',
+        'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
+    checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
+        ElementKind.FUNCTION_TYPE_ALIAS);
+    checkLocal('field)', 'field;', ElementKind.GETTER);
+    checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
+    checkLocal(
+        'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
+    checkLocal('method();', 'method() {', ElementKind.METHOD);
+    checkLocal('parameter());', 'parameter) {', ElementKind.PARAMETER);
+    checkLocal('field = 1', 'field;', ElementKind.SETTER);
+    checkLocal('topLevelVariable;', 'topLevelVariable;',
+        ElementKind.TOP_LEVEL_VARIABLE);
+    checkLocal(
+        'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
   }
 }
 

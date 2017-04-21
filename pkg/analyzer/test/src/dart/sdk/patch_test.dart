@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -805,7 +804,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
         'dart:test': [_p('/sdk/lib/does_not_exist.dart')]
       };
       File file = provider.newFile(_p('/sdk/lib/test/test.dart'), '');
-      Source source = file.createSource(FastUri.parse('dart:test'));
+      Source source = file.createSource(Uri.parse('dart:test'));
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
       patcher.patch(provider, true, patchPaths, listener, source, unit);
     }, throwsArgumentError);
@@ -844,7 +843,7 @@ int newFunction() => 2;
 
     _createSdk();
 
-    Source source = file.createSource(FastUri.parse('dart:_internal'));
+    Source source = file.createSource(Uri.parse('dart:_internal'));
     CompilationUnit unit = SdkPatcher.parse(source, true, listener);
     patcher.patch(provider, true, patchPaths, listener, source, unit);
     _assertUnitCode(
@@ -897,7 +896,7 @@ class _C {}
     _createSdk();
 
     {
-      Uri uri = FastUri.parse('dart:test');
+      Uri uri = Uri.parse('dart:test');
       Source source = fileLib.createSource(uri);
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
       patcher.patch(provider, true, patchPaths, listener, source, unit);
@@ -908,7 +907,7 @@ class _C {}
     }
 
     {
-      Uri uri = FastUri.parse('dart:test/test_part.dart');
+      Uri uri = Uri.parse('dart:test/test_part.dart');
       Source source = filePart.createSource(uri);
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
       patcher.patch(provider, true, patchPaths, listener, source, unit);
@@ -1196,7 +1195,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 
     _createSdk();
 
-    Source source = file.createSource(FastUri.parse('dart:test'));
+    Source source = file.createSource(Uri.parse('dart:test'));
     CompilationUnit unit = SdkPatcher.parse(source, true, listener);
     patcher.patch(provider, true, patchPaths, listener, source, unit);
     return unit;

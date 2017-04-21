@@ -16,9 +16,9 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart' show MemberEntity;
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -26,12 +26,12 @@ import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
-import '../tree/nodes.dart' show Node, BreakStatement;
+import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show StaticUse;
+import '../universe/use.dart' show DynamicUse, StaticUse;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -57,7 +57,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
-      AstElement element = work.element.implementation;
+      MemberElement element = work.element.implementation;
       Kernel kernel = backend.kernelTask.kernel;
       KernelSsaBuilder builder = new KernelSsaBuilder(
           element,
@@ -93,7 +93,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   bool _targetIsConstructorBody = false;
-  final AstElement targetElement;
+  final MemberElement targetElement;
   final ResolvedAst resolvedAst;
   final ClosedWorld closedWorld;
   final CodegenRegistry registry;
@@ -153,28 +153,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     this.localsHandler = new LocalsHandler(this, targetElement, null, compiler);
     this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
-    Element originTarget = targetElement;
-    if (originTarget.isPatch) {
-      originTarget = originTarget.origin;
-    }
-    if (originTarget is FunctionElement) {
-      if (originTarget is ConstructorBodyElement) {
-        ConstructorBodyElement body = originTarget;
-        _targetIsConstructorBody = true;
-        originTarget = body.constructor;
-      }
-      target = kernel.functions[originTarget];
-      // Closures require a lookup one level deeper in the closure class mapper.
-      if (target == null) {
-        FunctionElement originTargetFunction = originTarget;
-        ClosureClassMap classMap = compiler.closureToClassMapper
-            .getClosureToClassMapping(originTargetFunction.resolvedAst);
-        if (classMap.closureElement != null) {
-          target = kernel.localFunctions[classMap.closureElement];
-        }
-      }
-    } else if (originTarget is FieldElement) {
-      target = kernel.fields[originTarget];
+    target = astAdapter.getInitialKernelNode(targetElement);
+    if (targetElement is ConstructorBodyElement) {
+      _targetIsConstructorBody = true;
     }
   }
 
@@ -199,7 +180,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _targetFunction = (target as ir.FunctionDeclaration).function;
       buildFunctionNode(_targetFunction);
     } else {
-      throw 'No case implemented to handle target: $target';
+      throw 'No case implemented to handle target: $target for $targetElement';
     }
     assert(graph.isValid());
     return graph;
@@ -239,17 +220,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
     var enclosing = constructor.enclosingClass;
-    if (backend.classNeedsRti(astAdapter.getElement(enclosing))) {
-      ClassElement clsElement =
-          astAdapter.getElement(constructor).enclosingElement;
+    if (backend.rtiNeed.classNeedsRti(astAdapter.getElement(enclosing))) {
       enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
         var typeParamElement = astAdapter.getElement(typeParameter);
         HParameterValue param =
             addParameter(typeParamElement, commonMasks.nonNullType);
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
-        var typeVariableType = clsElement.typeVariables.firstWhere(
-            (ResolutionTypeVariableType i) => i.name == typeParameter.name);
+        var typeVariableType = astAdapter
+            .getClass(enclosing)
+            .typeVariables
+            .firstWhere(
+                (ResolutionTypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
             localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
       });
@@ -278,6 +260,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _buildInitializers(constructor, constructorChain, fieldValues);
 
     final constructorArguments = <HInstruction>[];
+    // Doing this instead of fieldValues.forEach because we haven't defined the
+    // order of the arguments here. We can define that with JElements.
     astAdapter.getClass(constructor.enclosingClass).forEachInstanceField(
         (ClassElement enclosingClass, FieldElement member) {
       var value = fieldValues[astAdapter.getFieldFromElement(member)];
@@ -476,13 +460,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _buildInitializers(constructor, constructorChain, fieldValues);
   }
 
-  HTypeConversion buildFunctionTypeConversion(
-      HInstruction original, ResolutionDartType type, int kind) {
-    HInstruction reifiedType = buildFunctionType(type);
-    return new HTypeConversion.viaMethodOnType(
-        type, kind, original.instructionType, reifiedType, original);
-  }
-
   /// Builds generative constructor body.
   void buildConstructorBody(ir.Constructor constructor) {
     openFunction();
@@ -593,6 +570,31 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
+    HInstruction prefixConstant = graph.addConstantString(
+        new DartString.literal(checkLoad.import.name), closedWorld);
+    var prefixElement = astAdapter.getElement(checkLoad.import);
+    HInstruction uriConstant = graph.addConstantString(
+        new DartString.literal(prefixElement.deferredImport.uri.toString()),
+        closedWorld);
+    _pushStaticInvocation(astAdapter.checkDeferredIsLoaded,
+        [prefixConstant, uriConstant], astAdapter.checkDeferredIsLoadedType);
+  }
+
+  @override
+  void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
+    // TODO(efortuna): Source information!
+    push(new HInvokeStatic(
+        backend.helpers.loadLibraryWrapper,
+        [
+          graph.addConstantString(
+              new DartString.literal(loadLibrary.import.name), closedWorld)
+        ],
+        commonMasks.nonNullType,
+        targetCanThrow: false));
+  }
+
+  @override
   void visitBlock(ir.Block block) {
     assert(!isAborted());
     for (ir.Statement statement in block.statements) {
@@ -663,7 +665,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       returnStatement.expression.accept(this);
       value = pop();
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
-        var returnType = astAdapter.getDartType(_targetFunction.returnType);
         if (compiler.options.enableTypeAssertions &&
             !isValidAsyncReturnType(_targetFunction.returnType)) {
           generateTypeError(
@@ -755,8 +756,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      HFieldGet result = new HFieldGet(
-          astAdapter.jsIndexableLength, array, commonMasks.positiveIntType,
+      HGetLength result = new HGetLength(array, commonMasks.positiveIntType,
           isAssignable: !isFixed);
       add(result);
       return result;
@@ -813,8 +813,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction value = new HIndex(array, index, null, type);
       add(value);
 
-      localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), value);
+      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      localsHandler.updateLocal(loopVariableLocal, value);
+      // Hint to name loop value after name of loop variable.
+      if (loopVariableLocal is! SyntheticLocal) {
+        value.sourceElement ??= loopVariableLocal;
+      }
 
       forInStatement.body.accept(this);
     }
@@ -843,7 +847,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
-    //     <declaredIdentifier> = $iter.current;
+    //     <variable> = $iter.current;
     //     <body>
     //   }
 
@@ -870,8 +874,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
-      localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), pop());
+      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      HInstruction value = pop();
+      localsHandler.updateLocal(loopVariableLocal, value);
+      // Hint to name loop value after name of loop variable.
+      if (loopVariableLocal is! SyntheticLocal) {
+        value.sourceElement ??= loopVariableLocal;
+      }
       forInStatement.body.accept(this);
     }
 
@@ -1309,11 +1318,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     int switchIndex = 1;
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in switchStatement.cases) {
+      if (_isDefaultCase(switchCase)) {
+        hasDefault = true;
+      }
       if (SwitchContinueAnalysis.containsContinue(switchCase.body)) {
         hasContinue = true;
-      }
-      if (switchCase.isDefault) {
-        hasDefault = true;
       }
       caseIndex[switchCase] = switchIndex;
       switchIndex++;
@@ -1412,7 +1421,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
-    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement.parent);
+    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement);
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
     var switchCases = switchStatement.cases;
@@ -1668,7 +1677,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction object, ir.ListLiteral listLiteral) {
     ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
-    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!backend.rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
@@ -1743,7 +1752,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ir.Class cls = constructor.enclosingClass;
 
-    if (backend.classNeedsRti(astAdapter.getElement(cls))) {
+    if (backend.rtiNeed.classNeedsRti(astAdapter.getClass(cls))) {
       List<HInstruction> typeInputs = <HInstruction>[];
       type.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
@@ -1823,8 +1832,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Invoke the getter
       _pushStaticInvocation(staticTarget, const <HInstruction>[],
           astAdapter.returnTypeOf(staticTarget));
-    } else if (staticTarget is ir.Field && staticTarget.isConst) {
-      assert(staticTarget.initializer != null);
+    } else if (staticTarget is ir.Field &&
+        (staticTarget.isConst ||
+            staticTarget.isFinal && !_isLazyStatic(staticTarget))) {
       stack.add(graph.addConstant(
           astAdapter.getConstantFor(staticTarget.initializer), closedWorld));
     } else {
@@ -1898,6 +1908,25 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     pop();
     stack.add(value);
+  }
+
+  @override
+  void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
+    propertySet.value.accept(this);
+    HInstruction value = pop();
+
+    if (propertySet.interfaceTarget == null) {
+      _generateSuperNoSuchMethod(
+          propertySet,
+          astAdapter.getSelector(propertySet).name + "=",
+          <HInstruction>[value]);
+    } else {
+      _buildInvokeSuper(
+          astAdapter.getSelector(propertySet),
+          _containingClass(propertySet),
+          propertySet.interfaceTarget,
+          <HInstruction>[value]);
+    }
   }
 
   @override
@@ -2168,7 +2197,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    if (!backend.hasIsolateSupport) {
+    if (!backend.backendUsage.isIsolateInUse) {
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
@@ -2197,7 +2226,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
 
-    if (!backend.hasIsolateSupport) {
+    if (!backend.backendUsage.isIsolateInUse) {
       // If the isolate library is not used, we ignore the isolate argument and
       // just invoke the closure.
       push(new HInvokeClosure(new Selector.callClosure(0),
@@ -2239,14 +2268,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
               function.requiredParameterCount ==
                   function.positionalParameters.length &&
               function.namedParameters.isEmpty) {
-            registry?.registerStaticUse(
-                new StaticUse.foreignUse(astAdapter.getMethod(staticTarget)));
             push(new HForeignCode(
                 js.js.expressionTemplateYielding(backend.emitter
                     .staticFunctionAccess(astAdapter.getMethod(staticTarget))),
                 commonMasks.dynamicType,
                 <HInstruction>[],
-                nativeBehavior: native.NativeBehavior.PURE));
+                nativeBehavior: native.NativeBehavior.PURE,
+                foreignFunction: astAdapter.getMethod(staticTarget)));
             return;
           }
           problem = 'does not handle a closure with optional parameters';
@@ -2393,7 +2421,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool value = false;
     switch (name) {
       case 'MUST_RETAIN_METADATA':
-        value = backend.mustRetainMetadata;
+        value = backend.mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
         value = compiler.options.useContentSecurityPolicy;
@@ -2539,11 +2567,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(nestedClosureData.closureClassElement != null);
     ClosureClassElement closureClassElement =
         nestedClosureData.closureClassElement;
-    FunctionElement callElement = nestedClosureData.callElement;
-    // TODO(ahe): This should be registered in codegen, not here.
-    // TODO(johnniwinther): Is [registerStaticUse] equivalent to
-    // [addToWorkList]?
-    registry?.registerStaticUse(new StaticUse.foreignUse(callElement));
+    MethodElement callElement = nestedClosureData.callElement;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
@@ -2555,9 +2579,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(closureClassElement, capturedVariables, type));
-
-    registry?.registerInstantiatedClosure(methodElement);
+    push(new HCreate(closureClassElement, capturedVariables, type,
+        callMethod: callElement, localFunction: methodElement));
   }
 
   @override
@@ -2627,32 +2650,143 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return null;
   }
 
-  @override
-  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+  /// Find the applicable NoSuchMethod method for an object of this particular
+  /// class.
+  ir.Procedure _findNoSuchMethodInClass(ir.Class cls) {
+    // TODO(efortuna): If we find ourselves doing this sort of calculation
+    // often, rewrite what is done with the original element class where we call
+    // lookupSuperMember.
+    ir.Procedure noSuchMethod = null;
+    while (cls != null && cls != astAdapter.objectClass) {
+      for (ir.Procedure procedure in cls.procedures) {
+        // TODO(efortuna): Do we need to check mixin classes as well?
+        if (procedure.name.name == Identifiers.noSuchMethod_ &&
+            Selectors.noSuchMethod_
+                .signatureApplies(astAdapter.getMethod(procedure))) {
+          noSuchMethod = procedure;
+        }
+      }
+      cls = cls.superclass;
+    }
+
+    if (noSuchMethod == null) {
+      // There is no matching overloaded NoSuchMethod function in the containing
+      // class. Look on the Object class itself.
+      for (ir.Procedure procedure in astAdapter.objectClass.procedures) {
+        if (procedure.name.name == Identifiers.noSuchMethod_) {
+          noSuchMethod = procedure;
+        }
+      }
+    }
+    assert(noSuchMethod != null);
+    return noSuchMethod;
+  }
+
+  void _generateSuperNoSuchMethod(ir.Expression invocation, String publicName,
+      List<HInstruction> arguments) {
     Selector selector = astAdapter.getSelector(invocation);
-    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        invocation.interfaceTarget.function, invocation.arguments);
+    ir.Class cls = _containingClass(invocation).superclass;
+    assert(cls != null);
+    ir.Procedure noSuchMethod = _findNoSuchMethodInClass(cls);
+    if (backend.backendUsage.isInvokeOnUsed &&
+        _containingClass(noSuchMethod) != astAdapter.objectClass) {
+      // Register the call as dynamic if [noSuchMethod] on the super
+      // class is _not_ the default implementation from [Object] (it might be
+      // overridden in the super class, but it might have a different number of
+      // arguments), in case the [noSuchMethod] implementation calls
+      // [JSInvocationMirror._invokeOn].
+      // TODO(johnniwinther): Register this more precisely.
+      registry?.registerDynamicUse(new DynamicUse(selector, null));
+    }
+
+    ConstantValue nameConstant =
+        backend.constantSystem.createString(new DartString.literal(publicName));
+
+    js.Name internalName = backend.namer.invocationName(selector);
+
+    var argumentsInstruction =
+        new HLiteralList(arguments, commonMasks.extendableArrayType);
+    add(argumentsInstruction);
+
+    var argumentNames = new List<HInstruction>();
+    for (String argumentName in selector.namedArguments) {
+      ConstantValue argumentNameConstant = backend.constantSystem
+          .createString(new DartString.literal(argumentName));
+      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
+    }
+    var argumentNamesInstruction =
+        new HLiteralList(argumentNames, commonMasks.extendableArrayType);
+    add(argumentNamesInstruction);
+
+    ConstantValue kindConstant =
+        backend.constantSystem.createInt(selector.invocationMirrorKind);
+
+    _pushStaticInvocation(
+        astAdapter.createInvocationMirror,
+        [
+          graph.addConstant(nameConstant, closedWorld),
+          graph.addConstantStringFromName(internalName, closedWorld),
+          graph.addConstant(kindConstant, closedWorld),
+          argumentsInstruction,
+          argumentNamesInstruction
+        ],
+        commonMasks.dynamicType);
+
+    _buildInvokeSuper(Selectors.noSuchMethod_, _containingClass(invocation),
+        noSuchMethod, <HInstruction>[pop()]);
+  }
+
+  HInstruction _buildInvokeSuper(Selector selector, ir.Class containingClass,
+      ir.Member interfaceTarget, List<HInstruction> arguments) {
+    // TODO(efortuna): Add source information.
     HInstruction receiver = localsHandler.readThis();
-    ir.Class surroundingClass = _containingClass(invocation);
 
     List<HInstruction> inputs = <HInstruction>[];
-    if (astAdapter.isIntercepted(invocation)) {
+    if (astAdapter.isInterceptedSelector(selector)) {
       inputs.add(_interceptorFor(receiver));
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
 
+    TypeMask typeMask;
+    if (interfaceTarget is ir.Procedure) {
+      typeMask = astAdapter.returnTypeOf(interfaceTarget);
+    } else {
+      typeMask = closedWorld.commonMasks.dynamicType;
+    }
     HInstruction instruction = new HInvokeSuper(
-        astAdapter.getMethod(invocation.interfaceTarget),
-        astAdapter.getClass(surroundingClass),
+        astAdapter.getMember(interfaceTarget),
+        astAdapter.getClass(containingClass),
         selector,
         inputs,
-        astAdapter.returnTypeOf(invocation.interfaceTarget),
+        typeMask,
         null,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);
     push(instruction);
+    return instruction;
+  }
+
+  @override
+  void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
+    if (propertyGet.interfaceTarget == null) {
+      _generateSuperNoSuchMethod(propertyGet,
+          astAdapter.getSelector(propertyGet).name, const <HInstruction>[]);
+    } else {
+      _buildInvokeSuper(
+          astAdapter.getSelector(propertyGet),
+          _containingClass(propertyGet),
+          propertyGet.interfaceTarget, const <HInstruction>[]);
+    }
+  }
+
+  @override
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
+        invocation.interfaceTarget.function, invocation.arguments);
+    _buildInvokeSuper(astAdapter.getSelector(invocation),
+        _containingClass(invocation), invocation.interfaceTarget, arguments);
   }
 
   @override
@@ -2693,14 +2827,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ResolutionDartType typeValue =
         localsHandler.substInContext(astAdapter.getDartType(type));
+
     if (type is ir.FunctionType) {
-      List arguments = [buildFunctionType(typeValue), expression];
-      _pushDynamicInvocation(node, null, arguments,
-          selector: new Selector.call(
-              new PrivateName('_isTest', backend.helpers.jsHelperLibrary),
-              CallStructure.ONE_ARG));
-      push(
-          new HIs.compound(typeValue, expression, pop(), commonMasks.boolType));
+      HInstruction representation =
+          typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
+      List<HInstruction> inputs = <HInstruction>[
+        expression,
+        representation,
+      ];
+      _pushStaticInvocation(
+          astAdapter.functionTypeTest, inputs, commonMasks.boolType);
+      HInstruction call = pop();
+      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType));
       return;
     }
 

@@ -4,7 +4,6 @@
 
 part of _js_helper;
 
-
 // TODO(ngeoffray): stop using this method once our optimizers can
 // change str1.contains(str2) into str1.indexOf(str2) != -1.
 bool contains(String userAgent, String name) {
@@ -62,7 +61,6 @@ Function alternateTagFunction;
  */
 Function prototypeForTagFunction;
 
-
 String toStringForNativeObject(var obj) {
   // TODO(sra): Is this code dead?
   // [getTagFunction] might be uninitialized, but in usual usage, toString has
@@ -79,22 +77,24 @@ int hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
  * Sets a JavaScript property on an object.
  */
 void defineProperty(var obj, String property, var value) {
-  JS('void',
+  JS(
+      'void',
       'Object.defineProperty(#, #, '
-          '{value: #, enumerable: false, writable: true, configurable: true})',
+      '{value: #, enumerable: false, writable: true, configurable: true})',
       obj,
       property,
       value);
 }
 
-
 // Is [obj] an instance of a Dart-defined class?
 bool isDartObject(obj) {
   // Some of the extra parens here are necessary.
-  return JS('bool', '((#) instanceof (#))',
+  return JS(
+      'bool',
+      '((#) instanceof (#))',
       obj,
-      JS_BUILTIN('depends:none;effects:none;',
-                 JsBuiltin.dartObjectConstructor));
+      JS_BUILTIN(
+          'depends:none;effects:none;', JsBuiltin.dartObjectConstructor));
 }
 
 /**
@@ -114,8 +114,8 @@ get interceptorsByTag => JS_EMBEDDED_GLOBAL('=Object', INTERCEPTORS_BY_TAG);
 get leafTags => JS_EMBEDDED_GLOBAL('=Object', LEAF_TAGS);
 
 String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
-  return JS('', r'#.#',
-            interceptorClassConstructor, NATIVE_SUPERCLASS_TAG_NAME);
+  return JS(
+      '', r'#.#', interceptorClassConstructor, NATIVE_SUPERCLASS_TAG_NAME);
 }
 
 /**
@@ -131,11 +131,9 @@ var dispatchRecordsForInstanceTags;
  */
 var interceptorsForUncacheableTags;
 
-
 lookupInterceptor(String tag) {
   return propertyGet(interceptorsByTag, tag);
 }
-
 
 // Dispatch tag marks are optional prefixes for a dispatch tag that direct how
 // the interceptor for the tag may be cached.
@@ -156,7 +154,6 @@ const INTERIOR_MARK = '+';
 
 /// A 'discriminator' function is to be used. TBD.
 const DISCRIMINATED_MARK = '*';
-
 
 /**
  * Returns the interceptor for a native object, or returns `null` if not found.
@@ -257,7 +254,6 @@ patchInteriorProto(obj, interceptor) {
   return interceptor;
 }
 
-
 makeLeafDispatchRecord(interceptor) {
   var fieldName = JS_GET_NAME(JsGetName.IS_INDEXABLE_FIELD_NAME);
   bool indexability = JS('bool', r'!!#[#]', interceptor, fieldName);
@@ -286,8 +282,7 @@ String constructorNameFallback(object) {
   return JS('String', '#(#)', _constructorNameFallback, object);
 }
 
-
-var initNativeDispatchFlag;  // null or true
+var initNativeDispatchFlag; // null or true
 
 @NoInline()
 void initNativeDispatch() {
@@ -298,7 +293,6 @@ void initNativeDispatch() {
 
 @NoInline()
 void initNativeDispatchContinue() {
-
   dispatchRecordsForInstanceTags = JS('', 'Object.create(null)');
   interceptorsForUncacheableTags = JS('', 'Object.create(null)');
 
@@ -344,7 +338,6 @@ void initNativeDispatchContinue() {
   }
 }
 
-
 /**
  * Initializes [getTagFunction] and [alternateTagFunction].
  *
@@ -385,9 +378,8 @@ void initHooks() {
   var hooks = JS('', '#()', _baseHooks);
 
   // Customize for browsers where `object.constructor.name` fails:
-  var _fallbackConstructorHooksTransformer =
-      JS('', '#(#)', _fallbackConstructorHooksTransformerGenerator,
-          _constructorNameFallback);
+  var _fallbackConstructorHooksTransformer = JS('', '#(#)',
+      _fallbackConstructorHooksTransformerGenerator, _constructorNameFallback);
   hooks = applyHooksTransformer(_fallbackConstructorHooksTransformer, hooks);
 
   // Customize for browsers:
@@ -400,8 +392,8 @@ void initHooks() {
 
   // TODO(sra): Update ShadowDOM polyfil to use
   // [dartNativeDispatchHooksTransformer] and remove this hook.
-  hooks = applyHooksTransformer(_dartExperimentalFixupGetTagHooksTransformer,
-      hooks);
+  hooks = applyHooksTransformer(
+      _dartExperimentalFixupGetTagHooksTransformer, hooks);
 
   // Apply global hooks.
   //
@@ -486,7 +478,6 @@ function() {
     discriminator: discriminator };
 }''');
 
-
 /**
  * Returns the name of the constructor function for browsers where
  * `object.constructor.name` is not reliable.
@@ -500,7 +491,6 @@ function getTagFallback(o) {
   var s = Object.prototype.toString.call(o);
   return s.substring(8, s.length - 1);
 }''');
-
 
 const _fallbackConstructorHooksTransformerGenerator = const JS_CONST(r'''
 function(getTagFallback) {
@@ -523,7 +513,6 @@ function(getTagFallback) {
     hooks.getTag = getTagFallback;
   };
 }''');
-
 
 const _ieHooksTransformer = const JS_CONST(r'''
 function(hooks) {
@@ -612,16 +601,13 @@ function(hooks) {
   hooks.getTag = getTagFirefox;
 }''');
 
-
 const _operaHooksTransformer = const JS_CONST(r'''
 function(hooks) { return hooks; }
 ''');
 
-
 const _safariHooksTransformer = const JS_CONST(r'''
 function(hooks) { return hooks; }
 ''');
-
 
 const _dartExperimentalFixupGetTagHooksTransformer = const JS_CONST(r'''
 function(hooks) {

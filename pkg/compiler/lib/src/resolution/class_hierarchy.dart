@@ -6,7 +6,7 @@ library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -66,8 +66,8 @@ class TypeDefinitionVisitor extends MappingVisitor<ResolutionDartType> {
 
       TypeVariableElementX variableElement = typeVariable.element;
       if (typeNode.bound != null) {
-        ResolutionDartType boundType =
-            typeResolver.resolveTypeAnnotation(this, typeNode.bound);
+        ResolutionDartType boundType = typeResolver
+            .resolveNominalTypeAnnotation(this, typeNode.bound, const []);
         variableElement.boundCache = boundType;
 
         void checkTypeVariableBound() {
@@ -250,8 +250,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   /// Resolves the mixed type for [mixinNode] and checks that the mixin type
   /// is a valid, non-blacklisted interface type. The mixin type is returned.
-  ResolutionDartType checkMixinType(TypeAnnotation mixinNode) {
-    ResolutionDartType mixinType = resolveType(mixinNode);
+  ResolutionDartType checkMixinType(NominalTypeAnnotation mixinNode) {
+    ResolutionDartType mixinType = resolveNominalType(mixinNode);
     if (isBlackListed(mixinType)) {
       reporter.reportErrorMessage(
           mixinNode, MessageKind.CANNOT_MIXIN, {'type': mixinType});
@@ -440,13 +440,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return mixinType;
   }
 
-  ResolutionDartType resolveType(TypeAnnotation node) {
-    return typeResolver.resolveTypeAnnotation(this, node);
+  ResolutionDartType resolveNominalType(NominalTypeAnnotation node) {
+    return typeResolver.resolveNominalTypeAnnotation(this, node, const []);
   }
 
   ResolutionDartType resolveSupertype(
-      ClassElement cls, TypeAnnotation superclass) {
-    ResolutionDartType supertype = resolveType(superclass);
+      ClassElement cls, NominalTypeAnnotation superclass) {
+    ResolutionDartType supertype = resolveNominalType(superclass);
     if (supertype != null) {
       if (supertype.isMalformed) {
         reporter.reportErrorMessage(
@@ -476,7 +476,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     Link<ResolutionDartType> result = const Link<ResolutionDartType>();
     if (interfaces == null) return result;
     for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
-      ResolutionDartType interfaceType = resolveType(link.head);
+      ResolutionDartType interfaceType = resolveNominalType(link.head);
       if (interfaceType != null) {
         if (interfaceType.isMalformed) {
           reporter.reportErrorMessage(
@@ -490,7 +490,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
               {'className': element.name, 'enumType': interfaceType});
         } else if (!interfaceType.isInterfaceType) {
           // TODO(johnniwinther): Handle dynamic.
-          TypeAnnotation typeAnnotation = link.head;
+          NominalTypeAnnotation typeAnnotation = link.head;
           reporter.reportErrorMessage(
               typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED);
         } else {
@@ -615,7 +615,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
     visitNodeList(node.interfaces);
   }
 
-  void visitTypeAnnotation(TypeAnnotation node) {
+  void visitNominalTypeAnnotation(NominalTypeAnnotation node) {
     node.typeName.accept(this);
   }
 

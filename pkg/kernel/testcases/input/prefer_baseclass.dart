@@ -1,10 +1,13 @@
 class A {}
+
 class B {}
 
 class AB1 extends A implements B {}
+
 class AB2 extends A implements B {}
 
 class BA1 extends B implements A {}
+
 class BA2 extends B implements A {}
 
 takeSubclassOfA(obj) {

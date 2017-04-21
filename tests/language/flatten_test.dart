@@ -16,25 +16,24 @@ class Divergent<T> implements Future<Divergent<Divergent<T>>> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
 test() async {
   // flatten(Derived<int>) = int
-  int x = await new Derived<int>(); /// 01: runtime error
-  Future<int> f() async => new Derived<int>(); /// 02: ok
-  Future<int> f() async { return new Derived<int>(); } /// 03: ok
-  Future<int> x = (() async => new Derived<int>())(); /// 04: runtime error
+  int x = await new Derived<int>(); //# 01: runtime error
+  Future<int> f() async => new Derived<int>(); //# 02: ok
+  Future<int> f() async { return new Derived<int>(); } //# 03: ok
+  Future<int> x = (() async => new Derived<int>())(); //# 04: runtime error
 
   // flatten(FixedPoint<int>) = FixedPoint<int>
-  FixedPoint<int> x = await new FixedPoint<int>(); /// 05: runtime error
-  Future<FixedPoint<int>> f() async => new FixedPoint<int>(); /// 06: ok
-  Future<FixedPoint<int>> f() async { return new FixedPoint<int>(); } /// 07: ok
-  Future<FixedPoint<int>> x = (() async => new FixedPoint<int>())(); /// 08: runtime error
+  FixedPoint<int> x = await new FixedPoint<int>(); //# 05: runtime error
+  Future<FixedPoint<int>> f() async => new FixedPoint<int>(); //# 06: ok
+  Future<FixedPoint<int>> f() async { return new FixedPoint<int>(); } //# 07: ok
+  Future<FixedPoint<int>> x = (() async => new FixedPoint<int>())(); //# 08: runtime error
 
   // flatten(Divergent<int>) = Divergent<Divergent<int>>
-  Divergent<Divergent<int>> x = await new Divergent<int>(); /// 09: runtime error
-  Future<Divergent<Divergent<int>>> f() async => new Divergent<int>(); /// 10: ok
-  Future<Divergent<Divergent<int>>> f() async { return new Divergent<int>(); } /// 11: ok
-  Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())(); /// 12: runtime error
+  Divergent<Divergent<int>> x = await new Divergent<int>(); //# 09: runtime error
+  Future<Divergent<Divergent<int>>> f() async => new Divergent<int>(); //# 10: ok
+  Future<Divergent<Divergent<int>>> f() async { return new Divergent<int>(); } //# 11: ok
+  Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())(); //# 12: runtime error
 }
 
 main() {

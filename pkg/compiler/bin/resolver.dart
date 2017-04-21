@@ -27,8 +27,7 @@ main(var argv) async {
       .map((uri) => currentDirectory.resolve(nativeToUriPath(uri)))
       .toList();
 
-  var text = await resolve(
-      inputs,
+  var text = await resolve(inputs,
       deps: args['deps'],
       root: args['library-root'],
       packages: args['packages'],

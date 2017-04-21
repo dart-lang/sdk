@@ -15,9 +15,9 @@ abstract class Encoding extends Codec<String, List<int>> {
 
   Future<String> decodeStream(Stream<List<int>> byteStream) {
     return byteStream
-      .transform(decoder)
-      .fold(new StringBuffer(), (buffer, string) => buffer..write(string))
-      .then((buffer) => buffer.toString());
+        .transform(decoder)
+        .fold(new StringBuffer(), (buffer, string) => buffer..write(string))
+        .then((buffer) => buffer.toString());
   }
 
   /**
@@ -31,7 +31,7 @@ abstract class Encoding extends Codec<String, List<int>> {
 
   // All aliases (in lowercase) of supported encoding from
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
-  static Map<String, Encoding> _nameToEncoding = <String, Encoding> {
+  static Map<String, Encoding> _nameToEncoding = <String, Encoding>{
     // ISO_8859-1:1987.
     "iso_8859-1:1987": LATIN1,
     "iso-ir-100": LATIN1,
@@ -54,7 +54,7 @@ abstract class Encoding extends Codec<String, List<int>> {
     "ibm367": ASCII,
     "cp367": ASCII,
     "csascii": ASCII,
-    "ascii": ASCII,  // This is not in the IANA official names.
+    "ascii": ASCII, // This is not in the IANA official names.
 
     // UTF-8.
     "csutf8": UTF8,

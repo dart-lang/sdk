@@ -51,6 +51,13 @@ abstract class ExpressionVisitor<R> {
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      defaultExpression(node);
+  R visitVectorCreation(VectorCreation node) => defaultExpression(node);
+  R visitVectorGet(VectorGet node) => defaultExpression(node);
+  R visitVectorSet(VectorSet node) => defaultExpression(node);
+  R visitVectorCopy(VectorCopy node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -155,6 +162,13 @@ class TreeVisitor<R>
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      defaultExpression(node);
+  R visitVectorCreation(VectorCreation node) => defaultExpression(node);
+  R visitVectorGet(VectorGet node) => defaultExpression(node);
+  R visitVectorSet(VectorSet node) => defaultExpression(node);
+  R visitVectorCopy(VectorCopy node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -204,6 +218,7 @@ class TreeVisitor<R>
 
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);
+  R visitDeferredImport(DeferredImport node) => defaultTreeNode(node);
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);
   R visitArguments(Arguments node) => defaultTreeNode(node);
@@ -222,6 +237,7 @@ class DartTypeVisitor<R> {
   R visitVoidType(VoidType node) => defaultDartType(node);
   R visitBottomType(BottomType node) => defaultDartType(node);
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
+  R visitVectorType(VectorType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
 }
@@ -240,9 +256,6 @@ class Visitor<R> extends TreeVisitor<R>
   R defaultNode(Node node) => null;
   R defaultTreeNode(TreeNode node) => defaultNode(node);
 
-  /// Inferred values
-  R visitInferredValue(InferredValue node) => defaultNode(node);
-
   // DartTypes
   R defaultDartType(DartType node) => defaultNode(node);
   R visitInvalidType(InvalidType node) => defaultDartType(node);
@@ -250,6 +263,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitVoidType(VoidType node) => defaultDartType(node);
   R visitBottomType(BottomType node) => defaultDartType(node);
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
+  R visitVectorType(VectorType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
 
@@ -310,4 +324,111 @@ class Transformer extends TreeVisitor<TreeNode> {
     node.transformChildren(this);
     return node;
   }
+}
+
+abstract class ExpressionVisitor1<R> {
+  R defaultExpression(Expression node, arg) => null;
+  R defaultBasicLiteral(BasicLiteral node, arg) => defaultExpression(node, arg);
+  R visitInvalidExpression(InvalidExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitVariableGet(VariableGet node, arg) => defaultExpression(node, arg);
+  R visitVariableSet(VariableSet node, arg) => defaultExpression(node, arg);
+  R visitPropertyGet(PropertyGet node, arg) => defaultExpression(node, arg);
+  R visitPropertySet(PropertySet node, arg) => defaultExpression(node, arg);
+  R visitDirectPropertyGet(DirectPropertyGet node, arg) =>
+      defaultExpression(node, arg);
+  R visitDirectPropertySet(DirectPropertySet node, arg) =>
+      defaultExpression(node, arg);
+  R visitSuperPropertyGet(SuperPropertyGet node, arg) =>
+      defaultExpression(node, arg);
+  R visitSuperPropertySet(SuperPropertySet node, arg) =>
+      defaultExpression(node, arg);
+  R visitStaticGet(StaticGet node, arg) => defaultExpression(node, arg);
+  R visitStaticSet(StaticSet node, arg) => defaultExpression(node, arg);
+  R visitMethodInvocation(MethodInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitDirectMethodInvocation(DirectMethodInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitSuperMethodInvocation(SuperMethodInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitStaticInvocation(StaticInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitConstructorInvocation(ConstructorInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitNot(Not node, arg) => defaultExpression(node, arg);
+  R visitLogicalExpression(LogicalExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitConditionalExpression(ConditionalExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitStringConcatenation(StringConcatenation node, arg) =>
+      defaultExpression(node, arg);
+  R visitIsExpression(IsExpression node, arg) => defaultExpression(node, arg);
+  R visitAsExpression(AsExpression node, arg) => defaultExpression(node, arg);
+  R visitSymbolLiteral(SymbolLiteral node, arg) => defaultExpression(node, arg);
+  R visitTypeLiteral(TypeLiteral node, arg) => defaultExpression(node, arg);
+  R visitThisExpression(ThisExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitRethrow(Rethrow node, arg) => defaultExpression(node, arg);
+  R visitThrow(Throw node, arg) => defaultExpression(node, arg);
+  R visitListLiteral(ListLiteral node, arg) => defaultExpression(node, arg);
+  R visitMapLiteral(MapLiteral node, arg) => defaultExpression(node, arg);
+  R visitAwaitExpression(AwaitExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitFunctionExpression(FunctionExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitStringLiteral(StringLiteral node, arg) =>
+      defaultBasicLiteral(node, arg);
+  R visitIntLiteral(IntLiteral node, arg) => defaultBasicLiteral(node, arg);
+  R visitDoubleLiteral(DoubleLiteral node, arg) =>
+      defaultBasicLiteral(node, arg);
+  R visitBoolLiteral(BoolLiteral node, arg) => defaultBasicLiteral(node, arg);
+  R visitNullLiteral(NullLiteral node, arg) => defaultBasicLiteral(node, arg);
+  R visitLet(Let node, arg) => defaultExpression(node, arg);
+  R visitLoadLibrary(LoadLibrary node, arg) => defaultExpression(node, arg);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, arg) =>
+      defaultExpression(node, arg);
+  R visitVectorCreation(VectorCreation node, arg) =>
+      defaultExpression(node, arg);
+  R visitVectorGet(VectorGet node, arg) => defaultExpression(node, arg);
+  R visitVectorSet(VectorSet node, arg) => defaultExpression(node, arg);
+  R visitVectorCopy(VectorCopy node, arg) => defaultExpression(node, arg);
+}
+
+abstract class StatementVisitor1<R> {
+  R defaultStatement(Statement node, arg) => null;
+
+  R visitInvalidStatement(InvalidStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitExpressionStatement(ExpressionStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitBlock(Block node, arg) => defaultStatement(node, arg);
+  R visitEmptyStatement(EmptyStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitAssertStatement(AssertStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitLabeledStatement(LabeledStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitBreakStatement(BreakStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitWhileStatement(WhileStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitDoStatement(DoStatement node, arg) => defaultStatement(node, arg);
+  R visitForStatement(ForStatement node, arg) => defaultStatement(node, arg);
+  R visitForInStatement(ForInStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitSwitchStatement(SwitchStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitContinueSwitchStatement(ContinueSwitchStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitIfStatement(IfStatement node, arg) => defaultStatement(node, arg);
+  R visitReturnStatement(ReturnStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitTryCatch(TryCatch node, arg) => defaultStatement(node, arg);
+  R visitTryFinally(TryFinally node, arg) => defaultStatement(node, arg);
+  R visitYieldStatement(YieldStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitVariableDeclaration(VariableDeclaration node, arg) =>
+      defaultStatement(node, arg);
+  R visitFunctionDeclaration(FunctionDeclaration node, arg) =>
+      defaultStatement(node, arg);
 }

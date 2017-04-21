@@ -18,6 +18,180 @@ void VisitList(List<T>* list, Visitor* visitor) {
 }
 
 
+CanonicalName::CanonicalName() : is_referenced_(false) {}
+
+
+CanonicalName::~CanonicalName() {
+  for (intptr_t i = 0; i < children_.length(); ++i) {
+    delete children_[i];
+  }
+}
+
+
+CanonicalName* CanonicalName::NewRoot() {
+  return new CanonicalName();
+}
+
+
+CanonicalName* CanonicalName::AddChild(String* name) {
+  CanonicalName* child = new CanonicalName();
+  child->parent_ = this;
+  child->name_ = name;
+  children_.Add(child);
+  return child;
+}
+
+
+bool CanonicalName::IsAdministrative() {
+  // Administrative names start with '@'.
+  return (name()->size() > 0) && (name()->buffer()[0] == '@');
+}
+
+
+bool CanonicalName::IsPrivate() {
+  // Private names start with '_'.
+  return (name()->size() > 0) && (name()->buffer()[0] == '_');
+}
+
+
+bool CanonicalName::IsRoot() {
+  // The root is the only canonical name with no parent.
+  return parent() == NULL;
+}
+
+
+bool CanonicalName::IsLibrary() {
+  // Libraries are the only canonical names with the root as their parent.
+  return !IsRoot() && parent()->IsRoot();
+}
+
+
+bool CanonicalName::IsClass() {
+  // Classes have the library as their parent and are not an administrative
+  // name starting with @.
+  return !IsAdministrative() && !IsRoot() && parent()->IsLibrary();
+}
+
+
+bool CanonicalName::IsMember() {
+  return IsConstructor() || IsField() || IsProcedure();
+}
+
+
+// Note the two occurrences of the parameter 'literal'.
+#define COMPARE_NAME(canonical_name, literal)                                  \
+  memcmp((canonical_name)->name()->buffer(), (literal), strlen(literal)) == 0
+
+bool CanonicalName::IsField() {
+  // Fields with private names have the import URI of the library where they are
+  // visible as the parent and the string "@fields" as the parent's parent.
+  // Fields with non-private names have the string "@fields' as the parent.
+  if (IsRoot()) {
+    return false;
+  }
+  CanonicalName* kind = this->parent();
+  if (IsPrivate()) {
+    kind = kind->parent();
+  }
+  return COMPARE_NAME(kind, "@fields");
+}
+
+
+bool CanonicalName::IsConstructor() {
+  // Constructors with private names have the import URI of the library where
+  // they are visible as the parent and the string "@constructors" as the
+  // parent's parent.  Constructors with non-private names have the string
+  // "@constructors" as the parent.
+  if (IsRoot()) {
+    return false;
+  }
+  CanonicalName* kind = this->parent();
+  if (IsPrivate()) {
+    kind = kind->parent();
+  }
+  return COMPARE_NAME(kind, "@constructors");
+}
+
+
+bool CanonicalName::IsProcedure() {
+  return IsMethod() || IsGetter() || IsSetter() || IsFactory();
+}
+
+
+bool CanonicalName::IsMethod() {
+  // Methods with private names have the import URI of the library where they
+  // are visible as the parent and the string "@methods" as the parent's parent.
+  // Methods with non-private names have the string "@methods" as the parent.
+  if (IsRoot()) {
+    return false;
+  }
+  CanonicalName* kind = this->parent();
+  if (IsPrivate()) {
+    kind = kind->parent();
+  }
+  return COMPARE_NAME(kind, "@methods");
+}
+
+
+bool CanonicalName::IsGetter() {
+  // Getters with private names have the import URI of the library where they
+  // are visible as the parent and the string "@getters" as the parent's parent.
+  // Getters with non-private names have the string "@getters" as the parent.
+  if (IsRoot()) {
+    return false;
+  }
+  CanonicalName* kind = this->parent();
+  if (IsPrivate()) {
+    kind = kind->parent();
+  }
+  return COMPARE_NAME(kind, "@getters");
+}
+
+
+bool CanonicalName::IsSetter() {
+  // Setters with private names have the import URI of the library where they
+  // are visible as the parent and the string "@setters" as the parent's parent.
+  // Setters with non-private names have the string "@setters" as the parent.
+  if (IsRoot()) {
+    return false;
+  }
+  CanonicalName* kind = this->parent();
+  if (IsPrivate()) {
+    kind = kind->parent();
+  }
+  return COMPARE_NAME(kind, "@setters");
+}
+
+
+bool CanonicalName::IsFactory() {
+  // Factories with private names have the import URI of the library where they
+  // are visible as the parent and the string "@factories" as the parent's
+  // parent.  Factories with non-private names have the string "@factories" as
+  // the parent.
+  if (IsRoot()) {
+    return false;
+  }
+  CanonicalName* kind = this->parent();
+  if (IsPrivate()) {
+    kind = kind->parent();
+  }
+  return COMPARE_NAME(kind, "@factories");
+}
+
+#undef COMPARE_NAME
+
+
+CanonicalName* CanonicalName::EnclosingName() {
+  ASSERT(IsField() || IsConstructor() || IsProcedure());
+  CanonicalName* enclosing = parent()->parent();
+  if (IsPrivate()) {
+    enclosing = enclosing->parent();
+  }
+  ASSERT(enclosing->IsLibrary() || enclosing->IsClass());
+  return enclosing;
+}
+
+
 Node::~Node() {}
 
 
@@ -27,6 +201,9 @@ TreeNode::~TreeNode() {}
 void TreeNode::AcceptVisitor(Visitor* visitor) {
   AcceptTreeVisitor(visitor);
 }
+
+
+LinkedNode::~LinkedNode() {}
 
 
 Library::~Library() {}
@@ -60,11 +237,6 @@ void NormalClass::AcceptClassVisitor(ClassVisitor* visitor) {
 }
 
 
-void NormalClass::AcceptReferenceVisitor(ClassReferenceVisitor* visitor) {
-  visitor->VisitNormalClassReference(this);
-}
-
-
 void NormalClass::VisitChildren(Visitor* visitor) {
   VisitList(&type_parameters(), visitor);
   if (super_class() != NULL) visitor->VisitInterfaceType(super_class());
@@ -80,11 +252,6 @@ MixinClass::~MixinClass() {}
 
 void MixinClass::AcceptClassVisitor(ClassVisitor* visitor) {
   visitor->VisitMixinClass(this);
-}
-
-
-void MixinClass::AcceptReferenceVisitor(ClassReferenceVisitor* visitor) {
-  visitor->VisitMixinClassReference(this);
 }
 
 
@@ -113,11 +280,6 @@ void Field::AcceptMemberVisitor(MemberVisitor* visitor) {
 }
 
 
-void Field::AcceptReferenceVisitor(MemberReferenceVisitor* visitor) {
-  visitor->VisitFieldReference(this);
-}
-
-
 void Field::VisitChildren(Visitor* visitor) {
   type()->AcceptDartTypeVisitor(visitor);
   visitor->VisitName(name());
@@ -133,11 +295,6 @@ void Constructor::AcceptMemberVisitor(MemberVisitor* visitor) {
 }
 
 
-void Constructor::AcceptReferenceVisitor(MemberReferenceVisitor* visitor) {
-  visitor->VisitConstructorReference(this);
-}
-
-
 void Constructor::VisitChildren(Visitor* visitor) {
   visitor->VisitName(name());
   visitor->VisitFunctionNode(function());
@@ -150,11 +307,6 @@ Procedure::~Procedure() {}
 
 void Procedure::AcceptMemberVisitor(MemberVisitor* visitor) {
   visitor->VisitProcedure(this);
-}
-
-
-void Procedure::AcceptReferenceVisitor(MemberReferenceVisitor* visitor) {
-  visitor->VisitProcedureReference(this);
 }
 
 
@@ -192,7 +344,6 @@ void FieldInitializer::AcceptInitializerVisitor(InitializerVisitor* visitor) {
 
 
 void FieldInitializer::VisitChildren(Visitor* visitor) {
-  visitor->VisitFieldReference(field());
   value()->AcceptExpressionVisitor(visitor);
 }
 
@@ -206,7 +357,6 @@ void SuperInitializer::AcceptInitializerVisitor(InitializerVisitor* visitor) {
 
 
 void SuperInitializer::VisitChildren(Visitor* visitor) {
-  visitor->VisitConstructorReference(target());
   visitor->VisitArguments(arguments());
 }
 
@@ -221,7 +371,6 @@ void RedirectingInitializer::AcceptInitializerVisitor(
 
 
 void RedirectingInitializer::VisitChildren(Visitor* visitor) {
-  visitor->VisitConstructorReference(target());
   visitor->VisitArguments(arguments());
 }
 
@@ -338,7 +487,6 @@ void DirectPropertyGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
 
 void DirectPropertyGet::VisitChildren(Visitor* visitor) {
   receiver()->AcceptExpressionVisitor(visitor);
-  target()->AcceptReferenceVisitor(visitor);
 }
 
 
@@ -352,7 +500,6 @@ void DirectPropertySet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
 
 void DirectPropertySet::VisitChildren(Visitor* visitor) {
   receiver()->AcceptExpressionVisitor(visitor);
-  target()->AcceptReferenceVisitor(visitor);
   value()->AcceptExpressionVisitor(visitor);
 }
 
@@ -365,9 +512,7 @@ void StaticGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
 }
 
 
-void StaticGet::VisitChildren(Visitor* visitor) {
-  target()->AcceptReferenceVisitor(visitor);
-}
+void StaticGet::VisitChildren(Visitor* visitor) {}
 
 
 StaticSet::~StaticSet() {}
@@ -379,7 +524,6 @@ void StaticSet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
 
 
 void StaticSet::VisitChildren(Visitor* visitor) {
-  target()->AcceptReferenceVisitor(visitor);
   expression()->AcceptExpressionVisitor(visitor);
 }
 
@@ -438,7 +582,6 @@ void DirectMethodInvocation::AcceptExpressionVisitor(
 
 void DirectMethodInvocation::VisitChildren(Visitor* visitor) {
   receiver()->AcceptExpressionVisitor(visitor);
-  visitor->VisitProcedureReference(target());
   visitor->VisitArguments(arguments());
 }
 
@@ -452,7 +595,6 @@ void StaticInvocation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
 
 
 void StaticInvocation::VisitChildren(Visitor* visitor) {
-  visitor->VisitProcedureReference(procedure());
   visitor->VisitArguments(arguments());
 }
 
@@ -467,7 +609,6 @@ void ConstructorInvocation::AcceptExpressionVisitor(
 
 
 void ConstructorInvocation::VisitChildren(Visitor* visitor) {
-  visitor->VisitConstructorReference(target());
   visitor->VisitArguments(arguments());
 }
 
@@ -1069,17 +1210,6 @@ void Name::AcceptVisitor(Visitor* visitor) {
 void Name::VisitChildren(Visitor* visitor) {}
 
 
-InferredValue::~InferredValue() {}
-
-
-void InferredValue::AcceptVisitor(Visitor* visitor) {
-  visitor->VisitInferredValue(this);
-}
-
-
-void InferredValue::VisitChildren(Visitor* visitor) {}
-
-
 DartType::~DartType() {}
 
 
@@ -1130,7 +1260,6 @@ void InterfaceType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
 
 
 void InterfaceType::VisitChildren(Visitor* visitor) {
-  klass()->AcceptReferenceVisitor(visitor);
   VisitList(&type_arguments(), visitor);
 }
 
@@ -1177,7 +1306,14 @@ void TypeParameter::VisitChildren(Visitor* visitor) {
 }
 
 
-Program::~Program() {}
+Program::~Program() {
+  while (valid_token_positions.length() > 0) {
+    delete valid_token_positions.RemoveLast();
+  }
+  while (yield_token_positions.length() > 0) {
+    delete yield_token_positions.RemoveLast();
+  }
+}
 
 
 void Program::AcceptTreeVisitor(TreeVisitor* visitor) {
@@ -1187,7 +1323,6 @@ void Program::AcceptTreeVisitor(TreeVisitor* visitor) {
 
 void Program::VisitChildren(Visitor* visitor) {
   VisitList(&libraries(), visitor);
-  visitor->VisitProcedureReference(main_method());
 }
 
 

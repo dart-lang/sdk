@@ -13,8 +13,8 @@ const int LINE_A = 16;
 const int LINE_B = 17;
 
 testMain() {
-  var foo;      // line A
-  foo = 42;     // line B
+  var foo; // line A
+  foo = 42; // line B
   print(foo);
 }
 
@@ -71,5 +71,4 @@ var tests = [
 ];
 
 main(args) => runIsolateTests(args, tests,
-                              testeeConcurrent: testMain,
-                              pause_on_start: true);
+    testeeConcurrent: testMain, pause_on_start: true);

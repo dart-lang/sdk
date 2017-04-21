@@ -1,0 +1,18 @@
+analyzer:
+  strong-mode: true
+  language:
+    enableSuperMixins: true
+  exclude:
+    # TODO(devoncarew): Without this exclude I see ~400 analysis errors.
+    - test/fasta/**
+  errors:
+    # Omits warnings due to missing `@virtual`
+    # TODO(sigmund): enable once #28601 is fixed
+    strong_mode_invalid_field_override: ignore
+
+    # Allow having TODOs in the code
+    todo: ignore
+
+    # Allow deprecated calls (although it would be nice to have a distinction
+    # between internal and external deprecated calls).
+    deprecated_member_use: ignore

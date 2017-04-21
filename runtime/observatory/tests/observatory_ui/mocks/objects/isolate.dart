@@ -28,13 +28,25 @@ class IsolateMock implements M.Isolate {
   final M.DebugEvent pauseEvent;
   final M.LibraryRef rootLibrary;
   final M.FunctionRef entry;
+  final Iterable<M.Thread> threads = null;
+  final int zoneHighWatermark = 0;
+  final int numZoneHandles = 0;
+  final int numScopedHandles = 0;
 
-  const IsolateMock({this.id: 'i-id', this.number, this.name: 'i-name',
-                     this.startTime, this.runnable: true,
-                     this.libraries: const [], this.error,
-                     this.extensionRPCs: const [], this.counters: const {},
-                     this.newSpace: const HeapSpaceMock(),
-                     this.oldSpace: const HeapSpaceMock(),
-                     this.status: M.IsolateStatus.loading, this.pauseEvent,
-                     this.rootLibrary, this.entry});
+  const IsolateMock(
+      {this.id: 'i-id',
+      this.number,
+      this.name: 'i-name',
+      this.startTime,
+      this.runnable: true,
+      this.libraries: const [],
+      this.error,
+      this.extensionRPCs: const [],
+      this.counters: const {},
+      this.newSpace: const HeapSpaceMock(),
+      this.oldSpace: const HeapSpaceMock(),
+      this.status: M.IsolateStatus.loading,
+      this.pauseEvent,
+      this.rootLibrary,
+      this.entry});
 }

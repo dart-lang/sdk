@@ -99,7 +99,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
     List<String> symbols = analyzer.mergedMirrorUsage.symbols;
     List<Element> targets = analyzer.mergedMirrorUsage.targets;
     List<Element> metaTargets = analyzer.mergedMirrorUsage.metaTargets;
-    compiler.backend.registerMirrorUsage(
+    compiler.backend.mirrorsDataBuilder.registerMirrorUsage(
         symbols == null ? null : new Set<String>.from(symbols),
         targets == null ? null : new Set<Element>.from(targets),
         metaTargets == null ? null : new Set<Element>.from(metaTargets));
@@ -456,7 +456,7 @@ class MirrorUsageBuilder {
         String libraryNameCandiate;
         for (LibraryElement l in compiler.libraryLoader.libraries) {
           if (l.hasLibraryName) {
-            String libraryName = l.libraryOrScriptName;
+            String libraryName = l.libraryName;
             if (string == libraryName) {
               // Found an exact match.
               libraryCandiate = l;
@@ -514,7 +514,7 @@ class MirrorUsageBuilder {
           reporter.reportHintMessage(
               spannable,
               MessageKind.MIRRORS_CANNOT_RESOLVE_IN_LIBRARY,
-              {'name': identifiers[0], 'library': library.libraryOrScriptName});
+              {'name': identifiers[0], 'library': library.name});
         } else {
           reporter.reportHintMessage(
               spannable,

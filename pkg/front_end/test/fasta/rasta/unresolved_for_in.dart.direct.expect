@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Fisk extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method it1(dynamic x) → dynamic {
+    for (final dynamic #t1 in x) {
+      this.key = #t1;
+      core::print(this.key);
+    }
+    for (final dynamic #t2 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:14:10: \u0027[31mError: Expected lvalue, but got Instance of 'SourceClassBuilder'\u0027[0m") in x) {
+      core::print(self::Fisk);
+    }
+    for (final dynamic #t3 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:17:10: \u0027[31mError: Expected lvalue, but got Instance of 'PrefixBuilder'\u0027[0m") in x) {
+      core::print(throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart: \u0027[31mError: A library can't be used as an expression.\u0027[0m"));
+    }
+    for (final dynamic #t4 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:20:10: \u0027[31mError: Expected lvalue, but got Instance of 'KernelFunctionTypeAliasBuilder'\u0027[0m") in x) {
+      core::print(() → void);
+    }
+    for (final dynamic #t5 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:23:10: \u0027[31mError: Expected lvalue, but got 1\u0027[0m") in x) {
+      core::print(this.key);
+    }
+  }
+}
+static method main(dynamic arguments) → dynamic {
+  new self::Fisk::•();
+  for (final dynamic #t6 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:31:8: \u0027[31mError: Expected lvalue, but got unresolved-identifier(key)\u0027[0m") in arguments) {
+    core::print(throw new core::NoSuchMethodError::•(null, #key, <dynamic>[], <dynamic, dynamic>{}, null));
+  }
+  for (final dynamic #t7 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:34:8: \u0027[31mError: Expected lvalue, but got Instance of 'SourceClassBuilder'\u0027[0m") in arguments) {
+    core::print(self::Fisk);
+  }
+  for (final dynamic #t8 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:37:8: \u0027[31mError: Expected lvalue, but got Instance of 'PrefixBuilder'\u0027[0m") in arguments) {
+    core::print(throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart: \u0027[31mError: A library can't be used as an expression.\u0027[0m"));
+  }
+  for (final dynamic #t9 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:40:8: \u0027[31mError: Expected lvalue, but got Instance of 'KernelFunctionTypeAliasBuilder'\u0027[0m") in arguments) {
+    core::print(() → void);
+  }
+  for (final dynamic #t10 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/unresolved_for_in.dart:43:8: \u0027[31mError: Expected lvalue, but got 1\u0027[0m") in arguments) {
+    core::print(throw new core::NoSuchMethodError::•(null, #key, <dynamic>[], <dynamic, dynamic>{}, null));
+  }
+}

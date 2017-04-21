@@ -20,6 +20,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -196,10 +197,10 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final GetResolvedUnit getResolvedUnit;
+  final AstProvider astProvider;
   final CompilationUnit unit;
   final int offset;
-  _UnitCache _unitCache;
+  ResolvedUnitCache _unitCache;
   CorrectionUtils utils;
   SourceChange change;
 
@@ -221,8 +222,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.getResolvedUnit, this.unit, this.offset) {
-    _unitCache = new _UnitCache(getResolvedUnit, unit);
+      this.searchEngine, this.astProvider, this.unit, this.offset) {
+    _unitCache = new ResolvedUnitCache(astProvider, unit);
     utils = new CorrectionUtils(unit);
   }
 
@@ -785,26 +786,6 @@ class _SourcePart {
     }
     range = rangeFromBase(range, _base);
     ranges.add(range);
-  }
-}
-
-class _UnitCache {
-  final GetResolvedUnit getResolvedUnit;
-  final Map<CompilationUnitElement, CompilationUnit> map = {};
-
-  _UnitCache(this.getResolvedUnit, CompilationUnit unit) {
-    map[unit.element] = unit;
-  }
-
-  Future<CompilationUnit> getUnit(Element element) async {
-    Element unitElement =
-        element.getAncestor((e) => e is CompilationUnitElement);
-    CompilationUnit unit = map[unitElement];
-    if (unit == null) {
-      unit = unitElement.unit;
-      map[unitElement] = unit;
-    }
-    return unit;
   }
 }
 

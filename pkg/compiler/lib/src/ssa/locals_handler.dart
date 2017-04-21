@@ -7,6 +7,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
@@ -188,13 +189,13 @@ class LocalsHandler {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
-  void startFunction(AstElement element, ast.Node node) {
+  void startFunction(MemberElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     closureData = _compiler.closureToClassMapper
         .getClosureToClassMapping(element.resolvedAst);
 
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
+    if (element is MethodElement) {
+      MethodElement functionElement = element;
       FunctionSignature params = functionElement.functionSignature;
       ClosureScope scopeData = closureData.capturingScopes[node];
       params.orderedForEachParameter((ParameterElement parameterElement) {
@@ -250,11 +251,12 @@ class LocalsHandler {
     // and passed to the generative constructor factory function as a parameter.
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
-    bool isNativeUpgradeFactory =
-        element.isGenerativeConstructor && backend.isNativeOrExtendsNative(cls);
-    if (backend.isInterceptedMethod(element)) {
-      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
-      String name = isInterceptorClass ? 'receiver' : '_';
+    bool isNativeUpgradeFactory = element.isGenerativeConstructor &&
+        backend.nativeData.isNativeOrExtendsNative(cls);
+    if (backend.interceptorData.isInterceptedMethod(element)) {
+      bool isInterceptedClass =
+          backend.interceptorData.isInterceptedClass(cls.declaration);
+      String name = isInterceptedClass ? 'receiver' : '_';
       SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
@@ -263,7 +265,7 @@ class LocalsHandler {
         // If this is the first parameter inserted, make sure it stays first.
         builder.lastAddedParameter = value;
       }
-      if (isInterceptorClass) {
+      if (isInterceptedClass) {
         // Only use the extra parameter in intercepted classes.
         directLocals[closureData.thisLocal] = value;
       }
@@ -486,7 +488,6 @@ class LocalsHandler {
     Map<Local, HInstruction> savedDirectLocals =
         new Map<Local, HInstruction>.from(directLocals);
 
-    JavaScriptBackend backend = _compiler.backend;
     // Create phis for all elements in the definitions environment.
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {
@@ -670,6 +671,9 @@ class SyntheticLocal extends Local {
   static int _nextHashCode = 0;
 
   SyntheticLocal(this.name, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   toString() => 'SyntheticLocal($name)';
 }

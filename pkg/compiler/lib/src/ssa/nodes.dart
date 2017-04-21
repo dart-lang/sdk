@@ -8,8 +8,7 @@ import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show Entity, JumpTarget, LabelDefinition, Local;
+import '../elements/elements.dart' show JumpTarget, LabelDefinition;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -45,6 +44,7 @@ abstract class HVisitor<R> {
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
   R visitForeignCode(HForeignCode node);
+  R visitGetLength(HGetLength node);
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
@@ -97,11 +97,6 @@ abstract class HVisitor<R> {
   R visitTypeConversion(HTypeConversion node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
-  R visitReadTypeVariable(HReadTypeVariable node);
-  R visitFunctionType(HFunctionType node);
-  R visitVoidType(HVoidType node);
-  R visitInterfaceType(HInterfaceType node);
-  R visitDynamicType(HDynamicType node);
 
   R visitTypeInfoReadRaw(HTypeInfoReadRaw node);
   R visitTypeInfoReadVariable(HTypeInfoReadVariable node);
@@ -358,6 +353,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   visitForeignCode(HForeignCode node) => visitInstruction(node);
+  visitGetLength(HGetLength node) => visitInstruction(node);
   visitGoto(HGoto node) => visitControlFlow(node);
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
@@ -415,11 +411,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
-  visitReadTypeVariable(HReadTypeVariable node) => visitInstruction(node);
-  visitFunctionType(HFunctionType node) => visitInstruction(node);
-  visitVoidType(HVoidType node) => visitInstruction(node);
-  visitInterfaceType(HInterfaceType node) => visitInstruction(node);
-  visitDynamicType(HDynamicType node) => visitInstruction(node);
   visitAwait(HAwait node) => visitInstruction(node);
   visitYield(HYield node) => visitInstruction(node);
 
@@ -879,11 +870,7 @@ abstract class HInstruction implements Spannable {
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
   static const int SHIFT_RIGHT_TYPECODE = 30;
-  static const int READ_TYPE_VARIABLE_TYPECODE = 31;
-  static const int FUNCTION_TYPE_TYPECODE = 32;
-  static const int VOID_TYPE_TYPECODE = 33;
-  static const int INTERFACE_TYPE_TYPECODE = 34;
-  static const int DYNAMIC_TYPE_TYPECODE = 35;
+
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
   static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
 
@@ -893,6 +880,7 @@ abstract class HInstruction implements Spannable {
 
   static const int FOREIGN_CODE_TYPECODE = 41;
   static const int REMAINDER_TYPECODE = 42;
+  static const int GET_LENGTH_TYPECODE = 43;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -978,76 +966,74 @@ abstract class HInstruction implements Spannable {
     // TODO(sra): It should be possible to test only jsDoubleClass and
     // jsUInt31Class, since all others are superclasses of these two.
     return containsType(
-            instructionType, backendClasses.numImplementation, closedWorld) ||
+            instructionType, backendClasses.numClass, closedWorld) ||
+        containsType(instructionType, backendClasses.intClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.intImplementation, closedWorld) ||
-        containsType(instructionType, backendClasses.positiveIntImplementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.uint32Implementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.uint31Implementation,
-            closedWorld) ||
+            instructionType, backendClasses.positiveIntClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.doubleImplementation, closedWorld);
+            instructionType, backendClasses.uint32Class, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.uint31Class, closedWorld) ||
+        containsType(instructionType, backendClasses.doubleClass, closedWorld);
   }
 
   bool canBePrimitiveBoolean(ClosedWorld closedWorld) {
-    return containsType(instructionType,
-        closedWorld.backendClasses.boolImplementation, closedWorld);
+    return containsType(
+        instructionType, closedWorld.backendClasses.boolClass, closedWorld);
   }
 
   bool canBePrimitiveArray(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return containsType(
-            instructionType, backendClasses.listImplementation, closedWorld) ||
-        containsType(instructionType, backendClasses.fixedListImplementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.growableListImplementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.constListImplementation,
-            closedWorld);
+            instructionType, backendClasses.listClass, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.fixedListClass, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.growableListClass, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.constListClass, closedWorld);
   }
 
   bool isIndexablePrimitive(ClosedWorld closedWorld) {
     return instructionType.containsOnlyString(closedWorld) ||
-        isInstanceOf(instructionType,
-            closedWorld.backendClasses.indexableImplementation, closedWorld);
+        isInstanceOf(instructionType, closedWorld.backendClasses.indexableClass,
+            closedWorld);
   }
 
   bool isFixedArray(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     // TODO(sra): Recognize the union of these types as well.
-    return containsOnlyType(instructionType,
-            backendClasses.fixedListImplementation, closedWorld) ||
-        containsOnlyType(instructionType,
-            backendClasses.constListImplementation, closedWorld);
+    return containsOnlyType(
+            instructionType, backendClasses.fixedListClass, closedWorld) ||
+        containsOnlyType(
+            instructionType, backendClasses.constListClass, closedWorld);
   }
 
   bool isExtendableArray(ClosedWorld closedWorld) {
     return containsOnlyType(instructionType,
-        closedWorld.backendClasses.growableListImplementation, closedWorld);
+        closedWorld.backendClasses.growableListClass, closedWorld);
   }
 
   bool isMutableArray(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.mutableListImplementation, closedWorld);
+        closedWorld.backendClasses.mutableListClass, closedWorld);
   }
 
   bool isReadableArray(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.backendClasses.listImplementation, closedWorld);
+    return isInstanceOf(
+        instructionType, closedWorld.backendClasses.listClass, closedWorld);
   }
 
   bool isMutableIndexable(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.mutableIndexableImplementation, closedWorld);
+        closedWorld.backendClasses.mutableIndexableClass, closedWorld);
   }
 
   bool isArray(ClosedWorld closedWorld) => isReadableArray(closedWorld);
 
   bool canBePrimitiveString(ClosedWorld closedWorld) {
-    return containsType(instructionType,
-        closedWorld.backendClasses.stringImplementation, closedWorld);
+    return containsType(
+        instructionType, closedWorld.backendClasses.stringClass, closedWorld);
   }
 
   bool isInteger(ClosedWorld closedWorld) {
@@ -1057,25 +1043,25 @@ abstract class HInstruction implements Spannable {
 
   bool isUInt32(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType,
-            closedWorld.backendClasses.uint32Implementation, closedWorld);
+        isInstanceOf(instructionType, closedWorld.backendClasses.uint32Class,
+            closedWorld);
   }
 
   bool isUInt31(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType,
-            closedWorld.backendClasses.uint31Implementation, closedWorld);
+        isInstanceOf(instructionType, closedWorld.backendClasses.uint31Class,
+            closedWorld);
   }
 
   bool isPositiveInteger(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
         isInstanceOf(instructionType,
-            closedWorld.backendClasses.positiveIntImplementation, closedWorld);
+            closedWorld.backendClasses.positiveIntClass, closedWorld);
   }
 
   bool isPositiveIntegerOrNull(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.positiveIntImplementation, closedWorld);
+        closedWorld.backendClasses.positiveIntClass, closedWorld);
   }
 
   bool isIntegerOrNull(ClosedWorld closedWorld) {
@@ -1354,7 +1340,7 @@ abstract class HInstruction implements Spannable {
     assert(!type.isTypeVariable);
     assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
-    if (type.isObject) return this;
+    if (type == closedWorld.commonElements.objectType) return this;
     if (type.isVoid || type.isFunctionType || type.isMalformed) {
       return new HTypeConversion(
           type, kind, closedWorld.commonMasks.dynamicType, this);
@@ -1504,8 +1490,19 @@ class HCreate extends HInstruction {
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<DartType> instantiatedTypes;
 
+  /// If this node creates a closure class, [callMethod] is the call method of
+  /// the closure class.
+  FunctionEntity callMethod;
+
+  /// If this node creates a closure class, [closure] is the closurized local
+  /// function.
+  Local localFunction;
+
   HCreate(this.element, List<HInstruction> inputs, TypeMask type,
-      {this.instantiatedTypes, this.hasRtiInput: false})
+      {this.instantiatedTypes,
+      this.hasRtiInput: false,
+      this.callMethod,
+      this.localFunction})
       : super(inputs, type);
 
   bool get isAllocation => true;
@@ -1697,9 +1694,7 @@ class HInvokeConstructorBody extends HInvokeStatic {
 }
 
 abstract class HFieldAccess extends HInstruction {
-  // TODO(johnniwinther): This should be a [FieldLike] but JSIndexable.length is
-  // encoded using a [HFieldGet].
-  final MemberEntity element;
+  final FieldEntity element;
 
   HFieldAccess(this.element, List<HInstruction> inputs, TypeMask type)
       : super(inputs, type);
@@ -1710,7 +1705,7 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(MemberEntity element, HInstruction receiver, TypeMask type,
+  HFieldGet(FieldEntity element, HInstruction receiver, TypeMask type,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
@@ -1730,8 +1725,8 @@ class HFieldGet extends HFieldAccess {
     // [HFieldGet].
     if (sourceElement is ThisLocal) {
       ThisLocal thisLocal = sourceElement;
-      return closedWorld.backendClasses
-          .isInterceptorClass(thisLocal.enclosingClass);
+      return closedWorld.interceptorData
+          .isInterceptedClass(thisLocal.enclosingClass);
     }
     return false;
   }
@@ -1751,7 +1746,7 @@ class HFieldGet extends HFieldAccess {
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(MemberEntity element, HInstruction receiver, HInstruction value)
+  HFieldSet(FieldEntity element, HInstruction receiver, HInstruction value)
       : super(element, <HInstruction>[receiver, value],
             const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
@@ -1769,6 +1764,34 @@ class HFieldSet extends HFieldAccess {
 
   bool isJsStatement() => true;
   String toString() => "FieldSet $element";
+}
+
+class HGetLength extends HInstruction {
+  final bool isAssignable;
+  HGetLength(HInstruction receiver, TypeMask type, {bool this.isAssignable})
+      : super(<HInstruction>[receiver], type) {
+    assert(isAssignable != null);
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    setUseGvn();
+    if (this.isAssignable) {
+      sideEffects.setDependsOnInstancePropertyStore();
+    }
+  }
+
+  HInstruction get receiver => inputs.single;
+
+  bool canThrow() => receiver.canBeNull();
+
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  bool onlyThrowsNSM() => true;
+
+  accept(HVisitor visitor) => visitor.visitGetLength(this);
+
+  int typeCode() => HInstruction.GET_LENGTH_TYPECODE;
+  bool typeEquals(other) => other is HGetLength;
+  bool dataEquals(HGetLength other) => true;
+  String toString() => "GetLength()";
 }
 
 /**
@@ -1874,12 +1897,14 @@ class HForeignCode extends HForeign {
   final bool isStatement;
   final native.NativeBehavior nativeBehavior;
   native.NativeThrowBehavior throwBehavior;
+  final FunctionEntity foreignFunction;
 
   HForeignCode(this.codeTemplate, TypeMask type, List<HInstruction> inputs,
       {this.isStatement: false,
       SideEffects effects,
       native.NativeBehavior nativeBehavior,
-      native.NativeThrowBehavior throwBehavior})
+      native.NativeThrowBehavior throwBehavior,
+      this.foreignFunction})
       : this.nativeBehavior = nativeBehavior,
         this.throwBehavior = throwBehavior,
         super(type, inputs) {
@@ -2348,8 +2373,8 @@ class HThis extends HParameterValue {
   bool isCodeMotionInvariant() => true;
 
   bool isInterceptor(ClosedWorld closedWorld) {
-    return closedWorld.backendClasses
-        .isInterceptorClass(sourceElement.enclosingClass);
+    return closedWorld.interceptorData
+        .isInterceptedClass(sourceElement.enclosingClass);
   }
 
   String toString() => 'this';
@@ -2813,6 +2838,7 @@ class HTypeConversion extends HCheck {
   final Selector receiverTypeCheckSelector;
 
   TypeMask checkedType; // Not final because we refine it.
+  TypeMask inputType; // Holds input type for codegen after HTypeKnown removal.
 
   HTypeConversion(
       this.typeExpression, this.kind, TypeMask type, HInstruction input,
@@ -2850,11 +2876,7 @@ class HTypeConversion extends HCheck {
 
   HInstruction get typeRepresentation => inputs[1];
 
-  bool get usesMethodOnType =>
-      typeExpression != null && typeExpression.isFunctionType;
-
-  HInstruction get checkedInput =>
-      usesMethodOnType ? inputs[1] : super.checkedInput;
+  HInstruction get checkedInput => super.checkedInput;
 
   HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
@@ -3377,106 +3399,4 @@ class HTypeInfoExpression extends HInstruction {
         return 'INSTANCE';
     }
   }
-}
-
-class HReadTypeVariable extends HInstruction {
-  /// The type variable being read.
-  final TypeVariableType dartType;
-
-  final bool hasReceiver;
-
-  HReadTypeVariable(
-      this.dartType, HInstruction receiver, TypeMask instructionType)
-      : hasReceiver = true,
-        super(<HInstruction>[receiver], instructionType) {
-    setUseGvn();
-  }
-
-  HReadTypeVariable.noReceiver(
-      this.dartType, HInstruction typeArgument, TypeMask instructionType)
-      : hasReceiver = false,
-        super(<HInstruction>[typeArgument], instructionType) {
-    setUseGvn();
-  }
-
-  accept(HVisitor visitor) => visitor.visitReadTypeVariable(this);
-
-  bool canThrow() => false;
-
-  int typeCode() => HInstruction.READ_TYPE_VARIABLE_TYPECODE;
-  bool typeEquals(HInstruction other) => other is HReadTypeVariable;
-
-  bool dataEquals(HReadTypeVariable other) {
-    return dartType == other.dartType && hasReceiver == other.hasReceiver;
-  }
-}
-
-abstract class HRuntimeType extends HInstruction {
-  final DartType dartType;
-
-  HRuntimeType(
-      List<HInstruction> inputs, this.dartType, TypeMask instructionType)
-      : super(inputs, instructionType) {
-    setUseGvn();
-  }
-
-  bool canThrow() => false;
-
-  int typeCode() {
-    throw 'abstract method';
-  }
-
-  bool typeEquals(HInstruction other) {
-    throw 'abstract method';
-  }
-
-  bool dataEquals(HRuntimeType other) {
-    return dartType == other.dartType;
-  }
-}
-
-class HFunctionType extends HRuntimeType {
-  HFunctionType(List<HInstruction> inputs, FunctionType dartType,
-      TypeMask instructionType)
-      : super(inputs, dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitFunctionType(this);
-
-  int typeCode() => HInstruction.FUNCTION_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HFunctionType;
-}
-
-class HVoidType extends HRuntimeType {
-  HVoidType(VoidType dartType, TypeMask instructionType)
-      : super(const <HInstruction>[], dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitVoidType(this);
-
-  int typeCode() => HInstruction.VOID_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HVoidType;
-}
-
-class HInterfaceType extends HRuntimeType {
-  HInterfaceType(List<HInstruction> inputs, InterfaceType dartType,
-      TypeMask instructionType)
-      : super(inputs, dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitInterfaceType(this);
-
-  int typeCode() => HInstruction.INTERFACE_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HInterfaceType;
-}
-
-class HDynamicType extends HRuntimeType {
-  HDynamicType(DynamicType dartType, TypeMask instructionType)
-      : super(const <HInstruction>[], dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitDynamicType(this);
-
-  int typeCode() => HInstruction.DYNAMIC_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HDynamicType;
 }

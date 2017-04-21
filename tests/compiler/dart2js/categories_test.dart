@@ -23,7 +23,10 @@ void main() {
     await runTest("import 'dart:async'; main() {}", "Server", 0);
     await runTest("import 'dart:html'; main() {}", "Client", 0);
     await runTest("import 'dart:html'; main() {}", "Server", 1);
-    await runTest("import 'dart:io'; main() {}", "Client", 1);
+    // Importing dart:io is temporarily allowed as a stopgap measure for the
+    // lack of config specific imports. Once that is added, this will be
+    // disallowed again.
+    await runTest("import 'dart:io'; main() {}", "Client", 0);
     await runTest("import 'dart:io'; main() {}", "Server", 0);
   });
 }

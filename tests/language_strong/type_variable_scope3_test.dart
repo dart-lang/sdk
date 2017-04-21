@@ -4,13 +4,14 @@
 
 // Test that a type parameter cannot be repeated.
 
-class Foo<T
-    , T  /// 00: compile-time error
-    > {
-}
+class Foo<
+    T
+    , T // //# 00: compile-time error
+    > {}
 
 main() {
-  new Foo<String
-      , String  /// 00: continued
+  new Foo<
+      String
+      , String // //# 00: continued
       >();
 }

@@ -6,26 +6,21 @@ library kernel.transformations.closure.context;
 
 import '../../ast.dart'
     show
-        Arguments,
         Class,
-        ConstructorInvocation,
         Expression,
-        ExpressionStatement,
-        IntLiteral,
-        InterfaceType,
-        MethodInvocation,
-        Name,
         NullLiteral,
-        PropertyGet,
-        PropertySet,
         StringLiteral,
         Throw,
+        TreeNode,
         VariableDeclaration,
         VariableGet,
-        VariableSet;
+        VariableSet,
+        VectorCreation,
+        VectorGet,
+        VectorSet,
+        VectorCopy;
 
-import '../../frontend/accessors.dart'
-    show Accessor, IndexAccessor, VariableAccessor;
+import '../../frontend/accessors.dart' show Accessor, VariableAccessor;
 
 import 'converter.dart' show ClosureConverter;
 
@@ -112,65 +107,67 @@ class LocalContext extends Context {
   final ClosureConverter converter;
   final Context parent;
   final VariableDeclaration self;
-  final IntLiteral size;
+  final VectorCreation vectorCreation;
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
-  final Map<VariableDeclaration, Arguments> initializers =
-      <VariableDeclaration, Arguments>{};
+  final Map<VariableDeclaration, VectorSet> initializers =
+      <VariableDeclaration, VectorSet>{};
 
-  LocalContext._internal(this.converter, this.parent, this.self, this.size);
+  LocalContext._internal(
+      this.converter, this.parent, this.self, this.vectorCreation);
 
   factory LocalContext(ClosureConverter converter, Context parent) {
     Class contextClass = converter.contextClass;
     assert(contextClass.constructors.length == 1);
-    IntLiteral zero = new IntLiteral(0);
-    VariableDeclaration declaration = new VariableDeclaration.forValue(
-        new ConstructorInvocation(
-            contextClass.constructors.first, new Arguments(<Expression>[zero])),
-        type: new InterfaceType(contextClass));
-    declaration.name = "#context";
-    converter.insert(declaration);
-    converter.insert(new ExpressionStatement(new PropertySet(
-        new VariableGet(declaration), new Name('parent'), parent.expression)));
+    converter.rewriter.insertContextDeclaration(parent.expression);
 
-    return new LocalContext._internal(converter, parent, declaration, zero);
+    return new LocalContext._internal(
+        converter,
+        parent,
+        converter.rewriter.contextDeclaration,
+        converter.rewriter.vectorCreation);
   }
 
   Expression get expression => accessor.buildSimpleRead();
 
-  Accessor get accessor => new VariableAccessor(self);
+  Accessor get accessor => new VariableAccessor(self, null, TreeNode.noOffset);
 
   void extend(VariableDeclaration variable, Expression value) {
-    Arguments arguments =
-        new Arguments(<Expression>[new IntLiteral(variables.length), value]);
-    converter.insert(new ExpressionStatement(
-        new MethodInvocation(expression, new Name('[]='), arguments)));
-    ++size.value;
+    // Increase index by 1, because the parent occupies item 0, and all other
+    // variables are therefore shifted by 1.
+    VectorSet initializer =
+        new VectorSet(expression, variables.length + 1, value);
+    value.parent = initializer;
+
+    converter.rewriter.insertExtendContext(initializer);
+
+    ++vectorCreation.length;
     variables.add(variable);
-    initializers[variable] = arguments;
+    initializers[variable] = initializer;
   }
 
   void update(VariableDeclaration variable, Expression value) {
-    Arguments arguments = initializers[variable];
-    arguments.positional[1] = value;
-    value.parent = arguments;
+    VectorSet initializer = initializers[variable];
+    initializer.value = value;
+    value.parent = initializer;
   }
 
   Expression lookup(VariableDeclaration variable) {
     var index = variables.indexOf(variable);
+    // Increase index by 1 in case of success, because the parent occupies
+    // item 0, and all other variables are therefore shifted by 1.
     return index == -1
         ? parent.lookup(variable)
-        : new MethodInvocation(expression, new Name('[]'),
-            new Arguments(<Expression>[new IntLiteral(index)]));
+        : new VectorGet(expression, index + 1);
   }
 
   Expression assign(VariableDeclaration variable, Expression value,
       {bool voidContext: false}) {
     var index = variables.indexOf(variable);
+    // Increase index by 1 in case of success, because the parent occupies
+    // item 0, and all other variables are therefore shifted by 1.
     return index == -1
         ? parent.assign(variable, value, voidContext: voidContext)
-        : IndexAccessor
-            .make(expression, new IntLiteral(index), null, null)
-            .buildAssignment(value, voidContext: voidContext);
+        : new VectorSet(expression, index + 1, value);
   }
 
   Context toNestedContext([Accessor accessor]) {
@@ -191,10 +188,7 @@ class LocalContext extends Context {
 
   Expression clone() {
     self.isFinal = false;
-    return new VariableSet(
-        self,
-        new MethodInvocation(
-            new VariableGet(self), new Name("copy"), new Arguments.empty()));
+    return new VariableSet(self, new VectorCopy(new VariableGet(self)));
   }
 }
 
@@ -215,29 +209,32 @@ class NestedContext extends Context {
   }
 
   Expression lookup(VariableDeclaration variable) {
-    var context = expression;
+    Expression context = expression;
     for (var variables in variabless) {
       var index = variables.indexOf(variable);
       if (index != -1) {
-        return new MethodInvocation(context, new Name('[]'),
-            new Arguments(<Expression>[new IntLiteral(index)]));
+        // Increase index by 1, because the parent occupies item 0, and all
+        // other variables are therefore shifted by 1.
+        return new VectorGet(context, index + 1);
       }
-      context = new PropertyGet(context, new Name('parent'));
+      // Item 0 of a context always points to its parent.
+      context = new VectorGet(context, 0);
     }
     throw 'Unbound NestedContext.lookup($variable)';
   }
 
   Expression assign(VariableDeclaration variable, Expression value,
       {bool voidContext: false}) {
-    var context = expression;
-    for (var variables in variabless) {
+    Expression context = expression;
+    for (List<VariableDeclaration> variables in variabless) {
       var index = variables.indexOf(variable);
       if (index != -1) {
-        return IndexAccessor
-            .make(context, new IntLiteral(index), null, null)
-            .buildAssignment(value, voidContext: voidContext);
+        // Increase index by 1, because the parent occupies item 0, and all
+        // other variables are therefore shifted by 1.
+        return new VectorSet(context, index + 1, value);
       }
-      context = new PropertyGet(context, new Name('parent'));
+      // Item 0 of a context always points to its parent.
+      context = new VectorGet(context, 0);
     }
     throw 'Unbound NestedContext.lookup($variable)';
   }

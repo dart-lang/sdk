@@ -66,7 +66,8 @@ part '$testFile';
         searchEngine,
         testSource,
         completionOffset,
-        new CompletionPerformance());
+        new CompletionPerformance(),
+        null);
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
     DartCompletionRequestImpl

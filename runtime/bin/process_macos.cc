@@ -5,11 +5,11 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/process.h"
 
-#if !TARGET_OS_IOS
+#if !HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif
 #include <errno.h>   // NOLINT
@@ -465,7 +465,7 @@ class ProcessStarter {
       ReportChildError();
     }
 
-#if !TARGET_OS_IOS
+#if !HOST_OS_IOS
     if (program_environment_ != NULL) {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
@@ -1090,6 +1090,6 @@ void Process::ClearSignalHandler(intptr_t signal) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)
 
 #endif  // !defined(DART_IO_DISABLED)

@@ -8,31 +8,34 @@ import 'dart:async' show Future;
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
-import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart'
-    show
-        Backend,
-        BackendClasses,
-        ImpactTransformer,
-        ForeignResolver,
-        NativeRegistry;
+    show BackendClasses, ForeignResolver, NativeRegistry, ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
-import '../common/names.dart' show Identifiers, Uris;
-import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
+import '../common/names.dart' show Uris;
+import '../common/resolution.dart'
+    show Frontend, Resolution, ResolutionImpact, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../enqueue.dart'
-    show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
+    show
+        DirectEnqueuerStrategy,
+        Enqueuer,
+        EnqueueTask,
+        ResolutionEnqueuer,
+        ResolutionWorkItemBuilder,
+        TreeShakingEnqueuerStrategy;
+import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../io/start_end_information.dart'
@@ -42,45 +45,44 @@ import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
-import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
+import '../kernel/task.dart';
+import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
+import '../native/resolver.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
-import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
-    show
-        ImpactStrategy,
-        ImpactUseCase,
-        TransformedWorldImpact,
-        WorldImpact,
-        WorldImpactBuilder,
-        WorldImpactBuilderImpl,
-        WorldImpactVisitor,
-        StagedWorldImpactBuilder;
+    show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import 'annotations.dart';
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
+import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
+import 'codegen_listener.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
+import 'impact_transformer.dart';
+import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import '../kernel/task.dart';
-import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'lookup_map_analysis.dart'
+    show LookupMapResolutionAnalysis, LookupMapAnalysis;
 import 'mirrors_analysis.dart';
+import 'mirrors_data.dart';
 import 'namer.dart';
-import 'native_data.dart' show NativeData;
+import 'native_data.dart';
 import 'no_such_method_registry.dart';
 import 'patch_resolver.dart';
+import 'resolution_listener.dart';
 import 'type_variable_handler.dart';
 
 part 'runtime_types.dart';
@@ -113,8 +115,8 @@ class FunctionInlineCache {
   static const int _canInline = 4;
   static const int _mustInline = 5;
 
-  final Map<FunctionElement, int> _cachedDecisions =
-      new Map<FunctionElement, int>();
+  final Map<MethodElement, int> _cachedDecisions =
+      new Map<MethodElement, int>();
 
   /// Returns the current cache decision. This should only be used for testing.
   int getCurrentCacheDecisionForTesting(Element element) {
@@ -123,7 +125,7 @@ class FunctionInlineCache {
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
-  bool canInline(FunctionElement element, {bool insideLoop}) {
+  bool canInline(MethodElement element, {bool insideLoop}) {
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -178,7 +180,7 @@ class FunctionInlineCache {
     return null;
   }
 
-  void markAsInlinable(FunctionElement element, {bool insideLoop}) {
+  void markAsInlinable(MethodElement element, {bool insideLoop}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -233,7 +235,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNonInlinable(FunctionElement element, {bool insideLoop: true}) {
+  void markAsNonInlinable(MethodElement element, {bool insideLoop: true}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -291,7 +293,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsMustInline(FunctionElement element) {
+  void markAsMustInline(MethodElement element) {
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -303,9 +305,12 @@ enum SyntheticConstantKind {
   NAME
 }
 
-class JavaScriptBackend extends Backend {
+class JavaScriptBackend {
+  final Compiler compiler;
+
   String get patchVersion => emitter.patchVersion;
 
+  /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
   final Annotations annotations;
@@ -337,12 +342,6 @@ class JavaScriptBackend extends Backend {
   static const bool TRACE_CALLS =
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
 
-  /// Maps special classes to their implementation (JSXxx) class.
-  Map<ClassElement, ClassElement> implementationClasses;
-
-  bool needToInitializeIsolateAffinityTag = false;
-  bool needToInitializeDispatchProperty = false;
-
   Namer _namer;
 
   Namer get namer {
@@ -352,64 +351,9 @@ class JavaScriptBackend extends Backend {
   }
 
   /**
-   * A collection of selectors that must have a one shot interceptor
-   * generated.
-   */
-  final Map<jsAst.Name, Selector> oneShotInterceptors;
-
-  /**
-   * The members of instantiated interceptor classes: maps a member name to the
-   * list of members that have that name. This map is used by the codegen to
-   * know whether a send must be intercepted or not.
-   */
-  final Map<String, Set<Element>> interceptedElements;
-
-  /**
-   * The members of mixin classes that are mixed into an instantiated
-   * interceptor class.  This is a cached subset of [interceptedElements].
-   *
-   * Mixin methods are not specialized for the class they are mixed into.
-   * Methods mixed into intercepted classes thus always make use of the explicit
-   * receiver argument, even when mixed into non-interceptor classes.
-   *
-   * These members must be invoked with a correct explicit receiver even when
-   * the receiver is not an intercepted class.
-   */
-  final Map<String, Set<Element>> interceptedMixinElements =
-      new Map<String, Set<Element>>();
-
-  /**
-   * A map of specialized versions of the [getInterceptorMethod].
-   * Since [getInterceptorMethod] is a hot method at runtime, we're
-   * always specializing it based on the incoming type. The keys in
-   * the map are the names of these specialized versions. Note that
-   * the generic version that contains all possible type checks is
-   * also stored in this map.
-   */
-  final Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors;
-
-  /**
-   * Set of classes whose methods are intercepted.
-   */
-  final Set<ClassElement> _interceptedClasses = new Set<ClassElement>();
-
-  /**
-   * Set of classes used as mixins on intercepted (native and primitive)
-   * classes.  Methods on these classes might also be mixed in to regular Dart
-   * (unintercepted) classes.
-   */
-  final Set<ClassElement> classesMixedIntoInterceptedClasses =
-      new Set<ClassElement>();
-
-  /**
    * Set of classes whose `operator ==` methods handle `null` themselves.
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
-
-  /**
-   * A set of members that are called from subclasses via `super`.
-   */
-  final Set<MethodElement> aliasedSuperMembers = new Setlet<MethodElement>();
 
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
@@ -419,106 +363,36 @@ class JavaScriptBackend extends Backend {
     return result;
   }
 
-  final RuntimeTypes rti;
-  final RuntimeTypesEncoder rtiEncoder;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder =
+      new _RuntimeTypesNeedBuilder();
+  RuntimeTypesNeed _rtiNeed;
+  final _RuntimeTypes _rti;
+  RuntimeTypesChecks _rtiChecks;
 
-  /// True if a call to preserveMetadataMarker has been seen.  This means that
-  /// metadata must be retained for dart:mirrors to work correctly.
-  bool mustRetainMetadata = false;
-
-  /// True if any metadata has been retained.  This is slightly different from
-  /// [mustRetainMetadata] and tells us if any metadata was retained.  For
-  /// example, if [mustRetainMetadata] is true but there is no metadata in the
-  /// program, this variable will stil be false.
-  bool hasRetainedMetadata = false;
-
-  /// True if a call to preserveUris has been seen and the preserve-uris flag
-  /// is set.
-  bool mustPreserveUris = false;
-
-  /// True if a call to preserveLibraryNames has been seen.
-  bool mustRetainLibraryNames = false;
-
-  /// True if a call to preserveNames has been seen.
-  bool mustPreserveNames = false;
-
-  /// True if a call to disableTreeShaking has been seen.
-  bool isTreeShakingDisabled = false;
-
-  /// True if there isn't sufficient @MirrorsUsed data.
-  bool hasInsufficientMirrorsUsed = false;
-
-  /// True if a core-library function requires the preamble file to function.
-  bool requiresPreamble = false;
+  RuntimeTypesEncoder _rtiEncoder;
 
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
-  /// True when we enqueue the loadLibrary code.
-  bool isLoadLibraryFunctionResolved = false;
+  /// Resolution analysis for tracking reflective access to type variables.
+  TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
-  /// `true` if access to [BackendHelpers.invokeOnMethod] is supported.
-  bool hasInvokeOnSupport = false;
+  /// Codegen handler for reflective access to type variables.
+  TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
 
-  /// `true` if tear-offs are supported for incremental compilation.
-  bool hasIncrementalTearOffSupport = false;
-
-  /// `true` of `Object.runtimeType` is supported.
-  bool hasRuntimeTypeSupport = false;
-
-  /// `true` of use of the `dart:isolate` library is supported.
-  bool hasIsolateSupport = false;
-
-  /// `true` of `Function.apply` is supported.
-  bool hasFunctionApplySupport = false;
-
-  /// List of constants from metadata.  If metadata must be preserved,
-  /// these constants must be registered.
-  final List<Dependency> metadataConstants = <Dependency>[];
-
-  /// Set of elements for which metadata has been registered as dependencies.
-  final Set<Element> _registeredMetadata = new Set<Element>();
-
-  /// List of elements that the user has requested for reflection.
-  final Set<Element> targetsUsed = new Set<Element>();
-
-  /// List of annotations provided by user that indicate that the annotated
-  /// element must be retained.
-  final Set<Element> metaTargetsUsed = new Set<Element>();
-
-  /// Set of methods that are needed by reflection. Computed using
-  /// [computeMembersNeededForReflection] on first use.
-  Set<Element> _membersNeededForReflection = null;
-  Iterable<Element> get membersNeededForReflection {
-    assert(_membersNeededForReflection != null);
-    return _membersNeededForReflection;
-  }
-
-  /// List of symbols that the user has requested for reflection.
-  final Set<String> symbolsUsed = new Set<String>();
-
-  /// List of elements that the backend may use.
-  final Set<Element> helpersUsed = new Set<Element>();
-
-  /// All the checked mode helpers.
-  static const checkedModeHelpers = CheckedModeHelper.helpers;
-
-  // Checked mode helpers indexed by name.
-  Map<String, CheckedModeHelper> checkedModeHelperByName =
-      new Map<String, CheckedModeHelper>.fromIterable(checkedModeHelpers,
-          key: (helper) => helper.name);
-
-  TypeVariableHandler typeVariableHandler;
-
-  /// Number of methods compiled before considering reflection.
-  int preMirrorsMethodCount = 0;
-
-  /// Resolution and codegen support for generating table of interceptors and
+  /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsAnalysis customElementsAnalysis;
+  CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+
+  /// Codegen support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+
+  /// Resolution support for tree-shaking entries of `LookupMap`.
+  LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
 
   /// Codegen support for tree-shaking entries of `LookupMap`.
-  LookupMapAnalysis lookupMapAnalysis;
+  LookupMapAnalysis _lookupMapAnalysis;
 
   /// Codegen support for typed JavaScript interop.
   JsInteropAnalysis jsInteropAnalysis;
@@ -526,80 +400,133 @@ class JavaScriptBackend extends Backend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
-  /// Resolution and codegen support for computing reflectable elements.
-  MirrorsAnalysis mirrorsAnalysis;
+  /// Resolution support for computing reflectable elements.
+  MirrorsResolutionAnalysis _mirrorsResolutionAnalysis;
+
+  /// Codegen support for computing reflectable elements.
+  MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
 
   /// Builds kernel representation for the program.
   KernelTask kernelTask;
 
-  JavaScriptConstantTask constantCompilerTask;
+  /// The compiler task responsible for the compilation of constants for both
+  /// the frontend and the backend.
+  final JavaScriptConstantTask constantCompilerTask;
 
-  JavaScriptImpactTransformer impactTransformer;
+  /// Backend transformation methods for the world impacts.
+  ImpactTransformer impactTransformer;
+
+  CodegenImpactTransformer _codegenImpactTransformer;
 
   PatchResolverTask patchResolverTask;
 
-  bool enabledNoSuchMethod = false;
-  bool _noSuchMethodEnabledForCodegen = false;
-
+  /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy sourceInformationStrategy;
 
+  /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
 
-  StagedWorldImpactBuilder constantImpactsForResolution =
-      new StagedWorldImpactBuilder();
+  NativeDataImpl _nativeData;
+  final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
+      new NativeBasicDataBuilderImpl();
+  NativeBasicDataImpl _nativeBasicData;
+  NativeData get nativeData => _nativeData;
+  NativeDataBuilder get nativeDataBuilder => _nativeData;
+  final NativeDataResolver _nativeDataResolver;
+  InterceptorDataBuilder _interceptorDataBuilder;
+  InterceptorData _interceptorData;
+  OneShotInterceptorData _oneShotInterceptorData;
+  BackendUsage _backendUsage;
+  BackendUsageBuilder _backendUsageBuilder;
+  MirrorsDataImpl _mirrorsData;
+  CheckedModeHelpers _checkedModeHelpers;
 
-  StagedWorldImpactBuilder constantImpactsForCodegen =
-      new StagedWorldImpactBuilder();
+  final SuperMemberData superMemberData = new SuperMemberData();
 
-  final NativeData nativeData = new NativeData();
+  native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
-  final BackendHelpers helpers;
-  final BackendImpacts impacts;
-  BackendClasses backendClasses;
+  BackendHelpers helpers;
+  BackendImpacts impacts;
 
+  /// Common classes used by the backend.
+  BackendClasses _backendClasses;
+
+  /// Backend access to the front-end.
   final JSFrontendAccess frontend;
+
+  Target _target;
 
   Tracer tracer;
 
-  JavaScriptBackend(Compiler compiler,
+  static SourceInformationStrategy createSourceInformationStrategy(
+      {bool generateSourceMap: false,
+      bool useMultiSourceInfo: false,
+      bool useNewSourceInfo: false}) {
+    if (!generateSourceMap) return const JavaScriptSourceInformationStrategy();
+    if (useMultiSourceInfo) {
+      if (useNewSourceInfo) {
+        return const MultiSourceInformationStrategy(const [
+          const PositionSourceInformationStrategy(),
+          const StartEndSourceInformationStrategy()
+        ]);
+      } else {
+        return const MultiSourceInformationStrategy(const [
+          const StartEndSourceInformationStrategy(),
+          const PositionSourceInformationStrategy()
+        ]);
+      }
+    } else if (useNewSourceInfo) {
+      return const PositionSourceInformationStrategy();
+    } else {
+      return const StartEndSourceInformationStrategy();
+    }
+  }
+
+  JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
+      bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : oneShotInterceptors = new Map<jsAst.Name, Selector>(),
-        interceptedElements = new Map<String, Set<Element>>(),
-        rti = new _RuntimeTypes(compiler),
-        rtiEncoder = new _RuntimeTypesEncoder(compiler),
-        specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
+      : _rti = new _RuntimeTypes(compiler),
         annotations = new Annotations(compiler),
-        this.sourceInformationStrategy = generateSourceMap
-            ? (useNewSourceInfo
-                ? new PositionSourceInformationStrategy()
-                : const StartEndSourceInformationStrategy())
-            : const JavaScriptSourceInformationStrategy(),
-        helpers = new BackendHelpers(compiler),
-        impacts = new BackendImpacts(compiler),
+        this.sourceInformationStrategy = createSourceInformationStrategy(
+            generateSourceMap: generateSourceMap,
+            useMultiSourceInfo: useMultiSourceInfo,
+            useNewSourceInfo: useNewSourceInfo),
         frontend = new JSFrontendAccess(compiler),
-        super(compiler) {
+        constantCompilerTask = new JavaScriptConstantTask(compiler),
+        _nativeDataResolver = new NativeDataResolverImpl(compiler) {
+    _target = new JavaScriptBackendTarget(this);
+    helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
+    impacts = new BackendImpacts(compiler.options, commonElements, helpers);
+    _mirrorsData = new MirrorsDataImpl(
+        compiler, compiler.options, commonElements, helpers, constants);
+    _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements, helpers);
+    _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    typeVariableHandler = new TypeVariableHandler(compiler);
-    customElementsAnalysis = new CustomElementsAnalysis(this);
-    lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
-    jsInteropAnalysis = new JsInteropAnalysis(this);
-    mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
 
-    noSuchMethodRegistry = new NoSuchMethodRegistry(this);
+    _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
+        compiler.elementEnvironment, impacts, backendUsageBuilder);
+    jsInteropAnalysis = new JsInteropAnalysis(this);
+    _mirrorsResolutionAnalysis =
+        new MirrorsResolutionAnalysisImpl(this, compiler.resolution);
+    lookupMapResolutionAnalysis =
+        new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
+
+    noSuchMethodRegistry =
+        new NoSuchMethodRegistry(helpers, new NoSuchMethodResolverImpl());
     kernelTask = new KernelTask(compiler);
-    constantCompilerTask = new JavaScriptConstantTask(compiler);
-    impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
-    backendClasses = new JavaScriptBackendClasses(helpers);
   }
 
+  /// The [ConstantSystem] used to interpret compile-time constants for this
+  /// backend.
   ConstantSystem get constantSystem => constants.constantSystem;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -608,22 +535,154 @@ class JavaScriptBackend extends Backend {
 
   Resolution get resolution => compiler.resolution;
 
+  Target get target => _target;
+
+  /// Resolution support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsResolutionAnalysis get customElementsResolutionAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _customElementsResolutionAnalysis != null,
+        message: "CustomElementsResolutionAnalysis has not been created yet."));
+    return _customElementsResolutionAnalysis;
+  }
+
+  /// Codegen support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _customElementsCodegenAnalysis != null,
+        message: "CustomElementsCodegenAnalysis has not been created yet."));
+    return _customElementsCodegenAnalysis;
+  }
+
+  /// Common classes used by the backend.
+  BackendClasses get backendClasses {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendClasses != null,
+        message: "BackendClasses has not been created yet."));
+    return _backendClasses;
+  }
+
+  NativeBasicData get nativeBasicData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _nativeBasicData != null,
+        message: "NativeBasicData has not been computed yet."));
+    return _nativeBasicData;
+  }
+
+  NativeBasicDataBuilder get nativeBasicDataBuilder => _nativeBasicDataBuilder;
+
+  /// Resolution analysis for tracking reflective access to type variables.
+  TypeVariableResolutionAnalysis get typeVariableResolutionAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis == null,
+        message: "TypeVariableHandler has already been created."));
+    return _typeVariableResolutionAnalysis;
+  }
+
+  /// Codegen handler for reflective access to type variables.
+  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis != null,
+        message: "TypeVariableHandler has not been created yet."));
+    return _typeVariableCodegenAnalysis;
+  }
+
+  MirrorsData get mirrorsData => _mirrorsData;
+
+  MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
+
+  /// Resolution support for computing reflectable elements.
+  MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
+      _mirrorsResolutionAnalysis;
+
+  /// Codegen support for computing reflectable elements.
+  MirrorsCodegenAnalysis get mirrorsCodegenAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _mirrorsCodegenAnalysis != null,
+        message: "MirrorsCodegenAnalysis has not been created yet."));
+    return _mirrorsCodegenAnalysis;
+  }
+
+  /// Codegen support for tree-shaking entries of `LookupMap`.
+  LookupMapAnalysis get lookupMapAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _lookupMapAnalysis != null,
+        message: "LookupMapAnalysis has not been created yet."));
+    return _lookupMapAnalysis;
+  }
+
+  InterceptorData get interceptorData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
+        message: "InterceptorData has not been computed yet."));
+    return _interceptorData;
+  }
+
+  InterceptorDataBuilder get interceptorDataBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData == null,
+        message: "InterceptorData has already been computed."));
+    return _interceptorDataBuilder;
+  }
+
+  OneShotInterceptorData get oneShotInterceptorData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _oneShotInterceptorData != null,
+        message: "OneShotInterceptorData has not been prepared yet."));
+    return _oneShotInterceptorData;
+  }
+
+  BackendUsage get backendUsage {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage != null,
+        message: "BackendUsage has not been computed yet."));
+    return _backendUsage;
+  }
+
+  BackendUsageBuilder get backendUsageBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage == null,
+        message: "BackendUsage has already been computed."));
+    return _backendUsageBuilder;
+  }
+
+  RuntimeTypesNeed get rtiNeed {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed != null,
+        message: "RuntimeTypesNeed has not been computed yet."));
+    return _rtiNeed;
+  }
+
+  RuntimeTypesNeedBuilder get rtiNeedBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed == null,
+        message: "RuntimeTypesNeed has already been computed."));
+    return _rtiNeedBuilder;
+  }
+
+  RuntimeTypesChecks get rtiChecks {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks != null,
+        message: "RuntimeTypesChecks has not been computed yet."));
+    return _rtiChecks;
+  }
+
+  RuntimeTypesChecksBuilder get rtiChecksBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks == null,
+        message: "RuntimeTypesChecks has already been computed."));
+    return _rti;
+  }
+
+  RuntimeTypesSubstitutions get rtiSubstitutions => _rti;
+
+  RuntimeTypesEncoder get rtiEncoder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder != null,
+        message: "RuntimeTypesEncoder has not been created."));
+    return _rtiEncoder;
+  }
+
+  CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
+
   /// Returns constant environment for the JavaScript interpretation of the
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  @override
-  bool isDefaultNoSuchMethod(MethodElement element) {
-    return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
-  }
-
   MethodElement resolveExternalFunction(MethodElement element) {
     if (isForeign(element)) {
       return element;
     }
-    if (isJsInterop(element)) {
+    if (_nativeDataResolver.isJsInteropMember(element)) {
       if (element.memberName == const PublicName('[]') ||
           element.memberName == const PublicName('[]=')) {
         reporter.reportErrorMessage(
@@ -647,277 +706,34 @@ class JavaScriptBackend extends Backend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(this, closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(this, closedWorld, codegenWorldBuilder)
-        : new Namer(this, closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(
+                helpers, nativeData, closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(
+                helpers, nativeData, closedWorld, codegenWorldBuilder)
+        : new Namer(helpers, nativeData, closedWorld, codegenWorldBuilder);
   }
 
-  /// The backend must *always* call this method when enqueuing an
-  /// element. Calls done by the backend are not seen by global
-  /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of helpers the backend may
-  /// use.
-  // TODO(johnniwinther): Replace this with a more precise modelling; type
-  // inference of these elements is disabled.
-  Element registerBackendUse(Element element) {
-    if (element == null) return null;
-    assert(invariant(element, _isValidBackendUse(element),
-        message: "Backend use of $element is not allowed."));
-    helpersUsed.add(element.declaration);
-    if (element.isClass && element.isPatched) {
-      // Both declaration and implementation may declare fields, so we
-      // add both to the list of helpers.
-      helpersUsed.add(element.implementation);
-    }
-    return element;
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the field [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFieldBeUsedForGlobalOptimizations(FieldElement element) {
+    return !backendUsage.isFieldUsedByBackend(element) &&
+        !mirrorsData.invokedReflectively(element);
   }
 
-  bool _isValidBackendUse(Element element) {
-    assert(invariant(element, element.isDeclaration, message: ""));
-    if (element == helpers.streamIteratorConstructor ||
-        compiler.commonElements.isSymbolConstructor(element) ||
-        helpers.isSymbolValidatedConstructor(element) ||
-        element == helpers.syncCompleterConstructor ||
-        element == commonElements.symbolClass ||
-        element == helpers.objectNoSuchMethod) {
-      // TODO(johnniwinther): These are valid but we could be more precise.
-      return true;
-    } else if (element.implementationLibrary.isPatch ||
-        // Needed to detect deserialized injected elements, that is
-        // element declared in patch files.
-        (element.library.isPlatformLibrary &&
-            element.sourcePosition.uri.path
-                .contains('_internal/js_runtime/lib/')) ||
-        element.library == helpers.jsHelperLibrary ||
-        element.library == helpers.interceptorsLibrary ||
-        element.library == helpers.isolateHelperLibrary) {
-      // TODO(johnniwinther): We should be more precise about these.
-      return true;
-    } else if (element == commonElements.listClass ||
-        element == helpers.mapLiteralClass ||
-        element == commonElements.functionClass ||
-        element == commonElements.stringClass) {
-      // TODO(johnniwinther): Avoid these.
-      return true;
-    } else if (element == helpers.genericNoSuchMethod ||
-        element == helpers.unresolvedConstructorError ||
-        element == helpers.malformedTypeError) {
-      return true;
-    }
-    return false;
-  }
-
-  bool usedByBackend(Element element) {
-    if (element.isRegularParameter ||
-        element.isInitializingFormal ||
-        element.isField) {
-      if (usedByBackend(element.enclosingElement)) return true;
-    }
-    return helpersUsed.contains(element.declaration);
-  }
-
-  bool invokedReflectively(Element element) {
-    if (element.isRegularParameter || element.isInitializingFormal) {
-      ParameterElement parameter = element;
-      if (invokedReflectively(parameter.functionDeclaration)) return true;
-    }
-
-    if (element.isField) {
-      if (Elements.isStaticOrTopLevel(element) &&
-          (element.isFinal || element.isConst)) {
-        return false;
-      }
-    }
-
-    return isAccessibleByReflection(element.declaration);
-  }
-
-  bool canBeUsedForGlobalOptimizations(Element element) {
-    return !usedByBackend(element) && !invokedReflectively(element);
-  }
-
-  bool isInterceptorClass(ClassElement element) {
-    if (element == null) return false;
-    if (isNativeOrExtendsNative(element)) return true;
-    if (interceptedClasses.contains(element)) return true;
-    if (classesMixedIntoInterceptedClasses.contains(element)) return true;
-    return false;
-  }
-
-  jsAst.Name registerOneShotInterceptor(Selector selector) {
-    Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
-    jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);
-    if (!oneShotInterceptors.containsKey(name)) {
-      registerSpecializedGetInterceptor(classes);
-      oneShotInterceptors[name] = selector;
-    }
-    return name;
-  }
-
-  /**
-   * Record that [method] is called from a subclass via `super`.
-   */
-  bool maybeRegisterAliasedSuperMember(
-      MemberElement member, Selector selector) {
-    if (!canUseAliasedSuperMember(member, selector)) {
-      // Invoking a super getter isn't supported, this would require changes to
-      // compact field descriptors in the emitter.
-      // We also turn off this optimization in incremental compilation, to
-      // avoid having to regenerate a method just because someone started
-      // calling it through super.
-      return false;
-    }
-    aliasedSuperMembers.add(member);
-    return true;
-  }
-
-  bool canUseAliasedSuperMember(Element member, Selector selector) {
-    return !selector.isGetter && !compiler.options.hasIncrementalSupport;
-  }
-
-  /**
-   * Returns `true` if [member] is called from a subclass via `super`.
-   */
-  bool isAliasedSuperMember(FunctionElement member) {
-    return aliasedSuperMembers.contains(member);
-  }
-
-  /// Returns `true` if [element] is part of JsInterop.
-  @override
-  bool isJsInterop(Element element) => nativeData.isJsInterop(element);
-
-  /// Returns `true` if [element] is a JsInterop class.
-  bool isJsInteropClass(ClassElement element) => isJsInterop(element);
-
-  /// Returns `true` if [element] is a JsInterop method.
-  bool isJsInteropMethod(MethodElement element) => isJsInterop(element);
-
-  /// Whether [element] corresponds to a native JavaScript construct either
-  /// through the native mechanism (`@Native(...)` or the `native` pseudo
-  /// keyword) which is only allowed for internal libraries or via the typed
-  /// JavaScriptInterop mechanism which is allowed for user libraries.
-  @override
-  bool isNative(Entity element) => nativeData.isNative(element);
-
-  /// Returns the [NativeBehavior] for calling the native [method].
-  native.NativeBehavior getNativeMethodBehavior(MethodElement method) {
-    return nativeData.getNativeMethodBehavior(method);
-  }
-
-  /// Returns the [NativeBehavior] for reading from the native [field].
-  native.NativeBehavior getNativeFieldLoadBehavior(FieldElement field) {
-    return nativeData.getNativeFieldLoadBehavior(field);
-  }
-
-  /// Returns the [NativeBehavior] for writing to the native [field].
-  native.NativeBehavior getNativeFieldStoreBehavior(FieldElement field) {
-    return nativeData.getNativeFieldStoreBehavior(field);
-  }
-
-  @override
-  void resolveNativeElement(Element element, NativeRegistry registry) {
-    if (element.isFunction ||
-        element.isConstructor ||
-        element.isGetter ||
-        element.isSetter) {
-      compiler.enqueuer.resolution.nativeEnqueuer
-          .handleMethodAnnotations(element);
-      if (isNative(element)) {
-        native.NativeBehavior behavior =
-            native.NativeBehavior.ofMethodElement(element, compiler);
-        nativeData.setNativeMethodBehavior(element, behavior);
-        registry.registerNativeData(behavior);
-      }
-    } else if (element.isField) {
-      compiler.enqueuer.resolution.nativeEnqueuer
-          .handleFieldAnnotations(element);
-      if (isNative(element)) {
-        native.NativeBehavior fieldLoadBehavior =
-            native.NativeBehavior.ofFieldElementLoad(element, compiler);
-        native.NativeBehavior fieldStoreBehavior = native.NativeBehavior
-            .ofFieldElementStore(element, compiler.resolution);
-        nativeData.setNativeFieldLoadBehavior(element, fieldLoadBehavior);
-        nativeData.setNativeFieldStoreBehavior(element, fieldStoreBehavior);
-
-        // TODO(sra): Process fields for storing separately.
-        // We have to handle both loading and storing to the field because we
-        // only get one look at each member and there might be a load or store
-        // we have not seen yet.
-        registry.registerNativeData(fieldLoadBehavior);
-        registry.registerNativeData(fieldStoreBehavior);
-      }
-    }
-  }
-
-  bool isNativeOrExtendsNative(ClassElement element) {
-    if (element == null) return false;
-    if (isNative(element) || isJsInterop(element)) {
-      return true;
-    }
-    assert(element.isResolved);
-    return isNativeOrExtendsNative(element.superclass);
-  }
-
-  bool isInterceptedMethod(MemberElement element) {
-    if (!element.isInstanceMember) return false;
-    if (element.isGenerativeConstructorBody) {
-      return isNativeOrExtendsNative(element.enclosingClass);
-    }
-    return interceptedElements[element.name] != null;
-  }
-
-  bool fieldHasInterceptedGetter(Element element) {
-    assert(element.isField);
-    return interceptedElements[element.name] != null;
-  }
-
-  bool fieldHasInterceptedSetter(Element element) {
-    assert(element.isField);
-    return interceptedElements[element.name] != null;
-  }
-
-  bool isInterceptedName(String name) {
-    return interceptedElements[name] != null;
-  }
-
-  bool isInterceptedSelector(Selector selector) {
-    return interceptedElements[selector.name] != null;
-  }
-
-  /**
-   * Returns `true` iff [selector] matches an element defined in a class mixed
-   * into an intercepted class.  These selectors are not eligible for the 'dummy
-   * explicit receiver' optimization.
-   */
-  bool isInterceptedMixinSelector(Selector selector, TypeMask mask) {
-    Set<Element> elements =
-        interceptedMixinElements.putIfAbsent(selector.name, () {
-      Set<Element> elements = interceptedElements[selector.name];
-      if (elements == null) return null;
-      return elements
-          .where((element) => classesMixedIntoInterceptedClasses
-              .contains(element.enclosingClass))
-          .toSet();
-    });
-
-    if (elements == null) return false;
-    if (elements.isEmpty) return false;
-    return elements.any((element) {
-      return selector.applies(element) &&
-          (mask == null || mask.canHit(element, selector, _closedWorld));
-    });
-  }
-
-  /// True if the given class is an internal class used for type inference
-  /// and never exists at runtime.
-  bool isCompileTimeOnlyClass(ClassElement class_) {
-    return class_ == helpers.jsPositiveIntClass ||
-        class_ == helpers.jsUInt32Class ||
-        class_ == helpers.jsUInt31Class ||
-        class_ == helpers.jsFixedArrayClass ||
-        class_ == helpers.jsUnmodifiableArrayClass ||
-        class_ == helpers.jsMutableArrayClass ||
-        class_ == helpers.jsExtendableArrayClass;
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the parameter [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFunctionParametersBeUsedForGlobalOptimizations(
+      FunctionElement element) {
+    if (element.isLocal) return true;
+    MethodElement method = element;
+    return !backendUsage.isFunctionUsedByBackend(method) &&
+        !mirrorsData.invokedReflectively(method);
   }
 
   /// Maps compile-time classes to their runtime class.  The runtime class is
@@ -926,51 +742,6 @@ class JavaScriptBackend extends Backend {
     if (class_.isSubclassOf(helpers.jsIntClass)) return helpers.jsIntClass;
     if (class_.isSubclassOf(helpers.jsArrayClass)) return helpers.jsArrayClass;
     return class_;
-  }
-
-  final Map<String, Set<ClassElement>> interceptedClassesCache =
-      new Map<String, Set<ClassElement>>();
-  final Set<ClassElement> _noClasses = new Set<ClassElement>();
-
-  /// Returns a set of interceptor classes that contain a member named [name]
-  ///
-  /// Returns an empty set if there is no class. Do not modify the returned set.
-  Set<ClassElement> getInterceptedClassesOn(String name) {
-    Set<Element> intercepted = interceptedElements[name];
-    if (intercepted == null) return _noClasses;
-    return interceptedClassesCache.putIfAbsent(name, () {
-      // Populate the cache by running through all the elements and
-      // determine if the given selector applies to them.
-      Set<ClassElement> result = new Set<ClassElement>();
-      for (Element element in intercepted) {
-        ClassElement classElement = element.enclosingClass;
-        if (isCompileTimeOnlyClass(classElement)) continue;
-        if (isNativeOrExtendsNative(classElement) ||
-            interceptedClasses.contains(classElement)) {
-          result.add(classElement);
-        }
-        if (classesMixedIntoInterceptedClasses.contains(classElement)) {
-          Set<ClassElement> nativeSubclasses =
-              nativeSubclassesOfMixin(classElement);
-          if (nativeSubclasses != null) result.addAll(nativeSubclasses);
-        }
-      }
-      return result;
-    });
-  }
-
-  Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    Iterable<MixinApplicationElement> uses = _closedWorld.mixinUsesOf(mixin);
-    Set<ClassElement> result = null;
-    for (MixinApplicationElement use in uses) {
-      _closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
-        if (isNativeOrExtendsNative(subclass)) {
-          if (result == null) result = new Set<ClassElement>();
-          result.add(subclass);
-        }
-      });
-    }
-    return result;
   }
 
   bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
@@ -996,382 +767,55 @@ class JavaScriptBackend extends Backend {
     });
   }
 
-  void addInterceptorsForNativeClassMembers(ClassElement cls,
-      {bool forResolution}) {
-    if (forResolution) {
-      cls.ensureResolved(resolution);
-      cls.forEachMember((ClassElement classElement, Element member) {
-        if (member.name == Identifiers.call) {
-          return;
-        }
-        if (member.isSynthesized) return;
-        // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == commonElements.objectClass) return;
-        Set<Element> set = interceptedElements.putIfAbsent(
-            member.name, () => new Set<Element>());
-        set.add(member);
-      }, includeSuperAndInjectedMembers: true);
+  void onResolutionStart(ResolutionEnqueuer enqueuer) {
+    helpers.onResolutionStart();
 
-      // Walk superclass chain to find mixins.
-      for (; cls != null; cls = cls.superclass) {
-        if (cls.isMixinApplication) {
-          MixinApplicationElement mixinApplication = cls;
-          classesMixedIntoInterceptedClasses.add(mixinApplication.mixin);
-        }
-      }
-    }
+    validateInterceptorImplementsAllObjectMethods(helpers.jsInterceptorClass);
+    // The null-interceptor must also implement *all* methods.
+    validateInterceptorImplementsAllObjectMethods(helpers.jsNullClass);
   }
 
-  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder,
-      {bool forResolution}) {
-    if (forResolution) {
-      if (_interceptedClasses.add(cls)) {
-        cls.ensureResolved(resolution);
-        cls.forEachMember((ClassElement classElement, Element member) {
-          // All methods on [Object] are shadowed by [Interceptor].
-          if (classElement == commonElements.objectClass) return;
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-        }, includeSuperAndInjectedMembers: true);
-      }
-      _interceptedClasses.add(helpers.jsInterceptorClass);
-    }
-    impactTransformer.registerBackendInstantiation(impactBuilder, cls);
-  }
-
-  Set<ClassElement> get interceptedClasses {
-    assert(compiler.enqueuer.resolution.queueIsClosed);
-    return _interceptedClasses;
-  }
-
-  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    jsAst.Name name = namer.nameForGetInterceptor(classes);
-    if (classes.contains(helpers.jsInterceptorClass)) {
-      // We can't use a specialized [getInterceptorMethod], so we make
-      // sure we emit the one with all checks.
-      specializedGetInterceptors[name] = interceptedClasses;
-    } else {
-      specializedGetInterceptors[name] = classes;
-    }
-  }
-
-  void computeImpactForCompileTimeConstant(ConstantValue constant,
-      WorldImpactBuilder impactBuilder, bool isForResolution) {
-    computeImpactForCompileTimeConstantInternal(
-        constant, impactBuilder, isForResolution);
-
-    if (!isForResolution && lookupMapAnalysis.isLookupMap(constant)) {
-      // Note: internally, this registration will temporarily remove the
-      // constant dependencies and add them later on-demand.
-      lookupMapAnalysis.registerLookupMapReference(constant);
-    }
-
-    for (ConstantValue dependency in constant.getDependencies()) {
-      computeImpactForCompileTimeConstant(
-          dependency, impactBuilder, isForResolution);
-    }
-  }
-
-  void addCompileTimeConstantForEmission(ConstantValue constant) {
-    constants.addCompileTimeConstantForEmission(constant);
-  }
-
-  void computeImpactForCompileTimeConstantInternal(ConstantValue constant,
-      WorldImpactBuilder impactBuilder, bool isForResolution) {
-    ResolutionDartType type = constant.getType(compiler.commonElements);
-    computeImpactForInstantiatedConstantType(type, impactBuilder);
-
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      impactBuilder
-          .registerStaticUse(new StaticUse.staticTearOff(function.element));
-    } else if (constant.isInterceptor) {
-      // An interceptor constant references the class's prototype chain.
-      InterceptorConstantValue interceptor = constant;
-      ClassElement cls = interceptor.cls;
-      computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
-    } else if (constant.isType) {
-      if (isForResolution) {
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            helpers.createRuntimeType,
-            null));
-        registerBackendUse(helpers.createRuntimeType);
-      }
-      impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(backendClasses.typeImplementation.rawType));
-    }
-    lookupMapAnalysis.registerConstantKey(constant);
-  }
-
-  void computeImpactForInstantiatedConstantType(
-      ResolutionDartType type, WorldImpactBuilder impactBuilder) {
-    if (type is ResolutionInterfaceType) {
-      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
-      if (classNeedsRtiField(type.element)) {
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            helpers.setRuntimeTypeInfo,
-            null));
-      }
-      if (type.element == backendClasses.typeImplementation) {
-        // If we use a type literal in a constant, the compile time
-        // constant emitter will generate a call to the createRuntimeType
-        // helper so we register a use of that.
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            helpers.createRuntimeType,
-            null));
-      }
-    }
-  }
-
-  WorldImpact registerInstantiatedClass(ClassElement cls,
-      {bool forResolution}) {
-    return _processClass(cls, forResolution: forResolution);
-  }
-
-  WorldImpact registerImplementedClass(ClassElement cls, {bool forResolution}) {
-    return _processClass(cls, forResolution: forResolution);
-  }
-
-  WorldImpact _processClass(ClassElement cls, {bool forResolution}) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls,
-          forResolution: forResolution);
-    }
-
-    // Register any helper that will be needed by the backend.
-    if (forResolution) {
-      if (cls == commonElements.intClass ||
-          cls == commonElements.doubleClass ||
-          cls == commonElements.numClass) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.numClasses);
-      } else if (cls == commonElements.listClass ||
-          cls == commonElements.stringClass) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.listOrStringClasses);
-      } else if (cls == commonElements.functionClass) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.functionClass);
-      } else if (cls == commonElements.mapClass) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.mapClass);
-        // For map literals, the dependency between the implementation class
-        // and [Map] is not visible, so we have to add it manually.
-        rti.registerRtiDependency(helpers.mapLiteralClass, cls);
-      } else if (cls == helpers.boundClosureClass) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.boundClosureClass);
-      } else if (isNativeOrExtendsNative(cls)) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.nativeOrExtendsClass);
-      } else if (cls == helpers.mapLiteralClass) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.mapLiteralClass);
-      }
-    }
-    if (cls == helpers.closureClass) {
-      impactTransformer.registerBackendImpact(
-          impactBuilder, impacts.closureClass);
-    }
-    if (cls == commonElements.stringClass || cls == helpers.jsStringClass) {
-      addInterceptors(helpers.jsStringClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == commonElements.listClass ||
-        cls == helpers.jsArrayClass ||
-        cls == helpers.jsFixedArrayClass ||
-        cls == helpers.jsExtendableArrayClass ||
-        cls == helpers.jsUnmodifiableArrayClass) {
-      addInterceptors(helpers.jsArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsMutableArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsFixedArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsExtendableArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUnmodifiableArrayClass, impactBuilder,
-          forResolution: forResolution);
-      if (forResolution) {
-        impactTransformer.registerBackendImpact(
-            impactBuilder, impacts.listClasses);
-      }
-    } else if (cls == commonElements.intClass || cls == helpers.jsIntClass) {
-      addInterceptors(helpers.jsIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt32Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt31Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsNumberClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == commonElements.doubleClass ||
-        cls == helpers.jsDoubleClass) {
-      addInterceptors(helpers.jsDoubleClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsNumberClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == commonElements.boolClass || cls == helpers.jsBoolClass) {
-      addInterceptors(helpers.jsBoolClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == commonElements.nullClass || cls == helpers.jsNullClass) {
-      addInterceptors(helpers.jsNullClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == commonElements.numClass || cls == helpers.jsNumberClass) {
-      addInterceptors(helpers.jsIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt32Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt31Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsDoubleClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsNumberClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == helpers.jsJavaScriptObjectClass) {
-      addInterceptors(helpers.jsJavaScriptObjectClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
-      addInterceptors(helpers.jsPlainJavaScriptObjectClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
-      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (cls == helpers.jsJavaScriptFunctionClass) {
-      addInterceptors(helpers.jsJavaScriptFunctionClass, impactBuilder,
-          forResolution: forResolution);
-    } else if (isNativeOrExtendsNative(cls)) {
-      addInterceptorsForNativeClassMembers(cls, forResolution: forResolution);
-    } else if (cls == helpers.jsIndexingBehaviorInterface) {
-      impactTransformer.registerBackendImpact(
-          impactBuilder, impacts.jsIndexingBehavior);
-    }
-
-    customElementsAnalysis.registerInstantiatedClass(cls,
-        forResolution: forResolution);
-    if (!forResolution) {
-      lookupMapAnalysis.registerInstantiatedClass(cls);
-    }
-
-    return impactBuilder;
-  }
-
-  void registerInstantiatedType(ResolutionInterfaceType type) {
-    lookupMapAnalysis.registerInstantiatedType(type);
-  }
-
-  @override
-  WorldImpact computeHelpersImpact() {
-    assert(helpers.interceptorsLibrary != null);
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    // TODO(ngeoffray): Not enqueuing those two classes currently make
-    // the compiler potentially crash. However, any reasonable program
-    // will instantiate those two classes.
-    addInterceptors(helpers.jsBoolClass, impactBuilder, forResolution: true);
-    addInterceptors(helpers.jsNullClass, impactBuilder, forResolution: true);
-    if (compiler.options.enableTypeAssertions) {
-      impactTransformer.registerBackendImpact(
-          impactBuilder, impacts.enableTypeAssertions);
-    }
-
-    if (TRACE_CALLS) {
-      impactTransformer.registerBackendImpact(
-          impactBuilder, impacts.traceHelper);
-    }
-    impactTransformer.registerBackendImpact(
-        impactBuilder, impacts.assertUnreachable);
-    _registerCheckedModeHelpers(impactBuilder);
-    return impactBuilder;
-  }
-
-  onResolutionComplete(
+  void onResolutionComplete(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
     }
-    computeMembersNeededForReflection(closedWorld);
-    rti.computeClassesNeedingRti(
+    mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    _registeredMetadata.clear();
+    _backendUsage = backendUsageBuilder.close();
+    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
+        compiler.enqueuer.resolution.worldBuilder,
+        closedWorld,
+        compiler.types,
+        commonElements,
+        helpers,
+        _backendUsage,
+        enableTypeAssertions: compiler.options.enableTypeAssertions);
+    _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
+    _oneShotInterceptorData =
+        new OneShotInterceptorData(interceptorData, helpers);
+    mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
-  onTypeInferenceComplete() {
-    super.onTypeInferenceComplete();
-    noSuchMethodRegistry.onTypeInferenceComplete();
+  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
+    noSuchMethodRegistry.onTypeInferenceComplete(results);
   }
 
-  /// Called to register that an instantiated generic class has a call method.
-  /// Any backend specific [WorldImpact] of this is returned.
-  ///
-  /// Note: The [callMethod] is registered even thought it doesn't reference
-  /// the type variables.
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
-      {bool forResolution}) {
-    if (forResolution || methodNeedsRti(callMethod)) {
-      return _registerComputeSignature();
-    }
-    return const WorldImpact();
-  }
-
-  WorldImpact registerClosureWithFreeTypeVariables(Element closure,
-      {bool forResolution}) {
-    if (forResolution || methodNeedsRti(closure)) {
-      return _registerComputeSignature();
-    }
-    return const WorldImpact();
-  }
-
-  WorldImpact registerBoundClosure() {
-    return impactTransformer.createImpactFor(impacts.memberClosure);
-  }
-
-  WorldImpact registerGetOfStaticFunction() {
-    return impactTransformer.createImpactFor(impacts.staticClosure);
-  }
-
-  WorldImpact _registerComputeSignature() {
-    return impactTransformer.createImpactFor(impacts.computeSignature);
-  }
-
-  /// Called to register that the `runtimeType` property has been accessed. Any
-  /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerRuntimeType() {
-    return impactTransformer.createImpactFor(impacts.runtimeTypeSupport);
-  }
-
-  void registerTypeVariableBoundsSubtypeCheck(
-      ResolutionDartType typeArgument, ResolutionDartType bound) {
-    rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
-  }
-
+  /// Returns the [WorldImpact] of enabling deferred loading.
   WorldImpact computeDeferredLoadingImpact() {
-    return impactTransformer.createImpactFor(impacts.deferredLoading);
-  }
-
-  /// Called to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(MethodElement noSuchMethod) {
-    noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
+    backendUsageBuilder.processBackendImpact(impacts.deferredLoading);
+    return impacts.deferredLoading.createImpact(compiler.elementEnvironment);
   }
 
   /// Called when resolving a call to a foreign function.
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
-    native.NativeResolutionEnqueuer nativeEnqueuer =
-        compiler.enqueuer.resolution.nativeEnqueuer;
     if (element.name == BackendHelpers.JS) {
-      return nativeEnqueuer.resolveJsCall(node, resolver);
+      return _nativeDataResolver.resolveJsCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
-      return nativeEnqueuer.resolveJsEmbeddedGlobalCall(node, resolver);
+      return _nativeDataResolver.resolveJsEmbeddedGlobalCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_BUILTIN) {
-      return nativeEnqueuer.resolveJsBuiltinCall(node, resolver);
+      return _nativeDataResolver.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -1395,57 +839,114 @@ class JavaScriptBackend extends Backend {
     return null;
   }
 
-  WorldImpact computeNoSuchMethodImpact() {
-    return impactTransformer.createImpactFor(impacts.noSuchMethodSupport);
+  ResolutionEnqueuer createResolutionEnqueuer(
+      CompilerTask task, Compiler compiler) {
+    _nativeBasicData =
+        nativeBasicDataBuilder.close(compiler.elementEnvironment);
+    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
+        compiler,
+        new NativeClassResolverImpl(
+            compiler.resolution, reporter, helpers, nativeBasicData));
+    _nativeData = new NativeDataImpl(nativeBasicData);
+    _backendClasses = new JavaScriptBackendClasses(
+        compiler.elementEnvironment, helpers, nativeBasicData);
+    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        compiler.resolution,
+        constantSystem,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeBasicData,
+        backendUsageBuilder);
+    impactTransformer = new JavaScriptImpactTransformer(
+        compiler.options,
+        compiler.resolution,
+        compiler.elementEnvironment,
+        commonElements,
+        impacts,
+        nativeBasicData,
+        nativeResolutionEnqueuer,
+        backendUsageBuilder,
+        mirrorsDataBuilder,
+        customElementsResolutionAnalysis,
+        rtiNeedBuilder);
+    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
+        nativeBasicData, helpers, compiler.elementEnvironment, commonElements);
+    return new ResolutionEnqueuer(
+        task,
+        compiler.options,
+        compiler.reporter,
+        compiler.options.analyzeOnly && compiler.options.analyzeMain
+            ? const DirectEnqueuerStrategy()
+            : const TreeShakingEnqueuerStrategy(),
+        new ResolutionEnqueuerListener(
+            compiler.options,
+            compiler.elementEnvironment,
+            commonElements,
+            helpers,
+            impacts,
+            backendClasses,
+            nativeBasicData,
+            interceptorDataBuilder,
+            backendUsageBuilder,
+            rtiNeedBuilder,
+            mirrorsDataBuilder,
+            noSuchMethodRegistry,
+            customElementsResolutionAnalysis,
+            lookupMapResolutionAnalysis,
+            mirrorsResolutionAnalysis,
+            typeVariableResolutionAnalysis,
+            nativeResolutionEnqueuer,
+            kernelTask),
+        new ElementResolutionWorldBuilder(
+            this, compiler.resolution, const OpenWorldStrategy()),
+        new ResolutionWorkItemBuilder(compiler.resolution));
   }
 
-  WorldImpact enableIsolateSupport({bool forResolution}) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    // TODO(floitsch): We should also ensure that the class IsolateMessage is
-    // instantiated. Currently, just enabling isolate support works.
-    if (compiler.mainFunction != null) {
-      // The JavaScript backend implements [Isolate.spawn] by looking up
-      // top-level functions by name. So all top-level function tear-off
-      // closures have a private name field.
-      //
-      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
-      // implementation as [Isolate.spawn], and fails if it cannot look main up
-      // by name.
-      impactBuilder.registerStaticUse(
-          new StaticUse.staticTearOff(compiler.mainFunction));
-    }
-    impactTransformer.registerBackendImpact(
-        impactBuilder, impacts.isolateSupport);
-    if (forResolution) {
-      impactTransformer.registerBackendImpact(
-          impactBuilder, impacts.isolateSupportForResolution);
-    }
-    return impactBuilder;
-  }
-
-  bool classNeedsRti(ClassElement cls) {
-    if (hasRuntimeTypeSupport) return true;
-    return rti.classesNeedingRti.contains(cls.declaration);
-  }
-
-  bool classNeedsRtiField(ClassElement cls) {
-    if (cls.rawType.typeArguments.isEmpty) return false;
-    if (hasRuntimeTypeSupport) return true;
-    return rti.classesNeedingRti.contains(cls.declaration);
-  }
-
-  bool isComplexNoSuchMethod(FunctionElement element) =>
-      noSuchMethodRegistry.isComplex(element);
-
-  bool methodNeedsRti(FunctionElement function) {
-    return rti.methodsNeedingRti.contains(function) || hasRuntimeTypeSupport;
-  }
-
-  CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
-
-  CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
-    return new CodegenEnqueuer(task, compiler.cacheStrategy, this,
-        compiler.options, const TreeShakingEnqueuerStrategy());
+  /// Creates an [Enqueuer] for code generation specific to this backend.
+  CodegenEnqueuer createCodegenEnqueuer(
+      CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
+    _typeVariableCodegenAnalysis =
+        new TypeVariableCodegenAnalysis(this, helpers, mirrorsData);
+    _lookupMapAnalysis = new LookupMapAnalysis(
+        reporter,
+        constantSystem,
+        constants,
+        compiler.elementEnvironment,
+        commonElements,
+        helpers,
+        backendClasses,
+        lookupMapResolutionAnalysis);
+    _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
+    _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
+        compiler.resolution,
+        constantSystem,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeBasicData);
+    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+        compiler, emitter, _nativeResolutionEnqueuer);
+    return new CodegenEnqueuer(
+        task,
+        compiler.options,
+        const TreeShakingEnqueuerStrategy(),
+        new CodegenWorldBuilderImpl(
+            nativeBasicData, closedWorld, constants, const TypeMaskStrategy()),
+        new CodegenWorkItemBuilder(this, compiler.options),
+        new CodegenEnqueuerListener(
+            compiler.elementEnvironment,
+            commonElements,
+            helpers,
+            impacts,
+            backendClasses,
+            backendUsage,
+            rtiNeed,
+            customElementsCodegenAnalysis,
+            typeVariableCodegenAnalysis,
+            lookupMapAnalysis,
+            mirrorsCodegenAnalysis,
+            nativeCodegenEnqueuer));
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -1478,14 +979,13 @@ class JavaScriptBackend extends Backend {
       if (constant != null) {
         ConstantValue initialValue = constants.getConstantValue(constant);
         if (initialValue != null) {
-          computeImpactForCompileTimeConstant(
-              initialValue, work.registry.worldImpact, false);
-          addCompileTimeConstantForEmission(initialValue);
+          work.registry.worldImpact
+              .registerConstantUse(new ConstantUse.init(initialValue));
           // We don't need to generate code for static or top-level
           // variables. For instance variables, we may need to generate
           // the checked setter.
           if (Elements.isStaticOrTopLevel(element)) {
-            return impactTransformer
+            return _codegenImpactTransformer
                 .transformCodegenImpact(work.registry.worldImpact);
           }
         } else {
@@ -1513,26 +1013,23 @@ class JavaScriptBackend extends Backend {
           sourceInformationStrategy.buildSourceMappedMarker());
     }
     generatedCode[element] = function;
-    WorldImpact worldImpact =
-        impactTransformer.transformCodegenImpact(work.registry.worldImpact);
+    WorldImpact worldImpact = _codegenImpactTransformer
+        .transformCodegenImpact(work.registry.worldImpact);
     compiler.dumpInfoTask.registerImpact(element, worldImpact);
     return worldImpact;
   }
 
-  native.NativeEnqueuer nativeResolutionEnqueuer() {
-    return new native.NativeResolutionEnqueuer(compiler);
-  }
+  native.NativeEnqueuer get nativeResolutionEnqueuer =>
+      _nativeResolutionEnqueuer;
 
-  native.NativeEnqueuer nativeCodegenEnqueuer() {
-    return new native.NativeCodegenEnqueuer(compiler, emitter);
-  }
+  native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   ClassElement defaultSuperclass(ClassElement element) {
-    if (isJsInterop(element)) {
+    if (nativeBasicData.isJsInteropClass(element)) {
       return helpers.jsJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
-    return isNative(element)
+    return nativeBasicData.isNativeClass(element)
         ? helpers.jsInterceptorClass
         : commonElements.objectClass;
   }
@@ -1547,12 +1044,19 @@ class JavaScriptBackend extends Backend {
     return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
+  /// Called to finalize the [RuntimeTypesChecks] information.
+  void finalizeRti() {
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks();
+  }
+
+  /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
-    noSuchMethodRegistry.emitDiagnostic();
+    noSuchMethodRegistry.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
-    if (totalMethodCount != preMirrorsMethodCount) {
-      int mirrorCount = totalMethodCount - preMirrorsMethodCount;
+    if (totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
+      int mirrorCount =
+          totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
       DiagnosticMessage hint =
           reporter.createMessage(compiler.mainApp, MessageKind.MIRROR_BLOAT, {
@@ -1582,164 +1086,6 @@ class JavaScriptBackend extends Backend {
     return programSize;
   }
 
-  Element getDartClass(Element element) {
-    for (ClassElement dartClass in implementationClasses.keys) {
-      if (element == implementationClasses[dartClass]) {
-        return dartClass;
-      }
-    }
-    return element;
-  }
-
-  /**
-   * Returns the checked mode helper that will be needed to do a type check/type
-   * cast on [type] at runtime. Note that this method is being called both by
-   * the resolver with interface types (int, String, ...), and by the SSA
-   * backend with implementation types (JSInt, JSString, ...).
-   */
-  CheckedModeHelper getCheckedModeHelper(ResolutionDartType type,
-      {bool typeCast}) {
-    return getCheckedModeHelperInternal(type,
-        typeCast: typeCast, nativeCheckOnly: false);
-  }
-
-  /**
-   * Returns the native checked mode helper that will be needed to do a type
-   * check/type cast on [type] at runtime. If no native helper exists for
-   * [type], [:null:] is returned.
-   */
-  CheckedModeHelper getNativeCheckedModeHelper(ResolutionDartType type,
-      {bool typeCast}) {
-    return getCheckedModeHelperInternal(type,
-        typeCast: typeCast, nativeCheckOnly: true);
-  }
-
-  /**
-   * Returns the checked mode helper for the type check/type cast for [type]. If
-   * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
-   */
-  CheckedModeHelper getCheckedModeHelperInternal(ResolutionDartType type,
-      {bool typeCast, bool nativeCheckOnly}) {
-    String name = getCheckedModeHelperNameInternal(type,
-        typeCast: typeCast, nativeCheckOnly: nativeCheckOnly);
-    if (name == null) return null;
-    CheckedModeHelper helper = checkedModeHelperByName[name];
-    assert(helper != null);
-    return helper;
-  }
-
-  String getCheckedModeHelperNameInternal(ResolutionDartType type,
-      {bool typeCast, bool nativeCheckOnly}) {
-    assert(type.kind != ResolutionTypeKind.TYPEDEF);
-    if (type.isMalformed) {
-      // The same error is thrown for type test and type cast of a malformed
-      // type so we only need one check method.
-      return 'checkMalformedType';
-    }
-
-    if (type.isVoid) {
-      assert(!typeCast); // Cannot cast to void.
-      if (nativeCheckOnly) return null;
-      return 'voidTypeCheck';
-    }
-
-    if (type.isTypeVariable) {
-      return typeCast
-          ? 'subtypeOfRuntimeTypeCast'
-          : 'assertSubtypeOfRuntimeType';
-    }
-
-    if (type.isFunctionType) return null;
-
-    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
-        message: "Unexpected type: $type (${type.kind})"));
-    ClassElement element = type.element;
-    bool nativeCheck =
-        nativeCheckOnly || emitter.nativeEmitter.requiresNativeIsCheck(element);
-
-    // TODO(13955), TODO(9731).  The test for non-primitive types should use an
-    // interceptor.  The interceptor should be an argument to HTypeConversion so
-    // that it can be optimized by standard interceptor optimizations.
-    nativeCheck = true;
-
-    var suffix = typeCast ? 'TypeCast' : 'TypeCheck';
-    if (element == helpers.jsStringClass ||
-        element == commonElements.stringClass) {
-      if (nativeCheckOnly) return null;
-      return 'string$suffix';
-    }
-
-    if (element == helpers.jsDoubleClass ||
-        element == commonElements.doubleClass) {
-      if (nativeCheckOnly) return null;
-      return 'double$suffix';
-    }
-
-    if (element == helpers.jsNumberClass ||
-        element == commonElements.numClass) {
-      if (nativeCheckOnly) return null;
-      return 'num$suffix';
-    }
-
-    if (element == helpers.jsBoolClass || element == commonElements.boolClass) {
-      if (nativeCheckOnly) return null;
-      return 'bool$suffix';
-    }
-
-    if (element == helpers.jsIntClass ||
-        element == commonElements.intClass ||
-        element == helpers.jsUInt32Class ||
-        element == helpers.jsUInt31Class ||
-        element == helpers.jsPositiveIntClass) {
-      if (nativeCheckOnly) return null;
-      return 'int$suffix';
-    }
-
-    if (commonElements.isNumberOrStringSupertype(element)) {
-      return nativeCheck
-          ? 'numberOrStringSuperNative$suffix'
-          : 'numberOrStringSuper$suffix';
-    }
-
-    if (commonElements.isStringOnlySupertype(element)) {
-      return nativeCheck ? 'stringSuperNative$suffix' : 'stringSuper$suffix';
-    }
-
-    if ((element == commonElements.listClass ||
-            element == helpers.jsArrayClass) &&
-        type.treatAsRaw) {
-      if (nativeCheckOnly) return null;
-      return 'list$suffix';
-    }
-
-    if (commonElements.isListSupertype(element)) {
-      return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
-    }
-
-    if (type.isInterfaceType && !type.treatAsRaw) {
-      return typeCast ? 'subtypeCast' : 'assertSubtype';
-    }
-
-    if (nativeCheck) {
-      // TODO(karlklose): can we get rid of this branch when we use
-      // interceptors?
-      return 'intercepted$suffix';
-    } else {
-      return 'property$suffix';
-    }
-  }
-
-  void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
-    // We register all the helpers in the resolution queue.
-    // TODO(13155): Find a way to register fewer helpers.
-    List<Element> staticUses = <Element>[];
-    for (CheckedModeHelper helper in checkedModeHelpers) {
-      staticUses.add(helper.getStaticUse(compiler).element);
-    }
-    impactTransformer.registerBackendImpact(
-        impactBuilder, new BackendImpact(globalUses: staticUses));
-  }
-
   /**
    * Returns [:true:] if the checking of [type] is performed directly on the
    * object and not on an interceptor.
@@ -1758,446 +1104,44 @@ class JavaScriptBackend extends Backend {
         element == helpers.jsUnmodifiableArrayClass;
   }
 
-  bool mayGenerateInstanceofCheck(ResolutionDartType type) {
-    // We can use an instanceof check for raw types that have no subclass that
-    // is mixed-in or in an implements clause.
-
-    if (!type.isRaw) return false;
-    ClassElement classElement = type.element;
-    if (isInterceptorClass(classElement)) return false;
-    return _closedWorld.hasOnlySubclasses(classElement);
-  }
-
-  WorldImpact registerUsedElement(MemberElement element, {bool forResolution}) {
-    WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    if (element == helpers.disableTreeShakingMarker) {
-      isTreeShakingDisabled = true;
-    } else if (element == helpers.preserveNamesMarker) {
-      mustPreserveNames = true;
-    } else if (element == helpers.preserveMetadataMarker) {
-      mustRetainMetadata = true;
-    } else if (element == helpers.preserveUrisMarker) {
-      if (compiler.options.preserveUris) mustPreserveUris = true;
-    } else if (element == helpers.preserveLibraryNamesMarker) {
-      mustRetainLibraryNames = true;
-    } else if (element == helpers.getIsolateAffinityTagMarker) {
-      needToInitializeIsolateAffinityTag = true;
-    } else if (element.isDeferredLoaderGetter) {
-      // TODO(sigurdm): Create a function registerLoadLibraryAccess.
-      if (!isLoadLibraryFunctionResolved) {
-        isLoadLibraryFunctionResolved = true;
-        if (forResolution) {
-          impactTransformer.registerBackendImpact(
-              worldImpact, impacts.loadLibrary);
-        }
-      }
-    } else if (element == helpers.requiresPreambleMarker) {
-      requiresPreamble = true;
-    } else if (element == helpers.invokeOnMethod && forResolution) {
-      hasInvokeOnSupport = true;
-    }
-    customElementsAnalysis.registerStaticUse(element,
-        forResolution: forResolution);
-
-    if (element.isFunction && element.isInstanceMember) {
-      MemberElement function = element;
-      ClassElement cls = function.enclosingClass;
-      if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
-        worldImpact.addImpact(registerCallMethodWithFreeTypeVariables(function,
-            forResolution: forResolution));
-      }
-    }
-    if (forResolution) {
-      // Enable isolate support if we start using something from the isolate
-      // library, or timers for the async library.  We exclude constant fields,
-      // which are ending here because their initializing expression is
-      // compiled.
-      LibraryElement library = element.library;
-      if (!hasIsolateSupport && !(element.isField && element.isConst)) {
-        Uri uri = library.canonicalUri;
-        if (uri == Uris.dart_isolate) {
-          hasIsolateSupport = true;
-          worldImpact
-              .addImpact(enableIsolateSupport(forResolution: forResolution));
-        } else if (uri == Uris.dart_async) {
-          if (element.name == '_createTimer' ||
-              element.name == '_createPeriodicTimer') {
-            // The [:Timer:] class uses the event queue of the isolate
-            // library, so we make sure that event queue is generated.
-            hasIsolateSupport = true;
-            worldImpact
-                .addImpact(enableIsolateSupport(forResolution: forResolution));
-          }
-        }
-      }
-
-      if (element.isGetter && element.name == Identifiers.runtimeType_) {
-        // Enable runtime type support if we discover a getter called
-        // runtimeType. We have to enable runtime type before hitting the
-        // codegen, so that constructors know whether they need to generate code
-        // for runtime type.
-        hasRuntimeTypeSupport = true;
-        // TODO(ahe): Record precise dependency here.
-        worldImpact.addImpact(registerRuntimeType());
-      } else if (compiler.commonElements.isFunctionApplyMethod(element)) {
-        hasFunctionApplySupport = true;
-      }
-    } else {
-      // TODO(sigmund): add other missing dependencies (internals, selectors
-      // enqueued after allocations).
-      compiler.dumpInfoTask.registerDependency(element);
-    }
-    return worldImpact;
-  }
-
-  /// Called when [:const Symbol(name):] is seen.
-  void registerConstSymbol(String name) {
-    symbolsUsed.add(name);
-    if (name.endsWith('=')) {
-      symbolsUsed.add(name.substring(0, name.length - 1));
-    }
-  }
-
-  /// Should [element] (a getter) that would normally not be generated due to
-  /// treeshaking be retained for reflection?
-  bool shouldRetainGetter(Element element) {
-    return isTreeShakingDisabled && isAccessibleByReflection(element);
-  }
-
-  /// Should [element] (a setter) hat would normally not be generated due to
-  /// treeshaking be retained for reflection?
-  bool shouldRetainSetter(Element element) {
-    return isTreeShakingDisabled && isAccessibleByReflection(element);
-  }
-
-  /// Should [name] be retained for reflection?
-  bool shouldRetainName(String name) {
-    if (hasInsufficientMirrorsUsed) return mustPreserveNames;
-    if (name == '') return false;
-    return symbolsUsed.contains(name);
-  }
-
-  bool retainMetadataOf(Element element) {
-    if (mustRetainMetadata) hasRetainedMetadata = true;
-    if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
-      for (MetadataAnnotation metadata in element.metadata) {
-        metadata.ensureResolved(resolution);
-        ConstantValue constant =
-            constants.getConstantValueForMetadata(metadata);
-        constants.addCompileTimeConstantForEmission(constant);
-      }
-      return true;
-    }
-    return false;
-  }
-
-  void onLibraryCreated(LibraryElement library) {
-    helpers.onLibraryCreated(library);
-  }
-
-  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
-    return super.onLibraryScanned(library, loader).then((_) {
-      if (library.isPlatformLibrary &&
-          // Don't patch library currently disallowed.
-          !library.isSynthesized &&
-          !library.isPatched &&
-          // Don't patch deserialized libraries.
-          !compiler.serialization.isDeserialized(library)) {
-        // Apply patch, if any.
-        Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
-        if (patchUri != null) {
-          return compiler.patchParser.patchLibrary(loader, patchUri, library);
-        }
-      }
-    }).then((_) {
-      helpers.onLibraryScanned(library);
-      Uri uri = library.canonicalUri;
-      if (uri == Uris.dart_html) {
-        htmlLibraryIsLoaded = true;
-      } else if (uri == LookupMapAnalysis.PACKAGE_LOOKUP_MAP) {
-        lookupMapAnalysis.init(library);
-      }
-      annotations.onLibraryScanned(library);
-    });
-  }
-
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
-    if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
-      return new Future.value();
-    }
-
-    helpers.onLibrariesLoaded(loadedLibraries);
-
-    implementationClasses = <ClassElement, ClassElement>{};
-    implementationClasses[commonElements.intClass] = helpers.jsIntClass;
-    implementationClasses[commonElements.boolClass] = helpers.jsBoolClass;
-    implementationClasses[commonElements.numClass] = helpers.jsNumberClass;
-    implementationClasses[commonElements.doubleClass] = helpers.jsDoubleClass;
-    implementationClasses[commonElements.stringClass] = helpers.jsStringClass;
-    implementationClasses[commonElements.listClass] = helpers.jsArrayClass;
-    implementationClasses[commonElements.nullClass] = helpers.jsNullClass;
-
-    // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
-        insideLoop: true);
-
-    specialOperatorEqClasses
-      ..add(commonElements.objectClass)
-      ..add(helpers.jsInterceptorClass)
-      ..add(helpers.jsNullClass);
-
-    validateInterceptorImplementsAllObjectMethods(helpers.jsInterceptorClass);
-    // The null-interceptor must also implement *all* methods.
-    validateInterceptorImplementsAllObjectMethods(helpers.jsNullClass);
-
-    return new Future.value();
-  }
-
-  void registerMirrorUsage(
-      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {
-    if (symbols == null && targets == null && metaTargets == null) {
-      // The user didn't specify anything, or there are imports of
-      // 'dart:mirrors' without @MirrorsUsed.
-      hasInsufficientMirrorsUsed = true;
-      return;
-    }
-    if (symbols != null) symbolsUsed.addAll(symbols);
-    if (targets != null) {
-      for (Element target in targets) {
-        if (target.isAbstractField) {
-          AbstractFieldElement field = target;
-          targetsUsed.add(field.getter);
-          targetsUsed.add(field.setter);
-        } else {
-          targetsUsed.add(target);
-        }
-      }
-    }
-    if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
-  }
-
-  /**
-   * Returns `true` if [element] can be accessed through reflection, that is,
-   * is in the set of elements covered by a `MirrorsUsed` annotation.
-   *
-   * This property is used to tag emitted elements with a marker which is
-   * checked by the runtime system to throw an exception if an element is
-   * accessed (invoked, get, set) that is not accessible for the reflective
-   * system.
-   */
-  bool isAccessibleByReflection(Element element) {
-    if (element.isClass) {
-      element = getDartClass(element);
-    }
-    return membersNeededForReflection.contains(element);
-  }
-
-  bool isMemberAccessibleByReflection(MemberElement element) {
-    return membersNeededForReflection.contains(element);
-  }
-
-  /**
-   * Returns true if the element has to be resolved due to a mirrorsUsed
-   * annotation. If we have insufficient mirrors used annotations, we only
-   * keep additional elements if treeshaking has been disabled.
-   */
-  bool requiredByMirrorSystem(Element element) {
-    return hasInsufficientMirrorsUsed && isTreeShakingDisabled ||
-        matchesMirrorsMetaTarget(element) ||
-        targetsUsed.contains(element);
-  }
-
-  /**
-   * Returns true if the element matches a mirrorsUsed annotation. If
-   * we have insufficient mirrorsUsed information, this returns true for
-   * all elements, as they might all be potentially referenced.
-   */
-  bool referencedFromMirrorSystem(Element element, [recursive = true]) {
-    Element enclosing = recursive ? element.enclosingElement : null;
-
-    return hasInsufficientMirrorsUsed ||
-        matchesMirrorsMetaTarget(element) ||
-        targetsUsed.contains(element) ||
-        (enclosing != null && referencedFromMirrorSystem(enclosing));
-  }
-
-  /**
-   * Returns `true` if the element is needed because it has an annotation
-   * of a type that is used as a meta target for reflection.
-   */
-  bool matchesMirrorsMetaTarget(Element element) {
-    if (metaTargetsUsed.isEmpty) return false;
-    for (MetadataAnnotation metadata in element.metadata) {
-      // TODO(kasperl): It would be nice if we didn't have to resolve
-      // all metadata but only stuff that potentially would match one
-      // of the used meta targets.
-      metadata.ensureResolved(resolution);
-      ConstantValue value =
-          compiler.constants.getConstantValue(metadata.constant);
-      if (value == null) continue;
-      ResolutionDartType type = value.getType(compiler.commonElements);
-      if (metaTargetsUsed.contains(type.element)) return true;
-    }
-    return false;
-  }
-
-  /**
-   * Visits all classes and computes whether its members are needed for
-   * reflection.
-   *
-   * We have to precompute this set as we cannot easily answer the need for
-   * reflection locally when looking at the member: We lack the information by
-   * which classes a member is inherited. Called after resolution is complete.
-   *
-   * We filter out private libraries here, as their elements should not
-   * be visible by reflection unless some other interfaces makes them
-   * accessible.
-   */
-  void computeMembersNeededForReflection(ClosedWorld closedWorld) {
-    if (_membersNeededForReflection != null) return;
-    if (closedWorld.commonElements.mirrorsLibrary == null) {
-      _membersNeededForReflection = const ImmutableEmptySet<Element>();
-      return;
-    }
-    // Compute a mapping from class to the closures it contains, so we
-    // can include the correct ones when including the class.
-    Map<ClassElement, List<LocalFunctionElement>> closureMap =
-        new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure
-        in compiler.resolutionWorldBuilder.allClosures) {
-      closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
-    }
-    bool foundClosure = false;
-    Set<Element> reflectableMembers = new Set<Element>();
-    ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
-    for (ClassElement cls
-        in resolution.worldBuilder.directlyInstantiatedClasses) {
-      // Do not process internal classes.
-      if (cls.library.isInternalLibrary || cls.isInjected) continue;
-      if (referencedFromMirrorSystem(cls)) {
-        Set<Name> memberNames = new Set<Name>();
-        // 1) the class (should be resolved)
-        assert(invariant(cls, cls.isResolved));
-        reflectableMembers.add(cls);
-        // 2) its constructors (if resolved)
-        cls.constructors.forEach((Element constructor) {
-          if (resolution.hasBeenProcessed(constructor)) {
-            reflectableMembers.add(constructor);
+  /// This method is called immediately after the [library] and its parts have
+  /// been loaded.
+  void setAnnotations(LibraryElement library) {
+    if (!compiler.serialization.isDeserialized(library)) {
+      if (canLibraryUseNative(library)) {
+        library.forEachLocalMember((Element element) {
+          if (element.isClass) {
+            checkNativeAnnotation(compiler, element, nativeBasicDataBuilder);
           }
         });
-        // 3) all members, including fields via getter/setters (if resolved)
-        cls.forEachClassMember((Member member) {
-          MemberElement element = member.element;
-          if (resolution.hasBeenProcessed(element)) {
-            memberNames.add(member.name);
-            reflectableMembers.add(element);
-            element.nestedClosures
-                .forEach((SynthesizedCallMethodElementX callFunction) {
-              reflectableMembers.add(callFunction);
-              reflectableMembers.add(callFunction.closureClass);
-            });
-          }
-        });
-        // 4) all overriding members of subclasses/subtypes (should be resolved)
-        if (closedWorld.hasAnyStrictSubtype(cls)) {
-          closedWorld.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
-            subcls.forEachClassMember((Member member) {
-              if (memberNames.contains(member.name)) {
-                // TODO(20993): find out why this assertion fails.
-                // assert(invariant(member.element,
-                //    resolution.hasBeenProcessed(member.element)));
-                if (resolution.hasBeenProcessed(member.element)) {
-                  reflectableMembers.add(member.element);
-                }
-              }
-            });
-          });
-        }
-        // 5) all its closures
-        List<LocalFunctionElement> closures = closureMap[cls];
-        if (closures != null) {
-          reflectableMembers.addAll(closures);
-          foundClosure = true;
-        }
-      } else {
-        // check members themselves
-        cls.constructors.forEach((ConstructorElement element) {
-          if (!resolution.hasBeenProcessed(element)) return;
-          if (referencedFromMirrorSystem(element, false)) {
-            reflectableMembers.add(element);
-          }
-        });
-        cls.forEachClassMember((Member member) {
-          if (!resolution.hasBeenProcessed(member.element)) return;
-          if (referencedFromMirrorSystem(member.element, false)) {
-            reflectableMembers.add(member.element);
-          }
-        });
-        // Also add in closures. Those might be reflectable is their enclosing
-        // member is.
-        List<LocalFunctionElement> closures = closureMap[cls];
-        if (closures != null) {
-          for (LocalFunctionElement closure in closures) {
-            if (referencedFromMirrorSystem(closure.memberContext, false)) {
-              reflectableMembers.add(closure);
-              foundClosure = true;
-            }
-          }
-        }
       }
+      checkJsInteropClassAnnotations(compiler, library, nativeBasicDataBuilder);
     }
-    // We also need top-level non-class elements like static functions and
-    // global fields. We use the resolution queue to decide which elements are
-    // part of the live world.
-    for (LibraryElement lib in compiler.libraryLoader.libraries) {
-      if (lib.isInternalLibrary) continue;
-      lib.forEachLocalMember((Element member) {
-        if (!(member.isClass || member.isTypedef) &&
-            resolution.hasBeenProcessed(member) &&
-            referencedFromMirrorSystem(member)) {
-          reflectableMembers.add(member);
-        }
-      });
+    Uri uri = library.canonicalUri;
+    if (uri == Uris.dart_html) {
+      htmlLibraryIsLoaded = true;
+    } else if (uri == LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP) {
+      lookupMapResolutionAnalysis.init(library);
     }
-    // And closures inside top-level elements that do not have a surrounding
-    // class. These will be in the [:null:] bucket of the [closureMap].
-    if (closureMap.containsKey(null)) {
-      for (Element closure in closureMap[null]) {
-        if (referencedFromMirrorSystem(closure)) {
-          reflectableMembers.add(closure);
-          foundClosure = true;
-        }
-      }
-    }
-    // As we do not think about closures as classes, yet, we have to make sure
-    // their superclasses are available for reflection manually.
-    if (foundClosure) {
-      reflectableMembers.add(helpers.closureClass);
-    }
-    Set<Element> closurizedMembers =
-        compiler.resolutionWorldBuilder.closurizedMembers;
-    if (closurizedMembers.any(reflectableMembers.contains)) {
-      reflectableMembers.add(helpers.boundClosureClass);
-    }
-    // Add typedefs.
-    reflectableMembers
-        .addAll(closedWorld.allTypedefs.where(referencedFromMirrorSystem));
-    // Register all symbols of reflectable elements
-    for (Element element in reflectableMembers) {
-      symbolsUsed.add(element.name);
-    }
-    _membersNeededForReflection = reflectableMembers;
+    annotations.onLibraryLoaded(library);
   }
 
-  // TODO(20791): compute closure classes after resolution and move this code to
-  // [computeMembersNeededForReflection].
-  void maybeMarkClosureAsNeededForReflection(
-      ClosureClassElement globalizedElement,
-      FunctionElement callFunction,
-      FunctionElement function) {
-    if (!_membersNeededForReflection.contains(function)) return;
-    _membersNeededForReflection.add(callFunction);
-    _membersNeededForReflection.add(globalizedElement);
+  /// This method is called when all new libraries loaded through
+  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
+  /// have been computed.
+  void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
+      helpers.onLibrariesLoaded(loadedLibraries);
+
+      // These methods are overwritten with generated versions.
+      inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
+          insideLoop: true);
+
+      specialOperatorEqClasses
+        ..add(commonElements.objectClass)
+        ..add(helpers.jsInterceptorClass)
+        ..add(helpers.jsNullClass);
+    }
   }
 
   jsAst.Call generateIsJsIndexableCall(
@@ -2218,187 +1162,9 @@ class JavaScriptBackend extends Backend {
     return new jsAst.Call(helperExpression, arguments);
   }
 
-  /// Returns all static fields that are referenced through [targetsUsed].
-  /// If the target is a library or class all nested static fields are
-  /// included too.
-  Iterable<Element> _findStaticFieldTargets() {
-    List staticFields = [];
-
-    void addFieldsInContainer(ScopeContainerElement container) {
-      container.forEachLocalMember((Element member) {
-        if (!member.isInstanceMember && member.isField) {
-          staticFields.add(member);
-        } else if (member.isClass) {
-          addFieldsInContainer(member);
-        }
-      });
-    }
-
-    for (Element target in targetsUsed) {
-      if (target == null) continue;
-      if (target.isField) {
-        staticFields.add(target);
-      } else if (target.isLibrary || target.isClass) {
-        addFieldsInContainer(target);
-      }
-    }
-    return staticFields;
-  }
-
-  /// Called when [enqueuer] is empty, but before it is closed.
-  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    // Add elements used synthetically, that is, through features rather than
-    // syntax, for instance custom elements.
-    //
-    // Return early if any elements are added to avoid counting the elements as
-    // due to mirrors.
-    enqueuer.applyImpact(customElementsAnalysis.flush(
-        forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(
-        lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(
-        typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
-
-    if (enqueuer.isResolutionQueue) {
-      for (ClassElement cls in recentClasses) {
-        Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
-        if (element != null && element.isInstanceMember && element.isFunction) {
-          registerNoSuchMethod(element);
-        }
-      }
-    }
-    noSuchMethodRegistry.onQueueEmpty();
-    if (enqueuer.isResolutionQueue) {
-      if (!enabledNoSuchMethod &&
-          (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
-              noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-        enqueuer.applyImpact(computeNoSuchMethodImpact());
-        enabledNoSuchMethod = true;
-      }
-    } else {
-      if (enabledNoSuchMethod && !_noSuchMethodEnabledForCodegen) {
-        enqueuer.applyImpact(computeNoSuchMethodImpact());
-        _noSuchMethodEnabledForCodegen = true;
-      }
-    }
-
-    if (!enqueuer.queueIsEmpty) return false;
-
-    if (compiler.options.useKernel && compiler.mainApp != null) {
-      kernelTask.buildKernelIr();
-    }
-
-    if (compiler.options.hasIncrementalSupport &&
-        !hasIncrementalTearOffSupport) {
-      // Always enable tear-off closures during incremental compilation.
-      Element element = helpers.closureFromTearOff;
-      if (element != null) {
-        enqueuer.applyImpact(
-            impactTransformer.createImpactFor(impacts.closureClass));
-      }
-      hasIncrementalTearOffSupport = true;
-    }
-
-    if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
-      preMirrorsMethodCount = generatedCode.length;
-    }
-
-    if (isTreeShakingDisabled) {
-      enqueuer.applyImpact(mirrorsAnalysis.computeImpactForReflectiveElements(
-          recentClasses,
-          enqueuer.processedClasses,
-          compiler.libraryLoader.libraries,
-          forResolution: enqueuer.isResolutionQueue));
-    } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
-      // Add all static elements (not classes) that have been requested for
-      // reflection. If there is no mirror-usage these are probably not
-      // necessary, but the backend relies on them being resolved.
-      enqueuer.applyImpact(mirrorsAnalysis
-          .computeImpactForReflectiveStaticFields(_findStaticFieldTargets(),
-              forResolution: enqueuer.isResolutionQueue));
-    }
-
-    if (mustPreserveNames) reporter.log('Preserving names.');
-
-    if (mustRetainMetadata) {
-      reporter.log('Retaining metadata.');
-
-      compiler.libraryLoader.libraries.forEach(retainMetadataOf);
-
-      StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
-          ? constantImpactsForResolution
-          : constantImpactsForCodegen;
-      if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
-        /// Register the constant value of [metadata] as live in resolution.
-        void registerMetadataConstant(MetadataAnnotation metadata) {
-          ConstantValue constant =
-              constants.getConstantValueForMetadata(metadata);
-          Dependency dependency =
-              new Dependency(constant, metadata.annotatedElement);
-          metadataConstants.add(dependency);
-          computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder, enqueuer.isResolutionQueue);
-        }
-
-        // TODO(johnniwinther): We should have access to all recently processed
-        // elements and process these instead.
-        processMetadata(compiler.enqueuer.resolution.processedEntities,
-            registerMetadataConstant);
-      } else {
-        for (Dependency dependency in metadataConstants) {
-          computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder, enqueuer.isResolutionQueue);
-        }
-        metadataConstants.clear();
-      }
-      enqueuer.applyImpact(impactBuilder.flush());
-    }
-    return true;
-  }
-
-  /// Call [registerMetadataConstant] on all metadata from [entities].
-  void processMetadata(
-      Iterable<Entity> entities, void onMetadata(MetadataAnnotation metadata)) {
-    void processLibraryMetadata(LibraryElement library) {
-      if (_registeredMetadata.add(library)) {
-        library.metadata.forEach(onMetadata);
-        library.entryCompilationUnit.metadata.forEach(onMetadata);
-        for (ImportElement import in library.imports) {
-          import.metadata.forEach(onMetadata);
-        }
-      }
-    }
-
-    void processElementMetadata(Element element) {
-      if (_registeredMetadata.add(element)) {
-        element.metadata.forEach(onMetadata);
-        if (element.isFunction) {
-          FunctionElement function = element;
-          for (ParameterElement parameter in function.parameters) {
-            parameter.metadata.forEach(onMetadata);
-          }
-        }
-        if (element.enclosingClass != null) {
-          // Only process library of top level fields/methods
-          // (and not for classes).
-          // TODO(johnniwinther): Fix this: We are missing some metadata on
-          // libraries (example: in co19/Language/Metadata/before_export_t01).
-          if (element.enclosingElement is ClassElement) {
-            // Use [enclosingElement] instead of [enclosingClass] to ensure that
-            // we process patch class metadata for patch and injected members.
-            processElementMetadata(element.enclosingElement);
-          }
-        } else {
-          processLibraryMetadata(element.library);
-        }
-      }
-    }
-
-    entities.forEach(processElementMetadata);
-  }
-
+  /// Called after the queue is closed. [onQueueEmpty] may be called multiple
+  /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {
-    lookupMapAnalysis.onQueueClosed();
     jsInteropAnalysis.onQueueClosed();
   }
 
@@ -2415,21 +1181,54 @@ class JavaScriptBackend extends Backend {
     _closedWorldCache = value;
   }
 
-  WorldImpact onCodegenStart(ClosedWorld closedWorld) {
+  /// Called when the compiler starts running the codegen enqueuer. The
+  /// [WorldImpact] of enabled backend features is returned.
+  WorldImpact onCodegenStart(
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     _closedWorld = closedWorld;
-    _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
-    tracer = new Tracer(_closedWorld, namer, compiler.outputProvider);
-    emitter.createEmitter(_namer, _closedWorld);
-    lookupMapAnalysis.onCodegenStart();
-    if (hasIsolateSupport) {
-      return enableIsolateSupport(forResolution: false);
-    }
+    _namer = determineNamer(closedWorld, codegenWorldBuilder);
+    tracer = new Tracer(closedWorld, namer, compiler);
+    emitter.createEmitter(namer, closedWorld);
+    _rtiEncoder =
+        _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, emitter, helpers);
+    _codegenImpactTransformer = new CodegenImpactTransformer(
+        compiler.options,
+        compiler.elementEnvironment,
+        helpers,
+        impacts,
+        checkedModeHelpers,
+        nativeData,
+        backendUsage,
+        rtiNeed,
+        nativeCodegenEnqueuer,
+        namer,
+        oneShotInterceptorData,
+        lookupMapAnalysis,
+        rtiChecksBuilder);
     return const WorldImpact();
   }
 
+  /// Called when code generation has been completed.
   void onCodegenEnd() {
     sourceInformationStrategy.onComplete();
     tracer.close();
+  }
+
+  // Does this element belong in the output
+  bool shouldOutput(Element element) => true;
+
+  /// Returns `true` if the `native` pseudo keyword is supported for [library].
+  bool canLibraryUseNative(LibraryElement library) {
+    return native.maybeEnableNative(compiler, library);
+  }
+
+  bool isTargetSpecificLibrary(LibraryElement library) {
+    Uri canonicalUri = library.canonicalUri;
+    if (canonicalUri == BackendHelpers.DART_JS_HELPER ||
+        canonicalUri == BackendHelpers.DART_INTERCEPTORS) {
+      return true;
+    }
+    return false;
   }
 
   /// Process backend specific annotations.
@@ -2512,43 +1311,11 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  FunctionElement helperForBadMain() => helpers.badMain;
+  MethodElement helperForBadMain() => helpers.badMain;
 
-  FunctionElement helperForMissingMain() => helpers.missingMain;
+  MethodElement helperForMissingMain() => helpers.missingMain;
 
-  FunctionElement helperForMainArity() => helpers.mainHasTooManyParameters;
-
-  void forgetElement(Element element) {
-    constants.forgetElement(element);
-    constantCompilerTask.dartConstantCompiler.forgetElement(element);
-    aliasedSuperMembers.remove(element);
-    generatedCode.remove(element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        generatedCode.remove(closure);
-      }
-    }
-  }
-
-  @override
-  WorldImpact computeMainImpact(MethodElement mainMethod,
-      {bool forResolution}) {
-    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    if (mainMethod.parameters.isNotEmpty) {
-      impactTransformer.registerBackendImpact(
-          mainImpact, impacts.mainWithArguments);
-      mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
-      // If the main method takes arguments, this compilation could be the
-      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
-      // main takes no arguments, but in this case the spawned isolate can't
-      // communicate with the spawning isolate.
-      mainImpact.addImpact(enableIsolateSupport(forResolution: forResolution));
-    }
-    mainImpact.registerStaticUse(
-        new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
-    return mainImpact;
-  }
+  MethodElement helperForMainArity() => helpers.mainHasTooManyParameters;
 
   /// Returns the filename for the output-unit named [name].
   ///
@@ -2564,10 +1331,12 @@ class JavaScriptBackend extends Backend {
     return "${outName}_$name$extension";
   }
 
-  @override
+  /// Enable deferred loading. Returns `true` if the backend supports deferred
+  /// loading.
   bool enableDeferredLoadingIfSupported(Spannable node) => true;
 
-  @override
+  /// Enable compilation of code with compile time errors. Returns `true` if
+  /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
   jsAst.Expression rewriteAsync(
@@ -2619,29 +1388,7 @@ class JavaScriptBackend extends Backend {
     return rewriter.rewrite(code);
   }
 
-  /// The locations of js patch-files relative to the sdk-descriptors.
-  static const _patchLocations = const <String, String>{
-    "async": "_internal/js_runtime/lib/async_patch.dart",
-    "collection": "_internal/js_runtime/lib/collection_patch.dart",
-    "convert": "_internal/js_runtime/lib/convert_patch.dart",
-    "core": "_internal/js_runtime/lib/core_patch.dart",
-    "developer": "_internal/js_runtime/lib/developer_patch.dart",
-    "io": "_internal/js_runtime/lib/io_patch.dart",
-    "isolate": "_internal/js_runtime/lib/isolate_patch.dart",
-    "math": "_internal/js_runtime/lib/math_patch.dart",
-    "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
-    "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
-    "_internal": "_internal/js_runtime/lib/internal_patch.dart"
-  };
-
-  @override
-  Uri resolvePatchUri(String libraryName, Uri platformConfigUri) {
-    String patchLocation = _patchLocations[libraryName];
-    if (patchLocation == null) return null;
-    return platformConfigUri.resolve(patchLocation);
-  }
-
-  @override
+  /// Creates an impact strategy to use for compilation.
   ImpactStrategy createImpactStrategy(
       {bool supportDeferredLoad: true,
       bool supportDumpInfo: true,
@@ -2651,6 +1398,8 @@ class JavaScriptBackend extends Backend {
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
   }
+
+  EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
 }
 
 class JSFrontendAccess implements Frontend {
@@ -2664,545 +1413,6 @@ class JSFrontendAccess implements Frontend {
   ResolutionImpact getResolutionImpact(Element element) {
     return resolution.getResolutionImpact(element);
   }
-}
-
-/// Handling of special annotations for tests.
-class Annotations {
-  static final Uri PACKAGE_EXPECT =
-      new Uri(scheme: 'package', path: 'expect/expect.dart');
-
-  final Compiler compiler;
-
-  ClassElement expectNoInlineClass;
-  ClassElement expectTrustTypeAnnotationsClass;
-  ClassElement expectAssumeDynamicClass;
-
-  JavaScriptBackend get backend => compiler.backend;
-
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  Annotations(this.compiler);
-
-  void onLibraryScanned(LibraryElement library) {
-    if (library.canonicalUri == PACKAGE_EXPECT) {
-      expectNoInlineClass = library.find('NoInline');
-      expectTrustTypeAnnotationsClass = library.find('TrustTypeAnnotations');
-      expectAssumeDynamicClass = library.find('AssumeDynamic');
-      if (expectNoInlineClass == null ||
-          expectTrustTypeAnnotationsClass == null ||
-          expectAssumeDynamicClass == null) {
-        // This is not the package you're looking for.
-        expectNoInlineClass = null;
-        expectTrustTypeAnnotationsClass = null;
-        expectAssumeDynamicClass = null;
-      }
-    }
-  }
-
-  /// Returns `true` if inlining is disabled for [element].
-  bool noInline(Element element) {
-    if (_hasAnnotation(element, expectNoInlineClass)) {
-      // TODO(floitsch): restrict to elements from the test directory.
-      return true;
-    }
-    return _hasAnnotation(element, backend.helpers.noInlineClass);
-  }
-
-  /// Returns `true` if parameter and returns types should be trusted for
-  /// [element].
-  bool trustTypeAnnotations(Element element) {
-    return _hasAnnotation(element, expectTrustTypeAnnotationsClass);
-  }
-
-  /// Returns `true` if inference of parameter types is disabled for [element].
-  bool assumeDynamic(Element element) {
-    return _hasAnnotation(element, expectAssumeDynamicClass);
-  }
-
-  /// Returns `true` if [element] is annotated with [annotationClass].
-  bool _hasAnnotation(Element element, ClassElement annotationClass) {
-    if (annotationClass == null) return false;
-    return reporter.withCurrentElement(element, () {
-      for (MetadataAnnotation metadata in element.metadata) {
-        assert(invariant(metadata, metadata.constant != null,
-            message: "Unevaluated metadata constant."));
-        ConstantValue value =
-            compiler.constants.getConstantValue(metadata.constant);
-        if (value.isConstructedObject) {
-          ConstructedConstantValue constructedConstant = value;
-          if (constructedConstant.type.element == annotationClass) {
-            return true;
-          }
-        }
-      }
-      return false;
-    });
-  }
-}
-
-class JavaScriptImpactTransformer extends ImpactTransformer {
-  final JavaScriptBackend backend;
-
-  JavaScriptImpactTransformer(this.backend);
-
-  BackendImpacts get impacts => backend.impacts;
-
-  @override
-  WorldImpact transformResolutionImpact(
-      ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
-    TransformedWorldImpact transformed =
-        new TransformedWorldImpact(worldImpact);
-    for (Feature feature in worldImpact.features) {
-      switch (feature) {
-        case Feature.ABSTRACT_CLASS_INSTANTIATION:
-          registerBackendImpact(
-              transformed, impacts.abstractClassInstantiation);
-          break;
-        case Feature.ASSERT:
-          registerBackendImpact(transformed, impacts.assertWithoutMessage);
-          break;
-        case Feature.ASSERT_WITH_MESSAGE:
-          registerBackendImpact(transformed, impacts.assertWithMessage);
-          break;
-        case Feature.ASYNC:
-          registerBackendImpact(transformed, impacts.asyncBody);
-          break;
-        case Feature.ASYNC_FOR_IN:
-          registerBackendImpact(transformed, impacts.asyncForIn);
-          break;
-        case Feature.ASYNC_STAR:
-          registerBackendImpact(transformed, impacts.asyncStarBody);
-          break;
-        case Feature.CATCH_STATEMENT:
-          registerBackendImpact(transformed, impacts.catchStatement);
-          break;
-        case Feature.COMPILE_TIME_ERROR:
-          if (backend.compiler.options.generateCodeWithCompileTimeErrors) {
-            // TODO(johnniwinther): This should have its own uncatchable error.
-            registerBackendImpact(transformed, impacts.throwRuntimeError);
-          }
-          break;
-        case Feature.FALL_THROUGH_ERROR:
-          registerBackendImpact(transformed, impacts.fallThroughError);
-          break;
-        case Feature.FIELD_WITHOUT_INITIALIZER:
-        case Feature.LOCAL_WITHOUT_INITIALIZER:
-          transformed.registerTypeUse(
-              new TypeUse.instantiation(backend.commonElements.nullType));
-          registerBackendImpact(transformed, impacts.nullLiteral);
-          break;
-        case Feature.LAZY_FIELD:
-          registerBackendImpact(transformed, impacts.lazyField);
-          break;
-        case Feature.STACK_TRACE_IN_CATCH:
-          registerBackendImpact(transformed, impacts.stackTraceInCatch);
-          break;
-        case Feature.STRING_INTERPOLATION:
-          registerBackendImpact(transformed, impacts.stringInterpolation);
-          break;
-        case Feature.STRING_JUXTAPOSITION:
-          registerBackendImpact(transformed, impacts.stringJuxtaposition);
-          break;
-        case Feature.SUPER_NO_SUCH_METHOD:
-          registerBackendImpact(transformed, impacts.superNoSuchMethod);
-          break;
-        case Feature.SYMBOL_CONSTRUCTOR:
-          registerBackendImpact(transformed, impacts.symbolConstructor);
-          break;
-        case Feature.SYNC_FOR_IN:
-          registerBackendImpact(transformed, impacts.syncForIn);
-          break;
-        case Feature.SYNC_STAR:
-          registerBackendImpact(transformed, impacts.syncStarBody);
-          break;
-        case Feature.THROW_EXPRESSION:
-          registerBackendImpact(transformed, impacts.throwExpression);
-          break;
-        case Feature.THROW_NO_SUCH_METHOD:
-          registerBackendImpact(transformed, impacts.throwNoSuchMethod);
-          break;
-        case Feature.THROW_RUNTIME_ERROR:
-          registerBackendImpact(transformed, impacts.throwRuntimeError);
-          break;
-        case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
-          registerBackendImpact(transformed, impacts.typeVariableBoundCheck);
-          break;
-      }
-    }
-
-    bool hasAsCast = false;
-    bool hasTypeLiteral = false;
-    for (TypeUse typeUse in worldImpact.typeUses) {
-      ResolutionDartType type = typeUse.type;
-      switch (typeUse.kind) {
-        case TypeUseKind.INSTANTIATION:
-        case TypeUseKind.MIRROR_INSTANTIATION:
-        case TypeUseKind.NATIVE_INSTANTIATION:
-          registerRequiredType(type);
-          break;
-        case TypeUseKind.IS_CHECK:
-          onIsCheck(type, transformed);
-          break;
-        case TypeUseKind.AS_CAST:
-          onIsCheck(type, transformed);
-          hasAsCast = true;
-          break;
-        case TypeUseKind.CHECKED_MODE_CHECK:
-          if (backend.compiler.options.enableTypeAssertions) {
-            onIsCheck(type, transformed);
-          }
-          break;
-        case TypeUseKind.CATCH_TYPE:
-          onIsCheck(type, transformed);
-          break;
-        case TypeUseKind.TYPE_LITERAL:
-          backend.customElementsAnalysis.registerTypeLiteral(type);
-          if (type.isTypeVariable && type is! MethodTypeVariableType) {
-            // GENERIC_METHODS: The `is!` test above filters away method type
-            // variables, because they have the value `dynamic` with the
-            // incomplete support for generic methods offered with
-            // '--generic-method-syntax'. This must be revised in order to
-            // support generic methods fully.
-            ClassElement cls = type.element.enclosingClass;
-            backend.rti.registerClassUsingTypeVariableExpression(cls);
-            registerBackendImpact(transformed, impacts.typeVariableExpression);
-          }
-          hasTypeLiteral = true;
-          break;
-      }
-    }
-
-    if (hasAsCast) {
-      registerBackendImpact(transformed, impacts.asCheck);
-    }
-
-    if (hasTypeLiteral) {
-      transformed.registerTypeUse(
-          new TypeUse.instantiation(backend.compiler.commonElements.typeType));
-      registerBackendImpact(transformed, impacts.typeLiteral);
-    }
-
-    for (MapLiteralUse mapLiteralUse in worldImpact.mapLiterals) {
-      // TODO(johnniwinther): Use the [isEmpty] property when factory
-      // constructors are registered directly.
-      if (mapLiteralUse.isConstant) {
-        registerBackendImpact(transformed, impacts.constantMapLiteral);
-      } else {
-        transformed
-            .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
-      }
-      registerRequiredType(mapLiteralUse.type);
-    }
-
-    for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
-      // TODO(johnniwinther): Use the [isConstant] and [isEmpty] property when
-      // factory constructors are registered directly.
-      transformed
-          .registerTypeUse(new TypeUse.instantiation(listLiteralUse.type));
-      registerRequiredType(listLiteralUse.type);
-    }
-
-    if (worldImpact.constSymbolNames.isNotEmpty) {
-      registerBackendImpact(transformed, impacts.constSymbol);
-      for (String constSymbolName in worldImpact.constSymbolNames) {
-        backend.registerConstSymbol(constSymbolName);
-      }
-    }
-
-    for (StaticUse staticUse in worldImpact.staticUses) {
-      switch (staticUse.kind) {
-        case StaticUseKind.CLOSURE:
-          registerBackendImpact(transformed, impacts.closure);
-          LocalFunctionElement closure = staticUse.element;
-          if (closure.type.containsTypeVariables) {
-            registerBackendImpact(transformed, impacts.computeSignature);
-          }
-          break;
-        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        case StaticUseKind.CONSTRUCTOR_INVOKE:
-          registerRequiredType(staticUse.type);
-          break;
-        default:
-      }
-    }
-
-    for (ConstantExpression constant in worldImpact.constantLiterals) {
-      switch (constant.kind) {
-        case ConstantExpressionKind.NULL:
-          registerBackendImpact(transformed, impacts.nullLiteral);
-          break;
-        case ConstantExpressionKind.BOOL:
-          registerBackendImpact(transformed, impacts.boolLiteral);
-          break;
-        case ConstantExpressionKind.INT:
-          registerBackendImpact(transformed, impacts.intLiteral);
-          break;
-        case ConstantExpressionKind.DOUBLE:
-          registerBackendImpact(transformed, impacts.doubleLiteral);
-          break;
-        case ConstantExpressionKind.STRING:
-          registerBackendImpact(transformed, impacts.stringLiteral);
-          break;
-        default:
-          assert(invariant(NO_LOCATION_SPANNABLE, false,
-              message: "Unexpected constant literal: ${constant.kind}."));
-      }
-    }
-
-    for (native.NativeBehavior behavior in worldImpact.nativeData) {
-      enqueuer.nativeEnqueuer
-          .registerNativeBehavior(transformed, behavior, worldImpact);
-    }
-
-    return transformed;
-  }
-
-  WorldImpact createImpactFor(BackendImpact impact) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    registerBackendImpact(impactBuilder, impact);
-    return impactBuilder;
-  }
-
-  void registerBackendStaticUse(
-      WorldImpactBuilder worldImpact, MethodElement element,
-      {bool isGlobal: false}) {
-    backend.registerBackendUse(element);
-    worldImpact.registerStaticUse(
-        // TODO(johnniwinther): Store the correct use in impacts.
-        new StaticUse.foreignUse(element));
-    if (isGlobal) {
-      backend.compiler.globalDependencies.registerDependency(element);
-    }
-  }
-
-  void registerBackendInstantiation(
-      WorldImpactBuilder worldImpact, ClassElement cls,
-      {bool isGlobal: false}) {
-    cls.ensureResolved(backend.resolution);
-    backend.registerBackendUse(cls);
-    worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
-    if (isGlobal) {
-      backend.compiler.globalDependencies.registerDependency(cls);
-    }
-  }
-
-  void registerBackendImpact(
-      WorldImpactBuilder worldImpact, BackendImpact backendImpact) {
-    for (Element staticUse in backendImpact.staticUses) {
-      assert(staticUse != null);
-      registerBackendStaticUse(worldImpact, staticUse);
-    }
-    for (Element staticUse in backendImpact.globalUses) {
-      assert(staticUse != null);
-      registerBackendStaticUse(worldImpact, staticUse, isGlobal: true);
-    }
-    for (Selector selector in backendImpact.dynamicUses) {
-      assert(selector != null);
-      worldImpact.registerDynamicUse(new DynamicUse(selector, null));
-    }
-    for (ResolutionInterfaceType instantiatedType
-        in backendImpact.instantiatedTypes) {
-      backend.registerBackendUse(instantiatedType.element);
-      worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
-    }
-    for (ClassElement cls in backendImpact.instantiatedClasses) {
-      registerBackendInstantiation(worldImpact, cls);
-    }
-    for (ClassElement cls in backendImpact.globalClasses) {
-      registerBackendInstantiation(worldImpact, cls, isGlobal: true);
-    }
-    for (BackendImpact otherImpact in backendImpact.otherImpacts) {
-      registerBackendImpact(worldImpact, otherImpact);
-    }
-    for (BackendFeature feature in backendImpact.features) {
-      switch (feature) {
-        case BackendFeature.needToInitializeDispatchProperty:
-          backend.needToInitializeDispatchProperty = true;
-          break;
-        case BackendFeature.needToInitializeIsolateAffinityTag:
-          backend.needToInitializeIsolateAffinityTag = true;
-          break;
-      }
-    }
-  }
-
-  /// Register [type] as required for the runtime type information system.
-  void registerRequiredType(ResolutionDartType type) {
-    // If [argument] has type variables or is a type variable, this method
-    // registers a RTI dependency between the class where the type variable is
-    // defined (that is the enclosing class of the current element being
-    // resolved) and the class of [type]. If the class of [type] requires RTI,
-    // then the class of the type variable does too.
-    ClassElement contextClass = Types.getClassContext(type);
-    if (contextClass != null) {
-      backend.rti.registerRtiDependency(type.element, contextClass);
-    }
-  }
-
-  // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
-  void onIsCheck(ResolutionDartType type, TransformedWorldImpact transformed) {
-    registerRequiredType(type);
-    type.computeUnaliased(backend.resolution);
-    type = type.unaliased;
-    registerBackendImpact(transformed, impacts.typeCheck);
-
-    bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
-    if (inCheckedMode) {
-      registerBackendImpact(transformed, impacts.checkedModeTypeCheck);
-    }
-    if (type.isMalformed) {
-      registerBackendImpact(transformed, impacts.malformedTypeCheck);
-    }
-    if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
-      registerBackendImpact(transformed, impacts.genericTypeCheck);
-      if (inCheckedMode) {
-        registerBackendImpact(transformed, impacts.genericCheckedModeTypeCheck);
-      }
-      if (type.isTypeVariable) {
-        registerBackendImpact(transformed, impacts.typeVariableTypeCheck);
-        if (inCheckedMode) {
-          registerBackendImpact(
-              transformed, impacts.typeVariableCheckedModeTypeCheck);
-        }
-      }
-    }
-    if (type is ResolutionFunctionType) {
-      registerBackendImpact(transformed, impacts.functionTypeCheck);
-    }
-    if (type.element != null && backend.isNative(type.element)) {
-      registerBackendImpact(transformed, impacts.nativeTypeCheck);
-    }
-  }
-
-  void onIsCheckForCodegen(
-      ResolutionDartType type, TransformedWorldImpact transformed) {
-    if (type.isDynamic) return;
-    type = type.unaliased;
-    registerBackendImpact(transformed, impacts.typeCheck);
-
-    bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
-    // [registerIsCheck] is also called for checked mode checks, so we
-    // need to register checked mode helpers.
-    if (inCheckedMode) {
-      // All helpers are added to resolution queue in enqueueHelpers. These
-      // calls to [enqueue] with the resolution enqueuer serve as assertions
-      // that the helper was in fact added.
-      // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper =
-          backend.getCheckedModeHelper(type, typeCast: false);
-      if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(backend.compiler);
-        transformed.registerStaticUse(staticUse);
-        backend.registerBackendUse(staticUse.element);
-      }
-      // We also need the native variant of the check (for DOM types).
-      helper = backend.getNativeCheckedModeHelper(type, typeCast: false);
-      if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(backend.compiler);
-        transformed.registerStaticUse(staticUse);
-        backend.registerBackendUse(staticUse.element);
-      }
-    }
-    if (!type.treatAsRaw || type.containsTypeVariables) {
-      registerBackendImpact(transformed, impacts.genericIsCheck);
-    }
-    if (type.element != null && backend.isNative(type.element)) {
-      // We will neeed to add the "$is" and "$as" properties on the
-      // JavaScript object prototype, so we make sure
-      // [:defineProperty:] is compiled.
-      registerBackendImpact(transformed, impacts.nativeTypeCheck);
-    }
-  }
-
-  @override
-  WorldImpact transformCodegenImpact(CodegenImpact impact) {
-    TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
-
-    for (TypeUse typeUse in impact.typeUses) {
-      ResolutionDartType type = typeUse.type;
-      switch (typeUse.kind) {
-        case TypeUseKind.INSTANTIATION:
-          backend.lookupMapAnalysis.registerInstantiatedType(type);
-          break;
-        case TypeUseKind.IS_CHECK:
-          onIsCheckForCodegen(type, transformed);
-          break;
-        default:
-      }
-    }
-
-    for (ConstantValue constant in impact.compileTimeConstants) {
-      backend.computeImpactForCompileTimeConstant(constant, transformed, false);
-      backend.addCompileTimeConstantForEmission(constant);
-    }
-
-    for (Pair<ResolutionDartType, ResolutionDartType> check
-        in impact.typeVariableBoundsSubtypeChecks) {
-      backend.registerTypeVariableBoundsSubtypeCheck(check.a, check.b);
-    }
-
-    for (StaticUse staticUse in impact.staticUses) {
-      switch (staticUse.kind) {
-        case StaticUseKind.CLOSURE:
-          LocalFunctionElement closure = staticUse.element;
-          if (backend.methodNeedsRti(closure)) {
-            registerBackendImpact(transformed, impacts.computeSignature);
-          }
-          break;
-        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        case StaticUseKind.CONSTRUCTOR_INVOKE:
-          backend.lookupMapAnalysis.registerInstantiatedType(staticUse.type);
-          break;
-        default:
-      }
-    }
-
-    for (String name in impact.constSymbols) {
-      backend.registerConstSymbol(name);
-    }
-
-    for (Set<ClassElement> classes in impact.specializedGetInterceptors) {
-      backend.registerSpecializedGetInterceptor(classes);
-    }
-
-    if (impact.usesInterceptor) {
-      if (backend.codegenEnqueuer.nativeEnqueuer.hasInstantiatedNativeClasses) {
-        registerBackendImpact(transformed, impacts.interceptorUse);
-      }
-    }
-
-    for (ClassElement element in impact.typeConstants) {
-      backend.customElementsAnalysis.registerTypeConstant(element);
-      backend.lookupMapAnalysis.registerTypeConstant(element);
-    }
-
-    for (FunctionElement element in impact.asyncMarkers) {
-      switch (element.asyncMarker) {
-        case AsyncMarker.ASYNC:
-          registerBackendImpact(transformed, impacts.asyncBody);
-          break;
-        case AsyncMarker.SYNC_STAR:
-          registerBackendImpact(transformed, impacts.syncStarBody);
-          break;
-        case AsyncMarker.ASYNC_STAR:
-          registerBackendImpact(transformed, impacts.asyncStarBody);
-          break;
-      }
-    }
-
-    // TODO(johnniwinther): Remove eager registration.
-    return transformed;
-  }
-}
-
-/// Records that [constant] is used by the element behind [registry].
-class Dependency {
-  final ConstantValue constant;
-  final Element annotatedElement;
-
-  const Dependency(this.constant, this.annotatedElement);
-
-  String toString() => '$annotatedElement:${constant.toStructuredText()}';
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {
@@ -3252,38 +1462,39 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
 }
 
 class JavaScriptBackendClasses implements BackendClasses {
+  final ElementEnvironment _env;
   final BackendHelpers helpers;
+  final NativeBasicData _nativeData;
 
-  JavaScriptBackendClasses(this.helpers);
+  JavaScriptBackendClasses(this._env, this.helpers, this._nativeData);
 
-  ClassElement get intImplementation => helpers.jsIntClass;
-  ClassElement get uint32Implementation => helpers.jsUInt32Class;
-  ClassElement get uint31Implementation => helpers.jsUInt31Class;
-  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
-  ClassElement get doubleImplementation => helpers.jsDoubleClass;
-  ClassElement get numImplementation => helpers.jsNumberClass;
-  ClassElement get stringImplementation => helpers.jsStringClass;
-  ClassElement get listImplementation => helpers.jsArrayClass;
-  ClassElement get mutableListImplementation => helpers.jsMutableArrayClass;
-  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
-  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
-  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
-  ClassElement get mapImplementation => helpers.mapLiteralClass;
-  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
-  ClassElement get typeImplementation => helpers.typeLiteralClass;
-  ClassElement get boolImplementation => helpers.jsBoolClass;
-  ClassElement get nullImplementation => helpers.jsNullClass;
-  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
-  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
-  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
-  ClassElement get functionImplementation =>
-      helpers.commonElements.functionClass;
-  ClassElement get indexableImplementation => helpers.jsIndexableClass;
-  ClassElement get mutableIndexableImplementation =>
-      helpers.jsMutableIndexableClass;
-  ClassElement get indexingBehaviorImplementation =>
-      helpers.jsIndexingBehaviorInterface;
-  ClassElement get interceptorImplementation => helpers.jsInterceptorClass;
+  ClassElement get intClass => helpers.jsIntClass;
+  ClassElement get uint32Class => helpers.jsUInt32Class;
+  ClassElement get uint31Class => helpers.jsUInt31Class;
+  ClassElement get positiveIntClass => helpers.jsPositiveIntClass;
+  ClassElement get doubleClass => helpers.jsDoubleClass;
+  ClassElement get numClass => helpers.jsNumberClass;
+  ClassElement get stringClass => helpers.jsStringClass;
+  ClassElement get listClass => helpers.jsArrayClass;
+  ClassElement get mutableListClass => helpers.jsMutableArrayClass;
+  ClassElement get constListClass => helpers.jsUnmodifiableArrayClass;
+  ClassElement get fixedListClass => helpers.jsFixedArrayClass;
+  ClassElement get growableListClass => helpers.jsExtendableArrayClass;
+  ClassElement get mapClass => helpers.mapLiteralClass;
+  ClassElement get constMapClass => helpers.constMapLiteralClass;
+  ClassElement get typeClass => helpers.typeLiteralClass;
+  InterfaceType get typeType => _env.getRawType(typeClass);
+
+  ClassElement get boolClass => helpers.jsBoolClass;
+  ClassElement get nullClass => helpers.jsNullClass;
+  ClassElement get syncStarIterableClass => helpers.syncStarIterable;
+  ClassElement get asyncFutureClass => helpers.futureImplementation;
+  ClassElement get asyncStarStreamClass => helpers.controllerStream;
+  ClassElement get functionClass => helpers.commonElements.functionClass;
+  ClassElement get indexableClass => helpers.jsIndexableClass;
+  ClassElement get mutableIndexableClass => helpers.jsMutableIndexableClass;
+  ClassElement get indexingBehaviorClass => helpers.jsIndexingBehaviorInterface;
+  ClassElement get interceptorClass => helpers.jsInterceptorClass;
 
   bool isDefaultEqualityImplementation(MemberElement element) {
     assert(element.name == '==');
@@ -3294,17 +1505,99 @@ class JavaScriptBackendClasses implements BackendClasses {
   }
 
   @override
-  bool isInterceptorClass(ClassElement cls) {
-    return helpers.backend.isInterceptorClass(cls);
+  bool isNativeClass(ClassEntity element) {
+    return _nativeData.isNativeClass(element);
+  }
+
+  InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
+      {bool hasProtoKey: false, bool onlyStringKeys: false}) {
+    ClassElement classElement = onlyStringKeys
+        ? (hasProtoKey
+            ? helpers.constantProtoMapClass
+            : helpers.constantStringMapClass)
+        : helpers.generalConstantMapClass;
+    List<DartType> typeArgument = sourceType.typeArguments;
+    if (sourceType.treatAsRaw) {
+      return _env.getRawType(classElement);
+    } else {
+      return _env.createInterfaceType(classElement, typeArgument);
+    }
   }
 
   @override
-  bool isNativeClass(ClassElement element) {
-    return helpers.backend.isNative(element);
+  FieldEntity get symbolField => helpers.symbolImplementationField;
+
+  @override
+  InterfaceType get symbolType {
+    return _env.getRawType(helpers.symbolImplementationClass);
+  }
+}
+
+class JavaScriptBackendTarget extends Target {
+  final JavaScriptBackend _backend;
+
+  JavaScriptBackendTarget(this._backend);
+
+  @override
+  bool isTargetSpecificLibrary(LibraryElement element) {
+    return _backend.isTargetSpecificLibrary(element);
   }
 
   @override
-  bool isNativeMember(MemberElement element) {
-    return helpers.backend.isNative(element);
+  void resolveNativeMember(MemberElement element, NativeRegistry registry) {
+    return _backend._nativeDataResolver.resolveNativeMember(element, registry);
+  }
+
+  @override
+  MethodElement resolveExternalFunction(MethodElement element) {
+    return _backend.resolveExternalFunction(element);
+  }
+
+  @override
+  dynamic resolveForeignCall(Send node, Element element,
+      CallStructure callStructure, ForeignResolver resolver) {
+    return _backend.resolveForeignCall(node, element, callStructure, resolver);
+  }
+
+  @override
+  bool isDefaultNoSuchMethod(MethodElement element) {
+    return _backend.helpers.isDefaultNoSuchMethodImplementation(element);
+  }
+
+  @override
+  ClassElement defaultSuperclass(ClassElement element) {
+    return _backend.defaultSuperclass(element);
+  }
+
+  @override
+  bool isNativeClass(ClassEntity element) =>
+      _backend.nativeBasicData.isNativeClass(element);
+
+  @override
+  bool isForeign(Element element) => _backend.isForeign(element);
+}
+
+class SuperMemberData {
+  /// A set of member that are called from subclasses via `super`.
+  final Set<MemberEntity> _aliasedSuperMembers = new Setlet<MemberEntity>();
+
+  /// Record that [member] is called from a subclass via `super`.
+  bool maybeRegisterAliasedSuperMember(MemberEntity member, Selector selector) {
+    if (!canUseAliasedSuperMember(member, selector)) {
+      // Invoking a super getter isn't supported, this would require changes to
+      // compact field descriptors in the emitter.
+      return false;
+    }
+    _aliasedSuperMembers.add(member);
+    return true;
+  }
+
+  bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
+    return !selector.isGetter;
+  }
+
+  /// Returns `true` if [member] is called from a subclass via `super`.
+  bool isAliasedSuperMember(MemberEntity member) {
+    return _aliasedSuperMembers.contains(member);
   }
 }

@@ -1284,6 +1284,14 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteRawPointerValue(reinterpret_cast<intptr_t>(callback));
       break;
     }
+    case Dart_CObject_kSendPort: {
+      WriteInlinedHeader(object);
+      WriteIndexedObject(kSendPortCid);
+      WriteTags(0);
+      Write<int64_t>(object->value.as_send_port.id);
+      Write<uint64_t>(object->value.as_send_port.origin_id);
+      break;
+    }
     case Dart_CObject_kCapability: {
       WriteInlinedHeader(object);
       WriteIndexedObject(kCapabilityCid);
@@ -1292,7 +1300,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       break;
     }
     default:
-      UNREACHABLE();
+      FATAL1("Unexpected Dart_CObject_Type %d\n", type);
   }
 
   return true;

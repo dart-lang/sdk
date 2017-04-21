@@ -5,22 +5,24 @@
 // Regression test for the combined use of metatargets and static fields with
 // annotations.
 
-@MirrorsUsed(metaTargets:const [Reflectable])
+@MirrorsUsed(metaTargets: const [Reflectable])
 import 'dart:mirrors';
 
 class A {
-  @reflectable var reflectableField = 0; /// 01: ok
+  @reflectable var reflectableField = 0; //# 01: ok
 
-  @UsedOnlyAsMetadata() var unreflectableField = 1; /// 02: ok
+  @UsedOnlyAsMetadata() var unreflectableField = 1; //# 02: ok
 
-  @reflectable static var reflectableStaticField = 2; /// 03: ok
+  @reflectable static var reflectableStaticField = 2; //# 03: ok
 
-  @UsedOnlyAsMetadata() static var unreflectableStaticField = 3;
+  @UsedOnlyAsMetadata()
+  static var unreflectableStaticField = 3;
 }
 
 class Reflectable {
   const Reflectable();
 }
+
 const Reflectable reflectable = const Reflectable();
 
 class UsedOnlyAsMetadata {

@@ -1,0 +1,122 @@
+library closure_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "dart:mock" as mock;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class A extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+}
+class B extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+}
+class Closure#main#foo extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#foo::context = context
+    ;
+  method call(self::A a) → self::B {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#foo::context};
+    return null;
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+}
+class Closure#main#qux extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#qux::context = context
+    ;
+  method call(self::B b) → self::A {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#qux::context};
+    return null;
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](3));
+}
+class Closure#bar extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(self::A a) → dynamic
+    return self::bar(a);
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](4));
+}
+class Closure#baz extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  constructor •() → dynamic
+    ;
+  method call(dynamic a) → self::B
+    return self::baz(a);
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](5));
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](20)));
+  dec::init(d, 1, new typ::Interface::•(d.[](20)));
+  dec::init(d, 2, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](6))], new typ::FunctionType::•(new typ::Interface::•(d.[](6)), new typ::Interface::•(d.[](1)), 0, <dynamic>[new typ::Interface::•(d.[](0))]));
+  dec::init(d, 3, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](6))], new typ::FunctionType::•(new typ::Interface::•(d.[](6)), new typ::Interface::•(d.[](0)), 0, <dynamic>[new typ::Interface::•(d.[](1))]));
+  dec::init(d, 4, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](6))], new typ::FunctionType::•(new typ::Interface::•(d.[](6)), const typ::Dynamic::•(), 0, <dynamic>[new typ::Interface::•(d.[](0))]));
+  dec::init(d, 5, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](6))], new typ::FunctionType::•(new typ::Interface::•(d.[](6)), new typ::Interface::•(d.[](1)), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 6, new typ::Interface::•(d.[](20)));
+  dec::init(d, 7, new typ::Interface::•(d.[](20)));
+  dec::init(d, 8, new typ::Interface::•(d.[](20)));
+  dec::init(d, 9, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](22), <dynamic>[new typ::Interface::•(d.[](9))]), new typ::Interface::•(d.[](23))]);
+  dec::init(d, 10, new typ::Interface::•(d.[](24)));
+  dec::init(d, 11, new typ::Interface::•(d.[](24)));
+  dec::init(d, 12, new typ::Interface::•(d.[](20)));
+  dec::init(d, 13, new typ::Interface::•(d.[](25)));
+  dec::init(d, 14, new typ::Interface::•(d.[](25)));
+  dec::init(d, 15, new typ::Interface::•(d.[](25)));
+  dec::init(d, 16, new typ::Interface::•(d.[](25)));
+  dec::init(d, 17, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](26))]);
+  dec::init(d, 18, new typ::Interface::•(d.[](19)));
+  dec::init(d, 19, new typ::Interface::•(d.[](25)));
+  dec::init(d, 20, null);
+  dec::init(d, 22, new typ::Interface::•(d.[](20)));
+  dec::init(d, 23, new typ::Interface::•(d.[](20)));
+  dec::init(d, 24, new typ::Interface::•(d.[](20)), <dynamic>[new typ::Interface::•(d.[](22), <dynamic>[new typ::Interface::•(d.[](24))])]);
+  dec::init(d, 25, new typ::Interface::•(d.[](20)));
+  dec::init(d, 26, new typ::Interface::•(d.[](20)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["A", "B", "Closure#main#foo", "Closure#main#qux", "Closure#bar", "Closure#baz", "Function", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
+static method bar(self::A a) → dynamic {
+  return null;
+}
+static method baz(dynamic a) → self::B {
+  return null;
+}
+static method main() → dynamic {
+  final (self::A) → self::B foo = new self::Closure#main#foo::•(null);
+  final (self::B) → self::A qux = new self::Closure#main#qux::•(null);
+  tes::expectTrue(typ::isSubtypeOf(int::type(foo), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(qux), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(foo), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](0)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  tes::expectTrue(typ::isSubtypeOf(int::type(qux), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](0)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  tes::expectTrue(typ::isSubtypeOf(int::type(new self::Closure#bar::•()), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(new self::Closure#bar::•()), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](0)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  tes::expectTrue(typ::isSubtypeOf(int::type(new self::Closure#baz::•()), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(new self::Closure#baz::•()), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](0)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  (self::A) → dynamic rab = new self::Closure#bar::•();
+  (dynamic) → self::B zab = new self::Closure#baz::•();
+  tes::expectTrue(typ::isSubtypeOf(int::type(rab), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(rab), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](0)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  tes::expectTrue(typ::isSubtypeOf(int::type(zab), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](1)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](0))])));
+  tes::expectTrue(!typ::isSubtypeOf(int::type(zab), new typ::FunctionType::•(new typ::Interface::•(self::$declarations.[](6)), new typ::Interface::•(self::$declarations.[](0)), 0, <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+}

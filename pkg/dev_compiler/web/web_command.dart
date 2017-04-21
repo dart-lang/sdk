@@ -20,11 +20,7 @@ import 'package:analyzer/file_system/memory_file_system.dart'
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show
-        SummaryDataStore,
-        InSummaryUriResolver,
-        InputPackagesResultProvider,
-        InSummarySource;
+    show SummaryDataStore, InSummaryUriResolver, InSummarySource;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 
 import 'package:args/command_runner.dart';
@@ -67,31 +63,34 @@ class WebCompileCommand extends Command {
     return requestSummaries;
   }
 
-  void requestSummaries(String sdkUrl, List<String> summaryUrls,
-      Function onCompileReady, Function onError) {
-    HttpRequest.request(sdkUrl).then((sdkRequest) {
-      var sdkResponse = sdkRequest.responseText;
-      var sdkBytes = BASE64.decode(sdkResponse);
+  void requestSummaries(String summaryRoot, String sdkUrl,
+      List<String> summaryUrls, Function onCompileReady, Function onError) {
+    HttpRequest
+        .request(sdkUrl,
+            responseType: "arraybuffer", mimeType: "application/octet-stream")
+        .then((sdkRequest) {
+      var sdkBytes = sdkRequest.response.asUint8List();
 
       // Map summary URLs to HttpRequests.
-      var summaryRequests = summaryUrls
-          .map((summary) => new Future(() => HttpRequest.request(summary)));
+      var summaryRequests = summaryUrls.map((summary) => new Future(() =>
+          HttpRequest.request(summaryRoot + summary,
+              responseType: "arraybuffer",
+              mimeType: "application/octet-stream")));
 
       Future.wait(summaryRequests).then((summaryResponses) {
         // Map summary responses to summary bytes.
         var summaryBytes = <List<int>>[];
         for (var response in summaryResponses) {
-          summaryBytes.add(BASE64.decode(response.responseText));
+          summaryBytes.add(response.response.asUint8List());
         }
 
-        var compileFn = setUpCompile(sdkBytes, summaryBytes, summaryUrls);
-        onCompileReady(compileFn);
+        onCompileReady(setUpCompile(sdkBytes, summaryBytes, summaryUrls));
       }).catchError((error) => onError('Summaries failed to load: $error'));
-    }).catchError(
-        (error) => onError('Dart sdk summaries failed to load: $error'));
+    }).catchError((error) =>
+            onError('Dart sdk summaries failed to load: $error. url: $sdkUrl'));
   }
 
-  CompileModule setUpCompile(List<int> sdkBytes, List<List<int>> summaryBytes,
+  List<Function> setUpCompile(List<int> sdkBytes, List<List<int>> summaryBytes,
       List<String> summaryUrls) {
     var dartSdkSummaryPath = '/dart-sdk/lib/_internal/web_sdk.sum';
 
@@ -100,10 +99,14 @@ class WebCompileCommand extends Command {
 
     var resourceUriResolver = new ResourceUriResolver(resourceProvider);
 
-    var summaryDataStore = new SummaryDataStore([]);
+    var options = new AnalyzerOptions.basic(
+        dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath);
+
+    var summaryDataStore = new SummaryDataStore(options.summaryPaths,
+        resourceProvider: resourceProvider, recordDependencyInfo: true);
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
-      var url = summaryUrls[i];
+      var url = '/' + summaryUrls[i];
       var summaryBundle = new PackageBundle.fromBuffer(bytes);
       summaryDataStore.addBundle(url, summaryBundle);
     }
@@ -112,21 +115,78 @@ class WebCompileCommand extends Command {
 
     var fileResolvers = [summaryResolver, resourceUriResolver];
 
-    var compiler = new ModuleCompiler(
-        new AnalyzerOptions.basic(
-            dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath),
+    var compiler = new ModuleCompiler(options,
         analysisRoot: '/web-compile-root',
         fileResolvers: fileResolvers,
-        resourceProvider: resourceProvider);
+        resourceProvider: resourceProvider,
+        summaryData: summaryDataStore);
 
     var context = compiler.context as AnalysisContextImpl;
-    context.resultProvider =
-        new InputPackagesResultProvider(compiler.context, summaryDataStore);
 
     var compilerOptions = new CompilerOptions.fromArguments(argResults);
 
+    var resolveFn = (String url) {
+      var packagePrefix = 'package:';
+      var uri = Uri.parse(url);
+      var base = path.basename(url);
+      var parts = uri.pathSegments;
+      var match = null;
+      int bestScore = 0;
+      for (var candidate in summaryDataStore.uriToSummaryPath.keys) {
+        if (path.basename(candidate) != base) continue;
+        List<String> candidateParts = path.dirname(candidate).split('/');
+        var first = candidateParts.first;
+
+        // Process and strip "package:" prefix.
+        if (first.startsWith(packagePrefix)) {
+          first = first.substring(packagePrefix.length);
+          candidateParts[0] = first;
+          // Handle convention that directory foo/bar/baz is given package name
+          // foo.bar.baz
+          if (first.contains('.')) {
+            candidateParts = (first.split('.'))..addAll(candidateParts.skip(1));
+          }
+        }
+
+        // If file name and extension don't match... give up.
+        int i = parts.length - 1;
+        int j = candidateParts.length - 1;
+
+        int score = 1;
+        // Greedy algorithm finding matching path segments from right to left
+        // skipping segments on the candidate path unless the target path
+        // segment is named lib.
+        while (i >= 0 && j >= 0) {
+          if (parts[i] == candidateParts[j]) {
+            i--;
+            j--;
+            score++;
+            if (j == 0 && i == 0) {
+              // Arbitrary bonus if we matched all parts of the input
+              // and used up all parts of the output.
+              score += 10;
+            }
+          } else {
+            // skip unmatched lib directories from the input
+            // otherwise skip unmatched parts of the candidate.
+            if (parts[i] == 'lib') {
+              i--;
+            } else {
+              j--;
+            }
+          }
+        }
+
+        if (score > bestScore) {
+          match = candidate;
+        }
+      }
+      return match;
+    };
+
     CompileModule compileFn = (String imports, String body, String libraryName,
         String existingLibrary, String fileName) {
+      // Instead of returning a single function, return a pair of functions.
       // Create a new virtual File that contains the given Dart source.
       String sourceCode;
       if (existingLibrary == null) {
@@ -207,8 +267,7 @@ class WebCompileCommand extends Command {
           code: moduleCode, isValid: module.isValid, errors: module.errors);
     };
 
-    // TODO(vsm): Cast is due to https://github.com/dart-lang/sdk/issues/28507
-    return allowInterop(compileFn) as CompileModule;
+    return [allowInterop(compileFn), allowInterop(resolveFn)];
   }
 }
 

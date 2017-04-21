@@ -19,9 +19,7 @@ import 'dart:html';
 // DO NOT EDIT
 // Auto-generated dart:_chrome library.
 
-
 /* TODO(sashab): Add "show convertDartClosureToJS" once 'show' works. */
-
 
 // Generated files below this line.
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -71,8 +69,7 @@ abstract class ChromeObject {
  */
 Object _convertMapArgument(Map argument) {
   Map m = new Map();
-  for (Object key in argument.keys)
-    m[key] = convertArgument(argument[key]);
+  for (Object key in argument.keys) m[key] = convertArgument(argument[key]);
   return convertDartToNative_Dictionary(m);
 }
 
@@ -82,8 +79,7 @@ Object _convertMapArgument(Map argument) {
  */
 List _convertListArgument(List argument) {
   List l = new List();
-  for (var i = 0; i < argument.length; i ++)
-    l.add(convertArgument(argument[i]));
+  for (var i = 0; i < argument.length; i++) l.add(convertArgument(argument[i]));
   return l;
 }
 
@@ -98,20 +94,16 @@ List _convertListArgument(List argument) {
  * Cannot be used for functions.
  */
 Object convertArgument(var argument) {
-  if (argument == null)
-    return argument;
+  if (argument == null) return argument;
 
   if (argument is num || argument is String || argument is bool)
     return argument;
 
-  if (argument is ChromeObject)
-    return argument._jsObject;
+  if (argument is ChromeObject) return argument._jsObject;
 
-  if (argument is List)
-    return _convertListArgument(argument);
+  if (argument is List) return _convertListArgument(argument);
 
-  if (argument is Map)
-    return _convertMapArgument(argument);
+  if (argument is Map) return _convertMapArgument(argument);
 
   if (argument is Function)
     throw new Exception("Cannot serialize Function argument ${argument}.");
@@ -165,7 +157,6 @@ class Rule extends ChromeObject {
   void set priority(int priority) {
     JS('void', '#.priority = #', this._jsObject, priority);
   }
-
 }
 
 /**
@@ -212,35 +203,19 @@ class Event {
    */
 
   /// Registers an event listener <em>callback</em> to an event.
-  void addListener(Function callback) =>
-      JS('void',
-         '#.addListener(#)',
-         this._jsObject,
-         convertDartClosureToJS(callback, this._callbackArity)
-      );
+  void addListener(Function callback) => JS('void', '#.addListener(#)',
+      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
 
   /// Deregisters an event listener <em>callback</em> from an event.
-  void removeListener(Function callback) =>
-      JS('void',
-         '#.removeListener(#)',
-         this._jsObject,
-         convertDartClosureToJS(callback, this._callbackArity)
-      );
+  void removeListener(Function callback) => JS('void', '#.removeListener(#)',
+      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
 
   /// Returns True if <em>callback</em> is registered to the event.
-  bool hasListener(Function callback) =>
-      JS('bool',
-         '#.hasListener(#)',
-         this._jsObject,
-         convertDartClosureToJS(callback, this._callbackArity)
-      );
+  bool hasListener(Function callback) => JS('bool', '#.hasListener(#)',
+      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
 
   /// Returns true if any event listeners are registered to the event.
-  bool hasListeners() =>
-      JS('bool',
-         '#.hasListeners()',
-         this._jsObject
-      );
+  bool hasListeners() => JS('bool', '#.hasListeners()', this._jsObject);
 
   /// Registers rules to handle events.
   ///
@@ -249,26 +224,25 @@ class Event {
   /// rules. [callback] is called with registered rules.
   ///
   void addRules(String eventName, List<Rule> rules,
-                [void callback(List<Rule> rules)]) {
+      [void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
       if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
-        for (Object o in rules)
-          __proxy_rules.add(new Rule._proxy(o));
+        for (Object o in rules) __proxy_rules.add(new Rule._proxy(o));
 
         callback(__proxy_rules);
       }
     }
 
-    JS('void',
-       '#.addRules(#, #, #)',
-       this._jsObject,
-       convertArgument(eventName),
-       convertArgument(rules),
-       convertDartClosureToJS(__proxy_callback, 1)
-    );
+    JS(
+        'void',
+        '#.addRules(#, #, #)',
+        this._jsObject,
+        convertArgument(eventName),
+        convertArgument(rules),
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Returns currently registered rules.
@@ -277,27 +251,26 @@ class Event {
   /// is passed as [ruleIdentifiers], only rules with identifiers contained in
   /// this array are returned. [callback] is called with registered rules.
   ///
-  void getRules(String eventName, [List<String> ruleIdentifiers,
-                                   void callback(List<Rule> rules)]) {
+  void getRules(String eventName,
+      [List<String> ruleIdentifiers, void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
       if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
-        for (Object o in rules)
-          __proxy_rules.add(new Rule._proxy(o));
+        for (Object o in rules) __proxy_rules.add(new Rule._proxy(o));
 
         callback(__proxy_rules);
       }
     }
 
-    JS('void',
-       '#.getRules(#, #, #)',
-       this._jsObject,
-       convertArgument(eventName),
-       convertArgument(ruleIdentifiers),
-       convertDartClosureToJS(__proxy_callback, 1)
-    );
+    JS(
+        'void',
+        '#.getRules(#, #, #)',
+        this._jsObject,
+        convertArgument(eventName),
+        convertArgument(ruleIdentifiers),
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Unregisters currently registered rules.
@@ -307,21 +280,20 @@ class Event {
   /// this array are unregistered. [callback] is called when the rules are
   /// unregistered.
   ///
-  void removeRules(String eventName, [List<String> ruleIdentifiers,
-                                      void callback()]) =>
-      JS('void',
-         '#.removeRules(#, #, #)',
-         this._jsObject,
-         convertArgument(eventName),
-         convertArgument(ruleIdentifiers),
-         convertDartClosureToJS(callback, 0)
-      );
+  void removeRules(String eventName,
+          [List<String> ruleIdentifiers, void callback()]) =>
+      JS(
+          'void',
+          '#.removeRules(#, #, #)',
+          this._jsObject,
+          convertArgument(eventName),
+          convertArgument(ruleIdentifiers),
+          convertDartClosureToJS(callback, 0));
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 // chrome.app
 class API_ChromeApp {
@@ -393,7 +365,6 @@ final API_Chrome chrome = new API_Chrome();
 
 // Generated from namespace: app.window
 
-
 /**
  * Types
  */
@@ -403,14 +374,10 @@ class AppWindowBounds extends ChromeObject {
    * Public constructor
    */
   AppWindowBounds({int left, int top, int width, int height}) {
-    if (left != null)
-      this.left = left;
-    if (top != null)
-      this.top = top;
-    if (width != null)
-      this.width = width;
-    if (height != null)
-      this.height = height;
+    if (left != null) this.left = left;
+    if (top != null) this.top = top;
+    if (width != null) this.width = width;
+    if (height != null) this.height = height;
   }
 
   /*
@@ -444,56 +411,56 @@ class AppWindowBounds extends ChromeObject {
   void set height(int height) {
     JS('void', '#.height = #', this._jsObject, height);
   }
-
 }
 
 class AppWindowCreateWindowOptions extends ChromeObject {
   /*
    * Public constructor
    */
-  AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, String state, bool hidden, bool resizable, bool singleton}) {
-    if (id != null)
-      this.id = id;
-    if (defaultWidth != null)
-      this.defaultWidth = defaultWidth;
-    if (defaultHeight != null)
-      this.defaultHeight = defaultHeight;
-    if (defaultLeft != null)
-      this.defaultLeft = defaultLeft;
-    if (defaultTop != null)
-      this.defaultTop = defaultTop;
-    if (width != null)
-      this.width = width;
-    if (height != null)
-      this.height = height;
-    if (left != null)
-      this.left = left;
-    if (top != null)
-      this.top = top;
-    if (minWidth != null)
-      this.minWidth = minWidth;
-    if (minHeight != null)
-      this.minHeight = minHeight;
-    if (maxWidth != null)
-      this.maxWidth = maxWidth;
-    if (maxHeight != null)
-      this.maxHeight = maxHeight;
-    if (type != null)
-      this.type = type;
-    if (frame != null)
-      this.frame = frame;
-    if (bounds != null)
-      this.bounds = bounds;
+  AppWindowCreateWindowOptions(
+      {String id,
+      int defaultWidth,
+      int defaultHeight,
+      int defaultLeft,
+      int defaultTop,
+      int width,
+      int height,
+      int left,
+      int top,
+      int minWidth,
+      int minHeight,
+      int maxWidth,
+      int maxHeight,
+      String type,
+      String frame,
+      AppWindowBounds bounds,
+      bool transparentBackground,
+      String state,
+      bool hidden,
+      bool resizable,
+      bool singleton}) {
+    if (id != null) this.id = id;
+    if (defaultWidth != null) this.defaultWidth = defaultWidth;
+    if (defaultHeight != null) this.defaultHeight = defaultHeight;
+    if (defaultLeft != null) this.defaultLeft = defaultLeft;
+    if (defaultTop != null) this.defaultTop = defaultTop;
+    if (width != null) this.width = width;
+    if (height != null) this.height = height;
+    if (left != null) this.left = left;
+    if (top != null) this.top = top;
+    if (minWidth != null) this.minWidth = minWidth;
+    if (minHeight != null) this.minHeight = minHeight;
+    if (maxWidth != null) this.maxWidth = maxWidth;
+    if (maxHeight != null) this.maxHeight = maxHeight;
+    if (type != null) this.type = type;
+    if (frame != null) this.frame = frame;
+    if (bounds != null) this.bounds = bounds;
     if (transparentBackground != null)
       this.transparentBackground = transparentBackground;
-    if (state != null)
-      this.state = state;
-    if (hidden != null)
-      this.hidden = hidden;
-    if (resizable != null)
-      this.resizable = resizable;
-    if (singleton != null)
-      this.singleton = singleton;
+    if (state != null) this.state = state;
+    if (hidden != null) this.hidden = hidden;
+    if (resizable != null) this.resizable = resizable;
+    if (singleton != null) this.singleton = singleton;
   }
 
   /*
@@ -618,7 +585,8 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// Size and position of the content in the window (excluding the titlebar). If
   /// an id is also specified and a window with a matching id has been shown
   /// before, the remembered bounds of the window will be used instead.
-  AppWindowBounds get bounds => new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
+  AppWindowBounds get bounds =>
+      new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
 
   void set bounds(AppWindowBounds bounds) {
     JS('void', '#.bounds = #', this._jsObject, convertArgument(bounds));
@@ -626,10 +594,12 @@ class AppWindowCreateWindowOptions extends ChromeObject {
 
   /// Enable window background transparency. Only supported in ash. Requires
   /// experimental API permission.
-  bool get transparentBackground => JS('bool', '#.transparentBackground', this._jsObject);
+  bool get transparentBackground =>
+      JS('bool', '#.transparentBackground', this._jsObject);
 
   void set transparentBackground(bool transparentBackground) {
-    JS('void', '#.transparentBackground = #', this._jsObject, transparentBackground);
+    JS('void', '#.transparentBackground = #', this._jsObject,
+        transparentBackground);
   }
 
   /// The initial state of the window, allowing it to be created already
@@ -665,7 +635,6 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   void set singleton(bool singleton) {
     JS('void', '#.singleton = #', this._jsObject, singleton);
   }
-
 }
 
 class AppWindowAppWindow extends ChromeObject {
@@ -685,7 +654,7 @@ class AppWindowAppWindow extends ChromeObject {
   // TODO(sashab, sra): Detect whether this is the current window, or an
   // external one, and return an appropriately-typed object
   WindowBase get contentWindow =>
-    JS("Window", "#.contentWindow", this._jsObject);
+      JS("Window", "#.contentWindow", this._jsObject);
 
   /*
    * Methods
@@ -715,10 +684,12 @@ class AppWindowAppWindow extends ChromeObject {
   void restore() => JS('void', '#.restore()', this._jsObject);
 
   /// Move the window to the position (|left|, |top|).
-  void moveTo(int left, int top) => JS('void', '#.moveTo(#, #)', this._jsObject, left, top);
+  void moveTo(int left, int top) =>
+      JS('void', '#.moveTo(#, #)', this._jsObject, left, top);
 
   /// Resize the window to |width|x|height| pixels in size.
-  void resizeTo(int width, int height) => JS('void', '#.resizeTo(#, #)', this._jsObject, width, height);
+  void resizeTo(int width, int height) =>
+      JS('void', '#.resizeTo(#, #)', this._jsObject, width, height);
 
   /// Draw attention to the window.
   void drawAttention() => JS('void', '#.drawAttention()', this._jsObject);
@@ -746,13 +717,14 @@ class AppWindowAppWindow extends ChromeObject {
       new AppWindowBounds._proxy(JS('void', '#.getBounds()', this._jsObject));
 
   /// Set the window's bounds.
-  void setBounds(AppWindowBounds bounds) => JS('void', '#.setBounds(#)', this._jsObject, convertArgument(bounds));
+  void setBounds(AppWindowBounds bounds) =>
+      JS('void', '#.setBounds(#)', this._jsObject, convertArgument(bounds));
 
   /// Set the app icon for the window (experimental). Currently this is only
   /// being implemented on Ash. TODO(stevenjb): Investigate implementing this on
   /// Windows and OSX.
-  void setIcon(String icon_url) => JS('void', '#.setIcon(#)', this._jsObject, icon_url);
-
+  void setIcon(String icon_url) =>
+      JS('void', '#.setIcon(#)', this._jsObject, icon_url);
 }
 
 /**
@@ -868,14 +840,15 @@ class API_app_window {
 
   // TODO(sashab): This override is no longer needed once prefixes are removed.
   void create(String url,
-              [AppWindowCreateWindowOptions options,
-              void callback(AppWindowAppWindow created_window)]) {
+      [AppWindowCreateWindowOptions options,
+      void callback(AppWindowAppWindow created_window)]) {
     void __proxy_callback(created_window) {
       if (callback != null)
         callback(new AppWindowAppWindow._proxy(created_window));
     }
-    JS('void', '#.create(#, #, #)', this._jsObject, url, convertArgument(options),
-       convertDartClosureToJS(__proxy_callback, 1));
+
+    JS('void', '#.create(#, #, #)', this._jsObject, url,
+        convertArgument(options), convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Returns an $ref:AppWindow object for the current script context (ie
@@ -891,15 +864,22 @@ class API_app_window {
   AppWindowAppWindow current() =>
       new AppWindowAppWindow._proxy(JS('void', '#.current()', this._jsObject));
 
-  void initializeAppWindow(Object state) => JS('void', '#.initializeAppWindow(#)', this._jsObject, convertArgument(state));
+  void initializeAppWindow(Object state) => JS('void',
+      '#.initializeAppWindow(#)', this._jsObject, convertArgument(state));
 
   API_app_window(this._jsObject) {
-    onBoundsChanged = new Event_app_window_onBoundsChanged(JS('', '#.onBoundsChanged', this._jsObject));
-    onClosed = new Event_app_window_onClosed(JS('', '#.onClosed', this._jsObject));
-    onFullscreened = new Event_app_window_onFullscreened(JS('', '#.onFullscreened', this._jsObject));
-    onMaximized = new Event_app_window_onMaximized(JS('', '#.onMaximized', this._jsObject));
-    onMinimized = new Event_app_window_onMinimized(JS('', '#.onMinimized', this._jsObject));
-    onRestored = new Event_app_window_onRestored(JS('', '#.onRestored', this._jsObject));
+    onBoundsChanged = new Event_app_window_onBoundsChanged(
+        JS('', '#.onBoundsChanged', this._jsObject));
+    onClosed =
+        new Event_app_window_onClosed(JS('', '#.onClosed', this._jsObject));
+    onFullscreened = new Event_app_window_onFullscreened(
+        JS('', '#.onFullscreened', this._jsObject));
+    onMaximized = new Event_app_window_onMaximized(
+        JS('', '#.onMaximized', this._jsObject));
+    onMinimized = new Event_app_window_onMinimized(
+        JS('', '#.onMinimized', this._jsObject));
+    onRestored =
+        new Event_app_window_onRestored(JS('', '#.onRestored', this._jsObject));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -907,7 +887,6 @@ class API_app_window {
 // BSD-style license that can be found in the LICENSE file.
 
 // Generated from namespace: app.runtime
-
 
 /**
  * Types
@@ -918,10 +897,8 @@ class AppRuntimeLaunchItem extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchItem({FileEntry entry, String type}) {
-    if (entry != null)
-      this.entry = entry;
-    if (type != null)
-      this.type = type;
+    if (entry != null) this.entry = entry;
+    if (type != null) this.type = type;
   }
 
   /*
@@ -945,7 +922,6 @@ class AppRuntimeLaunchItem extends ChromeObject {
   void set type(String type) {
     JS('void', '#.type = #', this._jsObject, type);
   }
-
 }
 
 class AppRuntimeLaunchData extends ChromeObject {
@@ -953,10 +929,8 @@ class AppRuntimeLaunchData extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchData({String id, List<AppRuntimeLaunchItem> items}) {
-    if (id != null)
-      this.id = id;
-    if (items != null)
-      this.items = items;
+    if (id != null) this.id = id;
+    if (items != null) this.items = items;
   }
 
   /*
@@ -987,7 +961,6 @@ class AppRuntimeLaunchData extends ChromeObject {
   void set items(List<AppRuntimeLaunchItem> items) {
     JS('void', '#.items = #', this._jsObject, convertArgument(items));
   }
-
 }
 
 /**
@@ -1002,6 +975,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
+
     super.addListener(__proxy_callback);
   }
 
@@ -1011,6 +985,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
+
     super.removeListener(__proxy_callback);
   }
 
@@ -1020,6 +995,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
+
     super.hasListener(__proxy_callback);
   }
 
@@ -1054,8 +1030,10 @@ class API_app_runtime {
   Event_app_runtime_onLaunched onLaunched;
   Event_app_runtime_onRestarted onRestarted;
   API_app_runtime(this._jsObject) {
-    onLaunched = new Event_app_runtime_onLaunched(JS('', '#.onLaunched', this._jsObject));
-    onRestarted = new Event_app_runtime_onRestarted(JS('', '#.onRestarted', this._jsObject));
+    onLaunched = new Event_app_runtime_onLaunched(
+        JS('', '#.onLaunched', this._jsObject));
+    onRestarted = new Event_app_runtime_onRestarted(
+        JS('', '#.onRestarted', this._jsObject));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -1063,7 +1041,6 @@ class API_app_runtime {
 // BSD-style license that can be found in the LICENSE file.
 
 // Generated from namespace: fileSystem
-
 
 /**
  * Types
@@ -1073,13 +1050,11 @@ class FilesystemAcceptOption extends ChromeObject {
   /*
    * Public constructor
    */
-  FilesystemAcceptOption({String description, List<String> mimeTypes, List<String> extensions}) {
-    if (description != null)
-      this.description = description;
-    if (mimeTypes != null)
-      this.mimeTypes = mimeTypes;
-    if (extensions != null)
-      this.extensions = extensions;
+  FilesystemAcceptOption(
+      {String description, List<String> mimeTypes, List<String> extensions}) {
+    if (description != null) this.description = description;
+    if (mimeTypes != null) this.mimeTypes = mimeTypes;
+    if (extensions != null) this.extensions = extensions;
   }
 
   /*
@@ -1102,34 +1077,35 @@ class FilesystemAcceptOption extends ChromeObject {
 
   /// Mime-types to accept, e.g. "image/jpeg" or "audio/*". One of mimeTypes or
   /// extensions must contain at least one valid element.
-  List<String> get mimeTypes => JS('List<String>', '#.mimeTypes', this._jsObject);
+  List<String> get mimeTypes =>
+      JS('List<String>', '#.mimeTypes', this._jsObject);
 
   void set mimeTypes(List<String> mimeTypes) {
     JS('void', '#.mimeTypes = #', this._jsObject, mimeTypes);
   }
 
   /// Extensions to accept, e.g. "jpg", "gif", "crx".
-  List<String> get extensions => JS('List<String>', '#.extensions', this._jsObject);
+  List<String> get extensions =>
+      JS('List<String>', '#.extensions', this._jsObject);
 
   void set extensions(List<String> extensions) {
     JS('void', '#.extensions = #', this._jsObject, extensions);
   }
-
 }
 
 class FilesystemChooseEntryOptions extends ChromeObject {
   /*
    * Public constructor
    */
-  FilesystemChooseEntryOptions({String type, String suggestedName, List<FilesystemAcceptOption> accepts, bool acceptsAllTypes}) {
-    if (type != null)
-      this.type = type;
-    if (suggestedName != null)
-      this.suggestedName = suggestedName;
-    if (accepts != null)
-      this.accepts = accepts;
-    if (acceptsAllTypes != null)
-      this.acceptsAllTypes = acceptsAllTypes;
+  FilesystemChooseEntryOptions(
+      {String type,
+      String suggestedName,
+      List<FilesystemAcceptOption> accepts,
+      bool acceptsAllTypes}) {
+    if (type != null) this.type = type;
+    if (suggestedName != null) this.suggestedName = suggestedName;
+    if (accepts != null) this.accepts = accepts;
+    if (acceptsAllTypes != null) this.acceptsAllTypes = acceptsAllTypes;
   }
 
   /*
@@ -1158,7 +1134,8 @@ class FilesystemChooseEntryOptions extends ChromeObject {
   /// The optional list of accept options for this file opener. Each option will
   /// be presented as a unique group to the end-user.
   List<FilesystemAcceptOption> get accepts {
-    List<FilesystemAcceptOption> __proxy_accepts = new List<FilesystemAcceptOption>();
+    List<FilesystemAcceptOption> __proxy_accepts =
+        new List<FilesystemAcceptOption>();
     int count = JS('int', '#.accepts.length', this._jsObject);
     for (int i = 0; i < count; i++) {
       var item = JS('', '#.accepts[#]', this._jsObject, i);
@@ -1179,7 +1156,6 @@ class FilesystemChooseEntryOptions extends ChromeObject {
   void set acceptsAllTypes(bool acceptsAllTypes) {
     JS('void', '#.acceptsAllTypes = #', this._jsObject, acceptsAllTypes);
   }
-
 }
 
 /**
@@ -1198,30 +1174,44 @@ class API_file_system {
   /// Get the display path of a FileEntry object. The display path is based on
   /// the full path of the file on the local file system, but may be made more
   /// readable for display purposes.
-  void getDisplayPath(FileEntry fileEntry, void callback(String displayPath)) => JS('void', '#.getDisplayPath(#, #)', this._jsObject, convertArgument(fileEntry), convertDartClosureToJS(callback, 1));
+  void getDisplayPath(FileEntry fileEntry, void callback(String displayPath)) =>
+      JS('void', '#.getDisplayPath(#, #)', this._jsObject,
+          convertArgument(fileEntry), convertDartClosureToJS(callback, 1));
 
   /// Get a writable FileEntry from another FileEntry. This call will fail if the
   /// application does not have the 'write' permission under 'fileSystem'.
-  void getWritableEntry(FileEntry fileEntry, void callback(FileEntry fileEntry)) {
+  void getWritableEntry(
+      FileEntry fileEntry, void callback(FileEntry fileEntry)) {
     void __proxy_callback(fileEntry) {
       if (callback != null) {
         callback(fileEntry);
       }
     }
-    JS('void', '#.getWritableEntry(#, #)', this._jsObject, convertArgument(fileEntry), convertDartClosureToJS(__proxy_callback, 1));
+
+    JS(
+        'void',
+        '#.getWritableEntry(#, #)',
+        this._jsObject,
+        convertArgument(fileEntry),
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Gets whether this FileEntry is writable or not.
-  void isWritableEntry(FileEntry fileEntry, void callback(bool isWritable)) => JS('void', '#.isWritableEntry(#, #)', this._jsObject, convertArgument(fileEntry), convertDartClosureToJS(callback, 1));
+  void isWritableEntry(FileEntry fileEntry, void callback(bool isWritable)) =>
+      JS('void', '#.isWritableEntry(#, #)', this._jsObject,
+          convertArgument(fileEntry), convertDartClosureToJS(callback, 1));
 
   /// Ask the user to choose a file.
-  void chooseEntry(void callback(FileEntry fileEntry), [FilesystemChooseEntryOptions options]) {
+  void chooseEntry(void callback(FileEntry fileEntry),
+      [FilesystemChooseEntryOptions options]) {
     void __proxy_callback(fileEntry) {
       if (callback != null) {
         callback(fileEntry);
       }
     }
-    JS('void', '#.chooseEntry(#, #)', this._jsObject, convertArgument(options), convertDartClosureToJS(__proxy_callback, 1));
+
+    JS('void', '#.chooseEntry(#, #)', this._jsObject, convertArgument(options),
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Returns the file entry with the given id if it can be restored. This call
@@ -1232,12 +1222,19 @@ class API_file_system {
         callback(fileEntry);
       }
     }
-    JS('void', '#.restoreEntry(#, #)', this._jsObject, id, convertDartClosureToJS(__proxy_callback, 1));
+
+    JS('void', '#.restoreEntry(#, #)', this._jsObject, id,
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Returns whether a file entry for the given id can be restored, i.e. whether
   /// restoreEntry would succeed with this id now.
-  void isRestorable(String id, void callback(bool isRestorable)) => JS('void', '#.isRestorable(#, #)', this._jsObject, id, convertDartClosureToJS(callback, 1));
+  void isRestorable(String id, void callback(bool isRestorable)) => JS(
+      'void',
+      '#.isRestorable(#, #)',
+      this._jsObject,
+      id,
+      convertDartClosureToJS(callback, 1));
 
   /// Returns an id that can be passed to restoreEntry to regain access to a
   /// given file entry. Only the 500 most recently used entries are retained,
@@ -1245,8 +1242,8 @@ class API_file_system {
   /// the 'retainEntries' permission under 'fileSystem', entries are retained
   /// indefinitely. Otherwise, entries are retained only while the app is running
   /// and across restarts.
-  String retainEntry(FileEntry fileEntry) => JS('String', '#.retainEntry(#)', this._jsObject, convertArgument(fileEntry));
+  String retainEntry(FileEntry fileEntry) => JS(
+      'String', '#.retainEntry(#)', this._jsObject, convertArgument(fileEntry));
 
-  API_file_system(this._jsObject) {
-  }
+  API_file_system(this._jsObject) {}
 }

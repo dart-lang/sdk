@@ -81,7 +81,8 @@ class ParameterStubGenerator {
     JavaScriptConstantCompiler handler = backend.constants;
     List<String> names = callStructure.getOrderedNamedArguments();
 
-    bool isInterceptedMethod = backend.isInterceptedMethod(member);
+    bool isInterceptedMethod =
+        backend.interceptorData.isInterceptedMethod(member);
 
     // If the method is intercepted, we need to also pass the actual receiver.
     int extraArgumentCount = isInterceptedMethod ? 1 : 0;

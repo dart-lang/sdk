@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "vm/native_symbol.h"
 
@@ -44,6 +44,19 @@ void NativeSymbolResolver::FreeSymbolName(char* name) {
 }
 
 
+bool NativeSymbolResolver::LookupSharedObject(uword pc,
+                                              uword* dso_base,
+                                              char** dso_name) {
+  Dl_info info;
+  int r = dladdr(reinterpret_cast<void*>(pc), &info);
+  if (r == 0) {
+    return false;
+  }
+  *dso_base = reinterpret_cast<uword>(info.dli_fbase);
+  *dso_name = strdup(info.dli_fname);
+  return true;
+}
+
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(HOST_OS_MACOS)

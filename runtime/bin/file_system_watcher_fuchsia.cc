@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/file_system_watcher.h"
 
@@ -55,6 +55,6 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)
 
 #endif  // !defined(DART_IO_DISABLED)

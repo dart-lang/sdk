@@ -57,7 +57,7 @@ class RenameRefactoringTest extends RefactoringTest {
    * Fails if no [RenameRefactoring] can be created.
    */
   void createRenameRefactoringForElement(Element element) {
-    refactoring = new RenameRefactoring(searchEngine, element);
+    refactoring = new RenameRefactoring(searchEngine, astProvider, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 

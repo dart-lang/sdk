@@ -11,7 +11,6 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
-import '../elements/elements.dart' show Entity;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
@@ -40,10 +39,6 @@ class CodeEmitterTask extends CompilerTask {
   EmitterFactory _emitterFactory;
   Emitter _emitter;
   final Compiler compiler;
-
-  /// Records if a type variable is read dynamically for type tests.
-  final Set<TypeVariableEntity> readTypeVariables =
-      new Set<TypeVariableEntity>();
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -152,10 +147,6 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.templateForBuiltin(builtin);
   }
 
-  void registerReadTypeVariable(TypeVariableEntity element) {
-    readTypeVariables.add(element);
-  }
-
   Set<ClassEntity> _finalizeRti() {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
@@ -175,8 +166,6 @@ class CodeEmitterTask extends CompilerTask {
 
   int assembleProgram(Namer namer, ClosedWorld closedWorld) {
     return measure(() {
-      emitter.invalidateCaches();
-
       Set<ClassEntity> rtiNeededClasses = _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
@@ -251,6 +240,4 @@ abstract class Emitter {
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
-
-  void invalidateCaches();
 }

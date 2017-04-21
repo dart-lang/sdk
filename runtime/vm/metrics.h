@@ -25,16 +25,20 @@ class JSONStream;
   V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
   V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
   V(MetricHeapUsed, HeapGlobalUsed, "heap.global.used", kByte)                 \
-  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)
+  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)               \
+  V(Metric, RunnableLatency, "isolate.runnable.latency", kMicrosecond)         \
+  V(Metric, RunnableHeapSize, "isolate.runnable.heap", kByte)
 
 #define VM_METRIC_LIST(V)                                                      \
-  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)
+  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)            \
+  V(MetricPeakRSS, PeakRSS, "vm.memory.max", kByte)
 
 class Metric {
  public:
   enum Unit {
     kCounter,
     kByte,
+    kMicrosecond,
   };
 
   Metric();
@@ -163,6 +167,12 @@ class MetricHeapNewExternal : public Metric {
 
 
 class MetricIsolateCount : public Metric {
+ protected:
+  virtual int64_t Value() const;
+};
+
+
+class MetricPeakRSS : public Metric {
  protected:
   virtual int64_t Value() const;
 };

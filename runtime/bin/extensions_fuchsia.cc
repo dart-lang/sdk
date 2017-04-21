@@ -3,10 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/extensions.h"
-#include <dlfcn.h>  // NOLINT
+
+#include <dlfcn.h>
+#include <launchpad/vmo.h>
+#include <magenta/dlfcn.h>
+
+#include "platform/assert.h"
 
 namespace dart {
 namespace bin {
@@ -18,13 +23,26 @@ const char* kIsolateSnapshotInstructionsSymbolName =
     "_kDartIsolateSnapshotInstructions";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
-  return dlopen(library_file, RTLD_LAZY);
+  mx_handle_t vmo = launchpad_vmo_from_file(library_file);
+  if (vmo <= 0) {
+    return NULL;
+  }
+  return dlopen_vmo(vmo, RTLD_LAZY);
 }
+
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   dlerror();
   return dlsym(lib_handle, symbol);
 }
+
+
+void Extensions::UnloadLibrary(void* lib_handle) {
+  dlerror();
+  int result = dlclose(lib_handle);
+  ASSERT(result == 0);
+}
+
 
 Dart_Handle Extensions::GetError() {
   const char* err_str = dlerror();
@@ -37,4 +55,4 @@ Dart_Handle Extensions::GetError() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

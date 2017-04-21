@@ -11,7 +11,7 @@ import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart';
-import 'core_types.dart';
+import 'common_elements.dart';
 import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
@@ -40,6 +40,7 @@ import 'elements/elements.dart'
         TypeDeclarationElement,
         TypedElement,
         VariableElement;
+import 'enqueue.dart' show DeferredAction;
 import 'resolution/class_members.dart' show MembersCreator, ErroneousMember;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
@@ -716,7 +717,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
         Name.isPrivateName(name) &&
         element.library != currentLibrary) {
       reportTypeWarning(node, MessageKind.PRIVATE_ACCESS,
-          {'name': name, 'libraryName': element.library.libraryOrScriptName});
+          {'name': name, 'libraryName': element.library.name});
     }
   }
 
@@ -812,7 +813,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
             PrivateName privateName = member.name;
             LibraryElement library = privateName.library;
             reportMessage(node, MessageKind.PRIVATE_ACCESS,
-                {'name': name, 'libraryName': library.libraryOrScriptName},
+                {'name': name, 'libraryName': library.name},
                 isHint: isHint);
             foundPrivateMember = true;
           }
@@ -1992,7 +1993,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     }
 
     if (!hasDefaultCase && expressionType.isEnumType) {
-      compiler.enqueuer.resolution.addDeferredAction(executableContext, () {
+      compiler.enqueuer.resolution
+          .addDeferredAction(new DeferredAction(executableContext, () {
         Map<ConstantValue, FieldElement> enumValues =
             <ConstantValue, FieldElement>{};
         List<FieldElement> unreferencedFields = <FieldElement>[];
@@ -2029,7 +2031,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
             'enumValues': unreferencedFields.map((e) => e.name).join(', ')
           });
         }
-      });
+      }));
     }
   }
 

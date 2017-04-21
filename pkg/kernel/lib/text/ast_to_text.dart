@@ -5,7 +5,6 @@ library kernel.ast_to_text;
 
 import '../ast.dart';
 import '../import_table.dart';
-import '../type_propagation/type_propagation.dart';
 
 class Namer<T> {
   int index = 0;
@@ -37,11 +36,15 @@ class Disambiguator<T> {
 NameSystem globalDebuggingNames = new NameSystem();
 
 String debugLibraryName(Library node) {
-  return node.name ?? globalDebuggingNames.nameLibrary(node);
+  return node == null
+      ? 'null'
+      : node.name ?? globalDebuggingNames.nameLibrary(node);
 }
 
 String debugClassName(Class node) {
-  return node.name ?? globalDebuggingNames.nameClass(node);
+  return node == null
+      ? 'null'
+      : node.name ?? globalDebuggingNames.nameClass(node);
 }
 
 String debugQualifiedClassName(Class node) {
@@ -153,25 +156,6 @@ abstract class Annotator {
   String annotateField(Printer printer, Field node);
 }
 
-class InferredValueAnnotator implements Annotator {
-  const InferredValueAnnotator();
-
-  String annotateVariable(Printer printer, VariableDeclaration node) {
-    if (node.inferredValue == null) return null;
-    return printer.getInferredValueString(node.inferredValue);
-  }
-
-  String annotateReturn(Printer printer, FunctionNode node) {
-    if (node.inferredReturnValue == null) return null;
-    return printer.getInferredValueString(node.inferredReturnValue);
-  }
-
-  String annotateField(Printer printer, Field node) {
-    if (node.inferredValue == null) return null;
-    return printer.getInferredValueString(node.inferredValue);
-  }
-}
-
 /// A quick and dirty ambiguous text printer.
 class Printer extends Visitor<Null> {
   final NameSystem syntheticNames;
@@ -193,7 +177,7 @@ class Printer extends Visitor<Null> {
       this.showExternal,
       this.showOffsets: false,
       this.importTable,
-      this.annotator: const InferredValueAnnotator()})
+      this.annotator})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
 
   Printer._inner(Printer parent, this.importTable)
@@ -224,16 +208,6 @@ class Printer extends Visitor<Null> {
     String name = getClassName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
-  }
-
-  String getInferredValueString(InferredValue value) {
-    if (value.isNothing) return 'Nothing';
-    if (value.isAlwaysNull) return 'Null';
-    assert(value.baseClass != null);
-    String baseName = getClassReference(value.baseClass);
-    String baseSuffix = value.isSubclass ? '+' : value.isSubtype ? '*' : '!';
-    String bitSuffix = ValueBit.format(value.valueBits);
-    return '$baseName$baseSuffix $bitSuffix';
   }
 
   static final String emptyNameString = '•';
@@ -301,6 +275,9 @@ class Printer extends Visitor<Null> {
         var prefix = syntheticNames.nameLibraryPrefix(library);
         endLine('import "$importPath" as $prefix;');
       }
+    }
+    for (var import in library.deferredImports) {
+      import.accept(this);
     }
     endLine();
     var inner = new Printer._inner(this, imports);
@@ -396,10 +373,14 @@ class Printer extends Visitor<Null> {
   }
 
   void writeNode(Node node) {
-    if (showOffsets && node is TreeNode) {
-      writeWord("[${node.fileOffset}]");
+    if (node == null) {
+      writeSymbol("<Null>");
+    } else {
+      if (showOffsets && node is TreeNode) {
+        writeWord("[${node.fileOffset}]");
+      }
+      node.accept(this);
     }
-    node.accept(this);
   }
 
   void writeOptionalNode(Node node) {
@@ -442,6 +423,10 @@ class Printer extends Visitor<Null> {
         writeSymbol('>');
       }
     }
+  }
+
+  visitVectorType(VectorType type) {
+    writeWord('Vector');
   }
 
   void writeModifier(bool isThere, String name) {
@@ -492,7 +477,12 @@ class Printer extends Visitor<Null> {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
-    if (!function.debuggable) writeSpaced("/* not debuggable */");
+    if (function.dartAsyncMarker != AsyncMarker.Sync &&
+        function.dartAsyncMarker != function.asyncMarker) {
+      writeSpaced("/* originally");
+      writeSpaced(getAsyncMarkerKeyword(function.dartAsyncMarker));
+      writeSpaced("*/");
+    }
     if (function.body != null) {
       writeFunctionBody(function.body, terminateLine: terminateLine);
     } else if (terminateLine) {
@@ -985,6 +975,60 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
+  visitLoadLibrary(LoadLibrary node) {
+    writeWord('LoadLibrary');
+    writeSymbol('(');
+    writeWord(node.import.name);
+    writeSymbol(')');
+    state = WORD;
+  }
+
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    writeWord('CheckLibraryIsLoaded');
+    writeSymbol('(');
+    writeWord(node.import.name);
+    writeSymbol(')');
+    state = WORD;
+  }
+
+  visitVectorCreation(VectorCreation node) {
+    writeWord('MakeVector');
+    writeSymbol('(');
+    writeWord(node.length.toString());
+    writeSymbol(')');
+  }
+
+  visitVectorGet(VectorGet node) {
+    writeExpression(node.vectorExpression);
+    writeSymbol('[');
+    writeWord(node.index.toString());
+    writeSymbol(']');
+  }
+
+  visitVectorSet(VectorSet node) {
+    writeExpression(node.vectorExpression);
+    writeSymbol('[');
+    writeWord(node.index.toString());
+    writeSymbol(']');
+    writeSpaced('=');
+    writeExpression(node.value);
+  }
+
+  visitVectorCopy(VectorCopy node) {
+    writeWord('CopyVector');
+    writeSymbol('(');
+    writeExpression(node.vectorExpression);
+    writeSymbol(')');
+  }
+
+  visitDeferredImport(DeferredImport node) {
+    write('import "');
+    write('${node.importedLibrary.importUri}');
+    write('" deferred as ');
+    write(node.name);
+    endLine(';');
+  }
+
   defaultExpression(Expression node) {
     writeWord('${node.runtimeType}');
   }
@@ -1162,6 +1206,9 @@ class Printer extends Visitor<Null> {
 
   visitForInStatement(ForInStatement node) {
     writeIndentation();
+    if (node.isAsync) {
+      writeSpaced('await');
+    }
     writeSpaced('for');
     writeSymbol('(');
     writeVariableDeclaration(node.variable, useVarKeyword: true);

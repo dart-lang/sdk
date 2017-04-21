@@ -325,7 +325,7 @@ class X86Decoder : public ValueObject {
 
   // Bottleneck functions to print into the out_buffer.
   void PrintInt(int value);
-  void PrintHex(int value);
+  void PrintHex(int value, bool signed_value = false);
   void Print(const char* str);
   const char* GetBranchPrefix(uint8_t** data);
 
@@ -401,9 +401,13 @@ void X86Decoder::PrintInt(int value) {
 
 
 // Append the int value (printed in hex) to the output buffer.
-void X86Decoder::PrintHex(int value) {
+void X86Decoder::PrintHex(int value, bool signed_value) {
   char hex_buffer[16];
-  OS::SNPrint(hex_buffer, sizeof(hex_buffer), "%#x", value);
+  if (signed_value && value < 0) {
+    OS::SNPrint(hex_buffer, sizeof(hex_buffer), "-%#x", -value);
+  } else {
+    OS::SNPrint(hex_buffer, sizeof(hex_buffer), "%#x", value);
+  }
   Print(hex_buffer);
 }
 
@@ -685,7 +689,7 @@ int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
     PrintHex(*reinterpret_cast<int16_t*>(data + 1 + count));
     return 1 + count + 2 /*int16_t*/;
   } else if (sign_extension_bit) {
-    PrintHex(*(data + 1 + count));
+    PrintHex(*reinterpret_cast<int8_t*>(data + 1 + count), sign_extension_bit);
     return 1 + count + 1 /*int8_t*/;
   } else {
     PrintHex(*reinterpret_cast<int32_t*>(data + 1 + count));

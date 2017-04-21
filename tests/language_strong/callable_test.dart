@@ -21,7 +21,7 @@ class Y {
 class Z<T> {
   final T value;
   Z(this.value);
-  call() => value;
+  T call() => value;
 
   static int staticMethod(int x) => x + 1;
 }
@@ -29,23 +29,23 @@ class Z<T> {
 typedef F(int x);
 typedef G(String y);
 typedef H();
+typedef T I<T>();
 
 main() {
   X x = new X();
-  Function f = x;  // Should pass checked mode test
+  Function f = x; // Should pass checked mode test
   Y y = new Y();
-  Function g = y;  // Should pass checked mode test
-  F f0 = y;  // Should pass checked mode test
-  F f1 = x;  /// 00: dynamic type error, static type warning
-  G g0 = y;  /// 01: dynamic type error, static type warning
+  Function g = y; // Should pass checked mode test
+  F f0 = y; // Should pass checked mode test
+  F f1 = x; //# 00: dynamic type error, static type warning
+  G g0 = y; //# 01: dynamic type error, static type warning
 
   Expect.equals(f(), 42);
   Expect.equals(g(100), 187);
 
   var z = new Z<int>(123);
   Expect.equals(z(), 123);
-  // TODO(jmesserly): this test doesn't work yet.
-  // Expect.equals((z as dynamic)(), 123);
+  Expect.equals((z as dynamic)(), 123);
 
   Expect.equals(Y.staticMethod(6), 7);
   Expect.equals(Z.staticMethod(6), 7);

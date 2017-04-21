@@ -77,7 +77,7 @@ static void StackAllocatedDestructionHelper(int* ptr) {
 }
 
 
-UNIT_TEST_CASE(StackAllocatedDestruction) {
+VM_UNIT_TEST_CASE(StackAllocatedDestruction) {
   int data = 1;
   StackAllocatedDestructionHelper(&data);
   EXPECT_EQ(4, data);

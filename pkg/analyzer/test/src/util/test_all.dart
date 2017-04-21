@@ -8,7 +8,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'absolute_path_test.dart' as absolute_path_test;
 import 'asserts_test.dart' as asserts_test;
-import 'fast_uri_test.dart' as fast_uri_test;
 import 'glob_test.dart' as glob_test;
 import 'lru_map_test.dart' as lru_map_test;
 import 'yaml_test.dart' as yaml_test;
@@ -18,7 +17,6 @@ main() {
   defineReflectiveSuite(() {
     absolute_path_test.main();
     asserts_test.main();
-    fast_uri_test.main();
     glob_test.main();
     lru_map_test.main();
     yaml_test.main();

@@ -16,7 +16,12 @@ import 'package:analyzer/dart/ast/ast.dart'
         MethodInvocation,
         SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, ExecutableElement, FunctionElement;
+    show
+        ClassElement,
+        Element,
+        ExecutableElement,
+        FunctionElement,
+        LibraryElement;
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, ParameterizedType;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
@@ -139,3 +144,16 @@ List<ClassElement> getSuperclasses(ClassElement cls) {
   }
   return result;
 }
+
+List<ClassElement> getImmediateSuperclasses(ClassElement c) {
+  var result = <ClassElement>[];
+  for (var m in c.mixins.reversed) {
+    result.add(m.element);
+  }
+  var s = c.supertype;
+  if (s != null) result.add(s.element);
+  return result;
+}
+
+bool isSdkInternalRuntime(LibraryElement l) =>
+    l.isInSdk && l.source.uri.toString() == 'dart:_runtime';

@@ -36,9 +36,9 @@ import 'browser_test.dart';
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
 RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
-// Require at least one non-space character before '///'
+// Require at least one non-space character before '//[/#]'
 RegExp multiTestRegExp = new RegExp(r"\S *"
-    r"/// \w+:(.*)");
+    r"//[#/] \w+:(.*)");
 RegExp dartExtension = new RegExp(r'\.dart$');
 
 /**
@@ -308,7 +308,8 @@ abstract class TestSuite {
     if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
       // Handle reload special cases.
       if (expectations.contains(Expectation.COMPILETIME_ERROR) ||
-          testCase.hasCompileError || testCase.expectCompileError) {
+          testCase.hasCompileError ||
+          testCase.expectCompileError) {
         // Running a test that expects a compilation error with hot reloading
         // is redundant with a regular run of the test.
         return;
@@ -383,46 +384,36 @@ abstract class TestSuite {
 
   String createOutputDirectory(Path testPath, String optionsName) {
     var checked = configuration['checked'] ? '-checked' : '';
-    var strong =  configuration['strong'] ? '-strong' : '';
+    var strong = configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
-    var packages =
-        configuration['use_public_packages'] ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-        "$checked$strong$minified$packages$sdk";
+        "$checked$strong$minified$sdk";
     return createGeneratedTestDirectoryHelper(
         "tests", dirName, testPath, optionsName);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration['checked'] ? '-checked' : '';
-    var strong =  configuration['strong'] ? '-strong' : '';
+    var strong = configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
-    var packages =
-        configuration['use_public_packages'] ? '-public_packages' : '';
     var dirName = "${configuration['compiler']}"
-        "$checked$strong$minified$csp$packages$sdk";
+        "$checked$strong$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath, "");
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {
-    var sdk = configuration['use_sdk'] ? '-sdk' : '';
-    var pkg = configuration['use_public_packages']
-        ? 'public_packages'
-        : 'repo_packages';
+    var sdk = configuration['use_sdk'] ? 'sdk' : '';
     return createGeneratedTestDirectoryHelper(
-        "pubspec_checkouts", '$pkg$sdk', directoryOfPubspecYaml, "");
+        "pubspec_checkouts", sdk, directoryOfPubspecYaml, "");
   }
 
   String createPubPackageBuildsDirectory(Path directoryOfPubspecYaml) {
-    var pkg = configuration['use_public_packages']
-        ? 'public_packages'
-        : 'repo_packages';
     return createGeneratedTestDirectoryHelper(
-        "pub_package_builds", pkg, directoryOfPubspecYaml, "");
+        "pub_package_builds", 'public_packages', directoryOfPubspecYaml, "");
   }
 
   /**
@@ -515,17 +506,6 @@ abstract class TestSuite {
       }
       return packageDirectories;
     });
-  }
-
-  /**
-   * Helper function for building dependency_overrides for pubspec.yaml files.
-   */
-  Map buildPubspecDependencyOverrides(Map packageDirectories) {
-    Map overrides = {};
-    packageDirectories.forEach((String packageName, String fullPath) {
-      overrides[packageName] = {'path': fullPath};
-    });
-    return overrides;
   }
 }
 
@@ -855,12 +835,13 @@ class StandardTestSuite extends TestSuite {
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
-      group.add(doMultitest(filePath,
-                            buildDir,
-                            suiteDir,
-                            createTestCase,
-                            (configuration['hot_reload'] ||
-                             configuration['hot_reload_rollback'])));
+      group.add(doMultitest(
+          filePath,
+          buildDir,
+          suiteDir,
+          createTestCase,
+          (configuration['hot_reload'] ||
+              configuration['hot_reload_rollback'])));
     } else {
       createTestCase(filePath, filePath, optionsFromFile['hasCompileError'],
           optionsFromFile['hasRuntimeError'],
@@ -896,87 +877,14 @@ class StandardTestSuite extends TestSuite {
       enqueueHtmlTest(info, testName, expectations);
       return;
     }
-    var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
-
-    Map buildSpecialPackageRoot(Path pubspecYamlFile) {
-      var commands = <Command>[];
-      var packageDir = pubspecYamlFile.directoryPath;
-      var packageName = packageDir.filename;
-
-      var checkoutDirectory = createPubspecCheckoutDirectory(packageDir);
-      var modifiedYamlFile = new Path(checkoutDirectory).append("pubspec.yaml");
-      var pubCacheDirectory = new Path(checkoutDirectory).append("pub-cache");
-      var newPackageRoot = new Path(checkoutDirectory).append("packages");
-
-      // Remove the old packages directory, so we can do a clean 'pub get'.
-      var newPackagesDirectory = new Directory(newPackageRoot.toNativePath());
-      if (newPackagesDirectory.existsSync()) {
-        newPackagesDirectory.deleteSync(recursive: true);
-      }
-
-      // NOTE: We make a link in the package-root to [packageName], since
-      // 'pub get' doesn't create the link to the package containing
-      // pubspec.yaml if there is no lib directory.
-      var packageLink = newPackageRoot.append(packageName);
-      var packageLinkTarget = packageDir.append('lib');
-
-      // NOTE: We make a link in the package-root to pkg/expect, since
-      // 'package:expect' is not available on pub.dartlang.org!
-      var expectLink = newPackageRoot.append('expect');
-      var expectLinkTarget =
-          TestUtils.dartDir.append('pkg').append('expect').append('lib');
-
-      // Generate dependency overrides if we use repository packages.
-      var packageDirectories = {};
-      if (configuration['use_repository_packages']) {
-        packageDirectories = new Map.from(localPackageDirectories);
-
-        // Don't create a dependency override for pub, since it's an application
-        // package and it has a dependency on compiler_unsupported which isn't
-        // in the repo.
-        packageDirectories.remove('pub');
-
-        // Do not create an dependency override for the package itself.
-        if (packageDirectories.containsKey(packageName)) {
-          packageDirectories.remove(packageName);
-        }
-      }
-      var overrides = buildPubspecDependencyOverrides(packageDirectories);
-
-      commands.add(CommandBuilder.instance.getModifyPubspecCommand(
-          pubspecYamlFile.toNativePath(), overrides,
-          destinationFile: modifiedYamlFile.toNativePath()));
-      commands.add(CommandBuilder.instance.getPubCommand(
-          "get", pubPath, checkoutDirectory, pubCacheDirectory.toNativePath()));
-      if (new Directory(packageLinkTarget.toNativePath()).existsSync()) {
-        commands.add(CommandBuilder.instance.getMakeSymlinkCommand(
-            packageLink.toNativePath(), packageLinkTarget.toNativePath()));
-      }
-      commands.add(CommandBuilder.instance.getMakeSymlinkCommand(
-          expectLink.toNativePath(), expectLinkTarget.toNativePath()));
-
-      return {'commands': commands, 'package-root': newPackageRoot,};
-    }
 
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
     List<Command> baseCommands = <Command>[];
     Path packageRoot;
     Path packages;
-    if (configuration['use_repository_packages'] ||
-        configuration['use_public_packages']) {
-      Path pubspecYamlFile = _findPubspecYamlFile(filePath);
-      if (pubspecYamlFile != null) {
-        var result = buildSpecialPackageRoot(pubspecYamlFile);
-        baseCommands.addAll(result['commands']);
-        packageRoot = result['package-root'];
-        if (optionsFromFile['packageRoot'] == null ||
-            optionsFromFile['packageRoot'] == "") {
-          optionsFromFile['packageRoot'] = packageRoot.toNativePath();
-        }
-      }
-    }
+
     if (optionsFromFile['packageRoot'] == null &&
         optionsFromFile['packages'] == null) {
       if (configuration['package_root'] != null) {
@@ -1227,8 +1135,8 @@ class StandardTestSuite extends TestSuite {
       String optionsName =
           multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
       String tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages,
-          info, testName, expectations, vmOptions, tempDir);
+      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages, info,
+          testName, expectations, vmOptions, tempDir);
     }
   }
 
@@ -1376,7 +1284,7 @@ class StandardTestSuite extends TestSuite {
         var contentShellOptions = [];
 
         contentShellOptions.add('--no-timeout');
-        contentShellOptions.add('--dump-render-tree');
+        contentShellOptions.add('--run-layout-test');
 
         // Disable the GPU under Linux and Dartium. If the GPU is enabled,
         // Chrome may send a termination signal to a test.  The test will be
@@ -1495,8 +1403,8 @@ class StandardTestSuite extends TestSuite {
       args = [];
     }
     args.addAll(TestUtils.standardOptions(configuration));
-    String packages = packagesArgument(optionsFromFile['packageRoot'],
-                                       optionsFromFile['packages']);
+    String packages = packagesArgument(
+        optionsFromFile['packageRoot'], optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args.add('--out=$outputFile');
     args.add(inputFile);
@@ -1516,8 +1424,8 @@ class StandardTestSuite extends TestSuite {
   Command _polymerDeployCommand(
       String inputFile, String outputDir, optionsFromFile) {
     List<String> args = [];
-    String packages = packagesArgument(optionsFromFile['packageRoot'],
-                                       optionsFromFile['packages']);
+    String packages = packagesArgument(
+        optionsFromFile['packageRoot'], optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args
       ..add('package:polymer/deploy.dart')
@@ -1572,14 +1480,14 @@ class StandardTestSuite extends TestSuite {
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
 
-    String packages = packagesArgument(optionsFromFile['packageRoot'],
-                                       optionsFromFile['packages']);
+    String packages = packagesArgument(
+        optionsFromFile['packageRoot'], optionsFromFile['packages']);
     if (packages != null) {
       args.add(packages);
     }
     args.addAll(additionalOptions(filePath));
     if (configuration['analyzer']) {
-      args.add('--machine');
+      args.add('--format=machine');
       args.add('--no-hints');
     }
 
@@ -1601,17 +1509,15 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packagesArgument(String packageRootFromFile,
-                             String packagesFromFile) {
-    if (packageRootFromFile == 'none' ||
-        packagesFromFile == 'none') {
+  String packagesArgument(String packageRootFromFile, String packagesFromFile) {
+    if (packageRootFromFile == 'none' || packagesFromFile == 'none') {
       return null;
     } else if (packagesFromFile != null) {
       return '--packages=$packagesFromFile';
     } else if (packageRootFromFile != null) {
       return '--package-root=$packageRootFromFile';
     } else {
-    return null;
+      return null;
     }
   }
 
@@ -1811,7 +1717,7 @@ class StandardTestSuite extends TestSuite {
 
   Map optionsFromKernelFile() {
     return const {
-      "vmOptions": const [ const []],
+      "vmOptions": const [const []],
       "sharedOptions": const [],
       "dartOptions": null,
       "packageRoot": null,
@@ -1962,14 +1868,17 @@ class DartcCompilationTestSuite extends StandardTestSuite {
 }
 
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
+  static String libraryPath(Map configuration) => configuration['use_sdk']
+      ? '${TestUtils.buildDir(configuration)}/dart-sdk'
+      : 'sdk';
+
   AnalyzeLibraryTestSuite(Map configuration)
-      : super(configuration, 'analyze_library', 'sdk', ['lib'],
-            ['tests/lib/analyzer/analyze_library.status']);
+      : super(configuration, 'analyze_library', libraryPath(configuration),
+            ['lib'], ['tests/lib/analyzer/analyze_library.status']);
 
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) {
     var options = super.additionalOptions(filePath);
-    // NOTE: This flag has been deprecated.
-    options.add('--show-sdk-warnings');
+    options.add('--sdk-warnings');
     return options;
   }
 
@@ -2013,39 +1922,20 @@ class PkgBuildTestSuite extends TestSuite {
         var directoryPath = absoluteDirectoryPath.relativeTo(TestUtils.dartDir);
         var testName = "$directoryPath";
         var displayName = '$suiteName/$testName';
-        var packageName = directoryPath.filename;
 
-        // Collect necessary paths for pubspec.yaml overrides, pub-cache, ...
         var checkoutDir =
             createPubPackageBuildsDirectory(absoluteDirectoryPath);
         var cacheDir = new Path(checkoutDir).append("pub-cache").toNativePath();
-        var pubspecYamlFile =
-            new Path(checkoutDir).append('pubspec.yaml').toNativePath();
-
-        var packageDirectories = {};
-        if (!configuration['use_public_packages']) {
-          packageDirectories = new Map.from(localPackageDirectories);
-
-          // Don't create a dependency override for pub, since it's an
-          // application package and it has a dependency on compiler_unsupported
-          // which isn't in the repo.
-          packageDirectories.remove('pub');
-
-          if (packageDirectories.containsKey(packageName)) {
-            packageDirectories.remove(packageName);
-          }
-        }
-        var dependencyOverrides =
-            buildPubspecDependencyOverrides(packageDirectories);
 
         // Build all commands
-        var commands = new List<Command>();
-        commands.add(
-            CommandBuilder.instance.getCopyCommand(directory, checkoutDir));
-        commands.add(CommandBuilder.instance
-            .getModifyPubspecCommand(pubspecYamlFile, dependencyOverrides));
-        commands.add(CommandBuilder.instance
-            .getPubCommand("get", pubPath, checkoutDir, cacheDir));
+        // In order to debug timeouts on the buildbots, We run `pub get` with
+        // "--verbose". See https://github.com/dart-lang/sdk/issues/28734.
+        var commands = [
+          CommandBuilder.instance.getCopyCommand(directory, checkoutDir),
+          CommandBuilder.instance.getPubCommand(
+              "get", pubPath, checkoutDir, cacheDir,
+              arguments: ['--verbose'])
+        ];
 
         bool containsWebDirectory = dirExists(directoryPath.append('web'));
         bool containsBuildDartFile =
@@ -2253,14 +2143,12 @@ class TestUtils {
         configuration['compiler'] == 'dart2appjit' ||
         configuration['compiler'] == 'precompiler') {
       var checked = configuration['checked'] ? '-checked' : '';
-      var strong =  configuration['strong'] ? '-strong' : '';
+      var strong = configuration['strong'] ? '-strong' : '';
       var minified = configuration['minified'] ? '-minified' : '';
       var csp = configuration['csp'] ? '-csp' : '';
       var sdk = configuration['use_sdk'] ? '-sdk' : '';
-      var packages =
-          configuration['use_public_packages'] ? '-public_packages' : '';
       var dirName = "${configuration['compiler']}"
-          "$checked$strong$minified$csp$packages$sdk";
+          "$checked$strong$minified$csp$sdk";
       String generatedPath = "${TestUtils.buildDir(configuration)}"
           "/generated_compilations/$dirName";
       TestUtils.deleteDirectory(generatedPath);
@@ -2341,9 +2229,8 @@ class TestUtils {
     if (compiler == "dart2js" && configuration["fast_startup"]) {
       args.add("--fast-startup");
     }
-    if (compiler == "dart2analyzer") {
-      args.add("--show-package-warnings");
-      args.add("--enable-async");
+    if (compiler == "dart2js" && configuration["dart2js_with_kernel"]) {
+      args.add("--use-kernel");
     }
     return args;
   }
@@ -2458,7 +2345,7 @@ class TestUtils {
   static List<String> getExtraVmOptions(Map configuration) =>
       getExtraOptions(configuration, 'vm_options');
 
-  static int shortNameCounter = 0;  // Make unique short file names on Windows.
+  static int shortNameCounter = 0; // Make unique short file names on Windows.
 
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {

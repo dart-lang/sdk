@@ -213,6 +213,13 @@ class TestOptionsParser {
           [],
           false,
           type: 'bool'),
+      new _TestOptionSpecification(
+          'dart2js_with_kernel',
+          'Enable the internal pipeline in dart2js to use kernel',
+          ['--dart2js-with-kernel'],
+          [],
+          false,
+          type: 'bool'),
       new _TestOptionSpecification('hot_reload', 'Run hot reload stress tests',
           ['--hot-reload'], [], false,
           type: 'bool'),
@@ -291,6 +298,9 @@ class TestOptionsParser {
           'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
+          'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
@@ -334,23 +344,6 @@ Note: currently only implemented for dart2js.''',
           false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'use_public_packages',
-          'For tests using packages: Use pub.dartlang.org packages '
-          'instead the ones in the repository.',
-          ['--use-public-packages'],
-          [],
-          false,
-          type: 'bool'),
-      new _TestOptionSpecification(
-          'use_repository_packages',
-          'For tests using packages: Use pub.dartlang.org packages '
-          'but use overrides for the packages available in the '
-          'repository.',
-          ['--use-repository-packages'],
-          [],
-          false,
-          type: 'bool'),
-      new _TestOptionSpecification(
           'build_directory',
           'The name of the build directory, where products are placed.',
           ['--build-directory'],
@@ -379,7 +372,7 @@ Note: currently only implemented for dart2js.''',
       new _TestOptionSpecification(
           'write_test_outcome_log',
           'Write the outcome of all tests executed to a '
-          '"${TestUtils.flakyFileName()}" file.',
+          '"${TestUtils.testOutcomeFileName()}" file.',
           ['--write-test-outcome-log'],
           [],
           false,
@@ -745,12 +738,6 @@ Note: currently only implemented for dart2js.''',
       isValid = false;
       print("Error: shard index is ${config['shard']} out of "
           "${config['shards']} shards");
-    }
-
-    if (config['use_repository_packages'] && config['use_public_packages']) {
-      isValid = false;
-      print("Cannot have both --use-repository-packages and "
-          "--use-public-packages");
     }
     if ((config['runtime'] == 'flutter') && (config['flutter'] == '')) {
       isValid = false;

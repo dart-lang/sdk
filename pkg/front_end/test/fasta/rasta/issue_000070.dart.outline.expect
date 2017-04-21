@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<N extends core::Object, S extends core::Object, U extends core::Object> extends core::Object {
+  final field core::List<self::A::U> field;
+  constructor •(self::A::N n, self::A::S s) → void
+    ;
+  constructor empty() → void
+    ;
+  const constructor c(self::A::U u, self::A::S s) → void
+    ;
+  static factory f<N extends core::Object, S extends core::Object, U extends core::Object>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U>
+    ;
+  get getter() → core::List<self::A::U>
+    ;
+  set setter(self::A::S s) → void
+    ;
+}
+abstract class J<Aa extends core::Object, B extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+}
+abstract class I<H extends core::Object, C extends core::Object, K extends core::Object> extends self::J<self::I::C, self::I::K> {
+  constructor •() → void
+    ;
+}
+static method main() → dynamic
+  ;

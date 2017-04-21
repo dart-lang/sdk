@@ -42,6 +42,7 @@ String innerText(dom.Element parent) {
       }
     }
   }
+
   recurse(parent);
   return buffer.toString();
 }

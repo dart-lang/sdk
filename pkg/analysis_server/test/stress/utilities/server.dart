@@ -190,11 +190,6 @@ class Server {
   List<String> _analysisRootIncludes = <String>[];
 
   /**
-   * The analysis roots that are excluded.
-   */
-  List<String> _analysisRootExcludes = <String>[];
-
-  /**
    * A list containing the paths of files for which an overlay has been created.
    */
   List<String> filesWithOverlays = <String>[];
@@ -448,7 +443,6 @@ class Server {
       List<String> included, List<String> excluded,
       {Map<String, String> packageRoots}) {
     _analysisRootIncludes = included;
-    _analysisRootExcludes = excluded;
     var params = new AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
         .toJson();
@@ -614,9 +608,6 @@ class Server {
    *
    * If [checked] is `true`, the server's VM will be running in checked mode.
    *
-   * If [debugServer] is `true`, the server will be started with "--debug",
-   * allowing a debugger to be attached.
-   *
    * If [diagnosticPort] is not `null`, the server will serve status pages to
    * the specified port.
    *
@@ -631,7 +622,6 @@ class Server {
    */
   Future<Null> start(
       {bool checked: true,
-      bool debugServer: false,
       int diagnosticPort,
       bool enableNewAnalysisDriver: false,
       bool profileServer: false,
@@ -650,9 +640,6 @@ class Server {
     //
     // Add VM arguments.
     //
-    if (debugServer) {
-      arguments.add('--debug');
-    }
     if (profileServer) {
       if (servicesPort == null) {
         arguments.add('--observe');
@@ -689,8 +676,8 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (enableNewAnalysisDriver) {
-      arguments.add('--enable-new-analysis-driver');
+    if (!enableNewAnalysisDriver) {
+      arguments.add('--disable-new-analysis-driver');
     }
 //    stdout.writeln('Launching $serverPath');
 //    stdout.writeln('$dartBinary ${arguments.join(' ')}');

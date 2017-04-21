@@ -4,8 +4,7 @@
 
 part of _js_helper;
 
-class ConstantMapView<K, V> extends UnmodifiableMapView
-                      implements ConstantMap {
+class ConstantMapView<K, V> extends UnmodifiableMapView implements ConstantMap {
   ConstantMapView(Map base) : super(base);
 }
 
@@ -56,6 +55,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   static _throwUnmodifiable() {
     throw new UnsupportedError("Cannot modify unmodifiable Map");
   }
+
   void operator []=(K key, V val) => _throwUnmodifiable();
   V putIfAbsent(K key, V ifAbsent()) => _throwUnmodifiable();
   V remove(K key) => _throwUnmodifiable();
@@ -64,7 +64,6 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 }
 
 class ConstantStringMap<K, V> extends ConstantMap<K, V> {
-
   // This constructor is not used for actual compile-time constants.
   // The instantiation of constant maps is shortcut by the compiler.
   const ConstantStringMap._(this._length, this._jsObject, this._keys)

@@ -12,12 +12,12 @@ class MD {
   const MD({this.name});
 }
 
-@MD(name:'A')
+@MD(name: 'A')
 class A {}
 
-@MD(name:'B')
+@MD(name: 'B')
 class B {
-  static x = { 0: 0; };  /// 01: compile-time error
+  static x = { 0: 0; }; // //# 01: compile-time error
 }
 
 main() {

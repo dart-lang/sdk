@@ -4,14 +4,14 @@
 
 part of dart._js_helper;
 
-
 /**
  * Sets a JavaScript property on an object.
  */
 void defineProperty(var obj, String property, var value) {
-  JS('void',
+  JS(
+      'void',
       'Object.defineProperty(#, #, '
-          '{value: #, enumerable: false, writable: true, configurable: true})',
+      '{value: #, enumerable: false, writable: true, configurable: true})',
       obj,
       property,
       value);
@@ -19,13 +19,13 @@ void defineProperty(var obj, String property, var value) {
 
 // Obsolete in dart dev compiler. Added only so that the same version of
 // dart:html can be used in dart2js an dev compiler.
-/*=F*/ convertDartClosureToJS /*<F>*/ (/*=F*/ closure, int arity) {
-	return closure;
+/*=F*/ convertDartClosureToJS/*<F>*/(/*=F*/ closure, int arity) {
+  return closure;
 }
 
 // Warning: calls to these methods need to be removed before custom elements
 // and cross-frame dom objects behave correctly in ddc
 // https://github.com/dart-lang/sdk/issues/28326
-setNativeSubclassDispatchRecord(proto, interceptor) { }
+setNativeSubclassDispatchRecord(proto, interceptor) {}
 findDispatchTagForInterceptorClass(interceptorClassConstructor) {}
 makeLeafDispatchRecord(interceptor) {}

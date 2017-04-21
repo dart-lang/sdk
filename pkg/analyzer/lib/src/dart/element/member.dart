@@ -10,8 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -231,9 +230,6 @@ class FieldFormalParameterMember extends ParameterMember
       : super(baseElement, definingType, type);
 
   @override
-  bool get isCovariant => baseElement.isCovariant;
-
-  @override
   FieldElement get field {
     FieldElement field = (baseElement as FieldFormalParameterElement).field;
     if (field is FieldElement) {
@@ -242,6 +238,9 @@ class FieldFormalParameterMember extends ParameterMember
     }
     return field;
   }
+
+  @override
+  bool get isCovariant => baseElement.isCovariant;
 
   @override
   /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
@@ -301,46 +300,13 @@ class FieldMember extends VariableMember implements FieldElement {
    * was created.
    */
   static FieldElement from(FieldElement field, ParameterizedType definingType) {
-    if (!_isChangedByTypeSubstitution(field, definingType)) {
+    if (field == null || definingType.typeArguments.isEmpty) {
       return field;
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the
     // instance. It would use more memory but speed up some operations.
     // We need to see how often the type is being re-computed.
     return new FieldMember(field, definingType);
-  }
-
-  /**
-   * Determine whether the given [field]'s type is changed when type parameters
-   * from the [definingType]'s declaration are replaced with the actual type
-   * arguments from the defining type.
-   */
-  static bool _isChangedByTypeSubstitution(
-      FieldElement field, ParameterizedType definingType) {
-    List<DartType> argumentTypes = definingType.typeArguments;
-    if (field != null && argumentTypes.length != 0) {
-      DartType baseType = field.type;
-      List<DartType> parameterTypes =
-          TypeParameterTypeImpl.getTypes(definingType.typeParameters);
-      if (baseType != null) {
-        DartType substitutedType =
-            baseType.substitute2(argumentTypes, parameterTypes);
-        if (baseType != substitutedType) {
-          return true;
-        }
-      }
-      // If the field has a propagated type, then we need to check whether the
-      // propagated type needs substitution.
-      DartType basePropagatedType = field.propagatedType;
-      if (basePropagatedType != null) {
-        DartType substitutedPropagatedType =
-            basePropagatedType.substitute2(argumentTypes, parameterTypes);
-        if (basePropagatedType != substitutedPropagatedType) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }
 
@@ -386,7 +352,7 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write(baseElement.displayName);
-    (type as FunctionTypeImpl).appendTo(buffer);
+    (type as FunctionTypeImpl).appendTo(buffer, new Set.identity());
     return buffer.toString();
   }
 
@@ -843,52 +809,13 @@ class PropertyAccessorMember extends ExecutableMember
    */
   static PropertyAccessorElement from(
       PropertyAccessorElement accessor, InterfaceType definingType) {
-    if (!_isChangedByTypeSubstitution(accessor, definingType)) {
+    if (accessor == null || definingType.typeArguments.isEmpty) {
       return accessor;
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the
     // instance. It would use more memory but speed up some operations.
     // We need to see how often the type is being re-computed.
     return new PropertyAccessorMember(accessor, definingType);
-  }
-
-  /**
-   * Determine whether the given property [accessor]'s type is changed when type
-   * parameters from the defining type's declaration are replaced with the
-   * actual type arguments from the [definingType].
-   */
-  static bool _isChangedByTypeSubstitution(
-      PropertyAccessorElement accessor, InterfaceType definingType) {
-    List<DartType> argumentTypes = definingType.typeArguments;
-    if (accessor != null && argumentTypes.length != 0) {
-      FunctionType baseType = accessor.type;
-      if (baseType == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            'Type of $accessor is null in PropertyAccessorMember._isChangedByTypeSubstitution');
-        return false;
-      }
-      List<DartType> parameterTypes = definingType.element.type.typeArguments;
-      FunctionType substitutedType =
-          baseType.substitute2(argumentTypes, parameterTypes);
-      if (baseType != substitutedType) {
-        return true;
-      }
-      // If this property accessor is based on a field, that field might have a
-      // propagated type. In which case we need to check whether the propagated
-      // type of the field needs substitution.
-      PropertyInducingElement field = accessor.variable;
-      if (!field.isSynthetic) {
-        DartType baseFieldType = field.propagatedType;
-        if (baseFieldType != null) {
-          DartType substitutedFieldType =
-              baseFieldType.substitute2(argumentTypes, parameterTypes);
-          if (baseFieldType != substitutedFieldType) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
 }
 
@@ -932,6 +859,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
 
   @override
   TypeParameterType get type => _type;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TypeParameterMember && baseElement == other.baseElement;
 
   @override
   /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
