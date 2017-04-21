@@ -422,8 +422,6 @@ class AnalysisServer {
         options.enableIncrementalResolutionApi;
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
-    defaultContextOptions.finerGrainedInvalidation =
-        options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
 
@@ -1894,7 +1892,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool finerGrainedInvalidation = false;
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';

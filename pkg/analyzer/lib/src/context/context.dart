@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
-import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -337,7 +336,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.disableCacheFlushing = options.disableCacheFlushing;
-    this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
     this._options.patchPaths = options.patchPaths;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
@@ -1841,53 +1839,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
     // We need to invalidate the cache.
     {
-      if (analysisOptions.finerGrainedInvalidation &&
-          AnalysisEngine.isDartFileName(source.fullName)) {
-        // TODO(scheglov) Incorrect implementation in general.
-        entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
-        entry.setState(PARSED_UNIT, CacheState.FLUSHED);
-        SourceKind sourceKind = getKindOf(source);
-        List<Source> partSources = getResult(source, INCLUDED_PARTS);
-        if (sourceKind == SourceKind.LIBRARY && partSources.isEmpty) {
-          Source librarySource = source;
-          // Try to find an old unit which has element model.
-          CacheEntry unitEntry =
-              getCacheEntry(new LibrarySpecificUnit(librarySource, source));
-          CompilationUnit oldUnit = RESOLVED_UNIT_RESULTS
-              .skipWhile((result) => result != RESOLVED_UNIT2)
-              .map(unitEntry.getValue)
-              .firstWhere((unit) => unit != null, orElse: () => null);
-          // If we have the old unit, we can try to update it.
-          if (oldUnit != null) {
-            // Safely parse the source.
-            CompilationUnit newUnit;
-            try {
-              newUnit = parseCompilationUnit(source);
-            } catch (_) {
-              // The source might have been removed by this time.
-              // We cannot perform incremental invalidation.
-            }
-            // If the new unit was parsed successfully, continue.
-            if (newUnit != null) {
-              IncrementalCompilationUnitElementBuilder builder =
-                  new IncrementalCompilationUnitElementBuilder(
-                      oldUnit, newUnit);
-              builder.build();
-              CompilationUnitElementDelta unitDelta = builder.unitDelta;
-              if (!unitDelta.hasDirectiveChange) {
-                unitEntry.setValueIncremental(
-                    COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
-                DartDelta dartDelta = new DartDelta(source);
-                unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
-                unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
-                unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
-                entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
-                return;
-              }
-            }
-          }
-        }
-      }
       entry.setState(CONTENT, CacheState.INVALID);
       entry.setState(MODIFICATION_TIME, CacheState.INVALID);
       entry.setState(SOURCE_KIND, CacheState.INVALID);
