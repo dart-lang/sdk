@@ -123,7 +123,6 @@ bailout_on_continue_test: RuntimeError # Issue 27394
 closure_type_reflection2_test: Crash # Issue 27394
 closure_type_reflection_test: Crash # Issue 27394
 deferred/deferred_constant3_test: RuntimeError # Issue 27394
-deferred/deferred_function_test: RuntimeError # Issue 27394
 deferred/deferred_mirrors2_test: Crash # Issue 27394
 first_class_types_hashcode_test: RuntimeError # Issue 27394
 generics_factories_test: RuntimeError # Issue 27394
@@ -160,6 +159,12 @@ reflect_native_types_test: Crash # Issue 27394
 runtime_type_test: RuntimeError # Issue 27394
 type_argument_factory_nocrash_test: RuntimeError # Issue 27394
 typevariable_substitution_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+LayoutTests_fast_mediastream_getusermedia_t01_test/01: Crash # Issue 27394
+regress/4740_test: Crash # Issue 27394
+switch_test/01: Crash # Issue 27394
+switch_test/02: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 regress/4562_test/01: Crash # Issue 27394
