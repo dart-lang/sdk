@@ -4,6 +4,8 @@
 
 library fasta.kernel_library_builder;
 
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
@@ -160,11 +162,11 @@ class KernelLibraryBuilder
   }
 
   void addField(List<MetadataBuilder> metadata, int modifiers,
-      KernelTypeBuilder type, String name, int charOffset) {
+      KernelTypeBuilder type, String name, int charOffset, Token initializer) {
     addBuilder(
         name,
-        new KernelFieldBuilder(
-            metadata, type, name, modifiers, this, charOffset),
+        new KernelFieldBuilder(loader.astFactory, loader.topLevelTypeInferrer,
+            metadata, type, name, modifiers, this, charOffset, initializer),
         charOffset);
   }
 
@@ -295,8 +297,8 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
-            charOffset, charEndOffset),
+        new KernelEnumBuilder(loader.astFactory, metadata, name,
+            constantNamesAndOffsets, this, charOffset, charEndOffset),
         charOffset);
   }
 

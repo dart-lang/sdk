@@ -980,7 +980,7 @@ class SummaryBuilder extends StackListener {
     // /* List<MetadataBuilder> metadata = */ pop();
   }
 
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer $typeSeen $assignmentOperator");
     // This is a variable initializer and it's ignored for now. May also be
     // constructor initializer.

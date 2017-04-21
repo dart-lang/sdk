@@ -1619,7 +1619,7 @@ class Parser {
       Token assignment = token;
       listener.beginFieldInitializer(token);
       token = parseExpression(token.next);
-      listener.endFieldInitializer(assignment);
+      listener.endFieldInitializer(assignment, token);
     } else {
       listener.handleNoFieldInitializer(token);
     }

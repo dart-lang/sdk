@@ -135,7 +135,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
   }
 
@@ -421,6 +421,8 @@ class DietListener extends StackListener {
   }
 
   void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
+    // TODO(paulberry): don't re-parse the field if we've already parsed it
+    // for type inference.
     parseFields(createListener(builder, memberScope, builder.isInstanceMember),
         token, isTopLevel);
   }

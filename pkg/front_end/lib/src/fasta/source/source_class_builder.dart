@@ -4,6 +4,12 @@
 
 library fasta.source_class_builder;
 
+import 'package:front_end/src/fasta/builder/class_builder.dart'
+    show ClassBuilder;
+
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
+
 import 'package:kernel/ast.dart'
     show Class, Constructor, Supertype, TreeNode, setParents;
 
@@ -146,5 +152,13 @@ class SourceClassBuilder extends KernelClassBuilder {
     DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
     memberBuilder.next = constructorScopeBuilder[name];
     constructorScopeBuilder.addMember(name, memberBuilder);
+  }
+
+  @override
+  void prepareInitializerInference(TypeInferrer typeInferrer,
+      LibraryBuilder library, ClassBuilder currentClass) {
+    scope.forEach((name, builder) {
+      builder.prepareInitializerInference(typeInferrer, library, this);
+    });
   }
 }

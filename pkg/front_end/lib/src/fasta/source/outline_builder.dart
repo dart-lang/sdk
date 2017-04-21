@@ -653,11 +653,11 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("endTopLevelFields");
-    List namesAndOffsets = popList(count * 2);
+    List namesOffsetsAndInitializers = popList(count * 4);
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, namesAndOffsets);
+    library.addFields(metadata, modifiers, type, namesOffsetsAndInitializers);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -665,11 +665,11 @@ class OutlineBuilder extends UnhandledListener {
   void endFields(
       int count, Token covariantToken, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    List namesAndOffsets = popList(count * 2);
+    List namesOffsetsAndInitializers = popList(count * 4);
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, namesAndOffsets);
+    library.addFields(metadata, modifiers, type, namesOffsetsAndInitializers);
   }
 
   @override
@@ -751,14 +751,17 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
-    // Ignoring field initializers for now.
+    push(assignmentOperator.next);
+    push(token);
   }
 
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
+    push(NullValue.FieldInitializer);
+    push(NullValue.FieldInitializer);
   }
 
   @override

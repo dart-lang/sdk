@@ -48,6 +48,7 @@ store_load: Crash
 stringliteral: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
+inference/toplevel_inference_toplevel_var: Crash
 type_variable_as_super: Fail
 typedef: Crash
 uninitialized_fields: Crash

@@ -415,7 +415,7 @@ class Listener {
 
   /// Handle the end of a field initializer.  Substructures:
   /// - Initializer expression
-  void endFieldInitializer(Token assignment) {
+  void endFieldInitializer(Token assignment, Token token) {
     logEvent("FieldInitializer");
   }
 

@@ -10,11 +10,19 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
 
+import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
+
+import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
+    show KernelAstFactory;
+
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelTypeInferrer;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
+
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
 
 import 'package:kernel/ast.dart' show Program;
 
@@ -55,6 +63,10 @@ class SourceLoader<L> extends Loader<L> {
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
+
+  final AstFactory astFactory = new KernelAstFactory();
+
+  TypeInferrer topLevelTypeInferrer;
 
   Instrumentation instrumentation;
 
@@ -129,9 +141,8 @@ class SourceLoader<L> extends Loader<L> {
   KernelTarget get target => super.target;
 
   DietListener createDietListener(LibraryBuilder library) {
-    var typeInferrer = new KernelTypeInferrer(
-        coreTypes, hierarchy, instrumentation, target.strongMode);
-    return new DietListener(library, hierarchy, coreTypes, typeInferrer);
+    return new DietListener(
+        library, hierarchy, coreTypes, createLocalTypeInferrer());
   }
 
   void resolveParts() {
@@ -366,6 +377,41 @@ class SourceLoader<L> extends Loader<L> {
       builder.checkOverrides(hierarchy);
     }
     ticker.logMs("Checked overrides");
+  }
+
+  void createTopLevelTypeInferrer() {
+    topLevelTypeInferrer =
+        new KernelTypeInferrer(instrumentation, target.strongMode);
+  }
+
+  /// Performs the first phase of top level initializer inference, which
+  /// consists of creating kernel objects for all fields and top level variables
+  /// that might be subject to type inference, and records dependencies between
+  /// them.
+  void prepareInitializerInference() {
+    topLevelTypeInferrer.coreTypes = coreTypes;
+    topLevelTypeInferrer.classHierarchy = hierarchy;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        library.prepareInitializerInference(
+            topLevelTypeInferrer, library, null);
+      }
+    });
+    ticker.logMs("Prepared initializer inference");
+  }
+
+  /// Performs the second phase of top level initializer inference, which is to
+  /// visit fields and top level variables in topologically-sorted order and
+  /// assign their types.
+  void performInitializerInference() {
+    topLevelTypeInferrer.performInitializerInference();
+    ticker.logMs("Performed initializer inference");
+  }
+
+  /// Creates the type inferrer that should be used inside of method bodies.
+  TypeInferrer createLocalTypeInferrer() {
+    // For kernel, the top level and local type inferrers are the same.
+    return topLevelTypeInferrer;
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();

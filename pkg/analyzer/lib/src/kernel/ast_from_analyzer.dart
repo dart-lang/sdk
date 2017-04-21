@@ -17,7 +17,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:front_end/src/fasta/kernel/frontend_accessors.dart';
+import 'package:kernel/frontend/accessors.dart';
 
 /// Provides reference-level access to libraries, classes, and members.
 ///

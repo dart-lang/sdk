@@ -36,6 +36,9 @@ abstract class AstFactory {
   /// Creates a statement block.
   Block block(List<Statement> statements, int charOffset);
 
+  /// Creates a field.
+  Field field(Name name, int charOffset, {String fileUri});
+
   /// Creates an integer literal.
   IntLiteral intLiteral(value, int charOffset);
 
@@ -51,6 +54,9 @@ abstract class AstFactory {
 
   /// Creates a return statement.
   Statement returnStatement(Expression expression, int charOffset);
+
+  /// Creates a read of a static variable.
+  StaticGet staticGet(Member readTarget, int offset);
 
   /// Creates a variable declaration statement declaring one variable.
   ///

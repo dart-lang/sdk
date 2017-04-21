@@ -14,10 +14,10 @@ import '../parser/identifier_context.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelVariableDeclaration;
+    show KernelField, KernelVariableDeclaration;
 
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
+    show FieldNode, TypeInferrer;
 
 import 'package:kernel/ast.dart';
 
@@ -87,10 +87,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final Uri uri;
 
-  final TypeInferrer<Statement, Expression, KernelVariableDeclaration, Field>
-      _typeInferrer;
+  final TypeInferrer<Statement, Expression, KernelVariableDeclaration,
+      KernelField> _typeInferrer;
 
   final AstFactory astFactory;
+
+  /// If not `null`, dependencies on fields are accumulated into this list.
+  ///
+  /// If `null`, no dependency information is recorded.
+  final List<FieldNode<KernelField>> fieldDependencies;
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
@@ -141,7 +146,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       this.isInstanceMember,
       this.uri,
       this._typeInferrer,
-      this.astFactory)
+      this.astFactory,
+      {this.fieldDependencies})
       : enclosingScope = scope,
         library = library,
         isDartLibrary = library.uri.scheme == "dart",
@@ -1070,7 +1076,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
     assert(assignmentOperator.stringValue == "=");
     push(popForValue());
@@ -2610,6 +2616,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void debugEvent(String name) {
     // printEvent(name);
+  }
+
+  @override
+  StaticGet makeStaticGet(Member readTarget, int offset) {
+    // TODO(paulberry): only record the dependencies mandated by the top level
+    // type inference spec.
+    if (fieldDependencies != null && readTarget is KernelField) {
+      var fieldNode = _typeInferrer.getFieldNodeForReadTarget(readTarget);
+      if (fieldNode != null) {
+        fieldDependencies.add(fieldNode);
+      }
+    }
+    return astFactory.staticGet(readTarget, offset);
   }
 }
 

@@ -230,6 +230,7 @@ class KernelTarget extends TargetImplementation {
   Future<Program> writeOutline(Uri uri) async {
     if (loader.first == null) return null;
     try {
+      loader.createTopLevelTypeInferrer();
       await loader.buildOutlines();
       loader.coreLibrary
           .becomeCoreLibrary(const DynamicType(), const VoidType());
@@ -247,6 +248,8 @@ class KernelTarget extends TargetImplementation {
       program = link(new List<Library>.from(loader.libraries));
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
+      loader.prepareInitializerInference();
+      loader.performInitializerInference();
       if (uri == null) return program;
       return await writeLinkedProgram(uri, program, isFullProgram: false);
     } on InputError catch (e) {

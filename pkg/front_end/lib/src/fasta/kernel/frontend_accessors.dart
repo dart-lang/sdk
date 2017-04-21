@@ -5,6 +5,9 @@
 /// A library to help transform compounds and null-aware accessors into
 /// let expressions.
 
+import 'package:front_end/src/fasta/kernel/fasta_accessors.dart'
+    show BuilderHelper;
+
 import 'package:kernel/ast.dart';
 
 final Name indexGetName = new Name("[]");
@@ -448,14 +451,16 @@ class SuperIndexAccessor extends Accessor {
 }
 
 class StaticAccessor extends Accessor {
+  final BuilderHelper helper;
   Member readTarget;
   Member writeTarget;
 
-  StaticAccessor(this.readTarget, this.writeTarget, int offset) : super(offset);
+  StaticAccessor(this.helper, this.readTarget, this.writeTarget, int offset)
+      : super(offset);
 
-  Expression _makeRead() => builtGetter =
-      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget)
-        ..fileOffset = offset;
+  Expression _makeRead() => builtGetter = readTarget == null
+      ? makeInvalidRead()
+      : helper.makeStaticGet(readTarget, offset);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null

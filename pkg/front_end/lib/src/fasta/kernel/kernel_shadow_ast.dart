@@ -20,8 +20,6 @@
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
 
 /// Concrete shadow object representing a statement block in kernel form.
 class KernelBlock extends Block implements KernelStatement {
@@ -42,6 +40,36 @@ abstract class KernelExpression implements Expression {
   /// type of [KernelExpression] this is.
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded);
+}
+
+/// Concrete shadow object representing a field in kernel form.
+class KernelField extends Field {
+  bool _implicitlyTyped = true;
+
+  FieldNode<KernelField> _fieldNode;
+
+  bool _isInferred = false;
+
+  KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
+
+  @override
+  void set type(DartType value) {
+    _implicitlyTyped = false;
+    super.type = value;
+  }
+
+  String get _fileUri {
+    // TODO(paulberry): This is a hack.  We should use this.fileUri, because we
+    // want the URI of the compilation unit.  But that gives a relative URI,
+    // and I don't know what it's relative to or how to convert it to an
+    // absolute URI.
+    return enclosingLibrary.importUri.toString();
+  }
+
+  void _setInferredType(DartType inferredType) {
+    _isInferred = true;
+    super.type = inferredType;
+  }
 }
 
 /// Concrete shadow object representing a function expression in kernel form.
@@ -110,13 +138,70 @@ abstract class KernelStatement extends Statement {
   void _inferStatement(KernelTypeInferrer inferrer);
 }
 
+/// Concrete shadow object representing a read of a static variable in kernel
+/// form.
+class KernelStaticGet extends StaticGet implements KernelExpression {
+  KernelStaticGet(Member target) : super(target);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferStaticGet(typeContext, typeNeeded, target.getterType);
+  }
+}
+
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
 /// objects.
 class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
-    KernelVariableDeclaration, Field> {
-  KernelTypeInferrer(CoreTypes coreTypes, ClassHierarchy classHierarchy,
-      Instrumentation instrumentation, bool strongMode)
-      : super(coreTypes, classHierarchy, instrumentation, strongMode);
+    KernelVariableDeclaration, KernelField> {
+  KernelTypeInferrer(Instrumentation instrumentation, bool strongMode)
+      : super(instrumentation, strongMode);
+
+  @override
+  void clearFieldInitializer(KernelField field) {
+    field.initializer = null;
+  }
+
+  @override
+  FieldNode<KernelField> createFieldNode(KernelField field) {
+    FieldNode<KernelField> fieldNode = new FieldNode<KernelField>(this, field);
+    field._fieldNode = fieldNode;
+    return fieldNode;
+  }
+
+  @override
+  DartType getFieldDeclaredType(KernelField field) {
+    return field._implicitlyTyped ? null : field.type;
+  }
+
+  @override
+  List<FieldNode<KernelField>> getFieldDependencies(KernelField field) {
+    return field._fieldNode?.dependencies;
+  }
+
+  @override
+  Expression getFieldInitializer(KernelField field) {
+    return field.initializer;
+  }
+
+  @override
+  FieldNode<KernelField> getFieldNodeForReadTarget(Member readTarget) {
+    if (readTarget is KernelField) {
+      return readTarget._fieldNode;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  int getFieldOffset(KernelField field) {
+    return field.fileOffset;
+  }
+
+  @override
+  String getFieldUri(KernelField field) {
+    return field._fileUri;
+  }
 
   @override
   DartType inferExpression(
@@ -152,6 +237,16 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
       // TODO(paulberry): once the BodyBuilder uses shadow classes for
       // everything, this case should no longer be needed.
     }
+  }
+
+  @override
+  bool isFieldInferred(KernelField field) {
+    return field._isInferred;
+  }
+
+  @override
+  void setFieldInferredType(KernelField field, DartType inferredType) {
+    field._setInferredType(inferredType);
   }
 }
 

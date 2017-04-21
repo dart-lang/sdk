@@ -1607,7 +1607,7 @@ class AstBuilder extends ScopeListener {
         body));
   }
 
-  void endFieldInitializer(Token assignment) {
+  void endFieldInitializer(Token assignment, Token token) {
     debugEvent("FieldInitializer");
     Expression initializer = pop();
     SimpleIdentifier name = pop();

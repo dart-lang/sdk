@@ -70,6 +70,8 @@ abstract class BuilderHelper {
 
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
+
+  StaticGet makeStaticGet(Member readTarget, int offset);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -661,10 +663,9 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 }
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
-  final BuilderHelper helper;
-
-  StaticAccessor(this.helper, int offset, Member readTarget, Member writeTarget)
-      : super(readTarget, writeTarget, offset) {
+  StaticAccessor(
+      BuilderHelper helper, int offset, Member readTarget, Member writeTarget)
+      : super(helper, readTarget, writeTarget, offset) {
     assert(readTarget != null || writeTarget != null);
   }
 

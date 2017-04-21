@@ -15,6 +15,11 @@ class KernelAstFactory implements AstFactory {
   }
 
   @override
+  Field field(Name name, int charOffset, {String fileUri}) {
+    return new KernelField(name, fileUri: fileUri)..fileOffset = charOffset;
+  }
+
+  @override
   KernelIntLiteral intLiteral(value, int charOffset) {
     return new KernelIntLiteral(value)..fileOffset = charOffset;
   }
@@ -35,6 +40,11 @@ class KernelAstFactory implements AstFactory {
   @override
   KernelReturnStatement returnStatement(Expression expression, int charOffset) {
     return new KernelReturnStatement(expression)..fileOffset = charOffset;
+  }
+
+  @override
+  StaticGet staticGet(Member readTarget, int offset) {
+    return new KernelStaticGet(readTarget)..fileOffset = offset;
   }
 
   @override

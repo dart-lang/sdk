@@ -531,7 +531,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     endVariableInitializer(assignmentOperator);
   }
 
