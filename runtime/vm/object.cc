@@ -6447,7 +6447,8 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         Object::null_type_arguments(), Object::null_type_arguments(),
         Heap::kOld);
   }
-  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, Heap::kOld)) {
+  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, NULL,
+                         Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
     *bound_error = LanguageError::NewFormatted(
@@ -6522,6 +6523,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t other_parameter_position,
                                  const Function& other,
                                  Error* bound_error,
+                                 TrailPtr bound_trail,
                                  Heap::Space space) const {
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
@@ -6534,14 +6536,16 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error, NULL, space) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error, NULL, space)) {
+    if (!param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                space) &&
+        !other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                      space)) {
       return false;
     }
   } else {
     ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error, NULL,
-                                       space)) {
+    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error,
+                                       bound_trail, space)) {
       return false;
     }
   }
@@ -6586,6 +6590,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
 bool Function::TypeTest(TypeTestKind test_kind,
                         const Function& other,
                         Error* bound_error,
+                        TrailPtr bound_trail,
                         Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
@@ -6624,13 +6629,15 @@ bool Function::TypeTest(TypeTestKind test_kind,
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error, NULL, space) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error, NULL, space)) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                space) &&
+          !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                      space)) {
         return false;
       }
     } else {
       ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error, NULL,
+      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error, bound_trail,
                                        space)) {
         return false;
       }
@@ -6642,7 +6649,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
        i++) {
     if (!TestParameterType(test_kind, i + num_ignored_params,
                            i + other_num_ignored_params, other, bound_error,
-                           space)) {
+                           bound_trail, space)) {
       return false;
     }
   }
@@ -6670,7 +6677,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
-        if (!TestParameterType(test_kind, j, i, other, bound_error, space)) {
+        if (!TestParameterType(test_kind, j, i, other, bound_error, bound_trail,
+                               space)) {
           return false;
         }
         break;
@@ -15850,7 +15858,7 @@ bool Instance::IsInstanceOf(
       sig_fun = sig_fun.InstantiateSignatureFrom(
           instantiator_type_arguments, function_type_arguments, Heap::kOld);
     }
-    return sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld);
+    return sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
@@ -15905,7 +15913,7 @@ bool Instance::IsInstanceOf(
       }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
-      if (sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld)) {
+      if (sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld)) {
         return true;
       }
     }
@@ -16351,7 +16359,9 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
     ASSERT((len % 2) == 0);
     const bool this_is_typeref = IsTypeRef();
     const bool buddy_is_typeref = buddy.IsTypeRef();
-    ASSERT(this_is_typeref || buddy_is_typeref);
+    // Note that at least one of 'this' and 'buddy' should be a typeref, with
+    // one exception, when the class of the 'this' type implements the 'call'
+    // method, thereby possibly creating a recursive type (see regress_29405).
     for (intptr_t i = 0; i < len; i += 2) {
       if ((((*trail)->At(i).raw() == this->raw()) ||
            (buddy_is_typeref && (*trail)->At(i).Equals(*this))) &&
@@ -16713,16 +16723,24 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // Check for two function types.
       const Function& fun =
           Function::Handle(zone, Type::Cast(*this).signature());
-      return fun.TypeTest(test_kind, other_fun, bound_error, space);
+      return fun.TypeTest(test_kind, other_fun, bound_error, bound_trail,
+                          space);
     }
     // Check if type S has a call() method of function type T.
     const Function& call_function =
         Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
     if (!call_function.IsNull()) {
-      if (other_is_dart_function_type ||
-          call_function.TypeTest(
+      if (other_is_dart_function_type) {
+        return true;
+      }
+      // Shortcut the test involving the call function if the
+      // pair <this, other> is already in the trail.
+      if (TestAndAddBuddyToTrail(&bound_trail, other)) {
+        return true;
+      }
+      if (call_function.TypeTest(
               test_kind, Function::Handle(zone, Type::Cast(other).signature()),
-              bound_error, space)) {
+              bound_error, bound_trail, space)) {
         return true;
       }
     }

@@ -2679,22 +2679,26 @@ class Function : public Object {
   // the other function.
   bool IsSubtypeOf(const Function& other,
                    Error* bound_error,
+                   TrailPtr bound_trail,
                    Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, bound_error, space);
+    return TypeTest(kIsSubtypeOf, other, bound_error, bound_trail, space);
   }
 
   // Returns true if the type of this function is more specific than the type of
   // the other function.
   bool IsMoreSpecificThan(const Function& other,
                           Error* bound_error,
+                          TrailPtr bound_trail,
                           Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
+    return TypeTest(kIsMoreSpecificThan, other, bound_error, bound_trail,
+                    space);
   }
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const Function& other,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   bool IsDispatcherOrImplicitAccessor() const {
@@ -3023,6 +3027,7 @@ class Function : public Object {
                          intptr_t other_parameter_position,
                          const Function& other,
                          Error* bound_error,
+                         TrailPtr bound_trail,
                          Heap::Space space) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
