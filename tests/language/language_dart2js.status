@@ -159,6 +159,7 @@ multiline_newline_test/none: RuntimeError # Issue 23888
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 regress_26133_test: RuntimeError # Issue 26429
+regress_29405_test: Fail # Issue 29422
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702
