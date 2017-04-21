@@ -13,6 +13,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
@@ -156,51 +157,12 @@ Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
 /// Parse [contents] as a Dart program and return the URIs that appear in its
 /// import, export, and part directives.
 Set<String> extractDirectiveUris(List<int> contents) {
-  var listener = new DirectiveListener();
-  new DirectiveParser(listener).parseUnit(tokenize(contents));
-  return listener.uris;
-}
-
-/// Diet parser that stops eagerly at the first sign that we have seen all the
-/// import, export, and part directives.
-class DirectiveParser extends ClassMemberParser {
-  DirectiveParser(listener) : super(listener);
-
-  static final _endToken = new SymbolToken.eof(-1);
-
-  Token parseClassOrNamedMixinApplication(Token token) => _endToken;
-  Token parseEnum(Token token) => _endToken;
-  parseTypedef(token) => _endToken;
-  parseTopLevelMember(Token token) => _endToken;
-}
-
-/// Listener that records the URIs from imports, exports, and part directives.
-class DirectiveListener extends Listener {
-  bool _inDirective = false;
-  Set<String> uris = new Set<String>();
-
-  void _enterDirective() {
-    _inDirective = true;
-  }
-
-  void _exitDirective() {
-    _inDirective = false;
-  }
-
-  beginImport(_) => _enterDirective();
-  beginExport(_) => _enterDirective();
-  beginPart(_) => _enterDirective();
-
-  endExport(export, semicolon) => _exitDirective();
-  endImport(import, deferred, asKeyword, semicolon) => _exitDirective();
-  endPart(part, semicolon) => _exitDirective();
-
-  void beginLiteralString(Token token) {
-    if (_inDirective) {
-      var quotedString = token.lexeme;
-      uris.add(quotedString.substring(1, quotedString.length - 1));
-    }
-  }
+  var listener = new DirectiveListener(acceptsNativeClause: true);
+  new TopLevelParser(listener).parseUnit(tokenize(contents));
+  return new Set<String>()
+    ..addAll(listener.imports)
+    ..addAll(listener.exports)
+    ..addAll(listener.parts);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
