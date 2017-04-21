@@ -49,11 +49,11 @@ TypeMirror reflectType(Type key) {
 
 final dynamic _dart = JS('', 'dart');
 
-dynamic _dload(obj, String name) {
+dynamic _dload(obj, name) {
   return JS('', '#.dloadMirror(#, #)', _dart, obj, name);
 }
 
-void _dput(obj, String name, val) {
+void _dput(obj, name, val) {
   JS('', '#.dputMirror(#, #, #)', _dart, obj, name, val);
 }
 
@@ -61,7 +61,7 @@ dynamic _dcall(obj, List args) {
   return JS('', '#.dcall(#, ...#)', _dart, obj, args);
 }
 
-dynamic _dsend(obj, String name, List args) {
+dynamic _dsend(obj, name, List args) {
   return JS('', '#.dsend(#, #, ...#)', _dart, obj, name, args);
 }
 

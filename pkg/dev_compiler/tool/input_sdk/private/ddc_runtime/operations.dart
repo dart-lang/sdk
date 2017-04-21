@@ -439,6 +439,7 @@ final _ignoreTypeFailure = JS(
 })()''');
 
 /// Returns true if [obj] is an instance of [type]
+/// Returns true if [obj] is a JS function and [type] is a function type
 /// Returns false if [obj] is not an instance of [type] in both spec
 ///  and strong mode
 /// Returns null if [obj] is not an instance of [type] in strong mode
@@ -448,8 +449,11 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
     '''(() => {
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
-  if (result || actual == $jsobject ||
-      (actual == $int && $isSubtype($double, $type))) return true;
+  if (result || (actual == $int && $isSubtype($double, $type))) return true;
+  if (actual == $jsobject && $isFunctionType(type) &&
+      typeof(obj) === 'function') {
+    return true;
+  }
   if (result === false) return false;
   if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
   if ($_ignoreTypeFailure(actual, $type)) return true;

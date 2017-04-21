@@ -502,9 +502,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
       'js_interop_1_test': async_unittest,
 
-      // Failing because accessing "zSomeInvalidName" does not throw.
-      'js_typed_interop_test': 'fail',
-
       // The "typed literal" test fails because the object does not have "_c".
       'js_util_test': 'fail',
       'keyboard_event_test': async_unittest,
