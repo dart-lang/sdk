@@ -3010,7 +3010,6 @@ LayoutTests/fast/dom/HTMLImageElement/parse-src_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/HTMLInputElement/input-hidden-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLInputElement/input-image-alt-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLabelElement/click-label_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLLabelElement/form/test1_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-beforeload-recursive_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-non-existent-import_t01: Pass, RuntimeError # Please triage this failure
@@ -3021,7 +3020,6 @@ LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError 
 LayoutTests/fast/dom/HTMLMeterElement/set-meter-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Skip # Times out. Issue 24455
 LayoutTests/fast/dom/HTMLObjectElement/form/test1_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement-validity_t01: RuntimeError # Please triage this failure
@@ -3093,7 +3091,6 @@ LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/blur-contenteditable_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/boolean-attribute-reflection_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
@@ -3130,7 +3127,6 @@ LayoutTests/fast/dom/fragment-activation-focuses-target_t01: RuntimeError # Plea
 LayoutTests/fast/dom/getElementsByClassName/010_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
@@ -3145,7 +3141,6 @@ LayoutTests/fast/dom/navigator-userAgent_t01: RuntimeError # Please triage this 
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
-LayoutTests/fast/dom/object-plugin-hides-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/offset-position-writing-modes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: RuntimeError # Please triage this failure
@@ -3235,7 +3230,6 @@ LayoutTests/fast/dynamic/crash-generated-image_t01: RuntimeError # Please triage
 LayoutTests/fast/dynamic/crash-generated-quote_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/crash-generated-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/insertAdjacentElement_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dynamic/insertAdjacentHTML-allowed-parents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/encoding/css-charset-dom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Please triage this failure
@@ -3279,8 +3273,6 @@ LayoutTests/fast/files/blob-close_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-constructor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-parts-slice-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-slice-test_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/files/file-reader-immediate-abort_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/url-null_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/xhr-response-blob_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/async-operations_t01: RuntimeError # Please triage this failure
@@ -3326,7 +3318,6 @@ LayoutTests/fast/forms/ValidityState-tooLong-input_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/ValidityState-tooLong-textarea_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/ValidityState-typeMismatch-email_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/ValidityState-typeMismatch-url_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/ValidityState-valueMissing-001_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/ValidityState-valueMissing-003_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autocomplete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autofocus-focus-only-once_t01: Skip # Times out. Please triage this failure
@@ -3418,7 +3409,6 @@ LayoutTests/fast/forms/shadow-tree-exposure_t01: RuntimeError # Please triage th
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-ancestor-dir-attribute_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-with-dirname-attribute_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/text-control-select-blurred_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/textarea-initial-caret-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-no-scroll-on-blur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
@@ -3427,7 +3417,6 @@ LayoutTests/fast/forms/textarea-trailing-newline_t01: RuntimeError # Please tria
 LayoutTests/fast/forms/textfield-clone_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/validationMessage_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/validity-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/willvalidate_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/article-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/aside-element_t01: RuntimeError # Please triage this failure
@@ -3685,7 +3674,6 @@ LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out. Please triage this 
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/querySelectorAll_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/replaceWith_A01_t02: RuntimeError # Please triage this failure
-LibTest/html/Element/tagName_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/tagName_A01_t03: RuntimeError # Please triage this failure
 LibTest/html/Element/translate_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: RuntimeError # Please triage this failure
@@ -3879,7 +3867,6 @@ WebPlatformTest/html/semantics/tabular-data/the-table-element/caption-methods_t0
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-insertRow_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t02: RuntimeError # Please triage this failure
-WebPlatformTest/html/syntax/serializing-html-fragments/outerHTML_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t02: RuntimeError # Please triage this failure
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t03: RuntimeError # Please triage this failure
