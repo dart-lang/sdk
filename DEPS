@@ -91,7 +91,7 @@ vars = {
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.0",
-  "protobuf_tag": "@0.5.3",
+  "protobuf_tag": "@0.5.4",
   "pub_rev": "@69be47ed84c3ced304047aaa885c8f8f48dad4e6",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.22.0",
@@ -105,7 +105,7 @@ vars = {
   "smoke_tag" : "@v0.3.6+2",
   "source_map_stack_trace_tag": "@1.1.4",
   "source_maps-0.9.4_rev": "@38524",
-  "source_maps_tag": "@0.10.3",
+  "source_maps_tag": "@0.10.4",
   "source_span_tag": "@1.3.1",
   "stack_trace_tag": "@1.7.2",
   "stream_channel_tag": "@1.6.1",
@@ -276,7 +276,10 @@ deps = {
   Var("dart_root") + "/third_party/pkg/pool":
       (Var("github_mirror") % "pool") + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      (Var("github_mirror") % "dart-protobuf") + Var("protobuf_tag"),
+      # Restore the github mirror once it's corrected to point to protobuf
+      # instead of dart-protobuf
+      # (Var("github_mirror") % "dart-protobuf") + Var("protobuf_tag"),
+      (Var("github_dartlang") % "protobuf") + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
