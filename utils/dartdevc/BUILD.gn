@@ -11,7 +11,11 @@ application_snapshot("dartdevc") {
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
     rebase_path("../../pkg/dev_compiler/lib/sdk/ddc_sdk.sum"),
-    "--help",
+    "--library-root",
+    rebase_path("../../pkg/dev_compiler"),
+    "-o",
+    "dartdevc.js",
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
   inputs = exec_script("../../tools/list_dart_files.py",
                        [ "absolute",
