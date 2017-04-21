@@ -61,8 +61,8 @@ import 'library_builder.dart' show LibraryBuilder;
 import 'package:front_end/src/fasta/builder/class_builder.dart'
     show ClassBuilder;
 
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
+    show TypeInferenceEngine;
 
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
@@ -139,6 +139,6 @@ abstract class Builder {
     return internalError("No library parent.");
   }
 
-  void prepareInitializerInference(TypeInferrer typeInferrer,
+  void prepareInitializerInference(TypeInferenceEngine typeInferenceEngine,
       LibraryBuilder library, ClassBuilder currentClass) {}
 }

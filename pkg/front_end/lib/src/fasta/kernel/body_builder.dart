@@ -16,8 +16,11 @@ import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelField, KernelVariableDeclaration;
 
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
+    show FieldNode;
+
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show FieldNode, TypeInferrer;
+    show TypeInferrer;
 
 import 'package:kernel/ast.dart';
 
@@ -452,7 +455,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    _typeInferrer.inferBody(body, uri);
+    _typeInferrer.inferStatement(body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
     if (formals?.optional != null) {

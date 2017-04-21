@@ -7,8 +7,8 @@ library fasta.diet_listener;
 import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
     show KernelAstFactory;
 
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
+    show TypeInferenceEngine;
 
 import 'package:kernel/ast.dart' show AsyncMarker;
 
@@ -46,7 +46,7 @@ class DietListener extends StackListener {
 
   final bool isDartLibrary;
 
-  final TypeInferrer localTypeInferrer;
+  final TypeInferenceEngine typeInferenceEngine;
 
   ClassBuilder currentClass;
 
@@ -58,7 +58,7 @@ class DietListener extends StackListener {
   Uri uri;
 
   DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
-      this.localTypeInferrer)
+      this.typeInferenceEngine)
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
@@ -403,7 +403,7 @@ class DietListener extends StackListener {
         currentClass,
         isInstanceMember,
         uri,
-        localTypeInferrer,
+        typeInferenceEngine.createLocalTypeInferrer(uri),
         new KernelAstFactory())
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }

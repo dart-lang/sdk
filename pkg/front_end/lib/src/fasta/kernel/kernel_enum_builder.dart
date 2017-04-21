@@ -125,7 +125,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///     }
     members["index"] = new KernelFieldBuilder(
         astFactory,
-        parent.loader.topLevelTypeInferrer,
+        parent.loader.typeInferenceEngine,
         null,
         intType,
         "index",
@@ -152,7 +152,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     List<MapEntry> toStringEntries = <MapEntry>[];
     KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
         astFactory,
-        parent.loader.topLevelTypeInferrer,
+        parent.loader.typeInferenceEngine,
         null,
         listType,
         "values",
@@ -185,7 +185,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       }
       KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
           astFactory,
-          parent.loader.topLevelTypeInferrer,
+          parent.loader.typeInferenceEngine,
           null,
           selfType,
           name,

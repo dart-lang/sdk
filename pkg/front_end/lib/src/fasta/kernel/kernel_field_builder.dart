@@ -15,8 +15,8 @@ import 'package:front_end/src/fasta/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/builder/class_builder.dart'
     show ClassBuilder;
 
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
+    show TypeInferenceEngine;
 
 import 'package:kernel/ast.dart' show Expression, Field, Name;
 
@@ -30,7 +30,7 @@ import 'kernel_builder.dart'
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final AstFactory astFactory;
-  final TypeInferrer typeInferrer;
+  final TypeInferenceEngine typeInferenceEngine;
   final Field field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
@@ -38,7 +38,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   KernelFieldBuilder(
       this.astFactory,
-      this.typeInferrer,
+      this.typeInferenceEngine,
       this.metadata,
       this.type,
       String name,
@@ -67,7 +67,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
     if (initializerToken != null) {
-      typeInferrer.recordField(field);
+      typeInferenceEngine.recordField(field);
     }
     return field;
   }
@@ -75,24 +75,26 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   Field get target => field;
 
   @override
-  void prepareInitializerInference(TypeInferrer typeInferrer,
+  void prepareInitializerInference(TypeInferenceEngine typeInferenceEngine,
       LibraryBuilder library, ClassBuilder currentClass) {
     if (initializerToken != null) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
+      // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
+      // should it be the part URI?
       var bodyBuilder = new BodyBuilder(
           library,
           this,
           memberScope,
           null,
-          typeInferrer.classHierarchy,
-          typeInferrer.coreTypes,
+          typeInferenceEngine.classHierarchy,
+          typeInferenceEngine.coreTypes,
           currentClass,
           isInstanceMember,
           library.uri,
-          typeInferrer,
+          typeInferenceEngine.createTopLevelTypeInferrer(field),
           astFactory,
-          fieldDependencies: typeInferrer.getFieldDependencies(field));
+          fieldDependencies: typeInferenceEngine.getFieldDependencies(field));
       Parser parser = new Parser(bodyBuilder);
       Token token = parser.parseExpression(initializerToken);
       Expression expression = bodyBuilder.popForValue();
