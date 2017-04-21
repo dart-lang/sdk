@@ -758,6 +758,12 @@ class _ContentCacheWrapper implements ContentCache {
 
   @override
   bool getExists(Source source) {
+    if (fsState.externalSummaries != null) {
+      String uriStr = source.uri.toString();
+      if (fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
+        return true;
+      }
+    }
     return _getFileForSource(source).exists;
   }
 

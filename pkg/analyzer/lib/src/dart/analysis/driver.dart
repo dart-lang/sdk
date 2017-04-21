@@ -30,6 +30,7 @@ import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -103,6 +104,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * It can be shared with other [AnalysisDriver]s.
    */
   final ByteStore _byteStore;
+
+  /**
+   * The optional store with externally provided unlinked and corresponding
+   * linked summaries. These summaries are always added to the store for any
+   * file analysis.
+   */
+  final SummaryDataStore _externalSummaries;
 
   /**
    * This [ContentCache] is consulted for a file content before reading
@@ -276,10 +284,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {PackageBundle sdkBundle,
-      this.disableChangesAndCacheAllResults: false})
+      this.disableChangesAndCacheAllResults: false,
+      SummaryDataStore externalSummaries})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
-        _sdkBundle = sdkBundle {
+        _sdkBundle = sdkBundle,
+        _externalSummaries = externalSummaries {
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker(logger);
@@ -1075,8 +1085,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _createFileTracker(PerformanceLog logger) {
     _fillSalt();
-    _fileTracker = new FileTracker(logger, _byteStore, _contentOverlay,
-        _resourceProvider, sourceFactory, _analysisOptions, _salt, _changeHook);
+    _fileTracker = new FileTracker(
+        logger,
+        _byteStore,
+        _contentOverlay,
+        _resourceProvider,
+        sourceFactory,
+        _analysisOptions,
+        _salt,
+        _externalSummaries,
+        _changeHook);
   }
 
   /**
@@ -1091,7 +1109,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           _analysisOptions,
           declaredVariables,
           _sourceFactory,
-          _fileTracker);
+          _externalSummaries,
+          fsState);
 
   /**
    * Fill [_salt] with data.
@@ -1533,6 +1552,16 @@ class AnalysisDriverTestView {
   FileTracker get fileTracker => driver._fileTracker;
 
   Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
+
+  SummaryDataStore getSummaryStore(String libraryPath) {
+    FileState library = driver.fsState.getFileForPath(libraryPath);
+    LibraryContext libraryContext = driver._createLibraryContext(library);
+    try {
+      return libraryContext.store;
+    } finally {
+      libraryContext.dispose();
+    }
+  }
 }
 
 /**

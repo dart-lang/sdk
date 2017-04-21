@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
@@ -986,6 +987,43 @@ part 'foo.dart';
     List<AnalysisError> errors = result.errors;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_externalSummaries() async {
+    var a = _p('/a.dart');
+    var b = _p('/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+var a = new A();
+''');
+
+    // Prepare the store with a.dart and everything it needs.
+    SummaryDataStore summaryStore =
+        createAnalysisDriver().test.getSummaryStore(a);
+
+    // There are at least a.dart and dart:core libraries.
+    String aUri = 'file://$a';
+    expect(summaryStore.unlinkedMap.keys, contains(aUri));
+    expect(summaryStore.linkedMap.keys, contains(aUri));
+    expect(summaryStore.unlinkedMap.keys, contains('dart:core'));
+    expect(summaryStore.linkedMap.keys, contains('dart:core'));
+
+    // Remove a.dart from the file system.
+    provider.deleteFile(a);
+
+    // We don't need a.dart file when we analyze with the summary store.
+    // Still no analysis errors.
+    AnalysisDriver driver =
+        createAnalysisDriver(externalSummaries: summaryStore);
+    AnalysisResult result = await driver.getResult(b);
+    expect(result.errors, isEmpty);
   }
 
   test_generatedFile() async {

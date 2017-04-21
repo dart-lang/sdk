@@ -29,6 +29,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -92,7 +93,15 @@ class FileState {
   /**
    * The [Source] of the file with the [uri].
    */
-  Source source;
+  final Source source;
+
+  /**
+   * Return `true` if this file is a stub created for a file in the provided
+   * external summary store. The values of most properties are not the same
+   * as they would be if the file were actually read from the file system.
+   * The value of the property [uri] is correct.
+   */
+  final bool isInExternalSummaries;
 
   bool _exists;
   List<int> _contentBytes;
@@ -123,7 +132,15 @@ class FileState {
    */
   bool hasErrorOrWarning = false;
 
-  FileState._(this._fsState, this.path, this.uri, this.source);
+  FileState._(this._fsState, this.path, this.uri, this.source)
+      : isInExternalSummaries = false;
+
+  FileState._external(this._fsState, this.uri)
+      : isInExternalSummaries = true,
+        path = null,
+        source = null {
+    _apiSignature = new Uint8List(16);
+  }
 
   /**
    * The unlinked API signature of the file.
@@ -607,6 +624,17 @@ class FileSystemState {
   final Uint32List _salt;
 
   /**
+   * The optional store with externally provided unlinked and corresponding
+   * linked summaries. These summaries are always added to the store for any
+   * file analysis.
+   *
+   * While walking the file graph, when we reach a file that exists in the
+   * external store, we add a stub [FileState], but don't attempt to read its
+   * content, or its unlinked unit, or imported libraries, etc.
+   */
+  final SummaryDataStore externalSummaries;
+
+  /**
    * Mapping from a URI to the corresponding [FileState].
    */
   final Map<Uri, FileState> _uriToFile = {};
@@ -674,7 +702,8 @@ class FileSystemState {
       this._resourceProvider,
       this._sourceFactory,
       this._analysisOptions,
-      this._salt) {
+      this._salt,
+      {this.externalSummaries}) {
     _testView = new FileSystemStateTestView(this);
   }
 
@@ -744,6 +773,17 @@ class FileSystemState {
   FileState getFileForUri(Uri uri) {
     FileState file = _uriToFile[uri];
     if (file == null) {
+      // If the external store has this URI, create a stub file for it.
+      // We are given all required unlinked and linked summaries for it.
+      if (externalSummaries != null) {
+        String uriStr = uri.toString();
+        if (externalSummaries.hasUnlinkedUnit(uriStr)) {
+          file = new FileState._external(this, uri);
+          _uriToFile[uri] = file;
+          return file;
+        }
+      }
+
       Source uriSource = _sourceFactory.resolveUri(null, uri.toString());
 
       // If the URI cannot be resolved, for example because the factory

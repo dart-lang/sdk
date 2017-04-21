@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
  * Callback used by [FileTracker] to report to its client that files have been
@@ -90,9 +91,11 @@ class FileTracker {
       SourceFactory sourceFactory,
       AnalysisOptions analysisOptions,
       Uint32List salt,
+      SummaryDataStore externalSummaries,
       this._changeHook)
       : fsState = new FileSystemState(logger, byteStore, contentOverlay,
-            resourceProvider, sourceFactory, analysisOptions, salt);
+            resourceProvider, sourceFactory, analysisOptions, salt,
+            externalSummaries: externalSummaries);
 
   /**
    * Returns the path to exactly one that needs analysis.  Throws a [StateError]

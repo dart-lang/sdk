@@ -10,7 +10,6 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -47,10 +46,15 @@ class LibraryContext {
       AnalysisOptions options,
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
-      FileTracker fileTracker) {
+      SummaryDataStore externalSummaries,
+      FileSystemState fsState) {
     return logger.run('Create library context', () {
       Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
+
+      if (externalSummaries != null) {
+        store.addStore(externalSummaries);
+      }
 
       if (sdkBundle != null) {
         store.addBundle(null, sdkBundle);
@@ -60,6 +64,10 @@ class LibraryContext {
         if (!libraries.containsKey(library.uriStr)) {
           // Serve 'dart:' URIs from the SDK bundle.
           if (sdkBundle != null && library.uri.scheme == 'dart') {
+            return;
+          }
+
+          if (library.isInExternalSummaries) {
             return;
           }
 
@@ -123,7 +131,7 @@ class LibraryContext {
       });
 
       var analysisContext = _createAnalysisContext(
-          options, declaredVariables, sourceFactory, fileTracker, store);
+          options, declaredVariables, sourceFactory, fsState, store);
 
       return new LibraryContext._(store, analysisContext);
     });
@@ -165,7 +173,7 @@ class LibraryContext {
       AnalysisOptions _analysisOptions,
       DeclaredVariables declaredVariables,
       SourceFactory _sourceFactory,
-      FileTracker fileTracker,
+      FileSystemState fileSystemState,
       SummaryDataStore store) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
@@ -173,7 +181,7 @@ class LibraryContext {
     analysisContext.analysisOptions = _analysisOptions;
     analysisContext.declaredVariables.addAll(declaredVariables);
     analysisContext.sourceFactory = _sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(fileTracker);
+    analysisContext.contentCache = new _ContentCacheWrapper(fileSystemState);
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, store);
     return analysisContext;
@@ -195,9 +203,9 @@ class ResolutionResult {
  * [ContentCache] wrapper around [FileContentOverlay].
  */
 class _ContentCacheWrapper implements ContentCache {
-  final FileTracker fileTracker;
+  final FileSystemState fsState;
 
-  _ContentCacheWrapper(this.fileTracker);
+  _ContentCacheWrapper(this.fsState);
 
   @override
   void accept(ContentCacheVisitor visitor) {
@@ -212,6 +220,10 @@ class _ContentCacheWrapper implements ContentCache {
   @override
   bool getExists(Source source) {
     if (source.isInSystemLibrary) {
+      return true;
+    }
+    String uriStr = source.uri.toString();
+    if (fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
       return true;
     }
     return _getFileForSource(source).exists;
@@ -232,6 +244,6 @@ class _ContentCacheWrapper implements ContentCache {
 
   FileState _getFileForSource(Source source) {
     String path = source.fullName;
-    return fileTracker.fsState.getFileForPath(path);
+    return fsState.getFileForPath(path);
   }
 }
