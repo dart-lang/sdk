@@ -480,6 +480,7 @@ instanceOf(obj, type) => JS(
   }
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
+  if (!$_failForWeakModeIsChecks) return false;
   let actual = $getReifiedType($obj);
   $throwStrongModeError('Strong mode is-check failure: ' +
     $typeName(actual) + ' does not soundly subtype ' +

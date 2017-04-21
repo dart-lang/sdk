@@ -11,6 +11,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   let mochaOnError = window.onerror;
   dart_sdk.dart.trapRuntimeErrors(false);
   dart_sdk.dart.ignoreWhitelistedErrors(false);
+  dart_sdk.dart.failForWeakModeIsChecks(false);
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   // Make it easier to debug test failures and required for formatter test that
   // assumes custom formatters are enabled.
@@ -132,7 +133,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'deferred_redirecting_factory_test': fail,
       'deferred_static_seperate_test': fail,
 
-      'deferred_regression_22995_test': fail, // Strong mode "is" rejects some type tests.
       'double_int_to_string_test': fail,
       'dynamic_test': fail,
       'exception_test': fail,
@@ -149,44 +149,13 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'final_syntax_test_08_multi': fail,
       'first_class_types_test': fail,
       'for_variable_capture_test': is.firefox('<=50') ? pass : fail,
-      'function_subtype0_test': fail,
-      'function_subtype1_test': fail,
-      'function_subtype2_test': fail,
-      'function_subtype3_test': fail,
-      'function_subtype_bound_closure0_test': fail,
-      'function_subtype_bound_closure1_test': fail,
-      'function_subtype_bound_closure2_test': fail,
-      'function_subtype_bound_closure3_test': fail,
-      'function_subtype_bound_closure4_test': fail,
-      'function_subtype_bound_closure5_test': fail,
-      'function_subtype_bound_closure5a_test': fail,
-      'function_subtype_bound_closure6_test': fail,
-      'function_subtype_call0_test': fail, // Strong mode "is" rejects some type tests.
-      'function_subtype_call1_test': fail,
-      'function_subtype_call2_test': fail,
-      'function_subtype_factory0_test': fail,
-      'function_subtype_inline0_test': fail,
-      'function_subtype_local0_test': fail,
-      'function_subtype_local1_test': fail,
-      'function_subtype_local2_test': fail,
-      'function_subtype_local3_test': fail,
-      'function_subtype_local4_test': fail,
-      'function_subtype_local5_test': fail,
       'function_subtype_named1_test': fail,
       'function_subtype_named2_test': fail,
-      'function_subtype_not0_test': fail,
-      'function_subtype_not1_test': fail,
-      'function_subtype_not2_test': fail,
-      'function_subtype_not3_test': fail,
       'function_subtype_optional1_test': fail,
       'function_subtype_optional2_test': fail,
-      'function_subtype_top_level0_test': fail,
-      'function_subtype_top_level1_test': fail,
       'function_subtype_typearg2_test': fail,
       'function_subtype_typearg4_test': fail,
-      'function_type_alias2_test': fail,
       'function_type_alias3_test': fail,
-      'function_type_alias4_test': fail,
       'function_type_alias6_test_none_multi': fail,
       'generic_instanceof_test': fail, // runtime strong mode reject
       'generic_instanceof2_test': fail,
@@ -251,8 +220,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'switch_try_catch_test': fail,
       'throwing_lazy_variable_test': fail,
       'truncdiv_test': fail,  // did not throw
-      'type_variable_nested_test': fail,  // unsound is-check
-      'type_variable_typedef_test': fail,  // unsound is-check
+      'type_variable_nested_test': fail,
 
       'bit_operations_test_01_multi': fail,
       'bit_operations_test_02_multi': fail,
@@ -368,7 +336,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'future_or_bad_type_test_implements_multi': fail,
       'future_or_bad_type_test_none_multi': fail,
       'future_or_non_strong_test': fail,
-      'future_or_strong_test': fail,  // Strong-mode is-check fail
       'future_timeout_test': async_unittest,
       'multiple_timer_test': async_unittest,
       'futures_test': fail,

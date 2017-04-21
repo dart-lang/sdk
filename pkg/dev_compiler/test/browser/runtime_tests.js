@@ -143,6 +143,14 @@ define(['dart_sdk'], function(dart_sdk) {
   suite('instanceOf', () => {
     "use strict";
 
+    setup(() => {
+      dart_sdk.dart.failForWeakModeIsChecks(true);
+    });
+
+    teardown(() => {
+      dart_sdk.dart.failForWeakModeIsChecks(false);
+    });
+
     let expect = assert.equal;
     let isGroundType = dart.isGroundType;
     let generic = dart.generic;
