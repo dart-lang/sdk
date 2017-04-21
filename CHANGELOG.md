@@ -96,12 +96,13 @@ class C extends A with B {}
       int x = 42;
     }
     class D extends C {
-      int x = 123;
-      get y => super.x;
+      get x {
+        print("x got called");
+        return super.x;
+      }
     }
     main() {
       print(new D().x);
-      print(new D().y);
     }
     ```
 
