@@ -76,14 +76,29 @@ class Function {
   @patch
   static apply(Function function, List positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
-    if (JS_GET_FLAG("IS_FULL_EMITTER")) {
-      return Primitives.applyFunction(
-          function, positionalArguments, _symbolMapToStringMap(namedArguments));
-    } else {
-      /// The lazy and startup emitter use a different implementation.
-      return Primitives.applyFunction2(
-          function, positionalArguments, _symbolMapToStringMap(namedArguments));
-    }
+    // The lazy and startup emitter use a different implementation. To keep the
+    // method small and inlinable, just select the method.
+    return JS_GET_FLAG("IS_FULL_EMITTER")
+        ? _apply1(function, positionalArguments, namedArguments)
+        : _apply2(function, positionalArguments, namedArguments);
+  }
+
+  static _apply1(function, positionalArguments, namedArguments) {
+    return Primitives.applyFunction(
+        function,
+        positionalArguments,
+        // Use this form so that if namedArguments is always null, we can
+        // tree-shake _symbolMapToStringMap.
+        namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
+  }
+
+  static _apply2(function, positionalArguments, namedArguments) {
+    return Primitives.applyFunction2(
+        function,
+        positionalArguments,
+        // Use this form so that if namedArguments is always null, we can
+        // tree-shake _symbolMapToStringMap.
+        namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
   }
 }
 
