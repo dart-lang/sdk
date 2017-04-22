@@ -1231,7 +1231,8 @@ class SsaBuilder extends ast.Visitor
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
-      instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
+      instantiatedTypes =
+          new List<ResolutionInterfaceType>.from(currentInlinedInstantiations);
     }
 
     HInstruction newObject;
@@ -4110,8 +4111,8 @@ class SsaBuilder extends ast.Visitor
           targetCanThrow: targetCanThrow)
         ..sourceInformation = sourceInformation;
       if (currentInlinedInstantiations.isNotEmpty) {
-        instruction.instantiatedTypes =
-            new List<ResolutionDartType>.from(currentInlinedInstantiations);
+        instruction.instantiatedTypes = new List<ResolutionInterfaceType>.from(
+            currentInlinedInstantiations);
       }
       instruction.sideEffects = closedWorld.getSideEffectsOfElement(element);
     }
