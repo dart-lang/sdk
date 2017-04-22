@@ -17,11 +17,11 @@ namespace bin {
 
 class SynchronousSocket {
  public:
-  explicit SynchronousSocket(intptr_t fd);
+  explicit SynchronousSocket(intptr_t fd) : fd_(fd) {}
   ~SynchronousSocket() { ASSERT(fd_ == kClosedFd); }
 
   intptr_t fd() const { return fd_; }
-  void SetClosedFd();
+  void SetClosedFd() { fd_ = kClosedFd; }
 
   static bool Initialize();
 
@@ -32,8 +32,15 @@ class SynchronousSocket {
   static Dart_Handle GetSocketIdNativeField(Dart_Handle socket_obj,
                                             SynchronousSocket** socket);
 
+  static intptr_t Available(intptr_t fd);
+  static intptr_t GetPort(intptr_t fd);
+  static SocketAddress* GetRemotePeer(intptr_t fd, intptr_t* port);
+  static intptr_t Read(intptr_t fd, void* buffer, intptr_t num_bytes);
+  static intptr_t Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+
   static void ShutdownRead(intptr_t fd);
   static void ShutdownWrite(intptr_t fd);
+  static void Close(intptr_t fd);
 
  private:
   static const int kClosedFd = -1;

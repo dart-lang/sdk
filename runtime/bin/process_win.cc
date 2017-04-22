@@ -978,7 +978,7 @@ BOOL WINAPI SignalHandler(DWORD signal) {
   while (handler != NULL) {
     if (handler->signal() == signal) {
       int value = 0;
-      SocketBase::Write(handler->fd(), &value, 1);
+      SocketBase::Write(handler->fd(), &value, 1, SocketBase::kAsync);
       handled = true;
     }
     handler = handler->next();

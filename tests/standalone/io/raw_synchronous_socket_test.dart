@@ -397,7 +397,6 @@ Future testShutdown() async {
     // Throws exception when the socket is closed for RECEIVE.
     Expect.throws(
         () => socket.readSync(data.length), (e) => e is SocketException);
-    Expect.isTrue(socket.available() == 0);
     socket.closeSync();
 
     // Close the socket for writing and try to do a write. This should cause an

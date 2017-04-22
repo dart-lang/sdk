@@ -157,7 +157,6 @@ class OverlappedBuffer {
   DISALLOW_COPY_AND_ASSIGN(OverlappedBuffer);
 };
 
-
 // Abstract super class for holding information on listen and connected
 // sockets.
 class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {

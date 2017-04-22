@@ -76,7 +76,10 @@ intptr_t SocketBase::Available(intptr_t fd) {
 }
 
 
-intptr_t SocketBase::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
+intptr_t SocketBase::Read(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          SocketOpKind sync) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   return handle->Read(buffer, num_bytes);
 }
@@ -85,7 +88,8 @@ intptr_t SocketBase::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 intptr_t SocketBase::RecvFrom(intptr_t fd,
                               void* buffer,
                               intptr_t num_bytes,
-                              RawAddr* addr) {
+                              RawAddr* addr,
+                              SocketOpKind sync) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   socklen_t addr_len = sizeof(addr->ss);
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
@@ -94,7 +98,8 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
 
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
-                           intptr_t num_bytes) {
+                           intptr_t num_bytes,
+                           SocketOpKind sync) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   return handle->Write(buffer, num_bytes);
 }
@@ -103,7 +108,8 @@ intptr_t SocketBase::Write(intptr_t fd,
 intptr_t SocketBase::SendTo(intptr_t fd,
                             const void* buffer,
                             intptr_t num_bytes,
-                            const RawAddr& addr) {
+                            const RawAddr& addr,
+                            SocketOpKind sync) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   RawAddr& raw = const_cast<RawAddr&>(addr);
   return handle->SendTo(buffer, num_bytes, &raw.addr,

@@ -93,13 +93,16 @@ intptr_t SocketBase::Available(intptr_t fd) {
 }
 
 
-intptr_t SocketBase::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
+intptr_t SocketBase::Read(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          SocketOpKind sync) {
   ASSERT(fd >= 0);
   LOG_INFO("SocketBase::Read: calling read(%ld, %p, %ld)\n", fd, buffer,
            num_bytes);
   ssize_t read_bytes = NO_RETRY_EXPECTED(read(fd, buffer, num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
-  if ((read_bytes == -1) && (errno == EWOULDBLOCK)) {
+  if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the read would block we need to retry and therefore return 0
     // as the number of bytes written.
     read_bytes = 0;
@@ -117,7 +120,8 @@ intptr_t SocketBase::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 intptr_t SocketBase::RecvFrom(intptr_t fd,
                               void* buffer,
                               intptr_t num_bytes,
-                              RawAddr* addr) {
+                              RawAddr* addr,
+                              SocketOpKind sync) {
   LOG_ERR("SocketBase::RecvFrom is unimplemented\n");
   UNIMPLEMENTED();
   return -1;
@@ -126,13 +130,14 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
 
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
-                           intptr_t num_bytes) {
+                           intptr_t num_bytes,
+                           SocketOpKind sync) {
   ASSERT(fd >= 0);
   LOG_INFO("SocketBase::Write: calling write(%ld, %p, %ld)\n", fd, buffer,
            num_bytes);
   ssize_t written_bytes = NO_RETRY_EXPECTED(write(fd, buffer, num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
-  if ((written_bytes == -1) && (errno == EWOULDBLOCK)) {
+  if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the would block we need to retry and therefore return 0 as
     // the number of bytes written.
     written_bytes = 0;
@@ -150,7 +155,8 @@ intptr_t SocketBase::Write(intptr_t fd,
 intptr_t SocketBase::SendTo(intptr_t fd,
                             const void* buffer,
                             intptr_t num_bytes,
-                            const RawAddr& addr) {
+                            const RawAddr& addr,
+                            SocketOpKind sync) {
   LOG_ERR("SocketBase::SendTo is unimplemented\n");
   UNIMPLEMENTED();
   return -1;

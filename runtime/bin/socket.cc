@@ -353,7 +353,8 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Dart_PropagateError(result);
     }
     ASSERT(buffer != NULL);
-    intptr_t bytes_read = SocketBase::Read(socket->fd(), buffer, length);
+    intptr_t bytes_read =
+        SocketBase::Read(socket->fd(), buffer, length, SocketBase::kAsync);
     if (bytes_read == length) {
       Dart_SetReturnValue(args, result);
     } else if (bytes_read > 0) {
@@ -393,8 +394,9 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
         reinterpret_cast<uint8_t*>(malloc(65536));
   }
   RawAddr addr;
-  intptr_t bytes_read = SocketBase::RecvFrom(
-      socket->fd(), isolate_data->udp_receive_buffer, 65536, &addr);
+  intptr_t bytes_read =
+      SocketBase::RecvFrom(socket->fd(), isolate_data->udp_receive_buffer,
+                           65536, &addr, SocketBase::kAsync);
   if (bytes_read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
     return;
@@ -474,7 +476,8 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   }
   ASSERT((offset + length) <= len);
   buffer += offset;
-  intptr_t bytes_written = SocketBase::Write(socket->fd(), buffer, length);
+  intptr_t bytes_written =
+      SocketBase::Write(socket->fd(), buffer, length, SocketBase::kAsync);
   if (bytes_written >= 0) {
     Dart_TypedDataReleaseData(buffer_obj);
     if (short_write) {
@@ -516,8 +519,8 @@ void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
   }
   ASSERT((offset + length) <= len);
   buffer += offset;
-  intptr_t bytes_written =
-      SocketBase::SendTo(socket->fd(), buffer, length, addr);
+  intptr_t bytes_written = SocketBase::SendTo(socket->fd(), buffer, length,
+                                              addr, SocketBase::kAsync);
   if (bytes_written >= 0) {
     Dart_TypedDataReleaseData(buffer_obj);
     Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));

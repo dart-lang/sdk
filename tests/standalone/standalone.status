@@ -9,7 +9,6 @@
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
-io/raw_synchronous_socket_test: Pass, RuntimeError # Issue 29343
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
@@ -232,7 +231,6 @@ io/process_stdin_transform_unsubscribe_test: Pass, Timeout # Issue #28558
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 io/socket_info_ipv6_test: RuntimeError # Issue 27876
-io/raw_synchronous_socket_test: Crash # Issue 29333, currently unsupported
 
 [ $system == windows && $compiler == dart2analyzer ]
 package/package_isolate_test: Crash # Issue 28645

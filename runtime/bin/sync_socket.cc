@@ -143,7 +143,8 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
   DART_CHECK_ERROR(result);
   ASSERT((offset + length) <= len);
   buffer += offset;
-  intptr_t bytes_written = SocketBase::Write(socket->fd(), buffer, length);
+  intptr_t bytes_written =
+      SynchronousSocket::Write(socket->fd(), buffer, length);
   if (bytes_written >= 0) {
     Dart_SetIntegerReturnValue(args, bytes_written);
   } else {
@@ -174,7 +175,7 @@ void FUNCTION_NAME(SynchronousSocket_ReadList)(Dart_NativeArguments args) {
   DART_CHECK_ERROR(result);
 
   uint8_t* buffer = Dart_ScopeAllocate(bytes);
-  intptr_t bytes_read = SocketBase::Read(socket->fd(), buffer, bytes);
+  intptr_t bytes_read = SynchronousSocket::Read(socket->fd(), buffer, bytes);
   if (bytes_read < 0) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     return;
@@ -193,7 +194,7 @@ void FUNCTION_NAME(SynchronousSocket_Available)(Dart_NativeArguments args) {
       Dart_GetNativeArgument(args, 0), &socket);
   DART_CHECK_ERROR(result);
 
-  intptr_t available = SocketBase::Available(socket->fd());
+  intptr_t available = SynchronousSocket::Available(socket->fd());
   if (available >= 0) {
     Dart_SetIntegerReturnValue(args, available);
   } else {
@@ -208,7 +209,7 @@ void FUNCTION_NAME(SynchronousSocket_CloseSync)(Dart_NativeArguments args) {
       Dart_GetNativeArgument(args, 0), &socket);
   DART_CHECK_ERROR(result);
 
-  SocketBase::Close(socket->fd());
+  SynchronousSocket::Close(socket->fd());
   socket->SetClosedFd();
 }
 
@@ -228,7 +229,7 @@ void FUNCTION_NAME(SynchronousSocket_Read)(Dart_NativeArguments args) {
   uint8_t* buffer = NULL;
   result = IOBuffer::Allocate(length, &buffer);
   ASSERT(buffer != NULL);
-  intptr_t bytes_read = SocketBase::Read(socket->fd(), buffer, length);
+  intptr_t bytes_read = SynchronousSocket::Read(socket->fd(), buffer, length);
   if (bytes_read == length) {
     Dart_SetReturnValue(args, result);
   } else if (bytes_read > 0) {
@@ -269,7 +270,7 @@ void FUNCTION_NAME(SynchronousSocket_GetPort)(Dart_NativeArguments args) {
       Dart_GetNativeArgument(args, 0), &socket);
   DART_CHECK_ERROR(result);
 
-  intptr_t port = SocketBase::GetPort(socket->fd());
+  intptr_t port = SynchronousSocket::GetPort(socket->fd());
   if (port > 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(port));
   } else {
@@ -285,7 +286,7 @@ void FUNCTION_NAME(SynchronousSocket_GetRemotePeer)(Dart_NativeArguments args) {
   DART_CHECK_ERROR(result);
 
   intptr_t port = 0;
-  SocketAddress* addr = SocketBase::GetRemotePeer(socket->fd(), &port);
+  SocketAddress* addr = SynchronousSocket::GetRemotePeer(socket->fd(), &port);
   if (addr == NULL) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     return;
@@ -321,7 +322,7 @@ static void SynchronousSocketFinalizer(void* isolate_data,
                                        void* data) {
   SynchronousSocket* socket = reinterpret_cast<SynchronousSocket*>(data);
   if (socket->fd() >= 0) {
-    SocketBase::Close(socket->fd());
+    SynchronousSocket::Close(socket->fd());
     socket->SetClosedFd();
   }
   delete socket;
