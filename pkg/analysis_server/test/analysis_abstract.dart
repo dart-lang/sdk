@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -270,6 +271,9 @@ class AbstractAnalysisTest {
  * hard-coding the responses.
  */
 class TestPluginManager implements PluginManager {
+  plugin.AnalysisSetPriorityFilesParams analysisSetPriorityFilesParams;
+  plugin.AnalysisSetSubscriptionsParams analysisSetSubscriptionsParams;
+  plugin.AnalysisUpdateContentParams analysisUpdateContentParams;
   Map<PluginInfo, Future<plugin.Response>> broadcastResults;
 
   @override
@@ -318,6 +322,24 @@ class TestPluginManager implements PluginManager {
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
     fail('Unexpected invocation of removedContextRoot');
+  }
+
+  @override
+  void setAnalysisSetPriorityFilesParams(
+      plugin.AnalysisSetPriorityFilesParams params) {
+    analysisSetPriorityFilesParams = params;
+  }
+
+  @override
+  void setAnalysisSetSubscriptionsParams(
+      plugin.AnalysisSetSubscriptionsParams params) {
+    analysisSetSubscriptionsParams = params;
+  }
+
+  @override
+  void setAnalysisUpdateContentParams(
+      plugin.AnalysisUpdateContentParams params) {
+    analysisUpdateContentParams = params;
   }
 
   @override

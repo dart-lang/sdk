@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
@@ -267,6 +268,55 @@ f() {}
     await server.onAnalysisComplete;
     // errors should have been resent
     expect(filesErrors, isNotEmpty);
+  }
+
+  test_sentToPlugins() {
+    String filePath = '/project/target.dart';
+    String fileContent = 'import "none.dart";';
+    //
+    // Add
+    //
+    handleSuccessfulRequest(new AnalysisUpdateContentParams(
+            <String, dynamic>{filePath: new AddContentOverlay(fileContent)})
+        .toRequest('0'));
+    plugin.AnalysisUpdateContentParams params =
+        pluginManager.analysisUpdateContentParams;
+    expect(params, isNotNull);
+    Map<String, dynamic> files = params.files;
+    expect(files, hasLength(1));
+    Object overlay = files[filePath];
+    expect(overlay, new isInstanceOf<plugin.AddContentOverlay>());
+    plugin.AddContentOverlay addOverlay = overlay;
+    expect(addOverlay.content, fileContent);
+    //
+    // Change
+    //
+    pluginManager.analysisUpdateContentParams = null;
+    handleSuccessfulRequest(new AnalysisUpdateContentParams(<String, dynamic>{
+      filePath: new ChangeContentOverlay(
+          <SourceEdit>[new SourceEdit(8, 1, "'"), new SourceEdit(18, 1, "'")])
+    }).toRequest('1'));
+    params = pluginManager.analysisUpdateContentParams;
+    expect(params, isNotNull);
+    files = params.files;
+    expect(files, hasLength(1));
+    overlay = files[filePath];
+    expect(overlay, new isInstanceOf<plugin.ChangeContentOverlay>());
+    plugin.ChangeContentOverlay changeOverlay = overlay;
+    expect(changeOverlay.edits, hasLength(2));
+    //
+    // Remove
+    //
+    pluginManager.analysisUpdateContentParams = null;
+    handleSuccessfulRequest(new AnalysisUpdateContentParams(
+            <String, dynamic>{filePath: new RemoveContentOverlay()})
+        .toRequest('2'));
+    params = pluginManager.analysisUpdateContentParams;
+    expect(params, isNotNull);
+    files = params.files;
+    expect(files, hasLength(1));
+    overlay = files[filePath];
+    expect(overlay, new isInstanceOf<plugin.RemoveContentOverlay>());
   }
 
   CompilationUnit _getTestUnit() {

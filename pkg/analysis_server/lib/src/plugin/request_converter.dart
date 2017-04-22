@@ -16,6 +16,39 @@ class RequestConverter {
     return new plugin.AnalysisService(service.name);
   }
 
+  plugin.AnalysisSetPriorityFilesParams convertAnalysisSetPriorityFilesParams(
+      server.AnalysisSetPriorityFilesParams params) {
+    return new plugin.AnalysisSetPriorityFilesParams(params.files);
+  }
+
+  plugin.AnalysisSetSubscriptionsParams convertAnalysisSetSubscriptionsParams(
+      server.AnalysisSetSubscriptionsParams params) {
+    Map<server.AnalysisService, List<String>> serverSubscriptions =
+        params.subscriptions;
+    Map<plugin.AnalysisService, List<String>> pluginSubscriptions =
+        <plugin.AnalysisService, List<String>>{};
+    for (server.AnalysisService service in serverSubscriptions.keys) {
+      try {
+        pluginSubscriptions[convertAnalysisService(service)] =
+            serverSubscriptions[service];
+      } catch (exception) {
+        // Ignore the exception. It indicates that the service isn't one that
+        // should be passed along to plugins.
+      }
+    }
+    return new plugin.AnalysisSetSubscriptionsParams(pluginSubscriptions);
+  }
+
+  plugin.AnalysisUpdateContentParams convertAnalysisUpdateContentParams(
+      server.AnalysisUpdateContentParams params) {
+    Map<String, dynamic> serverOverlays = params.files;
+    Map<String, dynamic> pluginOverlays = <String, dynamic>{};
+    for (String file in serverOverlays.keys) {
+      pluginOverlays[file] = convertFileOverlay(serverOverlays[file]);
+    }
+    return new plugin.AnalysisUpdateContentParams(pluginOverlays);
+  }
+
   Object convertFileOverlay(Object overlay) {
     if (overlay is server.AddContentOverlay) {
       return new plugin.AddContentOverlay(overlay.content);

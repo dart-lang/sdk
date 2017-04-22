@@ -36,6 +36,49 @@ class RequestConverterTest extends ProtocolTestUtilities {
     });
   }
 
+  void test_convertAnalysisSetPriorityFilesParams() {
+    List<String> files = <String>['a', 'b', 'c'];
+    plugin.AnalysisSetPriorityFilesParams result =
+        converter.convertAnalysisSetPriorityFilesParams(
+            new server.AnalysisSetPriorityFilesParams(files));
+    expect(result, isNotNull);
+    expect(result.files, files);
+  }
+
+  void test_convertAnalysisSetSubscriptionsParams() {
+    Map<server.AnalysisService, List<String>> serverSubscriptions =
+        <server.AnalysisService, List<String>>{
+      server.AnalysisService.HIGHLIGHTS: <String>['a', 'b'],
+      server.AnalysisService.OUTLINE: <String>['c'],
+      server.AnalysisService.OVERRIDES: <String>['d', 'e']
+    };
+    plugin.AnalysisSetSubscriptionsParams result =
+        converter.convertAnalysisSetSubscriptionsParams(
+            new server.AnalysisSetSubscriptionsParams(serverSubscriptions));
+    expect(result, isNotNull);
+    Map<plugin.AnalysisService, List<String>> pluginSubscriptions =
+        result.subscriptions;
+    expect(pluginSubscriptions, hasLength(2));
+    expect(
+        pluginSubscriptions[plugin.AnalysisService.HIGHLIGHTS], hasLength(2));
+    expect(pluginSubscriptions[plugin.AnalysisService.OUTLINE], hasLength(1));
+  }
+
+  void test_convertAnalysisUpdateContentParams() {
+    Map<String, dynamic> serverFiles = <String, dynamic>{
+      'file1': new server.AddContentOverlay('content1'),
+      'file2': new server.AddContentOverlay('content2'),
+    };
+    plugin.AnalysisUpdateContentParams result =
+        converter.convertAnalysisUpdateContentParams(
+            new server.AnalysisUpdateContentParams(serverFiles));
+    expect(result, isNotNull);
+    Map<String, dynamic> pluginFiles = result.files;
+    expect(pluginFiles, hasLength(2));
+    expect(pluginFiles['file1'], new isInstanceOf<plugin.AddContentOverlay>());
+    expect(pluginFiles['file2'], new isInstanceOf<plugin.AddContentOverlay>());
+  }
+
   void test_convertFileOverlay_add() {
     String content = 'content';
     plugin.AddContentOverlay result =

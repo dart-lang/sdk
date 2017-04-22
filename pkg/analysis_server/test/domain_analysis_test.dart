@@ -15,6 +15,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -797,5 +798,22 @@ class A {}
     // wait for analysis
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNotEmpty);
+  }
+
+  test_sentToPlugins() async {
+    addTestFile('int V = 42;');
+    createProject();
+    // subscribe
+    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    // wait for analysis
+    await waitForTasksFinished();
+    plugin.AnalysisSetSubscriptionsParams params =
+        pluginManager.analysisSetSubscriptionsParams;
+    expect(params, isNotNull);
+    Map<plugin.AnalysisService, List<String>> subscriptions =
+        params.subscriptions;
+    expect(subscriptions, hasLength(1));
+    List<String> files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
+    expect(files, [testFile]);
   }
 }

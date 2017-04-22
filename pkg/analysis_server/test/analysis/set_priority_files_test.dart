@@ -9,6 +9,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -124,6 +125,20 @@ analyzer:
     Response response = await _setPriorityFile(sampleFile);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.UNANALYZED_PRIORITY_FILES);
+  }
+
+  test_sentToPlugins() async {
+    addTestFile('');
+    // wait for analysis to ensure that the file is known to the context
+    await server.onAnalysisComplete;
+    // set priority files
+    Response response = await _setPriorityFile(testFile);
+    expect(response, isResponseSuccess('0'));
+    // verify
+    plugin.AnalysisSetPriorityFilesParams params =
+        pluginManager.analysisSetPriorityFilesParams;
+    expect(params, isNotNull);
+    expect(params.files, <String>[testFile]);
   }
 
   _setPriorityFile(String file) async {
