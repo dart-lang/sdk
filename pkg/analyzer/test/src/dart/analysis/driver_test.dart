@@ -1009,7 +1009,7 @@ var a = new A();
         createAnalysisDriver().test.getSummaryStore(a);
 
     // There are at least a.dart and dart:core libraries.
-    String aUri = 'file://$a';
+    String aUri = provider.pathContext.toUri(a).toString();
     expect(summaryStore.unlinkedMap.keys, contains(aUri));
     expect(summaryStore.linkedMap.keys, contains(aUri));
     expect(summaryStore.unlinkedMap.keys, contains('dart:core'));
