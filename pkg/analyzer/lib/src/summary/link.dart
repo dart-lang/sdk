@@ -4798,8 +4798,8 @@ class TopLevelVariableElementForLink extends VariableElementForLink
 }
 
 /**
- * Specialization of [DependencyWalker] for performing type inferrence
- * on static and top level variables.
+ * Specialization of [DependencyWalker] for performing type inference on static
+ * and top level variables.
  */
 class TypeInferenceDependencyWalker
     extends DependencyWalker<TypeInferenceNode> {

@@ -419,7 +419,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('color',
-          help: 'Use asni colors when printing messages.',
+          help: 'Use ansi colors when printing messages.',
           defaultsTo: ansi.terminalSupportsAnsi(),
           hide: hide);
 

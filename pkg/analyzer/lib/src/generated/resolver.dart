@@ -4323,7 +4323,7 @@ class InferenceContext {
   }
 
   /**
-   * Clear the type information assocated with [node].
+   * Clear the type information associated with [node].
    */
   static void clearType(AstNode node) {
     node?.setProperty(_typeProperty, null);
