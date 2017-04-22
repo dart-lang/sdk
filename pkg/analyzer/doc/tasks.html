@@ -214,7 +214,6 @@ digraph G {
   ParseDartTask -> LIBRARY_SPECIFIC_UNITS
   ParseDartTask -> PARSED_UNIT
   ParseDartTask -> PARSE_ERRORS
-  ParseDartTask -> REFERENCED_NAMES
   ParseDartTask -> REFERENCED_SOURCES
   ParseDartTask -> SOURCE_KIND
   ParseDartTask -> UNITS
@@ -233,7 +232,6 @@ digraph G {
   READY_RESOLVED_UNIT -> ResolveLibraryTask
   READY_RESOLVED_UNIT -> VerifyUnitTask
   READY_RESOLVED_UNIT [shape=box]
-  REFERENCED_NAMES [shape=box]
   REFERENCED_SOURCES -> BuildDirectiveElementsTask
   REFERENCED_SOURCES -> ResolveDirectiveElementsTask
   REFERENCED_SOURCES -> VerifyUnitTask
