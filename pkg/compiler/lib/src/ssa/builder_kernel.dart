@@ -277,7 +277,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         constructorArguments,
         new TypeMask.nonNullExact(
             astAdapter.getClass(constructor.enclosingClass), closedWorld),
-        instantiatedTypes: <ResolutionInterfaceType>[
+        instantiatedTypes: <DartType>[
           astAdapter.getClass(constructor.enclosingClass).thisType
         ],
         hasRtiInput: false);
@@ -2517,7 +2517,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         targetCanThrow: astAdapter.getCanThrow(target, closedWorld));
     if (currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
-          new List<ResolutionInterfaceType>.from(currentImplicitInstantiations);
+          new List<ResolutionDartType>.from(currentImplicitInstantiations);
     }
     instruction.sideEffects = astAdapter.getSideEffects(target, closedWorld);
 

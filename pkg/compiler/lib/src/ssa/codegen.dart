@@ -1889,7 +1889,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     MemberEntity element = node.element;
-    node.instantiatedTypes?.forEach(_registry.registerInstantiation);
+    List<DartType> instantiatedTypes = node.instantiatedTypes;
+
+    if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
+      instantiatedTypes.forEach((type) {
+        _registry.registerInstantiation(type);
+      });
+    }
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
