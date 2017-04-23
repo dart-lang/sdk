@@ -9,6 +9,7 @@
 import 'dart:collection';
 
 import 'package:front_end/src/base/syntactic_entity.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/scanner/string_utilities.dart';
 import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 
@@ -982,7 +983,7 @@ class TokenClass {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class TokenType {
+class TokenType {
   /**
    * The type of the token that marks the start or end of the input.
    */
@@ -1140,26 +1141,48 @@ abstract class TokenType {
   static const TokenType GENERIC_METHOD_TYPE_ASSIGN =
       fasta.GENERIC_METHOD_TYPE_ASSIGN;
 
+  final int kind;
+
+  /**
+   * `true` if this token type represents an operator.
+   */
+  final bool isOperator;
+
+  /**
+   * `true` if this token type represents an operator
+   * that can be defined by users.
+   */
+  final bool isUserDefinableOperator;
+
+  /**
+   * The lexeme that defines this type of token,
+   * or `null` if there is more than one possible lexeme for this type of token.
+   */
+  final String lexeme;
+
   /**
    * The name of the token type.
    */
-  String get name;
+  final String name;
 
   /**
-   * The lexeme that defines this type of token, or `null` if there is more than
-   * one possible lexeme for this type of token.
+   * The precedence of this type of token,
+   * or `0` if the token does not represent an operator.
    */
-  String get lexeme;
+  final int precedence;
+
+  const TokenType(this.lexeme, this.name, this.precedence, this.kind,
+      {this.isOperator: false, this.isUserDefinableOperator: false});
 
   /**
    * Return `true` if this type of token represents an additive operator.
    */
-  bool get isAdditiveOperator;
+  bool get isAdditiveOperator => precedence == ADDITIVE_PRECEDENCE;
 
   /**
    * Return `true` if this type of token represents an assignment operator.
    */
-  bool get isAssignmentOperator;
+  bool get isAssignmentOperator => precedence == ASSIGNMENT_PRECEDENCE;
 
   /**
    * Return `true` if this type of token represents an associative operator. An
@@ -1173,62 +1196,66 @@ abstract class TokenType {
    * operators can have an effect because evaluation of the right-hand operand
    * is conditional.
    */
-  bool get isAssociativeOperator;
+  bool get isAssociativeOperator =>
+      this == AMPERSAND_INFO ||
+      this == AMPERSAND_AMPERSAND_INFO ||
+      this == BAR_INFO ||
+      this == BAR_BAR_INFO ||
+      this == CARET_INFO ||
+      this == PLUS_INFO ||
+      this == STAR_INFO;
 
   /**
    * Return `true` if this type of token represents an equality operator.
    */
-  bool get isEqualityOperator;
+  bool get isEqualityOperator => this == BANG_EQ_INFO || this == EQ_EQ_INFO;
 
   /**
    * Return `true` if this type of token represents an increment operator.
    */
-  bool get isIncrementOperator;
+  bool get isIncrementOperator =>
+      this == PLUS_PLUS_INFO || this == MINUS_MINUS_INFO;
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.
    */
-  bool get isMultiplicativeOperator;
-
-  /**
-   * Return `true` if this token type represents an operator.
-   */
-  bool get isOperator;
+  bool get isMultiplicativeOperator => precedence == MULTIPLICATIVE_PRECEDENCE;
 
   /**
    * Return `true` if this type of token represents a relational operator.
    */
-  bool get isRelationalOperator;
+  bool get isRelationalOperator =>
+      this == LT_INFO ||
+      this == LT_EQ_INFO ||
+      this == GT_INFO ||
+      this == GT_EQ_INFO;
 
   /**
    * Return `true` if this type of token represents a shift operator.
    */
-  bool get isShiftOperator;
+  bool get isShiftOperator => precedence == SHIFT_PRECEDENCE;
 
   /**
    * Return `true` if this type of token represents a unary postfix operator.
    */
-  bool get isUnaryPostfixOperator;
+  bool get isUnaryPostfixOperator => precedence == POSTFIX_PRECEDENCE;
 
   /**
    * Return `true` if this type of token represents a unary prefix operator.
    */
-  bool get isUnaryPrefixOperator;
-
-  /**
-   * Return `true` if this token type represents an operator that can be defined
-   * by users.
-   */
-  bool get isUserDefinableOperator;
-
-  /**
-   * Return the precedence of the token, or `0` if the token does not represent
-   * an operator.
-   */
-  int get precedence;
+  bool get isUnaryPrefixOperator =>
+      precedence == PREFIX_PRECEDENCE ||
+      this == PLUS_PLUS_INFO ||
+      this == MINUS_MINUS_INFO;
 
   @override
   String toString() => name;
+
+  /**
+   * Use [lexeme] instead of this method
+   */
+  @deprecated
+  String get value => lexeme;
 }
 
 /**

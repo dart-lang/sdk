@@ -7,16 +7,12 @@ library fasta.scanner.precedence;
 import '../../scanner/token.dart';
 import 'token_constants.dart';
 
-class PrecedenceInfo implements TokenType {
-  final String value;
-  final String name;
-  final int precedence;
-  final int kind;
-  final bool isOperator;
-  final bool isUserDefinableOperator;
-
-  const PrecedenceInfo(this.value, this.name, this.precedence, this.kind,
-      {this.isOperator: false, this.isUserDefinableOperator: false});
+class PrecedenceInfo extends TokenType {
+  const PrecedenceInfo(String value, String name, int precedence, int kind,
+      {bool isOperator: false, bool isUserDefinableOperator: false})
+      : super(value, name, precedence, kind,
+            isOperator: isOperator,
+            isUserDefinableOperator: isUserDefinableOperator);
 
   toString() => 'PrecedenceInfo($value, $name, $precedence, $kind)';
 
@@ -98,81 +94,49 @@ class PrecedenceInfo implements TokenType {
     GENERIC_METHOD_TYPE_ASSIGN,
     GENERIC_METHOD_TYPE_LIST,
   ];
-
-  @override
-  bool get isAdditiveOperator => precedence == ADDITIVE_PRECEDENCE;
-
-  @override
-  bool get isAssignmentOperator => precedence == ASSIGNMENT_PRECEDENCE;
-
-  @override
-  bool get isAssociativeOperator =>
-      this == AMPERSAND_INFO ||
-      this == AMPERSAND_AMPERSAND_INFO ||
-      this == BAR_INFO ||
-      this == BAR_BAR_INFO ||
-      this == CARET_INFO ||
-      this == PLUS_INFO ||
-      this == STAR_INFO;
-
-  @override
-  bool get isEqualityOperator => this == BANG_EQ_INFO || this == EQ_EQ_INFO;
-
-  @override
-  bool get isIncrementOperator =>
-      this == PLUS_PLUS_INFO || this == MINUS_MINUS_INFO;
-
-  @override
-  bool get isMultiplicativeOperator => precedence == MULTIPLICATIVE_PRECEDENCE;
-
-  @override
-  bool get isRelationalOperator =>
-      this == LT_INFO ||
-      this == LT_EQ_INFO ||
-      this == GT_INFO ||
-      this == GT_EQ_INFO;
-
-  @override
-  bool get isShiftOperator => precedence == SHIFT_PRECEDENCE;
-
-  @override
-  bool get isUnaryPostfixOperator => precedence == POSTFIX_PRECEDENCE;
-
-  @override
-  bool get isUnaryPrefixOperator =>
-      precedence == PREFIX_PRECEDENCE ||
-      this == PLUS_PLUS_INFO ||
-      this == MINUS_MINUS_INFO;
-
-  @override
-  String get lexeme => value;
 }
+
+const int NO_PRECEDENCE = 0;
+const int ASSIGNMENT_PRECEDENCE = 1;
+const int CASCADE_PRECEDENCE = 2;
+const int CONDITIONAL_PRECEDENCE = 3;
+const int IF_NULL_PRECEDENCE = 4;
+const int LOGICAL_OR_PRECEDENCE = 5;
+const int LOGICAL_AND_PRECEDENCE = 6;
+const int EQUALITY_PRECEDENCE = 7;
+const int RELATIONAL_PRECEDENCE = 8;
+const int BITWISE_OR_PRECEDENCE = 9;
+const int BITWISE_XOR_PRECEDENCE = 10;
+const int BITWISE_AND_PRECEDENCE = 11;
+const int SHIFT_PRECEDENCE = 12;
+const int ADDITIVE_PRECEDENCE = 13;
+const int MULTIPLICATIVE_PRECEDENCE = 14;
+const int PREFIX_PRECEDENCE = 15;
+const int POSTFIX_PRECEDENCE = 16;
 
 // TODO(ahe): The following are not tokens in Dart.
 const PrecedenceInfo BACKPING_INFO =
-    const PrecedenceInfo('`', 'BACKPING', 0, BACKPING_TOKEN);
+    const PrecedenceInfo('`', 'BACKPING', NO_PRECEDENCE, BACKPING_TOKEN);
 const PrecedenceInfo BACKSLASH_INFO =
-    const PrecedenceInfo('\\', 'BACKSLASH', 0, BACKSLASH_TOKEN);
+    const PrecedenceInfo('\\', 'BACKSLASH', NO_PRECEDENCE, BACKSLASH_TOKEN);
 const PrecedenceInfo PERIOD_PERIOD_PERIOD_INFO = const PrecedenceInfo(
-    '...', 'PERIOD_PERIOD_PERIOD', 0, PERIOD_PERIOD_PERIOD_TOKEN);
+    '...', 'PERIOD_PERIOD_PERIOD', NO_PRECEDENCE, PERIOD_PERIOD_PERIOD_TOKEN);
 
 /**
  * The cascade operator has the lowest precedence of any operator
  * except assignment.
  */
-const int CASCADE_PRECEDENCE = 2;
 const PrecedenceInfo PERIOD_PERIOD_INFO = const PrecedenceInfo(
     '..', 'PERIOD_PERIOD', CASCADE_PRECEDENCE, PERIOD_PERIOD_TOKEN,
     isOperator: true);
 
-const int PREFIX_PRECEDENCE = 15;
 const PrecedenceInfo BANG_INFO = const PrecedenceInfo(
     '!', 'BANG', PREFIX_PRECEDENCE, BANG_TOKEN,
     isOperator: true);
 const PrecedenceInfo COLON_INFO =
-    const PrecedenceInfo(':', 'COLON', 0, COLON_TOKEN);
+    const PrecedenceInfo(':', 'COLON', NO_PRECEDENCE, COLON_TOKEN);
 const PrecedenceInfo INDEX_INFO = const PrecedenceInfo(
-    '[]', 'INDEX', 0, INDEX_TOKEN,
+    '[]', 'INDEX', NO_PRECEDENCE, INDEX_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
 const PrecedenceInfo MINUS_MINUS_INFO = const PrecedenceInfo(
     '--', 'MINUS_MINUS', POSTFIX_PRECEDENCE, MINUS_MINUS_TOKEN,
@@ -185,21 +149,21 @@ const PrecedenceInfo TILDE_INFO = const PrecedenceInfo(
     isOperator: true, isUserDefinableOperator: true);
 
 const PrecedenceInfo FUNCTION_INFO =
-    const PrecedenceInfo('=>', 'FUNCTION', 0, FUNCTION_TOKEN);
+    const PrecedenceInfo('=>', 'FUNCTION', NO_PRECEDENCE, FUNCTION_TOKEN);
 const PrecedenceInfo HASH_INFO =
-    const PrecedenceInfo('#', 'HASH', 0, HASH_TOKEN);
+    const PrecedenceInfo('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 const PrecedenceInfo INDEX_EQ_INFO = const PrecedenceInfo(
-    '[]=', 'INDEX_EQ', 0, INDEX_EQ_TOKEN,
+    '[]=', 'INDEX_EQ', NO_PRECEDENCE, INDEX_EQ_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
 const PrecedenceInfo SEMICOLON_INFO =
-    const PrecedenceInfo(';', 'SEMICOLON', 0, SEMICOLON_TOKEN);
+    const PrecedenceInfo(';', 'SEMICOLON', NO_PRECEDENCE, SEMICOLON_TOKEN);
 const PrecedenceInfo COMMA_INFO =
-    const PrecedenceInfo(',', 'COMMA', 0, COMMA_TOKEN);
+    const PrecedenceInfo(',', 'COMMA', NO_PRECEDENCE, COMMA_TOKEN);
 
-const PrecedenceInfo AT_INFO = const PrecedenceInfo('@', 'AT', 0, AT_TOKEN);
+const PrecedenceInfo AT_INFO =
+    const PrecedenceInfo('@', 'AT', NO_PRECEDENCE, AT_TOKEN);
 
 // Assignment operators.
-const int ASSIGNMENT_PRECEDENCE = 1;
 const PrecedenceInfo AMPERSAND_EQ_INFO = const PrecedenceInfo(
     '&=', 'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
     isOperator: true);
@@ -240,33 +204,35 @@ const PrecedenceInfo QUESTION_QUESTION_EQ_INFO = const PrecedenceInfo('??=',
     'QUESTION_QUESTION_EQ', ASSIGNMENT_PRECEDENCE, QUESTION_QUESTION_EQ_TOKEN,
     isOperator: true);
 
-const PrecedenceInfo QUESTION_INFO =
-    const PrecedenceInfo('?', 'QUESTION', 3, QUESTION_TOKEN, isOperator: true);
+const PrecedenceInfo QUESTION_INFO = const PrecedenceInfo(
+    '?', 'QUESTION', CONDITIONAL_PRECEDENCE, QUESTION_TOKEN,
+    isOperator: true);
 
 const PrecedenceInfo QUESTION_QUESTION_INFO = const PrecedenceInfo(
-    '??', 'QUESTION_QUESTION', 4, QUESTION_QUESTION_TOKEN,
+    '??', 'QUESTION_QUESTION', IF_NULL_PRECEDENCE, QUESTION_QUESTION_TOKEN,
     isOperator: true);
 
-const PrecedenceInfo BAR_BAR_INFO =
-    const PrecedenceInfo('||', 'BAR_BAR', 5, BAR_BAR_TOKEN, isOperator: true);
-
-const PrecedenceInfo AMPERSAND_AMPERSAND_INFO = const PrecedenceInfo(
-    '&&', 'AMPERSAND_AMPERSAND', 6, AMPERSAND_AMPERSAND_TOKEN,
+const PrecedenceInfo BAR_BAR_INFO = const PrecedenceInfo(
+    '||', 'BAR_BAR', LOGICAL_OR_PRECEDENCE, BAR_BAR_TOKEN,
     isOperator: true);
 
-const PrecedenceInfo BAR_INFO = const PrecedenceInfo('|', 'BAR', 9, BAR_TOKEN,
+const PrecedenceInfo AMPERSAND_AMPERSAND_INFO = const PrecedenceInfo('&&',
+    'AMPERSAND_AMPERSAND', LOGICAL_AND_PRECEDENCE, AMPERSAND_AMPERSAND_TOKEN,
+    isOperator: true);
+
+const PrecedenceInfo BAR_INFO = const PrecedenceInfo(
+    '|', 'BAR', BITWISE_OR_PRECEDENCE, BAR_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
 
 const PrecedenceInfo CARET_INFO = const PrecedenceInfo(
-    '^', 'CARET', 10, CARET_TOKEN,
+    '^', 'CARET', BITWISE_XOR_PRECEDENCE, CARET_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
 
 const PrecedenceInfo AMPERSAND_INFO = const PrecedenceInfo(
-    '&', 'AMPERSAND', 11, AMPERSAND_TOKEN,
+    '&', 'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
 
 // Equality operators.
-const int EQUALITY_PRECEDENCE = 7;
 const PrecedenceInfo BANG_EQ_EQ_INFO = const PrecedenceInfo(
     '!==', 'BANG_EQ_EQ', EQUALITY_PRECEDENCE, BANG_EQ_EQ_TOKEN);
 const PrecedenceInfo BANG_EQ_INFO = const PrecedenceInfo(
@@ -279,7 +245,6 @@ const PrecedenceInfo EQ_EQ_INFO = const PrecedenceInfo(
     isOperator: true, isUserDefinableOperator: true);
 
 // Relational operators.
-const int RELATIONAL_PRECEDENCE = 8;
 const PrecedenceInfo GT_EQ_INFO = const PrecedenceInfo(
     '>=', 'GT_EQ', RELATIONAL_PRECEDENCE, GT_EQ_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
@@ -298,7 +263,6 @@ const PrecedenceInfo LT_INFO = const PrecedenceInfo(
     isOperator: true, isUserDefinableOperator: true);
 
 // Shift operators.
-const int SHIFT_PRECEDENCE = 12;
 const PrecedenceInfo GT_GT_INFO = const PrecedenceInfo(
     '>>', 'GT_GT', SHIFT_PRECEDENCE, GT_GT_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
@@ -307,7 +271,6 @@ const PrecedenceInfo LT_LT_INFO = const PrecedenceInfo(
     isOperator: true, isUserDefinableOperator: true);
 
 // Additive operators.
-const int ADDITIVE_PRECEDENCE = 13;
 const PrecedenceInfo MINUS_INFO = const PrecedenceInfo(
     '-', 'MINUS', ADDITIVE_PRECEDENCE, MINUS_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
@@ -316,7 +279,6 @@ const PrecedenceInfo PLUS_INFO = const PrecedenceInfo(
     isOperator: true, isUserDefinableOperator: true);
 
 // Multiplicative operators.
-const int MULTIPLICATIVE_PRECEDENCE = 14;
 const PrecedenceInfo PERCENT_INFO = const PrecedenceInfo(
     '%', 'PERCENT', MULTIPLICATIVE_PRECEDENCE, PERCENT_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
@@ -330,7 +292,6 @@ const PrecedenceInfo TILDE_SLASH_INFO = const PrecedenceInfo(
     '~/', 'TILDE_SLASH', MULTIPLICATIVE_PRECEDENCE, TILDE_SLASH_TOKEN,
     isOperator: true, isUserDefinableOperator: true);
 
-const int POSTFIX_PRECEDENCE = 16;
 const PrecedenceInfo PERIOD_INFO =
     const PrecedenceInfo('.', 'PERIOD', POSTFIX_PRECEDENCE, PERIOD_TOKEN);
 const PrecedenceInfo QUESTION_PERIOD_INFO = const PrecedenceInfo(
@@ -338,75 +299,79 @@ const PrecedenceInfo QUESTION_PERIOD_INFO = const PrecedenceInfo(
     isOperator: true);
 
 const PrecedenceInfo KEYWORD_INFO =
-    const PrecedenceInfo('keyword', 'KEYWORD', 0, KEYWORD_TOKEN);
+    const PrecedenceInfo('keyword', 'KEYWORD', NO_PRECEDENCE, KEYWORD_TOKEN);
 
-const PrecedenceInfo EOF_INFO = const PrecedenceInfo('', 'EOF', 0, EOF_TOKEN);
+const PrecedenceInfo EOF_INFO =
+    const PrecedenceInfo('', 'EOF', NO_PRECEDENCE, EOF_TOKEN);
 
 /// Precedence info used by synthetic tokens that are created during parser
 /// recovery (non-analyzer use case).
 const PrecedenceInfo RECOVERY_INFO =
-    const PrecedenceInfo('recovery', 'RECOVERY', 0, RECOVERY_TOKEN);
+    const PrecedenceInfo('recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN);
 
-const PrecedenceInfo IDENTIFIER_INFO =
-    const PrecedenceInfo('identifier', 'STRING_INT', 0, IDENTIFIER_TOKEN);
+const PrecedenceInfo IDENTIFIER_INFO = const PrecedenceInfo(
+    'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN);
 
 const PrecedenceInfo SCRIPT_INFO =
-    const PrecedenceInfo('script', 'SCRIPT_TAG', 0, SCRIPT_TOKEN);
+    const PrecedenceInfo('script', 'SCRIPT_TAG', NO_PRECEDENCE, SCRIPT_TOKEN);
 
-const PrecedenceInfo BAD_INPUT_INFO =
-    const PrecedenceInfo('malformed input', 'BAD_INPUT', 0, BAD_INPUT_TOKEN);
+const PrecedenceInfo BAD_INPUT_INFO = const PrecedenceInfo(
+    'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN);
 
 const PrecedenceInfo OPEN_PAREN_INFO = const PrecedenceInfo(
     '(', 'OPEN_PAREN', POSTFIX_PRECEDENCE, OPEN_PAREN_TOKEN);
 
 const PrecedenceInfo CLOSE_PAREN_INFO =
-    const PrecedenceInfo(')', 'CLOSE_PAREN', 0, CLOSE_PAREN_TOKEN);
+    const PrecedenceInfo(')', 'CLOSE_PAREN', NO_PRECEDENCE, CLOSE_PAREN_TOKEN);
 
 const PrecedenceInfo OPEN_CURLY_BRACKET_INFO = const PrecedenceInfo(
-    '{', 'OPEN_CURLY_BRACKET', 0, OPEN_CURLY_BRACKET_TOKEN);
+    '{', 'OPEN_CURLY_BRACKET', NO_PRECEDENCE, OPEN_CURLY_BRACKET_TOKEN);
 
 const PrecedenceInfo CLOSE_CURLY_BRACKET_INFO = const PrecedenceInfo(
-    '}', 'CLOSE_CURLY_BRACKET', 0, CLOSE_CURLY_BRACKET_TOKEN);
+    '}', 'CLOSE_CURLY_BRACKET', NO_PRECEDENCE, CLOSE_CURLY_BRACKET_TOKEN);
 
 const PrecedenceInfo INT_INFO =
-    const PrecedenceInfo('int', 'INT', 0, INT_TOKEN);
+    const PrecedenceInfo('int', 'INT', NO_PRECEDENCE, INT_TOKEN);
 
 const PrecedenceInfo STRING_INFO =
-    const PrecedenceInfo('string', 'STRING', 0, STRING_TOKEN);
+    const PrecedenceInfo('string', 'STRING', NO_PRECEDENCE, STRING_TOKEN);
 
 const PrecedenceInfo OPEN_SQUARE_BRACKET_INFO = const PrecedenceInfo(
     '[', 'OPEN_SQUARE_BRACKET', POSTFIX_PRECEDENCE, OPEN_SQUARE_BRACKET_TOKEN);
 
 const PrecedenceInfo CLOSE_SQUARE_BRACKET_INFO = const PrecedenceInfo(
-    ']', 'CLOSE_SQUARE_BRACKET', 0, CLOSE_SQUARE_BRACKET_TOKEN);
+    ']', 'CLOSE_SQUARE_BRACKET', NO_PRECEDENCE, CLOSE_SQUARE_BRACKET_TOKEN);
 
 const PrecedenceInfo DOUBLE_INFO =
-    const PrecedenceInfo('double', 'DOUBLE', 0, DOUBLE_TOKEN);
+    const PrecedenceInfo('double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN);
 
 const PrecedenceInfo STRING_INTERPOLATION_INFO = const PrecedenceInfo(
-    '\${', 'STRING_INTERPOLATION_EXPRESSION', 0, STRING_INTERPOLATION_TOKEN);
+    '\${',
+    'STRING_INTERPOLATION_EXPRESSION',
+    NO_PRECEDENCE,
+    STRING_INTERPOLATION_TOKEN);
 
 const PrecedenceInfo STRING_INTERPOLATION_IDENTIFIER_INFO =
-    const PrecedenceInfo('\$', 'STRING_INTERPOLATION_IDENTIFIER', 0,
+    const PrecedenceInfo('\$', 'STRING_INTERPOLATION_IDENTIFIER', NO_PRECEDENCE,
         STRING_INTERPOLATION_IDENTIFIER_TOKEN);
 
-const PrecedenceInfo HEXADECIMAL_INFO =
-    const PrecedenceInfo('hexadecimal', 'HEXADECIMAL', 0, HEXADECIMAL_TOKEN);
+const PrecedenceInfo HEXADECIMAL_INFO = const PrecedenceInfo(
+    'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN);
 
-const PrecedenceInfo SINGLE_LINE_COMMENT_INFO =
-    const PrecedenceInfo('comment', 'SINGLE_LINE_COMMENT', 0, COMMENT_TOKEN);
+const PrecedenceInfo SINGLE_LINE_COMMENT_INFO = const PrecedenceInfo(
+    'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
 
-const PrecedenceInfo MULTI_LINE_COMMENT_INFO =
-    const PrecedenceInfo('comment', 'MULTI_LINE_COMMENT', 0, COMMENT_TOKEN);
+const PrecedenceInfo MULTI_LINE_COMMENT_INFO = const PrecedenceInfo(
+    'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
 
 const PrecedenceInfo GENERIC_METHOD_TYPE_ASSIGN = const PrecedenceInfo(
     'generic_comment_assign',
     'GENERIC_METHOD_TYPE_ASSIGN',
-    0,
+    NO_PRECEDENCE,
     GENERIC_METHOD_TYPE_ASSIGN_TOKEN);
 
 const PrecedenceInfo GENERIC_METHOD_TYPE_LIST = const PrecedenceInfo(
     'generic_comment_list',
     'GENERIC_METHOD_TYPE_LIST',
-    0,
+    NO_PRECEDENCE,
     GENERIC_METHOD_TYPE_LIST_TOKEN);
