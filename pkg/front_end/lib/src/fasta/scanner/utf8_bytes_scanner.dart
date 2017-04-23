@@ -6,9 +6,9 @@ library fasta.scanner.utf8_bytes_scanner;
 
 import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
 
-import '../scanner.dart' show unicodeReplacementCharacter;
+import '../../scanner/token.dart' show TokenType;
 
-import 'precedence.dart' show PrecedenceInfo;
+import '../scanner.dart' show unicodeReplacementCharacter;
 
 import 'token.dart' show CommentToken, DartDocToken, StringToken;
 
@@ -196,24 +196,21 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   }
 
   @override
-  StringToken createSubstringToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
+  StringToken createSubstringToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new StringToken.fromUtf8Bytes(
         info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   @override
-  CommentToken createCommentToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
+  CommentToken createCommentToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new CommentToken.fromUtf8Bytes(
         info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   @override
-  DartDocToken createDartDocToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
+  DartDocToken createDartDocToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new DartDocToken.fromUtf8Bytes(
         info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);

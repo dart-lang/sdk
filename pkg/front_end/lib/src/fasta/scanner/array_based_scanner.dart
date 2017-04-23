@@ -6,9 +6,7 @@ library fasta.scanner.array_based_scanner;
 
 import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
-import '../../scanner/token.dart' show Keyword;
-
-import 'precedence.dart' show PrecedenceInfo;
+import '../../scanner/token.dart' show Keyword, TokenType;
 
 import 'token.dart'
     show
@@ -52,7 +50,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * An operator token represent operators like ':', '.', ';', '&&', '==', '--',
    * '=>', etc.
    */
-  void appendPrecedenceToken(PrecedenceInfo info) {
+  void appendPrecedenceToken(TokenType info) {
     appendToken(new SymbolToken(info, tokenStart));
   }
 
@@ -62,7 +60,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * is determined by [yes] is appended, otherwise a fixed token whose kind
    * and content is determined by [no] is appended.
    */
-  int select(int choice, PrecedenceInfo yes, PrecedenceInfo no) {
+  int select(int choice, TokenType yes, TokenType no) {
     int next = advance();
     if (identical(next, choice)) {
       appendPrecedenceToken(yes);
@@ -122,7 +120,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Appends a token that begins a new group, represented by [info].
    * Group begin tokens are '{', '(', '[' and '${'.
    */
-  void appendBeginGroup(PrecedenceInfo info) {
+  void appendBeginGroup(TokenType info) {
     Token token = new BeginGroupToken(info, tokenStart);
     appendToken(token);
 
@@ -139,7 +137,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
    * '>>' are handled separately bo [appendGt] and [appendGtGt].
    */
-  int appendEndGroup(PrecedenceInfo info, int openKind) {
+  int appendEndGroup(TokenType info, int openKind) {
     assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
     discardBeginGroupUntil(openKind);
     appendPrecedenceToken(info);
@@ -186,7 +184,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * This method does not issue unmatched errors, because > is also the
    * greater-than operator. It does not necessarily have to close a group.
    */
-  void appendGt(PrecedenceInfo info) {
+  void appendGt(TokenType info) {
     appendPrecedenceToken(info);
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
@@ -200,7 +198,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * This method does not issue unmatched errors, because >> is also the
    * shift operator. It does not necessarily have to close a group.
    */
-  void appendGtGt(PrecedenceInfo info) {
+  void appendGtGt(TokenType info) {
     appendPrecedenceToken(info);
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
@@ -220,7 +218,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendToken(token);
   }
 
-  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+  void appendSubstringToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     appendToken(createSubstringToken(info, start, asciiOnly, extraOffset));
   }
@@ -234,8 +232,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  StringToken createSubstringToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
+  StringToken createSubstringToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
   /**
@@ -301,7 +298,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     //     next
     //      v
     //     EOF
-    PrecedenceInfo info = closeBraceInfoFor(begin);
+    TokenType info = closeBraceInfoFor(begin);
     appendToken(new SyntheticSymbolToken(info, tokenStart));
     begin.endGroup = tail;
     appendErrorToken(new UnmatchedToken(begin));

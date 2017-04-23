@@ -277,11 +277,10 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
 
 /// Converts a single analyzer token into a Fasta token.
 Token fromAnalyzerToken(analyzer.Token token) {
-  Token beginGroup(PrecedenceInfo info) =>
-      new BeginGroupToken(info, token.offset);
-  Token string(PrecedenceInfo info) =>
+  Token beginGroup(TokenType info) => new BeginGroupToken(info, token.offset);
+  Token string(TokenType info) =>
       new StringToken.fromString(info, token.lexeme, token.offset);
-  Token symbol(PrecedenceInfo info) => new SymbolToken(info, token.offset);
+  Token symbol(TokenType info) => new SymbolToken(info, token.offset);
   switch (token.type) {
     case TokenType.DOUBLE:
       return string(DOUBLE_INFO);

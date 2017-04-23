@@ -106,7 +106,7 @@ class PrecedenceInfoTest {
       check(source, token);
     }
 
-    for (PrecedenceInfo info in PrecedenceInfo.all) {
+    for (TokenType info in TokenType.all) {
       assertLexeme(info.value);
     }
     for (TokenType tt in allTokenTypes) {

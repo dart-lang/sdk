@@ -8,6 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType, Parser;
@@ -1941,7 +1942,7 @@ class AstBuilder extends ScopeListener {
   /// which should be either [GENERIC_METHOD_TYPE_ASSIGN] or
   /// [GENERIC_METHOD_TYPE_LIST].  If found, parse the comment into tokens and
   /// inject into the token stream before the [token].
-  Token _injectGenericComment(Token token, PrecedenceInfo info, int prefixLen) {
+  Token _injectGenericComment(Token token, TokenType info, int prefixLen) {
     if (parseGenericMethodComments) {
       CommentToken t = token.precedingCommentTokens;
       for (; t != null; t = t.next) {

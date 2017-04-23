@@ -4,6 +4,8 @@
 
 library fasta.scanner.recover;
 
+import '../../scanner/token.dart' show TokenType;
+
 import '../fasta_codes.dart'
     show
         FastaCode,
@@ -23,8 +25,6 @@ import 'token.dart' show StringToken, SymbolToken, Token;
 import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 
 import 'precedence.dart' as Precedence;
-
-import 'precedence.dart' show PrecedenceInfo;
 
 /// Recover from errors in [tokens]. The original sources are provided as
 /// [bytes]. [lineStarts] are the beginning character offsets of lines, and
@@ -230,7 +230,7 @@ Token defaultRecoveryStrategy(
   return error;
 }
 
-Token synthesizeToken(int charOffset, String value, PrecedenceInfo info) {
+Token synthesizeToken(int charOffset, String value, TokenType info) {
   return new StringToken.fromString(info, value, charOffset);
 }
 

@@ -58,14 +58,19 @@ import '../scanner.dart' show ErrorToken;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
-import '../../scanner/token.dart' show Keyword;
+import '../../scanner/token.dart'
+    show
+        ASSIGNMENT_PRECEDENCE,
+        CASCADE_PRECEDENCE,
+        EQUALITY_PRECEDENCE,
+        Keyword,
+        POSTFIX_PRECEDENCE,
+        RELATIONAL_PRECEDENCE,
+        TokenType;
 
 import '../scanner/precedence.dart'
     show
-        ASSIGNMENT_PRECEDENCE,
         AS_INFO,
-        CASCADE_PRECEDENCE,
-        EQUALITY_PRECEDENCE,
         GT_INFO,
         IS_INFO,
         MINUS_MINUS_INFO,
@@ -73,11 +78,8 @@ import '../scanner/precedence.dart'
         OPEN_SQUARE_BRACKET_INFO,
         PERIOD_INFO,
         PLUS_PLUS_INFO,
-        POSTFIX_PRECEDENCE,
-        PrecedenceInfo,
         QUESTION_INFO,
         QUESTION_PERIOD_INFO,
-        RELATIONAL_PRECEDENCE,
         SCRIPT_INFO;
 
 import '../scanner/token.dart'
@@ -2726,7 +2728,7 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    PrecedenceInfo info = token.info;
+    TokenType info = token.info;
     int tokenLevel = info.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (identical(tokenLevel, level)) {

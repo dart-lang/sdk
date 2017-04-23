@@ -8,6 +8,8 @@ import 'dart:collection' show ListMixin;
 
 import 'dart:typed_data' show Uint16List, Uint32List;
 
+import '../../scanner/token.dart' show TokenType;
+
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 
@@ -159,14 +161,14 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+  void appendSubstringToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendPrecedenceToken(PrecedenceInfo info);
+  void appendPrecedenceToken(TokenType info);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
+  int select(int choice, TokenType yes, TokenType no);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendKeywordToken(Keyword keyword);
@@ -181,16 +183,16 @@ abstract class AbstractScanner implements Scanner {
   void lineFeedInMultiline();
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendBeginGroup(PrecedenceInfo info);
+  void appendBeginGroup(TokenType info);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  int appendEndGroup(PrecedenceInfo info, int openKind);
+  int appendEndGroup(TokenType info, int openKind);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendGt(PrecedenceInfo info);
+  void appendGt(TokenType info);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendGtGt(PrecedenceInfo info);
+  void appendGtGt(TokenType info);
 
   /// Append [token] to the token stream.
   void appendErrorToken(ErrorToken token);
@@ -204,8 +206,7 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  CommentToken createCommentToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
+  CommentToken createCommentToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
   /**
@@ -217,8 +218,7 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  DartDocToken createDartDocToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
+  DartDocToken createDartDocToken(TokenType info, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
@@ -825,7 +825,7 @@ abstract class AbstractScanner implements Scanner {
     return next;
   }
 
-  void appendComment(int start, PrecedenceInfo info, bool asciiOnly) {
+  void appendComment(int start, TokenType info, bool asciiOnly) {
     if (!includeComments) return;
     CommentToken newComment = createCommentToken(info, start, asciiOnly);
     if (scanGenericMethodComments) {
@@ -851,7 +851,7 @@ abstract class AbstractScanner implements Scanner {
     _appendToCommentStream(newComment);
   }
 
-  void appendDartDoc(int start, PrecedenceInfo info, bool asciiOnly) {
+  void appendDartDoc(int start, TokenType info, bool asciiOnly) {
     if (!includeComments) return;
     Token newComment = createDartDocToken(info, start, asciiOnly);
     _appendToCommentStream(newComment);
@@ -1205,7 +1205,7 @@ abstract class AbstractScanner implements Scanner {
   }
 }
 
-PrecedenceInfo closeBraceInfoFor(BeginGroupToken begin) {
+TokenType closeBraceInfoFor(BeginGroupToken begin) {
   return const {
     '(': CLOSE_PAREN_INFO,
     '[': CLOSE_SQUARE_BRACKET_INFO,

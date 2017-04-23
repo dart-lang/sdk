@@ -13,6 +13,24 @@ import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/scanner/string_utilities.dart';
 import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 
+const int NO_PRECEDENCE = 0;
+const int ASSIGNMENT_PRECEDENCE = 1;
+const int CASCADE_PRECEDENCE = 2;
+const int CONDITIONAL_PRECEDENCE = 3;
+const int IF_NULL_PRECEDENCE = 4;
+const int LOGICAL_OR_PRECEDENCE = 5;
+const int LOGICAL_AND_PRECEDENCE = 6;
+const int EQUALITY_PRECEDENCE = 7;
+const int RELATIONAL_PRECEDENCE = 8;
+const int BITWISE_OR_PRECEDENCE = 9;
+const int BITWISE_XOR_PRECEDENCE = 10;
+const int BITWISE_AND_PRECEDENCE = 11;
+const int SHIFT_PRECEDENCE = 12;
+const int ADDITIVE_PRECEDENCE = 13;
+const int MULTIPLICATIVE_PRECEDENCE = 14;
+const int PREFIX_PRECEDENCE = 15;
+const int POSTFIX_PRECEDENCE = 16;
+
 /**
  * The opening half of a grouping pair of tokens. This is used for curly
  * brackets ('{'), parentheses ('('), and square brackets ('[').
@@ -346,7 +364,7 @@ class Keyword {
    */
   static final Map<String, Keyword> keywords = _createKeywordMap();
 
-  final fasta.PrecedenceInfo info;
+  final TokenType info;
 
   /**
    * A flag indicating whether the keyword is "built-in" identifier.
@@ -1012,7 +1030,7 @@ class TokenType {
   static const TokenType AMPERSAND_AMPERSAND = fasta.AMPERSAND_AMPERSAND_INFO;
 
   static const TokenType AMPERSAND_AMPERSAND_EQ =
-      const fasta.PrecedenceInfo('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
+      const TokenType('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
 
   static const TokenType AMPERSAND_EQ = fasta.AMPERSAND_EQ_INFO;
 
@@ -1027,7 +1045,7 @@ class TokenType {
   static const TokenType BAR_BAR = fasta.BAR_BAR_INFO;
 
   static const TokenType BAR_BAR_EQ =
-      const fasta.PrecedenceInfo('||=', 'BAR_BAR_EQ', 1, -1);
+      const TokenType('||=', 'BAR_BAR_EQ', 1, -1);
 
   static const TokenType BAR_EQ = fasta.BAR_EQ_INFO;
 
@@ -1140,6 +1158,85 @@ class TokenType {
 
   static const TokenType GENERIC_METHOD_TYPE_ASSIGN =
       fasta.GENERIC_METHOD_TYPE_ASSIGN;
+
+  static const List<TokenType> all = const <TokenType>[
+    TokenType.EOF,
+    TokenType.DOUBLE,
+    TokenType.HEXADECIMAL,
+    TokenType.IDENTIFIER,
+    TokenType.INT,
+    TokenType.KEYWORD,
+    TokenType.MULTI_LINE_COMMENT,
+    TokenType.SCRIPT_TAG,
+    TokenType.SINGLE_LINE_COMMENT,
+    TokenType.STRING,
+    TokenType.AMPERSAND,
+    TokenType.AMPERSAND_AMPERSAND,
+    TokenType.AMPERSAND_EQ,
+    TokenType.AT,
+    TokenType.BANG,
+    TokenType.BANG_EQ,
+    TokenType.BAR,
+    TokenType.BAR_BAR,
+    TokenType.BAR_EQ,
+    TokenType.COLON,
+    TokenType.COMMA,
+    TokenType.CARET,
+    TokenType.CARET_EQ,
+    TokenType.CLOSE_CURLY_BRACKET,
+    TokenType.CLOSE_PAREN,
+    TokenType.CLOSE_SQUARE_BRACKET,
+    TokenType.EQ,
+    TokenType.EQ_EQ,
+    TokenType.FUNCTION,
+    TokenType.GT,
+    TokenType.GT_EQ,
+    TokenType.GT_GT,
+    TokenType.GT_GT_EQ,
+    TokenType.HASH,
+    TokenType.INDEX,
+    TokenType.INDEX_EQ,
+    TokenType.LT,
+    TokenType.LT_EQ,
+    TokenType.LT_LT,
+    TokenType.LT_LT_EQ,
+    TokenType.MINUS,
+    TokenType.MINUS_EQ,
+    TokenType.MINUS_MINUS,
+    TokenType.OPEN_CURLY_BRACKET,
+    TokenType.OPEN_PAREN,
+    TokenType.OPEN_SQUARE_BRACKET,
+    TokenType.PERCENT,
+    TokenType.PERCENT_EQ,
+    TokenType.PERIOD,
+    TokenType.PERIOD_PERIOD,
+    TokenType.PLUS,
+    TokenType.PLUS_EQ,
+    TokenType.PLUS_PLUS,
+    TokenType.QUESTION,
+    TokenType.QUESTION_PERIOD,
+    TokenType.QUESTION_QUESTION,
+    TokenType.QUESTION_QUESTION_EQ,
+    TokenType.SEMICOLON,
+    TokenType.SLASH,
+    TokenType.SLASH_EQ,
+    TokenType.STAR,
+    TokenType.STAR_EQ,
+    TokenType.STRING_INTERPOLATION_EXPRESSION,
+    TokenType.STRING_INTERPOLATION_IDENTIFIER,
+    TokenType.TILDE,
+    TokenType.TILDE_SLASH,
+    TokenType.TILDE_SLASH_EQ,
+    TokenType.BACKPING,
+    TokenType.BACKSLASH,
+    TokenType.PERIOD_PERIOD_PERIOD,
+    TokenType.GENERIC_METHOD_TYPE_LIST,
+    TokenType.GENERIC_METHOD_TYPE_ASSIGN,
+
+    // These are not yet part of the language and not supported by fasta
+    //TokenType.AMPERSAND_AMPERSAND_EQ,
+    //TokenType.BAR_BAR_EQ,
+  ];
 
   final int kind;
 

@@ -4,8 +4,7 @@
 
 library dart2js.serialization;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart'
-    show PrecedenceInfo;
+import 'package:front_end/src/scanner/token.dart' show TokenType;
 
 import '../common.dart';
 import '../common/resolution.dart';
@@ -27,7 +26,7 @@ final Map<String, String> canonicalNames = computeCanonicalNames();
 
 Map<String, String> computeCanonicalNames() {
   Map<String, String> result = <String, String>{};
-  for (PrecedenceInfo info in PrecedenceInfo.all) {
+  for (TokenType info in TokenType.all) {
     result[info.value] = info.value;
   }
   return result;
