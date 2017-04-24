@@ -14307,6 +14307,16 @@ class D {
     }
   }
 
+  test_typedef_type_parameters_bound_recursive() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary('typedef void F<T extends F>();');
+    checkElementText(
+        library,
+        r'''
+typedef void F<T extends F>();
+''');
+  }
+
   test_typedef_type_parameters_f_bound_complex() {
     var library = checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     if (isStrongMode) {

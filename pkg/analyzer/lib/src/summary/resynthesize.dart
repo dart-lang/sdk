@@ -1221,7 +1221,7 @@ class _ReferenceInfo {
    * If this reference refers to a non-generic type, the type it refers to.
    * Otherwise `null`.
    */
-  DartType type;
+  DartType _type;
 
   /**
    * The number of type parameters accepted by the entity referred to by this
@@ -1247,10 +1247,19 @@ class _ReferenceInfo {
       DartType specialType,
       this.numTypeParameters) {
     if (specialType != null) {
-      type = specialType;
-    } else {
-      type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
+      _type = specialType;
     }
+  }
+
+  /**
+   * If this reference refers to a non-generic type, the type it refers to.
+   * Otherwise `null`.
+   */
+  DartType get type {
+    if (_type == null) {
+      _type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
+    }
+    return _type;
   }
 
   /**
