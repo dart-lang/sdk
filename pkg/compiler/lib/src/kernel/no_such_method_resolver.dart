@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.kernel.world_builder;
+part of dart2js.kernel.element_map;
 
 class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
-  final KernelWorldBuilder _worldBuilder;
+  final KernelToElementMap elementMap;
 
-  KernelNoSuchMethodResolver(this._worldBuilder);
+  KernelNoSuchMethodResolver(this.elementMap);
 
   @override
   bool hasForwardingSyntax(KFunction method) {

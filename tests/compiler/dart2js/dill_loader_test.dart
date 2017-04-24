@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/library_loader.dart'
     show ScriptLoader, LibraryLoaderTask;
 import 'package:compiler/src/script.dart' show Script;
@@ -75,12 +75,12 @@ main() {
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);
 
-    KernelWorldBuilder worldBuilder = loader.worldBuilder;
-    LibraryEntity library = worldBuilder.lookupLibrary(uri);
+    KernelToElementMap elementMap = loader.elementMap;
+    LibraryEntity library = elementMap.lookupLibrary(uri);
     Expect.isNotNull(library);
-    ClassEntity clss = worldBuilder.lookupClass(library, 'ListLiteralTest');
+    ClassEntity clss = elementMap.lookupClass(library, 'ListLiteralTest');
     Expect.isNotNull(clss);
-    var member = worldBuilder.lookupClassMember(clss, 'testMain');
+    var member = elementMap.lookupClassMember(clss, 'testMain');
     Expect.isNotNull(member);
   });
 }

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.kernel.world_builder;
+part of dart2js.kernel.element_map;
 
 /// Interface for computing all native classes in a set of libraries.
 class KernelNativeClassResolver implements NativeClassResolver {
-  final KernelWorldBuilder _worldBuilder;
+  final KernelToElementMap elementMap;
 
-  KernelNativeClassResolver(this._worldBuilder);
+  KernelNativeClassResolver(this.elementMap);
 
   Iterable<ClassEntity> computeNativeClasses(
       Iterable<LibraryEntity> libraries) {

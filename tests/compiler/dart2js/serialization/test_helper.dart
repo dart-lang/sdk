@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/elements.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
@@ -645,7 +645,7 @@ class KernelEquivalence {
   Set<Pair<ClassEntity, ClassEntity>> assumedMixinApplications =
       new Set<Pair<ClassEntity, ClassEntity>>();
 
-  KernelEquivalence(KernelWorldBuilder builder)
+  KernelEquivalence(KernelToElementMap builder)
       : testing = new WorldDeconstructionForTesting(builder);
 
   TestStrategy get defaultStrategy => new TestStrategy(

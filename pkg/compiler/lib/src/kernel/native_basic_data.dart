@@ -3,26 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // TODO(johnniwinther): Make this a separate library.
-part of dart2js.kernel.world_builder;
+part of dart2js.kernel.element_map;
 
 class KernelAnnotationProcessor implements AnnotationProcessor {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap elementMap;
 
-  KernelAnnotationProcessor(this.worldBuilder);
+  KernelAnnotationProcessor(this.elementMap);
 
   void extractNativeAnnotations(
       LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
-    CommonElements commonElements = worldBuilder.commonElements;
+    ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+    CommonElements commonElements = elementMap.commonElements;
 
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
       String annotationName;
       // TODO(johnniwinther): Make [_getClassMetadata] public and at test to
       // guard against misuse.
-      for (ConstantExpression annotation
-          in worldBuilder._getClassMetadata(cls)) {
+      for (ConstantExpression annotation in elementMap._getClassMetadata(cls)) {
         ConstantValue value =
-            worldBuilder.constantEnvironment.getConstantValue(annotation);
+            elementMap.constantEnvironment.getConstantValue(annotation);
         String name = readAnnotationName(
             cls, value, commonElements.nativeAnnotationClass);
         if (annotationName == null) {

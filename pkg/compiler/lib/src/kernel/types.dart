@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.kernel.world_builder;
+part of dart2js.kernel.element_map;
 
 /// Support for subtype checks of kernel based [DartType]s.
 class _KernelDartTypes implements DartTypes {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap worldBuilder;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
@@ -35,35 +35,35 @@ class _KernelDartTypes implements DartTypes {
 }
 
 class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap elementMap;
 
-  _KernelOrderedTypeSetBuilder(this.worldBuilder, ClassEntity cls)
+  _KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls)
       : super(cls,
-            reporter: worldBuilder.reporter,
-            objectType: worldBuilder.commonElements.objectType);
+            reporter: elementMap.reporter,
+            objectType: elementMap.commonElements.objectType);
 
   InterfaceType getThisType(ClassEntity cls) {
-    return worldBuilder._getThisType(cls);
+    return elementMap._getThisType(cls);
   }
 
   InterfaceType substByContext(InterfaceType type, InterfaceType context) {
-    return worldBuilder._substByContext(type, context);
+    return elementMap._substByContext(type, context);
   }
 
   int getHierarchyDepth(ClassEntity cls) {
-    return worldBuilder._getHierarchyDepth(cls);
+    return elementMap._getHierarchyDepth(cls);
   }
 
   OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
-    return worldBuilder._getOrderedTypeSet(cls);
+    return elementMap._getOrderedTypeSet(cls);
   }
 }
 
 abstract class _AbstractTypeRelationMixin implements AbstractTypeRelation {
-  KernelWorldBuilder get worldBuilder;
+  KernelToElementMap get elementMap;
 
   @override
-  CommonElements get commonElements => worldBuilder.commonElements;
+  CommonElements get commonElements => elementMap.commonElements;
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity element) {
@@ -79,12 +79,11 @@ abstract class _AbstractTypeRelationMixin implements AbstractTypeRelation {
 
   @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
-    OrderedTypeSet orderedTypeSet =
-        worldBuilder._getOrderedTypeSet(type.element);
+    OrderedTypeSet orderedTypeSet = elementMap._getOrderedTypeSet(type.element);
     InterfaceType supertype =
-        orderedTypeSet.asInstanceOf(cls, worldBuilder._getHierarchyDepth(cls));
+        orderedTypeSet.asInstanceOf(cls, elementMap._getHierarchyDepth(cls));
     if (supertype != null) {
-      supertype = worldBuilder._substByContext(supertype, type);
+      supertype = elementMap._substByContext(supertype, type);
     }
     return supertype;
   }
@@ -92,14 +91,14 @@ abstract class _AbstractTypeRelationMixin implements AbstractTypeRelation {
 
 class _KernelSubtypeVisitor extends SubtypeVisitor
     with _AbstractTypeRelationMixin {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap elementMap;
 
-  _KernelSubtypeVisitor(this.worldBuilder);
+  _KernelSubtypeVisitor(this.elementMap);
 }
 
 class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor
     with _AbstractTypeRelationMixin {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap elementMap;
 
-  _KernelPotentialSubtypeVisitor(this.worldBuilder);
+  _KernelPotentialSubtypeVisitor(this.elementMap);
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.kernel.world_builder;
+library dart2js.kernel.element_map;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -36,10 +36,9 @@ part 'native_class_resolver.dart';
 part 'no_such_method_resolver.dart';
 part 'types.dart';
 
-/// World builder used for creating elements and types corresponding to Kernel
+/// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
-// TODO(johnniwinther): Implement [ResolutionWorldBuilder].
-class KernelWorldBuilder extends KernelElementAdapterMixin {
+class KernelToElementMap extends KernelElementAdapterMixin {
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
   final DiagnosticReporter reporter;
@@ -49,15 +48,15 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   _KernelDartTypes _types;
 
   /// Library environment. Used for fast lookup.
-  KEnv _env;
+  _KEnv _env;
 
   /// List of library environments by `KLibrary.libraryIndex`. This is used for
   /// fast lookup into library classes and members.
-  List<KLibraryEnv> _libraryEnvs = <KLibraryEnv>[];
+  List<_KLibraryEnv> _libraryEnvs = <_KLibraryEnv>[];
 
   /// List of class environments by `KClass.classIndex`. This is used for
   /// fast lookup into class members.
-  List<KClassEnv> _classEnvs = <KClassEnv>[];
+  List<_KClassEnv> _classEnvs = <_KClassEnv>[];
 
   Map<ir.Library, KLibrary> _libraryMap = <ir.Library, KLibrary>{};
   Map<ir.Class, KClass> _classMap = <ir.Class, KClass>{};
@@ -81,8 +80,8 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
       <ir.TreeNode, KLocalFunction>{};
 
-  KernelWorldBuilder(this.reporter, ir.Program program)
-      : _env = new KEnv(program) {
+  KernelToElementMap(this.reporter, ir.Program program)
+      : _env = new _KEnv(program) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this);
@@ -107,7 +106,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   Iterable<LibraryEntity> get _libraries {
     if (_env.length != _libraryMap.length) {
       // Create a [KLibrary] for each library.
-      _env.forEachLibrary((KLibraryEnv env) {
+      _env.forEachLibrary((_KLibraryEnv env) {
         _getLibrary(env.library, env);
       });
     }
@@ -128,11 +127,11 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
 
   LibraryEntity lookupLibrary(Uri uri) {
-    KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
+    _KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
     return _getLibrary(libraryEnv.library, libraryEnv);
   }
 
-  KLibrary _getLibrary(ir.Library node, [KLibraryEnv libraryEnv]) {
+  KLibrary _getLibrary(ir.Library node, [_KLibraryEnv libraryEnv]) {
     return _libraryMap.putIfAbsent(node, () {
       Uri canonicalUri = node.importUri;
       _libraryEnvs.add(libraryEnv ?? _env.lookupLibrary(canonicalUri));
@@ -148,14 +147,14 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   MemberEntity lookupLibraryMember(KLibrary library, String name,
       {bool setter: false}) {
-    KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     ir.Member member = libraryEnv.lookupMember(name, setter: setter);
     return member != null ? getMember(member) : null;
   }
 
   ClassEntity lookupClass(KLibrary library, String name) {
-    KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
-    KClassEnv classEnv = libraryEnv.lookupClass(name);
+    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    _KClassEnv classEnv = libraryEnv.lookupClass(name);
     if (classEnv != null) {
       return _getClass(classEnv.cls, classEnv);
     }
@@ -163,26 +162,26 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   void _forEachClass(KLibrary library, void f(ClassEntity cls)) {
-    KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
-    libraryEnv.forEachClass((KClassEnv classEnv) {
+    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    libraryEnv.forEachClass((_KClassEnv classEnv) {
       f(_getClass(classEnv.cls, classEnv));
     });
   }
 
   MemberEntity lookupClassMember(KClass cls, String name,
       {bool setter: false}) {
-    KClassEnv classEnv = _classEnvs[cls.classIndex];
+    _KClassEnv classEnv = _classEnvs[cls.classIndex];
     ir.Member member = classEnv.lookupMember(name, setter: setter);
     return member != null ? getMember(member) : null;
   }
 
   ConstructorEntity lookupConstructor(KClass cls, String name) {
-    KClassEnv classEnv = _classEnvs[cls.classIndex];
+    _KClassEnv classEnv = _classEnvs[cls.classIndex];
     ir.Member member = classEnv.lookupConstructor(name);
     return member != null ? getConstructor(member) : null;
   }
 
-  KClass _getClass(ir.Class node, [KClassEnv classEnv]) {
+  KClass _getClass(ir.Class node, [_KClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
       KLibrary library = _getLibrary(node.enclosingLibrary);
       if (classEnv == null) {
@@ -386,7 +385,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     return list;
   }
 
-  void _ensureThisAndRawType(KClass cls, KClassEnv env) {
+  void _ensureThisAndRawType(KClass cls, _KClassEnv env) {
     if (env.thisType == null) {
       ir.Class node = env.cls;
       // TODO(johnniwinther): Add the type argument to the list literal when we
@@ -411,18 +410,18 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   InterfaceType _getThisType(KClass cls) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureThisAndRawType(cls, env);
     return env.thisType;
   }
 
   InterfaceType _getRawType(KClass cls) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureThisAndRawType(cls, env);
     return env.rawType;
   }
 
-  void _ensureSupertypes(KClass cls, KClassEnv env) {
+  void _ensureSupertypes(KClass cls, _KClassEnv env) {
     if (env.orderedTypeSet == null) {
       _ensureThisAndRawType(cls, env);
 
@@ -434,7 +433,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
         InterfaceType processSupertype(ir.Supertype node) {
           InterfaceType type = _typeConverter.visitSupertype(node);
           KClass superclass = type.element;
-          KClassEnv env = _classEnvs[superclass.classIndex];
+          _KClassEnv env = _classEnvs[superclass.classIndex];
           _ensureSupertypes(superclass, env);
           return type;
         }
@@ -458,13 +457,13 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   OrderedTypeSet _getOrderedTypeSet(KClass cls) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.orderedTypeSet;
   }
 
   int _getHierarchyDepth(KClass cls) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.orderedTypeSet.maxDepth;
   }
@@ -475,20 +474,20 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   InterfaceType _getSuperType(KClass cls) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.supertype;
   }
 
   void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     env.orderedTypeSet.supertypes.forEach(f);
   }
 
   void _forEachClassMember(
       KClass cls, void f(ClassEntity cls, MemberEntity member)) {
-    KClassEnv env = _classEnvs[cls.classIndex];
+    _KClassEnv env = _classEnvs[cls.classIndex];
     env.forEachMember((ir.Member member) {
       f(cls, getMember(member));
     });
@@ -596,30 +595,30 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 }
 
 /// Environment for fast lookup of program libraries.
-class KEnv {
+class _KEnv {
   final ir.Program program;
 
-  Map<Uri, KLibraryEnv> _libraryMap;
+  Map<Uri, _KLibraryEnv> _libraryMap;
 
-  KEnv(this.program);
+  _KEnv(this.program);
 
   void _ensureLibraryMap() {
     if (_libraryMap == null) {
-      _libraryMap = <Uri, KLibraryEnv>{};
+      _libraryMap = <Uri, _KLibraryEnv>{};
       for (ir.Library library in program.libraries) {
-        _libraryMap[library.importUri] = new KLibraryEnv(library);
+        _libraryMap[library.importUri] = new _KLibraryEnv(library);
       }
     }
   }
 
-  /// Return the [KLibraryEnv] for the library with the canonical [uri].
-  KLibraryEnv lookupLibrary(Uri uri) {
+  /// Return the [_KLibraryEnv] for the library with the canonical [uri].
+  _KLibraryEnv lookupLibrary(Uri uri) {
     _ensureLibraryMap();
     return _libraryMap[uri];
   }
 
   /// Calls [f] for each library in this environment.
-  void forEachLibrary(void f(KLibraryEnv library)) {
+  void forEachLibrary(void f(_KLibraryEnv library)) {
     _ensureLibraryMap();
     _libraryMap.values.forEach(f);
   }
@@ -632,33 +631,32 @@ class KEnv {
 }
 
 /// Environment for fast lookup of library classes and members.
-// TODO(johnniwinther): Add member lookup.
-class KLibraryEnv {
+class _KLibraryEnv {
   final ir.Library library;
 
-  Map<String, KClassEnv> _classMap;
+  Map<String, _KClassEnv> _classMap;
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
 
-  KLibraryEnv(this.library);
+  _KLibraryEnv(this.library);
 
   void _ensureClassMap() {
     if (_classMap == null) {
-      _classMap = <String, KClassEnv>{};
+      _classMap = <String, _KClassEnv>{};
       for (ir.Class cls in library.classes) {
-        _classMap[cls.name] = new KClassEnv(cls);
+        _classMap[cls.name] = new _KClassEnv(cls);
       }
     }
   }
 
-  /// Return the [KClassEnv] for the class [name] in [library].
-  KClassEnv lookupClass(String name) {
+  /// Return the [_KClassEnv] for the class [name] in [library].
+  _KClassEnv lookupClass(String name) {
     _ensureClassMap();
     return _classMap[name];
   }
 
   /// Calls [f] for each class in this library.
-  void forEachClass(void f(KClassEnv cls)) {
+  void forEachClass(void f(_KClassEnv cls)) {
     _ensureClassMap();
     _classMap.values.forEach(f);
   }
@@ -691,8 +689,7 @@ class KLibraryEnv {
 }
 
 /// Environment for fast lookup of class members.
-// TODO(johnniwinther): Add member lookup.
-class KClassEnv {
+class _KClassEnv {
   final ir.Class cls;
 
   InterfaceType thisType;
@@ -706,7 +703,7 @@ class KClassEnv {
 
   Iterable<ConstantExpression> _metadata;
 
-  KClassEnv(this.cls);
+  _KClassEnv(this.cls);
 
   void _ensureMaps() {
     if (_memberMap == null) {
@@ -754,7 +751,7 @@ class KClassEnv {
     _memberMap.values.forEach(f);
   }
 
-  Iterable<ConstantExpression> getMetadata(KernelWorldBuilder worldBuilder) {
+  Iterable<ConstantExpression> getMetadata(KernelToElementMap worldBuilder) {
     if (_metadata == null) {
       _metadata = worldBuilder.getMetadata(cls.annotations);
     }
@@ -763,30 +760,30 @@ class KClassEnv {
 }
 
 class KernelElementEnvironment implements ElementEnvironment {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap elementMap;
 
-  KernelElementEnvironment(this.worldBuilder);
+  KernelElementEnvironment(this.elementMap);
 
   @override
   DartType get dynamicType => const DynamicType();
 
   @override
-  LibraryEntity get mainLibrary => worldBuilder._mainLibrary;
+  LibraryEntity get mainLibrary => elementMap._mainLibrary;
 
   @override
-  FunctionEntity get mainFunction => worldBuilder._mainFunction;
+  FunctionEntity get mainFunction => elementMap._mainFunction;
 
   @override
-  Iterable<LibraryEntity> get libraries => worldBuilder._libraries;
+  Iterable<LibraryEntity> get libraries => elementMap._libraries;
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return worldBuilder._getThisType(cls);
+    return elementMap._getThisType(cls);
   }
 
   @override
   InterfaceType getRawType(ClassEntity cls) {
-    return worldBuilder._getRawType(cls);
+    return elementMap._getRawType(cls);
   }
 
   @override
@@ -803,7 +800,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isSubtype(DartType a, DartType b) {
-    return worldBuilder.types.isSubtype(a, b);
+    return elementMap.types.isSubtype(a, b);
   }
 
   @override
@@ -822,7 +819,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false}) {
-    ConstructorEntity constructor = worldBuilder.lookupConstructor(cls, name);
+    ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
     if (constructor == null && required) {
       throw new SpannableAssertionFailure(
           CURRENT_ELEMENT_SPANNABLE,
@@ -836,7 +833,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   MemberEntity lookupClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: false}) {
     MemberEntity member =
-        worldBuilder.lookupClassMember(cls, name, setter: setter);
+        elementMap.lookupClassMember(cls, name, setter: setter);
     if (member == null && required) {
       throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");
@@ -846,12 +843,12 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   ClassEntity getSuperClass(ClassEntity cls) {
-    return worldBuilder._getSuperType(cls)?.element;
+    return elementMap._getSuperType(cls)?.element;
   }
 
   @override
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
-    worldBuilder._forEachSupertype(cls, f);
+    elementMap._forEachSupertype(cls, f);
   }
 
   @override
@@ -862,14 +859,14 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    worldBuilder._forEachClassMember(cls, f);
+    elementMap._forEachClassMember(cls, f);
   }
 
   @override
   MemberEntity lookupLibraryMember(LibraryEntity library, String name,
       {bool setter: false, bool required: false}) {
     MemberEntity member =
-        worldBuilder.lookupLibraryMember(library, name, setter: setter);
+        elementMap.lookupLibraryMember(library, name, setter: setter);
     if (member == null && required) {
       throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
           "The member '${name}' was not found in library '${library.name}'.");
@@ -880,7 +877,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   ClassEntity lookupClass(LibraryEntity library, String name,
       {bool required: false}) {
-    ClassEntity cls = worldBuilder.lookupClass(library, name);
+    ClassEntity cls = elementMap.lookupClass(library, name);
     if (cls == null && required) {
       throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
           "The class '$name'  was not found in library '${library.name}'.");
@@ -890,12 +887,12 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachClass(KLibrary library, void f(ClassEntity cls)) {
-    worldBuilder._forEachClass(library, f);
+    elementMap._forEachClass(library, f);
   }
 
   @override
   LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
-    LibraryEntity library = worldBuilder.lookupLibrary(uri);
+    LibraryEntity library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
       throw new SpannableAssertionFailure(
           CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
@@ -905,7 +902,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   CallStructure getCallStructure(KFunction function) {
-    ir.Member member = worldBuilder._memberList[function.memberIndex];
+    ir.Member member = elementMap._memberList[function.memberIndex];
     ir.FunctionNode functionNode;
     if (member is ir.Procedure) {
       functionNode = member.function;
@@ -930,7 +927,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
-  final KernelWorldBuilder elementAdapter;
+  final KernelToElementMap elementAdapter;
   bool topLevel = true;
 
   DartTypeConverter(this.elementAdapter);
@@ -1033,7 +1030,7 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
 /// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
 /// [_EvaluationEnvironment] for the evaluation.
 class KernelConstantEnvironment implements ConstantEnvironment {
-  KernelWorldBuilder _worldBuilder;
+  KernelToElementMap _worldBuilder;
   Map<ConstantExpression, ConstantValue> _valueMap =
       <ConstantExpression, ConstantValue>{};
 
@@ -1065,7 +1062,7 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 /// Evaluation environment used for computing [ConstantValue]s for
 /// kernel based [ConstantExpression]s.
 class _EvaluationEnvironment implements Environment {
-  final KernelWorldBuilder _worldBuilder;
+  final KernelToElementMap _worldBuilder;
 
   _EvaluationEnvironment(this._worldBuilder);
 
@@ -1104,23 +1101,21 @@ class _EvaluationEnvironment implements Environment {
 }
 
 class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap elementMap;
 
-  KernelResolutionWorldBuilder(
-      this.worldBuilder,
-      NativeBasicData nativeBasicData,
+  KernelResolutionWorldBuilder(this.elementMap, NativeBasicData nativeBasicData,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(worldBuilder.elementEnvironment, worldBuilder.commonElements,
+      : super(elementMap.elementEnvironment, elementMap.commonElements,
             nativeBasicData, selectorConstraintsStrategy);
 
   @override
   Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
-    return worldBuilder._getOrderedTypeSet(cls).supertypes;
+    return elementMap._getOrderedTypeSet(cls).supertypes;
   }
 
   @override
   ClassEntity getSuperClass(ClassEntity cls) {
-    return worldBuilder._getSuperType(cls)?.element;
+    return elementMap._getSuperType(cls)?.element;
   }
 
   @override
@@ -1131,7 +1126,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   int getHierarchyDepth(ClassEntity cls) {
-    return worldBuilder._getHierarchyDepth(cls);
+    return elementMap._getHierarchyDepth(cls);
   }
 
   @override
@@ -1149,7 +1144,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
 // Interface for testing equivalence of Kernel-based entities.
 class WorldDeconstructionForTesting {
-  final KernelWorldBuilder builder;
+  final KernelToElementMap builder;
 
   WorldDeconstructionForTesting(this.builder);
 
@@ -1158,7 +1153,7 @@ class WorldDeconstructionForTesting {
   }
 
   KLibrary getLibraryForClass(KClass cls) {
-    KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = builder._classEnvs[cls.classIndex];
     return builder.getLibrary(env.cls.enclosingLibrary);
   }
 
@@ -1182,14 +1177,14 @@ class WorldDeconstructionForTesting {
       _getLibrary(field, builder._fieldMap);
 
   KClass getSuperclassForClass(KClass cls) {
-    KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = builder._classEnvs[cls.classIndex];
     ir.Supertype supertype = env.cls.supertype;
     if (supertype == null) return null;
     return builder.getClass(supertype.classNode);
   }
 
   InterfaceType getMixinTypeForClass(KClass cls) {
-    KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = builder._classEnvs[cls.classIndex];
     ir.Supertype mixedInType = env.cls.mixedInType;
     if (mixedInType == null) return null;
     return builder.createInterfaceType(

@@ -15,7 +15,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/kernel/element_adapter.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -694,7 +694,7 @@ main(List<String> args) {
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
     KernelElementAdapter kernelElementAdapter =
-        new KernelWorldBuilder(compiler.reporter, backend.kernelTask.program);
+        new KernelToElementMap(compiler.reporter, backend.kernelTask.program);
 
     checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
         fullTest: fullTest);

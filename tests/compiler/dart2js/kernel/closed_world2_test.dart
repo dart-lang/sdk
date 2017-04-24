@@ -35,7 +35,7 @@ import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/native/enqueue.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -96,17 +96,17 @@ main(List<String> args) {
     compiler.resolutionWorldBuilder.closeWorld();
 
     print('---- closed world from kernel ------------------------------------');
-    KernelWorldBuilder worldBuilder = new KernelWorldBuilder(
+    KernelToElementMap elementMap = new KernelToElementMap(
         compiler.reporter, compiler.backend.kernelTask.program);
-    KernelEquivalence equivalence = new KernelEquivalence(worldBuilder);
-    NativeBasicData nativeBasicData = computeNativeBasicData(worldBuilder);
+    KernelEquivalence equivalence = new KernelEquivalence(elementMap);
+    NativeBasicData nativeBasicData = computeNativeBasicData(elementMap);
     checkNativeBasicData(
         compiler.backend.nativeBasicData, nativeBasicData, equivalence);
     List list = createKernelResolutionEnqueuerListener(
         compiler.options,
         compiler.reporter,
         compiler.deferredLoadTask,
-        worldBuilder,
+        elementMap,
         nativeBasicData);
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
     BackendUsageBuilder backendUsageBuilder2 = list[1];
@@ -118,11 +118,11 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         resolutionEnqueuerListener,
         new KernelResolutionWorldBuilder(
-            worldBuilder, nativeBasicData, const OpenWorldStrategy()),
-        new KernelWorkItemBuilder(worldBuilder, impactTransformer),
+            elementMap, nativeBasicData, const OpenWorldStrategy()),
+        new KernelWorkItemBuilder(elementMap, impactTransformer),
         'enqueuer from kelements');
     ClosedWorld closedWorld2 = computeClosedWorld(
-        compiler.reporter, enqueuer2, worldBuilder.elementEnvironment);
+        compiler.reporter, enqueuer2, elementMap.elementEnvironment);
     BackendUsage backendUsage2 = backendUsageBuilder2.close();
     checkBackendUsage(backendUsage1, backendUsage2, equivalence);
 
@@ -141,10 +141,10 @@ List createKernelResolutionEnqueuerListener(
     CompilerOptions options,
     DiagnosticReporter reporter,
     DeferredLoadTask deferredLoadTask,
-    KernelWorldBuilder worldBuilder,
+    KernelToElementMap elementMap,
     NativeBasicData nativeBasicData) {
-  ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
-  CommonElements commonElements = worldBuilder.commonElements;
+  ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+  CommonElements commonElements = elementMap.commonElements;
   BackendImpacts impacts = new BackendImpacts(options, commonElements);
 
   // TODO(johnniwinther): Create Kernel based implementations for these:
@@ -163,10 +163,10 @@ List createKernelResolutionEnqueuerListener(
   BackendUsageBuilder backendUsageBuilder =
       new BackendUsageBuilderImpl(commonElements);
   NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
-      commonElements, new KernelNoSuchMethodResolver(worldBuilder));
+      commonElements, new KernelNoSuchMethodResolver(elementMap));
   NativeResolutionEnqueuer nativeResolutionEnqueuer =
       new NativeResolutionEnqueuer(options, elementEnvironment, commonElements,
-          backendUsageBuilder, new KernelNativeClassResolver(worldBuilder));
+          backendUsageBuilder, new KernelNativeClassResolver(elementMap));
 
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       options,
@@ -203,12 +203,12 @@ List createKernelResolutionEnqueuerListener(
 
 /// Computes that NativeBasicData for the libraries in [worldBuilder].
 /// TODO(johnniwinther): Use [KernelAnnotationProcessor] instead.
-NativeBasicData computeNativeBasicData(KernelWorldBuilder worldBuilder) {
+NativeBasicData computeNativeBasicData(KernelToElementMap elementMap) {
   NativeBasicDataBuilderImpl builder = new NativeBasicDataBuilderImpl();
-  ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
+  ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
   for (LibraryEntity library in elementEnvironment.libraries) {
     if (library.canonicalUri.scheme == 'dart') {
-      new KernelAnnotationProcessor(worldBuilder)
+      new KernelAnnotationProcessor(elementMap)
           .extractNativeAnnotations(library, builder);
     }
   }
@@ -294,7 +294,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
-  final KernelWorldBuilder _worldBuilder;
+  final KernelToElementMap _worldBuilder;
   final ImpactTransformer _impactTransformer;
 
   KernelWorkItemBuilder(this._worldBuilder, this._impactTransformer);
@@ -306,7 +306,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 }
 
 class KernelWorkItem implements ResolutionWorkItem {
-  final KernelWorldBuilder _worldBuilder;
+  final KernelToElementMap _worldBuilder;
   final ImpactTransformer _impactTransformer;
   final MemberEntity element;
 

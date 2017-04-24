@@ -26,7 +26,7 @@ import '../elements/modelx.dart' show FunctionElementX, MetadataAnnotationX;
 import '../elements/resolution_types.dart' show ResolutionDartType;
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
-import '../kernel/world_builder.dart' show KernelAnnotationProcessor;
+import '../kernel/element_map.dart' show KernelAnnotationProcessor;
 import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';

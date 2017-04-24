@@ -2984,7 +2984,8 @@ class SsaBuilder extends ast.Visitor
       graph.addConstantString(new ast.DartString.literal(loadId), closedWorld)
     ];
     push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
-        targetCanThrow: false)..sourceInformation = sourceInformation);
+        targetCanThrow: false)
+      ..sourceInformation = sourceInformation);
   }
 
   generateSuperNoSuchMethodSend(
@@ -4080,7 +4081,8 @@ class SsaBuilder extends ast.Visitor
     nativeBehavior.codeTemplate = codeTemplate;
 
     return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
-        nativeBehavior: nativeBehavior)..sourceInformation = sourceInformation;
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation;
   }
 
   void pushInvokeStatic(

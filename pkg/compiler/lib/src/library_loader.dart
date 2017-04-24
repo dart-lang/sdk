@@ -30,7 +30,7 @@ import 'elements/modelx.dart'
         SyntheticImportElement;
 import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
-import 'kernel/world_builder.dart' show KernelWorldBuilder;
+import 'kernel/element_map.dart' show KernelToElementMap;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
@@ -844,7 +844,7 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   /// Holds the mapping of Kernel IR to KElements that is constructed as a
   /// result of loading a program.
-  KernelWorldBuilder _worldBuilder;
+  KernelToElementMap _elementMap;
 
   List<LibraryEntity> _allLoadedLibraries;
 
@@ -870,21 +870,21 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       bytes.removeLast();
       new BinaryBuilder(bytes).readProgram(program);
       return measure(() {
-        _worldBuilder = new KernelWorldBuilder(reporter, program);
+        _elementMap = new KernelToElementMap(reporter, program);
         program.libraries.forEach((ir.Library library) => _allLoadedLibraries
-            .add(_worldBuilder.lookupLibrary(library.importUri)));
+            .add(_elementMap.lookupLibrary(library.importUri)));
         LibraryEntity rootLibrary = null;
         if (program.mainMethod != null) {
-          rootLibrary = _worldBuilder
+          rootLibrary = _elementMap
               .lookupLibrary(program.mainMethod.enclosingLibrary.importUri);
         }
         return new _LoadedLibrariesAdapter(
-            rootLibrary, _allLoadedLibraries, _worldBuilder);
+            rootLibrary, _allLoadedLibraries, _elementMap);
       });
     });
   }
 
-  KernelWorldBuilder get worldBuilder => _worldBuilder;
+  KernelToElementMap get elementMap => _elementMap;
 
   void reset({bool reuseLibrary(LibraryElement library)}) {
     throw new UnimplementedError('_DillLibraryLoaderTask.reset');
@@ -897,7 +897,7 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   Iterable<LibraryEntity> get libraries => _allLoadedLibraries;
 
   LibraryEntity lookupLibrary(Uri canonicalUri) {
-    return _worldBuilder?.lookupLibrary(canonicalUri);
+    return _elementMap?.lookupLibrary(canonicalUri);
   }
 
   Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries) {
@@ -1611,7 +1611,7 @@ class _LoadedLibraries implements LoadedLibraries {
 class _LoadedLibrariesAdapter implements LoadedLibraries {
   final LibraryEntity rootLibrary;
   final List<LibraryEntity> _newLibraries;
-  final KernelWorldBuilder worldBuilder;
+  final KernelToElementMap worldBuilder;
 
   _LoadedLibrariesAdapter(
       this.rootLibrary, this._newLibraries, this.worldBuilder) {
