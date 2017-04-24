@@ -4,7 +4,8 @@
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -130,8 +131,9 @@ class LibraryContext {
         byteStore.put(key, bytes);
       });
 
-      var analysisContext = _createAnalysisContext(
-          options, declaredVariables, sourceFactory, fsState, store);
+      AnalysisContextImpl analysisContext = _createAnalysisContext(
+          options, declaredVariables, sourceFactory, store);
+      analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       return new LibraryContext._(store, analysisContext);
     });
@@ -169,19 +171,37 @@ class LibraryContext {
     return new ResolutionResult(resolvedUnit, errors);
   }
 
-  static AnalysisContext _createAnalysisContext(
-      AnalysisOptions _analysisOptions,
+  /**
+   * Resynthesize the [LibraryElement] from the given [store].
+   */
+  static LibraryElement resynthesizeLibraryElement(
+      AnalysisOptions analysisOptions,
       DeclaredVariables declaredVariables,
-      SourceFactory _sourceFactory,
-      FileSystemState fileSystemState,
+      SourceFactory sourceFactory,
+      SummaryDataStore store,
+      String uri) {
+    AnalysisContextImpl analysisContext = _createAnalysisContext(
+        analysisOptions, declaredVariables, sourceFactory, store);
+    try {
+      return new StoreBasedSummaryResynthesizer(
+              analysisContext, sourceFactory, analysisOptions.strongMode, store)
+          .getLibraryElement(uri);
+    } finally {
+      analysisContext.dispose();
+    }
+  }
+
+  static AnalysisContextImpl _createAnalysisContext(
+      AnalysisOptions analysisOptions,
+      DeclaredVariables declaredVariables,
+      SourceFactory sourceFactory,
       SummaryDataStore store) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
-    analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.analysisOptions = analysisOptions;
     analysisContext.declaredVariables.addAll(declaredVariables);
-    analysisContext.sourceFactory = _sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(fileSystemState);
+    analysisContext.sourceFactory = sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, store);
     return analysisContext;

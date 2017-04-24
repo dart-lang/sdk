@@ -9,7 +9,8 @@ import 'dart:typed_data';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -596,6 +597,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
+  /**
+   * Return a [Future] that completes with the [LibraryElement] for the given
+   * [uri], which is either resynthesized from the provided external summary
+   * store, or built for a file to which the given [uri] is resolved.
+   */
+  Future<LibraryElement> getLibraryByUri(String uri) async {
+    if (_externalSummaries != null && _externalSummaries.hasUnlinkedUnit(uri)) {
+      return LibraryContext.resynthesizeLibraryElement(analysisOptions,
+          declaredVariables, sourceFactory, _externalSummaries, uri);
+    }
+    Source source = sourceFactory.resolveUri(null, uri);
+    UnitElementResult unitResult = await getUnitElement(source.fullName);
+    return unitResult.element.library;
+  }
+
   ApiSignature getResolvedUnitKeyByPath(String path) {
     ApiSignature signature = getUnitKeyByPath(path);
     var file = fsState.getFileForPath(path);
@@ -1096,17 +1112,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Return the context in which the [library] should be analyzed.
    */
-  LibraryContext _createLibraryContext(FileState library) =>
-      new LibraryContext.forSingleLibrary(
-          library,
-          _logger,
-          _sdkBundle,
-          _byteStore,
-          _analysisOptions,
-          declaredVariables,
-          _sourceFactory,
-          _externalSummaries,
-          fsState);
+  LibraryContext _createLibraryContext(FileState library) {
+    _testView.numOfCreatedLibraryContexts++;
+    return new LibraryContext.forSingleLibrary(
+        library,
+        _logger,
+        _sdkBundle,
+        _byteStore,
+        _analysisOptions,
+        declaredVariables,
+        _sourceFactory,
+        _externalSummaries,
+        fsState);
+  }
 
   /**
    * Fill [_salt] with data.
@@ -1540,6 +1558,8 @@ class AnalysisDriverScheduler {
 @visibleForTesting
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
+
+  int numOfCreatedLibraryContexts = 0;
 
   int numOfAnalyzedLibraries = 0;
 
