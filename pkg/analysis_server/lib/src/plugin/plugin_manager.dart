@@ -212,10 +212,12 @@ class PluginManager {
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     PluginInfo plugin = _pluginMap[path];
-    bool isNew = false;
-    if (plugin == null) {
-      isNew = true;
+    bool isNew = plugin == null;
+    if (isNew) {
       List<String> pluginPaths = _pathsFor(path);
+      if (pluginPaths == null) {
+        return;
+      }
       plugin = new PluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
@@ -387,8 +389,9 @@ class PluginManager {
           if (!packagesFile.exists) {
             packagesFile = null;
           }
+        } else {
+          packagesFile = null;
         }
-        packagesFile = null;
       }
       return <String>[pluginFile.path, packagesFile?.path];
     }
