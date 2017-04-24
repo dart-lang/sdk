@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Omit the types for local variables.';
 
@@ -67,10 +68,15 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
     final iterableType = node.iterable.bestType;
-    if (iterableType is InterfaceType &&
-        iterableType.typeArguments.length == 1 &&
-        iterableType.typeArguments.first == staticType.type) {
-      rule.reportLint(node.loopVariable);
+    if (iterableType is InterfaceType) {
+      final iterableInterfaces = DartTypeUtilities
+          .getImplementedInterfaces(iterableType)
+          .where((type) =>
+              DartTypeUtilities.isInterface(type, 'Iterable', 'dart.core'));
+      if (iterableInterfaces.length == 1 &&
+          iterableInterfaces.first.typeArguments.first == staticType.type) {
+        rule.reportLint(node);
+      }
     }
   }
 

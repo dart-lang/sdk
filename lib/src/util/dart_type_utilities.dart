@@ -34,6 +34,27 @@ class DartTypeUtilities {
     return null;
   }
 
+  static Iterable<InterfaceType> getImplementedInterfaces(InterfaceType type) {
+    void recursiveCall(InterfaceType type, Set<ClassElement> alreadyVisited,
+        List<InterfaceType> interfaceTypes) {
+      if (type == null || !alreadyVisited.add(type.element)) {
+        return;
+      }
+      interfaceTypes.add(type);
+      recursiveCall(type.superclass, alreadyVisited, interfaceTypes);
+      for (final interface in type.interfaces) {
+        recursiveCall(interface, alreadyVisited, interfaceTypes);
+      }
+      for (final mixin in type.mixins) {
+        recursiveCall(mixin, alreadyVisited, interfaceTypes);
+      }
+    }
+
+    final interfaceTypes = <InterfaceType>[];
+    recursiveCall(type, new Set<ClassElement>(), interfaceTypes);
+    return interfaceTypes;
+  }
+
   static Statement getLastStatementInBlock(Block node) {
     if (node.statements.isEmpty) {
       return null;
@@ -53,13 +74,11 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
-    bool predicate(InterfaceType i) => definitions
-        .any((d) => i.name == d.name && i.element.library.name == d.library);
+    bool predicate(InterfaceType i) =>
+        definitions.any((d) => isInterface(i, d.name, d.library));
     ClassElement element = type.element;
     return predicate(type) ||
-        !element.isSynthetic &&
-            type is InterfaceType &&
-            element.allSupertypes.any(predicate);
+        !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
   static bool implementsInterface(
@@ -67,19 +86,20 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
-    bool predicate(InterfaceType i) =>
-        i.name == interface && i.element.library.name == library;
+    bool predicate(InterfaceType i) => isInterface(i, interface, library);
     ClassElement element = type.element;
     return predicate(type) ||
-        !element.isSynthetic &&
-            type is InterfaceType &&
-            element.allSupertypes.any(predicate);
+        !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
   static bool isClass(DartType type, String className, String library) =>
       type != null &&
       type.name == className &&
       type.element?.library?.name == library;
+
+  static bool isInterface(
+          InterfaceType type, String interface, String library) =>
+      type.name == interface && type.element.library.name == library;
 
   static bool isNullLiteral(Expression expression) =>
       expression?.unParenthesized is NullLiteral;
