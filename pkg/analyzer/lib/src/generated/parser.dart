@@ -5535,6 +5535,9 @@ class Parser {
     Token next = startToken.next; // Skip 'Function'
     if (_tokenMatches(next, TokenType.LT)) {
       next = skipTypeParameterList(next);
+      if (next == null) {
+        return null;
+      }
     }
     return skipFormalParameterList(next);
   }

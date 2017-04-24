@@ -3946,6 +3946,26 @@ m() {
     ]);
   }
 
+  void test_typedef_incomplete() {
+    // TODO(brianwilkerson) Improve recovery for this case.
+    parseCompilationUnit(
+        '''
+class A {}
+class B extends A {}
+
+typedef T
+
+main() {
+  Function<
+}
+''',
+        [
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.UNEXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_EXECUTABLE
+        ]);
+  }
+
   void test_typedef_namedFunction() {
     // TODO(brianwilkerson) Improve recovery for this case.
     parseCompilationUnit('typedef void Function();', [
