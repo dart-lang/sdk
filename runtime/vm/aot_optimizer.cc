@@ -17,7 +17,6 @@
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
-#include "vm/jit_optimizer.h"
 #include "vm/intermediate_language.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -1842,9 +1841,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
-      CallTargets* targets = CallTargets::Create(Z, unary_checks);
       PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, *targets,
+          new (Z) PolymorphicInstanceCallInstr(instr, unary_checks,
                                                /* with_checks = */ false,
                                                /* complete = */ true);
       instr->ReplaceWith(call, current_iterator());
@@ -1905,16 +1903,17 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         Array::Handle(Z, ArgumentsDescriptor::New(instr->ArgumentCount(),
                                                   instr->argument_names()));
     ArgumentsDescriptor args_desc(args_desc_array);
-    Function& function = Function::Handle(
+    const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamicForReceiverClass(
                receiver_class, instr->function_name(), args_desc));
     if (!function.IsNull()) {
-      CallTargets* targets = new (Z) CallTargets();
-      Function& target = Function::ZoneHandle(Z, function.raw());
-      targets->Add(CidRangeTarget(receiver_class.id(), receiver_class.id(),
-                                  &target, /*count = */ 1));
+      const ICData& ic_data = ICData::Handle(
+          ICData::New(flow_graph_->function(), instr->function_name(),
+                      args_desc_array, Thread::kNoDeoptId,
+                      /* args_tested = */ 1, false));
+      ic_data.AddReceiverCheck(receiver_class.id(), function);
       PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, *targets,
+          new (Z) PolymorphicInstanceCallInstr(instr, ic_data,
                                                /* with_checks = */ false,
                                                /* complete = */ true);
       instr->ReplaceWith(call, current_iterator());
@@ -2037,9 +2036,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
                  !ic_data.NumberOfChecksIs(0)) {
-        CallTargets* targets = CallTargets::Create(Z, ic_data);
         PolymorphicInstanceCallInstr* call =
-            new (Z) PolymorphicInstanceCallInstr(instr, *targets,
+            new (Z) PolymorphicInstanceCallInstr(instr, ic_data,
                                                  /* with_checks = */ true,
                                                  /* complete = */ true);
         instr->ReplaceWith(call, current_iterator());
@@ -2054,9 +2052,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     ASSERT(!FLAG_polymorphic_with_deopt);
     // OK to use checks with PolymorphicInstanceCallInstr since no
     // deoptimization is allowed.
-    CallTargets* targets = CallTargets::Create(Z, *instr->ic_data());
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, *targets,
+        new (Z) PolymorphicInstanceCallInstr(instr, unary_checks,
                                              /* with_checks = */ true,
                                              /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());

@@ -177,7 +177,7 @@ class GraphInfoCollector : public ValueObject {
           // parameters was fixed.
           // TODO(fschneider): Determine new heuristic parameters that avoid
           // these checks entirely.
-          if (!call->targets().HasSingleRecognizedTarget() &&
+          if (!call->HasSingleRecognizedTarget() &&
               (call->instance_call()->token_kind() != Token::kEQ)) {
             ++call_site_count_;
           }
@@ -290,7 +290,9 @@ class CallSites : public ValueObject {
     GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
       const intptr_t aggregate_count =
-          instance_calls_[i + instance_call_start_ix].call->CallCount();
+          instance_calls_[i + instance_call_start_ix]
+              .call->ic_data()
+              .AggregateCount();
       instance_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -341,11 +343,11 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          target ^= instance_call->targets().FirstTarget().raw();
+          target = instance_call->ic_data().GetTargetAt(0);
           call = instance_call;
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          target ^= static_call->function().raw();
+          target = static_call->function().raw();
           call = static_call;
         } else if (current->IsClosureCall()) {
           // TODO(srdjan): Add data for closure calls.
@@ -386,15 +388,17 @@ class CallSites : public ValueObject {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
           if (!inline_only_recognized_methods ||
-              instance_call->targets().HasSingleRecognizedTarget() ||
-              instance_call->HasOnlyDispatcherOrImplicitAccessorTargets()) {
+              instance_call->HasSingleRecognizedTarget() ||
+              instance_call->ic_data()
+                  .HasOnlyDispatcherOrImplicitAccessorTargets()) {
             instance_calls_.Add(InstanceCallInfo(instance_call, graph));
           } else {
             // Method not inlined because inlining too deep and method
             // not recognized.
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
-              const Function* target = &instance_call->targets().FirstTarget();
+              const Function* target = &Function::ZoneHandle(
+                  instance_call->ic_data().GetTargetAt(0));
               inlined_info->Add(InlinedInfo(caller, target, depth + 1,
                                             instance_call, "Too deep"));
             }
@@ -487,12 +491,10 @@ class PolymorphicInliner : public ValueObject {
   CallSiteInliner* const owner_;
   PolymorphicInstanceCallInstr* const call_;
   const intptr_t num_variants_;
-  const CallTargets& variants_;
+  GrowableArray<CidRangeTarget> variants_;
 
-  CallTargets inlined_variants_;
-  // The non_inlined_variants_ can be used in a long-lived instruction object,
-  // so they are not embedded into the shorter-lived PolymorphicInliner object.
-  CallTargets* non_inlined_variants_;
+  GrowableArray<CidRangeTarget> inlined_variants_;
+  GrowableArray<CidRangeTarget> non_inlined_variants_;
   GrowableArray<BlockEntryInstr*> inlined_entries_;
   InlineExitCollector* exit_collector_;
 
@@ -1303,7 +1305,8 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
 
-      const Function& target = call->targets().MostPopularTarget();
+      const ICData& ic_data = call->ic_data();
+      const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
         if (trace_inlining()) {
@@ -1444,10 +1447,10 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
                                        intptr_t caller_inlining_id)
     : owner_(owner),
       call_(call),
-      num_variants_(call->NumberOfChecks()),
-      variants_(call->targets_),
-      inlined_variants_(),
-      non_inlined_variants_(new (zone()) CallTargets()),
+      num_variants_(call->ic_data().NumberOfChecks()),
+      variants_(num_variants_),
+      inlined_variants_(num_variants_),
+      non_inlined_variants_(num_variants_),
       inlined_entries_(num_variants_),
       exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function),
@@ -1531,8 +1534,8 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
 
 
 bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
-  for (intptr_t i = 0; i < non_inlined_variants_->length(); ++i) {
-    if (target.raw() == non_inlined_variants_->At(i).target->raw()) {
+  for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {
+    if (target.raw() == non_inlined_variants_[i].target->raw()) {
       return true;
     }
   }
@@ -1556,8 +1559,8 @@ bool PolymorphicInliner::TryInliningPoly(const CidRangeTarget& range) {
   }
   InlinedCallData call_data(call_, &arguments, caller_function_,
                             caller_inlining_id_);
-  Function& target = Function::ZoneHandle(zone(), range.target->raw());
-  if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),
+  if (!owner_->TryInlining(*range.target,
+                           call_->instance_call()->argument_names(),
                            &call_data)) {
     return false;
   }
@@ -1705,7 +1708,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     // arbitrary CidRangeTarget.  Currently we don't go into this branch if the
     // last test is a range test - instead we set the follow_with_deopt flag.
     if (is_last_test && (!test_is_range || call_->complete()) &&
-        non_inlined_variants_->is_empty()) {
+        non_inlined_variants_.is_empty()) {
       // If it is the last variant use a check class id instruction which can
       // deoptimize, followed unconditionally by the body. Omit the check if
       // we know that we have covered all possible classes.
@@ -1881,7 +1884,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   }
 
   // Handle any non-inlined variants.
-  if (!non_inlined_variants_->is_empty()) {
+  if (!non_inlined_variants_.is_empty()) {
     // Move push arguments of the call.
     for (intptr_t i = 0; i < call_->ArgumentCount(); ++i) {
       PushArgumentInstr* push = call_->PushArgumentAt(i);
@@ -1890,10 +1893,29 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cursor->LinkTo(push);
       cursor = push;
     }
+    const ICData& old_checks = call_->ic_data();
+    const ICData& new_checks = ICData::ZoneHandle(ICData::New(
+        Function::Handle(old_checks.Owner()),
+        String::Handle(old_checks.target_name()),
+        Array::Handle(old_checks.arguments_descriptor()), old_checks.deopt_id(),
+        1,        // Number of args tested.
+        false));  // is_static_call
+    for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {
+      // We are adding all the cids in each range. They will be joined
+      // together again by the PolymorphicInstanceCall instruction, which is a
+      // bit messy.
+      intptr_t count = non_inlined_variants_[i].count;
+
+      for (intptr_t j = non_inlined_variants_[i].cid_start;
+           j <= non_inlined_variants_[i].cid_end; j++) {
+        new_checks.AddReceiverCheck(j, *non_inlined_variants_[i].target, count);
+        count = 0;
+      }
+    }
     PolymorphicInstanceCallInstr* fallback_call =
-        new PolymorphicInstanceCallInstr(
-            call_->instance_call(), *non_inlined_variants_,
-            /* with_checks = */ true, call_->complete());
+        new PolymorphicInstanceCallInstr(call_->instance_call(), new_checks,
+                                         /* with_checks = */ true,
+                                         call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
@@ -1943,12 +1965,13 @@ bool PolymorphicInliner::trace_inlining() const {
 
 
 void PolymorphicInliner::Inline() {
-  ASSERT(&variants_ == &call_->targets_);
-
+  // Consider the polymorphic variants in order by frequency.
+  FlowGraphCompiler::SortICDataByCount(call_->ic_data(), &variants_,
+                                       /* drop_smi = */ false);
   intptr_t total = call_->total_call_count();
   for (intptr_t var_idx = 0; var_idx < variants_.length(); ++var_idx) {
     if (variants_.length() > FLAG_max_polymorphic_checks) {
-      non_inlined_variants_->Add(variants_[var_idx]);
+      non_inlined_variants_.Add(variants_[var_idx]);
       continue;
     }
 
@@ -1956,7 +1979,7 @@ void PolymorphicInliner::Inline() {
     // the last two, because it's a big win if we inline all of them (compiler
     // can see all side effects).
     const bool try_harder = (var_idx >= variants_.length() - 2) &&
-                            non_inlined_variants_->length() == 0;
+                            non_inlined_variants_.length() == 0;
     const Function& target = *variants_[var_idx].target;
     const intptr_t count = variants_[var_idx].count;
 
@@ -1969,7 +1992,7 @@ void PolymorphicInliner::Inline() {
     if (!try_harder && count < (total >> 5)) {
       TRACE_INLINING(
           TracePolyInlining(variants_[var_idx], total, "way too infrequent"));
-      non_inlined_variants_->Add(variants_[var_idx]);
+      non_inlined_variants_.Add(variants_[var_idx]);
       continue;
     }
 
@@ -1987,7 +2010,7 @@ void PolymorphicInliner::Inline() {
     if (!try_harder && count < (total >> (small ? 4 : 3))) {
       TRACE_INLINING(
           TracePolyInlining(variants_[var_idx], total, "too infrequent"));
-      non_inlined_variants_->Add(variants_[var_idx]);
+      non_inlined_variants_.Add(variants_[var_idx]);
       continue;
     }
 
@@ -1997,7 +2020,7 @@ void PolymorphicInliner::Inline() {
     if (CheckNonInlinedDuplicate(target)) {
       TRACE_INLINING(
           TracePolyInlining(variants_[var_idx], total, "already not inlined"));
-      non_inlined_variants_->Add(variants_[var_idx]);
+      non_inlined_variants_.Add(variants_[var_idx]);
       continue;
     }
 
@@ -2008,7 +2031,7 @@ void PolymorphicInliner::Inline() {
     } else {
       TRACE_INLINING(
           TracePolyInlining(variants_[var_idx], total, "not inlined"));
-      non_inlined_variants_->Add(variants_[var_idx]);
+      non_inlined_variants_.Add(variants_[var_idx]);
     }
   }
 
