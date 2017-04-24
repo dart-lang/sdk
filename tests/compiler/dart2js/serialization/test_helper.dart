@@ -242,7 +242,7 @@ bool checkMapEquivalence(var object1, var object2, String property, Map map1,
     throw message;
   }
   for (List pair in common) {
-    check(object1, object2, 'Map value for `$property`', map1[pair[0]],
+    check(pair[0], pair[1], 'Map value for `$property`', map1[pair[0]],
         map2[pair[1]], sameValue);
   }
   return true;

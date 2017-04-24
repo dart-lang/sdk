@@ -193,6 +193,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
 
   /// Converts [annotations] into a list of [ConstantExpression]s.
   List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
+    if (annotations.isEmpty) return const <ConstantExpression>[];
     List<ConstantExpression> metadata = <ConstantExpression>[];
     annotations.forEach((ir.Expression node) {
       ConstantExpression constant = new Constantifier(this).visit(node);

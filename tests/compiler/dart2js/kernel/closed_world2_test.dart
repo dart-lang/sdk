@@ -42,8 +42,17 @@ import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
+import '../serialization/model_test_helper.dart';
+import '../serialization/test_helper.dart';
 
 import 'closed_world_test.dart';
+import 'impact_test.dart';
+
+const SOURCE = const {
+  'main.dart': '''
+main() {}
+'''
+};
 
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);
@@ -74,8 +83,16 @@ main(List<String> args) {
 
     KernelWorldBuilder worldBuilder = new KernelWorldBuilder(
         compiler.reporter, compiler.backend.kernelTask.program);
-    List list = createKernelResolutionEnqueuerListener(compiler.options,
-        compiler.reporter, compiler.deferredLoadTask, worldBuilder);
+    KernelEquivalence equivalence = new KernelEquivalence(worldBuilder);
+    NativeBasicData nativeBasicData = computeNativeBasicData(worldBuilder);
+    checkNativeBasicData(
+        compiler.backend.nativeBasicData, nativeBasicData, equivalence);
+    List list = createKernelResolutionEnqueuerListener(
+        compiler.options,
+        compiler.reporter,
+        compiler.deferredLoadTask,
+        worldBuilder,
+        nativeBasicData);
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
     ImpactTransformer impactTransformer = list[1];
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
@@ -87,7 +104,7 @@ main(List<String> args) {
         new KernelResolutionWorldBuilder(
             worldBuilder.elementEnvironment,
             worldBuilder.commonElements,
-            new NativeBasicDataImpl(),
+            nativeBasicData,
             const OpenWorldStrategy()),
         new KernelWorkItemBuilder(worldBuilder, impactTransformer),
         'enqueuer from kelements');
@@ -101,13 +118,13 @@ List createKernelResolutionEnqueuerListener(
     CompilerOptions options,
     DiagnosticReporter reporter,
     DeferredLoadTask deferredLoadTask,
-    KernelWorldBuilder worldBuilder) {
+    KernelWorldBuilder worldBuilder,
+    NativeBasicData nativeBasicData) {
   ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
   CommonElements commonElements = worldBuilder.commonElements;
   BackendImpacts impacts = new BackendImpacts(options, commonElements);
 
   // TODO(johnniwinther): Create Kernel based implementations for these:
-  NativeBasicData nativeBasicData = new NativeBasicDataImpl();
   RuntimeTypesNeedBuilder rtiNeedBuilder = new RuntimeTypesNeedBuilderImpl();
   MirrorsDataBuilder mirrorsDataBuilder = new MirrorsDataBuilderImpl();
   CustomElementsResolutionAnalysis customElementsResolutionAnalysis =
@@ -116,6 +133,7 @@ List createKernelResolutionEnqueuerListener(
       new MirrorsResolutionAnalysisImpl();
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
       new LookupMapResolutionAnalysis(reporter, elementEnvironment);
+
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
           nativeBasicData, elementEnvironment, commonElements);
@@ -160,39 +178,18 @@ List createKernelResolutionEnqueuerListener(
   return [listener, transformer];
 }
 
-class NativeBasicDataImpl implements NativeBasicData {
-  @override
-  bool isNativeClass(ClassEntity element) {
-    // TODO(johnniwinther): Implement this.
-    return false;
+/// Computes that NativeBasicData for the libraries in [worldBuilder].
+/// TODO(johnniwinther): Use [KernelAnnotationProcessor] instead.
+NativeBasicData computeNativeBasicData(KernelWorldBuilder worldBuilder) {
+  NativeBasicDataBuilderImpl builder = new NativeBasicDataBuilderImpl();
+  ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
+  for (LibraryEntity library in elementEnvironment.libraries) {
+    if (library.canonicalUri.scheme == 'dart') {
+      new KernelAnnotationProcessor(worldBuilder)
+          .extractNativeAnnotations(library, builder);
+    }
   }
-
-  @override
-  bool isJsInteropClass(ClassEntity element) {
-    throw new UnimplementedError('NativeBasicDataImpl.isJsInteropClass');
-  }
-
-  @override
-  bool isJsInteropLibrary(LibraryEntity element) {
-    throw new UnimplementedError('NativeBasicDataImpl.isJsInteropLibrary');
-  }
-
-  @override
-  bool isNativeOrExtendsNative(ClassEntity element) {
-    // TODO(johnniwinther): Implement this.
-    return false;
-  }
-
-  @override
-  bool hasNativeTagsForcedNonLeaf(ClassEntity cls) {
-    throw new UnimplementedError(
-        'NativeBasicDataImpl.hasNativeTagsForcedNonLeaf');
-  }
-
-  @override
-  List<String> getNativeTagsOfClass(ClassEntity cls) {
-    throw new UnimplementedError('NativeBasicDataImpl.getNativeTagsOfClass');
-  }
+  return builder.close(elementEnvironment);
 }
 
 class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
@@ -297,4 +294,16 @@ class KernelWorkItem implements ResolutionWorkItem {
     ResolutionImpact impact = _worldBuilder.computeWorldImpact(element);
     return _impactTransformer.transformResolutionImpact(impact);
   }
+}
+
+void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
+    KernelEquivalence equivalence) {
+  checkMapEquivalence(
+      data1,
+      data2,
+      'nativeClassTagInfo',
+      data1.nativeClassTagInfo,
+      data2.nativeClassTagInfo,
+      equivalence.entityEquivalence,
+      (a, b) => a == b);
 }

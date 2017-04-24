@@ -1913,6 +1913,15 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  void forEachClass(LibraryElement library, void f(ClassElement cls)) {
+    library.implementation.forEachLocalMember((member) {
+      if (member.isClass) {
+        f(member);
+      }
+    });
+  }
+
+  @override
   LibraryElement lookupLibrary(Uri uri, {bool required: false}) {
     LibraryElement library = _libraryProvider.lookupLibrary(uri);
     // If the script of the library is synthesized, the library does not exist

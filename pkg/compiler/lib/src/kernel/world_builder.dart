@@ -19,7 +19,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/constant_system_javascript.dart';
-import '../js_backend/native_data.dart' show NativeData;
+import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -28,6 +28,7 @@ import '../universe/call_structure.dart';
 import 'element_adapter.dart';
 import 'elements.dart';
 
+part 'native_basic_data.dart';
 part 'native_class_resolver.dart';
 part 'no_such_method_resolver.dart';
 
@@ -40,6 +41,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   final DiagnosticReporter reporter;
   ElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
+  KernelConstantEnvironment _constantEnvironment;
 
   /// Library environment. Used for fast lookup.
   KEnv _env;
@@ -78,9 +80,9 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       : _env = new KEnv(program) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
-    ConstantEnvironment constants = new KernelConstantEnvironment(this);
+    _constantEnvironment = new KernelConstantEnvironment(this);
     _nativeBehaviorBuilder =
-        new KernelBehaviorBuilder(_commonElements, constants);
+        new KernelBehaviorBuilder(_commonElements, _constantEnvironment);
     _typeConverter = new DartTypeConverter(this);
   }
 
@@ -96,11 +98,23 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
         : null;
   }
 
+  Iterable<LibraryEntity> get _libraries {
+    if (_env.length != _libraryMap.length) {
+      // Create a [KLibrary] for each library.
+      _env.forEachLibrary((KLibraryEnv env) {
+        _getLibrary(env.library, env);
+      });
+    }
+    return _libraryMap.values;
+  }
+
   @override
   CommonElements get commonElements => _commonElements;
 
   @override
   ElementEnvironment get elementEnvironment => _elementEnvironment;
+
+  ConstantEnvironment get constantEnvironment => _constantEnvironment;
 
   @override
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
@@ -140,6 +154,13 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     return null;
   }
 
+  void _forEachClass(KLibrary library, void f(ClassEntity cls)) {
+    KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    libraryEnv.forEachClass((KClassEnv classEnv) {
+      f(_getClass(classEnv.cls, classEnv));
+    });
+  }
+
   MemberEntity lookupClassMember(KClass cls, String name,
       {bool setter: false}) {
     KClassEnv classEnv = _classEnvs[cls.classIndex];
@@ -163,6 +184,10 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       return new KClass(library, _classMap.length, node.name,
           isAbstract: node.isAbstract);
     });
+  }
+
+  Iterable<ConstantExpression> _getClassMetadata(KClass cls) {
+    return _classEnvs[cls.classIndex].getMetadata(this);
   }
 
   KTypeVariable _getTypeVariable(ir.TypeParameter node) {
@@ -535,15 +560,31 @@ class KEnv {
 
   KEnv(this.program);
 
-  /// Return the [KLibraryEnv] for the library with the canonical [uri].
-  KLibraryEnv lookupLibrary(Uri uri) {
+  void _ensureLibraryMap() {
     if (_libraryMap == null) {
       _libraryMap = <Uri, KLibraryEnv>{};
       for (ir.Library library in program.libraries) {
         _libraryMap[library.importUri] = new KLibraryEnv(library);
       }
     }
+  }
+
+  /// Return the [KLibraryEnv] for the library with the canonical [uri].
+  KLibraryEnv lookupLibrary(Uri uri) {
+    _ensureLibraryMap();
     return _libraryMap[uri];
+  }
+
+  /// Calls [f] for each library in this environment.
+  void forEachLibrary(void f(KLibraryEnv library)) {
+    _ensureLibraryMap();
+    _libraryMap.values.forEach(f);
+  }
+
+  /// Returns the number of libraries in this environment.
+  int get length {
+    _ensureLibraryMap();
+    return _libraryMap.length;
   }
 }
 
@@ -557,15 +598,25 @@ class KLibraryEnv {
 
   KLibraryEnv(this.library);
 
-  /// Return the [KClassEnv] for the class [name] in [library].
-  KClassEnv lookupClass(String name) {
+  void _ensureClassMap() {
     if (_classMap == null) {
       _classMap = <String, KClassEnv>{};
       for (ir.Class cls in library.classes) {
         _classMap[cls.name] = new KClassEnv(cls);
       }
     }
+  }
+
+  /// Return the [KClassEnv] for the class [name] in [library].
+  KClassEnv lookupClass(String name) {
+    _ensureClassMap();
     return _classMap[name];
+  }
+
+  /// Calls [f] for each class in this library.
+  void forEachClass(void f(KClassEnv cls)) {
+    _ensureClassMap();
+    _classMap.values.forEach(f);
   }
 
   /// Return the [ir.Member] for the member [name] in [library].
@@ -593,6 +644,8 @@ class KClassEnv {
 
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
+
+  Iterable<ConstantExpression> _metadata;
 
   KClassEnv(this.cls);
 
@@ -625,6 +678,13 @@ class KClassEnv {
     _ensureMaps();
     return _constructorMap[name];
   }
+
+  Iterable<ConstantExpression> getMetadata(KernelWorldBuilder worldBuilder) {
+    if (_metadata == null) {
+      _metadata = worldBuilder.getMetadata(cls.annotations);
+    }
+    return _metadata;
+  }
 }
 
 class KernelElementEnvironment implements ElementEnvironment {
@@ -642,7 +702,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   FunctionEntity get mainFunction => worldBuilder._mainFunction;
 
   @override
-  Iterable<LibraryEntity> get libraries => worldBuilder._libraryMap.values;
+  Iterable<LibraryEntity> get libraries => worldBuilder._libraries;
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
@@ -752,6 +812,11 @@ class KernelElementEnvironment implements ElementEnvironment {
           "The class '$name'  was not found in library '${library.name}'.");
     }
     return cls;
+  }
+
+  @override
+  void forEachClass(KLibrary library, void f(ClassEntity cls)) {
+    worldBuilder._forEachClass(library, f);
   }
 
   @override
