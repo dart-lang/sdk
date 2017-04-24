@@ -243,8 +243,8 @@ class BuildMode {
       for (Source source in explicitSources) {
         AnalysisErrorInfo errorInfo = context.getErrors(source);
         for (AnalysisError error in errorInfo.errors) {
-          ProcessedSeverity processedSeverity =
-              processError(error, options, context.analysisOptions);
+          ProcessedSeverity processedSeverity = determineProcessedSeverity(
+              error, options, context.analysisOptions);
           if (processedSeverity != null) {
             maxSeverity = maxSeverity.max(processedSeverity.severity);
           }
@@ -332,16 +332,14 @@ class BuildMode {
    */
   void _printErrors({String outputPath}) {
     StringBuffer buffer = new StringBuffer();
-    ErrorFormatter formatter = new ErrorFormatter(
-        buffer,
-        options,
-        stats,
-        (AnalysisError error) =>
-            processError(error, options, context.analysisOptions));
+    ErrorFormatter formatter = new HumanErrorFormatter(buffer, options, stats,
+        severityProcessor: (AnalysisError error) => determineProcessedSeverity(
+            error, options, context.analysisOptions));
     for (Source source in explicitSources) {
       AnalysisErrorInfo errorInfo = context.getErrors(source);
       formatter.formatErrors([errorInfo]);
     }
+    formatter.flush();
     if (!options.machineFormat) {
       stats.print(buffer);
     }

@@ -38,6 +38,7 @@ import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
@@ -232,6 +233,26 @@ class Driver implements CommandLineStarter {
     List<Uri> libUris = <Uri>[];
     Set<Source> partSources = new Set<Source>();
 
+    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
+      return determineProcessedSeverity(
+          error, options, _context.analysisOptions);
+    };
+
+    // We currently print out to stderr to ensure that when in batch mode we
+    // print to stderr, this is because the prints from batch are made to
+    // stderr. The reason that options.shouldBatch isn't used is because when
+    // the argument flags are constructed in BatchRunner and passed in from
+    // batch mode which removes the batch flag to prevent the "cannot have the
+    // batch flag and source file" error message.
+    ErrorFormatter formatter;
+    if (options.machineFormat) {
+      formatter = new MachineErrorFormatter(errorSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    } else {
+      formatter = new HumanErrorFormatter(outSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    }
+
     for (Source source in sourcesToAnalyze) {
       SourceKind sourceKind = analysisDriver != null
           ? await analysisDriver.getSourceKind(source.fullName)
@@ -240,12 +261,12 @@ class Driver implements CommandLineStarter {
         partSources.add(source);
         continue;
       }
-      // TODO(devoncarew): Analyzing each source individually causes errors to
-      // be reported multiple times (#25697).
-      ErrorSeverity status = await _runAnalyzer(source, options);
+      ErrorSeverity status = await _runAnalyzer(source, options, formatter);
       allResult = allResult.max(status);
       libUris.add(source.uri);
     }
+
+    formatter.flush();
 
     // Check that each part has a corresponding source in the input list.
     for (Source partSource in partSources) {
@@ -695,12 +716,12 @@ class Driver implements CommandLineStarter {
   }
 
   /// Analyze a single source.
-  Future<ErrorSeverity> _runAnalyzer(
-      Source source, CommandLineOptions options) async {
+  Future<ErrorSeverity> _runAnalyzer(Source source, CommandLineOptions options,
+      ErrorFormatter formatter) async {
     int startTime = currentTimeMillis;
     AnalyzerImpl analyzer = new AnalyzerImpl(_context.analysisOptions, _context,
         analysisDriver, source, options, stats, startTime);
-    ErrorSeverity errorSeverity = await analyzer.analyze();
+    ErrorSeverity errorSeverity = await analyzer.analyze(formatter);
     if (errorSeverity == ErrorSeverity.ERROR) {
       io.exitCode = errorSeverity.ordinal;
     }

@@ -11,7 +11,7 @@ import 'package:analyzer_cli/src/options.dart';
 
 /// Check various configuration options to get a desired severity for this
 /// [error] (or `null` if it's to be suppressed).
-ProcessedSeverity processError(AnalysisError error,
+ProcessedSeverity determineProcessedSeverity(AnalysisError error,
     CommandLineOptions commandLineOptions, AnalysisOptions analysisOptions) {
   ErrorSeverity severity = computeSeverity(error, commandLineOptions,
       analysisOptions: analysisOptions);
