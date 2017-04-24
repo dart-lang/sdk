@@ -3946,6 +3946,16 @@ m() {
     ]);
   }
 
+  void test_typedef_namedFunction() {
+    // TODO(brianwilkerson) Improve recovery for this case.
+    parseCompilationUnit('typedef void Function();', [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_EXECUTABLE,
+      ParserErrorCode.MISSING_TYPEDEF_PARAMETERS
+    ]);
+  }
+
   void test_typedefInClass_withoutReturnType() {
     parseCompilationUnit(
         "class C { typedef F(x); }", [ParserErrorCode.TYPEDEF_IN_CLASS]);

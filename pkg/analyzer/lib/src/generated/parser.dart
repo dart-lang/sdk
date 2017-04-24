@@ -5653,9 +5653,9 @@ class Parser {
     Token next = null;
     if (_atGenericFunctionTypeAfterReturnType(startToken)) {
       next = skipGenericFunctionTypeAfterReturnType(startToken);
-    } else if (_currentToken.keyword == Keyword.VOID &&
-        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
-      next = next.next;
+    } else if (startToken.keyword == Keyword.VOID &&
+        _atGenericFunctionTypeAfterReturnType(startToken.next)) {
+      next = startToken.next;
     } else {
       next = skipTypeName(startToken);
     }
