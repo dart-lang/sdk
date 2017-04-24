@@ -68,3 +68,6 @@ LibTest/math/log_A01_t01: PASS, FAIL, OK  # Issue 26261
 
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
+
+[ $compiler == dart2js && $runtime == ff ]
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Fail # co19 issue #90
