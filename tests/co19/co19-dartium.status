@@ -802,6 +802,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # co19-roll r7
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/async/Timer/Timer_A01_t01: RuntimeError, Pass # Issue 16475
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
