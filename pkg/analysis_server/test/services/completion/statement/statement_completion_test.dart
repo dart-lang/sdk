@@ -592,11 +592,7 @@ main() {
 @reflectiveTest
 class _IfCompletionTest extends StatementCompletionTest {
   test_afterCondition_BAD() async {
-    // TODO(messick): Fix the code to make this like test_completeIfWithCondition.
-    // Recap: Finding the node at the selectionOffset returns the block, not the
-    // if-statement. Need to understand if that only happens when the if-statement
-    // is the only statement in the block, or perhaps first or last? And what
-    // happens when it is in the middle of other statements?
+    // TODO(messick) Stop inserting the space after the closing brace.
     await _prepareCompletion(
         'if (true) ', // Trigger completion after space.
         '''
@@ -606,15 +602,15 @@ main() {
 ''',
         atEnd: true);
     _assertHasChange(
-        // Note: This is not what we want.
-        'Insert a newline at the end of the current line',
+        'Complete if-statement',
         '''
 main() {
-  if (true) ////
-  }
+  if (true) {
+    ////
+  } ////
 }
 ''',
-        (s) => _after(s, 'if (true) '));
+        (s) => _after(s, '    '));
   }
 
   test_emptyCondition() async {
@@ -837,7 +833,7 @@ main() {
 class _TryCompletionTest extends StatementCompletionTest {
   test_catchOnly() async {
     await _prepareCompletion(
-        'catch',
+        '{} catch',
         '''
 main() {
   try {
@@ -856,6 +852,31 @@ main() {
 }
 ''',
         (s) => _after(s, 'catch ('));
+  }
+
+  test_catchSecond() async {
+    await _prepareCompletion(
+        '} catch ',
+        '''
+main() {
+  try {
+  } catch() {
+  } catch(e){} catch ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } catch() {
+  } catch(e){} catch () {
+    ////
+  }
+}
+''',
+        (s) => _afterLast(s, 'catch ('));
   }
 
   test_finallyOnly() async {
