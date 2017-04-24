@@ -96,7 +96,7 @@ abstract class SelectorConstraints {
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
-  bool applies(MemberElement element, Selector selector, World world);
+  bool applies(MemberEntity element, Selector selector, World world);
 
   /// Returns `true` if at least one of the receivers matching these constraints
   /// in the closed [world] have no implementation matching [selector].
@@ -139,7 +139,7 @@ class OpenWorldConstraints extends UniverseSelectorConstraints {
   bool isAll = false;
 
   @override
-  bool applies(Element element, Selector selector, World world) => isAll;
+  bool applies(MemberEntity element, Selector selector, World world) => isAll;
 
   @override
   bool needsNoSuchMethodHandling(Selector selector, World world) => isAll;

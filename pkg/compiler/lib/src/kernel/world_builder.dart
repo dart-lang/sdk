@@ -23,14 +23,17 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
+import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../universe/call_structure.dart';
+import '../util/util.dart' show Link, LinkBuilder;
 import 'element_adapter.dart';
 import 'elements.dart';
 
 part 'native_basic_data.dart';
 part 'native_class_resolver.dart';
 part 'no_such_method_resolver.dart';
+part 'types.dart';
 
 /// World builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
@@ -42,6 +45,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   ElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelConstantEnvironment _constantEnvironment;
+  _KernelDartTypes _types;
 
   /// Library environment. Used for fast lookup.
   KEnv _env;
@@ -83,6 +87,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     _constantEnvironment = new KernelConstantEnvironment(this);
     _nativeBehaviorBuilder =
         new KernelBehaviorBuilder(_commonElements, _constantEnvironment);
+    _types = new _KernelDartTypes(this);
     _typeConverter = new DartTypeConverter(this);
   }
 
@@ -115,6 +120,8 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   ElementEnvironment get elementEnvironment => _elementEnvironment;
 
   ConstantEnvironment get constantEnvironment => _constantEnvironment;
+
+  DartTypes get types => _types;
 
   @override
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
@@ -415,32 +422,55 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   void _ensureSupertypes(KClass cls, KClassEnv env) {
-    if (env.supertypes == null) {
+    if (env.orderedTypeSet == null) {
       _ensureThisAndRawType(cls, env);
 
       ir.Class node = env.cls;
 
-      Set<InterfaceType> supertypes = new Set<InterfaceType>();
-
-      InterfaceType addSupertype(ir.Supertype node) {
-        if (node == null) return null;
-        InterfaceType type = _typeConverter.visitSupertype(node);
-        KClass superclass = type.element;
-        KClassEnv env = _classEnvs[superclass.classIndex];
-        _ensureSupertypes(superclass, env);
-        for (InterfaceType supertype in env.supertypes) {
-          supertypes.add(
-              supertype.subst(type.typeArguments, env.thisType.typeArguments));
+      if (node.supertype == null) {
+        env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
+      } else {
+        InterfaceType processSupertype(ir.Supertype node) {
+          InterfaceType type = _typeConverter.visitSupertype(node);
+          KClass superclass = type.element;
+          KClassEnv env = _classEnvs[superclass.classIndex];
+          _ensureSupertypes(superclass, env);
+          return type;
         }
-        return type;
+
+        env.supertype = processSupertype(node.supertype);
+        LinkBuilder<InterfaceType> linkBuilder =
+            new LinkBuilder<InterfaceType>();
+        if (node.mixedInType != null) {
+          linkBuilder.addLast(processSupertype(node.mixedInType));
+        }
+        node.implementedTypes.forEach((ir.Supertype supertype) {
+          linkBuilder.addLast(processSupertype(supertype));
+        });
+        Link<InterfaceType> interfaces = linkBuilder.toLink();
+        OrderedTypeSetBuilder setBuilder =
+            new _KernelOrderedTypeSetBuilder(this, cls);
+        env.orderedTypeSet =
+            setBuilder.createOrderedTypeSet(env.supertype, interfaces);
       }
-
-      env.supertype = addSupertype(node.supertype);
-      addSupertype(node.mixedInType);
-      node.implementedTypes.forEach(addSupertype);
-
-      env.supertypes = supertypes.toList();
     }
+  }
+
+  OrderedTypeSet _getOrderedTypeSet(KClass cls) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.orderedTypeSet;
+  }
+
+  int _getHierarchyDepth(KClass cls) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.orderedTypeSet.maxDepth;
+  }
+
+  InterfaceType _substByContext(InterfaceType type, InterfaceType context) {
+    return type.subst(
+        context.typeArguments, _getThisType(context.element).typeArguments);
   }
 
   InterfaceType _getSuperType(KClass cls) {
@@ -452,7 +482,19 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
     KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
-    env.supertypes.forEach(f);
+    env.orderedTypeSet.supertypes.forEach(f);
+  }
+
+  void _forEachClassMember(
+      KClass cls, void f(ClassEntity cls, MemberEntity member)) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    env.forEachMember((ir.Member member) {
+      f(cls, getMember(member));
+    });
+    _ensureSupertypes(cls, env);
+    if (env.supertype != null) {
+      _forEachClassMember(env.supertype.element, f);
+    }
   }
 
   @override
@@ -640,7 +682,7 @@ class KClassEnv {
   InterfaceType thisType;
   InterfaceType rawType;
   InterfaceType supertype;
-  List<InterfaceType> supertypes;
+  OrderedTypeSet orderedTypeSet;
 
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
@@ -677,6 +719,11 @@ class KClassEnv {
   ir.Member lookupConstructor(String name, {bool setter: false}) {
     _ensureMaps();
     return _constructorMap[name];
+  }
+
+  void forEachMember(f(ir.Member member)) {
+    _ensureMaps();
+    _memberMap.values.forEach(f);
   }
 
   Iterable<ConstantExpression> getMetadata(KernelWorldBuilder worldBuilder) {
@@ -728,8 +775,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isSubtype(DartType a, DartType b) {
-    // TODO(johnniwinther): Implement this.
-    return false;
+    return worldBuilder.types.isSubtype(a, b);
   }
 
   @override
@@ -788,7 +834,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    // TODO(johnniwinther): Implement this.
+    worldBuilder._forEachClassMember(cls, f);
   }
 
   @override

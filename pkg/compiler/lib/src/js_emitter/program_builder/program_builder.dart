@@ -28,12 +28,8 @@ import '../../elements/elements.dart'
         VariableElement;
 import '../../elements/entities.dart';
 import '../../elements/resolution_types.dart'
-    show
-        DartTypes,
-        ResolutionDartType,
-        ResolutionFunctionType,
-        ResolutionTypedefType;
-import '../../elements/types.dart' show DartType;
+    show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
+import '../../elements/types.dart' show DartType, DartTypes;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart'
     show

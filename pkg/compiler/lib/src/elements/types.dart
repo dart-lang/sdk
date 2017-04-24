@@ -721,3 +721,19 @@ abstract class PotentialSubtypeVisitor extends SubtypeVisitor {
     return super.isSubtype(t, s);
   }
 }
+
+/// Basic interface for the Dart type system.
+abstract class DartTypes {
+  /// The types defined in 'dart:core'.
+  CommonElements get commonElements;
+
+  /// Returns `true` if [t] is a subtype of [s].
+  bool isSubtype(DartType t, DartType s);
+
+  /// Returns `true` if [t] is assignable to [s].
+  bool isAssignable(DartType t, DartType s);
+
+  /// Returns `true` if [t] might be a subtype of [s] for some values of
+  /// type variables in [s] and [t].
+  bool isPotentialSubtype(DartType t, DartType s);
+}

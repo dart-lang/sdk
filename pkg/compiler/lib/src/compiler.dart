@@ -34,12 +34,12 @@ import 'elements/entities.dart';
 import 'elements/modelx.dart' show ErroneousElementX;
 import 'elements/resolution_types.dart'
     show
-        DartTypes,
         ResolutionDartType,
         ResolutionDynamicType,
         ResolutionFunctionType,
         ResolutionInterfaceType,
         Types;
+import 'elements/types.dart' show DartTypes;
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';

@@ -147,6 +147,12 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     if (_constSymbolNames != null) {
       sb.write('\n const-symbol-names: $_constSymbolNames');
     }
+    if (_nativeData != null) {
+      sb.write('\n native-data:');
+      for (var data in _nativeData) {
+        sb.write('\n  $data');
+      }
+    }
     return sb.toString();
   }
 }

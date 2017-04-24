@@ -68,6 +68,20 @@ main(List<String> args) {
 
   asyncTest(() async {
     enableDebugMode();
+
+    print('---- analyze-only ------------------------------------------------');
+    Compiler compiler1 = compilerFor(
+        entryPoint: entryPoint,
+        memorySourceFiles: memorySourceFiles,
+        options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
+    ElementResolutionWorldBuilder.useInstantiationMap = true;
+    compiler1.resolution.retainCachesForTesting = true;
+    await compiler1.run(entryPoint);
+    ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
+    BackendUsage backendUsage1 = compiler1.backend.backendUsage;
+    compiler1.resolutionWorldBuilder.closeWorld();
+
+    print('---- analyze-all -------------------------------------------------');
     Compiler compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: memorySourceFiles,
@@ -76,11 +90,10 @@ main(List<String> args) {
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
-    ElementResolutionWorldBuilder.useInstantiationMap = true;
-    compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.resolutionWorldBuilder.closeWorld();
 
+    print('---- closed world from kernel ------------------------------------');
     KernelWorldBuilder worldBuilder = new KernelWorldBuilder(
         compiler.reporter, compiler.backend.kernelTask.program);
     KernelEquivalence equivalence = new KernelEquivalence(worldBuilder);
@@ -94,8 +107,9 @@ main(List<String> args) {
         worldBuilder,
         nativeBasicData);
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
-    ImpactTransformer impactTransformer = list[1];
-    ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
+    BackendUsageBuilder backendUsageBuilder2 = list[1];
+    ImpactTransformer impactTransformer = list[2];
+    ResolutionEnqueuer enqueuer2 = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
         compiler.reporter,
@@ -108,9 +122,10 @@ main(List<String> args) {
             const OpenWorldStrategy()),
         new KernelWorkItemBuilder(worldBuilder, impactTransformer),
         'enqueuer from kelements');
-
     computeClosedWorld(
-        compiler.reporter, enqueuer, worldBuilder.elementEnvironment);
+        compiler.reporter, enqueuer2, worldBuilder.elementEnvironment);
+    BackendUsage backendUsage2 = backendUsageBuilder2.close();
+    checkBackendUsage(backendUsage1, backendUsage2, equivalence);
   });
 }
 
@@ -175,7 +190,7 @@ List createKernelResolutionEnqueuerListener(
       mirrorsDataBuilder,
       customElementsResolutionAnalysis,
       rtiNeedBuilder);
-  return [listener, transformer];
+  return [listener, backendUsageBuilder, transformer];
 }
 
 /// Computes that NativeBasicData for the libraries in [worldBuilder].
@@ -306,4 +321,61 @@ void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
       data2.nativeClassTagInfo,
       equivalence.entityEquivalence,
       (a, b) => a == b);
+  // TODO(johnniwinther): Check the remaining properties.
+}
+
+void checkBackendUsage(BackendUsageImpl usage1, BackendUsageImpl usage2,
+    KernelEquivalence equivalence) {
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'globalClassDependencies',
+      usage1.globalClassDependencies,
+      usage2.globalClassDependencies,
+      equivalence.entityEquivalence);
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'globalFunctionDependencies',
+      usage1.globalFunctionDependencies,
+      usage2.globalFunctionDependencies,
+      equivalence.entityEquivalence);
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'helperClassesUsed',
+      usage1.helperClassesUsed,
+      usage2.helperClassesUsed,
+      equivalence.entityEquivalence);
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'helperFunctionsUsed',
+      usage1.helperFunctionsUsed,
+      usage2.helperFunctionsUsed,
+      equivalence.entityEquivalence);
+  check(
+      usage1,
+      usage2,
+      'needToInitializeIsolateAffinityTag',
+      usage1.needToInitializeIsolateAffinityTag,
+      usage2.needToInitializeIsolateAffinityTag);
+  check(
+      usage1,
+      usage2,
+      'needToInitializeDispatchProperty',
+      usage1.needToInitializeDispatchProperty,
+      usage2.needToInitializeDispatchProperty);
+  check(usage1, usage2, 'requiresPreamble', usage1.requiresPreamble,
+      usage2.requiresPreamble);
+  check(usage1, usage2, 'isInvokeOnUsed', usage1.isInvokeOnUsed,
+      usage2.isInvokeOnUsed);
+  check(usage1, usage2, 'isRuntimeTypeUsed', usage1.isRuntimeTypeUsed,
+      usage2.isRuntimeTypeUsed);
+  check(usage1, usage2, 'isIsolateInUse', usage1.isIsolateInUse,
+      usage2.isIsolateInUse);
+  check(usage1, usage2, 'isFunctionApplyUsed', usage1.isFunctionApplyUsed,
+      usage2.isFunctionApplyUsed);
+  check(usage1, usage2, 'isNoSuchMethodUsed', usage1.isNoSuchMethodUsed,
+      usage2.isNoSuchMethodUsed);
 }

@@ -1001,7 +1001,6 @@ abstract class BaseResolutionDartTypeVisitor<R, A>
       visitGenericType(type, argument);
 }
 
-/// Abstract visitor for determining relations between types.
 abstract class AbstractTypeRelationMixin
     implements AbstractTypeRelation, ResolutionDartTypeVisitor<bool, DartType> {
   Resolution get resolution;
@@ -1071,22 +1070,6 @@ typedef void CheckTypeVariableBound(
     ResolutionDartType typeArgument,
     ResolutionTypeVariableType typeVariable,
     ResolutionDartType bound);
-
-/// Basic interface for the Dart type system.
-abstract class DartTypes {
-  /// The types defined in 'dart:core'.
-  CommonElements get commonElements;
-
-  /// Returns `true` if [t] is a subtype of [s].
-  bool isSubtype(DartType t, DartType s);
-
-  /// Returns `true` if [t] is assignable to [s].
-  bool isAssignable(DartType t, DartType s);
-
-  /// Returns `true` if [t] might be a subtype of [s] for some values of
-  /// type variables in [s] and [t].
-  bool isPotentialSubtype(DartType t, DartType s);
-}
 
 class Types implements DartTypes {
   final Resolution resolution;

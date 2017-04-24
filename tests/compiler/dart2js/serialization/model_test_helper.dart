@@ -14,6 +14,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -116,23 +117,23 @@ void checkResolutionEnqueuers(
     BackendUsage backendUsage2,
     ResolutionEnqueuer enqueuer1,
     ResolutionEnqueuer enqueuer2,
-    {bool typeEquivalence(ResolutionDartType a, ResolutionDartType b):
-        areTypesEquivalent,
+    {bool elementEquivalence(Entity a, Entity b): areElementsEquivalent,
+    bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
   checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
-      "Processed element mismatch", areElementsEquivalent, elementFilter: (e) {
+      "Processed element mismatch", elementEquivalence, elementFilter: (e) {
     return elementFilter != null ? elementFilter(e) : true;
   }, verbose: verbose);
 
-  ElementResolutionWorldBuilder worldBuilder1 = enqueuer1.worldBuilder;
-  ElementResolutionWorldBuilder worldBuilder2 = enqueuer2.worldBuilder;
+  ResolutionWorldBuilderBase worldBuilder1 = enqueuer1.worldBuilder;
+  ResolutionWorldBuilderBase worldBuilder2 = enqueuer2.worldBuilder;
 
   checkMaps(
       worldBuilder1.getInstantiationMap(),
       worldBuilder2.getInstantiationMap(),
       "Instantiated classes mismatch",
-      areElementsEquivalent,
+      elementEquivalence,
       (a, b) => areInstantiationInfosEquivalent(a, b, typeEquivalence),
       verbose: verbose);
 
@@ -140,7 +141,7 @@ void checkResolutionEnqueuers(
       enqueuer1.worldBuilder.directlyInstantiatedClasses,
       enqueuer2.worldBuilder.directlyInstantiatedClasses,
       "Directly instantiated classes mismatch",
-      areElementsEquivalent,
+      elementEquivalence,
       verbose: verbose);
 
   checkSets(
