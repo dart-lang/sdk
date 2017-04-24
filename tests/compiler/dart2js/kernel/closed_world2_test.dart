@@ -126,6 +126,12 @@ main(List<String> args) {
         compiler.reporter, enqueuer2, worldBuilder.elementEnvironment);
     BackendUsage backendUsage2 = backendUsageBuilder2.close();
     checkBackendUsage(backendUsage1, backendUsage2, equivalence);
+
+    checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
+        elementEquivalence: equivalence.entityEquivalence,
+        typeEquivalence: (ResolutionDartType a, DartType b) {
+      return equivalence.typeEquivalence(unalias(a), b);
+    }, elementFilter: elementFilter, verbose: arguments.verbose);
   });
 }
 

@@ -637,6 +637,7 @@ class KLibraryEnv {
 
   Map<String, KClassEnv> _classMap;
   Map<String, ir.Member> _memberMap;
+  Map<String, ir.Member> _setterMap;
 
   KLibraryEnv(this.library);
 
@@ -665,9 +666,23 @@ class KLibraryEnv {
   ir.Member lookupMember(String name, {bool setter: false}) {
     if (_memberMap == null) {
       _memberMap = <String, ir.Member>{};
+      _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
-        // TODO(johnniwinther): Support setter vs. getter.
-        _memberMap[member.name.name] = member;
+        if (member is ir.Procedure) {
+          if (member.kind == ir.ProcedureKind.Setter) {
+            _setterMap[member.name.name] = member;
+          } else {
+            _memberMap[member.name.name] = member;
+          }
+        } else if (member is ir.Field) {
+          _memberMap[member.name.name] = member;
+          if (member.isMutable) {
+            _setterMap[member.name.name] = member;
+          }
+        } else {
+          throw new SpannableAssertionFailure(
+              NO_LOCATION_SPANNABLE, "Unexpected library member node: $member");
+        }
       }
     }
     return _memberMap[name];
@@ -686,6 +701,7 @@ class KClassEnv {
 
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
+  Map<String, ir.Member> _setterMap;
 
   Iterable<ConstantExpression> _metadata;
 
@@ -694,17 +710,28 @@ class KClassEnv {
   void _ensureMaps() {
     if (_memberMap == null) {
       _memberMap = <String, ir.Member>{};
+      _setterMap = <String, ir.Member>{};
       _constructorMap = <String, ir.Member>{};
       for (ir.Member member in cls.members) {
-        if (member is ir.Procedure && member.kind == ir.ProcedureKind.Factory) {
+        if (member is ir.Constructor ||
+            member is ir.Procedure && member.kind == ir.ProcedureKind.Factory) {
           _constructorMap[member.name.name] = member;
-        } else {
-          // TODO(johnniwinther): Support setter vs. getter.
+        } else if (member is ir.Procedure) {
+          if (member.kind == ir.ProcedureKind.Setter) {
+            _setterMap[member.name.name] = member;
+          } else {
+            _memberMap[member.name.name] = member;
+          }
+        } else if (member is ir.Field) {
           _memberMap[member.name.name] = member;
+          if (member.isMutable) {
+            _setterMap[member.name.name] = member;
+          }
+          _memberMap[member.name.name] = member;
+        } else {
+          throw new SpannableAssertionFailure(
+              NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
         }
-      }
-      for (ir.Member member in cls.constructors) {
-        _constructorMap[member.name.name] = member;
       }
     }
   }
@@ -712,11 +739,11 @@ class KClassEnv {
   /// Return the [ir.Member] for the member [name] in [library].
   ir.Member lookupMember(String name, {bool setter: false}) {
     _ensureMaps();
-    return _memberMap[name];
+    return setter ? _setterMap[name] : _memberMap[name];
   }
 
   /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupConstructor(String name, {bool setter: false}) {
+  ir.Member lookupConstructor(String name) {
     _ensureMaps();
     return _constructorMap[name];
   }

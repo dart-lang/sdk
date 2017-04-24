@@ -134,7 +134,8 @@ void checkResolutionEnqueuers(
       worldBuilder2.getInstantiationMap(),
       "Instantiated classes mismatch",
       elementEquivalence,
-      (a, b) => areInstantiationInfosEquivalent(a, b, typeEquivalence),
+      (a, b) => areInstantiationInfosEquivalent(
+          a, b, elementEquivalence, typeEquivalence),
       verbose: verbose);
 
   checkSets(
@@ -443,22 +444,23 @@ void checkOutputUnits(
 bool areInstantiationInfosEquivalent(
     InstantiationInfo info1,
     InstantiationInfo info2,
-    bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
+    bool elementEquivalence(Entity a, Entity b),
+    bool typeEquivalence(DartType a, DartType b)) {
   checkMaps(
       info1.instantiationMap,
       info2.instantiationMap,
       'instantiationMap of\n   '
       '${info1.instantiationMap}\nvs ${info2.instantiationMap}',
-      areElementsEquivalent,
+      elementEquivalence,
       (a, b) => areSetsEquivalent(
           a, b, (a, b) => areInstancesEquivalent(a, b, typeEquivalence)));
   return true;
 }
 
 bool areInstancesEquivalent(Instance instance1, Instance instance2,
-    bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
-  ResolutionInterfaceType type1 = instance1.type;
-  ResolutionInterfaceType type2 = instance2.type;
+    bool typeEquivalence(DartType a, DartType b)) {
+  InterfaceType type1 = instance1.type;
+  InterfaceType type2 = instance2.type;
   return typeEquivalence(type1, type2) &&
       instance1.kind == instance2.kind &&
       instance1.isRedirection == instance2.isRedirection;
