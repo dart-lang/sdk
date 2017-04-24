@@ -67,10 +67,20 @@ abstract class StreamController<T> implements StreamSink<T> {
    *
    * If [sync] is true, the returned stream controller is a
    * [SynchronousStreamController], and must be used with the care
-   * and attention necessary to not break the [Stream] contract.
-   * See [Completer.sync] for some explanations on when a synchronous
-   * dispatching can be used.
-   * If in doubt, keep the controller non-sync.
+   * and attention necessary to not break the [Stream] contract. If in doubt,
+   * use the non-sync version.
+   *
+   * Using an asynchronous controller will never give the wrong
+   * behavior, but using a synchronous controller incorrectly can cause
+   * otherwise correct programs to break.
+   *
+   * A synchronous controller is only intended for optimizing event
+   * propagation when one asynchronous event immediately triggers another.
+   * It should not be used unless the calls to [add] or [addError]
+   * are guaranteed to occur in places where it won't break `Stream` invariants.
+   *
+   * Use synchronous controllers only to forward (potentially transformed)
+   * events from another stream or a future.
    *
    * A Stream should be inert until a subscriber starts listening on it (using
    * the [onListen] callback to start producing events). Streams should not
