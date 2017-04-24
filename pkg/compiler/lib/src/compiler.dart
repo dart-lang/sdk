@@ -628,6 +628,7 @@ abstract class Compiler {
 
         processQueue(resolutionEnqueuer, mainMethod, libraryLoader.libraries,
             onProgress: showResolutionProgress);
+        backend.onResolutionEnd();
         resolutionEnqueuer.logSummary(reporter.log);
 
         _reporter.reportSuppressedMessagesSummary();
@@ -695,10 +696,10 @@ abstract class Compiler {
   ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    ClosedWorldImpl world = resolutionWorldBuilder.closeWorld(reporter);
+    ClosedWorldImpl world = resolutionWorldBuilder.closeWorld();
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionComplete(world, world);
+    backend.onResolutionClosedWorld(world, world);
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
