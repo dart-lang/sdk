@@ -2741,6 +2741,104 @@ bool UnboxInstr::CanConvertSmi() const {
 }
 
 
+static int OrderById(const CidRangeTarget* a, const CidRangeTarget* b) {
+  // Negative if 'a' should sort before 'b'.
+  ASSERT(a->cid_start == a->cid_end);
+  ASSERT(b->cid_start == b->cid_end);
+  return a->cid_start - b->cid_start;
+}
+
+
+static int OrderByFrequency(const CidRangeTarget* a, const CidRangeTarget* b) {
+  // Negative if 'a' should sort before 'b'.
+  return b->count - a->count;
+}
+
+
+CallTargets* CallTargets::Create(Zone* zone, const ICData& ic_data) {
+  CallTargets* targets = new (zone) CallTargets();
+  if (ic_data.NumberOfChecks() == 0) return targets;
+
+  Function& dummy = Function::Handle(zone);
+
+  bool check_one_arg = ic_data.NumArgsTested() == 1;
+
+  int checks = ic_data.NumberOfChecks();
+  for (int i = 0; i < checks; i++) {
+    intptr_t id = 0;
+    if (check_one_arg) {
+      ic_data.GetOneClassCheckAt(i, &id, &dummy);
+    } else {
+      // The API works for multi dispatch ICs that check more than one
+      // argument, but we know we will only check one arg here, so only the 0th
+      // element of id will be used.
+      GrowableArray<intptr_t> arg_ids;
+      ic_data.GetCheckAt(i, &arg_ids, &dummy);
+      id = arg_ids[0];
+    }
+    Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
+    targets->Add(CidRangeTarget(id, id, &function, ic_data.GetCountAt(i)));
+  }
+
+  targets->Sort(OrderById);
+
+  Array& args_desc_array = Array::Handle(zone, ic_data.arguments_descriptor());
+  ArgumentsDescriptor args_desc(args_desc_array);
+  String& name = String::Handle(zone, ic_data.target_name());
+
+  Function& fn = Function::Handle(zone);
+
+  intptr_t length = targets->length();
+
+  // Spread class-ids to preceding classes where a lookup yields the same
+  // method.
+  for (int idx = 0; idx < length; idx++) {
+    int lower_limit_cid = (idx == 0) ? -1 : targets->At(idx - 1).cid_end;
+    const Function& target = *targets->At(idx).target;
+    for (int i = targets->At(idx).cid_start - 1; i > lower_limit_cid; i--) {
+      if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
+          fn.raw() == target.raw()) {
+        CidRangeTarget t = targets->At(idx);
+        t.cid_start = i;
+        (*targets)[idx] = t;
+      } else {
+        break;
+      }
+    }
+  }
+  // Spread class-ids to following classes where a lookup yields the same
+  // method.
+  for (int idx = 0; idx < length; idx++) {
+    int upper_limit_cid =
+        (idx == length - 1) ? 1000000000 : targets->At(idx + 1).cid_start;
+    const Function& target = *targets->At(idx).target;
+    for (int i = targets->At(idx).cid_end + 1; i < upper_limit_cid; i++) {
+      if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
+          fn.raw() == target.raw()) {
+        (*targets)[idx].cid_end = i;
+      } else {
+        break;
+      }
+    }
+  }
+  // Merge adjacent class id ranges.
+  int dest = 0;
+  for (int src = 1; src < length; src++) {
+    if (targets->At(dest).cid_end + 1 == targets->At(src).cid_start &&
+        targets->At(dest).target->raw() == targets->At(src).target->raw()) {
+      (*targets)[dest].cid_end = targets->At(src).cid_end;
+      (*targets)[dest].count += targets->At(src).count;
+    } else {
+      dest++;
+      if (src != dest) (*targets)[dest] = targets->At(src);
+    }
+  }
+  targets->SetLength(dest + 1);
+  targets->Sort(OrderByFrequency);
+  return targets;
+}
+
+
 // Shared code generation methods (EmitNativeCode and
 // MakeLocationSummary). Only assembly code that can be shared across all
 // architectures can be used. Machine specific register allocation and code
@@ -3169,12 +3267,77 @@ bool InstanceCallInstr::MatchesCoreName(const String& name) {
 }
 
 
-bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
-  if (FLAG_precompiled_mode && with_checks()) return false;
+bool CallTargets::HasSingleRecognizedTarget() const {
+  if (!HasSingleTarget()) return false;
+  return MethodRecognizer::RecognizeKind(FirstTarget()) !=
+         MethodRecognizer::kUnknown;
+}
 
-  return ic_data().HasOneTarget() &&
-         (MethodRecognizer::RecognizeKind(Function::Handle(
-              ic_data().GetTargetAt(0))) != MethodRecognizer::kUnknown);
+
+bool CallTargets::HasSingleTarget() const {
+  ASSERT(length() != 0);
+  for (int i = 0; i < length(); i++) {
+    if (cid_ranges_[i].target->raw() != cid_ranges_[0].target->raw())
+      return false;
+  }
+  return true;
+}
+
+
+bool CallTargets::IsMonomorphic() const {
+  if (length() != 1) return false;
+  return cid_ranges_[0].cid_start == cid_ranges_[0].cid_end;
+}
+
+
+intptr_t CallTargets::MonomorphicReceiverCid() const {
+  ASSERT(IsMonomorphic());
+  return cid_ranges_[0].cid_start;
+}
+
+
+Function& CallTargets::FirstTarget() const {
+  ASSERT(length() != 0);
+  ASSERT(cid_ranges_[0].target->IsZoneHandle());
+  return *cid_ranges_[0].target;
+}
+
+
+Function& CallTargets::MostPopularTarget() const {
+  ASSERT(length() != 0);
+  ASSERT(cid_ranges_[0].target->IsZoneHandle());
+  for (int i = 1; i < length(); i++) {
+    ASSERT(cid_ranges_[i].count <= cid_ranges_[0].count);
+  }
+  return *cid_ranges_[0].target;
+}
+
+
+intptr_t CallTargets::AggregateCallCount() const {
+  intptr_t sum = 0;
+  for (int i = 0; i < length(); i++) {
+    sum += cid_ranges_[i].count;
+  }
+  return sum;
+}
+
+
+bool PolymorphicInstanceCallInstr::HasOnlyDispatcherOrImplicitAccessorTargets()
+    const {
+  const intptr_t len = targets_.length();
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < len; i++) {
+    target ^= targets_[i].target->raw();
+    if (!target.IsDispatcherOrImplicitAccessor()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+intptr_t PolymorphicInstanceCallInstr::CallCount() const {
+  return targets().AggregateCallCount();
 }
 
 
@@ -3182,10 +3345,9 @@ bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
 // PolymorphicInstanceCallInstr.
 #if !defined(TARGET_ARCH_DBC)
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(ic_data().NumArgsTested() == 1);
   if (!with_checks()) {
-    ASSERT(ic_data().HasOneTarget());
-    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
+    ASSERT(targets().HasSingleTarget());
+    const Function& target = targets().FirstTarget();
     compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(),
                                  target, instance_call()->ArgumentCount(),
                                  instance_call()->argument_names(), locs(),
@@ -3194,7 +3356,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler->EmitPolymorphicInstanceCall(
-      ic_data(), instance_call()->ArgumentCount(),
+      targets_, *instance_call(), instance_call()->ArgumentCount(),
       instance_call()->argument_names(), deopt_id(),
       instance_call()->token_pos(), locs(), complete(), total_call_count());
 }
@@ -3202,22 +3364,29 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
-    const ICData& ic_data) {
+    const CallTargets& targets) {
   bool is_string = true;
   bool is_integer = true;
   bool is_double = true;
 
-  const intptr_t num_checks = ic_data.NumberOfChecks();
+  const intptr_t num_checks = targets.length();
   for (intptr_t i = 0; i < num_checks; i++) {
-    const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
-    is_string = is_string && RawObject::IsStringClassId(cid);
-    is_integer = is_integer && RawObject::IsIntegerClassId(cid);
-    is_double = is_double && (cid == kDoubleCid);
+    ASSERT(targets[i].target->raw() == targets[0].target->raw());
+    const intptr_t start = targets[i].cid_start;
+    const intptr_t end = targets[i].cid_end;
+    for (intptr_t cid = start; cid <= end; cid++) {
+      is_string = is_string && RawObject::IsStringClassId(cid);
+      is_integer = is_integer && RawObject::IsIntegerClassId(cid);
+      is_double = is_double && (cid == kDoubleCid);
+    }
   }
 
   if (is_string) {
+    ASSERT(!is_integer);
+    ASSERT(!is_double);
     return Type::StringType();
   } else if (is_integer) {
+    ASSERT(!is_double);
     return Type::IntType();
   } else if (is_double) {
     return Type::Double();
@@ -3230,12 +3399,18 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   const intptr_t receiver_cid = PushArgumentAt(0)->value()->Type()->ToCid();
 
-  if (!HasICData()) return this;
+  // TODO(erikcorry): Even for cold call sites we could still try to look up
+  // methods when we know the receiver cid. We don't currently do this because
+  // it turns the InstanceCall into a PolymorphicInstanceCall which doesn't get
+  // recognized or inlined when it is cold.
+  if (ic_data()->NumberOfUsedChecks() == 0) return this;
 
-  const ICData& new_ic_data =
-      FlowGraphCompiler::TrySpecializeICDataByReceiverCid(*ic_data(),
-                                                          receiver_cid);
-  if (new_ic_data.raw() == ic_data()->raw()) {
+  const CallTargets* new_target =
+      FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
+          receiver_cid,
+          String::Handle(flow_graph->zone(), ic_data()->target_name()),
+          Array::Handle(flow_graph->zone(), ic_data()->arguments_descriptor()));
+  if (new_target == NULL) {
     // No specialization.
     return this;
   }
@@ -3243,21 +3418,21 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   const bool with_checks = false;
   const bool complete = false;
   PolymorphicInstanceCallInstr* specialized = new PolymorphicInstanceCallInstr(
-      this, new_ic_data, with_checks, complete);
+      this, *new_target, with_checks, complete);
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
 }
 
 
 Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasSingleRecognizedTarget() || with_checks()) {
+  if (!targets().HasSingleRecognizedTarget()) {
     return this;
   }
 
-  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  const Function& target = targets().FirstTarget();
   if (target.recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
     const AbstractType& type =
-        AbstractType::Handle(ComputeRuntimeType(ic_data()));
+        AbstractType::Handle(ComputeRuntimeType(targets_));
     if (!type.IsNull()) {
       return flow_graph->GetConstant(type);
     }

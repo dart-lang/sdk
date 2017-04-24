@@ -62,6 +62,11 @@ class FlowGraphPrinter : public ValueObject {
   static void PrintICData(const ICData& ic_data,
                           intptr_t num_checks_to_print = kPrintAll);
 
+  // Debugging helper function. If 'num_checks_to_print' is not specified
+  // all checks will be printed.
+  static void PrintCidRangeData(const CallTargets& ic_data,
+                                intptr_t num_checks_to_print = kPrintAll);
+
   static bool ShouldPrint(const Function& function);
 
   static bool PassesFilter(const char* filter, const Function& function);
