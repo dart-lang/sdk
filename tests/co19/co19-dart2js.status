@@ -182,7 +182,6 @@ LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # code.google.com/p/co19/
 LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/convert/JsonEncoder/convert_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/core/DateTime/DateTime.fromMicrosecondsSinceEpoch_A01_t01: RuntimeError # Please triage this failure
-LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/microsecond_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/DateTime/microsecondsSinceEpoch_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/DateTime/parse_A01_t03: RuntimeError # Please triage this failure
