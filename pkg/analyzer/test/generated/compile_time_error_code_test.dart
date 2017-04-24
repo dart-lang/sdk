@@ -889,6 +889,23 @@ foo(var p) {
     verify([source]);
   }
 
+  test_constConstructor_redirect_generic() async {
+    Source source = addSource(r'''
+class A<T> {
+  const A(T value) : this._(value);
+  const A._(T value) : value = value;
+  final T value;
+}
+
+void main(){
+  const A<int>(1);
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_constConstructorWithFieldInitializedByNonConst() async {
     Source source = addSource(r'''
 class A {
@@ -1258,25 +1275,6 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
     verify([source]);
-  }
-
-  test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addNamedSource(
-        '/a.dart',
-        r'''
-import 'b.dart';
-const v = const MyClass();
-''');
-    addNamedSource(
-        '/b.dart',
-        r'''
-class MyClass {
-  const MyClass([p = foo]);
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_constInitializedWithNonConstValue() async {
@@ -4801,6 +4799,25 @@ var b = const B();''');
       CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
     ]);
     verify([source]);
+  }
+
+  test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addNamedSource(
+        '/a.dart',
+        r'''
+import 'b.dart';
+const v = const MyClass();
+''');
+    addNamedSource(
+        '/b.dart',
+        r'''
+class MyClass {
+  const MyClass([p = foo]);
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_nonConstValueInInitializer_redirecting() async {
