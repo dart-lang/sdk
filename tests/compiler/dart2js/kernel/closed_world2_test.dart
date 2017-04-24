@@ -50,7 +50,9 @@ import 'impact_test.dart';
 
 const SOURCE = const {
   'main.dart': '''
-main() {}
+main() {
+  print('Hello World');
+}
 '''
 };
 
@@ -79,7 +81,7 @@ main(List<String> args) {
     await compiler1.run(entryPoint);
     ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
     BackendUsage backendUsage1 = compiler1.backend.backendUsage;
-    compiler1.resolutionWorldBuilder.closeWorld();
+    ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
     print('---- analyze-all -------------------------------------------------');
     Compiler compiler = compilerFor(
@@ -116,13 +118,10 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         resolutionEnqueuerListener,
         new KernelResolutionWorldBuilder(
-            worldBuilder.elementEnvironment,
-            worldBuilder.commonElements,
-            nativeBasicData,
-            const OpenWorldStrategy()),
+            worldBuilder, nativeBasicData, const OpenWorldStrategy()),
         new KernelWorkItemBuilder(worldBuilder, impactTransformer),
         'enqueuer from kelements');
-    computeClosedWorld(
+    ClosedWorld closedWorld2 = computeClosedWorld(
         compiler.reporter, enqueuer2, worldBuilder.elementEnvironment);
     BackendUsage backendUsage2 = backendUsageBuilder2.close();
     checkBackendUsage(backendUsage1, backendUsage2, equivalence);
@@ -132,6 +131,9 @@ main(List<String> args) {
         typeEquivalence: (ResolutionDartType a, DartType b) {
       return equivalence.typeEquivalence(unalias(a), b);
     }, elementFilter: elementFilter, verbose: arguments.verbose);
+
+    checkClosedWorlds(closedWorld1, closedWorld2, equivalence.entityEquivalence,
+        verbose: arguments.verbose);
   });
 }
 

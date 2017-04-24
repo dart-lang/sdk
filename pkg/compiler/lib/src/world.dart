@@ -1100,6 +1100,20 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   bool getCurrentlyKnownMightBePassedToApply(Entity element) {
     return getMightBePassedToApply(element);
   }
+
+  // TODO(johnniwinther): Support [cls] as a [ClassEntity].
+  @override
+  String dump([ClassElement cls]) {
+    StringBuffer sb = new StringBuffer();
+    if (cls != null) {
+      sb.write("Classes in the closed world related to $cls:\n");
+    } else {
+      sb.write("Instantiated classes in the closed world:\n");
+    }
+    getClassHierarchyNode(commonElements.objectClass)
+        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
+    return sb.toString();
+  }
 }
 
 class ClosedWorldImpl extends ClosedWorldBase {
@@ -1235,19 +1249,6 @@ class ClosedWorldImpl extends ClosedWorldBase {
     }
   }
 
-  @override
-  String dump([ClassElement cls]) {
-    StringBuffer sb = new StringBuffer();
-    if (cls != null) {
-      sb.write("Classes in the closed world related to $cls:\n");
-    } else {
-      sb.write("Instantiated classes in the closed world:\n");
-    }
-    getClassHierarchyNode(commonElements.objectClass)
-        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
-    return sb.toString();
-  }
-
   SideEffects getSideEffectsOfElement(Element element) {
     // The type inferrer (where the side effects are being computed),
     // does not see generative constructor bodies because they are
@@ -1338,11 +1339,6 @@ class KernelClosedWorld extends ClosedWorldBase {
   @override
   void registerClosureClass(ClassElement cls) {
     throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
-  }
-
-  @override
-  String dump([ClassEntity cls]) {
-    throw new UnimplementedError('KernelClosedWorld.dump');
   }
 
   @override

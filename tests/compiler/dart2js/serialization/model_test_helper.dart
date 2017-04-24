@@ -107,6 +107,7 @@ Future checkModels(Uri entryPoint,
     checkClosedWorlds(
         compilerNormal.resolutionWorldBuilder.closedWorldForTesting,
         compilerDeserialized.resolutionWorldBuilder.closedWorldForTesting,
+        areElementsEquivalent,
         verbose: verbose);
     checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
   });
@@ -171,7 +172,12 @@ void checkResolutionEnqueuers(
 }
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
+    bool elementEquivalence(Entity a, Entity b),
     {bool verbose: false}) {
+  if (verbose) {
+    print(closedWorld1.dump());
+    print(closedWorld2.dump());
+  }
   checkClassHierarchyNodes(
       closedWorld1,
       closedWorld2,
@@ -179,6 +185,7 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
           .getClassHierarchyNode(closedWorld1.commonElements.objectClass),
       closedWorld2
           .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
+      elementEquivalence,
       verbose: verbose);
 }
 
@@ -304,11 +311,15 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-void checkMixinUses(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
-    ClassElement class1, ClassElement class2,
+void checkMixinUses(
+    ClosedWorld closedWorld1,
+    ClosedWorld closedWorld2,
+    ClassEntity class1,
+    ClassEntity class2,
+    bool elementEquivalence(Entity a, Entity b),
     {bool verbose: false}) {
   checkSets(closedWorld1.mixinUsesOf(class1), closedWorld2.mixinUsesOf(class2),
-      "Mixin uses of $class1 vs $class2", areElementsEquivalent,
+      "Mixin uses of $class1 vs $class2", elementEquivalence,
       verbose: verbose);
 }
 
@@ -317,13 +328,14 @@ void checkClassHierarchyNodes(
     ClosedWorld closedWorld2,
     ClassHierarchyNode node1,
     ClassHierarchyNode node2,
+    bool elementEquivalence(Entity a, Entity b),
     {bool verbose: false}) {
   if (verbose) {
     print('Checking $node1 vs $node2');
   }
-  ClassElement cls1 = node1.cls;
-  ClassElement cls2 = node2.cls;
-  Expect.isTrue(areElementsEquivalent(cls1, cls2),
+  ClassEntity cls1 = node1.cls;
+  ClassEntity cls2 = node2.cls;
+  Expect.isTrue(elementEquivalence(cls1, cls2),
       "Element identity mismatch for ${cls1} vs ${cls2}.");
   Expect.equals(
       node1.isDirectlyInstantiated,
@@ -340,10 +352,11 @@ void checkClassHierarchyNodes(
   for (ClassHierarchyNode child in node1.directSubclasses) {
     bool found = false;
     for (ClassHierarchyNode other in node2.directSubclasses) {
-      ClassElement child1 = child.cls;
-      ClassElement child2 = other.cls;
-      if (areElementsEquivalent(child1, child2)) {
-        checkClassHierarchyNodes(closedWorld1, closedWorld2, child, other,
+      ClassEntity child1 = child.cls;
+      ClassEntity child2 = other.cls;
+      if (elementEquivalence(child1, child2)) {
+        checkClassHierarchyNodes(
+            closedWorld1, closedWorld2, child, other, elementEquivalence,
             verbose: verbose);
         found = true;
         break;
@@ -364,7 +377,8 @@ void checkClassHierarchyNodes(
           '${node2.directSubclasses}');
     }
   }
-  checkMixinUses(closedWorld1, closedWorld2, node1.cls, node2.cls,
+  checkMixinUses(
+      closedWorld1, closedWorld2, node1.cls, node2.cls, elementEquivalence,
       verbose: verbose);
 }
 

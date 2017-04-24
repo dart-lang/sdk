@@ -26,6 +26,7 @@ import '../native/resolver.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../universe/call_structure.dart';
+import '../universe/world_builder.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'element_adapter.dart';
 import 'elements.dart';
@@ -1100,6 +1101,50 @@ class _EvaluationEnvironment implements Environment {
   String readFromEnvironment(String name) {
     throw new UnimplementedError("_EvaluationEnvironment.readFromEnvironment");
   }
+}
+
+class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
+  final KernelWorldBuilder worldBuilder;
+
+  KernelResolutionWorldBuilder(
+      this.worldBuilder,
+      NativeBasicData nativeBasicData,
+      SelectorConstraintsStrategy selectorConstraintsStrategy)
+      : super(worldBuilder.elementEnvironment, worldBuilder.commonElements,
+            nativeBasicData, selectorConstraintsStrategy);
+
+  @override
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
+    return worldBuilder._getOrderedTypeSet(cls).supertypes;
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    return worldBuilder._getSuperType(cls)?.element;
+  }
+
+  @override
+  bool implementsFunction(ClassEntity cls) {
+    // TODO(johnniwinther): Implement this.
+    return false;
+  }
+
+  @override
+  int getHierarchyDepth(ClassEntity cls) {
+    return worldBuilder._getHierarchyDepth(cls);
+  }
+
+  @override
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    // TODO(johnniwinther): Implement this.
+    return null;
+  }
+
+  @override
+  bool validateClass(ClassEntity cls) => true;
+
+  @override
+  bool checkClass(ClassEntity cls) => true;
 }
 
 // Interface for testing equivalence of Kernel-based entities.
