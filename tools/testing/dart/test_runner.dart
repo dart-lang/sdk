@@ -1791,7 +1791,7 @@ class OutputLog {
   void _checkUtf8(List<int> data) {
     try {
       UTF8.decode(data, allowMalformed: false);
-    } on FormatException catch (e) {
+    } on FormatException {
       hasNonUtf8 = true;
       String malformed = UTF8.decode(data, allowMalformed: true);
       data

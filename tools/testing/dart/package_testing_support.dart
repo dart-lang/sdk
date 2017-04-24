@@ -4,8 +4,6 @@
 
 library package_testing_support;
 
-import 'dart:convert' show JSON;
-
 import 'test_configurations.dart' show testConfigurations;
 
 import 'test_options.dart' show TestOptionsParser;

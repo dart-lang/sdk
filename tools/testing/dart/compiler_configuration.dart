@@ -68,8 +68,6 @@ abstract class CompilerConfiguration {
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
     bool useKernelInDart2js = configuration['dart2js_with_kernel'];
-    bool verifyKernel = configuration['verify-ir'];
-    bool treeShake = !configuration['no-tree-shake'];
 
     switch (compiler) {
       case 'dart2analyzer':

@@ -29,7 +29,6 @@ final STATUS_TUPLES = [
   ["lib", "tests/lib", "tests/lib/lib.status"],
   ["standalone", "tests/standalone", "tests/standalone/standalone.status"],
   ["pkg", "pkg", "pkg/pkg.status"],
-  ["pkgbuild", ".", "pkg/pkgbuild.status"],
   ["utils", "tests/utils", "tests/utils/utils.status"],
   ["samples", "samples", "samples/samples.status"],
   ["analyze_library", "sdk", "tests/lib/analyzer/analyze_library.status"],
