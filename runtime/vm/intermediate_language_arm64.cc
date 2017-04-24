@@ -874,7 +874,7 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   __ ldr(result, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(result, result,
                   Symbols::kNullCharCodeSymbolOffset * kWordSize);
-  __ SmiUntag(TMP, char_code);  // Untag to use scaled adress mode.
+  __ SmiUntag(TMP, char_code);  // Untag to use scaled address mode.
   __ ldr(result, Address(result, TMP, UXTX, Address::Scaled));
 }
 

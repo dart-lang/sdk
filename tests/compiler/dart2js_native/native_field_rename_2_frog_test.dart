@@ -37,7 +37,7 @@ A makeA() native;
 X makeX() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function A(){ this.key = 111; }
 A.prototype.getKey = function(){return this.key;};
 

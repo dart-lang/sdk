@@ -116,7 +116,7 @@ class SideEffectsVisitor extends js.BaseVisitor {
 ///
 /// The result is semi-conservative, giving reasonable results for many simple
 /// JS fragments. The non-conservative part is the assumption that binary
-/// operators are used on 'good' operands that do not force arbirary code to be
+/// operators are used on 'good' operands that do not force arbitrary code to be
 /// executed via conversions (valueOf() and toString() methods).
 ///
 /// In many cases a JS fragment has more precise behavior. In these cases the

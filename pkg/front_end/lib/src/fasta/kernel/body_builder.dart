@@ -318,8 +318,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     doFields(count);
-    // There's no metadata here because of a slight assymetry between
-    // [parseTopLevelMember] and [parseMember]. This assymetry leads to
+    // There's no metadata here because of a slight asymmetry between
+    // [parseTopLevelMember] and [parseMember]. This asymmetry leads to
     // DietListener discarding top-level member metadata.
   }
 

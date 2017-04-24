@@ -10,7 +10,8 @@ import 'native_testing.dart';
 import 'native_library_same_name_used_lib1.dart';
 
 void setup() native """
-  // This code is all inside 'setup' and so not accesible from the global scope.
+  // This code is all inside 'setup' and so not accessible from the global
+  // scope.
   function I(){}
   I.prototype.read = function() { return this._x; };
   I.prototype.write = function(x) { this._x = x; };

@@ -54,7 +54,7 @@ import 'package:yaml/yaml.dart';
  * 3. Look in each package for an SDK extension file (_sdkext). For each such
  *    file, add the specified files to the SDK.
  *
- * 4. Look for an analysis options file (`analyis_options.yaml` or
+ * 4. Look for an analysis options file (`analysis_options.yaml` or
  *    `.analysis_options`) and process the options in the file.
  *
  * 5. Create a new context. Initialize its source factory based on steps 1, 2

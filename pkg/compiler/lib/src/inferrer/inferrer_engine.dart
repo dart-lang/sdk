@@ -581,7 +581,7 @@ class InferrerEngine {
       TypeInformation info = workQueue.remove();
       TypeMask oldType = info.type;
       TypeMask newType = info.refine(this);
-      // Check that refinement has not accidentially changed the type.
+      // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {

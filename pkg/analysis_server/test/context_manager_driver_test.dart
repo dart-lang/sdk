@@ -64,7 +64,7 @@ class ContextManagerWithNewOptionsTest_Driver
 
   @failingTest
   test_path_filter_analysis_option() async {
-    // This fails because we're not analyzing the analyis options file.
+    // This fails because we're not analyzing the analysis options file.
     return super.test_path_filter_analysis_option();
   }
 }
@@ -100,7 +100,7 @@ class ContextManagerWithOldOptionsTest_Driver
 
   @failingTest
   test_path_filter_analysis_option() async {
-    // This fails because we're not analyzing the analyis options file.
+    // This fails because we're not analyzing the analysis options file.
     return super.test_path_filter_analysis_option();
   }
 }

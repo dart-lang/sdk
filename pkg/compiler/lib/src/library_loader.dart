@@ -854,7 +854,7 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         super(measurer);
 
   /// Loads an entire Kernel [Program] from a file on disk (note, not just a
-  /// library, so this name is actuall a bit of a misnomer).
+  /// library, so this name is actually a bit of a misnomer).
   // TODO(efortuna): Rename this once the Element library loader class goes
   // away.
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,

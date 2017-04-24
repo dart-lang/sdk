@@ -26,7 +26,7 @@ class String;
 
 
 // Stack-allocated class to create a scope where the specified region
-// [address, addresss + size] has write access enabled. This is used
+// [address, address + size] has write access enabled. This is used
 // when patching generated code. Access is reset to read-execute in
 // the destructor of this scope.
 class WritableInstructionsScope : public ValueObject {

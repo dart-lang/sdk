@@ -224,7 +224,7 @@ testUriPerRFCs() {
   testResolve("../../../d", "../d");
   testResolve("../../../../d", "../../d");
 
-  // Absoluyte path, not scheme or authority.
+  // Absolute path, not scheme or authority.
   setBase("/a");
   testResolve("/b", "b");
   testResolve("/b", "../b");

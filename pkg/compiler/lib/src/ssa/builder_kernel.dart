@@ -1165,7 +1165,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ir.Node node, ir.Procedure procedure, String message, TypeMask typeMask) {
     HInstruction errorMessage =
         graph.addConstantString(new DartString.literal(message), closedWorld);
-    // TODO(sra): Assocate source info from [node].
+    // TODO(sra): Associate source info from [node].
     _pushStaticInvocation(procedure, [errorMessage], typeMask);
   }
 

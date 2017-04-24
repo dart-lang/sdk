@@ -2854,7 +2854,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // prepare accessor properties
       String name = accessor.displayName;
       bool getter = accessor.isGetter;
-      // if non-final variable, ignore setter - we alreay reported problem for
+      // if non-final variable, ignore setter - we already reported problem for
       // getter
       if (accessor.isSetter && accessor.isSynthetic) {
         continue;
