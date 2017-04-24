@@ -1114,7 +1114,8 @@ class CodeChecker extends RecursiveAstVisitor {
         n is DoubleLiteral ||
         n is IntegerLiteral ||
         n is StringLiteral ||
-        n is SymbolLiteral) {
+        n is SymbolLiteral ||
+        n is IndexExpression) {
       // Nothing to validate.
     } else if (n is AwaitExpression) {
       _validateTopLevelInitializer(name, n.expression);

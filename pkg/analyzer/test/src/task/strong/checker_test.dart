@@ -2236,8 +2236,7 @@ void f() {
     addFile(r'''
 class C {
   var /*error:IMPLICIT_DYNAMIC_FIELD*/x0;
-  var /*error:IMPLICIT_DYNAMIC_FIELD*/x1 =
-      /*error:TOP_LEVEL_UNSUPPORTED*/(<dynamic>[])[0];
+  var /*error:IMPLICIT_DYNAMIC_FIELD*/x1 = (<dynamic>[])[0];
   var /*error:IMPLICIT_DYNAMIC_FIELD*/x2,
       x3 = 42,
       /*error:IMPLICIT_DYNAMIC_FIELD*/x4;
@@ -2464,8 +2463,7 @@ A g(B b) {
   test_implicitDynamic_variable() async {
     addFile(r'''
 var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x0;
-var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 =
-    /*error:TOP_LEVEL_UNSUPPORTED*/(<dynamic>[])[0];
+var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 = (<dynamic>[])[0];
 var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x2,
     x3 = 42,
     /*error:IMPLICIT_DYNAMIC_VARIABLE*/x4;

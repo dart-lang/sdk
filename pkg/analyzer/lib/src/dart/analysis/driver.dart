@@ -75,7 +75,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 33;
+  static const int DATA_VERSION = 34;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
