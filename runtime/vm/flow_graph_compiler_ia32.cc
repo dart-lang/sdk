@@ -1131,17 +1131,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
-                                               TokenPosition token_pos,
-                                               const StubEntry& stub_entry,
-                                               RawPcDescriptors::Kind kind,
-                                               LocationSummary* locs,
-                                               const Function& target) {
-  GenerateDartCall(deopt_id, token_pos, stub_entry, kind, locs);
-  AddStaticCallTarget(target);
-}
-
-
 void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
@@ -1227,14 +1216,16 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
 
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
-    const String& name,
-    const Array& arguments_descriptor,
+    const ICData& ic_data,
     intptr_t argument_count,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
     intptr_t try_index,
     intptr_t slow_path_argument_count) {
+  const String& name = String::Handle(zone(), ic_data.target_name());
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -1434,43 +1425,119 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 #endif
 
 
-void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
-    intptr_t argument_count,
-    const Array& arguments_descriptor) {
+void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
+                                        intptr_t argument_count,
+                                        const Array& argument_names,
+                                        Label* failed,
+                                        Label* match_found,
+                                        intptr_t deopt_id,
+                                        TokenPosition token_index,
+                                        LocationSummary* locs,
+                                        bool complete,
+                                        intptr_t total_ic_calls) {
+  ASSERT(is_optimizing());
+  ASSERT(!complete);
   __ Comment("EmitTestAndCall");
+  const Array& arguments_descriptor = Array::ZoneHandle(
+      zone(), ArgumentsDescriptor::New(argument_count, argument_names));
   // Load receiver into EAX.
   __ movl(EAX, Address(ESP, (argument_count - 1) * kWordSize));
   __ LoadObject(EDX, arguments_descriptor);
-}
 
+  const bool kFirstCheckIsSmi = ic_data.GetReceiverClassIdAt(0) == kSmiCid;
+  const intptr_t num_checks = ic_data.NumberOfChecks();
 
-void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
+  ASSERT(!ic_data.IsNull() && (num_checks > 0));
+
+  Label after_smi_test;
   __ testl(EAX, Immediate(kSmiTagMask));
-  // Jump if receiver is (not) Smi.
-  __ j(if_smi ? ZERO : NOT_ZERO, label);
-}
-
-
-void FlowGraphCompiler::EmitTestAndCallLoadCid() {
-  __ LoadClassId(EDI, EAX);
-}
-
-
-int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
-                                               const CidRangeTarget& target,
-                                               int bias) {
-  intptr_t cid_start = target.cid_start;
-  intptr_t cid_end = target.cid_end;
-  if (cid_start == cid_end) {
-    __ cmpl(EDI, Immediate(cid_start - bias));
-    __ j(NOT_EQUAL, next_label);
+  if (kFirstCheckIsSmi) {
+    // Jump if receiver is not Smi.
+    if (num_checks == 1) {
+      __ j(NOT_ZERO, failed);
+    } else {
+      __ j(NOT_ZERO, &after_smi_test);
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id, token_index,
+                     *StubCode::CallStaticFunction_entry(),
+                     RawPcDescriptors::kOther, locs);
+    const Function& function =
+        Function::ZoneHandle(zone(), ic_data.GetTargetAt(0));
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (num_checks > 1) {
+      __ jmp(match_found);
+    }
   } else {
-    __ addl(EDI, Immediate(bias - cid_start));
-    bias = cid_start;
-    __ cmpl(EDI, Immediate(cid_end - cid_start));
-    __ j(ABOVE, next_label);  // Unsigned higher.
+    // Receiver is Smi, but Smi is not a valid class therefore fail.
+    // (Smi class must be first in the list).
+    __ j(ZERO, failed);
   }
-  return bias;
+  __ Bind(&after_smi_test);
+
+  ASSERT(!ic_data.IsNull() && (num_checks > 0));
+  GrowableArray<CidRangeTarget> sorted(num_checks);
+  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
+
+  const intptr_t sorted_len = sorted.length();
+  // If sorted_len is 0 then only a Smi check was needed; the Smi check above
+  // will fail if there was only one check and receiver is not Smi.
+  if (sorted_len == 0) return;
+
+  // Value is not Smi,
+  __ LoadClassId(EDI, EAX);
+
+  bool add_megamorphic_call = false;
+  const int kMaxImmediateInInstruction = 127;
+  int bias =
+      ComputeGoodBiasForCidComparison(sorted, kMaxImmediateInInstruction);
+  if (bias != 0) __ addl(EDI, Immediate(-bias));
+
+  for (intptr_t i = 0; i < sorted_len; i++) {
+    const bool is_last_check = (i == (sorted_len - 1));
+    int cid_start = sorted[i].cid_start;
+    int cid_end = sorted[i].cid_end;
+    int count = sorted[i].count;
+    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
+      // This case is hit too rarely to be worth writing class-id checks inline
+      // for.
+      add_megamorphic_call = true;
+      break;
+    }
+    ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
+    Label next_test;
+    if (!complete || !is_last_check) {
+      Label* next_label = is_last_check ? failed : &next_test;
+      if (cid_start == cid_end) {
+        __ cmpl(EDI, Immediate(cid_start - bias));
+        __ j(NOT_EQUAL, next_label);
+      } else {
+        __ addl(EDI, Immediate(bias - cid_start));
+        bias = cid_start;
+        __ cmpl(EDI, Immediate(cid_end - cid_start));
+        __ j(ABOVE, next_label);  // Unsigned higher.
+      }
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    const Function& function = *sorted[i].target;
+    GenerateDartCall(deopt_id, token_index,
+                     *StubCode::CallStaticFunction_entry(),
+                     RawPcDescriptors::kOther, locs);
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (!is_last_check) {
+      __ jmp(match_found);
+    }
+    __ Bind(&next_test);
+  }
+  if (add_megamorphic_call) {
+    int try_index = CatchClauseNode::kInvalidTryIndex;
+    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id, token_index,
+                                locs, try_index, argument_count);
+  }
 }
 
 

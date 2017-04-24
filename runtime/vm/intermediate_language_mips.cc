@@ -3024,12 +3024,8 @@ class CheckedSmiSlowPath : public SlowPathCode {
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
-    const String& selector =
-        String::Handle(instruction_->call()->ic_data()->target_name());
-    const Array& argument_names =
-        Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        selector, argument_names, instruction_->call()->ArgumentCount(),
+        *instruction_->call()->ic_data(), instruction_->call()->ArgumentCount(),
         instruction_->call()->deopt_id(), instruction_->call()->token_pos(),
         locs, try_index_,
         /* slow_path_argument_count = */ 2);
@@ -3164,12 +3160,8 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
-    String& selector =
-        String::Handle(instruction_->call()->ic_data()->target_name());
-    Array& argument_names =
-        Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        selector, argument_names, instruction_->call()->ArgumentCount(),
+        *instruction_->call()->ic_data(), instruction_->call()->ArgumentCount(),
         instruction_->call()->deopt_id(), instruction_->call()->token_pos(),
         locs, try_index_,
         /* slow_path_argument_count = */ 2);

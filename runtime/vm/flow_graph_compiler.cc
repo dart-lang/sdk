@@ -23,7 +23,6 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/raw_object.h"
-#include "vm/resolver.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -1170,12 +1169,8 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   }
 
   if (is_optimizing()) {
-    String& name = String::Handle(ic_data_in.target_name());
-    Array& arguments_descriptor =
-        Array::Handle(ic_data_in.arguments_descriptor());
-    EmitMegamorphicInstanceCall(name, arguments_descriptor, argument_count,
-                                deopt_id, token_pos, locs,
-                                CatchClauseNode::kInvalidTryIndex);
+    EmitMegamorphicInstanceCall(ic_data_in, argument_count, deopt_id, token_pos,
+                                locs, CatchClauseNode::kInvalidTryIndex);
     return;
   }
 
@@ -1792,70 +1787,84 @@ void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
 }
 
 
-const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
-    intptr_t cid,
-    const String& selector,
-    const Array& args_desc_array) {
+const ICData& FlowGraphCompiler::TrySpecializeICDataByReceiverCid(
+    const ICData& ic_data,
+    intptr_t cid) {
   Zone* zone = Thread::Current()->zone();
+  if (ic_data.NumArgsTested() != 1) return ic_data;
 
-  ArgumentsDescriptor args_desc(args_desc_array);
+  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
+    return ic_data;  // Nothing to do
+  }
 
-  Function& fn = Function::ZoneHandle(zone);
-  if (!LookupMethodFor(cid, selector, args_desc, &fn)) return NULL;
+  intptr_t count = 1;
+  const Function& function =
+      Function::Handle(zone, ic_data.GetTargetForReceiverClassId(cid, &count));
+  // TODO(fschneider): Try looking up the function on the class if it is
+  // not found in the ICData.
+  if (!function.IsNull()) {
+    const ICData& new_ic_data = ICData::ZoneHandle(
+        zone, ICData::New(Function::Handle(zone, ic_data.Owner()),
+                          String::Handle(zone, ic_data.target_name()),
+                          Object::empty_array(),  // Dummy argument descriptor.
+                          ic_data.deopt_id(), ic_data.NumArgsTested(), false));
+    new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
+    new_ic_data.AddReceiverCheck(cid, function, count);
+    return new_ic_data;
+  }
 
-  CallTargets* targets = new (zone) CallTargets();
-  targets->Add(CidRangeTarget(cid, cid, &fn, /* count = */ 1));
-
-  return targets;
+  return ic_data;
 }
 
 
-bool FlowGraphCompiler::LookupMethodFor(int class_id,
-                                        const String& name,
-                                        const ArgumentsDescriptor& args_desc,
-                                        Function* fn_return) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  if (class_id < 0) return false;
-  if (class_id >= isolate->class_table()->NumCids()) return false;
+intptr_t FlowGraphCompiler::ComputeGoodBiasForCidComparison(
+    const GrowableArray<CidRangeTarget>& sorted,
+    intptr_t max_immediate) {
+  // Sometimes a bias can be useful so we can emit more compact compare
+  // instructions.
+  intptr_t min_cid = 1000000;
+  intptr_t max_cid = -1;
 
-  RawClass* raw_class = isolate->class_table()->At(class_id);
-  if (raw_class == NULL) return false;
-  Class& cls = Class::Handle(zone, raw_class);
-  if (cls.IsNull()) return false;
-  if (!cls.is_finalized()) return false;
-  if (Array::Handle(cls.functions()).IsNull()) return false;
+  const intptr_t sorted_len = sorted.length();
 
-  const bool allow_add = false;
-  Function& target_function =
-      Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
-                                 cls, name, args_desc, allow_add));
-  if (target_function.IsNull()) return false;
-  *fn_return ^= target_function.raw();
-  return true;
+  for (intptr_t i = 0; i < sorted_len + 1; i++) {
+    bool done = (i == sorted_len);
+    intptr_t start = done ? 0 : sorted[i].cid_start;
+    intptr_t end = done ? 0 : sorted[i].cid_end;
+    bool is_range = start != end;
+    bool spread_too_big = start - min_cid > max_immediate;
+    if (done || is_range || spread_too_big) {
+      if (i >= 2 && max_cid - min_cid <= max_immediate &&
+          max_cid > max_immediate) {
+        return min_cid;
+      } else {
+        return 0;
+      }
+    }
+    min_cid = Utils::Minimum(min_cid, start);
+    max_cid = Utils::Maximum(max_cid, end);
+  }
+  UNREACHABLE();
+  return 0;
 }
 
 
 #if !defined(TARGET_ARCH_DBC)
 // DBC emits calls very differently from other architectures due to its
 // interpreted nature.
-void FlowGraphCompiler::EmitPolymorphicInstanceCall(
-    const CallTargets& targets,
-    const InstanceCallInstr& original_call,
-    intptr_t argument_count,
-    const Array& argument_names,
-    intptr_t deopt_id,
-    TokenPosition token_pos,
-    LocationSummary* locs,
-    bool complete,
-    intptr_t total_ic_calls) {
+void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
+                                                    intptr_t argument_count,
+                                                    const Array& argument_names,
+                                                    intptr_t deopt_id,
+                                                    TokenPosition token_pos,
+                                                    LocationSummary* locs,
+                                                    bool complete,
+                                                    intptr_t total_ic_calls) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt =
         AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
     Label ok;
-    EmitTestAndCall(targets, original_call.function_name(), argument_count,
-                    argument_names,
+    EmitTestAndCall(ic_data, argument_count, argument_names,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
                     deopt_id, token_pos, locs, complete, total_ic_calls);
@@ -1863,142 +1872,17 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
   } else {
     if (complete) {
       Label ok;
-      EmitTestAndCall(targets, original_call.function_name(), argument_count,
-                      argument_names,
+      EmitTestAndCall(ic_data, argument_count, argument_names,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
                       deopt_id, token_pos, locs, true, total_ic_calls);
       assembler()->Bind(&ok);
     } else {
-      const ICData& unary_checks = ICData::ZoneHandle(
-          zone(), original_call.ic_data()->AsUnaryClassChecks());
-      EmitSwitchableInstanceCall(unary_checks, argument_count, deopt_id,
-                                 token_pos, locs);
+      EmitSwitchableInstanceCall(ic_data, argument_count, deopt_id, token_pos,
+                                 locs);
     }
   }
 }
-
-
-#define __ assembler()->
-void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
-                                        const String& function_name,
-                                        intptr_t argument_count,
-                                        const Array& argument_names,
-                                        Label* failed,
-                                        Label* match_found,
-                                        intptr_t deopt_id,
-                                        TokenPosition token_index,
-                                        LocationSummary* locs,
-                                        bool complete,
-                                        intptr_t total_ic_calls) {
-  ASSERT(is_optimizing());
-
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      zone(), ArgumentsDescriptor::New(argument_count, argument_names));
-
-  EmitTestAndCallLoadReceiver(argument_count, arguments_descriptor);
-
-  static const int kNoCase = -1;
-  int smi_case = kNoCase;
-  int which_case_to_skip = kNoCase;
-
-  const int length = targets.length();
-  ASSERT(length > 0);
-  int non_smi_length = length;
-
-  // Find out if one of the classes in one of the cases is the Smi class. We
-  // will be handling that specially.
-  for (int i = 0; i < length; i++) {
-    const intptr_t start = targets[i].cid_start;
-    if (start > kSmiCid) continue;
-    const intptr_t end = targets[i].cid_end;
-    if (end >= kSmiCid) {
-      smi_case = i;
-      if (start == kSmiCid && end == kSmiCid) {
-        // If this case has only the Smi class then we won't need to emit it at
-        // all later.
-        which_case_to_skip = i;
-        non_smi_length--;
-      }
-      break;
-    }
-  }
-
-  if (smi_case != kNoCase) {
-    Label after_smi_test;
-    EmitTestAndCallSmiBranch(non_smi_length == 0 ? failed : &after_smi_test,
-                             false);  // Jump if receiver is not Smi.
-
-    // Do not use the code from the function, but let the code be patched so
-    // that we can record the outgoing edges to other code.
-    const Function& function = *targets[smi_case].target;
-    GenerateStaticDartCall(deopt_id, token_index,
-                           *StubCode::CallStaticFunction_entry(),
-                           RawPcDescriptors::kOther, locs, function);
-    __ Drop(argument_count);
-    if (match_found != NULL) {
-      __ Jump(match_found);
-    }
-    __ Bind(&after_smi_test);
-  } else {
-    if (!complete) {
-      // Smi is not a valid class.
-      EmitTestAndCallSmiBranch(failed,
-                               true);  // Jump to failed if it's a Smi.
-    }
-  }
-
-  if (non_smi_length == 0) {
-    // If non_smi_length is 0 then only a Smi check was needed; the Smi check
-    // above will fail if there was only one check and receiver is not Smi.
-    return;
-  }
-
-  bool add_megamorphic_call = false;
-  int bias = 0;
-
-  // Value is not Smi.
-  EmitTestAndCallLoadCid();
-
-  int last_check = which_case_to_skip == length - 1 ? length - 2 : length - 1;
-
-  for (intptr_t i = 0; i < length; i++) {
-    if (i == which_case_to_skip) continue;
-    const bool is_last_check = (i == last_check);
-    const int count = targets[i].count;
-    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
-      // This case is hit too rarely to be worth writing class-id checks inline
-      // for.  Note that we can't do this for calls with only one target because
-      // the type propagator may have made use of that and expects a deopt if
-      // a new class is seen at this calls site.  See IsMonomorphic.
-      add_megamorphic_call = true;
-      break;
-    }
-    Label next_test;
-    if (!complete || !is_last_check) {
-      bias = EmitTestAndCallCheckCid(is_last_check ? failed : &next_test,
-                                     targets[i], bias);
-    }
-    // Do not use the code from the function, but let the code be patched so
-    // that we can record the outgoing edges to other code.
-    const Function& function = *targets[i].target;
-    GenerateStaticDartCall(deopt_id, token_index,
-                           *StubCode::CallStaticFunction_entry(),
-                           RawPcDescriptors::kOther, locs, function);
-    __ Drop(argument_count);
-    if (!is_last_check || add_megamorphic_call) {
-      __ Jump(match_found);
-    }
-    __ Bind(&next_test);
-  }
-  if (add_megamorphic_call) {
-    int try_index = CatchClauseNode::kInvalidTryIndex;
-    EmitMegamorphicInstanceCall(function_name, arguments_descriptor,
-                                argument_count, deopt_id, token_index, locs,
-                                try_index);
-  }
-}
-#undef __
 #endif
 
 #if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
