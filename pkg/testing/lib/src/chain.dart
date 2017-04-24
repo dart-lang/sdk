@@ -150,7 +150,7 @@ abstract class ChainContext {
       /// asynchronous.
       ///
       /// If a step is asynchrouns the future returned from this function will
-      /// complete after the the first asynchronous step is scheduled.  This
+      /// complete after the first asynchronous step is scheduled.  This
       /// allows us to start processing the next test while an external process
       /// completes as steps can be interleaved. To ensure all steps are
       /// completed, wait for [futures].

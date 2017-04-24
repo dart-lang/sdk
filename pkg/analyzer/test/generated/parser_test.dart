@@ -65,7 +65,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   /**
    * Assert that the number and codes of errors occurred during parsing is the
-   * same the the [expectedErrorCodes].
+   * same as the [expectedErrorCodes].
    */
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes);
 

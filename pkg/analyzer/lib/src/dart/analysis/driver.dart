@@ -695,7 +695,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    *
    * The signature is based the APIs of the files of the library (including
    * the file itself) of the requested file and the transitive closure of files
-   * imported and exported by the the library.
+   * imported and exported by the library.
    */
   Future<String> getUnitElementSignature(String path) {
     if (!_fsState.hasUri(path)) {
@@ -1619,7 +1619,7 @@ class AnalysisResult {
 
   /**
    * The signature of the result based on the content of the file, and the
-   * transitive closure of files imported and exported by the the library of
+   * transitive closure of files imported and exported by the library of
    * the requested file.
    */
   final String _signature;
@@ -1884,7 +1884,7 @@ class UnitElementResult {
   /**
    * The signature of the [element] is based the APIs of the files of the
    * library (including the file itself) of the requested file and the
-   * transitive closure of files imported and exported by the the library.
+   * transitive closure of files imported and exported by the library.
    */
   final String signature;
 

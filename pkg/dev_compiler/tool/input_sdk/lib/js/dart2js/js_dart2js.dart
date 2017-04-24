@@ -440,7 +440,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 }
 
 // Cross frame objects should not be considered browser types.
-// We include the the instanceof Object test to filter out cross frame objects
+// We include the instanceof Object test to filter out cross frame objects
 // on FireFox. Surprisingly on FireFox the instanceof Window test succeeds for
 // cross frame windows while the instanceof Object test fails.
 bool _isBrowserType(o) => JS(
