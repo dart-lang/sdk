@@ -939,5 +939,8 @@ named_parameters_test/05: Crash # Issue 27394
 named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
 
-[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+[ $compiler == dart2js && $runtime == d8 && $host_checked == false && $checked ]
+mixin_type_parameter6_test: RuntimeError #29441
+
+[ $compiler == dart2js && $runtime == d8 && $host_checked && $checked ]
 mixin_type_parameter6_test: Crash #29441
