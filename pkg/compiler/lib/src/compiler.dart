@@ -34,6 +34,7 @@ import 'elements/entities.dart';
 import 'elements/modelx.dart' show ErroneousElementX;
 import 'elements/resolution_types.dart'
     show
+        DartTypes,
         ResolutionDartType,
         ResolutionDynamicType,
         ResolutionFunctionType,
@@ -86,7 +87,7 @@ abstract class Compiler {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  Types types;
+  DartTypes types;
   CommonElements _commonElements;
   _CompilerElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;

@@ -634,7 +634,8 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 }
 
 /// Visitor that checks for equivalence of [ResolutionDartType]s.
-class TypeEquivalence implements DartTypeVisitor<bool, ResolutionDartType> {
+class TypeEquivalence
+    implements ResolutionDartTypeVisitor<bool, ResolutionDartType> {
   final TestStrategy strategy;
 
   const TypeEquivalence([this.strategy = const TestStrategy()]);

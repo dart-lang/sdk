@@ -858,7 +858,8 @@ ResolutionImpact laxImpact(
 
 /// Visitor the performers unaliasing of all typedefs nested within a
 /// [ResolutionDartType].
-class Unaliaser extends BaseDartTypeVisitor<dynamic, ResolutionDartType> {
+class Unaliaser
+    extends BaseResolutionDartTypeVisitor<dynamic, ResolutionDartType> {
   const Unaliaser();
 
   @override

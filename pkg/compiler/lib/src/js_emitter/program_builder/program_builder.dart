@@ -10,8 +10,6 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show CommonElements;
-import '../../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show
@@ -29,7 +27,12 @@ import '../../elements/elements.dart'
         TypedefElement,
         VariableElement;
 import '../../elements/entities.dart';
-import '../../elements/resolution_types.dart' show Types;
+import '../../elements/resolution_types.dart'
+    show
+        DartTypes,
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionTypedefType;
 import '../../elements/types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart'
@@ -76,7 +79,7 @@ part 'registry.dart';
 class ProgramBuilder {
   final CompilerOptions _options;
   final CommonElements _commonElements;
-  final Types _types;
+  final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
   final ClosureTask _closureToClassMapper;
   final CodegenWorldBuilder _worldBuilder;

@@ -423,7 +423,7 @@ class RelatedTypesChecker
 
 /// Computes the [ClassElement] implied by a type.
 // TODO(johnniwinther): Handle type variables, function types and typedefs.
-class ClassFinder extends BaseDartTypeVisitor<ClassElement, dynamic> {
+class ClassFinder extends BaseResolutionDartTypeVisitor<ClassElement, dynamic> {
   const ClassFinder();
 
   ClassElement findClass(ResolutionDartType type) => type.accept(this, null);

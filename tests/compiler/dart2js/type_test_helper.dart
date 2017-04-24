@@ -31,6 +31,8 @@ class TypeEnvironment {
 
   Resolution get resolution => compiler.resolution;
 
+  Types get types => resolution.types;
+
   static Future<TypeEnvironment> create(String source,
       {bool useMockCompiler: true,
       bool expectNoErrors: false,
@@ -113,20 +115,20 @@ class TypeEnvironment {
   }
 
   bool isSubtype(ResolutionDartType T, ResolutionDartType S) {
-    return compiler.types.isSubtype(T, S);
+    return types.isSubtype(T, S);
   }
 
   bool isMoreSpecific(ResolutionDartType T, ResolutionDartType S) {
-    return compiler.types.isMoreSpecific(T, S);
+    return types.isMoreSpecific(T, S);
   }
 
   ResolutionDartType computeLeastUpperBound(
       ResolutionDartType T, ResolutionDartType S) {
-    return compiler.types.computeLeastUpperBound(T, S);
+    return types.computeLeastUpperBound(T, S);
   }
 
   ResolutionDartType flatten(ResolutionDartType T) {
-    return compiler.types.flatten(T);
+    return types.flatten(T);
   }
 
   ResolutionFunctionType functionType(

@@ -16,7 +16,7 @@ import 'serialization.dart';
 /// serialization. The [ObjectEncoder] ensures that any [Element], and other
 /// [ResolutionDartType] that the serialized [ResolutionDartType] depends upon
 /// are also serialized.
-class TypeSerializer extends DartTypeVisitor<dynamic, ObjectEncoder> {
+class TypeSerializer extends ResolutionDartTypeVisitor<dynamic, ObjectEncoder> {
   const TypeSerializer();
 
   void visitType(ResolutionDartType type, ObjectEncoder encoder) {

@@ -2110,7 +2110,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 }
 
-class FunctionTypeNamer extends BaseDartTypeVisitor {
+class FunctionTypeNamer extends BaseResolutionDartTypeVisitor {
   final RuntimeTypesEncoder rtiEncoder;
   StringBuffer sb;
 
