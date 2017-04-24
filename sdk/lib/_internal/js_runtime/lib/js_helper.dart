@@ -1106,6 +1106,14 @@ class Primitives {
     checkInt(milliseconds);
     checkBool(isUtc);
     var jsMonth = month - 1;
+    // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
+    // correction by adjusting years out of that range and compensating with an
+    // adjustment of months. This hack should not be sensitive to leap years but
+    // use 400 just in case.
+    if (0 <= years && years < 100) {
+      years += 400;
+      jsMonth -= 400 * 12;
+    }
     var value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
@@ -1119,22 +1127,7 @@ class Primitives {
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
       return null;
     }
-    // The JavaScript Date constructor 'corrects' year NN to 19NN. Undo that
-    // correction.
-    if (0 <= years && years < 100) return patchUpY2K(value, years, isUtc);
     return JS('int', '#', value);
-  }
-
-  static patchUpY2K(value, years, isUtc) {
-    var date = JS('', r'new Date(#)', value);
-    // TODO(sra): Does this work correctly if the original input wrapped months
-    // into a different year?
-    if (isUtc) {
-      JS('num', r'#.setUTCFullYear(#)', date, years);
-    } else {
-      JS('num', r'#.setFullYear(#)', date, years);
-    }
-    return JS('num', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
