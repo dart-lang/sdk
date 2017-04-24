@@ -1335,7 +1335,10 @@ class LibraryDependencyNode {
             }
             reporter.reportHintMessage(identifier, MessageKind.EMPTY_HIDE,
                 {'uri': library.canonicalUri, 'name': name});
-          } else {
+          } else if (!library.isDartCore || name != 'dynamic') {
+            // TODO(sigmund): remove this condition, we don't report a hint for
+            // `import "dart:core" show dynamic;` until our tools match in
+            // semantics (see #29125).
             reporter.reportHintMessage(identifier, MessageKind.EMPTY_SHOW,
                 {'uri': library.canonicalUri, 'name': name});
           }
