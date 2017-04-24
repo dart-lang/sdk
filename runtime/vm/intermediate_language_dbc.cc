@@ -239,26 +239,21 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
                  0,
                  Location::RegisterLocation(0),
                  LocationSummary::kCall) {
-  ASSERT(ic_data().NumArgsTested() == 1);
   const Array& arguments_descriptor = Array::Handle(ArgumentsDescriptor::New(
       instance_call()->ArgumentCount(), instance_call()->argument_names()));
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
+  const CallTargets& ic_data = targets();
 
   // Push the target onto the stack.
   if (with_checks()) {
-    const intptr_t may_be_smi =
-        (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
-    GrowableArray<CidRangeTarget> sorted_ic_data;
-    FlowGraphCompiler::SortICDataByCount(ic_data(), &sorted_ic_data,
-                                         /* drop_smi = */ true);
-    const intptr_t sorted_length = sorted_ic_data.length();
-    if (!Utils::IsUint(8, sorted_length)) {
+    const intptr_t length = ic_data.length();
+    if (!Utils::IsUint(8, length)) {
       Unsupported(compiler);
       UNREACHABLE();
     }
     bool using_ranges = false;
-    for (intptr_t i = 0; i < sorted_length; i++) {
-      if (sorted_ic_data[i].cid_start != sorted_ic_data[i].cid_end) {
+    for (intptr_t i = 0; i < length; i++) {
+      if (ic_data[i].cid_start != ic_data[i].cid_end) {
         using_ranges = true;
         break;
       }
@@ -266,24 +261,14 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
 
     if (using_ranges) {
       __ PushPolymorphicInstanceCallByRange(instance_call()->ArgumentCount(),
-                                            sorted_length + may_be_smi);
+                                            length);
     } else {
-      __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(),
-                                     sorted_length + may_be_smi);
+      __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(), length);
     }
-    if (may_be_smi == 1) {
-      const Function& target =
-          Function::ZoneHandle(compiler->zone(), ic_data().GetTargetAt(0));
-      __ Nop(compiler->ToEmbeddableCid(kSmiCid, this));
-      if (using_ranges) {
-        __ Nop(compiler->ToEmbeddableCid(1, this));
-      }
-      __ Nop(__ AddConstant(target));
-    }
-    for (intptr_t i = 0; i < sorted_length; i++) {
-      const Function& target = *sorted_ic_data[i].target;
-      intptr_t cid_start = sorted_ic_data[i].cid_start;
-      intptr_t cid_end = sorted_ic_data[i].cid_end;
+    for (intptr_t i = 0; i < length; i++) {
+      const Function& target = *ic_data[i].target;
+      intptr_t cid_start = ic_data[i].cid_start;
+      intptr_t cid_end = ic_data[i].cid_end;
 
       __ Nop(compiler->ToEmbeddableCid(cid_start, this));
       if (using_ranges) {
@@ -294,8 +279,8 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
     compiler->EmitDeopt(deopt_id(),
                         ICData::kDeoptPolymorphicInstanceCallTestFail, 0);
   } else {
-    ASSERT(ic_data().HasOneTarget());
-    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
+    ASSERT(targets().HasSingleRecognizedTarget());
+    const Function& target = targets().FirstTarget();
     __ PushConstant(target);
   }
 

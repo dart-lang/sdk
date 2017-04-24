@@ -548,6 +548,68 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // !PRODUCT
 
+
+// Represents a mapping from a range of class-ids to a method for a given
+// selector (method name).  Also can contain an indication of how frequently a
+// given method has been called at a call site.  This information can be
+// harvested from the inline caches (ICs).
+struct CidRangeTarget {
+  intptr_t cid_start;
+  intptr_t cid_end;
+  Function* target;
+  intptr_t count;
+  CidRangeTarget(intptr_t cid_start_arg,
+                 intptr_t cid_end_arg,
+                 Function* target_arg,
+                 intptr_t count_arg)
+      : cid_start(cid_start_arg),
+        cid_end(cid_end_arg),
+        target(target_arg),
+        count(count_arg) {
+    ASSERT(target->IsZoneHandle());
+  }
+};
+
+
+class CallTargets : public ZoneAllocated {
+ public:
+  // Creates the off-heap CallTargets object that reflects the contents
+  // of the on-VM-heap IC data. Also expands the class-ids to neighbouring
+  // classes that inherit the same method.
+  static CallTargets* Create(Zone* zone, const ICData& ic_data);
+
+  void Add(const CidRangeTarget& target) { cid_ranges_.Add(target); }
+
+  CidRangeTarget& operator[](intptr_t index) const {
+    return cid_ranges_[index];
+  }
+
+  CidRangeTarget At(int index) { return cid_ranges_.At(index); }
+
+  intptr_t length() const { return cid_ranges_.length(); }
+
+  void SetLength(intptr_t len) { cid_ranges_.SetLength(len); }
+
+  bool is_empty() const { return cid_ranges_.is_empty(); }
+
+  void Sort(int compare(const CidRangeTarget* a, const CidRangeTarget* b)) {
+    cid_ranges_.Sort(compare);
+  }
+
+  intptr_t AggregateCallCount() const;
+
+  bool HasSingleTarget() const;
+  bool HasSingleRecognizedTarget() const;
+  Function& FirstTarget() const;
+  Function& MostPopularTarget() const;
+  bool IsMonomorphic() const;
+  intptr_t MonomorphicReceiverCid() const;
+
+ private:
+  GrowableArray<CidRangeTarget> cid_ranges_;
+};
+
+
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type) k##type,
@@ -2787,16 +2849,16 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
 class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
-                               const ICData& ic_data,
+                               const CallTargets& targets,
                                bool with_checks,
                                bool complete)
       : TemplateDefinition(instance_call->deopt_id()),
         instance_call_(instance_call),
-        ic_data_(ic_data),
+        targets_(targets),
         with_checks_(with_checks),
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
-    ASSERT(!ic_data.NumberOfChecksIs(0));
+    ASSERT(targets.length() != 0);
     total_call_count_ = CallCount();
   }
 
@@ -2817,9 +2879,12 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
     return instance_call()->PushArgumentAt(index);
   }
 
-  bool HasSingleRecognizedTarget() const;
+  bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 
-  virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
+  const CallTargets& targets() const { return targets_; }
+  intptr_t NumberOfChecks() const { return targets_.length(); }
+
+  virtual intptr_t CallCount() const;
 
   // If this polymophic call site was created to cover the remaining cids after
   // inlinng then we need to keep track of the total number of calls including
@@ -2834,24 +2899,24 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
-  const ICData& ic_data() const { return ic_data_; }
-
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
   virtual Definition* Canonicalize(FlowGraph* graph);
 
-  static RawType* ComputeRuntimeType(const ICData& ic_data);
+  static RawType* ComputeRuntimeType(const CallTargets& targets);
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   InstanceCallInstr* instance_call_;
-  const ICData& ic_data_;
+  const CallTargets& targets_;
   bool with_checks_;
   const bool complete_;
   intptr_t total_call_count_;
+
+  friend class PolymorphicInliner;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };

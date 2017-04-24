@@ -1249,16 +1249,14 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
 
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
-    const ICData& ic_data,
+    const String& name,
+    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
     intptr_t try_index,
     intptr_t slow_path_argument_count) {
-  const String& name = String::Handle(zone(), ic_data.target_name());
-  const Array& arguments_descriptor =
-      Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -1532,123 +1530,52 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 #endif
 
 
-void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
-                                        intptr_t argument_count,
-                                        const Array& argument_names,
-                                        Label* failed,
-                                        Label* match_found,
-                                        intptr_t deopt_id,
-                                        TokenPosition token_index,
-                                        LocationSummary* locs,
-                                        bool complete,
-                                        intptr_t total_ic_calls) {
-  ASSERT(is_optimizing());
+void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
+    intptr_t argument_count,
+    const Array& arguments_descriptor) {
   __ Comment("EmitTestAndCall");
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      zone(), ArgumentsDescriptor::New(argument_count, argument_names));
-
   // Load receiver into T0.
   __ LoadFromOffset(T0, SP, (argument_count - 1) * kWordSize);
   __ LoadObject(S4, arguments_descriptor);
+}
 
-  const bool kFirstCheckIsSmi = ic_data.GetReceiverClassIdAt(0) == kSmiCid;
-  const intptr_t num_checks = ic_data.NumberOfChecks();
 
-  ASSERT(!ic_data.IsNull() && (num_checks > 0));
-
-  Label after_smi_test;
-  if (kFirstCheckIsSmi) {
-    __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-    // Jump if receiver is not Smi.
-    if (num_checks == 1) {
-      __ bne(CMPRES1, ZR, failed);
-    } else {
-      __ bne(CMPRES1, ZR, &after_smi_test);
-    }
-    // Do not use the code from the function, but let the code be patched so
-    // that we can record the outgoing edges to other code.
-    const Function& function =
-        Function::ZoneHandle(zone(), ic_data.GetTargetAt(0));
-    GenerateStaticDartCall(deopt_id, token_index,
-                           *StubCode::CallStaticFunction_entry(),
-                           RawPcDescriptors::kOther, locs, function);
-    __ Drop(argument_count);
-    if (num_checks > 1) {
-      __ b(match_found);
-    }
+void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  if (if_smi) {
+    // Jump if receiver is Smi.
+    __ beq(CMPRES1, ZR, label);
   } else {
-    // Receiver is Smi, but Smi is not a valid class therefore fail.
-    // (Smi class must be first in the list).
-    if (!complete) {
-      __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-      __ beq(CMPRES1, ZR, failed);
-    }
+    // Jump if receiver is not Smi.
+    __ bne(CMPRES1, ZR, label);
   }
+}
 
-  __ Bind(&after_smi_test);
 
-  ASSERT(!ic_data.IsNull() && (num_checks > 0));
-  GrowableArray<CidRangeTarget> sorted(num_checks);
-  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
-
-  const intptr_t sorted_len = sorted.length();
-  // If sorted_len is 0 then only a Smi check was needed; the Smi check above
-  // will fail if there was only one check and receiver is not Smi.
-  if (sorted_len == 0) return;
-
-  // Value is not Smi,
+void FlowGraphCompiler::EmitTestAndCallLoadCid() {
   __ LoadClassId(T2, T0);
+}
 
-  bool add_megamorphic_call = false;
-  int bias = 0;
 
-  for (intptr_t i = 0; i < sorted_len; i++) {
-    const bool is_last_check = (i == (sorted_len - 1));
-    int cid_start = sorted[i].cid_start;
-    int cid_end = sorted[i].cid_end;
-    int count = sorted[i].count;
-    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
-      // This case is hit too rarely to be worth writing class-id checks inline
-      // for.
-      add_megamorphic_call = true;
-      break;
-    }
-    ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
-    Label next_test;
-    Condition no_match;
-    if (!complete || !is_last_check) {
-      Label* next_label = is_last_check ? failed : &next_test;
-      if (cid_start == cid_end) {
-        __ BranchNotEqual(T2, Immediate(cid_start - bias), next_label);
-      } else {
-        __ AddImmediate(T2, T2, bias - cid_start);
-        bias = cid_start;
-        // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
-        // the range is small enough.
-        __ LoadImmediate(TMP, cid_end - cid_end);
-        // Reverse comparison so we get 1 if biased cid > tmp ie cid is out of
-        // range.
-        __ sltu(TMP, TMP, T2);
-        __ bne(TMP, ZR, next_label);
-      }
-    }
-    // Do not use the code from the function, but let the code be patched so
-    // that we can record the outgoing edges to other code.
-    const Function& function = *sorted[i].target;
-    GenerateStaticDartCall(deopt_id, token_index,
-                           *StubCode::CallStaticFunction_entry(),
-                           RawPcDescriptors::kOther, locs, function);
-    __ Drop(argument_count);
-    if (!is_last_check) {
-      __ b(match_found);
-    }
-    __ Bind(&next_test);
+int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
+                                               const CidRangeTarget& target,
+                                               int bias) {
+  intptr_t cid_start = target.cid_start;
+  intptr_t cid_end = target.cid_end;
+  if (cid_start == cid_end) {
+    __ BranchNotEqual(T2, Immediate(cid_start - bias), next_label);
+  } else {
+    __ AddImmediate(T2, T2, bias - cid_start);
+    bias = cid_start;
+    // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+    // the range is small enough.
+    __ LoadImmediate(TMP, cid_end - cid_end);
+    // Reverse comparison so we get 1 if biased cid > tmp ie cid is out of
+    // range.
+    __ sltu(TMP, TMP, T2);
+    __ bne(TMP, ZR, next_label);
   }
-  if (add_megamorphic_call) {
-    int try_index = CatchClauseNode::kInvalidTryIndex;
-    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id, token_index,
-                                locs, try_index, argument_count);
-  }
+  return bias;
 }
 
 
