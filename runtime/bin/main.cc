@@ -824,8 +824,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
-  const bool is_service_isolate =
-      strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   const bool is_kernel_isolate =
       strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
   if (is_kernel_isolate) {
@@ -875,6 +873,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
   void* kernel_platform = NULL;
   void* kernel_program = NULL;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const bool is_service_isolate =
+      strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   if (!is_kernel_isolate && !is_service_isolate) {
     const uint8_t* platform_file = NULL;
     if (use_platform_binary) {
@@ -913,7 +914,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
       }
       if (!is_kernel) {
         free(const_cast<uint8_t*>(platform_file));
-        delete reinterpret_cast<dart::kernel::Program*>(kernel_platform);
+        delete reinterpret_cast<kernel::Program*>(kernel_platform);
         return NULL;
       }
     } else if (!isolate_run_app_snapshot) {
@@ -924,6 +925,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
       kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
     }
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
