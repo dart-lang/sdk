@@ -40,6 +40,14 @@ class A {
     assert(b != null);
   }
 
+  A.c({
+    @required a, // OK
+    b, // LINT
+    @required c, // OK
+  })
+      : assert(a != null),
+        assert(b != null);
+
   m1({
     @required a, // OK
     b, // LINT
@@ -47,5 +55,14 @@ class A {
   }) {
     assert(a != null);
     assert(b != null);
+  }
+
+  m2({
+    @required a, // OK
+    b, // LINT
+    @required c, // OK
+  }) {
+    assert(true && a != null);
+    assert(b != null && true);
   }
 }

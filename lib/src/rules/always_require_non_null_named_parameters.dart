@@ -88,16 +88,34 @@ class Visitor extends SimpleAstVisitor {
     if (parent is FunctionExpression) {
       _checkParams(params, parent.body);
     } else if (parent is ConstructorDeclaration) {
+      _checkInitializerList(params, parent.initializers);
       _checkParams(params, parent.body);
     } else if (parent is MethodDeclaration) {
       _checkParams(params, parent.body);
     }
   }
 
-  _checkParams(List<DefaultFormalParameter> params, FunctionBody body) {
+  void _checkInitializerList(List<DefaultFormalParameter> params,
+      NodeList<ConstructorInitializer> initializers) {
+    final asserts = initializers
+        .where((i) => i is AssertInitializer)
+        .map((e) => e as AssertInitializer)
+        .map((e) => e.condition)
+        .toList();
+    for (final param in params) {
+      if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
+        rule.reportLintForToken(param.identifier.beginToken);
+      }
+    }
+  }
+
+  void _checkParams(List<DefaultFormalParameter> params, FunctionBody body) {
     if (body is BlockFunctionBody) {
-      final asserts =
-          body.block.statements.takeWhile((e) => e is AssertStatement).toList();
+      final asserts = body.block.statements
+          .takeWhile((e) => e is AssertStatement)
+          .map((e) => e as AssertStatement)
+          .map((e) => e.condition)
+          .toList();
       for (final param in params) {
         if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
           rule.reportLintForToken(param.identifier.beginToken);
@@ -106,18 +124,23 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
-  bool _hasAssertNotNull(AssertStatement node, String name) {
+  bool _hasAssertNotNull(Expression node, String name) {
     bool _hasSameName(Expression rawExpression) {
       final expression = rawExpression.unParenthesized;
       return expression is SimpleIdentifier && expression.name == name;
     }
 
-    final expression = node.condition.unParenthesized;
-    if (expression is BinaryExpression &&
-        expression.operator.type == TokenType.BANG_EQ) {
-      final operands = [expression.leftOperand, expression.rightOperand];
-      return operands.any(DartTypeUtilities.isNullLiteral) &&
-          operands.any(_hasSameName);
+    final expression = node.unParenthesized;
+    if (expression is BinaryExpression) {
+      if (expression.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+        return _hasAssertNotNull(expression.leftOperand, name) ||
+            _hasAssertNotNull(expression.rightOperand, name);
+      }
+      if (expression.operator.type == TokenType.BANG_EQ) {
+        final operands = [expression.leftOperand, expression.rightOperand];
+        return operands.any(DartTypeUtilities.isNullLiteral) &&
+            operands.any(_hasSameName);
+      }
     }
     return false;
   }

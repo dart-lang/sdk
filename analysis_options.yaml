@@ -1,4 +1,6 @@
 analyzer:
+  language:
+    enableAssertInitializer: true
   strong-mode: true
   exclude:
     - test/_data/**
