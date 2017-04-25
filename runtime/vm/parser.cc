@@ -1557,6 +1557,24 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
   OpenFunctionBlock(func);
 
+  if (FLAG_reify_generic_functions) {
+    // The parent function of an implicit closure is the original function, i.e.
+    // non-closurized. It is not an enclosing function in the usual sense of a
+    // parent function. Do not set parent_type_arguments() in parsed_function_.
+    ASSERT(func.IsGeneric() == func.HasGenericParent());
+
+    if (func.IsGeneric()) {
+      // Insert function type arguments variable to scope.
+      LocalVariable* function_type_arguments = new (Z) LocalVariable(
+          TokenPosition::kNoSource, TokenPosition::kNoSource,
+          Symbols::FunctionTypeArgumentsVar(), Object::dynamic_type());
+      current_block_->scope->AddVariable(function_type_arguments);
+      ASSERT(FunctionLevel() == 0);
+      parsed_function_->set_function_type_arguments(function_type_arguments);
+    }
+  }
+
+  // TODO(regis): Pass the function type arguments if func is generic.
   ParamList params;
   params.AddFinalParameter(token_pos, &Symbols::ClosureParameter(),
                            &Object::dynamic_type());
@@ -3460,7 +3478,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
   ASSERT(!func.IsGenerativeConstructor());
   OpenFunctionBlock(func);  // Build local scope for function.
 
-  if (FLAG_reify_generic_functions && func.IsGeneric()) {
+  if (FLAG_reify_generic_functions) {
     // Lookup function type arguments variable in parent function scope, if any.
     if (func.HasGenericParent()) {
       const String* variable_name = &Symbols::FunctionTypeArgumentsVar();
@@ -3470,14 +3488,23 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
       // TODO(regis): It may be too early to capture parent_type_arguments here.
       // In case it is never used, we could save capturing and concatenating.
       current_block_->scope->CaptureVariable(parent_type_arguments);
-      parsed_function_->set_parent_type_arguments(parent_type_arguments);
+      if (FunctionLevel() == 0) {
+        parsed_function_->set_parent_type_arguments(parent_type_arguments);
+        if (!func.IsGeneric() && parent_type_arguments->is_captured()) {
+          parsed_function_->set_function_type_arguments(parent_type_arguments);
+        }
+      }
     }
-    // Insert function type arguments variable to scope.
-    LocalVariable* function_type_arguments = new (Z) LocalVariable(
-        TokenPosition::kNoSource, TokenPosition::kNoSource,
-        Symbols::FunctionTypeArgumentsVar(), Object::dynamic_type());
-    current_block_->scope->AddVariable(function_type_arguments);
-    parsed_function_->set_function_type_arguments(function_type_arguments);
+    if (func.IsGeneric()) {
+      // Insert function type arguments variable to scope.
+      LocalVariable* function_type_arguments = new (Z) LocalVariable(
+          TokenPosition::kNoSource, TokenPosition::kNoSource,
+          Symbols::FunctionTypeArgumentsVar(), Object::dynamic_type());
+      current_block_->scope->AddVariable(function_type_arguments);
+      if (FunctionLevel() == 0) {
+        parsed_function_->set_function_type_arguments(function_type_arguments);
+      }
+    }
   }
 
   ParamList params;
