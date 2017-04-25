@@ -14,13 +14,16 @@ import '../parser/identifier_context.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelField, KernelVariableDeclaration;
+    show KernelField;
 
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show FieldNode;
 
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
     show TypeInferrer;
+
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
+    show TypePromoter;
 
 import 'package:kernel/ast.dart';
 
@@ -90,10 +93,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final Uri uri;
 
-  final TypeInferrer<Statement, Expression, KernelVariableDeclaration,
-      KernelField> _typeInferrer;
+  final TypeInferrer<Statement, Expression, VariableDeclaration, KernelField>
+      _typeInferrer;
 
+  @override
   final AstFactory astFactory;
+
+  @override
+  final TypePromoter<Expression, VariableDeclaration> typePromoter;
 
   /// If not `null`, dependencies on fields are accumulated into this list.
   ///
@@ -156,6 +163,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         isDartLibrary = library.uri.scheme == "dart",
         needsImplicitSuperInitializer =
             coreTypes.objectClass != classBuilder?.cls,
+        typePromoter = _typeInferrer.typePromoter,
         super(scope);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
@@ -455,6 +463,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
+    typePromoter.finished();
     _typeInferrer.inferStatement(body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
@@ -529,7 +538,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
-    push(new ExpressionStatement(popForEffect()));
+    push(astFactory.expressionStatement(popForEffect()));
   }
 
   @override
@@ -1042,11 +1051,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginThenStatement(Token token) {
+    Expression condition = popForValue();
+    typePromoter.enterThen(condition);
+    push(condition);
+    super.beginThenStatement(token);
+  }
+
+  @override
+  void endThenStatement(Token token) {
+    typePromoter.enterElse();
+    super.endThenStatement(token);
+  }
+
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popStatementIfNotNull(elseToken);
     Statement thenPart = popStatement();
     Expression condition = popForValue();
-    push(new IfStatement(condition, thenPart, elsePart));
+    typePromoter.exitConditional();
+    push(astFactory.ifStatement(condition, thenPart, elsePart));
   }
 
   @override
@@ -1070,7 +1094,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == constantExpressionRequired);
-    push(astFactory.variableDeclaration(identifier.name, identifier.fileOffset,
+    push(astFactory.variableDeclaration(
+        identifier.name, identifier.fileOffset, functionNestingLevel,
         initializer: initializer,
         type: currentLocalVariableType,
         isFinal: isFinal,
@@ -1210,7 +1235,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (variableOrExpression == null) {
       // Do nothing.
     } else if (variableOrExpression is Expression) {
-      begin = new ExpressionStatement(variableOrExpression);
+      begin = astFactory.expressionStatement(variableOrExpression);
     } else {
       return internalError("Unhandled: ${variableOrExpression.runtimeType}");
     }
@@ -1460,13 +1485,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
     DartType type = pop();
-    Expression expression = popForValue();
-    expression = new IsExpression(expression, type)
-      ..fileOffset = operator.charOffset;
-    if (not != null) {
-      expression = new Not(expression);
+    Expression operand = popForValue();
+    bool isInverted = not != null;
+    Expression isExpression =
+        astFactory.isExpression(operand, type, operator.charOffset, isInverted);
+    if (operand is VariableGet) {
+      typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
+          type, functionNestingLevel);
     }
-    push(expression);
+    push(isExpression);
   }
 
   @override
@@ -1534,7 +1561,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               thisKeyword.charOffset);
         }
         type = field.target.type ?? const DynamicType();
-        variable = astFactory.variableDeclaration(name.name, name.fileOffset,
+        variable = astFactory.variableDeclaration(
+            name.name, name.fileOffset, functionNestingLevel,
             type: type,
             initializer: name.initializer,
             isFinal: isFinal,
@@ -1544,7 +1572,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             name.fileOffset, "'${name.name}' isn't a field in this class.");
       }
     }
-    variable ??= astFactory.variableDeclaration(name.name, name.fileOffset,
+    variable ??= astFactory.variableDeclaration(
+        name.name, name.fileOffset, functionNestingLevel,
         type: type ?? const DynamicType(),
         initializer: name.initializer,
         isFinal: isFinal,
@@ -2007,8 +2036,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    VariableDeclaration variable = astFactory
-        .variableDeclaration(name.name, name.fileOffset, isFinal: true);
+    VariableDeclaration variable = astFactory.variableDeclaration(
+        name.name, name.fileOffset, functionNestingLevel,
+        isFinal: true);
     push(new FunctionDeclaration(
         variable, new FunctionNode(new InvalidStatement()))
       ..fileOffset = beginToken.charOffset);
@@ -2088,7 +2118,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);
-    push(new FunctionExpression(function)..fileOffset = beginToken.charOffset);
+    push(astFactory.functionExpression(function, beginToken.charOffset));
   }
 
   @override
@@ -2154,7 +2184,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new ExpressionStatement(lvalue
+          astFactory.expressionStatement(lvalue
               .buildAssignment(new VariableGet(variable), voidContext: true)),
           body);
     } else {
@@ -2216,7 +2246,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endRethrowStatement(Token throwToken, Token endToken) {
     debugEvent("RethrowStatement");
     if (inCatchBlock) {
-      push(new ExpressionStatement(
+      push(astFactory.expressionStatement(
           new Rethrow()..fileOffset = throwToken.charOffset));
     } else {
       push(buildCompileTimeErrorStatement(
@@ -2525,7 +2555,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {
-    return new ExpressionStatement(buildCompileTimeError(error, charOffset));
+    return astFactory
+        .expressionStatement(buildCompileTimeError(error, charOffset));
   }
 
   @override

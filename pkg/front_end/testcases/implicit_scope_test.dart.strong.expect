@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+class ImplicitScopeTest extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  static method alwaysTrue() → core::bool {
+    return 1.+(1).==(2);
+  }
+  static method testMain() → dynamic {
+    dynamic a = "foo";
+    dynamic b;
+    if(self::ImplicitScopeTest::alwaysTrue()) {
+      dynamic a = "bar";
+    }
+    else {
+      dynamic b = a;
+    }
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+    while (!self::ImplicitScopeTest::alwaysTrue()) {
+      dynamic a = "bar";
+      dynamic b = "baz";
+    }
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+    for (core::int i = 0; i.<(10); i = i.+(1)) {
+      dynamic a = "bar";
+      dynamic b = "baz";
+    }
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+    do {
+      dynamic a = "bar";
+      dynamic b = "baz";
+    }
+    while ("black".==("white"))
+    exp::Expect::equals("foo", a);
+    exp::Expect::equals(null, b);
+  }
+}
+static method main() → dynamic {
+  self::ImplicitScopeTest::testMain();
+}

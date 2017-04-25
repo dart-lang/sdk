@@ -29,6 +29,7 @@ for_in_scope: Crash
 function_in_field: Crash
 function_type_recovery: Fail
 functions: Crash
+implicit_scope_test: Crash
 implicit_this: Crash
 invocations: Fail
 map: Fail

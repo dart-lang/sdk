@@ -141,17 +141,24 @@ abstract class Accessor {
   makeInvalidWrite(Expression value) => wrapInvalid(value);
 }
 
-class VariableAccessor extends Accessor {
+abstract class VariableAccessor extends Accessor {
   VariableDeclaration variable;
   DartType promotedType;
+
+  BuilderHelper get helper;
 
   VariableAccessor(this.variable, this.promotedType, int offset)
       : super(offset);
 
-  Expression _makeRead() =>
-      new VariableGet(variable, promotedType)..fileOffset = offset;
+  Expression _makeRead() {
+    var fact = helper.typePromoter
+        .getFactForAccess(variable, helper.functionNestingLevel);
+    var scope = helper.typePromoter.currentScope;
+    return helper.astFactory.variableGet(variable, fact, scope, offset);
+  }
 
   Expression _makeWrite(Expression value, bool voidContext) {
+    helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
     return variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
         : new VariableSet(variable, value)

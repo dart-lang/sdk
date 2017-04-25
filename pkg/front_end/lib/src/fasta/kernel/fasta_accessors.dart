@@ -8,6 +8,11 @@ export 'frontend_accessors.dart' show wrapInvalid;
 
 import 'frontend_accessors.dart' show Accessor, buildIsNull, makeLet;
 
+import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
+
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
+    show TypePromoter;
+
 import 'package:kernel/ast.dart';
 
 import '../errors.dart' show internalError;
@@ -34,6 +39,12 @@ import '../names.dart' show callName;
 
 abstract class BuilderHelper {
   Uri get uri;
+
+  TypePromoter get typePromoter;
+
+  int get functionNestingLevel;
+
+  AstFactory get astFactory;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -809,6 +820,7 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
 }
 
 class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
+  @override
   final BuilderHelper helper;
 
   VariableAccessor(this.helper, int offset, VariableDeclaration variable,
