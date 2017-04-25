@@ -50,6 +50,8 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync;
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     show MixinFullResolution;
 
+import 'package:kernel/transformations/continuation.dart' as continuation;
+
 import 'package:kernel/transformations/setup_builtin_library.dart'
     as setup_builtin_library;
 

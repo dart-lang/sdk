@@ -10,7 +10,8 @@ import 'dart:convert' show JSON;
 
 import 'dart:io' show BytesBuilder, Directory, File, exitCode;
 
-import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+import 'package:kernel/binary/ast_to_binary.dart'
+    show LibraryFilteringBinaryPrinter;
 
 import 'package:kernel/kernel.dart' show Program;
 
@@ -199,9 +200,17 @@ Future<CompilationResult> parseScript(
     target.performModularTransformations(program);
     target.performGlobalTransformations(program);
 
-    // Write the program to a list of bytes and return it.
+    // Write the program to a list of bytes and return it.  Do not include
+    // libraries that have a dart: import URI.
+    //
+    // TODO(kmillikin): This is intended to exclude platform libraries that are
+    // included in the Kernel binary platform platform.dill.  It does not
+    // necessarily exclude exactly the platform libraries.  Use a better
+    // predicate that knows what is included in platform.dill.
     var sink = new ByteSink();
-    new BinaryPrinter(sink).writeProgramFile(program);
+    bool predicate(Library library) => !library.importUri.isScheme('dart');
+    new LibraryFilteringBinaryPrinter(sink, predicate)
+        .writeProgramFile(program);
     return new CompilationResult.ok(sink.builder.takeBytes());
   } catch (e, s) {
     return reportCrash(e, s, fileName);

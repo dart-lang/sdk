@@ -215,6 +215,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     List<String> args = [];
     if (useDFE) {
       args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
+      args.add('--platform=${buildDir}/patched_sdk/platform.dill');
     }
     if (isChecked) {
       args.add('--enable_asserts');
@@ -665,6 +666,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = new List();
     if (useDFE) {
       args.add('--dfe=utils/kernel-service/kernel-service.dart');
+      args.add('--platform=${buildDir}/patched_sdk/platform.dill');
     }
     args.add("--snapshot-kind=app-aot");
     if (useBlobs) {

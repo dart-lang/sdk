@@ -157,12 +157,34 @@ Object& KernelReader::ReadProgram() {
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
       CanonicalName* main = program_->main_method();
-      dart::Library& library = LookupLibrary(H.EnclosingName(main));
+      if (main == NULL) {
+        return dart::Library::Handle(Z);
+      }
 
+      CanonicalName* main_library = H.EnclosingName(main);
+      dart::Library& library = LookupLibrary(main_library);
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
           Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
       ASSERT(!main_obj.IsNull());
+
+      // There is a function _getMainClosure in dart:_builtin that returns the
+      // main procedure.  Since the platform libraries are compiled before the
+      // program script, this function is patched here.
+      //
+      // TODO(kmillikin): we are leaking the function body.  Find a way to
+      // deallocate it.
+      dart::Library& builtin_library =
+          dart::Library::Handle(Z, I->object_store()->builtin_library());
+      Function& to_patch = Function::Handle(
+          Z, builtin_library.LookupFunctionAllowPrivate(
+                 dart::String::Handle(dart::String::New("_getMainClosure"))));
+
+      // We will handle the StaticGet specially and will not use the name.
+      Procedure* procedure =
+          reinterpret_cast<Procedure*>(to_patch.kernel_function());
+      procedure->function()->set_body(new ReturnStatement(new StaticGet(NULL)));
+
       return library;
     }
   }
@@ -233,7 +255,7 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
   const GrowableObjectArray& classes =
-      GrowableObjectArray::Handle(I->object_store()->pending_classes());
+      GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
 
   // Load all classes.
   for (intptr_t i = 0; i < kernel_library->classes().length(); i++) {

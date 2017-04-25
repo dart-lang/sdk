@@ -197,6 +197,7 @@ Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -354,7 +355,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 Language/Classes/Instance_Variables/constant_t01: Crash
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Statements/Labels/scope_t01: Crash
 Language/Statements/Labels/scope_t07: Crash
 Language/Statements/Switch/syntax_t16: Crash

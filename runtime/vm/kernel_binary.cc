@@ -1533,7 +1533,8 @@ Program* Program::ReadFrom(Reader* reader) {
     program->libraries().GetOrCreate<Library>(i)->ReadFrom(reader);
   }
 
-  program->main_method_reference_ = Reference::ReadMemberFrom(reader);
+  program->main_method_reference_ =
+      Reference::ReadMemberFrom(reader, /*allow_null=*/true);
 
   return program;
 }
