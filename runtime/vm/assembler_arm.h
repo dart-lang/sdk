@@ -980,6 +980,11 @@ class Assembler : public ValueObject {
     b(label, NE);
   }
 
+  void BranchIfSmi(Register reg, Label* label) {
+    tst(reg, Operand(kSmiTagMask));
+    b(label, EQ);
+  }
+
   void CheckCodePointer();
 
   // Function frame setup and tear down.

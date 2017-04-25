@@ -13882,19 +13882,6 @@ bool ICData::HasOneTarget() const {
 }
 
 
-bool ICData::HasOnlyDispatcherOrImplicitAccessorTargets() const {
-  const intptr_t len = NumberOfChecks();
-  Function& target = Function::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    target = GetTargetAt(i);
-    if (!target.IsDispatcherOrImplicitAccessor()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                                    GrowableArray<intptr_t>* second) const {
   ASSERT(NumArgsTested() == 2);
