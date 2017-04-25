@@ -99,8 +99,7 @@ class Visitor extends SimpleAstVisitor {
       NodeList<ConstructorInitializer> initializers) {
     final asserts = initializers
         .where((i) => i is AssertInitializer)
-        .map((e) => e as AssertInitializer)
-        .map((e) => e.condition)
+        .map((e) => (e as AssertStatement).condition)
         .toList();
     for (final param in params) {
       if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
@@ -113,8 +112,7 @@ class Visitor extends SimpleAstVisitor {
     if (body is BlockFunctionBody) {
       final asserts = body.block.statements
           .takeWhile((e) => e is AssertStatement)
-          .map((e) => e as AssertStatement)
-          .map((e) => e.condition)
+          .map((e) => (e as AssertStatement).condition)
           .toList();
       for (final param in params) {
         if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
