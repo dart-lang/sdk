@@ -141,7 +141,7 @@ class ValidatingInstrumentation implements Instrumentation {
 
   @override
   void record(
-      String property, Uri uri, int offset, InstrumentationValue value) {
+      Uri uri, int offset, String property, InstrumentationValue value) {
     var expectationsForUri = _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
     var expectationsAtOffset = expectationsForUri[offset];

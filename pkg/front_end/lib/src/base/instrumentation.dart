@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 /// with source file locations.  Intended to facilitate testing.
 abstract class Instrumentation {
   /// Records a property/value pair associated with the given URI and offset.
-  void record(String property, Uri uri, int offset, InstrumentationValue value);
+  void record(Uri uri, int offset, String property, InstrumentationValue value);
 }
 
 /// Interface for values recorded by [Instrumentation].
