@@ -26,66 +26,9 @@ import '../elements/modelx.dart' show FunctionElementX, MetadataAnnotationX;
 import '../elements/resolution_types.dart' show ResolutionDartType;
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
-import '../kernel/element_map.dart' show KernelAnnotationProcessor;
 import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';
-
-/// Class that performs the mechanics to investigate annotations in the code.
-abstract class AnnotationProcessor {
-  factory AnnotationProcessor(Compiler compiler) =>
-      compiler.options.loadFromDill
-          // TODO(johnniwinther): Pass the [KernelWorldBuilder] to
-          // [KernelAnnotationProcessor].
-          ? new KernelAnnotationProcessor(null)
-          : new _ElementAnnotationProcessor(compiler);
-
-  void extractNativeAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
-
-  void extractJsInteropAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
-}
-
-/// Original logic for annotation processing, which involves in some cases
-/// triggering pre-parsing and validation of the annotations.
-class _ElementAnnotationProcessor implements AnnotationProcessor {
-  Compiler _compiler;
-
-  _ElementAnnotationProcessor(this._compiler);
-
-  /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-  /// native name from the annotation.
-  void extractNativeAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    library.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        EagerAnnotationHandler.checkAnnotation(_compiler, element,
-            new NativeAnnotationHandler(nativeBasicDataBuilder));
-      }
-    });
-  }
-
-  void extractJsInteropAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    bool checkJsInteropAnnotation(Element element) {
-      return EagerAnnotationHandler.checkAnnotation(
-          _compiler, element, const JsInteropAnnotationHandler());
-    }
-
-    if (checkJsInteropAnnotation(library)) {
-      nativeBasicDataBuilder.markAsJsInteropLibrary(library);
-    }
-    library.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (checkJsInteropAnnotation(element)) {
-          nativeBasicDataBuilder.markAsJsInteropClass(cls);
-        }
-      }
-    });
-  }
-}
 
 /// Interface for computing native members and [NativeBehavior]s in member code
 /// based on the AST.
@@ -318,14 +261,6 @@ class NativeDataResolverImpl implements NativeDataResolver {
     return NativeBehavior.ofJsBuiltinCallSend(
         node, _reporter, _compiler.commonElements, resolver);
   }
-}
-
-/// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-/// native name from the annotation.
-checkNativeAnnotation(Compiler compiler, ClassElement cls,
-    NativeBasicDataBuilder nativeBasicDataBuilder) {
-  EagerAnnotationHandler.checkAnnotation(
-      compiler, cls, new NativeAnnotationHandler(nativeBasicDataBuilder));
 }
 
 /// Annotation handler for pre-resolution detection of `@Native(...)`

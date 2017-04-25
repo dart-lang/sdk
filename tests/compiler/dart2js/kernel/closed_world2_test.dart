@@ -96,8 +96,8 @@ main(List<String> args) {
     compiler.resolutionWorldBuilder.closeWorld();
 
     print('---- closed world from kernel ------------------------------------');
-    KernelToElementMap elementMap = new KernelToElementMap(
-        compiler.reporter, compiler.backend.kernelTask.program);
+    KernelToElementMap elementMap = new KernelToElementMap(compiler.reporter);
+    elementMap.addProgram(compiler.backend.kernelTask.program);
     KernelEquivalence equivalence = new KernelEquivalence(elementMap);
     NativeBasicData nativeBasicData = computeNativeBasicData(elementMap);
     checkNativeBasicData(

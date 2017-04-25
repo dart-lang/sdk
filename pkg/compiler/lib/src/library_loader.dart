@@ -141,31 +141,6 @@ typedef Uri PatchResolverFunction(String dartLibraryPath);
  *
  */
 abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
-  factory LibraryLoaderTask(
-          bool loadFromDillFile,
-          ResolvedUriTranslator uriTranslator,
-          ScriptLoader scriptLoader,
-          ElementScanner scriptScanner,
-          LibraryDeserializer deserializer,
-          PatchResolverFunction patchResolverFunc,
-          PatchParserTask patchParser,
-          Environment environment,
-          DiagnosticReporter reporter,
-          Measurer measurer) =>
-      loadFromDillFile
-          ? new _DillLibraryLoaderTask(
-              uriTranslator, scriptLoader, reporter, measurer)
-          : new _LibraryLoaderTask(
-              uriTranslator,
-              scriptLoader,
-              scriptScanner,
-              deserializer,
-              patchResolverFunc,
-              patchParser,
-              environment,
-              reporter,
-              measurer);
-
   /// Returns all libraries that have been loaded.
   Iterable<LibraryEntity> get libraries;
 
@@ -334,10 +309,11 @@ class HideFilter extends CombinatorFilter {
   bool exclude(Element element) => excludedNames.contains(element.name);
 }
 
-/// Implementation class for [LibraryLoaderTask]. The distinction between
-/// [LibraryLoaderTask] and [_LibraryLoaderTask] is made to hide internal
-/// members from the [LibraryLoaderTask] interface.
-class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
+/// Implementation class for [LibraryLoaderTask]. This library loader loads
+/// '.dart' files into the [Element] model with AST nodes which are resolved
+/// by the resolver.
+class ResolutionLibraryLoaderTask extends CompilerTask
+    implements LibraryLoaderTask {
   /// Translates internal uris (like dart:core) to a disk location.
   final ResolvedUriTranslator uriTranslator;
 
@@ -370,7 +346,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   final DiagnosticReporter reporter;
 
-  _LibraryLoaderTask(
+  ResolutionLibraryLoaderTask(
       this.uriTranslator,
       this.scriptLoader,
       this.scanner,
@@ -833,7 +809,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 /// A task for loading a pre-processed .dill file into memory rather than
 /// parsing Dart source. Use of this task only makes sense when used in
 /// conjunction with --use-kernel.
-class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
+class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   final DiagnosticReporter reporter;
 
   final ResolvedUriTranslator uriTranslator;
@@ -844,12 +820,12 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   /// Holds the mapping of Kernel IR to KElements that is constructed as a
   /// result of loading a program.
-  KernelToElementMap _elementMap;
+  final KernelToElementMap _elementMap;
 
   List<LibraryEntity> _allLoadedLibraries;
 
-  _DillLibraryLoaderTask(
-      this.uriTranslator, this.scriptLoader, this.reporter, Measurer measurer)
+  DillLibraryLoaderTask(this._elementMap, this.uriTranslator, this.scriptLoader,
+      this.reporter, Measurer measurer)
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -870,7 +846,7 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       bytes.removeLast();
       new BinaryBuilder(bytes).readProgram(program);
       return measure(() {
-        _elementMap = new KernelToElementMap(reporter, program);
+        _elementMap.addProgram(program);
         program.libraries.forEach((ir.Library library) => _allLoadedLibraries
             .add(_elementMap.lookupLibrary(library.importUri)));
         LibraryEntity rootLibrary = null;
@@ -887,11 +863,11 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   KernelToElementMap get elementMap => _elementMap;
 
   void reset({bool reuseLibrary(LibraryElement library)}) {
-    throw new UnimplementedError('_DillLibraryLoaderTask.reset');
+    throw new UnimplementedError('DillLibraryLoaderTask.reset');
   }
 
   Future resetAsync(Future<bool> reuseLibrary(LibraryElement library)) {
-    throw new UnimplementedError('_DillLibraryLoaderTask.resetAsync');
+    throw new UnimplementedError('DillLibraryLoaderTask.resetAsync');
   }
 
   Iterable<LibraryEntity> get libraries => _allLoadedLibraries;
@@ -901,16 +877,16 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   }
 
   Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries) {
-    throw new UnimplementedError('_DillLibraryLoaderTask.reuseLibraries');
+    throw new UnimplementedError('DillLibraryLoaderTask.reuseLibraries');
   }
 
   void registerDeferredAction(DeferredAction action) {
     throw new UnimplementedError(
-        '_DillLibraryLoaderTask.registerDeferredAction');
+        'DillLibraryLoaderTask.registerDeferredAction');
   }
 
   Iterable<DeferredAction> pullDeferredActions() {
-    throw new UnimplementedError('_DillLibraryLoaderTask.pullDeferredActions');
+    throw new UnimplementedError('DillLibraryLoaderTask.pullDeferredActions');
   }
 }
 
@@ -1357,7 +1333,7 @@ class LibraryDependencyNode {
  * algorithm.
  */
 class LibraryDependencyHandler implements LibraryLoader {
-  final _LibraryLoaderTask task;
+  final ResolutionLibraryLoaderTask task;
   final List<LibraryElement> _newLibraries = <LibraryElement>[];
 
   /**

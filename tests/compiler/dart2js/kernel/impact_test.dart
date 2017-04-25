@@ -693,14 +693,15 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
-    KernelElementAdapter kernelElementAdapter =
-        new KernelToElementMap(compiler.reporter, backend.kernelTask.program);
+    KernelToElementMap kernelElementMap =
+        new KernelToElementMap(compiler.reporter);
+    kernelElementMap.addProgram(backend.kernelTask.program);
 
-    checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
+    checkLibrary(compiler, kernelElementMap, compiler.mainApp,
         fullTest: fullTest);
     compiler.libraryLoader.libraries.forEach((LibraryElement library) {
       if (library == compiler.mainApp) return;
-      checkLibrary(compiler, kernelElementAdapter, library, fullTest: fullTest);
+      checkLibrary(compiler, kernelElementMap, library, fullTest: fullTest);
     });
   });
 }

@@ -18,6 +18,7 @@ import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../frontend_strategy.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -48,7 +49,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   _KernelDartTypes _types;
 
   /// Library environment. Used for fast lookup.
-  _KEnv _env;
+  _KEnv _env = new _KEnv();
 
   /// List of library environments by `KLibrary.libraryIndex`. This is used for
   /// fast lookup into library classes and members.
@@ -80,8 +81,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
       <ir.TreeNode, KLocalFunction>{};
 
-  KernelToElementMap(this.reporter, ir.Program program)
-      : _env = new _KEnv(program) {
+  KernelToElementMap(this.reporter) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this);
@@ -91,15 +91,21 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     _typeConverter = new DartTypeConverter(this);
   }
 
+  /// Adds libraries in [program] to the set of libraries.
+  ///
+  /// The main method of the first program is used as the main method for the
+  /// compilation.
+  void addProgram(ir.Program program) {
+    _env.addProgram(program);
+  }
+
   KMethod get _mainFunction {
-    return _env.program.mainMethod != null
-        ? _getMethod(_env.program.mainMethod)
-        : null;
+    return _env.mainMethod != null ? _getMethod(_env.mainMethod) : null;
   }
 
   KLibrary get _mainLibrary {
-    return _env.program.mainMethod != null
-        ? _getLibrary(_env.program.mainMethod.enclosingLibrary)
+    return _env.mainMethod != null
+        ? _getLibrary(_env.mainMethod.enclosingLibrary)
         : null;
   }
 
@@ -596,17 +602,32 @@ class KernelToElementMap extends KernelElementAdapterMixin {
 
 /// Environment for fast lookup of program libraries.
 class _KEnv {
-  final ir.Program program;
+  final Set<ir.Program> programs = new Set<ir.Program>();
 
   Map<Uri, _KLibraryEnv> _libraryMap;
 
-  _KEnv(this.program);
+  /// TODO(johnniwinther): Handle arbitrary load order if needed.
+  ir.Member get mainMethod => programs.first?.mainMethod;
+
+  void addProgram(ir.Program program) {
+    if (programs.add(program)) {
+      if (_libraryMap != null) {
+        _addLibraries(program);
+      }
+    }
+  }
+
+  void _addLibraries(ir.Program program) {
+    for (ir.Library library in program.libraries) {
+      _libraryMap[library.importUri] = new _KLibraryEnv(library);
+    }
+  }
 
   void _ensureLibraryMap() {
     if (_libraryMap == null) {
       _libraryMap = <Uri, _KLibraryEnv>{};
-      for (ir.Library library in program.libraries) {
-        _libraryMap[library.importUri] = new _KLibraryEnv(library);
+      for (ir.Program program in programs) {
+        _addLibraries(program);
       }
     }
   }

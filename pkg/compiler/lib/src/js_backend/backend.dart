@@ -31,6 +31,7 @@ import '../enqueue.dart'
         ResolutionEnqueuer,
         ResolutionWorkItemBuilder,
         TreeShakingEnqueuerStrategy;
+import '../frontend_strategy.dart';
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -1085,7 +1086,8 @@ class JavaScriptBackend {
   /// been loaded.
   void setAnnotations(LibraryEntity library) {
     if (!compiler.serialization.isDeserialized(library)) {
-      AnnotationProcessor processor = new AnnotationProcessor(compiler);
+      AnnotationProcessor processor =
+          compiler.frontEndStrategy.annotationProcesser;
       if (canLibraryUseNative(library)) {
         processor.extractNativeAnnotations(library, nativeBasicDataBuilder);
       }
