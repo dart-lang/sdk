@@ -52,6 +52,7 @@ const SOURCE = const {
   'main.dart': '''
 main() {
   print('Hello World');
+  ''.contains; // Trigger member closurization.
 }
 '''
 };

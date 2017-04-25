@@ -64,19 +64,11 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   Map<ir.TypeParameter, KTypeVariable> _typeVariableMap =
       <ir.TypeParameter, KTypeVariable>{};
 
-  // TODO(johnniwinther): Change this to a list of 'KMemberData' class if we
-  // need more data for members.
-  List<ir.Member> _memberList = <ir.Member>[];
+  List<_MemberData> _memberList = <_MemberData>[];
 
   Map<ir.Member, KConstructor> _constructorMap = <ir.Member, KConstructor>{};
-  Map<KConstructor, ConstantConstructor> _constructorConstantMap =
-      <KConstructor, ConstantConstructor>{};
-
   Map<ir.Procedure, KFunction> _methodMap = <ir.Procedure, KFunction>{};
-
   Map<ir.Field, KField> _fieldMap = <ir.Field, KField>{};
-  Map<KField, ConstantExpression> _fieldConstantMap =
-      <KField, ConstantExpression>{};
 
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
       <ir.TreeNode, KLocalFunction>{};
@@ -250,20 +242,23 @@ class KernelToElementMap extends KernelElementAdapterMixin {
       Name name = getName(node.name);
       bool isExternal = node.isExternal;
 
+      ir.FunctionNode functionNode;
       if (node is ir.Constructor) {
+        functionNode = node.function;
         constructor = new KGenerativeConstructor(memberIndex, enclosingClass,
-            name, _getParameterStructure(node.function),
+            name, _getParameterStructure(functionNode),
             isExternal: isExternal, isConst: node.isConst);
       } else if (node is ir.Procedure) {
+        functionNode = node.function;
         constructor = new KFactoryConstructor(memberIndex, enclosingClass, name,
-            _getParameterStructure(node.function),
+            _getParameterStructure(functionNode),
             isExternal: isExternal, isConst: node.isConst);
       } else {
         // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
         throw new SpannableAssertionFailure(
             NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
       }
-      _memberList.add(node);
+      _memberList.add(new _ConstructorData(node, functionNode));
       return constructor;
     });
   }
@@ -309,7 +304,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
               isAbstract: isAbstract);
           break;
       }
-      _memberList.add(node);
+      _memberList.add(new _FunctionData(node, node.function));
       return function;
     });
   }
@@ -327,7 +322,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
       }
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
-      _memberList.add(node);
+      _memberList.add(new _FieldData(node));
       return new KField(memberIndex, library, enclosingClass, name,
           isStatic: isStatic,
           isAssignable: node.isMutable,
@@ -569,34 +564,22 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   FunctionEntity getConstructor(ir.Member node) => _getConstructor(node);
 
   ConstantConstructor _getConstructorConstant(KConstructor constructor) {
-    return _constructorConstantMap.putIfAbsent(constructor, () {
-      ir.Member node = _memberList[constructor.memberIndex];
-      if (node is ir.Constructor && node.isConst) {
-        return new Constantifier(this).computeConstantConstructor(node);
-      }
-      throw new SpannableAssertionFailure(
-          constructor,
-          "Unexpected constructor $constructor in "
-          "KernelWorldBuilder._getConstructorConstant");
-    });
+    _ConstructorData data = _memberList[constructor.memberIndex];
+    return data.getConstructorConstant(this, constructor);
   }
 
   ConstantExpression _getFieldConstant(KField field) {
-    return _fieldConstantMap.putIfAbsent(field, () {
-      ir.Field node = _memberList[field.memberIndex];
-      if (node.isConst) {
-        return new Constantifier(this).visit(node.initializer);
-      }
-      throw new SpannableAssertionFailure(
-          field,
-          "Unexpected field $field in "
-          "KernelWorldBuilder._getConstructorConstant");
-    });
+    _FieldData data = _memberList[field.memberIndex];
+    return data.getFieldConstant(this, field);
+  }
+
+  FunctionType _getFunctionType(KFunction function) {
+    _FunctionData data = _memberList[function.memberIndex];
+    return data.getFunctionType(this);
   }
 
   ResolutionImpact computeWorldImpact(KMember member) {
-    ir.Member node = _memberList[member.memberIndex];
-    return buildKernelImpact(node, this);
+    return _memberList[member.memberIndex].getWorldImpact(this);
   }
 }
 
@@ -780,6 +763,81 @@ class _KClassEnv {
   }
 }
 
+class _MemberData {
+  final ir.Member node;
+
+  _MemberData(this.node);
+
+  ResolutionImpact getWorldImpact(KernelToElementMap elementMap) {
+    return buildKernelImpact(node, elementMap);
+  }
+}
+
+class _FunctionData extends _MemberData {
+  final ir.FunctionNode functionNode;
+  FunctionType _type;
+  CallStructure _callStructure;
+
+  _FunctionData(ir.Member node, this.functionNode) : super(node);
+
+  FunctionType getFunctionType(KernelToElementMap elementMap) {
+    return _type ??= elementMap.getFunctionType(functionNode);
+  }
+
+  CallStructure get callStructure {
+    return _callStructure ??= new CallStructure(
+        functionNode.positionalParameters.length +
+            functionNode.namedParameters.length,
+        functionNode.namedParameters.map((d) => d.name).toList());
+  }
+}
+
+class _ConstructorData extends _FunctionData {
+  ConstantConstructor _constantConstructor;
+
+  _ConstructorData(ir.Member node, ir.FunctionNode functionNode)
+      : super(node, functionNode);
+
+  ConstantConstructor getConstructorConstant(
+      KernelToElementMap elementMap, KConstructor constructor) {
+    if (_constantConstructor == null) {
+      if (node is ir.Constructor && constructor.isConst) {
+        _constantConstructor =
+            new Constantifier(elementMap).computeConstantConstructor(node);
+      } else {
+        throw new SpannableAssertionFailure(
+            constructor,
+            "Unexpected constructor $constructor in "
+            "KernelWorldBuilder._getConstructorConstant");
+      }
+    }
+    return _constantConstructor;
+  }
+}
+
+class _FieldData extends _MemberData {
+  ConstantExpression _constant;
+
+  _FieldData(ir.Field node) : super(node);
+
+  ir.Field get node => super.node;
+
+  ConstantExpression getFieldConstant(
+      KernelToElementMap elementMap, KField field) {
+    if (_constant == null) {
+      if (node.isConst) {
+        _constant = new Constantifier(elementMap).visit(node.initializer);
+      } else {
+        throw new SpannableAssertionFailure(
+            field,
+            "Unexpected field $field in "
+            "KernelWorldBuilder._getConstructorConstant");
+      }
+    }
+    return _constant;
+  }
+}
+
 class KernelElementEnvironment implements ElementEnvironment {
   final KernelToElementMap elementMap;
 
@@ -826,7 +884,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   FunctionType getFunctionType(KFunction function) {
-    throw new UnimplementedError('KernelElementEnvironment.getFunctionType');
+    return elementMap._getFunctionType(function);
   }
 
   @override
@@ -923,20 +981,8 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   CallStructure getCallStructure(KFunction function) {
-    ir.Member member = elementMap._memberList[function.memberIndex];
-    ir.FunctionNode functionNode;
-    if (member is ir.Procedure) {
-      functionNode = member.function;
-    } else if (member is ir.Constructor) {
-      functionNode = member.function;
-    } else {
-      throw new SpannableAssertionFailure(
-          function, "Unexpected function node ${member} for $function.");
-    }
-    return new CallStructure(
-        functionNode.positionalParameters.length +
-            functionNode.namedParameters.length,
-        functionNode.namedParameters.map((d) => d.name).toList());
+    _FunctionData data = elementMap._memberList[function.memberIndex];
+    return data.callStructure;
   }
 
   @override
