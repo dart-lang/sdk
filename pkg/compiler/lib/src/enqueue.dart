@@ -278,7 +278,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       _registerClosurizedMember(member);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
-      applyImpact(listener.registerGetOfStaticFunction());
+      applyImpact(listener.registerGetOfStaticFunction(),
+          impactSource: 'get of static function');
     }
   }
 
@@ -290,10 +291,12 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
-      applyImpact(listener.registerInstantiatedClass(cls));
+      applyImpact(listener.registerInstantiatedClass(cls),
+          impactSource: 'instantiated class');
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
-      applyImpact(listener.registerImplementedClass(cls));
+      applyImpact(listener.registerImplementedClass(cls),
+          impactSource: 'implemented class');
     }
   }
 
@@ -306,7 +309,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void processConstantUse(ConstantUse constantUse) {
     task.measure(() {
       if (_worldBuilder.registerConstantUse(constantUse)) {
-        applyImpact(listener.registerUsedConstant(constantUse.value));
+        applyImpact(listener.registerUsedConstant(constantUse.value),
+            impactSource: 'constant use');
         _recentConstants = true;
       }
     });
@@ -372,7 +376,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void _registerClosurizedMember(MemberEntity element) {
     assert(element.isInstanceMember);
-    applyImpact(listener.registerClosurizedMember(element));
+    applyImpact(listener.registerClosurizedMember(element),
+        impactSource: 'closurized member');
     _worldBuilder.registerClosurizedMember(element);
   }
 
@@ -437,7 +442,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           entity, "Resolution work list is closed. Trying to add $entity.");
     }
 
-    applyImpact(listener.registerUsedElement(entity));
+    applyImpact(listener.registerUsedElement(entity),
+        impactSource: 'used element');
     _worldBuilder.registerUsedElement(entity);
     _queue.add(workItem);
   }

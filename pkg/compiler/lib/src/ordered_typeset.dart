@@ -146,7 +146,12 @@ class OrderedTypeSet {
  *     B: [B, Object]
  *     C: [C, B, A, Object]
  */
-abstract class OrderedTypeSetBuilderBase {
+abstract class OrderedTypeSetBuilder {
+  OrderedTypeSet createOrderedTypeSet(
+      InterfaceType supertype, Link<DartType> interfaces);
+}
+
+abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
   Map<int, LinkEntry<InterfaceType>> map =
       new Map<int, LinkEntry<InterfaceType>>();
   // TODO(15296): Avoid computing this order on the side when member
@@ -163,9 +168,10 @@ abstract class OrderedTypeSetBuilderBase {
   OrderedTypeSetBuilderBase(this.cls, {this.reporter, InterfaceType objectType})
       : this._objectType = objectType;
 
-  InterfaceType _getThisType(ClassEntity cls);
-  InterfaceType _substByContext(InterfaceType type, InterfaceType context);
-  int _getHierarchyDepth(ClassEntity cls);
+  InterfaceType getThisType(ClassEntity cls);
+  InterfaceType substByContext(InterfaceType type, InterfaceType context);
+  int getHierarchyDepth(ClassEntity cls);
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls);
 
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {
@@ -180,7 +186,7 @@ abstract class OrderedTypeSetBuilderBase {
     for (Link<DartType> link = interfaces; !link.isEmpty; link = link.tail) {
       _addAllSupertypes(link.head);
     }
-    add(_getThisType(cls));
+    add(getThisType(cls));
     return toTypeSet();
   }
 
@@ -189,14 +195,14 @@ abstract class OrderedTypeSetBuilderBase {
    * substituting type variables.
    */
   void _addAllSupertypes(InterfaceType type) {
-    ClassElement classElement = type.element;
-    Link<InterfaceType> supertypes = classElement.allSupertypes;
+    ClassEntity classElement = type.element;
+    Link<InterfaceType> supertypes = getOrderedTypeSet(classElement).supertypes;
     assert(invariant(cls, supertypes != null,
         message: "Supertypes not computed on $classElement "
             "during resolution of $cls"));
     while (!supertypes.isEmpty) {
       InterfaceType supertype = supertypes.head;
-      add(_substByContext(supertype, type));
+      add(substByContext(supertype, type));
       supertypes = supertypes.tail;
     }
   }
@@ -211,7 +217,7 @@ abstract class OrderedTypeSetBuilderBase {
       if (type != _objectType) {
         allSupertypes.addLast(type);
       }
-      _addAtDepth(type, _getHierarchyDepth(type.element));
+      _addAtDepth(type, getHierarchyDepth(type.element));
     }
   }
 
@@ -224,7 +230,7 @@ abstract class OrderedTypeSetBuilderBase {
       if (existingType.element == type.element) {
         if (reporter != null) {
           reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
-            'thisType': _getThisType(cls),
+            'thisType': getThisType(cls),
             'firstType': existingType,
             'secondType': type
           });
@@ -293,19 +299,22 @@ abstract class OrderedTypeSetBuilderBase {
   }
 }
 
-class OrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  OrderedTypeSetBuilder(ClassElement cls,
+class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
+  ResolutionOrderedTypeSetBuilder(ClassElement cls,
       {DiagnosticReporter reporter, InterfaceType objectType})
       : super(cls, reporter: reporter, objectType: objectType);
 
-  InterfaceType _getThisType(ClassElement cls) => cls.thisType;
+  InterfaceType getThisType(ClassElement cls) => cls.thisType;
 
-  ResolutionInterfaceType _substByContext(
+  ResolutionInterfaceType substByContext(
       ResolutionInterfaceType type, ResolutionInterfaceType context) {
     return type.substByContext(context);
   }
 
-  int _getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
+  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
+
+  OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
+      cls.allSupertypesAndSelf;
 
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {

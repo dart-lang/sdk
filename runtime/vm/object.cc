@@ -4521,7 +4521,7 @@ void Class::InsertCanonicalNumber(Zone* zone,
   Array& canonical_list = Array::Handle(zone, constants());
   const intptr_t list_len = canonical_list.Length();
   if (index >= list_len) {
-    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
+    const intptr_t new_length = list_len + 4 + (list_len >> 2);
     canonical_list ^= Array::Grow(canonical_list, new_length, Heap::kOld);
     set_constants(canonical_list);
   }
@@ -5088,12 +5088,11 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   intptr_t length = prior_instantiations.Length();
   if ((index + StubCode::kInstantiationSizeInWords) >= length) {
     // TODO(regis): Should we limit the number of cached instantiations?
-    // Grow the instantiations array.
+    // Grow the instantiations array by about 50%, but at least by 1.
     // The initial array is Object::zero_array() of length 1.
-    length = (length > 64)
-                 ? (length + 64)
-                 : ((length == 1) ? StubCode::kInstantiationSizeInWords + 1
-                                  : ((length - 1) * 2 + 1));
+    intptr_t entries = (length - 1) / StubCode::kInstantiationSizeInWords;
+    intptr_t new_entries = entries + (entries >> 1) + 1;
+    length = new_entries * StubCode::kInstantiationSizeInWords + 1;
     prior_instantiations =
         Array::Grow(prior_instantiations, length, Heap::kOld);
     set_instantiations(prior_instantiations);
@@ -10873,7 +10872,7 @@ void Library::AddImport(const Namespace& ns) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
   if (num_imports() == capacity) {
-    capacity = capacity + kImportsCapacityIncrement;
+    capacity = capacity + kImportsCapacityIncrement + (capacity >> 2);
     imports = Array::Grow(imports, capacity);
     StorePointer(&raw_ptr()->imports_, imports.raw());
   }
@@ -11433,7 +11432,7 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
   const intptr_t length = (imports.IsNull()) ? 0 : imports.Length();
   // Grow the list if it is full.
   if (num_current_imports >= length) {
-    const intptr_t new_length = length + kIncrementSize;
+    const intptr_t new_length = length + kIncrementSize + (length >> 2);
     imports = Array::Grow(imports, new_length, Heap::kOld);
     set_imports(imports);
   }
@@ -13875,19 +13874,6 @@ bool ICData::HasOneTarget() const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 1; i < len; i++) {
     if (IsUsedAt(i) && (GetTargetAt(i) != first_target.raw())) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool ICData::HasOnlyDispatcherOrImplicitAccessorTargets() const {
-  const intptr_t len = NumberOfChecks();
-  Function& target = Function::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    target = GetTargetAt(i);
-    if (!target.IsDispatcherOrImplicitAccessor()) {
       return false;
     }
   }

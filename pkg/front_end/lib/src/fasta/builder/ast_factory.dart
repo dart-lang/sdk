@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
 /// An abstract class containing factory methods that create AST objects.
@@ -32,15 +33,29 @@ import 'package:kernel/ast.dart';
 /// TODO(paulberry): in order to interface with analyzer, we'll need to
 /// shadow-ify [DartType], since analyzer ASTs need to be able to record the
 /// exact tokens that were used to specify a type.
-abstract class AstFactory {
+abstract class AstFactory<V> {
   /// Creates a statement block.
   Block block(List<Statement> statements, int charOffset);
+
+  /// Creates an expression statement.
+  ExpressionStatement expressionStatement(Expression expression);
 
   /// Creates a field.
   Field field(Name name, int charOffset, {String fileUri});
 
+  /// Creates a function expression.
+  FunctionExpression functionExpression(FunctionNode function, int charOffset);
+
+  /// Creates an `if` statement.
+  Statement ifStatement(
+      Expression condition, Statement thenPart, Statement elsePart);
+
   /// Creates an integer literal.
   IntLiteral intLiteral(value, int charOffset);
+
+  /// Creates an `is` expression.
+  Expression isExpression(
+      Expression expression, DartType type, int charOffset, bool isInverted);
 
   /// Creates a list literal expression.
   ///
@@ -67,10 +82,15 @@ abstract class AstFactory {
   ///
   /// If the variable declaration did not have an explicitly declared type,
   /// [type] should be `null`.
-  VariableDeclaration variableDeclaration(String name, int charOffset,
+  VariableDeclaration variableDeclaration(
+      String name, int charOffset, int functionNestingLevel,
       {DartType type,
       Expression initializer,
       int equalsCharOffset = TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false});
+
+  /// Creates a read of a local variable.
+  variableGet(VariableDeclaration variable, TypePromotionFact<V> fact,
+      TypePromotionScope scope, int charOffset);
 }

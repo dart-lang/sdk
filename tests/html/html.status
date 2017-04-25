@@ -282,9 +282,7 @@ element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
 element_classes_test: RuntimeError # Issue 27535
-element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
-element_types_test/supported_object: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail

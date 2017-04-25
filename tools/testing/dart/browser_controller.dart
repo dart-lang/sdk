@@ -1462,7 +1462,7 @@ class BrowserTestingServer {
         request.response.write(text);
         await request.listen(null).asFuture();
         // Ignoring the returned closure as it returns the 'done' future
-        // which alread has catchError installed above.
+        // which already has catchError installed above.
         request.response.close();
       });
     }

@@ -720,21 +720,18 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ], testSteps: const <String>[
         'package unit tests',
         'third_party/pkg_tested unit tests',
-        'pub get dependencies',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-linux-release-be',
       ], testSteps: const <String>[
         'package unit tests',
         'third_party/pkg_tested unit tests',
-        'pub get dependencies',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-win7-release-be',
       ], testSteps: const <String>[
         'package unit tests',
         'third_party/pkg_tested unit tests',
-        'pub get dependencies',
       ]),
     ],
   ),

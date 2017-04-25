@@ -142,7 +142,8 @@ class SsaInstructionSelection extends HBaseVisitor {
 
     if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
       if (_interceptorData.isInterceptedSelector(selector) &&
-          !_interceptorData.isInterceptedMixinSelector(selector, mask)) {
+          !_interceptorData.isInterceptedMixinSelector(
+              selector, mask, _closedWorld)) {
         ConstantValue constant = new SyntheticConstantValue(
             SyntheticConstantKind.DUMMY_INTERCEPTOR,
             receiverArgument.instructionType);

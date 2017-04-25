@@ -4,7 +4,9 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:kernel/ast.dart' show DartType, Member;
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, InterfaceType, Member;
 import 'package:kernel/core_types.dart';
 
 /// Keeps track of the local state for the type inference that occurs during
@@ -21,6 +23,10 @@ import 'package:kernel/core_types.dart';
 /// This class describes the interface for use by clients of type inference
 /// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
 abstract class TypeInferrer<S, E, V, F> {
+  /// Gets the [TypePromoter] that can be used to perform type promotion within
+  /// this method body or initializer.
+  TypePromoter<E, V> get typePromoter;
+
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
   String get uri;
@@ -35,7 +41,7 @@ abstract class TypeInferrer<S, E, V, F> {
   void inferStatement(S statement);
 }
 
-/// Derived class containing generic implementations of [TypeInferrerImpl].
+/// Derived class containing generic implementations of [TypeInferrer].
 ///
 /// This class contains as much of the implementation of type inference as
 /// possible without knowing the identity of the type parameters.  It defers to
@@ -55,10 +61,22 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
   final Instrumentation instrumentation;
 
+  _InferenceContext _context;
+
   TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
-        instrumentation = engine.instrumentation;
+        instrumentation = engine.instrumentation {
+    // The return type only needs to be inferred for closures, so we can safely
+    // set isAsync and isGenerator to false in the outermost context.
+    // TODO(paulberry): this seems brittle.  Would it be better to leave
+    // _context as `null` here?
+    _context = new _InferenceContext(false, false);
+  }
+
+  /// Gets the type promoter that should be used to promote types during
+  /// inference.
+  TypePromoter<E, V> get typePromoter;
 
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
@@ -75,11 +93,78 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// the expression type and calls the appropriate specialized "infer" method.
   DartType inferExpression(E expression, DartType typeContext, bool typeNeeded);
 
+  /// Performs the core type inference algorithm for expression statements.
+  void inferExpressionStatement(E expression) {
+    inferExpression(expression, null, false);
+  }
+
   /// Performs type inference on the given [field]'s initializer expression.
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldInitializer(F field, DartType type, bool typeNeeded);
+
+  /// Performs the core type inference algorithm for function expressions.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [body] is the body of the expression.  [isExpressionFunction] indicates
+  /// whether the function expression was declared using "=>" syntax.  [isAsync]
+  /// and [isGenerator] together indicate whether the function is marked as
+  /// "async", "async*", or "sync*".  [offset] is the character offset of the
+  /// function expression.
+  ///
+  /// [setReturnType] is a callback that will be used to store the return type
+  /// of the function expression.  [getFunctionType] is a callback that will be
+  /// used to query the function expression for its full expression type.
+  DartType inferFunctionExpression(
+      DartType typeContext,
+      bool typeNeeded,
+      S body,
+      bool isExpressionFunction,
+      bool isAsync,
+      bool isGenerator,
+      int offset,
+      void setReturnType(DartType type),
+      DartType getFunctionType()) {
+    // TODO(paulberry): do we also need to visit default parameter values?
+    // TODO(paulberry): infer argument types and type parameters.
+    // TODO(paulberry): full support for generators.
+    // TODO(paulberry): Dart 1.0 rules say we only need to set the function
+    // node's return type if it uses expression syntax.  Does that make sense
+    // for Dart 2.0?
+    bool needToSetReturnType = isExpressionFunction;
+    _InferenceContext oldContext = _context;
+    _context = new _InferenceContext(isAsync, isGenerator);
+    inferStatement(body);
+    DartType inferredReturnType;
+    if (needToSetReturnType || typeNeeded) {
+      inferredReturnType = _context.inferredReturnType;
+      if (isAsync) {
+        inferredReturnType = new InterfaceType(
+            coreTypes.futureClass, <DartType>[inferredReturnType]);
+      }
+    }
+    if (needToSetReturnType) {
+      instrumentation?.record('returnType', Uri.parse(uri), offset,
+          new InstrumentationValueForType(inferredReturnType));
+      setReturnType(inferredReturnType);
+    }
+    _context = oldContext;
+    if (typeNeeded) {
+      return getFunctionType();
+    } else {
+      return null;
+    }
+  }
+
+  /// Performs the core type inference algorithm for if statements.
+  void inferIfStatement(E condition, S then, S otherwise) {
+    inferExpression(condition, coreTypes.boolClass.rawType, false);
+    inferStatement(then);
+    if (otherwise != null) inferStatement(otherwise);
+  }
 
   /// Performs the core type inference algorithm for integer literals.
   ///
@@ -87,6 +172,17 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [inferExpression].
   DartType inferIntLiteral(DartType typeContext, bool typeNeeded) {
     return typeNeeded ? coreTypes.intClass.rawType : null;
+  }
+
+  /// Performs the core type inference algorithm for an "is" expression.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [operand] is the expression appearing to the left of "is".
+  DartType inferIsExpression(DartType typeContext, bool typeNeeded, E operand) {
+    inferExpression(operand, null, false);
+    return typeNeeded ? coreTypes.boolClass.rawType : null;
   }
 
   /// Performs the core type inference algorithm for static variable getters.
@@ -118,5 +214,51 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
           new InstrumentationValueForType(inferredType));
       setType(inferredType);
     }
+  }
+
+  DartType inferVariableGet(
+      DartType typeContext,
+      bool typeNeeded,
+      bool mutatedInClosure,
+      TypePromotionFact<V> typePromotionFact,
+      TypePromotionScope typePromotionScope,
+      int offset,
+      DartType declaredType,
+      void setPromotedType(DartType type)) {
+    DartType promotedType = typePromoter.computePromotedType(
+        typePromotionFact, typePromotionScope, mutatedInClosure);
+    instrumentation?.record(
+        'promotedType',
+        Uri.parse(uri),
+        offset,
+        promotedType != null
+            ? new InstrumentationValueForType(promotedType)
+            : const InstrumentationValueLiteral('none'));
+    setPromotedType(promotedType);
+    return typeNeeded
+        ? (promotedType ?? declaredType ?? const DynamicType())
+        : null;
+  }
+}
+
+/// Keeps track of information about the innermost function or closure being
+/// inferred.
+class _InferenceContext {
+  final bool isAsync;
+
+  final bool isGenerator;
+
+  DartType _inferredReturnType;
+
+  _InferenceContext(this.isAsync, this.isGenerator);
+
+  /// Gets the return type that was inferred for the current closure.
+  get inferredReturnType {
+    if (_inferredReturnType == null) {
+      // No return statement found.
+      // TODO(paulberry): is it correct to infer `dynamic`?
+      return const DynamicType();
+    }
+    return _inferredReturnType;
   }
 }

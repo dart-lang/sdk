@@ -1171,6 +1171,63 @@ main() {
     expect(fooId, isNonNegative);
   }
 
+  test_getLibraryByUri_external_resynthesize() async {
+    provider.newFile(
+        testFile,
+        r'''
+class Test {}
+''');
+
+    // Prepare the store with package:test/test.dart URI.
+    SummaryDataStore summaryStore =
+        createAnalysisDriver().test.getSummaryStore(testFile);
+
+    // package:test/test.dart is in the store.
+    String uri = 'package:test/test.dart';
+    expect(summaryStore.unlinkedMap.keys, contains(uri));
+    expect(summaryStore.linkedMap.keys, contains(uri));
+
+    // Remove the file from the file system.
+    provider.deleteFile(testFile);
+
+    // We can resynthesize the library from the store without reading the file.
+    AnalysisDriver driver =
+        createAnalysisDriver(externalSummaries: summaryStore);
+    expect(driver.test.numOfCreatedLibraryContexts, 0);
+    LibraryElement library = await driver.getLibraryByUri(uri);
+    expect(library.getType('Test'), isNotNull);
+  }
+
+  test_getLibraryByUri_sdk_analyze() async {
+    LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
+    expect(coreLibrary, isNotNull);
+    expect(coreLibrary.getType('Object'), isNotNull);
+    expect(coreLibrary.getType('int'), isNotNull);
+  }
+
+  test_getLibraryByUri_sdk_resynthesize() async {
+    SummaryDataStore sdkStore;
+    {
+      String corePath = sdk.mapDartUri('dart:core').fullName;
+      sdkStore = createAnalysisDriver().test.getSummaryStore(corePath);
+    }
+
+    // There are dart:core and dart:async in the store.
+    expect(sdkStore.unlinkedMap.keys, contains('dart:core'));
+    expect(sdkStore.unlinkedMap.keys, contains('dart:async'));
+    expect(sdkStore.linkedMap.keys, contains('dart:core'));
+    expect(sdkStore.linkedMap.keys, contains('dart:async'));
+
+    // We don't create new library context (so, don't parse, summarize and
+    // link) for dart:core. The library is resynthesized from the provided
+    // external store.
+    AnalysisDriver driver = createAnalysisDriver(externalSummaries: sdkStore);
+    LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
+    expect(driver.test.numOfCreatedLibraryContexts, 0);
+    expect(coreLibrary, isNotNull);
+    expect(coreLibrary.getType('Object'), isNotNull);
+  }
+
   test_getResult() async {
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);

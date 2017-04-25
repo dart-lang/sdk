@@ -4240,7 +4240,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 }
 
 
-// Unlink code breakpoints from the the given breakpoint location.
+// Unlink code breakpoints from the given breakpoint location.
 // They will later be deleted when control returns from the pause event
 // callback. Also, disable the breakpoint so it no longer fires if it
 // should be hit before it gets deleted.

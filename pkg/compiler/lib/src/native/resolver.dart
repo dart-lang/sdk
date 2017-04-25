@@ -30,74 +30,6 @@ import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';
 
-/// Class that performs the mechanics to investigate annotations in the code.
-abstract class AnnotationProcessor {
-  factory AnnotationProcessor(Compiler compiler) =>
-      compiler.options.loadFromDill
-          ? new _KernelAnnotationProcessor()
-          : new _ElementAnnotationProcessor(compiler);
-
-  void extractNativeAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
-
-  void extractJsInteropAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
-}
-
-class _KernelAnnotationProcessor implements AnnotationProcessor {
-  void extractNativeAnnotations(
-      LibraryEntity entity, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    throw new UnimplementedError(
-        '_KernelAnnotationProcessor.extractNativeAnnotations');
-  }
-
-  void extractJsInteropAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    throw new UnimplementedError(
-        '_KernelAnnotationProcessor.extractJsInteropAnnotations');
-  }
-}
-
-/// Original logic for annotation processing, which involves in some cases
-/// triggering pre-parsing and validation of the annotations.
-class _ElementAnnotationProcessor implements AnnotationProcessor {
-  Compiler _compiler;
-
-  _ElementAnnotationProcessor(this._compiler);
-
-  /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-  /// native name from the annotation.
-  void extractNativeAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    library.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        EagerAnnotationHandler.checkAnnotation(_compiler, element,
-            new NativeAnnotationHandler(nativeBasicDataBuilder));
-      }
-    });
-  }
-
-  void extractJsInteropAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    bool checkJsInteropAnnotation(Element element) {
-      return EagerAnnotationHandler.checkAnnotation(
-          _compiler, element, const JsInteropAnnotationHandler());
-    }
-
-    if (checkJsInteropAnnotation(library)) {
-      nativeBasicDataBuilder.markAsJsInteropLibrary(library);
-    }
-    library.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (checkJsInteropAnnotation(element)) {
-          nativeBasicDataBuilder.markAsJsInteropClass(cls);
-        }
-      }
-    });
-  }
-}
-
 /// Interface for computing native members and [NativeBehavior]s in member code
 /// based on the AST.
 abstract class NativeDataResolver {
@@ -294,33 +226,21 @@ class NativeDataResolverImpl implements NativeDataResolver {
   /// Returns the JSName annotation string or `null` if no JSName annotation is
   /// present.
   String _findJsNameFromAnnotation(Element element) {
-    String name = null;
-    ClassElement annotationClass =
-        _compiler.commonElements.annotationJSNameClass;
+    String jsName = null;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(_compiler.resolution);
       ConstantValue value =
           _compiler.constants.getConstantValue(annotation.constant);
-      if (!value.isConstructedObject) continue;
-      ConstructedConstantValue constructedObject = value;
-      if (constructedObject.type.element != annotationClass) continue;
-
-      Iterable<ConstantValue> fields = constructedObject.fields.values;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || fields.single is! StringConstantValue) {
-        _reporter.internalError(
-            annotation, 'Annotations needs one string: ${annotation}');
-      }
-      StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.toDartString().slowToString();
-      if (name == null) {
-        name = specString;
-      } else {
-        _reporter.internalError(
+      String name = readAnnotationName(
+          annotation, value, _compiler.commonElements.annotationJSNameClass);
+      if (jsName == null) {
+        jsName = name;
+      } else if (name != null) {
+        throw new SpannableAssertionFailure(
             annotation, 'Too many JSName annotations: ${annotation}');
       }
     }
-    return name;
+    return jsName;
   }
 
   @override
@@ -341,14 +261,6 @@ class NativeDataResolverImpl implements NativeDataResolver {
     return NativeBehavior.ofJsBuiltinCallSend(
         node, _reporter, _compiler.commonElements, resolver);
   }
-}
-
-/// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-/// native name from the annotation.
-checkNativeAnnotation(Compiler compiler, ClassElement cls,
-    NativeBasicDataBuilder nativeBasicDataBuilder) {
-  EagerAnnotationHandler.checkAnnotation(
-      compiler, cls, new NativeAnnotationHandler(nativeBasicDataBuilder));
 }
 
 /// Annotation handler for pre-resolution detection of `@Native(...)`
@@ -376,7 +288,8 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
       ClassElement cls = element;
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, native);
+        String tagText = native.substring(1, native.length - 1);
+        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, tagText);
         return native;
       }
     }
@@ -615,4 +528,22 @@ class NativeClassResolverImpl implements NativeClassResolver {
       return scanForExtendsName(classElement.position);
     });
   }
+}
+
+/// Extracts the name if [value] is a named annotation based on
+/// [annotationClass], otherwise returns `null`.
+String readAnnotationName(
+    Spannable spannable, ConstantValue value, ClassEntity annotationClass) {
+  if (!value.isConstructedObject) return null;
+  ConstructedConstantValue constructedObject = value;
+  if (constructedObject.type.element != annotationClass) return null;
+
+  Iterable<ConstantValue> fields = constructedObject.fields.values;
+  // TODO(sra): Better validation of the constant.
+  if (fields.length != 1 || fields.single is! StringConstantValue) {
+    throw new SpannableAssertionFailure(
+        spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+  }
+  StringConstantValue specStringConstant = fields.single;
+  return specStringConstant.toDartString().slowToString();
 }

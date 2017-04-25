@@ -1108,6 +1108,9 @@ abstract class ElementEnvironment {
   /// missing and [required];
   LibraryEntity lookupLibrary(Uri uri, {bool required: false});
 
+  /// Calls [f] for every class declared in [library].
+  void forEachClass(LibraryEntity library, void f(ClassEntity cls));
+
   /// Lookup the class [name] in [library], fail if the class is missing and
   /// [required].
   ClassEntity lookupClass(LibraryEntity library, String name,

@@ -9,8 +9,7 @@ import '../common/backend_api.dart'
     show ForeignResolver, NativeRegistry, ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart'
-    show Frontend, Resolution, ResolutionImpact, Target;
+import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -31,6 +30,7 @@ import '../enqueue.dart'
         ResolutionEnqueuer,
         ResolutionWorkItemBuilder,
         TreeShakingEnqueuerStrategy;
+import '../frontend_strategy.dart';
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -445,9 +445,6 @@ class JavaScriptBackend {
 
   BackendImpacts impacts;
 
-  /// Backend access to the front-end.
-  final JSFrontendAccess frontend;
-
   Target _target;
 
   Tracer tracer;
@@ -488,7 +485,6 @@ class JavaScriptBackend {
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
             useNewSourceInfo: useNewSourceInfo),
-        frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
     _target = new JavaScriptBackendTarget(this);
@@ -748,6 +744,7 @@ class JavaScriptBackend {
     });
   }
 
+  /// Called before processing of the resolution queue is started.
   void onResolutionStart(ResolutionEnqueuer enqueuer) {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
@@ -762,7 +759,14 @@ class JavaScriptBackend {
     validateInterceptorImplementsAllObjectMethods(commonElements.jsNullClass);
   }
 
-  void onResolutionComplete(
+  /// Called when the resolution queue has been closed.
+  void onResolutionEnd() {
+    _backendUsage = backendUsageBuilder.close();
+    _interceptorData = interceptorDataBuilder.onResolutionComplete();
+  }
+
+  /// Called when the closed world from resolution has been computed.
+  void onResolutionClosedWorld(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (MemberEntity entity
         in compiler.enqueuer.resolution.processedEntities) {
@@ -770,7 +774,6 @@ class JavaScriptBackend {
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    _backendUsage = backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         compiler.enqueuer.resolution.worldBuilder,
         closedWorld,
@@ -778,7 +781,6 @@ class JavaScriptBackend {
         commonElements,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, commonElements);
     mirrorsResolutionAnalysis.onResolutionComplete();
@@ -1079,7 +1081,8 @@ class JavaScriptBackend {
   /// been loaded.
   void setAnnotations(LibraryEntity library) {
     if (!compiler.serialization.isDeserialized(library)) {
-      AnnotationProcessor processor = new AnnotationProcessor(compiler);
+      AnnotationProcessor processor =
+          compiler.frontEndStrategy.annotationProcesser;
       if (canLibraryUseNative(library)) {
         processor.extractNativeAnnotations(library, nativeBasicDataBuilder);
       }
@@ -1340,19 +1343,6 @@ class JavaScriptBackend {
   }
 
   EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
-}
-
-class JSFrontendAccess implements Frontend {
-  final Compiler compiler;
-
-  JSFrontendAccess(this.compiler);
-
-  Resolution get resolution => compiler.resolution;
-
-  @override
-  ResolutionImpact getResolutionImpact(Element element) {
-    return resolution.getResolutionImpact(element);
-  }
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {

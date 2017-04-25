@@ -24,8 +24,6 @@ import 'token.dart' show StringToken, SymbolToken, Token;
 
 import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 
-import 'precedence.dart' as Precedence;
-
 /// Recover from errors in [tokens]. The original sources are provided as
 /// [bytes]. [lineStarts] are the beginning character offsets of lines, and
 /// must be updated if recovery is performed rewriting the original source
@@ -86,13 +84,13 @@ Token defaultRecoveryStrategy(
     // [errorTail] ends. This is the case for "b" above.
     bool append = false;
     if (goodTail != null) {
-      if (goodTail.info == Precedence.IDENTIFIER_INFO &&
+      if (goodTail.info == TokenType.IDENTIFIER &&
           goodTail.charEnd == first.charOffset) {
         prepend = true;
       }
     }
     Token next = errorTail.next;
-    if (next.info == Precedence.IDENTIFIER_INFO &&
+    if (next.info == TokenType.IDENTIFIER &&
         errorTail.charOffset + 1 == next.charOffset) {
       append = true;
     }
@@ -123,12 +121,12 @@ Token defaultRecoveryStrategy(
       next = next.next;
     }
     String value = new String.fromCharCodes(codeUnits);
-    return synthesizeToken(charOffset, value, Precedence.IDENTIFIER_INFO)
+    return synthesizeToken(charOffset, value, TokenType.IDENTIFIER)
       ..next = next;
   }
 
   recoverExponent() {
-    return synthesizeToken(errorTail.charOffset, "NaN", Precedence.DOUBLE_INFO)
+    return synthesizeToken(errorTail.charOffset, "NaN", TokenType.DOUBLE)
       ..next = errorTail.next;
   }
 
@@ -138,7 +136,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverHexDigit() {
-    return synthesizeToken(errorTail.charOffset, "-1", Precedence.INT_INFO)
+    return synthesizeToken(errorTail.charOffset, "-1", TokenType.INT)
       ..next = errorTail.next;
   }
 

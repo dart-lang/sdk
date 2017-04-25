@@ -6,12 +6,12 @@ import 'dart:async';
 import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
-import 'package:compiler/src/kernel/world_builder.dart';
 import 'package:compiler/src/library_loader.dart'
-    show ScriptLoader, LibraryLoaderTask;
+    show ScriptLoader, DillLibraryLoaderTask;
 import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
@@ -58,29 +58,17 @@ main() {
         outputProvider: output,
         options: ['--read-dill']);
     await compiler.setupSdk();
-    dynamic loader = new LibraryLoaderTask(
-        true,
-        compiler.resolvedUriTranslator,
-        new TestScriptLoader(compiler),
-        null,
-        null,
-        null,
-        null,
-        null,
-        compiler.reporter,
-        compiler.measurer);
-
-    await loader.loadLibrary(entryPoint);
+    await compiler.libraryLoader.loadLibrary(entryPoint);
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);
 
-    KernelWorldBuilder worldBuilder = loader.worldBuilder;
-    LibraryEntity library = worldBuilder.lookupLibrary(uri);
+    ElementEnvironment environment = compiler.elementEnvironment;
+    LibraryEntity library = environment.lookupLibrary(uri);
     Expect.isNotNull(library);
-    ClassEntity clss = worldBuilder.lookupClass(library, 'ListLiteralTest');
+    ClassEntity clss = environment.lookupClass(library, 'ListLiteralTest');
     Expect.isNotNull(clss);
-    var member = worldBuilder.lookupClassMember(clss, 'testMain');
+    var member = environment.lookupClassMember(clss, 'testMain');
     Expect.isNotNull(member);
   });
 }

@@ -297,7 +297,7 @@ void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
   if (instr->instance_call()->has_unique_selector()) {
-    SetCid(instr->ArgumentAt(0), instr->ic_data().GetReceiverClassIdAt(0));
+    SetCid(instr->ArgumentAt(0), instr->targets().MonomorphicReceiverCid());
     return;
   }
   CheckNonNullSelector(instr, instr->ArgumentAt(0),
@@ -1024,8 +1024,8 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
 
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
-  if (!HasSingleRecognizedTarget()) return CompileType::Dynamic();
-  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  if (!IsSureToCallSingleRecognizedTarget()) return CompileType::Dynamic();
+  const Function& target = *targets_[0].target;
   return (target.recognized_kind() != MethodRecognizer::kUnknown)
              ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
              : CompileType::Dynamic();

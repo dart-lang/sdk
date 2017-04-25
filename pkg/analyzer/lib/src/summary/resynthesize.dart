@@ -1221,13 +1221,16 @@ class _ReferenceInfo {
    * If this reference refers to a non-generic type, the type it refers to.
    * Otherwise `null`.
    */
-  DartType type;
+  DartType _type;
 
   /**
    * The number of type parameters accepted by the entity referred to by this
    * reference, or zero if it doesn't accept any type parameters.
    */
   final int numTypeParameters;
+
+  bool _isBeingInstantiatedToBounds = false;
+  bool _isRecursiveWhileInstantiateToBounds = false;
 
   /**
    * Create a new [_ReferenceInfo] object referring to an element called [name]
@@ -1247,11 +1250,23 @@ class _ReferenceInfo {
       DartType specialType,
       this.numTypeParameters) {
     if (specialType != null) {
-      type = specialType;
-    } else {
-      type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
+      _type = specialType;
     }
   }
+
+  /**
+   * If this reference refers to a non-generic type, the type it refers to.
+   * Otherwise `null`.
+   */
+  DartType get type {
+    if (_type == null) {
+      _type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
+    }
+    return _type;
+  }
+
+  List<DartType> get _dynamicTypeArguments =>
+      new List<DartType>.filled(numTypeParameters, DynamicTypeImpl.instance);
 
   /**
    * Build a [DartType] corresponding to the result of applying some type
@@ -1313,8 +1328,7 @@ class _ReferenceInfo {
                 .instantiateToBounds(element.type) as InterfaceType;
             return instantiatedToBounds.typeArguments;
           } else {
-            return new List<DartType>.filled(
-                numTypeParameters, DynamicTypeImpl.instance);
+            return _dynamicTypeArguments;
           }
         }
         return typeArguments;
@@ -1339,13 +1353,27 @@ class _ReferenceInfo {
               _buildTypeArguments(numTypeArguments, getTypeArgument);
         } else if (libraryResynthesizer.summaryResynthesizer.strongMode &&
             instantiateToBoundsAllowed) {
-          FunctionType instantiatedToBounds = libraryResynthesizer
-              .summaryResynthesizer.context.typeSystem
-              .instantiateToBounds(element.type) as FunctionType;
-          typeArguments = instantiatedToBounds.typeArguments;
+          if (!_isBeingInstantiatedToBounds) {
+            _isBeingInstantiatedToBounds = true;
+            _isRecursiveWhileInstantiateToBounds = false;
+            try {
+              FunctionType instantiatedToBounds = libraryResynthesizer
+                  .summaryResynthesizer.context.typeSystem
+                  .instantiateToBounds(element.type) as FunctionType;
+              if (!_isRecursiveWhileInstantiateToBounds) {
+                typeArguments = instantiatedToBounds.typeArguments;
+              } else {
+                typeArguments = _dynamicTypeArguments;
+              }
+            } finally {
+              _isBeingInstantiatedToBounds = false;
+            }
+          } else {
+            _isRecursiveWhileInstantiateToBounds = true;
+            typeArguments = _dynamicTypeArguments;
+          }
         } else {
-          typeArguments = new List<DartType>.filled(
-              numTypeParameters, DynamicTypeImpl.instance);
+          typeArguments = _dynamicTypeArguments;
         }
         return new FunctionTypeImpl.elementWithNameAndArgs(
             element, name, typeArguments, numTypeParameters != 0);

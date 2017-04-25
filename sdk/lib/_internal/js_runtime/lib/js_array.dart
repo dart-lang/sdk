@@ -198,7 +198,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     // to the [test] function. First the elements to retain are found, and then
     // the original list is updated to contain those elements.
 
-    // TODO(sra): Replace this algorthim with one that retains a list of ranges
+    // TODO(sra): Replace this algorithm with one that retains a list of ranges
     // to be removed.  Most real uses remove 0, 1 or a few clustered elements.
 
     List retained = [];

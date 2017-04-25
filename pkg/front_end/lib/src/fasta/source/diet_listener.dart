@@ -393,6 +393,7 @@ class DietListener extends StackListener {
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
+    var typeInferrer = typeInferenceEngine.createLocalTypeInferrer(uri);
     return new BodyBuilder(
         library,
         builder,
@@ -403,7 +404,7 @@ class DietListener extends StackListener {
         currentClass,
         isInstanceMember,
         uri,
-        typeInferenceEngine.createLocalTypeInferrer(uri),
+        typeInferrer,
         new KernelAstFactory())
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }

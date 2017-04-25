@@ -339,8 +339,13 @@ class BackendUsageImpl implements BackendUsage {
 
   @override
   Iterable<FunctionEntity> get globalFunctionDependencies =>
-      _globalFunctionDependencies;
+      _globalFunctionDependencies ?? const <FunctionEntity>[];
 
   @override
-  Iterable<ClassEntity> get globalClassDependencies => _globalClassDependencies;
+  Iterable<ClassEntity> get globalClassDependencies =>
+      _globalClassDependencies ?? const <ClassEntity>[];
+
+  Iterable<FunctionEntity> get helperFunctionsUsed => _helperFunctionsUsed;
+
+  Iterable<ClassEntity> get helperClassesUsed => _helperClassesUsed;
 }

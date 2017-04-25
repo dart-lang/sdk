@@ -47,7 +47,7 @@ E = null;
 """;
 
 void setup2() native """
-// This code is all inside 'setup2' and so not accesible from the global scope.
+// This code is all inside 'setup2' and so not accessible from the global scope.
 function E(x){ this.code = x; }
 
 function A(){}

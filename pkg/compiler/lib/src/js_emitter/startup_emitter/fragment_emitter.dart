@@ -1026,8 +1026,9 @@ class FragmentEmitter {
         {
           "container": container,
           "getterName": js.quoteName(method.tearOffName),
-          "isStatic": new js.LiteralBool(method.isStatic),
-          "isIntercepted": new js.LiteralBool(isIntercepted),
+          // 'Truthy' values are ok for `isStatic` and `isIntercepted`.
+          "isStatic": js.number(method.isStatic ? 1 : 0),
+          "isIntercepted": js.number(isIntercepted ? 1 : 0),
           "requiredParameterCount": js.number(requiredParameterCount),
           "optionalParameterDefaultValues": optionalParameterDefaultValues,
           "callNames": callNameArray,
@@ -1046,6 +1047,7 @@ class FragmentEmitter {
   /// Emits the section that installs tear-off getters.
   js.Statement emitInstallTearOffs(Fragment fragment) {
     List<js.Statement> inits = <js.Statement>[];
+    js.Expression temp;
 
     for (Library library in fragment.libraries) {
       for (StaticMethod method in library.statics) {
@@ -1059,11 +1061,20 @@ class FragmentEmitter {
         }
       }
       for (Class cls in library.classes) {
-        for (InstanceMethod method in cls.methods) {
-          if (method.needsTearOff) {
-            js.Expression container = js.js("#.prototype", classReference(cls));
-            inits.add(emitInstallTearOff(container, method));
+        var methods = cls.methods.where((m) => m.needsTearOff).toList();
+        js.Expression container = js.js("#.prototype", classReference(cls));
+        js.Expression reference = container;
+        if (methods.length > 1) {
+          if (temp == null) {
+            inits.add(js.js.statement('var _;'));
+            temp = js.js('_');
           }
+          // First call uses assignment to temp to cache the container.
+          reference = js.js('# = #', [temp, container]);
+        }
+        for (InstanceMethod method in methods) {
+          inits.add(emitInstallTearOff(reference, method));
+          reference = temp; // Second and subsequent calls use temp.
         }
       }
     }

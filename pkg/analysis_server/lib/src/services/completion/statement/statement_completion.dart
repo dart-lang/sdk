@@ -173,7 +173,22 @@ class StatementCompletionProcessor {
       return NO_COMPLETION;
     }
     // TODO(messick): This needs to work for declarations.
-    node = node.getAncestor((n) => n is Statement);
+    AstNode newNode = node.getAncestor((n) => n is Statement);
+    if (newNode is Block) {
+      Block blockNode = newNode;
+      if (blockNode.statements.isNotEmpty) {
+        node = blockNode.statements[blockNode.statements.length - 1];
+      } else {
+        newNode = node.getAncestor((n) => n is CatchClause);
+        if (newNode != null) {
+          node = newNode.parent;
+        } else {
+          node = node.getAncestor((n) => n is Statement).parent;
+        }
+      }
+    } else {
+      node = newNode;
+    }
     if (_isEmptyStatement(node)) {
       node = node.parent;
     }
@@ -662,7 +677,7 @@ class StatementCompletionProcessor {
       _appendEmptyBraces(sb, true);
       _insertBuilder(sb);
       sb = null;
-    } else if ((catchNode = _firstInvalidCatch(tryNode.catchClauses)) != null) {
+    } else if ((catchNode = _findInvalidCatch(tryNode.catchClauses)) != null) {
       if (catchNode.onKeyword != null) {
         if (catchNode.exceptionType.length == 0) {
           String src = utils.getNodeText(catchNode);
@@ -756,19 +771,12 @@ class StatementCompletionProcessor {
     return null;
   }
 
-  CatchClause _firstInvalidCatch(NodeList<CatchClause> list) {
-    return list.firstWhere((e) {
-      bool found = false;
-      for (var error in errors) {
-        if (error.offset >= e.offset && error.offset <= e.end) {
-          if (error.errorCode is! HintCode) {
-            found = true;
-            break;
-          }
-        }
-      }
-      return found;
-    }, orElse: () => null);
+  CatchClause _findInvalidCatch(NodeList<CatchClause> list) {
+    return list.firstWhere(
+        (catchClause) =>
+            selectionOffset >= catchClause.offset &&
+            selectionOffset <= catchClause.end,
+        orElse: () => null);
   }
 
   LinkedEditGroup _getLinkedPosition(String groupId) {

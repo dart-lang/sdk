@@ -23,7 +23,7 @@ class A implements I {
 makeA() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function A(){}
 A.prototype.read = function() { return this._x; };
 A.prototype.write = function(x) { this._x = x; };

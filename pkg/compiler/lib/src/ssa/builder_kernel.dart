@@ -1165,7 +1165,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ir.Node node, ir.Procedure procedure, String message, TypeMask typeMask) {
     HInstruction errorMessage =
         graph.addConstantString(new DartString.literal(message), closedWorld);
-    // TODO(sra): Assocate source info from [node].
+    // TODO(sra): Associate source info from [node].
     _pushStaticInvocation(procedure, [errorMessage], typeMask);
   }
 
@@ -2496,7 +2496,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
         isStatement: !nativeBehavior.codeTemplate.isExpression,
         effects: nativeBehavior.sideEffects,
-        nativeBehavior: nativeBehavior)..sourceInformation = sourceInformation);
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation);
   }
 
   void handleJsStringConcat(ir.StaticInvocation invocation) {
@@ -2600,9 +2601,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _pushDynamicInvocation(
         invocation,
         astAdapter.typeOfInvocation(invocation, closedWorld),
-        <HInstruction>[receiver]
-          ..addAll(
-              _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
+        <HInstruction>[receiver]..addAll(
+            _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
   }
 
   bool _handleEqualsNull(ir.MethodInvocation invocation) {

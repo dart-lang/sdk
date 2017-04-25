@@ -127,6 +127,15 @@ var t2 = ((a = 1) == 0) != ((a = 2) == 0);
     await checkFile(content);
   }
 
+  test_initializer_extractIndex() async {
+    var content = r'''
+var a = /*info:INFERRED_TYPE_LITERAL*/[0, 1.2];
+var b0 = a[0];
+var b1 = a[1];
+''';
+    await checkFile(content);
+  }
+
   test_initializer_functionLiteral_blockBody() async {
     var content = r'''
 var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
@@ -868,6 +877,21 @@ class D {
   int i;
 }
 dynamic x/*error: instanceGetter*/;
+''');
+  }
+
+  test_initializer_extractIndex() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = [0, 1.2];
+var b0 = a[0];
+var b1 = a[1];
+''');
+    checkElementText(
+        library,
+        r'''
+List<num> a;
+num b0;
+num b1;
 ''');
   }
 

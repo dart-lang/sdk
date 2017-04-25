@@ -7,9 +7,6 @@ library fasta.scanner.token;
 import '../../scanner/token.dart' as analyzer;
 import '../../scanner/token.dart' show TokenType;
 
-import 'precedence.dart'
-    show AS_INFO, BAD_INPUT_INFO, EOF_INFO, IS_INFO, KEYWORD_INFO;
-
 import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
 import 'string_canonicalizer.dart';
@@ -122,7 +119,7 @@ abstract class Token implements analyzer.TokenWithComment {
    * The number of characters parsed by this token.
    */
   int get charCount {
-    if (info == BAD_INPUT_INFO) {
+    if (info == analyzer.TokenType.BAD_INPUT) {
       // This is a token that wraps around an error message. Return 1
       // instead of the size of the length of the error message.
       return 1;
@@ -147,7 +144,9 @@ abstract class Token implements analyzer.TokenWithComment {
   @override
   analyzer.TokenType get type {
     // Analyzer has a different concept of what is a Keyword type.
-    return info == AS_INFO || info == IS_INFO ? KEYWORD_INFO : info;
+    return info == TokenType.AS || info == TokenType.IS
+        ? TokenType.KEYWORD
+        : info;
   }
 
   @override
@@ -249,7 +248,7 @@ class SymbolToken extends Token {
   SymbolToken(this.info, int charOffset) : super(charOffset);
 
   factory SymbolToken.eof(int charOffset) {
-    var eof = new SyntheticSymbolToken(EOF_INFO, charOffset);
+    var eof = new SyntheticSymbolToken(analyzer.TokenType.EOF, charOffset);
     // EOF points to itself so there's always infinite look-ahead.
     eof.previousToken = eof;
     eof.next = eof;
@@ -269,7 +268,7 @@ class SymbolToken extends Token {
   String toString() => "SymbolToken(${isEof ? '-eof-' : lexeme})";
 
   @override
-  bool get isEof => info == EOF_INFO;
+  bool get isEof => info == analyzer.TokenType.EOF;
 
   @override
   Token copyWithoutComments() => isEof
@@ -352,7 +351,7 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
   analyzer.Keyword value() => keyword;
 
   @override
-  analyzer.TokenType get type => KEYWORD_INFO;
+  analyzer.TokenType get type => TokenType.KEYWORD;
 }
 
 /**

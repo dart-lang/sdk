@@ -156,8 +156,7 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
   /// The tag info string contains comma-separated 'words' which are either
   /// dispatch tags (having JavaScript identifier syntax) and directives that
   /// begin with `!`.
-  void setNativeClassTagInfo(ClassEntity cls, String tagInfo) {
-    String tagText = tagInfo.substring(1, tagInfo.length - 1);
+  void setNativeClassTagInfo(ClassEntity cls, String tagText) {
     // TODO(johnniwinther): Assert that this is only called once. The memory
     // compiler copies pre-processed elements into a new compiler through
     // [Compiler.onLibraryScanned] and thereby causes multiple calls to this

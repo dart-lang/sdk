@@ -248,7 +248,7 @@ String _escapeString(String str) {
 
 /// A collection of methods where all methods have the same name.
 /// This class is intended to optimize whether a specific invocation is
-/// appropritate for at least some of the methods in the collection.
+/// appropriate for at least some of the methods in the collection.
 class _DeclarationSet {
   _DeclarationSet() : _members = <mirrors.DeclarationMirror>[];
 

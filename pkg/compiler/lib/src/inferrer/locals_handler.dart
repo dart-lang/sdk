@@ -336,7 +336,7 @@ class LocalsHandler {
       inferrer.recordTypeOfNonFinalField(node, capturedAndBoxed[local], type);
     } else if (inTryBlock) {
       // We don'TypeInformation know if an assignment in a try block
-      // will be executed, so all assigments in that block are
+      // will be executed, so all assignments in that block are
       // potential types after we have left it. We update the parent
       // of the try block so that, at exit of the try block, we get
       // the right phi for it.

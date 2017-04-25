@@ -852,7 +852,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   }
 }
 
-class TypeRepresentationGenerator implements DartTypeVisitor {
+class TypeRepresentationGenerator implements ResolutionDartTypeVisitor {
   final Namer namer;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
@@ -1072,7 +1072,7 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends DartTypeVisitor {
+class ArgumentCollector extends ResolutionDartTypeVisitor {
   final Set<ClassElement> classes = new Set<ClassElement>();
 
   collect(ResolutionDartType type, {bool isTypeArgument: false}) {
@@ -1101,7 +1101,7 @@ class ArgumentCollector extends DartTypeVisitor {
   }
 }
 
-class FunctionArgumentCollector extends DartTypeVisitor {
+class FunctionArgumentCollector extends ResolutionDartTypeVisitor {
   final Set<ClassElement> classes = new Set<ClassElement>();
 
   FunctionArgumentCollector();

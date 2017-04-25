@@ -9,7 +9,8 @@ import 'dart:typed_data';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -74,7 +75,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 33;
+  static const int DATA_VERSION = 34;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -596,6 +597,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
+  /**
+   * Return a [Future] that completes with the [LibraryElement] for the given
+   * [uri], which is either resynthesized from the provided external summary
+   * store, or built for a file to which the given [uri] is resolved.
+   */
+  Future<LibraryElement> getLibraryByUri(String uri) async {
+    if (_externalSummaries != null && _externalSummaries.hasUnlinkedUnit(uri)) {
+      return LibraryContext.resynthesizeLibraryElement(analysisOptions,
+          declaredVariables, sourceFactory, _externalSummaries, uri);
+    }
+    Source source = sourceFactory.resolveUri(null, uri);
+    UnitElementResult unitResult = await getUnitElement(source.fullName);
+    return unitResult.element.library;
+  }
+
   ApiSignature getResolvedUnitKeyByPath(String path) {
     ApiSignature signature = getUnitKeyByPath(path);
     var file = fsState.getFileForPath(path);
@@ -695,7 +711,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    *
    * The signature is based the APIs of the files of the library (including
    * the file itself) of the requested file and the transitive closure of files
-   * imported and exported by the the library.
+   * imported and exported by the library.
    */
   Future<String> getUnitElementSignature(String path) {
     if (!_fsState.hasUri(path)) {
@@ -1096,17 +1112,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Return the context in which the [library] should be analyzed.
    */
-  LibraryContext _createLibraryContext(FileState library) =>
-      new LibraryContext.forSingleLibrary(
-          library,
-          _logger,
-          _sdkBundle,
-          _byteStore,
-          _analysisOptions,
-          declaredVariables,
-          _sourceFactory,
-          _externalSummaries,
-          fsState);
+  LibraryContext _createLibraryContext(FileState library) {
+    _testView.numOfCreatedLibraryContexts++;
+    return new LibraryContext.forSingleLibrary(
+        library,
+        _logger,
+        _sdkBundle,
+        _byteStore,
+        _analysisOptions,
+        declaredVariables,
+        _sourceFactory,
+        _externalSummaries,
+        fsState);
+  }
 
   /**
    * Fill [_salt] with data.
@@ -1541,6 +1559,8 @@ class AnalysisDriverScheduler {
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
 
+  int numOfCreatedLibraryContexts = 0;
+
   int numOfAnalyzedLibraries = 0;
 
   AnalysisDriverTestView(this.driver);
@@ -1619,7 +1639,7 @@ class AnalysisResult {
 
   /**
    * The signature of the result based on the content of the file, and the
-   * transitive closure of files imported and exported by the the library of
+   * transitive closure of files imported and exported by the library of
    * the requested file.
    */
   final String _signature;
@@ -1884,7 +1904,7 @@ class UnitElementResult {
   /**
    * The signature of the [element] is based the APIs of the files of the
    * library (including the file itself) of the requested file and the
-   * transitive closure of files imported and exported by the the library.
+   * transitive closure of files imported and exported by the library.
    */
   final String signature;
 

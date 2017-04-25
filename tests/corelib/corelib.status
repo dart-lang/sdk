@@ -136,7 +136,7 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) && $fast_startup == false]
+[ $compiler == dart2js && $runtime == jsshell && $fast_startup == false]
 list_test/none: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
 list_test/01: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
 

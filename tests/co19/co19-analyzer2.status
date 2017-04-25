@@ -16,6 +16,7 @@ Language/Classes/Static_Methods/same_name_method_and_setter_t01: MissingStaticWa
 Language/Classes/Static_Methods/type_object_t01: StaticWarning # Please triage this failure.
 Language/Classes/Static_Methods/type_object_t02: StaticWarning # Please triage this failure.
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: MissingStaticWarning # TBF: Static members should not be accessible via subclasses.
+Language/Classes/definition_t23: CompileTimeError # This seems correct, need to adjust test.
 Language/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
 Language/Enums/syntax_t08: MissingCompileTimeError # Please triage this failure.
 Language/Enums/syntax_t09: MissingCompileTimeError # Please triage this failure.
@@ -89,8 +90,7 @@ Language/Mixins/Mixin_Application/syntax_t22: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t23: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t24: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t25: CompileTimeError # Issue 26409
-Language/Mixins/Mixin_Application/warning_t01: MissingStaticWarning # Please triage this failure.
-Language/Mixins/Mixin_Application/warning_t02: MissingStaticWarning # Please triage this failure.
+Language/Mixins/Mixin_Application/warning_t03: StaticWarning # This seems correct, need to adjust test.
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
 Language/Statements/Assert/syntax_t04: MissingCompileTimeError # Assert messages are enabled by default

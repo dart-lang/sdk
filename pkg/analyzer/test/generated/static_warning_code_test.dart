@@ -1526,6 +1526,53 @@ class B implements A {
     verify([source]);
   }
 
+  test_functionWithoutCall_mixin_implements() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class B extends Object with A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_direct_typeAlias() async {
+    Source source = addSource(r'''
+class M {}
+class A = Object with M implements Function;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_indirect_extends_typeAlias() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class M {}
+class B = A with M;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_indirect_implements_typeAlias() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class M {}
+class B = Object with M implements A;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_mixin_implements_typeAlias() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class B = Object with A;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
   test_importDuplicatedLibraryNamed() async {
     Source source = addSource(r'''
 library test;

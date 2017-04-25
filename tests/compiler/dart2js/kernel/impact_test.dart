@@ -15,7 +15,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/kernel/element_adapter.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -693,14 +693,15 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
-    KernelElementAdapter kernelElementAdapter =
-        new KernelWorldBuilder(compiler.reporter, backend.kernelTask.program);
+    KernelToElementMap kernelElementMap =
+        new KernelToElementMap(compiler.reporter);
+    kernelElementMap.addProgram(backend.kernelTask.program);
 
-    checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
+    checkLibrary(compiler, kernelElementMap, compiler.mainApp,
         fullTest: fullTest);
     compiler.libraryLoader.libraries.forEach((LibraryElement library) {
       if (library == compiler.mainApp) return;
-      checkLibrary(compiler, kernelElementAdapter, library, fullTest: fullTest);
+      checkLibrary(compiler, kernelElementMap, library, fullTest: fullTest);
     });
   });
 }
@@ -858,7 +859,8 @@ ResolutionImpact laxImpact(
 
 /// Visitor the performers unaliasing of all typedefs nested within a
 /// [ResolutionDartType].
-class Unaliaser extends BaseDartTypeVisitor<dynamic, ResolutionDartType> {
+class Unaliaser
+    extends BaseResolutionDartTypeVisitor<dynamic, ResolutionDartType> {
   const Unaliaser();
 
   @override

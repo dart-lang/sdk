@@ -18,7 +18,7 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 ///     then the "classes" module manages the association between the
 ///     instantiated class and the original class declaration
 ///     and the type arguments with which it was instantiated.  This
-///     assocation can be queried via the "classes" module".
+///     association can be queried via the "classes" module".
 ///
 ///   - All other types are represented as instances of class TypeRep,
 ///     defined in this module.
