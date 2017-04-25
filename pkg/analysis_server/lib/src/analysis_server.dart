@@ -374,6 +374,12 @@ class AnalysisServer {
   Function onNoAnalysisResult;
 
   /**
+   * This exists as a temporary stopgap for plugins, until the official plugin
+   * API is complete.
+   */
+  Function onNoAnalysisCompletion;
+
+  /**
    * The set of the files that are currently priority.
    */
   final Set<String> priorityFiles = new Set<String>();
