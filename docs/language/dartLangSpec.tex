@@ -3221,7 +3221,7 @@ Evaluation of a throw expression of the form  \code{\THROW{} $e$;} proceeds as f
 The expression $e$ is evaluated to a value $v$ (\ref{evaluation}).
 
 \commentary{
-There is no requirement that the expression $e$ evaluate to any special kind of object.
+There is no requirement that the expression $e$ evaluates to any special kind of object.
 }
 
 \LMHash{}
@@ -4084,7 +4084,7 @@ Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not 
 \item
 $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
 \item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
-\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
+\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issued if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
 }
 \end{itemize}
 
@@ -4755,7 +4755,7 @@ then the type of $v$ is known to be $T$ in $e_2$.
  \label{ifNull}
 
  \LMHash{}
- An {\em if-null expression}evaluates an expression and if the result is \NULL, evaluates another.
+ An {\em if-null expression} evaluates an expression and if the result is \NULL, evaluates another.
 
 \begin{grammar}
 {\bf ifNullExpression:}
