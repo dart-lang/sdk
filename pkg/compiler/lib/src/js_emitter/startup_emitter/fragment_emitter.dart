@@ -653,33 +653,23 @@ class FragmentEmitter {
       return js.js('function #() { }', name);
     }
 
-    var statements = <js.Statement>[];
-    var parameters = <js.Name>[];
-    var thisRef;
-
-    // If there are many references to `this`, cache it in a local.
-    if (cls.fields.length + (cls.hasRtiField ? 1 : 0) >= 4) {
-      statements.add(js.js.statement('var _ = this;'));
-      thisRef = js.js('_');
-    } else {
-      thisRef = js.js('this');
-    }
-
-    for (Field field in cls.fields) {
-      js.Name paramName = field.name;
-      parameters.add(paramName);
-      statements
-          .add(js.js.statement('#.# = #', [thisRef, field.name, paramName]));
-    }
-
+    List<js.Name> fieldNames =
+        cls.fields.map((Field field) => field.name).toList();
     if (cls.hasRtiField) {
-      js.Name paramName = namer.rtiFieldJsName;
-      parameters.add(paramName);
-      statements.add(js.js
-          .statement('#.# = #', [thisRef, namer.rtiFieldJsName, paramName]));
+      fieldNames.add(namer.rtiFieldJsName);
     }
 
-    return js.js('function #(#) { # }', [name, parameters, statements]);
+    Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
+      return js.js("this.#field = #field", {"field": field});
+    });
+
+    // TODO(sra): Cache 'this' in a one-character local for 4 or more uses of
+    // 'this'. i.e. "var _=this;_.a=a;_.b=b;..."
+
+    // TODO(sra): Separate field and field initializer parameter names so the
+    // latter may be fully minified.
+
+    return js.js('function #(#) { # }', [name, fieldNames, assignments]);
   }
 
   /// Emits the prototype-section of the fragment.
