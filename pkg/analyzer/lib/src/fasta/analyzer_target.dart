@@ -6,11 +6,12 @@ library fasta.analyzer_target;
 
 import 'package:kernel/ast.dart' show Library, Source;
 
-import '../kernel/kernel_target.dart' show KernelTarget;
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
 
-import '../translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 
-import '../dill/dill_target.dart' show DillTarget;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'analyzer_loader.dart' show AnalyzerLoader;
 

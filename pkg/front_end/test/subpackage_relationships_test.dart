@@ -35,8 +35,7 @@ final subpackageRules = {
   'lib/src/base': new SubpackageRules(
       mayImportAnalyzer: true, allowedDependencies: ['lib']),
   'lib/src/codegen': new SubpackageRules(),
-  'lib/src/fasta':
-      new SubpackageRules(mayImportAnalyzer: false, allowedDependencies: [
+  'lib/src/fasta': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
@@ -45,14 +44,6 @@ final subpackageRules = {
     'lib/src/fasta/testing',
     'lib/src/fasta/util',
     'lib/src/scanner',
-  ]),
-  'lib/src/fasta/analyzer':
-      new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
-    'lib/src/fasta',
-    'lib/src/fasta/builder',
-    'lib/src/fasta/dill',
-    'lib/src/fasta/kernel',
-    'lib/src/fasta/source',
   ]),
   'lib/src/fasta/builder': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
@@ -99,13 +90,10 @@ final subpackageRules = {
     'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
   ]),
-  'lib/src/fasta/testing':
-      new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+  'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
     'lib/src/base',
-    'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
-    'lib/src/fasta/analyzer',
     'lib/src/fasta/scanner',
   ]),
   'lib/src/fasta/type_inference': new SubpackageRules(allowedDependencies: [

@@ -6,13 +6,16 @@ library fasta.analyzer_loader;
 
 import 'package:kernel/ast.dart' show Program;
 
-import '../builder/builder.dart' show LibraryBuilder;
+import 'package:front_end/src/fasta/builder/builder.dart' show LibraryBuilder;
 
-import '../target_implementation.dart' show TargetImplementation;
+import 'package:front_end/src/fasta/target_implementation.dart'
+    show TargetImplementation;
 
-import '../source/source_class_builder.dart' show SourceClassBuilder;
+import 'package:front_end/src/fasta/source/source_class_builder.dart'
+    show SourceClassBuilder;
 
-import '../source/source_loader.dart' show SourceLoader;
+import 'package:front_end/src/fasta/source/source_loader.dart'
+    show SourceLoader;
 
 import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
 

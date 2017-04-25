@@ -6,17 +6,20 @@ library fasta.analyzer_diet_listener;
 
 import 'package:kernel/ast.dart' show AsyncMarker;
 
-import '../source/stack_listener.dart' show StackListener;
+import 'package:front_end/src/fasta/source/stack_listener.dart'
+    show StackListener;
 
-import '../builder/builder.dart';
+import 'package:front_end/src/fasta/builder/builder.dart';
 
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
 
-import '../source/diet_listener.dart' show DietListener;
+import 'package:front_end/src/fasta/source/diet_listener.dart'
+    show DietListener;
 
-import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
+import 'element_store.dart' show ElementStore;
 
-import 'package:analyzer/src/fasta/ast_builder.dart' show AstBuilder;
+import 'ast_builder.dart' show AstBuilder;
 
 class AnalyzerDietListener extends DietListener {
   final ElementStore elementStore;
