@@ -9,8 +9,7 @@ import '../common/backend_api.dart'
     show ForeignResolver, NativeRegistry, ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart'
-    show Frontend, Resolution, ResolutionImpact, Target;
+import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -446,9 +445,6 @@ class JavaScriptBackend {
 
   BackendImpacts impacts;
 
-  /// Backend access to the front-end.
-  final JSFrontendAccess frontend;
-
   Target _target;
 
   Tracer tracer;
@@ -489,7 +485,6 @@ class JavaScriptBackend {
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
             useNewSourceInfo: useNewSourceInfo),
-        frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
     _target = new JavaScriptBackendTarget(this);
@@ -1348,19 +1343,6 @@ class JavaScriptBackend {
   }
 
   EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
-}
-
-class JSFrontendAccess implements Frontend {
-  final Compiler compiler;
-
-  JSFrontendAccess(this.compiler);
-
-  Resolution get resolution => compiler.resolution;
-
-  @override
-  ResolutionImpact getResolutionImpact(Element element) {
-    return resolution.getResolutionImpact(element);
-  }
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {
