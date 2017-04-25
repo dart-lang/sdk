@@ -913,7 +913,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
       }
       if (!is_kernel) {
         free(const_cast<uint8_t*>(platform_file));
-        delete reinterpret_cast<kernel::Program*>(kernel_platform);
+        delete reinterpret_cast<dart::kernel::Program*>(kernel_platform);
         return NULL;
       }
     } else if (!isolate_run_app_snapshot) {
