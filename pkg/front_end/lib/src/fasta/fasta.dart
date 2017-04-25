@@ -13,7 +13,7 @@ import 'dart:io' show BytesBuilder, Directory, File, exitCode;
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;
 
-import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/kernel.dart' show Program, Library;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 

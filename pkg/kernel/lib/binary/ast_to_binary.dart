@@ -1038,7 +1038,7 @@ class LibraryFilteringBinaryPrinter extends BinaryPrinter {
     writeStringTable(_stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
-    writeList(program.libraries.where(predicate), writeNode);
+    writeList(program.libraries.where(predicate).toList(), writeNode);
     writeMemberReference(program.mainMethod, allowNull: true);
     _flush();
   }
