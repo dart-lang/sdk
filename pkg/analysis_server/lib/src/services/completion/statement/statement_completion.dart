@@ -177,14 +177,9 @@ class StatementCompletionProcessor {
     if (newNode is Block) {
       Block blockNode = newNode;
       if (blockNode.statements.isNotEmpty) {
-        node = blockNode.statements[blockNode.statements.length - 1];
+        node = blockNode.statements.last;
       } else {
-        newNode = node.getAncestor((n) => n is CatchClause);
-        if (newNode != null) {
-          node = newNode.parent;
-        } else {
-          node = node.getAncestor((n) => n is Statement).parent;
-        }
+        node = newNode;
       }
     } else {
       node = newNode;
@@ -648,6 +643,17 @@ class StatementCompletionProcessor {
       // See https://github.com/dart-lang/sdk/issues/29391
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
+    } else {
+      SwitchMember member = _findInvalidElement(switchNode.members);
+      if (member != null) {
+        if (member.colon.isSynthetic) {
+          int loc =
+              member is SwitchCase ? member.expression.end : member.keyword.end;
+          sb = new SourceBuilder(file, loc);
+          sb.append(': ');
+          exitPosition = new Position(file, loc + 2);
+        }
+      }
     }
     _insertBuilder(sb);
     _setCompletion(DartStatementCompletion.COMPLETE_SWITCH_STMT);
@@ -677,7 +683,8 @@ class StatementCompletionProcessor {
       _appendEmptyBraces(sb, true);
       _insertBuilder(sb);
       sb = null;
-    } else if ((catchNode = _findInvalidCatch(tryNode.catchClauses)) != null) {
+    } else if ((catchNode = _findInvalidElement(tryNode.catchClauses)) !=
+        null) {
       if (catchNode.onKeyword != null) {
         if (catchNode.exceptionType.length == 0) {
           String src = utils.getNodeText(catchNode);
@@ -771,7 +778,7 @@ class StatementCompletionProcessor {
     return null;
   }
 
-  CatchClause _findInvalidCatch(NodeList<CatchClause> list) {
+  T _findInvalidElement<T extends AstNode>(NodeList<T> list) {
     return list.firstWhere(
         (catchClause) =>
             selectionOffset >= catchClause.offset &&
