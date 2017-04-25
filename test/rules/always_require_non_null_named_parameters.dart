@@ -40,14 +40,6 @@ class A {
     assert(b != null);
   }
 
-  A.c({
-    @required a, // OK
-    b, // LINT
-    @required c, // OK
-  })
-      : assert(a != null),
-        assert(b != null);
-
   m1({
     @required a, // OK
     b, // LINT
