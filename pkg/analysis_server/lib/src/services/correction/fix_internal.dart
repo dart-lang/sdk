@@ -391,6 +391,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
       }
+      if (errorCode.name == LintNames.unnecessary_lambdas) {
+        _addFix_replaceWithTearOff();
+      }
     }
     // done
     return fixes;
@@ -1924,6 +1927,39 @@ class FixProcessor {
     _addFix(DartFixKind.REPLACE_WITH_LITERAL, []);
   }
 
+  void _addFix_replaceWithTearOff() {
+    FunctionExpression ancestor =
+        node.getAncestor((a) => a is FunctionExpression);
+    if (ancestor == null) {
+      return;
+    }
+    void addFixOfExpression(InvocationExpression expression) {
+      final buffer = new StringBuffer();
+      if (expression is MethodInvocation && expression.target != null) {
+        buffer.write(utils.getNodeText(expression.target));
+        buffer.write('.');
+      }
+      buffer.write(utils.getNodeText(expression.function));
+      _addReplaceEdit(rf.rangeNode(ancestor), buffer.toString());
+      _addFix(DartFixKind.REPLACE_WITH_TEAR_OFF, []);
+    }
+
+    final body = ancestor.body;
+    if (body is ExpressionFunctionBody) {
+      final expression = body.expression;
+      addFixOfExpression(expression.unParenthesized);
+    } else if (body is BlockFunctionBody) {
+      final statement = body.block.statements.first;
+      if (statement is ExpressionStatement) {
+        final expression = statement.expression;
+        addFixOfExpression(expression.unParenthesized);
+      } else if (statement is ReturnStatement) {
+        final expression = statement.expression;
+        addFixOfExpression(expression.unParenthesized);
+      }
+    }
+  }
+
   void _addFix_undefinedClass_useSimilar() {
     AstNode node = this.node;
     // Prepare the optional import prefix name.
@@ -3074,6 +3110,7 @@ class LintNames {
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
+  static const String unnecessary_lambdas = 'unnecessary_lambdas';
 }
 
 /**

@@ -111,7 +111,8 @@ bool hasFix(ErrorCode errorCode) =>
         (errorCode.name == LintNames.annotate_overrides ||
             errorCode.name == LintNames.avoid_init_to_null ||
             errorCode.name == LintNames.prefer_collection_literals ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp));
+            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.unnecessary_lambdas));
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -229,6 +230,8 @@ class DartFixKind {
       'REPLACE_WITH_NULL_AWARE',
       50,
       "Replace the '.' with a '?.' in the invocation");
+  static const REPLACE_WITH_TEAR_OFF = const FixKind(
+      'REPLACE_WITH_TEAR_OFF', 50, "Replace function literal with tear-off");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION',
