@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/parser/token_stream_rewriter.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show TokenType;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -121,7 +121,7 @@ abstract class TokenStreamRewriterTest {
   }
 
   BeginGroupToken _makeBeginGroupToken(int charOffset) {
-    return new BeginGroupToken(OPEN_PAREN_INFO, charOffset);
+    return new BeginGroupToken(TokenType.OPEN_PAREN, charOffset);
   }
 
   StringToken _makeToken(int charOffset, String text) {

@@ -24,8 +24,6 @@ import '../fasta_codes.dart'
 import '../scanner.dart'
     show BeginGroupToken, Token, unicodeReplacementCharacter;
 
-import 'precedence.dart' show BAD_INPUT_INFO;
-
 ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
   if (character < 0x1f) {
     return new AsciiControlCharacterToken(character, charOffset);
@@ -71,7 +69,7 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 abstract class ErrorToken extends Token {
   ErrorToken(int charOffset) : super(charOffset);
 
-  TokenType get info => BAD_INPUT_INFO;
+  TokenType get info => TokenType.BAD_INPUT;
 
   String get lexeme => throw assertionMessage;
 

@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType, Parser;
-import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, CommentToken, Token;
@@ -1917,12 +1916,13 @@ class AstBuilder extends ScopeListener {
   Token injectGenericCommentTypeAssign(Token token) {
     // TODO(paulberry,scheglov,ahe): figure out how to share these generic
     // comment methods with BodyBuilder.
-    return _injectGenericComment(token, GENERIC_METHOD_TYPE_ASSIGN, 3);
+    return _injectGenericComment(
+        token, TokenType.GENERIC_METHOD_TYPE_ASSIGN, 3);
   }
 
   @override
   Token injectGenericCommentTypeList(Token token) {
-    return _injectGenericComment(token, GENERIC_METHOD_TYPE_LIST, 2);
+    return _injectGenericComment(token, TokenType.GENERIC_METHOD_TYPE_LIST, 2);
   }
 
   @override
@@ -1939,9 +1939,9 @@ class AstBuilder extends ScopeListener {
   }
 
   /// Check if the given [token] has a comment token with the given [info],
-  /// which should be either [GENERIC_METHOD_TYPE_ASSIGN] or
-  /// [GENERIC_METHOD_TYPE_LIST].  If found, parse the comment into tokens and
-  /// inject into the token stream before the [token].
+  /// which should be either [TokenType.GENERIC_METHOD_TYPE_ASSIGN] or
+  /// [TokenType.GENERIC_METHOD_TYPE_LIST].  If found, parse the comment
+  /// into tokens and inject into the token stream before the [token].
   Token _injectGenericComment(Token token, TokenType info, int prefixLen) {
     if (parseGenericMethodComments) {
       CommentToken t = token.precedingCommentTokens;
@@ -1965,7 +1965,7 @@ class AstBuilder extends ScopeListener {
   void _injectTokenList(Token beforeToken, Token firstToken) {
     // Scanner creates a cyclic EOF token.
     Token lastToken = firstToken;
-    while (lastToken.next.info != EOF_INFO) {
+    while (lastToken.next.info != TokenType.EOF) {
       lastToken = lastToken.next;
     }
     // Inject these new tokens into the stream.

@@ -68,20 +68,6 @@ import '../../scanner/token.dart'
         RELATIONAL_PRECEDENCE,
         TokenType;
 
-import '../scanner/precedence.dart'
-    show
-        AS_INFO,
-        GT_INFO,
-        IS_INFO,
-        MINUS_MINUS_INFO,
-        OPEN_PAREN_INFO,
-        OPEN_SQUARE_BRACKET_INFO,
-        PERIOD_INFO,
-        PLUS_PLUS_INFO,
-        QUESTION_INFO,
-        QUESTION_PERIOD_INFO,
-        SCRIPT_INFO;
-
 import '../scanner/token.dart'
     show
         BeginGroupToken,
@@ -307,7 +293,7 @@ class Parser {
   }
 
   Token _parseTopLevelDeclaration(Token token) {
-    if (identical(token.info, SCRIPT_INFO)) {
+    if (identical(token.info, TokenType.SCRIPT_TAG)) {
       return parseScript(token);
     }
     token = parseMetadataStar(token);
@@ -897,7 +883,7 @@ class Parser {
     // [token] is '>>' of which the final '>' that we are parsing is the first
     // character. In order to keep the parsing process on track we must return
     // a synthetic '>' corresponding to the second character of that '>>'.
-    Token syntheticToken = new SymbolToken(GT_INFO, token.charOffset + 1);
+    Token syntheticToken = new SymbolToken(TokenType.GT, token.charOffset + 1);
     syntheticToken.next = token.next;
     return syntheticToken;
   }
@@ -1209,8 +1195,8 @@ class Parser {
       } while (optional(',', token));
       Token next = token.next;
       if (identical(token.stringValue, '>>')) {
-        token = new SymbolToken(GT_INFO, token.charOffset);
-        token.next = new SymbolToken(GT_INFO, token.charOffset + 1);
+        token = new SymbolToken(TokenType.GT, token.charOffset);
+        token.next = new SymbolToken(TokenType.GT, token.charOffset + 1);
         token.next.next = next;
       }
       endStuff(count, begin, token);
@@ -2745,8 +2731,8 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
-          if (identical(info, PERIOD_INFO) ||
-              identical(info, QUESTION_PERIOD_INFO)) {
+          if (identical(info, TokenType.PERIOD) ||
+              identical(info, TokenType.QUESTION_PERIOD)) {
             // Left associative, so we recurse at the next higher precedence
             // level. However, POSTFIX_PRECEDENCE is the highest level, so we
             // should just call [parseUnaryExpression] directly. However, a
@@ -2755,21 +2741,21 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.handleBinaryExpression(operator);
-          } else if ((identical(info, OPEN_PAREN_INFO)) ||
-              (identical(info, OPEN_SQUARE_BRACKET_INFO))) {
+          } else if ((identical(info, TokenType.OPEN_PAREN)) ||
+              (identical(info, TokenType.OPEN_SQUARE_BRACKET))) {
             token = parseArgumentOrIndexStar(token);
-          } else if ((identical(info, PLUS_PLUS_INFO)) ||
-              (identical(info, MINUS_MINUS_INFO))) {
+          } else if ((identical(info, TokenType.PLUS_PLUS)) ||
+              (identical(info, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
             token = reportUnexpectedToken(token).next;
           }
-        } else if (identical(info, IS_INFO)) {
+        } else if (identical(info, TokenType.IS)) {
           token = parseIsOperatorRest(token);
-        } else if (identical(info, AS_INFO)) {
+        } else if (identical(info, TokenType.AS)) {
           token = parseAsOperatorRest(token);
-        } else if (identical(info, QUESTION_INFO)) {
+        } else if (identical(info, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token);
         } else {
           // Left associative, so we recurse at the next higher

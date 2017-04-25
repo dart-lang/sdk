@@ -9,9 +9,8 @@
 import 'dart:collection';
 
 import 'package:front_end/src/base/syntactic_entity.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart';
+import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/scanner/string_utilities.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 
 const int NO_PRECEDENCE = 0;
 const int ASSIGNMENT_PRECEDENCE = 1;
@@ -171,7 +170,7 @@ class Keyword {
   static const Keyword ABSTRACT = const Keyword("abstract", isBuiltIn: true);
 
   static const Keyword AS =
-      const Keyword("as", info: fasta.AS_INFO, isBuiltIn: true);
+      const Keyword("as", info: TokenType.AS, isBuiltIn: true);
 
   static const Keyword ASSERT = const Keyword("assert");
 
@@ -236,7 +235,7 @@ class Keyword {
 
   static const Keyword IN = const Keyword("in");
 
-  static const Keyword IS = const Keyword("is", info: fasta.IS_INFO);
+  static const Keyword IS = const Keyword("is", info: TokenType.IS);
 
   static const Keyword LIBRARY = const Keyword("library", isBuiltIn: true);
 
@@ -388,7 +387,7 @@ class Keyword {
   const Keyword(this.syntax,
       {this.isBuiltIn: false,
       this.isPseudo: false,
-      this.info: fasta.KEYWORD_INFO});
+      this.info: TokenType.KEYWORD});
 
   bool get isBuiltInOrPseudo => isBuiltIn || isPseudo;
 
@@ -1005,160 +1004,311 @@ class TokenType {
   /**
    * The type of the token that marks the start or end of the input.
    */
-  static const TokenType EOF = fasta.EOF_INFO;
+  static const TokenType EOF =
+      const TokenType('', 'EOF', NO_PRECEDENCE, EOF_TOKEN);
 
-  static const TokenType DOUBLE = fasta.DOUBLE_INFO;
+  static const TokenType DOUBLE =
+      const TokenType('double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN);
 
-  static const TokenType HEXADECIMAL = fasta.HEXADECIMAL_INFO;
+  static const TokenType HEXADECIMAL = const TokenType(
+      'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN);
 
-  static const TokenType IDENTIFIER = fasta.IDENTIFIER_INFO;
+  static const TokenType IDENTIFIER = const TokenType(
+      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN);
 
-  static const TokenType INT = fasta.INT_INFO;
+  static const TokenType INT =
+      const TokenType('int', 'INT', NO_PRECEDENCE, INT_TOKEN);
 
-  static const TokenType KEYWORD = fasta.KEYWORD_INFO;
+  static const TokenType KEYWORD =
+      const TokenType('keyword', 'KEYWORD', NO_PRECEDENCE, KEYWORD_TOKEN);
 
-  static const TokenType MULTI_LINE_COMMENT = fasta.MULTI_LINE_COMMENT_INFO;
+  static const TokenType MULTI_LINE_COMMENT = const TokenType(
+      'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
 
-  static const TokenType SCRIPT_TAG = fasta.SCRIPT_INFO;
+  static const TokenType SCRIPT_TAG =
+      const TokenType('script', 'SCRIPT_TAG', NO_PRECEDENCE, SCRIPT_TOKEN);
 
-  static const TokenType SINGLE_LINE_COMMENT = fasta.SINGLE_LINE_COMMENT_INFO;
+  static const TokenType SINGLE_LINE_COMMENT = const TokenType(
+      'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
 
-  static const TokenType STRING = fasta.STRING_INFO;
+  static const TokenType STRING =
+      const TokenType('string', 'STRING', NO_PRECEDENCE, STRING_TOKEN);
 
-  static const TokenType AMPERSAND = fasta.AMPERSAND_INFO;
+  static const TokenType AMPERSAND = const TokenType(
+      '&', 'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType AMPERSAND_AMPERSAND = fasta.AMPERSAND_AMPERSAND_INFO;
+  static const TokenType AMPERSAND_AMPERSAND = const TokenType('&&',
+      'AMPERSAND_AMPERSAND', LOGICAL_AND_PRECEDENCE, AMPERSAND_AMPERSAND_TOKEN,
+      isOperator: true);
 
+  // This is not yet part of the language and not supported by fasta
   static const TokenType AMPERSAND_AMPERSAND_EQ =
       const TokenType('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
 
-  static const TokenType AMPERSAND_EQ = fasta.AMPERSAND_EQ_INFO;
+  static const TokenType AMPERSAND_EQ = const TokenType(
+      '&=', 'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType AT = fasta.AT_INFO;
+  static const TokenType AT =
+      const TokenType('@', 'AT', NO_PRECEDENCE, AT_TOKEN);
 
-  static const TokenType BANG = fasta.BANG_INFO;
+  static const TokenType BANG = const TokenType(
+      '!', 'BANG', PREFIX_PRECEDENCE, BANG_TOKEN,
+      isOperator: true);
 
-  static const TokenType BANG_EQ = fasta.BANG_EQ_INFO;
+  static const TokenType BANG_EQ = const TokenType(
+      '!=', 'BANG_EQ', EQUALITY_PRECEDENCE, BANG_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType BAR = fasta.BAR_INFO;
+  static const TokenType BANG_EQ_EQ = const TokenType(
+      '!==', 'BANG_EQ_EQ', EQUALITY_PRECEDENCE, BANG_EQ_EQ_TOKEN);
 
-  static const TokenType BAR_BAR = fasta.BAR_BAR_INFO;
+  static const TokenType BAR = const TokenType(
+      '|', 'BAR', BITWISE_OR_PRECEDENCE, BAR_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
+  static const TokenType BAR_BAR = const TokenType(
+      '||', 'BAR_BAR', LOGICAL_OR_PRECEDENCE, BAR_BAR_TOKEN,
+      isOperator: true);
+
+  // This is not yet part of the language and not supported by fasta
   static const TokenType BAR_BAR_EQ =
       const TokenType('||=', 'BAR_BAR_EQ', 1, -1);
 
-  static const TokenType BAR_EQ = fasta.BAR_EQ_INFO;
+  static const TokenType BAR_EQ = const TokenType(
+      '|=', 'BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType COLON = fasta.COLON_INFO;
+  static const TokenType COLON =
+      const TokenType(':', 'COLON', NO_PRECEDENCE, COLON_TOKEN);
 
-  static const TokenType COMMA = fasta.COMMA_INFO;
+  static const TokenType COMMA =
+      const TokenType(',', 'COMMA', NO_PRECEDENCE, COMMA_TOKEN);
 
-  static const TokenType CARET = fasta.CARET_INFO;
+  static const TokenType CARET = const TokenType(
+      '^', 'CARET', BITWISE_XOR_PRECEDENCE, CARET_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType CARET_EQ = fasta.CARET_EQ_INFO;
+  static const TokenType CARET_EQ = const TokenType(
+      '^=', 'CARET_EQ', ASSIGNMENT_PRECEDENCE, CARET_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType CLOSE_CURLY_BRACKET = fasta.CLOSE_CURLY_BRACKET_INFO;
+  static const TokenType CLOSE_CURLY_BRACKET = const TokenType(
+      '}', 'CLOSE_CURLY_BRACKET', NO_PRECEDENCE, CLOSE_CURLY_BRACKET_TOKEN);
 
-  static const TokenType CLOSE_PAREN = fasta.CLOSE_PAREN_INFO;
+  static const TokenType CLOSE_PAREN =
+      const TokenType(')', 'CLOSE_PAREN', NO_PRECEDENCE, CLOSE_PAREN_TOKEN);
 
-  static const TokenType CLOSE_SQUARE_BRACKET = fasta.CLOSE_SQUARE_BRACKET_INFO;
+  static const TokenType CLOSE_SQUARE_BRACKET = const TokenType(
+      ']', 'CLOSE_SQUARE_BRACKET', NO_PRECEDENCE, CLOSE_SQUARE_BRACKET_TOKEN);
 
-  static const TokenType EQ = fasta.EQ_INFO;
+  static const TokenType EQ = const TokenType(
+      '=', 'EQ', ASSIGNMENT_PRECEDENCE, EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType EQ_EQ = fasta.EQ_EQ_INFO;
+  static const TokenType EQ_EQ = const TokenType(
+      '==', 'EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType FUNCTION = fasta.FUNCTION_INFO;
+  static const TokenType EQ_EQ_EQ =
+      const TokenType('===', 'EQ_EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_EQ_TOKEN);
 
-  static const TokenType GT = fasta.GT_INFO;
+  static const TokenType FUNCTION =
+      const TokenType('=>', 'FUNCTION', NO_PRECEDENCE, FUNCTION_TOKEN);
 
-  static const TokenType GT_EQ = fasta.GT_EQ_INFO;
+  static const TokenType GT = const TokenType(
+      '>', 'GT', RELATIONAL_PRECEDENCE, GT_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType GT_GT = fasta.GT_GT_INFO;
+  static const TokenType GT_EQ = const TokenType(
+      '>=', 'GT_EQ', RELATIONAL_PRECEDENCE, GT_EQ_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType GT_GT_EQ = fasta.GT_GT_EQ_INFO;
+  static const TokenType GT_GT = const TokenType(
+      '>>', 'GT_GT', SHIFT_PRECEDENCE, GT_GT_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType HASH = fasta.HASH_INFO;
+  static const TokenType GT_GT_EQ = const TokenType(
+      '>>=', 'GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType INDEX = fasta.INDEX_INFO;
+  static const TokenType HASH =
+      const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 
-  static const TokenType INDEX_EQ = fasta.INDEX_EQ_INFO;
+  static const TokenType INDEX = const TokenType(
+      '[]', 'INDEX', NO_PRECEDENCE, INDEX_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType LT = fasta.LT_INFO;
+  static const TokenType INDEX_EQ = const TokenType(
+      '[]=', 'INDEX_EQ', NO_PRECEDENCE, INDEX_EQ_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType LT_EQ = fasta.LT_EQ_INFO;
+  static const TokenType LT = const TokenType(
+      '<', 'LT', RELATIONAL_PRECEDENCE, LT_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType LT_LT = fasta.LT_LT_INFO;
+  static const TokenType LT_EQ = const TokenType(
+      '<=', 'LT_EQ', RELATIONAL_PRECEDENCE, LT_EQ_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType LT_LT_EQ = fasta.LT_LT_EQ_INFO;
+  static const TokenType LT_LT = const TokenType(
+      '<<', 'LT_LT', SHIFT_PRECEDENCE, LT_LT_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType MINUS = fasta.MINUS_INFO;
+  static const TokenType LT_LT_EQ = const TokenType(
+      '<<=', 'LT_LT_EQ', ASSIGNMENT_PRECEDENCE, LT_LT_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType MINUS_EQ = fasta.MINUS_EQ_INFO;
+  static const TokenType MINUS = const TokenType(
+      '-', 'MINUS', ADDITIVE_PRECEDENCE, MINUS_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType MINUS_MINUS = fasta.MINUS_MINUS_INFO;
+  static const TokenType MINUS_EQ = const TokenType(
+      '-=', 'MINUS_EQ', ASSIGNMENT_PRECEDENCE, MINUS_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType OPEN_CURLY_BRACKET = fasta.OPEN_CURLY_BRACKET_INFO;
+  static const TokenType MINUS_MINUS = const TokenType(
+      '--', 'MINUS_MINUS', POSTFIX_PRECEDENCE, MINUS_MINUS_TOKEN,
+      isOperator: true);
 
-  static const TokenType OPEN_PAREN = fasta.OPEN_PAREN_INFO;
+  static const TokenType OPEN_CURLY_BRACKET = const TokenType(
+      '{', 'OPEN_CURLY_BRACKET', NO_PRECEDENCE, OPEN_CURLY_BRACKET_TOKEN);
 
-  static const TokenType OPEN_SQUARE_BRACKET = fasta.OPEN_SQUARE_BRACKET_INFO;
+  static const TokenType OPEN_PAREN =
+      const TokenType('(', 'OPEN_PAREN', POSTFIX_PRECEDENCE, OPEN_PAREN_TOKEN);
 
-  static const TokenType PERCENT = fasta.PERCENT_INFO;
+  static const TokenType OPEN_SQUARE_BRACKET = const TokenType('[',
+      'OPEN_SQUARE_BRACKET', POSTFIX_PRECEDENCE, OPEN_SQUARE_BRACKET_TOKEN);
 
-  static const TokenType PERCENT_EQ = fasta.PERCENT_EQ_INFO;
+  static const TokenType PERCENT = const TokenType(
+      '%', 'PERCENT', MULTIPLICATIVE_PRECEDENCE, PERCENT_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType PERIOD = fasta.PERIOD_INFO;
+  static const TokenType PERCENT_EQ = const TokenType(
+      '%=', 'PERCENT_EQ', ASSIGNMENT_PRECEDENCE, PERCENT_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType PERIOD_PERIOD = fasta.PERIOD_PERIOD_INFO;
+  static const TokenType PERIOD =
+      const TokenType('.', 'PERIOD', POSTFIX_PRECEDENCE, PERIOD_TOKEN);
 
-  static const TokenType PLUS = fasta.PLUS_INFO;
+  static const TokenType PERIOD_PERIOD = const TokenType(
+      '..', 'PERIOD_PERIOD', CASCADE_PRECEDENCE, PERIOD_PERIOD_TOKEN,
+      isOperator: true);
 
-  static const TokenType PLUS_EQ = fasta.PLUS_EQ_INFO;
+  static const TokenType PLUS = const TokenType(
+      '+', 'PLUS', ADDITIVE_PRECEDENCE, PLUS_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType PLUS_PLUS = fasta.PLUS_PLUS_INFO;
+  static const TokenType PLUS_EQ = const TokenType(
+      '+=', 'PLUS_EQ', ASSIGNMENT_PRECEDENCE, PLUS_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType QUESTION = fasta.QUESTION_INFO;
+  static const TokenType PLUS_PLUS = const TokenType(
+      '++', 'PLUS_PLUS', POSTFIX_PRECEDENCE, PLUS_PLUS_TOKEN,
+      isOperator: true);
 
-  static const TokenType QUESTION_PERIOD = fasta.QUESTION_PERIOD_INFO;
+  static const TokenType QUESTION = const TokenType(
+      '?', 'QUESTION', CONDITIONAL_PRECEDENCE, QUESTION_TOKEN,
+      isOperator: true);
 
-  static const TokenType QUESTION_QUESTION = fasta.QUESTION_QUESTION_INFO;
+  static const TokenType QUESTION_PERIOD = const TokenType(
+      '?.', 'QUESTION_PERIOD', POSTFIX_PRECEDENCE, QUESTION_PERIOD_TOKEN,
+      isOperator: true);
 
-  static const TokenType QUESTION_QUESTION_EQ = fasta.QUESTION_QUESTION_EQ_INFO;
+  static const TokenType QUESTION_QUESTION = const TokenType(
+      '??', 'QUESTION_QUESTION', IF_NULL_PRECEDENCE, QUESTION_QUESTION_TOKEN,
+      isOperator: true);
 
-  static const TokenType SEMICOLON = fasta.SEMICOLON_INFO;
+  static const TokenType QUESTION_QUESTION_EQ = const TokenType('??=',
+      'QUESTION_QUESTION_EQ', ASSIGNMENT_PRECEDENCE, QUESTION_QUESTION_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType SLASH = fasta.SLASH_INFO;
+  static const TokenType SEMICOLON =
+      const TokenType(';', 'SEMICOLON', NO_PRECEDENCE, SEMICOLON_TOKEN);
 
-  static const TokenType SLASH_EQ = fasta.SLASH_EQ_INFO;
+  static const TokenType SLASH = const TokenType(
+      '/', 'SLASH', MULTIPLICATIVE_PRECEDENCE, SLASH_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType STAR = fasta.STAR_INFO;
+  static const TokenType SLASH_EQ = const TokenType(
+      '/=', 'SLASH_EQ', ASSIGNMENT_PRECEDENCE, SLASH_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType STAR_EQ = fasta.STAR_EQ_INFO;
+  static const TokenType STAR = const TokenType(
+      '*', 'STAR', MULTIPLICATIVE_PRECEDENCE, STAR_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType STRING_INTERPOLATION_EXPRESSION =
-      fasta.STRING_INTERPOLATION_INFO;
+  static const TokenType STAR_EQ = const TokenType(
+      '*=', 'STAR_EQ', ASSIGNMENT_PRECEDENCE, STAR_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType STRING_INTERPOLATION_IDENTIFIER =
-      fasta.STRING_INTERPOLATION_IDENTIFIER_INFO;
+  static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType(
+      '\${',
+      'STRING_INTERPOLATION_EXPRESSION',
+      NO_PRECEDENCE,
+      STRING_INTERPOLATION_TOKEN);
 
-  static const TokenType TILDE = fasta.TILDE_INFO;
+  static const TokenType STRING_INTERPOLATION_IDENTIFIER = const TokenType(
+      '\$',
+      'STRING_INTERPOLATION_IDENTIFIER',
+      NO_PRECEDENCE,
+      STRING_INTERPOLATION_IDENTIFIER_TOKEN);
 
-  static const TokenType TILDE_SLASH = fasta.TILDE_SLASH_INFO;
+  static const TokenType TILDE = const TokenType(
+      '~', 'TILDE', PREFIX_PRECEDENCE, TILDE_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType TILDE_SLASH_EQ = fasta.TILDE_SLASH_EQ_INFO;
+  static const TokenType TILDE_SLASH = const TokenType(
+      '~/', 'TILDE_SLASH', MULTIPLICATIVE_PRECEDENCE, TILDE_SLASH_TOKEN,
+      isOperator: true, isUserDefinableOperator: true);
 
-  static const TokenType BACKPING = fasta.BACKPING_INFO;
+  static const TokenType TILDE_SLASH_EQ = const TokenType(
+      '~/=', 'TILDE_SLASH_EQ', ASSIGNMENT_PRECEDENCE, TILDE_SLASH_EQ_TOKEN,
+      isOperator: true);
 
-  static const TokenType BACKSLASH = fasta.BACKSLASH_INFO;
+  static const TokenType BACKPING =
+      const TokenType('`', 'BACKPING', NO_PRECEDENCE, BACKPING_TOKEN);
 
-  static const TokenType PERIOD_PERIOD_PERIOD = fasta.PERIOD_PERIOD_PERIOD_INFO;
+  static const TokenType BACKSLASH =
+      const TokenType('\\', 'BACKSLASH', NO_PRECEDENCE, BACKSLASH_TOKEN);
 
-  static const TokenType GENERIC_METHOD_TYPE_LIST =
-      fasta.GENERIC_METHOD_TYPE_LIST;
+  static const TokenType PERIOD_PERIOD_PERIOD = const TokenType(
+      '...', 'PERIOD_PERIOD_PERIOD', NO_PRECEDENCE, PERIOD_PERIOD_PERIOD_TOKEN);
 
-  static const TokenType GENERIC_METHOD_TYPE_ASSIGN =
-      fasta.GENERIC_METHOD_TYPE_ASSIGN;
+  static const TokenType GENERIC_METHOD_TYPE_LIST = const TokenType(
+      'generic_comment_list',
+      'GENERIC_METHOD_TYPE_LIST',
+      NO_PRECEDENCE,
+      GENERIC_METHOD_TYPE_LIST_TOKEN);
 
+  static const TokenType GENERIC_METHOD_TYPE_ASSIGN = const TokenType(
+      'generic_comment_assign',
+      'GENERIC_METHOD_TYPE_ASSIGN',
+      NO_PRECEDENCE,
+      GENERIC_METHOD_TYPE_ASSIGN_TOKEN);
+
+  static const TokenType AS =
+      const TokenType('as', 'AS', RELATIONAL_PRECEDENCE, KEYWORD_TOKEN);
+
+  static const TokenType IS =
+      const TokenType('is', 'IS', RELATIONAL_PRECEDENCE, KEYWORD_TOKEN);
+
+  /**
+   * Token type used by error tokens.
+   */
+  static const TokenType BAD_INPUT = const TokenType(
+      'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN);
+
+  /**
+   * Token type used by synthetic tokens that are created during parser
+   * recovery (non-analyzer use case).
+   */
+  static const TokenType RECOVERY =
+      const TokenType('recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN);
+
+  // TODO(danrubel): "all" is misleading
+  // because this list does not include all TokenType instances.
   static const List<TokenType> all = const <TokenType>[
     TokenType.EOF,
     TokenType.DOUBLE,
@@ -1233,9 +1383,21 @@ class TokenType {
     TokenType.GENERIC_METHOD_TYPE_LIST,
     TokenType.GENERIC_METHOD_TYPE_ASSIGN,
 
+    // TODO(danrubel): Should these be added to the "all" list?
+    //TokenType.IS,
+    //TokenType.AS,
+
     // These are not yet part of the language and not supported by fasta
     //TokenType.AMPERSAND_AMPERSAND_EQ,
     //TokenType.BAR_BAR_EQ,
+
+    // Supported by fasta but not part of the language
+    //TokenType.BANG_EQ_EQ,
+    //TokenType.EQ_EQ_EQ,
+
+    // Used by synthetic tokens generated during recovery
+    //TokenType.BAD_INPUT,
+    //TokenType.RECOVERY,
   ];
 
   final int kind;
@@ -1294,24 +1456,25 @@ class TokenType {
    * is conditional.
    */
   bool get isAssociativeOperator =>
-      this == AMPERSAND_INFO ||
-      this == AMPERSAND_AMPERSAND_INFO ||
-      this == BAR_INFO ||
-      this == BAR_BAR_INFO ||
-      this == CARET_INFO ||
-      this == PLUS_INFO ||
-      this == STAR_INFO;
+      this == TokenType.AMPERSAND ||
+      this == TokenType.AMPERSAND_AMPERSAND ||
+      this == TokenType.BAR ||
+      this == TokenType.BAR_BAR ||
+      this == TokenType.CARET ||
+      this == TokenType.PLUS ||
+      this == TokenType.STAR;
 
   /**
    * Return `true` if this type of token represents an equality operator.
    */
-  bool get isEqualityOperator => this == BANG_EQ_INFO || this == EQ_EQ_INFO;
+  bool get isEqualityOperator =>
+      this == TokenType.BANG_EQ || this == TokenType.EQ_EQ;
 
   /**
    * Return `true` if this type of token represents an increment operator.
    */
   bool get isIncrementOperator =>
-      this == PLUS_PLUS_INFO || this == MINUS_MINUS_INFO;
+      this == TokenType.PLUS_PLUS || this == TokenType.MINUS_MINUS;
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.
@@ -1322,10 +1485,10 @@ class TokenType {
    * Return `true` if this type of token represents a relational operator.
    */
   bool get isRelationalOperator =>
-      this == LT_INFO ||
-      this == LT_EQ_INFO ||
-      this == GT_INFO ||
-      this == GT_EQ_INFO;
+      this == TokenType.LT ||
+      this == TokenType.LT_EQ ||
+      this == TokenType.GT ||
+      this == TokenType.GT_EQ;
 
   /**
    * Return `true` if this type of token represents a shift operator.
@@ -1342,8 +1505,8 @@ class TokenType {
    */
   bool get isUnaryPrefixOperator =>
       precedence == PREFIX_PRECEDENCE ||
-      this == PLUS_PLUS_INFO ||
-      this == MINUS_MINUS_INFO;
+      this == TokenType.PLUS_PLUS ||
+      this == TokenType.MINUS_MINUS;
 
   @override
   String toString() => name;
