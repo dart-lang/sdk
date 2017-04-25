@@ -5986,6 +5986,94 @@ var x;
 ''');
   }
 
+  test_removeThisExpression_methodInvocation_oneCharacterOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_methodInvocation_twoCharactersOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this?.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_oneCharacterOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_twoCharactersOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this?.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
   test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() async {
     String src = '''
 import 'dart:collection';
