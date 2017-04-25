@@ -932,13 +932,18 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   if (is_main_isolate && (snapshot_deps_filename != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
-  Dart_Isolate isolate =
-      kernel_platform != NULL
-          ? Dart_CreateIsolateFromKernel(script_uri, main, kernel_platform,
-                                         flags, isolate_data, error)
-          : Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
-                               isolate_snapshot_instructions, flags,
-                               isolate_data, error);
+  Dart_Isolate isolate = NULL;
+  if (kernel_platform != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_platform,
+                                           flags, isolate_data, error);
+  } else if (kernel_program != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_program,
+                                           flags, isolate_data, error);
+  } else {
+    isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
+                                 isolate_snapshot_instructions, flags,
+                                 isolate_data, error);
+  }
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -1024,7 +1029,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     Dart_Handle uri =
         DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     CHECK_RESULT(uri);
-    if (kernel_platform == NULL) {
+    if (kernel_program == NULL) {
       result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
       CHECK_RESULT(result);
     } else {

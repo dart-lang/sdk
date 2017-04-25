@@ -156,8 +156,22 @@ Object& KernelReader::ReadProgram() {
     }
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+      // There is a function _getMainClosure in dart:_builtin that returns the
+      // main procedure.  Since the platform libraries are compiled before the
+      // program script, this function might need to be patched here.
+
+      // If there is no main method then we have compiled a partial Kernel file
+      // and do not need to patch here.
       CanonicalName* main = program_->main_method();
       if (main == NULL) {
+        return dart::Library::Handle(Z);
+      }
+
+      // If the builtin library is not set in the object store, then we are
+      // bootstrapping and do not need to patch here.
+      dart::Library& builtin_library =
+          dart::Library::Handle(Z, I->object_store()->builtin_library());
+      if (builtin_library.IsNull()) {
         return dart::Library::Handle(Z);
       }
 
@@ -168,23 +182,22 @@ Object& KernelReader::ReadProgram() {
           Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
       ASSERT(!main_obj.IsNull());
 
-      // There is a function _getMainClosure in dart:_builtin that returns the
-      // main procedure.  Since the platform libraries are compiled before the
-      // program script, this function is patched here.
-      //
-      // TODO(kmillikin): we are leaking the function body.  Find a way to
-      // deallocate it.
-      dart::Library& builtin_library =
-          dart::Library::Handle(Z, I->object_store()->builtin_library());
       Function& to_patch = Function::Handle(
           Z, builtin_library.LookupFunctionAllowPrivate(
                  dart::String::Handle(dart::String::New("_getMainClosure"))));
 
-      // We will handle the StaticGet specially and will not use the name.
       Procedure* procedure =
           reinterpret_cast<Procedure*>(to_patch.kernel_function());
-      procedure->function()->set_body(new ReturnStatement(new StaticGet(NULL)));
-
+      // If dart:_builtin was not compiled from Kernel at all or if it was
+      // linked with a script, it does not need to be patched.
+      if ((procedure != NULL) && (procedure->function()->body() == NULL)) {
+        // We will handle the StaticGet specially and will not use the name.
+        //
+        // TODO(kmillikin): we are leaking the function body.  Find a way to
+        // deallocate it.
+        procedure->function()->set_body(
+            new ReturnStatement(new StaticGet(NULL)));
+      }
       return library;
     }
   }
