@@ -7211,6 +7211,7 @@ LayoutTests/fast/dom/custom/unresolved-pseudoclass_t01: RuntimeError # Please tr
 LayoutTests/fast/dom/custom/upgrade-candidate-remove-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/delete-contents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/document-set-title-mutations_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dom-parse-serialize-display_t01: RuntimeError # Please triage this failure
