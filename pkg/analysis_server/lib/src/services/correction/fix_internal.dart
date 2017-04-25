@@ -22,7 +22,6 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart'
     as rf;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -394,6 +393,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.unnecessary_lambdas) {
         _addFix_replaceWithTearOff();
       }
+      if (errorCode.name == LintNames.unnecessary_this) {
+        _addFix_removeThisExpression();
+      }
     }
     // done
     return fixes;
@@ -686,8 +688,8 @@ class FixProcessor {
           _addInsertEdit,
           _addRemoveEdit,
           _addReplaceEdit,
-          rangeStartLength,
-          rangeNode);
+          rf.rangeStartLength,
+          rf.rangeNode);
       _addFix(DartFixKind.CONVERT_FLUTTER_CHILD, []);
       return;
     }
@@ -1841,6 +1843,20 @@ class FixProcessor {
         _addRemoveEdit(rf.rangeEndEnd(node, invocation));
         _addFix(DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION, []);
       }
+    }
+  }
+
+  void _addFix_removeThisExpression() {
+    final thisExpression = node is ThisExpression
+        ? node
+        : node.getAncestor((node) => node is ThisExpression);
+    final parent = thisExpression.parent;
+    if (parent is PropertyAccess) {
+      _addRemoveEdit(rf.rangeStartEnd(parent.offset, parent.operator.end));
+      _addFix(DartFixKind.REMOVE_THIS_EXPRESSION, []);
+    } else if (parent is MethodInvocation) {
+      _addRemoveEdit(rf.rangeStartEnd(parent.offset, parent.operator.end));
+      _addFix(DartFixKind.REMOVE_THIS_EXPRESSION, []);
     }
   }
 
@@ -3111,6 +3127,7 @@ class LintNames {
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
+  static const String unnecessary_this = 'unnecessary_this';
 }
 
 /**
