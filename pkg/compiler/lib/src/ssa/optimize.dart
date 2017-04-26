@@ -1623,6 +1623,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       instruction = previous;
     }
     block.forEachPhi(simplifyPhi);
+    evacuateTakenBranch(block);
   }
 
   void simplifyPhi(HPhi phi) {
@@ -1700,6 +1701,30 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
     // TODO(sra): Implement fuller test.
     return null;
+  }
+
+  /// If [block] is an always-taken branch, move the code from the taken branch
+  /// into [block]. This has the effect of making the instructions available for
+  /// further optimizations by moving them to a position that dominates the join
+  /// point of the if-then-else.
+  // TODO(29475): Delete dead blocks instead.
+  void evacuateTakenBranch(HBasicBlock block) {
+    if (!block.isLive) return;
+    HControlFlow branch = block.last;
+    if (branch is HIf) {
+      if (branch.thenBlock.isLive == branch.elseBlock.isLive) return;
+      assert(branch.condition.isConstant());
+      HBasicBlock target =
+          branch.thenBlock.isLive ? branch.thenBlock : branch.elseBlock;
+      HInstruction instruction = target.first;
+      while (!instruction.isControlFlow()) {
+        HInstruction next = instruction.next;
+        if (instruction is HTypeKnown && instruction.isPinned) break;
+        instruction.block.detach(instruction);
+        block.moveAtExit(instruction);
+        instruction = next;
+      }
+    }
   }
 
   void cleanPhis() {
