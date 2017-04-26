@@ -3501,8 +3501,11 @@ If $T$ is a deferred type with prefix $p$, then if $p$ has not been successfully
 Then, if $q$ is a non-factory constructor of an abstract class then an \code{AbstractClassInstantiationError} is thrown.
 
 \LMHash{}
-If $T$  is malformed or if $T$ is a type variable a dynamic error occurs. In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs.
-Otherwise, if $q$ is not defined or not accessible, a \code{NoSuchMethodError} is thrown.  If $q$ has fewer than $n$ positional parameters or more than $n$ required parameters, or if $q$ lacks any of the keyword parameters $\{ x_{n+1}, \ldots, x_{n+k}\}$ a \code{NoSuchMethodError} is thrown.
+If $T$ is malformed or if $T$ is a type variable a dynamic error occurs.
+In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs.
+Otherwise, if $q$ is not defined or not accessible, a \code{NoSuchMethodError} is thrown.
+If $q$ has fewer than $n$ positional parameters or more than $n$ required parameters,
+or if $q$ lacks any of the named parameters $\{ x_{n+1}, \ldots, x_{n+k}\}$ a \code{NoSuchMethodError} is thrown.
 
 \LMHash{}
 Otherwise, if $q$ is a generative constructor (\ref{generativeConstructors}), then:
