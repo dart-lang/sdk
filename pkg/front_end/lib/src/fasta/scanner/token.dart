@@ -332,9 +332,9 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
 
   TokenType get info => keyword.info;
 
-  String get lexeme => keyword.syntax;
+  String get lexeme => keyword.lexeme;
 
-  String get stringValue => keyword.syntax;
+  String get stringValue => keyword.lexeme;
 
   bool isIdentifier() => keyword.isPseudo || keyword.isBuiltIn;
 

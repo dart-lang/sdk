@@ -301,7 +301,7 @@ class ElementListener extends Listener {
     if (name.token is KeywordToken) {
       Keyword keyword = (name.token as KeywordToken).keyword;
       if (!keyword.isPseudo) {
-        recoverableError(name, "Illegal name '${keyword.syntax}'.");
+        recoverableError(name, "Illegal name '${keyword.lexeme}'.");
       }
     }
   }

@@ -2426,7 +2426,7 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
    * with this element. The single instance of this class should be accessed
    * through the method [instance].
    */
-  DynamicElementImpl() : super(Keyword.DYNAMIC.syntax, -1) {
+  DynamicElementImpl() : super(Keyword.DYNAMIC.lexeme, -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
 

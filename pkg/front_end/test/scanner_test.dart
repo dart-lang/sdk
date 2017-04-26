@@ -90,7 +90,7 @@ class KeywordStateTest {
     int keywordCount = keywords.length;
     List<String> textToTest = new List<String>(keywordCount * 3);
     for (int i = 0; i < keywordCount; i++) {
-      String syntax = keywords[i].syntax;
+      String syntax = keywords[i].lexeme;
       textToTest[i] = syntax;
       textToTest[i + keywordCount] = "${syntax}x";
       textToTest[i + keywordCount * 2] = syntax.substring(0, syntax.length - 1);
@@ -180,7 +180,7 @@ abstract class ScannerTestBase {
 
   void test_async_star() {
     Token token = _scan("async*");
-    expect(token.type, TokenType.KEYWORD);
+    expect(token.type.isKeyword, true);
     expect(token.lexeme, 'async');
     expect(token.next.type, TokenType.STAR);
     expect(token.next.next.type, TokenType.EOF);
@@ -1168,7 +1168,7 @@ abstract class ScannerTestBase {
 
   void test_sync_star() {
     Token token = _scan("sync*");
-    expect(token.type, TokenType.KEYWORD);
+    expect(token.type.isKeyword, true);
     expect(token.lexeme, 'sync');
     expect(token.next.type, TokenType.STAR);
     expect(token.next.next.type, TokenType.EOF);
@@ -1270,22 +1270,22 @@ abstract class ScannerTestBase {
   void _assertKeywordToken(String source) {
     Token token = _scan(source);
     expect(token, isNotNull);
-    expect(token.type, TokenType.KEYWORD);
+    expect(token.type.isKeyword, true);
     expect(token.offset, 0);
     expect(token.length, source.length);
     expect(token.lexeme, source);
     Object value = token.value();
     expect(value is Keyword, isTrue);
-    expect((value as Keyword).syntax, source);
+    expect((value as Keyword).lexeme, source);
     token = _scan(" $source ");
     expect(token, isNotNull);
-    expect(token.type, TokenType.KEYWORD);
+    expect(token.type.isKeyword, true);
     expect(token.offset, 1);
     expect(token.length, source.length);
     expect(token.lexeme, source);
     value = token.value();
     expect(value is Keyword, isTrue);
-    expect((value as Keyword).syntax, source);
+    expect((value as Keyword).lexeme, source);
     expect(token.next.type, TokenType.EOF);
   }
 

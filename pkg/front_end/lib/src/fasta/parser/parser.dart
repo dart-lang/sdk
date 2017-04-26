@@ -805,7 +805,7 @@ class Parser {
     if (identical(kind, IDENTIFIER_TOKEN)) return true;
     if (identical(kind, KEYWORD_TOKEN)) {
       Keyword keyword = (token as KeywordToken).keyword;
-      String value = keyword.syntax;
+      String value = keyword.lexeme;
       return keyword.isPseudo ||
           (identical(value, 'dynamic')) ||
           (identical(value, 'void'));

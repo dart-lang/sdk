@@ -379,12 +379,12 @@ class Keyword {
   /**
    * The lexeme for the keyword.
    */
-  final String syntax;
+  final String lexeme;
 
   /**
    * Initialize a newly created keyword.
    */
-  const Keyword(this.syntax,
+  const Keyword(this.lexeme,
       {this.isBuiltIn: false,
       this.isPseudo: false,
       this.info: TokenType.KEYWORD});
@@ -402,7 +402,15 @@ class Keyword {
   /**
    * The name of the keyword type.
    */
-  String get name => syntax.toUpperCase();
+  String get name => lexeme.toUpperCase();
+
+  /**
+   * The lexeme for the keyword.
+   *
+   * Deprecated - use [lexeme] instead.
+   */
+  @deprecated
+  String get syntax => lexeme;
 
   @override
   String toString() => name;
@@ -415,7 +423,7 @@ class Keyword {
     LinkedHashMap<String, Keyword> result =
         new LinkedHashMap<String, Keyword>();
     for (Keyword keyword in values) {
-      result[keyword.syntax] = keyword;
+      result[keyword.lexeme] = keyword;
     }
     return result;
   }
@@ -435,7 +443,7 @@ class KeywordToken extends SimpleToken {
   KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
 
   @override
-  String get lexeme => keyword.syntax;
+  String get lexeme => keyword.lexeme;
 
   @override
   Token copy() => new KeywordToken(keyword, offset);
@@ -1475,6 +1483,11 @@ class TokenType {
    */
   bool get isIncrementOperator =>
       this == TokenType.PLUS_PLUS || this == TokenType.MINUS_MINUS;
+
+  /**
+   * Return `true` if this type of token is a keyword.
+   */
+  bool get isKeyword => kind == KEYWORD_TOKEN;
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.

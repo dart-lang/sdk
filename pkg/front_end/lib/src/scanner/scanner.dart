@@ -107,7 +107,7 @@ class KeywordState {
     List<Keyword> values = Keyword.values;
     List<String> strings = new List<String>(values.length);
     for (int i = 0; i < values.length; i++) {
-      strings[i] = values[i].syntax;
+      strings[i] = values[i].lexeme;
     }
     strings.sort();
     return _computeKeywordStateTable(0, strings, 0, strings.length);

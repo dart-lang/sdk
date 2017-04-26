@@ -220,7 +220,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
+    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
     ['import', 'export', 'part'].forEach((s) {
       if (expectedCompletions.contains(s)) {
         expectedCompletions.remove(s);
@@ -251,11 +251,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     }
     for (CompletionSuggestion s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
-        if (s.completion.startsWith(Keyword.IMPORT.syntax)) {
+        if (s.completion.startsWith(Keyword.IMPORT.lexeme)) {
           int importRelevance = relevance;
           expect(s.relevance, equals(importRelevance), reason: s.completion);
         } else {
-          if (s.completion == Keyword.RETHROW.syntax) {
+          if (s.completion == Keyword.RETHROW.lexeme) {
             expect(s.relevance, equals(relevance - 1), reason: s.completion);
           } else {
             expect(s.relevance, equals(relevance), reason: s.completion);

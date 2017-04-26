@@ -279,6 +279,14 @@ Token fromAnalyzerToken(analyzer.Token token) {
   Token string(TokenType info) =>
       new StringToken.fromString(info, token.lexeme, token.offset);
   Token symbol(TokenType info) => new SymbolToken(info, token.offset);
+  if (token.type.isKeyword) {
+    var keyword = Keyword.keywords[token.lexeme];
+    if (keyword != null) {
+      return new KeywordToken(keyword, token.offset);
+    } else {
+      return internalError("Unrecognized keyword: '${token.lexeme}'.");
+    }
+  }
   switch (token.type) {
     case TokenType.DOUBLE:
       return string(TokenType.DOUBLE);
@@ -299,14 +307,6 @@ Token fromAnalyzerToken(analyzer.Token token) {
       break;
     case TokenType.INT:
       return string(TokenType.INT);
-    case TokenType.KEYWORD:
-      var keyword = Keyword.keywords[token.lexeme];
-      if (keyword != null) {
-        return new KeywordToken(keyword, token.offset);
-      } else {
-        return internalError("Unrecognized keyword: '${token.lexeme}'.");
-      }
-      break;
     case TokenType.MULTI_LINE_COMMENT:
       if (token.lexeme.startsWith('/**')) {
         return new DartDocToken.fromSubstring(TokenType.MULTI_LINE_COMMENT,
@@ -491,7 +491,7 @@ analyzer.Token toAnalyzerToken(Token token,
 
     case KEYWORD_TOKEN:
       KeywordToken keywordToken = token;
-      var syntax = keywordToken.keyword.syntax;
+      var syntax = keywordToken.keyword.lexeme;
       // TODO(paulberry): if the map lookup proves to be too slow, consider
       // using a switch statement, or perhaps a string of
       // "if (identical(syntax, "foo"))" checks.  (Note that identical checks
