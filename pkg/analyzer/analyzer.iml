@@ -32,7 +32,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/src/task/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/task/strong/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/util/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/test/stress/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/analysis_driver/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/summary/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/task_dependency_graph/packages" />

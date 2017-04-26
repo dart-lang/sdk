@@ -9,6 +9,8 @@
       <excludeFolder url="file://$MODULE_DIR$/test/fasta/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/fasta/parser/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/fasta/scanner/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fasta/testing/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fasta/type_inference/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/base/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
