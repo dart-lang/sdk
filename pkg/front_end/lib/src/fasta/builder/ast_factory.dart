@@ -41,9 +41,6 @@ abstract class AstFactory<V> {
   /// Creates an expression statement.
   ExpressionStatement expressionStatement(Expression expression);
 
-  /// Creates a field.
-  Field field(Name name, int charOffset, {String fileUri});
-
   /// Creates a function expression.
   FunctionExpression functionExpression(FunctionNode function, Token token);
 

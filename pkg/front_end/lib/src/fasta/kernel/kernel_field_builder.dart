@@ -8,6 +8,9 @@ import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show KernelField;
+
 import 'package:front_end/src/fasta/parser/parser.dart' show Parser;
 
 import 'package:front_end/src/fasta/scanner/token.dart' show Token;
@@ -46,8 +49,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       Builder compilationUnit,
       int charOffset,
       this.initializerToken)
-      : field = astFactory.field(null, charOffset,
-            fileUri: compilationUnit?.relativeFileUri),
+      : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
+          ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {

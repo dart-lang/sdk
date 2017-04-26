@@ -23,11 +23,6 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   }
 
   @override
-  Field field(Name name, int charOffset, {String fileUri}) {
-    return new KernelField(name, fileUri: fileUri)..fileOffset = charOffset;
-  }
-
-  @override
   FunctionExpression functionExpression(FunctionNode function, Token token) {
     return new KernelFunctionExpression(function)
       ..fileOffset = offsetForToken(token);
