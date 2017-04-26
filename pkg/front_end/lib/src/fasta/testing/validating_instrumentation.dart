@@ -52,7 +52,7 @@ class ValidatingInstrumentation implements Instrumentation {
   /// form suitable for printing to the console.
   ///
   /// Should be called after [finish].
-  get problemsAsString => _problems.join('\n');
+  String get problemsAsString => _problems.join('\n');
 
   /// Checks whether the property/value pairs passed to [record] match the
   /// expectations loaded by [loadExpectations].
@@ -77,8 +77,8 @@ class ValidatingInstrumentation implements Instrumentation {
   Future<Null> fixSource(Uri uri) async {
     var fixes = _fixes[uri];
     if (fixes == null) return;
-    var bytes =
-        (await readBytesFromFile(uri, ensureZeroTermination: false)).toList();
+    File file = new File.fromUri(uri);
+    var bytes = await file.readAsBytes();
     // Apply the fixes in reverse order so that offsets don't need to be
     // adjusted after each fix.
     fixes.sort((a, b) => b.offset.compareTo(a.offset));
@@ -86,7 +86,7 @@ class ValidatingInstrumentation implements Instrumentation {
       bytes.replaceRange(
           fix.offset, fix.offset + fix.length, UTF8.encode(fix.replacement));
     }
-    await new File.fromUri(uri).writeAsBytes(bytes);
+    await file.writeAsBytes(bytes);
   }
 
   /// Loads expectations from the source file located at [uri].
