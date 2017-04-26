@@ -21,7 +21,8 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend.dart'
+    hide RuntimeTypesNeedBuilderImpl;
 import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
@@ -29,7 +30,8 @@ import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/js_backend/impact_transformer.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart';
-import 'package:compiler/src/js_backend/mirrors_analysis.dart';
+import 'package:compiler/src/js_backend/mirrors_analysis.dart'
+    hide MirrorsResolutionAnalysisImpl;
 import 'package:compiler/src/js_backend/mirrors_data.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
@@ -37,6 +39,7 @@ import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/native/enqueue.dart';
 import 'package:compiler/src/native/resolver.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -47,7 +50,7 @@ import '../serialization/helper.dart';
 import '../serialization/model_test_helper.dart';
 import '../serialization/test_helper.dart';
 
-import 'closed_world_test.dart';
+import 'closed_world_test.dart' hide KernelWorkItemBuilder;
 import 'impact_test.dart';
 
 const SOURCE = const {
@@ -162,9 +165,9 @@ List createKernelResolutionEnqueuerListener(
       new CustomElementsResolutionAnalysisImpl();
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis =
       new MirrorsResolutionAnalysisImpl();
+
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
       new LookupMapResolutionAnalysis(reporter, elementEnvironment);
-
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
           nativeBasicData, elementEnvironment, commonElements);
@@ -223,110 +226,6 @@ NativeBasicData computeNativeBasicData(KernelToElementMap elementMap) {
     }
   }
   return builder.close(elementEnvironment);
-}
-
-class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
-  @override
-  void registerClassUsingTypeVariableExpression(ClassEntity cls) {}
-
-  @override
-  RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
-      CommonElements commonElements,
-      BackendUsage backendUsage,
-      {bool enableTypeAssertions}) {
-    throw new UnimplementedError(
-        'RuntimeTypesNeedBuilderImpl.computeRuntimeTypesNeed');
-  }
-
-  @override
-  void registerRtiDependency(ClassEntity element, ClassEntity dependency) {}
-}
-
-class MirrorsDataBuilderImpl implements MirrorsDataBuilder {
-  @override
-  void registerUsedMember(MemberEntity member) {}
-
-  @override
-  void computeMembersNeededForReflection(
-      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {}
-
-  @override
-  void maybeMarkClosureAsNeededForReflection(
-      ClosureClassElement globalizedElement,
-      FunctionElement callFunction,
-      FunctionElement function) {}
-
-  @override
-  void registerConstSymbol(String name) {}
-
-  @override
-  void registerMirrorUsage(
-      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {}
-}
-
-class CustomElementsResolutionAnalysisImpl
-    implements CustomElementsResolutionAnalysis {
-  @override
-  CustomElementsAnalysisJoin get join {
-    throw new UnimplementedError('CustomElementsResolutionAnalysisImpl.join');
-  }
-
-  @override
-  WorldImpact flush() {
-    // TODO(johnniwinther): Implement this.
-    return const WorldImpact();
-  }
-
-  @override
-  void registerStaticUse(MemberEntity element) {}
-
-  @override
-  void registerInstantiatedClass(ClassEntity classElement) {}
-
-  @override
-  void registerTypeLiteral(DartType type) {}
-}
-
-class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
-  @override
-  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {}
-
-  @override
-  MirrorsCodegenAnalysis close() {
-    throw new UnimplementedError('MirrorsResolutionAnalysisImpl.close');
-  }
-
-  @override
-  void onResolutionComplete() {}
-}
-
-class KernelWorkItemBuilder implements WorkItemBuilder {
-  final KernelToElementMap _worldBuilder;
-  final ImpactTransformer _impactTransformer;
-
-  KernelWorkItemBuilder(this._worldBuilder, this._impactTransformer);
-
-  @override
-  WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(_worldBuilder, _impactTransformer, entity);
-  }
-}
-
-class KernelWorkItem implements ResolutionWorkItem {
-  final KernelToElementMap _worldBuilder;
-  final ImpactTransformer _impactTransformer;
-  final MemberEntity element;
-
-  KernelWorkItem(this._worldBuilder, this._impactTransformer, this.element);
-
-  @override
-  WorldImpact run() {
-    ResolutionImpact impact = _worldBuilder.computeWorldImpact(element);
-    return _impactTransformer.transformResolutionImpact(impact);
-  }
 }
 
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
