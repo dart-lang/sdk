@@ -12,8 +12,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
@@ -21,6 +23,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:watcher/watcher.dart' as watcher;
 
 /**
  * Information about a single plugin.
@@ -248,7 +251,7 @@ class PluginManager {
    * containing futures that will complete when each of the plugins have sent a
    * response.
    */
-  Map<PluginInfo, Future<Response>> broadcast(
+  Map<PluginInfo, Future<Response>> broadcastRequest(
       analyzer.ContextRoot contextRoot, RequestParams params) {
     List<PluginInfo> plugins = pluginsForContextRoot(contextRoot);
     Map<PluginInfo, Future<Response>> responseMap =
@@ -257,6 +260,38 @@ class PluginManager {
       responseMap[plugin] = plugin.currentSession?.sendRequest(params);
     }
     return responseMap;
+  }
+
+  /**
+   * Broadcast the given [watchEvent] to all of the plugins that are analyzing
+   * in contexts containing the file associated with the event. Return a list
+   * containing futures that will complete when each of the plugins have sent a
+   * response.
+   */
+  Future<List<Future<Response>>> broadcastWatchEvent(
+      watcher.WatchEvent watchEvent) async {
+    String filePath = watchEvent.path;
+
+    /**
+     * Return `true` if the given glob [pattern] matches the file being watched.
+     */
+    bool matches(String pattern) =>
+        new Glob(path.separator, pattern).matches(filePath);
+
+    WatchEvent event = null;
+    List<Future<Response>> responses = <Future<Response>>[];
+    for (PluginInfo plugin in _pluginMap.values) {
+      PluginSession session = plugin.currentSession;
+      if (session != null &&
+          path.isWithin(plugin.path, filePath) &&
+          session.interestingFiles.any(matches)) {
+        event ??= _convertWatchEvent(watchEvent);
+        AnalysisHandleWatchEventsParams params =
+            new AnalysisHandleWatchEventsParams([event]);
+        responses.add(session.sendRequest(params));
+      }
+    }
+    return responses;
   }
 
   /**
@@ -348,6 +383,23 @@ class PluginManager {
    */
   Future<List<Null>> stopAll() {
     return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
+  }
+
+  WatchEventType _convertChangeType(watcher.ChangeType type) {
+    switch (type) {
+      case watcher.ChangeType.ADD:
+        return WatchEventType.ADD;
+      case watcher.ChangeType.MODIFY:
+        return WatchEventType.MODIFY;
+      case watcher.ChangeType.REMOVE:
+        return WatchEventType.REMOVE;
+      default:
+        throw new StateError('Unknown change type: $type');
+    }
+  }
+
+  WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {
+    return new WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
   }
 
   /**
@@ -507,6 +559,14 @@ class PluginSession {
    * Handle the given [notification].
    */
   void handleNotification(Notification notification) {
+    if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
+      PluginErrorParams params =
+          new PluginErrorParams.fromNotification(notification);
+      if (params.isFatal) {
+        info.stop();
+        stop();
+      }
+    }
     info.notificationManager.handlePluginNotification(info.path, notification);
   }
 

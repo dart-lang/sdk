@@ -125,6 +125,16 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     _verifyOutlines(fileA, serverOutline1);
   }
 
+  void test_handlePluginNotification_pluginError() {
+    bool isFatal = false;
+    String message = 'message';
+    String stackTrace = 'stackTrace';
+    plugin.PluginErrorParams params =
+        new plugin.PluginErrorParams(isFatal, message, stackTrace);
+    manager.handlePluginNotification('a', params.toNotification());
+    _verifyPluginError(isFatal, message, stackTrace);
+  }
+
   void test_recordAnalysisErrors_noSubscription() {
     server.AnalysisError error = serverAnalysisError(0, 0, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error]);
@@ -470,6 +480,19 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.outline, equals(expectedOutline));
+    channel.sentNotification = null;
+  }
+
+  void _verifyPluginError(bool isFatal, String message, String stackTrace) {
+    server.Notification notification = channel.sentNotification;
+    expect(notification, isNotNull);
+    expect(notification.event, 'server.error');
+    server.ServerErrorParams params =
+        new server.ServerErrorParams.fromNotification(notification);
+    expect(params, isNotNull);
+    expect(params.isFatal, isFatal);
+    expect(params.message, message);
+    expect(params.stackTrace, stackTrace);
     channel.sentNotification = null;
   }
 }

@@ -155,8 +155,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       AnalysisDriver driver = server.getAnalysisDriver(file);
       plugin.EditGetAssistsParams requestParams =
           new plugin.EditGetAssistsParams(file, offset, length);
-      Map<PluginInfo, Future<plugin.Response>> pluginFutures =
-          server.pluginManager.broadcast(driver.contextRoot, requestParams);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
+          .pluginManager
+          .broadcastRequest(driver.contextRoot, requestParams);
       //
       // Compute fixes associated with server-generated errors.
       //
@@ -228,8 +229,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       AnalysisDriver driver = server.getAnalysisDriver(file);
       plugin.EditGetFixesParams requestParams =
           new plugin.EditGetFixesParams(file, offset);
-      Map<PluginInfo, Future<plugin.Response>> pluginFutures =
-          server.pluginManager.broadcast(driver.contextRoot, requestParams);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
+          .pluginManager
+          .broadcastRequest(driver.contextRoot, requestParams);
       //
       // Compute fixes associated with server-generated errors.
       //

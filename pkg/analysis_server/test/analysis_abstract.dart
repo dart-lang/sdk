@@ -27,6 +27,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
+import 'package:watcher/watcher.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -308,9 +309,15 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Map<PluginInfo, Future<plugin.Response>> broadcast(
+  Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
       analyzer.ContextRoot contextRoot, plugin.RequestParams params) {
     return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
+  }
+
+  @override
+  Future<List<Future<plugin.Response>>> broadcastWatchEvent(
+      WatchEvent watchEvent) async {
+    return <Future<plugin.Response>>[];
   }
 
   @override

@@ -69,6 +69,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
+import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
@@ -2103,6 +2104,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyFileRemoved(nd.AnalysisDriver driver, String file) {
     driver.removeFile(file);
     sendAnalysisNotificationFlushResults(analysisServer, [file]);
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 
   @override

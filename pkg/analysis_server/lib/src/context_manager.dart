@@ -386,6 +386,11 @@ abstract class ContextManagerCallbacks {
   void applyFileRemoved(AnalysisDriver driver, String file);
 
   /**
+   * Sent the given watch [event] to any interested plugins.
+   */
+  void broadcastWatchEvent(WatchEvent event);
+
+  /**
    * Signals that the context manager has started to compute a package map (if
    * [computing] is `true`) or has finished (if [computing] is `false`).
    */
@@ -1395,7 +1400,10 @@ class ContextManagerImpl implements ContextManager {
     // but implicitly referenced in another context, we will only send a
     // changeSet to the context that explicitly includes the file (because
     // that's the only context that's watching the file).
-    ContextInfo info = _getInnermostContextInfoFor(event.path);
+    callbacks.broadcastWatchEvent(event);
+    String path = event.path;
+    ChangeType type = event.type;
+    ContextInfo info = _getInnermostContextInfoFor(path);
     if (info == null) {
       // This event doesn't apply to any context.  This could happen due to a
       // race condition (e.g. a context was removed while one of its events was
@@ -1403,8 +1411,7 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
     _instrumentationService.logWatchEvent(
-        info.folder.path, event.path, event.type.toString());
-    String path = event.path;
+        info.folder.path, path, type.toString());
     // First handle changes that affect folderDisposition (since these need to
     // be processed regardless of whether they are part of an excluded/ignored
     // path).
@@ -1426,7 +1433,7 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
     // handle the change
-    switch (event.type) {
+    switch (type) {
       case ChangeType.ADD:
         Resource resource = resourceProvider.getResource(path);
 
@@ -1543,7 +1550,7 @@ class ContextManagerImpl implements ContextManager {
         break;
     }
     _checkForPackagespecUpdate(path, info, info.folder);
-    _checkForAnalysisOptionsUpdate(path, info, event.type);
+    _checkForAnalysisOptionsUpdate(path, info, type);
   }
 
   /**
