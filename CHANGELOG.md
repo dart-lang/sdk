@@ -21,6 +21,11 @@
       transformer.
     * Allow publishing packages that depend on the Flutter SDK.
 
+* dartfmt
+    * Preserve type parameters in new generic function typedef syntax.
+    * Add self-test validation to ensure formatter bugs do not cause user code
+      to be lost.
+
 ## 1.23.0
 
 #### Strong Mode
