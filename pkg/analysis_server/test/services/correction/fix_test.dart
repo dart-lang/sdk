@@ -5986,6 +5986,71 @@ var x;
 ''');
   }
 
+  test_removeMethodDeclaration_getter() async {
+    String src = '''
+class A {
+  int x;
+}
+class B extends A {
+  @override
+  int get /*LINT*/x => super.x;
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+  int x;
+}
+class B extends A {
+}
+''');
+  }
+
+  test_removeMethodDeclaration_method() async {
+    String src = '''
+class A {
+  @override
+  String /*LINT*/toString() => super.toString();
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+}
+''');
+  }
+
+  test_removeMethodDeclaration_setter() async {
+    String src = '''
+class A {
+  int x;
+}
+class B extends A {
+  @override
+  set /*LINT*/x(int other) {
+    this.x = other;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+  int x;
+}
+class B extends A {
+}
+''');
+  }
+
   test_removeThisExpression_methodInvocation_oneCharacterOperator() async {
     String src = '''
 class A {

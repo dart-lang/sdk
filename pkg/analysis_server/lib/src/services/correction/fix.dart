@@ -201,6 +201,8 @@ class DartFixKind {
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
   static const REMOVE_INITIALIZER =
       const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
+  static const REMOVE_METHOD_DECLARATION = const FixKind(
+      'REMOVE_METHOD_DECLARATION', 50, 'Remove method declaration');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,

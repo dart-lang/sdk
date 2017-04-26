@@ -393,6 +393,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.unnecessary_lambdas) {
         _addFix_replaceWithTearOff();
       }
+      if (errorCode.name == LintNames.unnecessary_override) {
+        _addFix_removeMethodDeclaration();
+      }
       if (errorCode.name == LintNames.unnecessary_this) {
         _addFix_removeThisExpression();
       }
@@ -1824,6 +1827,15 @@ class FixProcessor {
     _addFix(DartFixKind.REMOVE_INITIALIZER, []);
   }
 
+  void _addFix_removeMethodDeclaration() {
+    MethodDeclaration declaration =
+        node.getAncestor((node) => node is MethodDeclaration);
+    if (declaration != null) {
+      _addRemoveEdit(utils.getLinesRange(rf.rangeNode(declaration)));
+      _addFix(DartFixKind.REMOVE_METHOD_DECLARATION, []);
+    }
+  }
+
   void _addFix_removeParameters_inGetterDeclaration() {
     if (node is MethodDeclaration) {
       MethodDeclaration method = node as MethodDeclaration;
@@ -3127,6 +3139,7 @@ class LintNames {
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
+  static const String unnecessary_override = 'unnecessary_override';
   static const String unnecessary_this = 'unnecessary_this';
 }
 
