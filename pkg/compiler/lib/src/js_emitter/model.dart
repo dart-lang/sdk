@@ -282,6 +282,8 @@ class Class implements FieldContainer {
 
   int get superclassHolderIndex =>
       (superclass == null) ? 0 : superclass.holder.index;
+
+  String toString() => 'Class(${element.name})';
 }
 
 class MixinApplication extends Class {

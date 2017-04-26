@@ -209,7 +209,9 @@ class ProgramBuilder {
     _classes.forEach((ClassElement element, Class c) {
       if (element.superclass != null) {
         c.setSuperclass(_classes[element.superclass]);
-        assert(c.superclass != null);
+        assert(invariant(element, c.superclass != null,
+            message: "No Class for has been created for superclass "
+                "${element.superclass} of $c."));
       }
       if (c is MixinApplication) {
         c.setMixinClass(_classes[computeMixinClass(element)]);
