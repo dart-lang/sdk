@@ -11,6 +11,11 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
  * protocol and the server protocol.
  */
 class RequestConverter {
+  plugin.AnalysisReanalyzeParams convertAnalysisReanalyzeParams(
+      server.AnalysisReanalyzeParams params) {
+    return new plugin.AnalysisReanalyzeParams(roots: params.roots);
+  }
+
   plugin.AnalysisService convertAnalysisService(
       server.AnalysisService service) {
     return new plugin.AnalysisService(service.name);

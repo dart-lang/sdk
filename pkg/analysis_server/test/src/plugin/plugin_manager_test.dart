@@ -128,7 +128,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  test_broadcast_many() async {
+  test_broadcastRequest_many() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -143,9 +143,33 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
                 Map<PluginInfo, Future<Response>> responses =
                     manager.broadcastRequest(
-                        contextRoot,
                         new CompletionGetSuggestionsParams(
-                            '/pkg1/lib/pkg1.dart', 100));
+                            '/pkg1/lib/pkg1.dart', 100),
+                        contextRoot: contextRoot);
+                expect(responses, hasLength(2));
+
+                await manager.stopAll();
+              });
+        });
+    pkg1Dir.deleteSync(recursive: true);
+  }
+
+  test_broadcastRequest_many_noContextRoot() async {
+    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    await withPlugin(
+        pluginName: 'plugin1',
+        test: (String plugin1Path) async {
+          await withPlugin(
+              pluginName: 'plugin2',
+              test: (String plugin2Path) async {
+                ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+                await manager.addPluginToContextRoot(contextRoot, plugin1Path);
+                await manager.addPluginToContextRoot(contextRoot, plugin2Path);
+
+                Map<PluginInfo, Future<Response>> responses =
+                    manager.broadcastRequest(new CompletionGetSuggestionsParams(
+                        '/pkg1/lib/pkg1.dart', 100));
                 expect(responses, hasLength(2));
 
                 await manager.stopAll();
@@ -253,8 +277,8 @@ class PluginManagerTest {
   void test_broadcastRequest_none() {
     ContextRoot contextRoot = new ContextRoot('/pkg1', []);
     Map<PluginInfo, Future<Response>> responses = manager.broadcastRequest(
-        contextRoot,
-        new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100));
+        new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
+        contextRoot: contextRoot);
     expect(responses, hasLength(0));
   }
 

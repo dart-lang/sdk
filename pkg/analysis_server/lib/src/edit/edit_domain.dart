@@ -157,7 +157,7 @@ class EditDomainHandler extends AbstractRequestHandler {
           new plugin.EditGetAssistsParams(file, offset, length);
       Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
           .pluginManager
-          .broadcastRequest(driver.contextRoot, requestParams);
+          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
       //
       // Compute fixes associated with server-generated errors.
       //
@@ -231,7 +231,7 @@ class EditDomainHandler extends AbstractRequestHandler {
           new plugin.EditGetFixesParams(file, offset);
       Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
           .pluginManager
-          .broadcastRequest(driver.contextRoot, requestParams);
+          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
       //
       // Compute fixes associated with server-generated errors.
       //

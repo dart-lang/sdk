@@ -275,6 +275,7 @@ class TestPluginManager implements PluginManager {
   plugin.AnalysisSetPriorityFilesParams analysisSetPriorityFilesParams;
   plugin.AnalysisSetSubscriptionsParams analysisSetSubscriptionsParams;
   plugin.AnalysisUpdateContentParams analysisUpdateContentParams;
+  plugin.RequestParams broadcastedRequest;
   Map<PluginInfo, Future<plugin.Response>> broadcastResults;
 
   @override
@@ -310,7 +311,9 @@ class TestPluginManager implements PluginManager {
 
   @override
   Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
-      analyzer.ContextRoot contextRoot, plugin.RequestParams params) {
+      plugin.RequestParams params,
+      {analyzer.ContextRoot contextRoot}) {
+    broadcastedRequest = params;
     return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
   }
 

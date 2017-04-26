@@ -291,6 +291,15 @@ class AnalysisDomainHandler implements RequestHandler {
       }
       server.reanalyze(rootResources);
     }
+    //
+    // Forward the request to the plugins.
+    //
+    RequestConverter converter = new RequestConverter();
+    server.pluginManager
+        .broadcastRequest(converter.convertAnalysisReanalyzeParams(params));
+    //
+    // Send the response.
+    //
     return new AnalysisReanalyzeResult().toResponse(request.id);
   }
 

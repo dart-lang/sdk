@@ -251,8 +251,8 @@ class PluginManager {
    * containing futures that will complete when each of the plugins have sent a
    * response.
    */
-  Map<PluginInfo, Future<Response>> broadcastRequest(
-      analyzer.ContextRoot contextRoot, RequestParams params) {
+  Map<PluginInfo, Future<Response>> broadcastRequest(RequestParams params,
+      {analyzer.ContextRoot contextRoot}) {
     List<PluginInfo> plugins = pluginsForContextRoot(contextRoot);
     Map<PluginInfo, Future<Response>> responseMap =
         <PluginInfo, Future<Response>>{};
@@ -300,6 +300,9 @@ class PluginManager {
    */
   @visibleForTesting
   List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
+    if (contextRoot == null) {
+      return _pluginMap.values.toList();
+    }
     List<PluginInfo> plugins = <PluginInfo>[];
     for (PluginInfo plugin in _pluginMap.values) {
       if (plugin.contextRoots.contains(contextRoot)) {
