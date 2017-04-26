@@ -236,7 +236,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   }
 }
 
-class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
+class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final Map<ClassElement, Set<ClassElement>> rtiDependencies =
       <ClassElement, Set<ClassElement>>{};

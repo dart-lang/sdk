@@ -28,7 +28,6 @@ import '../enqueue.dart'
         Enqueuer,
         EnqueueTask,
         ResolutionEnqueuer,
-        ResolutionWorkItemBuilder,
         TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
@@ -361,8 +360,7 @@ class JavaScriptBackend {
     return result;
   }
 
-  final RuntimeTypesNeedBuilder _rtiNeedBuilder =
-      new _RuntimeTypesNeedBuilder();
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   RuntimeTypesNeed _rtiNeed;
   final _RuntimeTypes _rti;
 
@@ -486,11 +484,12 @@ class JavaScriptBackend {
             useMultiSourceInfo: useMultiSourceInfo,
             useNewSourceInfo: useNewSourceInfo),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
-        _nativeDataResolver = new NativeDataResolverImpl(compiler) {
+        _nativeDataResolver = new NativeDataResolverImpl(compiler),
+        _rtiNeedBuilder =
+            compiler.frontEndStrategy.createRuntimeTypesNeedBuilder() {
     _target = new JavaScriptBackendTarget(this);
     impacts = new BackendImpacts(compiler.options, commonElements);
-    _mirrorsData = new MirrorsDataImpl(
-        compiler, compiler.options, commonElements, constants);
+    _mirrorsData = compiler.frontEndStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements);
     emitter =
@@ -500,12 +499,12 @@ class JavaScriptBackend {
         compiler.elementEnvironment, impacts, backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
-        new MirrorsResolutionAnalysisImpl(this, compiler.resolution);
+        compiler.frontEndStrategy.createMirrorsResolutionAnalysis(this);
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
-        commonElements, new NoSuchMethodResolverImpl());
+        commonElements, compiler.frontEndStrategy.createNoSuchMethodResolver());
     kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
@@ -831,15 +830,11 @@ class JavaScriptBackend {
         compiler.elementEnvironment,
         commonElements,
         backendUsageBuilder,
-        new NativeClassResolverImpl(
-            compiler.resolution, reporter, commonElements, nativeBasicData));
+        compiler.frontEndStrategy.createNativeClassResolver(nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
-    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        nativeBasicData,
-        backendUsageBuilder);
+    _customElementsResolutionAnalysis = compiler.frontEndStrategy
+        .createCustomElementsResolutionAnalysis(
+            nativeBasicData, backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
@@ -878,9 +873,10 @@ class JavaScriptBackend {
             _nativeResolutionEnqueuer,
             compiler.deferredLoadTask,
             kernelTask),
-        new ElementResolutionWorldBuilder(
-            this, compiler.resolution, const OpenWorldStrategy()),
-        new ResolutionWorkItemBuilder(compiler.resolution));
+        compiler.frontEndStrategy.createResolutionWorldBuilder(
+            nativeBasicData, const OpenWorldStrategy()),
+        compiler.frontEndStrategy
+            .createResolutionWorkItemBuilder(impactTransformer));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.

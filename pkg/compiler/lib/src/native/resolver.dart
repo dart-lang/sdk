@@ -7,7 +7,7 @@ import 'package:front_end/src/fasta/scanner.dart'
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../compiler.dart' show Compiler;
@@ -17,7 +17,6 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         FieldElement,
-        LibraryElement,
         MemberElement,
         MetadataAnnotation,
         MethodElement;
@@ -345,25 +344,25 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   bool get defaultResult => false;
 }
 
-/// Interface for computing all native classes in a set of libraries.
-abstract class NativeClassResolver {
+/// Determines all native classes in a set of libraries.
+abstract class NativeClassFinder {
+  /// Returns the set of all native classes declared in [libraries].
   Iterable<ClassEntity> computeNativeClasses(Iterable<LibraryEntity> libraries);
 }
 
-class NativeClassResolverImpl implements NativeClassResolver {
-  final DiagnosticReporter _reporter;
-  final Resolution _resolution;
+class BaseNativeClassFinder implements NativeClassFinder {
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final NativeBasicData _nativeBasicData;
 
-  Map<String, ClassElement> _tagOwner = new Map<String, ClassElement>();
+  Map<String, ClassEntity> _tagOwner = new Map<String, ClassEntity>();
 
-  NativeClassResolverImpl(this._resolution, this._reporter,
-      this._commonElements, this._nativeBasicData);
+  BaseNativeClassFinder(
+      this._elementEnvironment, this._commonElements, this._nativeBasicData);
 
-  Iterable<ClassElement> computeNativeClasses(
-      Iterable<LibraryElement> libraries) {
-    Set<ClassElement> nativeClasses = new Set<ClassElement>();
+  Iterable<ClassEntity> computeNativeClasses(
+      Iterable<LibraryEntity> libraries) {
+    Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
     libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
     if (_commonElements.isolateHelperLibrary != null) {
       _processNativeClassesInLibrary(
@@ -373,61 +372,64 @@ class NativeClassResolverImpl implements NativeClassResolver {
     return nativeClasses;
   }
 
+  /// Adds all directly native classes declared in [library] to [nativeClasses].
   void _processNativeClassesInLibrary(
-      LibraryElement library, Set<ClassElement> nativeClasses) {
-    // Use implementation to ensure the inclusion of injected members.
-    library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (_nativeBasicData.isNativeClass(cls)) {
-          _processNativeClass(element, nativeClasses);
-        }
+      LibraryEntity library, Set<ClassEntity> nativeClasses) {
+    _elementEnvironment.forEachClass(library, (ClassEntity cls) {
+      if (_nativeBasicData.isNativeClass(cls)) {
+        _processNativeClass(cls, nativeClasses);
       }
     });
   }
 
-  void _processNativeClass(
-      ClassElement classElement, Set<ClassElement> nativeClasses) {
-    nativeClasses.add(classElement);
-    // Resolve class to ensure the class has valid inheritance info.
-    classElement.ensureResolved(_resolution);
+  /// Adds [cls] to [nativeClasses] and performs further processing of [cls],
+  /// if necessary.
+  void _processNativeClass(ClassEntity cls, Set<ClassEntity> nativeClasses) {
+    nativeClasses.add(cls);
     // Js Interop interfaces do not have tags.
-    if (_nativeBasicData.isJsInteropClass(classElement)) return;
+    if (_nativeBasicData.isJsInteropClass(cls)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in _nativeBasicData.getNativeTagsOfClass(classElement)) {
-      ClassElement owner = _tagOwner[tag];
+    for (String tag in _nativeBasicData.getNativeTagsOfClass(cls)) {
+      ClassEntity owner = _tagOwner[tag];
       if (owner != null) {
-        if (owner != classElement) {
-          _reporter.internalError(
-              classElement, "Tag '$tag' already in use by '${owner.name}'");
+        if (owner != cls) {
+          throw new SpannableAssertionFailure(
+              cls, "Tag '$tag' already in use by '${owner.name}'");
         }
       } else {
-        _tagOwner[tag] = classElement;
+        _tagOwner[tag] = cls;
       }
     }
   }
 
+  /// Returns the name of the super class of [cls] or `null` of [cls] has
+  /// no explicit superclass.
+  String _findExtendsNameOfClass(ClassEntity cls) {
+    return _elementEnvironment.getSuperClass(cls)?.name;
+  }
+
+  /// Adds all subclasses of [nativeClasses] found in [libraries] to
+  /// [nativeClasses].
   void _processSubclassesOfNativeClasses(
-      Iterable<LibraryElement> libraries, Set<ClassElement> nativeClasses) {
-    Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
+      Iterable<LibraryEntity> libraries, Set<ClassEntity> nativeClasses) {
+    Set<ClassEntity> nativeClassesAndSubclasses = new Set<ClassEntity>();
     // Collect potential subclasses, e.g.
     //
     //     class B extends foo.A {}
     //
     // String "A" has a potential subclass B.
 
-    var potentialExtends = new Map<String, Set<ClassElement>>();
+    Map<String, Set<ClassEntity>> potentialExtends =
+        <String, Set<ClassEntity>>{};
 
-    libraries.forEach((library) {
-      library.implementation.forEachLocalMember((element) {
-        if (element.isClass) {
-          String extendsName = _findExtendsNameOfClass(element);
-          if (extendsName != null) {
-            Set<ClassElement> potentialSubclasses = potentialExtends
-                .putIfAbsent(extendsName, () => new Set<ClassElement>());
-            potentialSubclasses.add(element);
-          }
+    libraries.forEach((LibraryEntity library) {
+      _elementEnvironment.forEachClass(library, (ClassEntity cls) {
+        String extendsName = _findExtendsNameOfClass(cls);
+        if (extendsName != null) {
+          Set<ClassEntity> potentialSubclasses = potentialExtends.putIfAbsent(
+              extendsName, () => new Set<ClassEntity>());
+          potentialSubclasses.add(cls);
         }
       });
     });
@@ -436,19 +438,19 @@ class NativeClassResolverImpl implements NativeClassResolver {
     // [potentialExtends], and then check that the properly resolved class is in
     // fact a subclass of a native class.
 
-    ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (_nativeBasicData.isNativeClass(classElement)) return classElement;
-      if (classElement.superclass == null) return null;
-      return nativeSuperclassOf(classElement.superclass);
+    ClassEntity nativeSuperclassOf(ClassEntity cls) {
+      if (_nativeBasicData.isNativeClass(cls)) return cls;
+      ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
+      if (superclass == null) return null;
+      return nativeSuperclassOf(superclass);
     }
 
-    void walkPotentialSubclasses(ClassElement element) {
+    void walkPotentialSubclasses(ClassEntity element) {
       if (nativeClassesAndSubclasses.contains(element)) return;
-      element.ensureResolved(_resolution);
-      ClassElement nativeSuperclass = nativeSuperclassOf(element);
+      ClassEntity nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
-        Set<ClassElement> potentialSubclasses = potentialExtends[element.name];
+        Set<ClassEntity> potentialSubclasses = potentialExtends[element.name];
         if (potentialSubclasses != null) {
           potentialSubclasses.forEach(walkPotentialSubclasses);
         }
@@ -457,6 +459,28 @@ class NativeClassResolverImpl implements NativeClassResolver {
 
     nativeClasses.forEach(walkPotentialSubclasses);
     nativeClasses.addAll(nativeClassesAndSubclasses);
+  }
+}
+
+/// Native class finder that extends [BaseNativeClassFinder] to handle
+/// unresolved classes encountered during the native classes computation.
+class ResolutionNativeClassFinder extends BaseNativeClassFinder {
+  final DiagnosticReporter _reporter;
+  final Resolution _resolution;
+
+  ResolutionNativeClassFinder(
+      this._resolution,
+      this._reporter,
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      NativeBasicData nativeBasicData)
+      : super(elementEnvironment, commonElements, nativeBasicData);
+
+  void _processNativeClass(
+      ClassElement classElement, Set<ClassEntity> nativeClasses) {
+    // Resolve class to ensure the class has valid inheritance info.
+    classElement.ensureResolved(_resolution);
+    super._processNativeClass(classElement, nativeClasses);
   }
 
   /**

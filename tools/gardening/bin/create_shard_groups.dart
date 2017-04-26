@@ -89,8 +89,7 @@ main(List<String> args) {
 
 part of gardening.shard2group;
 
-const Map<String, List<String>> shardGroups = const {
-""");
+const Map<String, List<String>> shardGroups = const {""");
   for (int i = 0; i < groupCount; i++) {
     print("  '${groups[i]}': const <String>[");
     for (String shard in shards[i]) {

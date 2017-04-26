@@ -6,6 +6,7 @@ library dart2js.resolution_strategy;
 
 import '../common.dart';
 import '../common_elements.dart';
+import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../compiler.dart';
@@ -13,14 +14,22 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../environment.dart';
+import '../enqueue.dart';
 import '../frontend_strategy.dart';
+import '../js_backend/backend.dart';
+import '../js_backend/backend_usage.dart';
+import '../js_backend/custom_elements_analysis.dart';
+import '../js_backend/mirrors_analysis.dart';
+import '../js_backend/mirrors_data.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
-import '../js_backend/native_data.dart';
 import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
 import '../universe/call_structure.dart';
+import '../universe/world_builder.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
@@ -56,6 +65,55 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
 
   AnnotationProcessor get annotationProcesser =>
       _annotationProcessor ??= new _ElementAnnotationProcessor(_compiler);
+
+  @override
+  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData) {
+    return new ResolutionNativeClassFinder(
+        _compiler.resolution,
+        _compiler.reporter,
+        elementEnvironment,
+        _compiler.commonElements,
+        nativeBasicData);
+  }
+
+  NoSuchMethodResolver createNoSuchMethodResolver() =>
+      new NoSuchMethodResolverImpl();
+
+  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
+      NativeBasicData nativeBasicData,
+      BackendUsageBuilder backendUsageBuilder) {
+    return new CustomElementsResolutionAnalysis(
+        _compiler.resolution,
+        _compiler.backend.constantSystem,
+        _compiler.commonElements,
+        nativeBasicData,
+        backendUsageBuilder);
+  }
+
+  MirrorsDataBuilder createMirrorsDataBuilder() {
+    return new MirrorsDataImpl(
+        _compiler, _compiler.options, _compiler.commonElements);
+  }
+
+  MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
+          JavaScriptBackend backend) =>
+      new MirrorsResolutionAnalysisImpl(backend, _compiler.resolution);
+
+  RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
+    return new RuntimeTypesNeedBuilderImpl();
+  }
+
+  ResolutionWorldBuilder createResolutionWorldBuilder(
+      NativeBasicData nativeBasicData,
+      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+    return new ElementResolutionWorldBuilder(
+        _compiler.backend, _compiler.resolution, selectorConstraintsStrategy);
+  }
+
+  WorkItemBuilder createResolutionWorkItemBuilder(
+      ImpactTransformer impactTransformer) {
+    return new ResolutionWorkItemBuilder(_compiler.resolution);
+  }
 }
 
 /// An element environment base on a [Compiler].
@@ -161,7 +219,10 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
+  ClassEntity getSuperClass(ClassElement cls) {
+    cls.ensureResolved(_resolution);
+    return cls.superclass;
+  }
 
   @override
   void forEachSupertype(

@@ -207,10 +207,9 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
 
   final CommonElements _commonElements;
 
-  final JavaScriptConstantCompiler _constants;
+  MirrorsDataImpl(this._compiler, this._options, this._commonElements);
 
-  MirrorsDataImpl(
-      this._compiler, this._options, this._commonElements, this._constants);
+  JavaScriptConstantCompiler get _constants => _compiler.backend.constants;
 
   void registerUsedMember(MemberElement member) {
     if (member == _commonElements.disableTreeShakingMarker) {

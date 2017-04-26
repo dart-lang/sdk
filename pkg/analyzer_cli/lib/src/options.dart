@@ -50,6 +50,9 @@ class CommandLineOptions {
   /// List of summary file paths to use in build mode.
   final List<String> buildSummaryInputs;
 
+  /// List of unlinked summary file paths to use in build mode.
+  final List<String> buildSummaryUnlinkedInputs;
+
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
@@ -159,6 +162,8 @@ class CommandLineOptions {
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
         buildSummaryInputs = args['build-summary-input'] as List<String>,
+        buildSummaryUnlinkedInputs =
+            args['build-summary-unlinked-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
@@ -278,7 +283,8 @@ class CommandLineOptions {
             'together with --build-summary-only.');
         return null; // Only reachable in testing.
       }
-      if (options.buildSummaryInputs.isNotEmpty) {
+      if (options.buildSummaryInputs.isNotEmpty ||
+          options.buildSummaryUnlinkedInputs.isNotEmpty) {
         printAndFail('No summaries should be provided in combination with '
             '--build-summary-only-unlinked, they aren\'t needed.');
         return null; // Only reachable in testing.
@@ -384,8 +390,13 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addOption('build-summary-input',
-          help: 'Path to a summary file that contains information from a '
-              'previous analysis run; may be specified multiple times.',
+          help: 'Path to a linked summary file that contains information from '
+              'a previous analysis run; may be specified multiple times.',
+          allowMultiple: true,
+          hide: hide)
+      ..addOption('build-summary-unlinked-input',
+          help: 'Path to an unlinked summary file that contains information '
+              'from a previous analysis run; may be specified multiple times.',
           allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',

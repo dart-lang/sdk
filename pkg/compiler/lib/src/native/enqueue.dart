@@ -15,7 +15,7 @@ import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'behavior.dart';
-import 'resolver.dart' show NativeClassResolver;
+import 'resolver.dart' show NativeClassFinder;
 
 /**
  * This could be an abstract class but we use it as a stub for the dart_backend.
@@ -184,7 +184,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 }
 
 class NativeResolutionEnqueuer extends NativeEnqueuerBase {
-  final NativeClassResolver _nativeClassResolver;
+  final NativeClassFinder _nativeClassFinder;
   final BackendUsageBuilder _backendUsageBuilder;
 
   /// The set of all native classes.  Each native class is in [nativeClasses]
@@ -196,7 +196,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       this._backendUsageBuilder,
-      this._nativeClassResolver)
+      this._nativeClassFinder)
       : super(options, elementEnvironment, commonElements);
 
   void _registerBackendUse(FunctionEntity element) {
@@ -207,7 +207,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     Iterable<ClassEntity> nativeClasses =
-        _nativeClassResolver.computeNativeClasses(libraries);
+        _nativeClassFinder.computeNativeClasses(libraries);
     _nativeClasses.addAll(nativeClasses);
     _unusedClasses.addAll(nativeClasses);
     if (!enableLiveTypeAnalysis) {
