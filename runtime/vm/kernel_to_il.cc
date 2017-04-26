@@ -4925,7 +4925,35 @@ void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
 
 
 void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  if (node->kernel_offset() != -1) {
+    fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+    return;
+  }
+  // A StaticGet will always have a kernel_offset, except for the StaticGet that
+  // was manually created for _getMainClosure in dart:_builtin.  Compile that
+  // one specially here.
+  const dart::Library& builtin =
+      dart::Library::Handle(Z, I->object_store()->builtin_library());
+  const Object& main =
+      Object::Handle(Z, builtin.LookupObjectAllowPrivate(dart::String::Handle(
+                            Z, dart::String::New("main"))));
+  if (main.IsField()) {
+    UNIMPLEMENTED();
+  } else if (main.IsFunction()) {
+    const Function& function = Function::Cast(main);
+    if (function.kind() == RawFunction::kRegularFunction) {
+      const Function& closure_function =
+          Function::Handle(Z, function.ImplicitClosureFunction());
+      closure_function.set_kernel_function(function.kernel_function());
+      const Instance& closure =
+          Instance::ZoneHandle(Z, closure_function.ImplicitStaticClosure());
+      fragment_ = Constant(closure);
+    } else {
+      UNIMPLEMENTED();
+    }
+  } else {
+    UNIMPLEMENTED();
+  }
 }
 
 

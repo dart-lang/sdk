@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.environment_variable;
+library fasta.testing.environment_variable;
 
 import 'dart:async' show Future;
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'errors.dart' show inputError;
+import '../errors.dart' show inputError;
 
 class EnvironmentVariable {
   final String name;

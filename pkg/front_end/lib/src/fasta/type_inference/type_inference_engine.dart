@@ -140,9 +140,9 @@ abstract class TypeInferenceEngineImpl<F> extends TypeInferenceEngine<F> {
           typeInferrer.inferFieldInitializer(field, type, type == null);
       if (type == null && strongMode) {
         instrumentation?.record(
-            'topType',
             Uri.parse(typeInferrer.uri),
             getFieldOffset(field),
+            'topType',
             new InstrumentationValueForType(inferredType));
         setFieldInferredType(field, inferredType);
       }
@@ -161,7 +161,7 @@ abstract class TypeInferenceEngineImpl<F> extends TypeInferenceEngine<F> {
     // TODO(paulberry): report the appropriate error.
     if (getFieldDeclaredType(field) == null) {
       var uri = getFieldTypeInferrer(field).uri;
-      instrumentation?.record('topType', Uri.parse(uri), getFieldOffset(field),
+      instrumentation?.record(Uri.parse(uri), getFieldOffset(field), 'topType',
           const InstrumentationValueLiteral('circular'));
       setFieldInferredType(field, const DynamicType());
     }

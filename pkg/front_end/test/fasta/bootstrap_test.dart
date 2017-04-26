@@ -10,7 +10,7 @@ import 'dart:isolate' show Isolate;
 
 import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
     show computePatchedSdk;
 
 import 'package:testing/testing.dart' show StdioProcess;

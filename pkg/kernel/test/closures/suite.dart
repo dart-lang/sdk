@@ -6,22 +6,16 @@ library test.kernel.closures.suite;
 
 import 'dart:async' show Future;
 
-import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-
-import 'package:analyzer/src/kernel/loader.dart' show DartLoader;
-
 import 'package:testing/testing.dart'
-    show Chain, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
-import 'package:kernel/ast.dart' show Program, Library;
+import 'package:kernel/ast.dart' show Program;
 
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
 
-import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show TestContext, Print, MatchExpectation, WriteDill, ReadDill, Verify;
+    show Print, MatchExpectation, WriteDill, ReadDill, Verify;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
@@ -34,15 +28,21 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
-class ClosureConversionContext extends TestContext {
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
+
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+
+const String STRONG_MODE = " strong mode ";
+
+class ClosureConversionContext extends ChainContext {
+  final bool strongMode;
+
   final TranslateUri uriTranslator;
 
   final List<Step> steps;
 
-  Future<Program> platform;
-
-  ClosureConversionContext(Uri sdk, Uri vm, Uri packages, bool strongMode,
-      DartSdk dartSdk, bool updateExpectations, this.uriTranslator)
+  ClosureConversionContext(
+      this.strongMode, bool updateExpectations, this.uriTranslator)
       : steps = <Step>[
           const FastaCompile(),
           const Print(),
@@ -54,47 +54,22 @@ class ClosureConversionContext extends TestContext {
               updateExpectations: updateExpectations),
           const WriteDill(),
           const ReadDill(),
-          // TODO(29143): uncomment this when Vectors are added to VM.
-          //const Run(),
-        ],
-        super(sdk, vm, packages, strongMode, dartSdk);
+          // TODO(29143): add `Run` step when Vectors are added to VM.
+        ];
 
-  Future<Program> createPlatform() {
-    return new Future<Program>(() async {
-      DartLoader loader = await createLoader();
-      Target target =
-          getTarget("vm", new TargetFlags(strongMode: options.strongMode));
-      loader.loadProgram(Uri.base.resolve("pkg/fasta/test/platform.dart"),
-          target: target);
-      var program = loader.program;
-      if (loader.errors.isNotEmpty) {
-        throw loader.errors.join("\n");
-      }
-      Library mainLibrary = program.mainMethod.enclosingLibrary;
-      program.uriToSource.remove(mainLibrary.fileUri);
-      program = new Program(
-          program.libraries.where((Library l) => l != mainLibrary).toList(),
-          program.uriToSource);
-      target.performModularTransformations(program);
-      target.performGlobalTransformations(program);
-      return program;
-    });
+  Future<Program> loadPlatform() async {
+    Uri sdk = await computePatchedSdk();
+    return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
   }
 
   static Future<ClosureConversionContext> create(
       Chain suite, Map<String, String> environment) async {
-    return TestContext.create(suite, environment, (Chain suite,
-        Map<String, String> environment,
-        Uri sdk,
-        Uri vm,
-        Uri packages,
-        bool strongMode,
-        DartSdk dartSdk,
-        bool updateExpectations) async {
-      TranslateUri uriTranslator = await TranslateUri.parse(packages);
-      return new ClosureConversionContext(sdk, vm, packages, strongMode,
-          dartSdk, updateExpectations, uriTranslator);
-    });
+    Uri packages = Uri.base.resolve(".packages");
+    bool strongMode = environment.containsKey(STRONG_MODE);
+    bool updateExpectations = environment["updateExpectations"] == "true";
+    TranslateUri uriTranslator = await TranslateUri.parse(packages);
+    return new ClosureConversionContext(
+        strongMode, updateExpectations, uriTranslator);
   }
 }
 
@@ -113,14 +88,14 @@ class FastaCompile
 
   Future<Result<Program>> run(
       TestDescription description, ClosureConversionContext context) async {
-    Program platform = await context.createPlatform();
+    Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
     dillTarget.loader
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
     KernelTarget sourceTarget =
-        new KernelTarget(dillTarget, context.uriTranslator, false);
+        new KernelTarget(dillTarget, context.uriTranslator, context.strongMode);
 
     Program p;
     try {

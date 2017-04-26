@@ -147,7 +147,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       }
     }
     if (needToSetReturnType) {
-      instrumentation?.record('returnType', Uri.parse(uri), offset,
+      instrumentation?.record(Uri.parse(uri), offset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       setReturnType(inferredReturnType);
     }
@@ -210,7 +210,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     var inferredType =
         inferExpression(initializer, declaredType, declaredType == null);
     if (strongMode && declaredType == null) {
-      instrumentation?.record('type', Uri.parse(uri), offset,
+      instrumentation?.record(Uri.parse(uri), offset, 'type',
           new InstrumentationValueForType(inferredType));
       setType(inferredType);
     }
@@ -228,9 +228,9 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     DartType promotedType = typePromoter.computePromotedType(
         typePromotionFact, typePromotionScope, mutatedInClosure);
     instrumentation?.record(
-        'promotedType',
         Uri.parse(uri),
         offset,
+        'promotedType',
         promotedType != null
             ? new InstrumentationValueForType(promotedType)
             : const InstrumentationValueLiteral('none'));

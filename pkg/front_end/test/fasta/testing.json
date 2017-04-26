@@ -151,7 +151,6 @@
 
     "uris": [
       "../../lib/src/fasta",
-      "../../lib/src/fasta/analyzer",
       "../../lib/src/fasta/builder",
       "../../lib/src/fasta/dill",
       "../../lib/src/fasta/kernel",

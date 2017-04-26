@@ -5986,6 +5986,94 @@ var x;
 ''');
   }
 
+  test_removeThisExpression_methodInvocation_oneCharacterOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_methodInvocation_twoCharactersOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this?.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_oneCharacterOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_twoCharactersOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this?.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
   test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() async {
     String src = '''
 import 'dart:collection';
@@ -6103,6 +6191,98 @@ final a = /*LINT*/new Map();
 
     verifyResult('''
 final a = {};
+''');
+  }
+
+  test_replaceWithTearOff_function_oneParameter() async {
+    String src = '''
+final x = /*LINT*/(name) {
+  print(name);
+};
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+final x = print;
+''');
+  }
+
+  test_replaceWithTearOff_function_zeroParameters() async {
+    String src = '''
+void foo(){}
+Function finalVar() {
+  return /*LINT*/() {
+    foo();
+  };
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+void foo(){}
+Function finalVar() {
+  return foo;
+}
+''');
+  }
+
+  test_replaceWithTearOff_lambda_asArgument() async {
+    String src = '''
+void foo() {
+  bool isPair(int a) => a % 2 == 0;
+  final finalList = <int>[];
+  finalList.where(/*LINT*/(number) =>
+    isPair(number));
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+void foo() {
+  bool isPair(int a) => a % 2 == 0;
+  final finalList = <int>[];
+  finalList.where(isPair);
+}
+''');
+  }
+
+  test_replaceWithTearOff_method_oneParameter() async {
+    String src = '''
+var a = /*LINT*/(x) => finalList.remove(x);
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+var a = finalList.remove;
+''');
+  }
+
+  test_replaceWithTearOff_method_zeroParameter() async {
+    String src = '''
+final Object a;
+Function finalVar() {
+  return /*LINT*/() {
+    return a.toString();
+  };
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+final Object a;
+Function finalVar() {
+  return a.toString;
+}
 ''');
   }
 

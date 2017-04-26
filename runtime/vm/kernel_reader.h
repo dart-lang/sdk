@@ -53,7 +53,8 @@ class KernelReader {
  public:
   explicit KernelReader(Program* program);
 
-  // Returns either a library or a failure object.
+  // Returns the library containing the main procedure, null if there
+  // was no main procedure, or a failure object if there was an error.
   dart::Object& ReadProgram();
 
   static void SetupFunctionParameters(TranslationHelper translation_helper_,

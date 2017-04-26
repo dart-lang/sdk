@@ -5416,6 +5416,10 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
+  if (tmp.IsNull()) {
+    return Api::NewError("%s: The binary program does not contain 'main'.",
+                         CURRENT_FUNC);
+  }
   library ^= tmp.raw();
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());

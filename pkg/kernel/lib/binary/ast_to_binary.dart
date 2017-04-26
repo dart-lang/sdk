@@ -1019,6 +1019,31 @@ class BinaryPrinter extends Visitor {
   }
 }
 
+/// A [LibraryFilteringBinaryPrinter] can write a subset of libraries.
+///
+/// This printer writes a Kernel binary but includes only libraries that match a
+/// predicate.
+class LibraryFilteringBinaryPrinter extends BinaryPrinter {
+  final Function predicate;
+
+  LibraryFilteringBinaryPrinter(
+      Sink<List<int>> sink, bool predicate(Library library))
+      : predicate = predicate,
+        super(sink);
+
+  void writeProgramFile(Program program) {
+    program.computeCanonicalNames();
+    writeMagicWord(Tag.ProgramFile);
+    _stringIndexer.scanProgram(program);
+    writeStringTable(_stringIndexer);
+    writeUriToSource(program);
+    writeLinkTable(program);
+    writeList(program.libraries.where(predicate).toList(), writeNode);
+    writeMemberReference(program.mainMethod, allowNull: true);
+    _flush();
+  }
+}
+
 class VariableIndexer {
   final Map<VariableDeclaration, int> index = <VariableDeclaration, int>{};
   final List<int> scopes = <int>[];

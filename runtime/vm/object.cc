@@ -5615,6 +5615,11 @@ void Function::set_parent_function(const Function& value) const {
 
 
 bool Function::HasGenericParent() const {
+  if (IsImplicitClosureFunction()) {
+    // The parent function of an implicit closure function is not the enclosing
+    // function we are asking about here.
+    return false;
+  }
   Function& parent = Function::Handle(parent_function());
   while (!parent.IsNull()) {
     if (parent.IsGeneric()) {
@@ -6013,6 +6018,9 @@ intptr_t Function::NumTypeParameters(Thread* thread) const {
 
 
 intptr_t Function::NumParentTypeParameters() const {
+  if (IsImplicitClosureFunction()) {
+    return 0;
+  }
   Thread* thread = Thread::Current();
   Function& parent = Function::Handle(parent_function());
   intptr_t num_parent_type_params = 0;
@@ -6050,6 +6058,11 @@ RawTypeParameter* Function::LookupTypeParameter(
           return type_param.raw();
         }
       }
+    }
+    if (function.IsImplicitClosureFunction()) {
+      // The parent function is not the enclosing function, but the closurized
+      // function with identical type parameters.
+      break;
     }
     function ^= function.parent_function();
     if (function_level != NULL) {

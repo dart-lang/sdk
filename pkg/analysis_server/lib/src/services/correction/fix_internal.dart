@@ -22,7 +22,6 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart'
     as rf;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -391,6 +390,12 @@ class FixProcessor {
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
       }
+      if (errorCode.name == LintNames.unnecessary_lambdas) {
+        _addFix_replaceWithTearOff();
+      }
+      if (errorCode.name == LintNames.unnecessary_this) {
+        _addFix_removeThisExpression();
+      }
     }
     // done
     return fixes;
@@ -683,8 +688,8 @@ class FixProcessor {
           _addInsertEdit,
           _addRemoveEdit,
           _addReplaceEdit,
-          rangeStartLength,
-          rangeNode);
+          rf.rangeStartLength,
+          rf.rangeNode);
       _addFix(DartFixKind.CONVERT_FLUTTER_CHILD, []);
       return;
     }
@@ -1841,6 +1846,20 @@ class FixProcessor {
     }
   }
 
+  void _addFix_removeThisExpression() {
+    final thisExpression = node is ThisExpression
+        ? node
+        : node.getAncestor((node) => node is ThisExpression);
+    final parent = thisExpression.parent;
+    if (parent is PropertyAccess) {
+      _addRemoveEdit(rf.rangeStartEnd(parent.offset, parent.operator.end));
+      _addFix(DartFixKind.REMOVE_THIS_EXPRESSION, []);
+    } else if (parent is MethodInvocation) {
+      _addRemoveEdit(rf.rangeStartEnd(parent.offset, parent.operator.end));
+      _addFix(DartFixKind.REMOVE_THIS_EXPRESSION, []);
+    }
+  }
+
   void _addFix_removeUnnecessaryCast() {
     if (coveredNode is! AsExpression) {
       return;
@@ -1922,6 +1941,39 @@ class FixProcessor {
     }
     _addReplaceEdit(rf.rangeNode(instanceCreation), buffer.toString());
     _addFix(DartFixKind.REPLACE_WITH_LITERAL, []);
+  }
+
+  void _addFix_replaceWithTearOff() {
+    FunctionExpression ancestor =
+        node.getAncestor((a) => a is FunctionExpression);
+    if (ancestor == null) {
+      return;
+    }
+    void addFixOfExpression(InvocationExpression expression) {
+      final buffer = new StringBuffer();
+      if (expression is MethodInvocation && expression.target != null) {
+        buffer.write(utils.getNodeText(expression.target));
+        buffer.write('.');
+      }
+      buffer.write(utils.getNodeText(expression.function));
+      _addReplaceEdit(rf.rangeNode(ancestor), buffer.toString());
+      _addFix(DartFixKind.REPLACE_WITH_TEAR_OFF, []);
+    }
+
+    final body = ancestor.body;
+    if (body is ExpressionFunctionBody) {
+      final expression = body.expression;
+      addFixOfExpression(expression.unParenthesized);
+    } else if (body is BlockFunctionBody) {
+      final statement = body.block.statements.first;
+      if (statement is ExpressionStatement) {
+        final expression = statement.expression;
+        addFixOfExpression(expression.unParenthesized);
+      } else if (statement is ReturnStatement) {
+        final expression = statement.expression;
+        addFixOfExpression(expression.unParenthesized);
+      }
+    }
   }
 
   void _addFix_undefinedClass_useSimilar() {
@@ -3074,6 +3126,8 @@ class LintNames {
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
+  static const String unnecessary_lambdas = 'unnecessary_lambdas';
+  static const String unnecessary_this = 'unnecessary_this';
 }
 
 /**

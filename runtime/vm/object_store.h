@@ -293,6 +293,7 @@ class ObjectStore {
     }
   }
 
+  RawLibrary* builtin_library() const { return builtin_library_; }
   void set_builtin_library(const Library& value) {
     builtin_library_ = value.raw();
   }

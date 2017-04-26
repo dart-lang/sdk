@@ -765,6 +765,52 @@ main() {
 
 @reflectiveTest
 class _SwitchCompletionTest extends StatementCompletionTest {
+  test_caseNoColon() async {
+    await _prepareCompletion(
+        'label',
+        '''
+main(x) {
+  switch (x) {
+    case label
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main(x) {
+  switch (x) {
+    case label: ////
+  }
+}
+''',
+        (s) => _after(s, 'label: '));
+  }
+
+  test_defaultNoColon() async {
+    await _prepareCompletion(
+        'default',
+        '''
+main(x) {
+  switch (x) {
+    default
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main(x) {
+  switch (x) {
+    default: ////
+  }
+}
+''',
+        (s) => _after(s, 'default: '));
+  }
+
   test_emptyCondition() async {
     await _prepareCompletion(
         'switch',

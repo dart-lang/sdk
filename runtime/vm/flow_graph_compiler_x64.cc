@@ -1089,6 +1089,16 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  if (FLAG_reify_generic_functions) {
+    // TODO(regis): Check function type arguments of a generic function.
+    // For now, verify that a local variable has been allocated when necessary.
+    ASSERT((function.NumTypeParameters() == 0) ||
+           (parsed_function().function_type_arguments() != NULL));
+    // TODO(regis): Allocate and prepend parent type arguments when necessary.
+    ASSERT(!function.HasGenericParent() ||
+           (parsed_function().parent_type_arguments() != NULL));
+  }
+
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   ASSERT(!block_order().is_empty());
   VisitBlocks();

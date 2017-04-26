@@ -6,7 +6,7 @@ library fasta.test.compile_test;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/fasta/testing/suite.dart';
+import 'testing/suite.dart';
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show MatchExpectation;

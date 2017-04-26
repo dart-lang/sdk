@@ -6,40 +6,48 @@ library fasta.testing.suite;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show JSON;
+import 'dart:io' show File;
 
-import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'dart:convert' show JSON;
 
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 
-import 'package:analyzer/src/kernel/loader.dart' show DartLoader;
-
-import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
+import 'package:kernel/ast.dart' show Program;
 
 import 'package:testing/testing.dart'
-    show Chain, ExpectationSet, Result, Step, TestDescription;
+    show
+        Chain,
+        ChainContext,
+        ExpectationSet,
+        Result,
+        Step,
+        TestDescription,
+        StdioProcess;
 
-import '../errors.dart' show InputError;
+import 'package:front_end/src/fasta/errors.dart' show InputError;
 
-import 'kernel_chain.dart'
-    show MatchExpectation, Print, Run, Verify, TestContext, WriteDill;
+import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+    show MatchExpectation, Print, Verify, WriteDill;
 
-import '../ticker.dart' show Ticker;
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
-import '../translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 
-import '../analyzer/analyzer_target.dart' show AnalyzerTarget;
+import 'package:analyzer/src/fasta/analyzer_target.dart' show AnalyzerTarget;
 
-import '../kernel/kernel_target.dart' show KernelTarget;
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
 
-import '../dill/dill_target.dart' show DillTarget;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-export 'kernel_chain.dart' show STRONG_MODE, TestContext;
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
 export 'package:testing/testing.dart' show Chain, runMe;
+
+const String STRONG_MODE = " strong mode ";
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
@@ -69,26 +77,18 @@ enum AstKind {
   Kernel,
 }
 
-class FastaContext extends TestContext {
+class FastaContext extends ChainContext {
   final TranslateUri uriTranslator;
-
   final List<Step> steps;
+  final Uri vm;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
 
   Future<Program> platform;
 
-  FastaContext(
-      Uri sdk,
-      Uri vm,
-      Uri packages,
-      bool strongMode,
-      DartSdk dartSdk,
-      bool updateExpectations,
-      this.uriTranslator,
-      bool fullCompile,
-      AstKind astKind)
+  FastaContext(this.vm, bool strongMode, bool updateExpectations,
+      this.uriTranslator, bool fullCompile, AstKind astKind)
       : steps = <Step>[
           new Outline(fullCompile, astKind, strongMode,
               updateExpectations: updateExpectations),
@@ -99,62 +99,56 @@ class FastaContext extends TestContext {
                   ? ".${shortenAstKindName(astKind, strongMode)}.expect"
                   : ".outline.expect",
               updateExpectations: updateExpectations)
-        ],
-        super(sdk, vm, packages, strongMode, dartSdk) {
+        ] {
     if (fullCompile) {
       steps.add(const WriteDill());
       steps.add(const Run());
     }
   }
 
-  Future<Program> createPlatform() {
+  Future<Program> loadPlatform() {
     return platform ??= new Future<Program>(() async {
-      DartLoader loader = await createLoader();
-      Target target =
-          getTarget("vm", new TargetFlags(strongMode: options.strongMode));
-      loader.loadProgram(Uri.base.resolve("pkg/fasta/test/platform.dart"),
-          target: target);
-      var program = loader.program;
-      if (loader.errors.isNotEmpty) {
-        throw loader.errors.join("\n");
-      }
-      Library mainLibrary = program.mainMethod.enclosingLibrary;
-      program.uriToSource.remove(mainLibrary.fileUri);
-      program = new Program(
-          program.libraries.where((Library l) => l != mainLibrary).toList(),
-          program.uriToSource);
-      target.performModularTransformations(program);
-      target.performGlobalTransformations(program);
-      return program;
+      Uri sdk = await computePatchedSdk();
+      return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
     });
   }
 
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
-    return TestContext.create(suite, environment, (Chain suite,
-        Map<String, String> environment,
-        Uri sdk,
-        Uri vm,
-        Uri packages,
-        bool strongMode,
-        DartSdk dartSdk,
-        bool updateExpectations) async {
-      TranslateUri uriTranslator = await TranslateUri.parse(packages);
-      String astKindString = environment[AST_KIND_INDEX];
-      AstKind astKind = astKindString == null
-          ? null
-          : AstKind.values[int.parse(astKindString)];
-      return new FastaContext(
-          sdk,
-          vm,
-          packages,
-          strongMode,
-          dartSdk,
-          updateExpectations,
-          uriTranslator,
-          environment.containsKey(ENABLE_FULL_COMPILE),
-          astKind);
-    });
+    Uri sdk = await computePatchedSdk();
+    Uri vm = computeDartVm(sdk);
+    Uri packages = Uri.base.resolve(".packages");
+    TranslateUri uriTranslator = await TranslateUri.parse(packages);
+    bool strongMode = environment.containsKey(STRONG_MODE);
+    bool updateExpectations = environment["updateExpectations"] == "true";
+    String astKindString = environment[AST_KIND_INDEX];
+    AstKind astKind =
+        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
+    return new FastaContext(vm, strongMode, updateExpectations, uriTranslator,
+        environment.containsKey(ENABLE_FULL_COMPILE), astKind);
+  }
+}
+
+class Run extends Step<Uri, int, FastaContext> {
+  const Run();
+
+  String get name => "run";
+
+  bool get isAsync => true;
+
+  bool get isRuntime => true;
+
+  Future<Result<int>> run(Uri uri, FastaContext context) async {
+    File generated = new File.fromUri(uri);
+    StdioProcess process;
+    try {
+      process = await StdioProcess
+          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
+      print(process.output);
+    } finally {
+      generated.parent.delete(recursive: true);
+    }
+    return process.toResult();
   }
 }
 
@@ -178,7 +172,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
-    Program platform = await context.createPlatform();
+    Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
     dillTarget.loader

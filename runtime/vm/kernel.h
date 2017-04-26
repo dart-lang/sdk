@@ -399,10 +399,10 @@ class CanonicalName {
  private:
   CanonicalName();
 
-  bool is_referenced_;
-  Ref<CanonicalName> parent_;
-  Ref<String> name_;
+  CanonicalName* parent_;
+  String* name_;
   MallocGrowableArray<CanonicalName*> children_;
+  bool is_referenced_;
 
   DISALLOW_COPY_AND_ASSIGN(CanonicalName);
 };
@@ -955,7 +955,10 @@ class FunctionNode : public TreeNode {
   }
   List<VariableDeclaration>& named_parameters() { return named_parameters_; }
   DartType* return_type() { return return_type_; }
+
   Statement* body() { return body_; }
+  void set_body(Statement* body) { body_ = body; }
+
   TokenPosition position() { return position_; }
   TokenPosition end_position() { return end_position_; }
 
@@ -1171,6 +1174,8 @@ class DirectPropertySet : public Expression {
 
 class StaticGet : public Expression {
  public:
+  explicit StaticGet(CanonicalName* target) : target_reference_(target) {}
+
   static StaticGet* ReadFrom(Reader* reader);
 
   virtual ~StaticGet();
@@ -2419,6 +2424,8 @@ class IfStatement : public Statement {
 
 class ReturnStatement : public Statement {
  public:
+  explicit ReturnStatement(Expression* expression) : expression_(expression) {}
+
   static ReturnStatement* ReadFrom(Reader* reader);
 
   virtual ~ReturnStatement();
