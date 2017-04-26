@@ -111,6 +111,7 @@ bool hasFix(ErrorCode errorCode) =>
         (errorCode.name == LintNames.annotate_overrides ||
             errorCode.name == LintNames.avoid_init_to_null ||
             errorCode.name == LintNames.prefer_collection_literals ||
+            errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
@@ -227,6 +228,8 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
+      'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, 'Replace with ??=');
   static const REPLACE_WITH_LITERAL =
       const FixKind('REPLACE_WITH_LITERAL', 50, 'Replace with literal');
   static const REPLACE_WITH_NULL_AWARE = const FixKind(

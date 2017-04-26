@@ -6074,6 +6074,109 @@ class A {
 ''');
   }
 
+  test_replaceWithConditionalAssignment_withCodeBeforeAndAfter() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    print('hi');
+    /*LINT*/if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+    print('hi');
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    print('hi');
+    _fullName ??= getFullUserName(this);
+    print('hi');
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withOneBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withoutBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null)
+      _fullName = getFullUserName(this);
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withTwoBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null) {{
+      _fullName = getFullUserName(this);
+    }}
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
   test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() async {
     String src = '''
 import 'dart:collection';

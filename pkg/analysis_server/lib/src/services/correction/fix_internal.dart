@@ -387,6 +387,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.prefer_collection_literals) {
         _addFix_replaceWithLiteral();
       }
+      if (errorCode.name == LintNames.prefer_conditional_assignment) {
+        _addFix_replaceWithConditionalAssignment();
+      }
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
       }
@@ -1917,6 +1920,33 @@ class FixProcessor {
     _addFix(DartFixKind.REPLACE_VAR_WITH_DYNAMIC, []);
   }
 
+  void _addFix_replaceWithConditionalAssignment() {
+    IfStatement ifStatement = node is IfStatement
+        ? node
+        : node.getAncestor((node) => node is IfStatement);
+    var thenStatement = ifStatement.thenStatement;
+    Statement uniqueStatement(Statement statement) {
+      if (statement is Block) {
+        return uniqueStatement(statement.statements.first);
+      }
+      return statement;
+    }
+
+    thenStatement = uniqueStatement(thenStatement);
+    if (thenStatement is ExpressionStatement) {
+      final expression = thenStatement.expression.unParenthesized;
+      if (expression is AssignmentExpression) {
+        final buffer = new StringBuffer();
+        buffer.write(utils.getNodeText(expression.leftHandSide));
+        buffer.write(' ??= ');
+        buffer.write(utils.getNodeText(expression.rightHandSide));
+        buffer.write(';');
+        _addReplaceEdit(rf.rangeNode(ifStatement), buffer.toString());
+        _addFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT, []);
+      }
+    }
+  }
+
   void _addFix_replaceWithConstInstanceCreation() {
     if (coveredNode is InstanceCreationExpression) {
       var instanceCreation = coveredNode as InstanceCreationExpression;
@@ -3124,6 +3154,8 @@ class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
   static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String prefer_collection_literals = 'prefer_collection_literals';
+  static const String prefer_conditional_assignment =
+      'prefer_conditional_assignment';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
