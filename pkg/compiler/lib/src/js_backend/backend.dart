@@ -831,8 +831,7 @@ class JavaScriptBackend {
         compiler.elementEnvironment,
         commonElements,
         backendUsageBuilder,
-        new NativeClassResolverImpl(
-            compiler.resolution, reporter, commonElements, nativeBasicData));
+        compiler.frontEndStrategy.createNativeClassResolver(nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         compiler.resolution,

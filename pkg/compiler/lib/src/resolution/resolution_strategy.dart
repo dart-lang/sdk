@@ -14,9 +14,9 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../js_backend/native_data.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
-import '../js_backend/native_data.dart';
 import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
@@ -56,6 +56,16 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
 
   AnnotationProcessor get annotationProcesser =>
       _annotationProcessor ??= new _ElementAnnotationProcessor(_compiler);
+
+  @override
+  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData) {
+    return new ResolutionNativeClassFinder(
+        _compiler.resolution,
+        _compiler.reporter,
+        elementEnvironment,
+        _compiler.commonElements,
+        nativeBasicData);
+  }
 }
 
 /// An element environment base on a [Compiler].
@@ -161,7 +171,10 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
+  ClassEntity getSuperClass(ClassElement cls) {
+    cls.ensureResolved(_resolution);
+    return cls.superclass;
+  }
 
   @override
   void forEachSupertype(

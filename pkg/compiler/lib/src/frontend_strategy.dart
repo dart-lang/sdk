@@ -11,6 +11,7 @@ import 'elements/entities.dart';
 import 'environment.dart';
 import 'js_backend/native_data.dart';
 import 'library_loader.dart';
+import 'native/resolver.dart';
 import 'serialization/task.dart';
 import 'patch_parser.dart';
 import 'resolved_uri_translator.dart';
@@ -36,6 +37,9 @@ abstract class FrontEndStrategy {
 
   /// Returns the [AnnotationProcessor] for this strategy.
   AnnotationProcessor get annotationProcesser;
+
+  /// Creates the [NativeClassFinder] for this strategy.
+  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData);
 }
 
 /// Class that performs the mechanics to investigate annotations in the code.

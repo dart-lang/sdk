@@ -35,11 +35,13 @@ import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/native/enqueue.dart';
+import 'package:compiler/src/native/resolver.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
+import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
 import '../serialization/model_test_helper.dart';
@@ -50,9 +52,12 @@ import 'impact_test.dart';
 
 const SOURCE = const {
   'main.dart': '''
+import 'dart:html';
+
 main() {
   print('Hello World');
   ''.contains; // Trigger member closurization.
+  new Element.div();
 }
 '''
 };
@@ -80,6 +85,7 @@ main(List<String> args) {
     ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler1.resolution.retainCachesForTesting = true;
     await compiler1.run(entryPoint);
+    Expect.isFalse(compiler1.compilationFailed);
     ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
     BackendUsage backendUsage1 = compiler1.backend.backendUsage;
     ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
@@ -102,7 +108,7 @@ main(List<String> args) {
     KernelEquivalence equivalence = new KernelEquivalence(elementMap);
     NativeBasicData nativeBasicData = computeNativeBasicData(elementMap);
     checkNativeBasicData(
-        compiler.backend.nativeBasicData, nativeBasicData, equivalence);
+        compiler1.backend.nativeBasicData, nativeBasicData, equivalence);
     List list = createKernelResolutionEnqueuerListener(
         compiler.options,
         compiler.reporter,
@@ -112,6 +118,7 @@ main(List<String> args) {
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
     BackendUsageBuilder backendUsageBuilder2 = list[1];
     ImpactTransformer impactTransformer = list[2];
+
     ResolutionEnqueuer enqueuer2 = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
@@ -165,9 +172,11 @@ List createKernelResolutionEnqueuerListener(
       new BackendUsageBuilderImpl(commonElements);
   NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
       commonElements, new KernelNoSuchMethodResolver(elementMap));
+  NativeClassFinder nativeClassFinder = new BaseNativeClassFinder(
+      elementEnvironment, commonElements, nativeBasicData);
   NativeResolutionEnqueuer nativeResolutionEnqueuer =
       new NativeResolutionEnqueuer(options, elementEnvironment, commonElements,
-          backendUsageBuilder, new KernelNativeClassResolver(elementMap));
+          backendUsageBuilder, nativeClassFinder);
 
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       options,

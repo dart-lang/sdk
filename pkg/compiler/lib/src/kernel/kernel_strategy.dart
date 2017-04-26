@@ -9,7 +9,9 @@ import '../common_elements.dart';
 import '../common/tasks.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
+import '../js_backend/native_data.dart';
 import '../library_loader.dart';
+import '../native/resolver.dart';
 import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
@@ -46,4 +48,10 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
   @override
   AnnotationProcessor get annotationProcesser =>
       _annotationProcesser ??= new KernelAnnotationProcessor(elementMap);
+
+  @override
+  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData) {
+    return new BaseNativeClassFinder(elementMap.elementEnvironment,
+        elementMap.commonElements, nativeBasicData);
+  }
 }

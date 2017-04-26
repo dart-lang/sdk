@@ -33,7 +33,6 @@ import 'element_adapter.dart';
 import 'elements.dart';
 
 part 'native_basic_data.dart';
-part 'native_class_resolver.dart';
 part 'no_such_method_resolver.dart';
 part 'types.dart';
 
@@ -443,7 +442,8 @@ class KernelToElementMap extends KernelElementAdapterMixin {
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
-          linkBuilder.addLast(processSupertype(node.mixedInType));
+          linkBuilder
+              .addLast(env.mixedInType = processSupertype(node.mixedInType));
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
@@ -484,6 +484,17 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     env.orderedTypeSet.supertypes.forEach(f);
+  }
+
+  void _forEachMixin(KClass cls, void f(ClassEntity mixin)) {
+    while (cls != null) {
+      _KClassEnv env = _classEnvs[cls.classIndex];
+      _ensureSupertypes(cls, env);
+      if (env.mixedInType != null) {
+        f(env.mixedInType.element);
+      }
+      cls = env.supertype?.element;
+    }
   }
 
   void _forEachClassMember(
@@ -699,6 +710,7 @@ class _KClassEnv {
   InterfaceType thisType;
   InterfaceType rawType;
   InterfaceType supertype;
+  InterfaceType mixedInType;
   OrderedTypeSet orderedTypeSet;
 
   Map<String, ir.Member> _constructorMap;
@@ -932,7 +944,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
-    throw new UnimplementedError('KernelElementEnvironment.forEachMixin');
+    elementMap._forEachMixin(cls, f);
   }
 
   @override
