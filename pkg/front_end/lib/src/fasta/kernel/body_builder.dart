@@ -1358,7 +1358,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralSymbol");
     String value;
     if (identifierCount == 1) {
-      value = symbolPartToString(popForValue());
+      value = symbolPartToString(pop());
     } else {
       List parts = popList(identifierCount);
       value = symbolPartToString(parts.first);
@@ -2666,13 +2666,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 }
 
-// TODO(ahe): Shouldn't need to be an expression.
-class Identifier extends InvalidExpression {
+class Identifier {
   final String name;
+  final int fileOffset;
 
-  Identifier(this.name, int charOffset) {
-    fileOffset = charOffset;
-  }
+  Identifier(this.name, int charOffset) : fileOffset = charOffset;
 
   Expression get initializer => null;
 
