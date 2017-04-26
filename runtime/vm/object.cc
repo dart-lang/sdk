@@ -21151,7 +21151,8 @@ static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
 
     if (ch == Library::kPrivateKeySeparator) {
       // Consume a private key separator.
-      while ((pos < len) && (T1::CharAt(str1, pos) != '.')) {
+      while ((pos < len) && (T1::CharAt(str1, pos) != '.') &&
+             (T1::CharAt(str1, pos) != '&')) {
         pos++;
       }
       // Resume matching characters.

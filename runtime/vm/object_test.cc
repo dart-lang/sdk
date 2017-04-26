@@ -3191,6 +3191,16 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   bare_name = OneByteString::New("food");
   EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
+  // Private mixin application match.
+  mangled_name = OneByteString::New("_M1@12345&_M2@12345&_M3@12345");
+  bare_name = OneByteString::New("_M1&_M2&_M3");
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
+  // Private mixin application mismatch.
+  mangled_name = OneByteString::New("_M1@12345&_M2@12345&_M3@12345");
+  bare_name = OneByteString::New("_M1&_M2&_M4");
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
   // Private constructor match.
   mangled_name = OneByteString::New("foo@12345.");
   bare_name = OneByteString::New("foo.");
