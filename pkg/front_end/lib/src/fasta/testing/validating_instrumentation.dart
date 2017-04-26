@@ -78,7 +78,7 @@ class ValidatingInstrumentation implements Instrumentation {
     var fixes = _fixes[uri];
     if (fixes == null) return;
     File file = new File.fromUri(uri);
-    var bytes = await file.readAsBytes();
+    var bytes = (await file.readAsBytes()).toList();
     // Apply the fixes in reverse order so that offsets don't need to be
     // adjusted after each fix.
     fixes.sort((a, b) => b.offset.compareTo(a.offset));

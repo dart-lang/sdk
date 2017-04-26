@@ -56,6 +56,8 @@ uninitialized_fields: Crash
 unused_methods: Crash
 void-methods: Crash
 
+inference/local_constructor_from_arguments: Crash
+
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Crash
 rasta/bad_continue: Crash

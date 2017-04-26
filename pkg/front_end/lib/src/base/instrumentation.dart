@@ -35,7 +35,13 @@ class InstrumentationValueForType extends InstrumentationValue {
   @override
   String toString() {
     // Convert '→' to '->' because '→' doesn't show up in some terminals.
-    return type.toString().replaceAll('→', '->');
+    // Remove prefixes that are used very often in tests.
+    return type
+        .toString()
+        .replaceAll('→', '->')
+        .replaceAll('dart.core::', '')
+        .replaceAll('dart.async::', '')
+        .replaceAll('test::', '');
   }
 }
 

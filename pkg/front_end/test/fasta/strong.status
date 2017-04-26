@@ -56,6 +56,10 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void-methods: Fail
 
+inference/local_constructor_from_arguments: Fail
+inference/type_promotion_stopped_by_access_in_a_closure: Fail
+inference/type_promotion_stopped_by_mutation_in_a_closure: Fail
+
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail

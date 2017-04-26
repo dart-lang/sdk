@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+library test;
+
 /*@testedFeatures=inference*/
 main() {
   num n = null;
   if (/*@promotedType=none*/ n is int) {
-    var /*@type=dart.core::num*/ i = /*@promotedType=none*/ n;
-    () {
+    var /*@type=num*/ i = /*@promotedType=none*/ n;
+    /*@type=() → Null*/ () {
       /*@promotedType=none*/
       n;
     };

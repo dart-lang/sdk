@@ -6,6 +6,6 @@
 main() {
   num n = null;
   if (/*@promotedType=none*/ n is int) {
-    var /*@type=dart.core::int*/ i = /*@promotedType=dart.core::int*/ n;
+    var /*@type=int*/ i = /*@promotedType=int*/ n;
   }
 }

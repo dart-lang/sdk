@@ -9456,6 +9456,16 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         return false;
       }
     }
+    if (parent is FieldFormalParameter) {
+      if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
+    if (parent is VariableDeclaration) {
+      if (identical(parent.name, target)) {
+        return false;
+      }
+    }
     return true;
   }
 

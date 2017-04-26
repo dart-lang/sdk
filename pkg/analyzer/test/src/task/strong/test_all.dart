@@ -7,12 +7,14 @@ library analyzer.test.src.task.strong.test_all;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'checker_test.dart' as checker_test;
+import 'front_end_inference_test.dart' as front_end_inference_test;
 import 'inferred_type_test.dart' as inferred_type_test;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     checker_test.main();
+    front_end_inference_test.main();
     inferred_type_test.main();
   }, name: 'strong');
 }

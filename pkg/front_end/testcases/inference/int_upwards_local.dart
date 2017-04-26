@@ -4,5 +4,5 @@
 
 /*@testedFeatures=inference*/
 main() {
-  var /*@type=dart.core::int*/ x = 1;
+  var /*@type=int*/ x = 1;
 }

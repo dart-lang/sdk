@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
+import 'package:analyzer/src/fasta/uri_instrumentation.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -25,6 +26,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:front_end/src/dependency_walker.dart';
 
 /**
@@ -37,6 +39,7 @@ class LibraryAnalyzer {
   final FileSystemState _fsState;
   final SummaryDataStore _store;
   final FileState _library;
+  final fasta.Instrumentation _instrumentation;
 
   TypeProvider _typeProvider;
   AnalysisContextImpl _context;
@@ -53,8 +56,14 @@ class LibraryAnalyzer {
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
   final List<ConstantEvaluationTarget> _constants = [];
 
-  LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
-      this._sourceFactory, this._fsState, this._store, this._library);
+  LibraryAnalyzer(
+      this._analysisOptions,
+      this._declaredVariables,
+      this._sourceFactory,
+      this._fsState,
+      this._store,
+      this._library,
+      this._instrumentation);
 
   /**
    * Compute analysis results for all units of the library.
@@ -512,6 +521,10 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
+    UriInstrumentation instrumentation = _instrumentation != null
+        ? new UriInstrumentation(_instrumentation, file.uri)
+        : null;
+
     CompilationUnitElement unitElement = unit.element;
 
     // TODO(scheglov) Hack: set types for top-level variables
@@ -522,6 +535,9 @@ class LibraryAnalyzer {
     for (var e in unitElement.topLevelVariables) {
       if (!e.isSynthetic) {
         e.type;
+        if (instrumentation != null && e.hasImplicitType) {
+          instrumentation.recordTopType(e.nameOffset, e.type);
+        }
       }
     }
 
@@ -549,7 +565,8 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        _libraryElement, source, _typeProvider, errorListener));
+        _libraryElement, source, _typeProvider, errorListener,
+        instrumentation: instrumentation));
 
     //
     // Find constants to compute.
