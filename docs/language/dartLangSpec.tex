@@ -6469,7 +6469,7 @@ In the case of a generator function, the value returned by the function is the i
 }
 
 \LMHash{}
-Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning  $f$ is neither a generator nor a generative constructor and either:
+Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning if $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 \item  $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or,
 \item  $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future<Null>}.
@@ -7360,7 +7360,7 @@ main() \{
 \end{dartCode}
 
 \commentary{
-Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because he undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
+Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
 }
 
 
@@ -7745,7 +7745,7 @@ Type objects reify the runtime types of instances. No instance ever has type \VO
 A {\em parameterized type} is an invocation of a generic type declaration.
 
 \LMHash{}
-Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}.
+Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}.
 
 \commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued.
 }
