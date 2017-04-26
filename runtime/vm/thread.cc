@@ -453,7 +453,7 @@ uword Thread::GetCurrentStackPointer() {
 #endif
 // But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
-#if __has_feature(address_sanitizer)
+#if __has_feature(address_sanitizer) || __has_feature(safe_stack)
   uword current_sp = func();
   return current_sp;
 #else

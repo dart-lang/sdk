@@ -290,19 +290,38 @@ void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
   if (dependencies == NULL) {
     return;
   }
-  uint8_t* scoped_file_path = NULL;
-  intptr_t scoped_file_path_length = -1;
-  Dart_Handle uri = Dart_NewStringFromCString(resolved_uri);
-  ASSERT(!Dart_IsError(uri));
-  Dart_Handle result = Loader::ResolveAsFilePath(uri, &scoped_file_path,
-                                                 &scoped_file_path_length);
-  if (Dart_IsError(result)) {
-    Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
+  dependencies->Add(strdup(resolved_uri));
+}
+
+
+void Loader::ResolveDependenciesAsFilePaths() {
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  ASSERT(isolate_data != NULL);
+  MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
+  if (dependencies == NULL) {
     return;
   }
-  dependencies->Add(StringUtils::StrNDup(
-      reinterpret_cast<const char*>(scoped_file_path),
-      scoped_file_path_length));
+
+  for (intptr_t i = 0; i < dependencies->length(); i++) {
+    char* resolved_uri = (*dependencies)[i];
+
+    uint8_t* scoped_file_path = NULL;
+    intptr_t scoped_file_path_length = -1;
+    Dart_Handle uri = Dart_NewStringFromCString(resolved_uri);
+    ASSERT(!Dart_IsError(uri));
+    Dart_Handle result = Loader::ResolveAsFilePath(uri, &scoped_file_path,
+                                                   &scoped_file_path_length);
+    if (Dart_IsError(result)) {
+      Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
+      return;
+    }
+
+    (*dependencies)[i] =
+        StringUtils::StrNDup(reinterpret_cast<const char*>(scoped_file_path),
+                             scoped_file_path_length);
+    free(resolved_uri);
+  }
 }
 
 
