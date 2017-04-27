@@ -32,5 +32,9 @@ main(List<String> args) async {
 Future testFile(File file) async {
   print('====================================================================');
   print('testing ${file.path}');
-  await mainInternal([file.path]);
+  try {
+    await mainInternal([file.path], skipWarnings: true, skipErrors: true);
+  } catch (e, s) {
+    print('$e:\n$s');
+  }
 }

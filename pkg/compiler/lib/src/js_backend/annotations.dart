@@ -5,80 +5,49 @@
 library js_backend.backend.annotations;
 
 import '../common.dart';
-import '../common_elements.dart' show ElementEnvironment;
+import '../common_elements.dart' show CommonElements;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart';
-import 'backend.dart';
 
 /// Handling of special annotations for tests.
-class Annotations {
-  static final Uri PACKAGE_EXPECT =
-      new Uri(scheme: 'package', path: 'expect/expect.dart');
+class OptimizerHintsForTests {
+  final Compiler _compiler;
 
-  final Compiler compiler;
+  OptimizerHintsForTests(this._compiler);
 
-  ClassElement expectNoInlineClass;
-  ClassElement expectTrustTypeAnnotationsClass;
-  ClassElement expectAssumeDynamicClass;
-
-  JavaScriptBackend get backend => compiler.backend;
-
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
-
-  Annotations(this.compiler);
-
-  void onLibraryLoaded(LibraryEntity library) {
-    if (library.canonicalUri == PACKAGE_EXPECT) {
-      expectNoInlineClass =
-          _elementEnvironment.lookupClass(library, 'NoInline');
-      expectTrustTypeAnnotationsClass =
-          _elementEnvironment.lookupClass(library, 'TrustTypeAnnotations');
-      expectAssumeDynamicClass =
-          _elementEnvironment.lookupClass(library, 'AssumeDynamic');
-      if (expectNoInlineClass == null ||
-          expectTrustTypeAnnotationsClass == null ||
-          expectAssumeDynamicClass == null) {
-        // This is not the package you're looking for.
-        expectNoInlineClass = null;
-        expectTrustTypeAnnotationsClass = null;
-        expectAssumeDynamicClass = null;
-      }
-    }
-  }
+  CommonElements get _commonElements => _compiler.commonElements;
 
   /// Returns `true` if inlining is disabled for [element].
   bool noInline(Element element) {
-    if (_hasAnnotation(element, expectNoInlineClass)) {
+    if (_hasAnnotation(element, _commonElements.expectNoInlineClass)) {
       // TODO(floitsch): restrict to elements from the test directory.
       return true;
     }
-    return _hasAnnotation(element, compiler.commonElements.noInlineClass);
+    return _hasAnnotation(element, _commonElements.noInlineClass);
   }
 
   /// Returns `true` if parameter and returns types should be trusted for
   /// [element].
   bool trustTypeAnnotations(Element element) {
-    return _hasAnnotation(element, expectTrustTypeAnnotationsClass);
+    return _hasAnnotation(
+        element, _commonElements.expectTrustTypeAnnotationsClass);
   }
 
   /// Returns `true` if inference of parameter types is disabled for [element].
   bool assumeDynamic(Element element) {
-    return _hasAnnotation(element, expectAssumeDynamicClass);
+    return _hasAnnotation(element, _commonElements.expectAssumeDynamicClass);
   }
 
   /// Returns `true` if [element] is annotated with [annotationClass].
   bool _hasAnnotation(Element element, ClassElement annotationClass) {
     if (annotationClass == null) return false;
-    return reporter.withCurrentElement(element, () {
+    return _compiler.reporter.withCurrentElement(element, () {
       for (MetadataAnnotation metadata in element.metadata) {
         assert(invariant(metadata, metadata.constant != null,
             message: "Unevaluated metadata constant."));
         ConstantValue value =
-            compiler.constants.getConstantValue(metadata.constant);
+            _compiler.constants.getConstantValue(metadata.constant);
         if (value.isConstructedObject) {
           ConstructedConstantValue constructedConstant = value;
           if (constructedConstant.type.element == annotationClass) {

@@ -56,11 +56,11 @@ main() {
         compiler.resolutionWorldBuilder.closedWorldForTesting;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
-    Expect.isNotNull(backend.annotations.expectNoInlineClass,
+    Expect.isNotNull(compiler.commonElements.expectNoInlineClass,
         'NoInlineClass is unresolved.');
-    Expect.isNotNull(backend.annotations.expectTrustTypeAnnotationsClass,
+    Expect.isNotNull(compiler.commonElements.expectTrustTypeAnnotationsClass,
         'TrustTypeAnnotations is unresolved.');
-    Expect.isNotNull(backend.annotations.expectAssumeDynamicClass,
+    Expect.isNotNull(compiler.commonElements.expectAssumeDynamicClass,
         'AssumeDynamicClass is unresolved.');
 
     void testTypeMatch(FunctionElement function, TypeMask expectedParameterType,

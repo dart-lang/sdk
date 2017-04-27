@@ -55,7 +55,9 @@ import 'impact_test.dart';
 const SOURCE = const {
   'main.dart': '''
 import 'dart:html';
+import 'package:expect/expect.dart';
 
+@NoInline()
 main() {
   print('Hello World');
   ''.contains; // Trigger member closurization.
@@ -70,7 +72,8 @@ main(List<String> args) {
   });
 }
 
-Future mainInternal(List<String> args) async {
+Future mainInternal(List<String> args,
+    {bool skipWarnings: false, bool skipErrors: false}) async {
   Arguments arguments = new Arguments.from(args);
   Uri entryPoint;
   Map<String, String> memorySourceFiles;
@@ -85,13 +88,23 @@ Future mainInternal(List<String> args) async {
   enableDebugMode();
 
   print('---- analyze-only ------------------------------------------------');
+  DiagnosticCollector collector = new DiagnosticCollector();
   Compiler compiler1 = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
+      diagnosticHandler: collector,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
+  if (collector.errors.isNotEmpty && skipErrors) {
+    print('Skipping due to errors.');
+    return;
+  }
+  if (collector.warnings.isNotEmpty && skipWarnings) {
+    print('Skipping due to warnings.');
+    return;
+  }
   Expect.isFalse(compiler1.compilationFailed);
   ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
   BackendUsage backendUsage1 = compiler1.backend.backendUsage;

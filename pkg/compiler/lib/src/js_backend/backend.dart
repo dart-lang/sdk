@@ -310,7 +310,7 @@ class JavaScriptBackend {
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
-  final Annotations annotations;
+  final OptimizerHintsForTests annotations;
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
@@ -478,7 +478,7 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : _rti = new _RuntimeTypes(compiler),
-        annotations = new Annotations(compiler),
+        annotations = new OptimizerHintsForTests(compiler),
         this.sourceInformationStrategy = createSourceInformationStrategy(
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
@@ -1091,7 +1091,6 @@ class JavaScriptBackend {
     } else if (uri == LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP) {
       lookupMapResolutionAnalysis.init(library);
     }
-    annotations.onLibraryLoaded(library);
   }
 
   /// This method is called when all new libraries loaded through
