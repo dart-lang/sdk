@@ -61,6 +61,11 @@ class UnknownType extends DartType {
     if (v is TypeSchemaVisitor) {
       return v.visitUnknownType(this);
     } else {
+      // Note: in principle it seems like this should throw, since any visitor
+      // that operates on a type schema ought to inherit from TypeSchemaVisitor.
+      // However, that would make it impossible to use toString() on any type
+      // schema, since toString() uses the kernel's Printer visitor, which can't
+      // possibly inherit from TypeSchemaVisitor since it's inside kernel.
       return v.defaultDartType(this);
     }
   }
