@@ -892,6 +892,31 @@ build() => new Row(
         selectionOffset: 10);
   }
 
+  test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+  build() => new Scaffold(
+        appBar: new AppBar(
+          ^
+        ),
+  );
+''');
+
+    // Don't generate children boilerplate.
+    await computeSuggestions();
+
+    assertSuggest('color: ,',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null, // No default values.
+        selectionOffset: 7);
+  }
+
   test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
     configureFlutterPkg({
       'src/widgets/framework.dart': flutter_framework_code,

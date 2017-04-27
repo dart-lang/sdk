@@ -330,10 +330,17 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   bool _isFollowedByAComma(DartCompletionRequest request) {
+    // new A(^); NO
+    // new A(one: 1, ^); NO
+    // new A(^ , one: 1); YES
+    // new A(^), ... NO
+
+    var containingNode = request.target.containingNode;
     var entity = request.target.entity;
     Token token =
         entity is AstNode ? entity.endToken : entity is Token ? entity : null;
-    return token?.next?.type == TokenType.COMMA;
+    return (token != containingNode?.endToken) &&
+        token?.next?.type == TokenType.COMMA;
   }
 
   bool _isInFlutterCreation(DartCompletionRequest request) {
