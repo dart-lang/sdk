@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -251,6 +252,7 @@ class ArgListContributor extends DartCompletionContributor {
       if (appendColon) {
         completion += ': ';
       }
+      int selectionOffset = completion.length;
       if (appendComma) {
         completion += ',';
       }
@@ -258,7 +260,7 @@ class ArgListContributor extends DartCompletionContributor {
           CompletionSuggestionKind.NAMED_ARGUMENT,
           DART_RELEVANCE_NAMED_PARAMETER,
           completion,
-          completion.length,
+          selectionOffset,
           0,
           false,
           false,
@@ -305,7 +307,11 @@ class ArgListContributor extends DartCompletionContributor {
     } else if (_isInsertingToArgListWithNoSynthetic(request)) {
       _addDefaultParamSuggestions(parameters, true);
     } else if (_isInsertingToArgListWithSynthetic(request)) {
-      _addDefaultParamSuggestions(parameters);
+      var entity = request.target.entity;
+      Token token =
+          entity is AstNode ? entity.endToken : entity is Token ? entity : null;
+      bool followedByComma = token?.next?.type == TokenType.COMMA;
+      _addDefaultParamSuggestions(parameters, !followedByComma);
     }
   }
 

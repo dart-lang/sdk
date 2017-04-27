@@ -32,6 +32,20 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     }
   }
 
+  /**
+   * Assert that there is a suggestion with the given parameter [name] that has
+   * the given [completion], [selectionOffset] and [selectionLength].
+   */
+  void assertSuggestArgumentAndCompletion(String name,
+      {String completion, int selectionOffset, int selectionLength: 0}) {
+    CompletionSuggestion suggestion =
+        suggestions.firstWhere((s) => s.parameterName == name);
+    expect(suggestion, isNotNull);
+    expect(suggestion.completion, completion);
+    expect(suggestion.selectionOffset, selectionOffset);
+    expect(suggestion.selectionLength, selectionLength);
+  }
+
   void assertSuggestArgumentList(
       List<String> paramNames, List<String> paramTypes) {
     // DEPRECATED... argument lists are no longer suggested.
@@ -84,10 +98,15 @@ class ArgListContributorTest extends DartCompletionContributorTest {
    * the only suggestions.
    */
   void assertSuggestArgumentsAndTypes(
-      {Map<String, String> namedArgumentsWithTypes, bool includeColon: true}) {
+      {Map<String, String> namedArgumentsWithTypes,
+      bool includeColon: true,
+      bool includeComma: false}) {
     List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
     namedArgumentsWithTypes.forEach((String name, String type) {
       String completion = includeColon ? '$name: ' : name;
+      if (includeComma) {
+        completion = '$completion,';
+      }
       expected.add(assertSuggest(completion,
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
           relevance: DART_RELEVANCE_NAMED_PARAMETER,
@@ -543,11 +562,76 @@ main() {
 class A { A({int one, String two: 'defaultValue'}) { } }
 main() { new A(^);}''');
     await computeSuggestions();
+
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
   }
 
-  test_ArgumentList_local_constructor_named_param2() async {
+  test_ArgumentList_local_constructor_named_param_1() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(o^);}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_2() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(^o,);}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_3() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(two: 'foo', ^);}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_4() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(two: 'foo', o^);}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_5() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(two: 'foo', o^,);}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_6() async {
     //
     addTestSource('''
 class A { A.foo({int one, String two: 'defaultValue'}) { } }
@@ -555,6 +639,58 @@ main() { new A.foo(^);}''');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+  }
+
+  test_ArgumentList_local_constructor_named_param_prefixed_prepend() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(o^ two: 'foo');}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int'}, includeComma: true);
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ,', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_prepend() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(^ two: 'foo');}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int'}, includeComma: true);
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ,', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_prepend_1() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(o^, two: 'foo');}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int'}, includeComma: false);
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_named_param_prepend_2() async {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(^, two: 'foo');}''');
+    await computeSuggestions();
+
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int'}, includeComma: false);
+    assertSuggestArgumentAndCompletion('one',
+        completion: 'one: ', selectionOffset: 5);
   }
 
   test_ArgumentList_local_function_1() async {
