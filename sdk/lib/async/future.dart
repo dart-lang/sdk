@@ -451,7 +451,7 @@ abstract class Future<T> {
     return doWhile(() {
       if (!iterator.moveNext()) return false;
       var result = f(iterator.current);
-      if (result is Future<T>) return result.then(_kTrue);
+      if (result is Future) return result.then(_kTrue);
       return true;
     });
   }
