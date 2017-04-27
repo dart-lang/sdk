@@ -7,6 +7,8 @@ library front_end.physical_file_system;
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:path/path.dart' as p;
+
 import 'file_system.dart';
 
 /// Concrete implementation of [FileSystem] which performs its operations using
@@ -17,6 +19,9 @@ class PhysicalFileSystem implements FileSystem {
   static final PhysicalFileSystem instance = new PhysicalFileSystem._();
 
   PhysicalFileSystem._();
+
+  @override
+  p.Context get context => p.context;
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -47,16 +52,4 @@ class _PhysicalFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<String> readAsString() => new io.File.fromUri(uri).readAsString();
-
-  @override
-  Future<bool> exists() async {
-    if (await io.FileSystemEntity.isFile(uri.toFilePath())) {
-      return new io.File.fromUri(uri).exists();
-    } else {
-      return new io.Directory.fromUri(uri).exists();
-    }
-  }
-
-  @override
-  Future<DateTime> lastModified() => new io.File.fromUri(uri).lastModified();
 }
