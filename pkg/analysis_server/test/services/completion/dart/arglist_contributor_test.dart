@@ -104,6 +104,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
     namedArgumentsWithTypes.forEach((String name, String type) {
       String completion = includeColon ? '$name: ' : name;
+      // Selection should be before any trailing commas.
+      int selectionOffset = completion.length;
       if (includeComma) {
         completion = '$completion,';
       }
@@ -111,7 +113,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
           relevance: DART_RELEVANCE_NAMED_PARAMETER,
           paramName: name,
-          paramType: type));
+          paramType: type,
+          selectionOffset: selectionOffset));
     });
     assertNoOtherSuggestions(expected);
   }
@@ -122,9 +125,13 @@ class ArgListContributorTest extends DartCompletionContributorTest {
   void assertSuggestions(List<String> suggestions) {
     List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
     for (String suggestion in suggestions) {
+      // Selection offset should be before any trailing commas.
+      int selectionOffset =
+          suggestion.endsWith(',') ? suggestion.length - 1 : suggestion.length;
       expected.add(assertSuggest('$suggestion',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_NAMED_PARAMETER));
+          relevance: DART_RELEVANCE_NAMED_PARAMETER,
+          selectionOffset: selectionOffset));
     }
     assertNoOtherSuggestions(expected);
   }

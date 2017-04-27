@@ -135,11 +135,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.relevance, equals(relevance), reason: completion);
     }
     expect(cs.importUri, importUri);
-    //TODO(pq): fix offset bug for trailing commas
-    // and replace w/ expect(cs.selectionOffset, equals(selectionOffset ?? completion.length));
-    if (selectionOffset != null) {
-      expect(cs.selectionOffset, equals(selectionOffset));
-    }
+    expect(cs.selectionOffset, equals(selectionOffset ?? completion.length));
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
