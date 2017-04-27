@@ -15,10 +15,10 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
@@ -133,7 +133,7 @@ main() {
         // Copy to temp dir so that existing analysis options
         // in the test directory hierarchy do not interfere
         await withTempDirAsync((String tempDirPath) async {
-          String dartSdkPath = path.absolute(getSdkDir(<String>[]).path);
+          String dartSdkPath = path.absolute(getSdkPath());
           await recursiveCopy(
               new Directory(path.join(testDirectory, 'data', 'bazel')),
               tempDirPath);

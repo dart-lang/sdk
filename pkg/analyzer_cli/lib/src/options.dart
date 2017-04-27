@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
 
 const _binaryName = 'dartanalyzer';
 
@@ -234,12 +234,7 @@ class CommandLineOptions {
     // Check SDK.
     if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
-      if (options.dartSdkPath == null) {
-        Directory sdkDir = getSdkDir(args);
-        if (sdkDir != null) {
-          options.dartSdkPath = sdkDir.path;
-        }
-      }
+      options.dartSdkPath ??= getSdkPath(args);
 
       String sdkPath = options.dartSdkPath;
 
