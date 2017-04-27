@@ -976,6 +976,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment AssertAssignable(const dart::AbstractType& dst_type,
                             const dart::String& dst_name);
 
+  template <class Invocation>
+  bool RecognizeComparisonWithNull(Token::Kind token_kind, Invocation* node);
+
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
