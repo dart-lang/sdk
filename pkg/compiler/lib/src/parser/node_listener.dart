@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show SymbolToken, Token;
 import 'package:front_end/src/scanner/token.dart' show TokenType;
 
 import '../common.dart';
@@ -718,8 +718,8 @@ class NodeListener extends ElementListener {
     NodeList arguments =
         makeNodeList(1, openSquareBracket, closeSquareBracket, null);
     Node receiver = popNode();
-    Token token = new StringToken.fromString(
-        TokenType.INDEX, '[]', openSquareBracket.charOffset);
+    Token token =
+        new SymbolToken(TokenType.INDEX, openSquareBracket.charOffset);
     Node selector = new Operator(token);
     pushNode(new Send(receiver, selector, arguments));
   }
