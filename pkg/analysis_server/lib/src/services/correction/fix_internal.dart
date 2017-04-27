@@ -393,6 +393,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.avoid_types_on_closure_parameters) {
         _addFix_replaceWithIdentifier();
       }
+      if (errorCode.name == LintNames.await_only_futures) {
+        _addFix_removeAwait();
+      }
       if (errorCode.name == LintNames.empty_statements) {
         _addFix_removeEmptyStatement();
       }
@@ -1794,6 +1797,16 @@ class FixProcessor {
   void _addFix_nonBoolCondition_addNotNull() {
     _addInsertEdit(error.offset + error.length, ' != null');
     _addFix(DartFixKind.ADD_NE_NULL, []);
+  }
+
+  void _addFix_removeAwait() {
+    final awaitExpression = node;
+    if (awaitExpression is AwaitExpression) {
+      final awaitToken = awaitExpression.awaitKeyword;
+      _addRemoveEdit(
+          rf.rangeStartEnd(awaitToken.offset, awaitToken.next.offset));
+      _addFix(DartFixKind.REMOVE_AWAIT, []);
+    }
   }
 
   void _addFix_removeDeadCode() {
@@ -3217,6 +3230,7 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_types_on_closure_parameters =
       'avoid_types_on_closure_parameters';
+  static const String await_only_futures = 'await_only_futures';
   static const String empty_statements = 'empty_statements';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =

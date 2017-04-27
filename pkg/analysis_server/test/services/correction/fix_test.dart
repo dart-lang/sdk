@@ -5941,6 +5941,40 @@ main() {
 ''');
   }
 
+  test_removeAwait_intLiteral() async {
+    String src = '''
+bad() async {
+  print(/*LINT*/await 23);
+}
+''';
+    await findLint(src, LintNames.await_only_futures);
+
+    await applyFix(DartFixKind.REMOVE_AWAIT);
+
+    verifyResult('''
+bad() async {
+  print(23);
+}
+''');
+  }
+
+  test_removeAwait_StringLiteral() async {
+    String src = '''
+bad() async {
+  print(/*LINT*/await 'hola');
+}
+''';
+    await findLint(src, LintNames.await_only_futures);
+
+    await applyFix(DartFixKind.REMOVE_AWAIT);
+
+    verifyResult('''
+bad() async {
+  print('hola');
+}
+''');
+  }
+
   test_removeEmptyStatement_insideBlock() async {
     String src = '''
 void foo() {
