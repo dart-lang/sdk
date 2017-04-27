@@ -653,23 +653,44 @@ class FragmentEmitter {
       return js.js('function #() { }', name);
     }
 
-    List<js.Name> fieldNames =
-        cls.fields.map((Field field) => field.name).toList();
-    if (cls.hasRtiField) {
-      fieldNames.add(namer.rtiFieldJsName);
+    var statements = <js.Statement>[];
+    var parameters = <js.Name>[];
+    var thisRef;
+
+    // If there are many references to `this`, cache it in a local.
+    if (cls.fields.length + (cls.hasRtiField ? 1 : 0) >= 4) {
+      // TODO(29455): Fix js_ast printer and minifier to avoid conflicts between
+      // js.Name and string-named variables, then use '_' in the js template
+      // text.
+
+      // We pick '_' in minified mode because no field minifies to '_'. This
+      // avoids a conflict with one of the parameters which are named the same
+      // as the fields.  Unminified, a field might have the name '_', so we pick
+      // '$_', which is an impossible member name since we escape '$'s in names.
+      js.Name underscore = compiler.options.enableMinification
+          ? new StringBackedName('_')
+          : new StringBackedName(r'$_');
+      statements.add(js.js.statement('var # = this;', underscore));
+      thisRef = underscore;
+    } else {
+      thisRef = js.js('this');
     }
 
-    Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
-      return js.js("this.#field = #field", {"field": field});
-    });
+    for (Field field in cls.fields) {
+      js.Name paramName = field.name;
+      parameters.add(paramName);
+      statements
+          .add(js.js.statement('#.# = #', [thisRef, field.name, paramName]));
+    }
 
-    // TODO(sra): Cache 'this' in a one-character local for 4 or more uses of
-    // 'this'. i.e. "var _=this;_.a=a;_.b=b;..."
+    if (cls.hasRtiField) {
+      js.Name paramName = namer.rtiFieldJsName;
+      parameters.add(paramName);
+      statements.add(js.js
+          .statement('#.# = #', [thisRef, namer.rtiFieldJsName, paramName]));
+    }
 
-    // TODO(sra): Separate field and field initializer parameter names so the
-    // latter may be fully minified.
-
-    return js.js('function #(#) { # }', [name, fieldNames, assignments]);
+    return js.js('function #(#) { # }', [name, parameters, statements]);
   }
 
   /// Emits the prototype-section of the fragment.
