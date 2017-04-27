@@ -75,7 +75,7 @@ abstract class ErrorToken extends Token {
 
   String get stringValue => null;
 
-  bool isIdentifier() => false;
+  bool get isIdentifier => false;
 
   String get assertionMessage;
 

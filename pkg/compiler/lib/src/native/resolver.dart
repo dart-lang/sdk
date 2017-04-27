@@ -528,7 +528,7 @@ class ResolutionNativeClassFinder extends BaseNativeClassFinder {
       if (token.stringValue == 'abstract') token = token.next;
       if (token.stringValue != 'class') return null;
       token = token.next;
-      if (!token.isIdentifier()) return null;
+      if (!token.isIdentifier) return null;
       token = token.next;
       //  class F<X extends B<X>> extends ...
       if (token.stringValue == '<') {
@@ -541,7 +541,7 @@ class ResolutionNativeClassFinder extends BaseNativeClassFinder {
         token = token.next;
         if (token.stringValue != '.') break;
         token = token.next;
-        if (!token.isIdentifier()) return null;
+        if (!token.isIdentifier) return null;
         id = token;
       }
       // Should be at '{', 'with', 'implements', '<' or 'native'.
