@@ -19,6 +19,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PhysicalFileSystemTest);
     defineReflectiveTests(FileTest);
+    defineReflectiveTests(DirectoryTest);
   });
 }
 
@@ -85,6 +86,71 @@ class FileTest extends _BaseTest {
 
   test_uri() {
     expect(file.uri, p.toUri(path));
+  }
+
+  test_exists_doesNotExist() async {
+    expect(await file.exists(), isFalse);
+  }
+
+  test_exists_fileExists() async {
+    new io.File(path).writeAsStringSync('contents');
+    expect(await file.exists(), isTrue);
+  }
+
+  test_lastModified_increasesOnEachChange() async {
+    new io.File(path).writeAsStringSync('contents1');
+    var mod1 = await file.lastModified();
+
+    // Pause to ensure the file-system time-stamps are different.
+    await new Future.delayed(new Duration(seconds: 1));
+    new io.File(path).writeAsStringSync('contents2');
+    var mod2 = await file.lastModified();
+    expect(mod2.isAfter(mod1), isTrue);
+
+    await new Future.delayed(new Duration(seconds: 1));
+    var path2 = p.join(tempPath, 'file2.txt');
+    new io.File(path2).writeAsStringSync('contents2');
+    var file2 = entityForPath(path2);
+    var mod3 = await file2.lastModified();
+    expect(mod3.isAfter(mod2), isTrue);
+  }
+}
+
+@reflectiveTest
+class DirectoryTest extends _BaseTest {
+  String path;
+  FileSystemEntity dir;
+
+  setUp() {
+    super.setUp();
+    path = p.join(tempPath, 'dir');
+    dir = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
+  }
+
+  test_equals_differentPaths() {
+    expect(dir == entityForPath(p.join(tempPath, 'dir2')), isFalse);
+  }
+
+  test_equals_samePath() {
+    expect(dir == entityForPath(p.join(tempPath, 'dir')), isTrue);
+  }
+
+  test_readAsBytes() async {
+    new io.Directory(path).create();
+    expect(dir.readAsBytes(), throwsException);
+  }
+
+  test_uri() {
+    expect(dir.uri, p.toUri(path));
+  }
+
+  test_exists_doesNotExist() async {
+    expect(await dir.exists(), isFalse);
+  }
+
+  test_exists_directoryExists() async {
+    new io.Directory(path).create();
+    expect(await dir.exists(), isTrue);
   }
 }
 

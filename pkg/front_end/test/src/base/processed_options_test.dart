@@ -8,7 +8,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,7 +19,7 @@ main() {
 
 @reflectiveTest
 class ProcessedOptionsTest {
-  final fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
 
   PackageBundleBuilder _mockSdkSummary;
 

@@ -6,8 +6,6 @@ library front_end.file_system;
 
 import 'dart:async';
 
-import 'package:path/path.dart' as path;
-
 /// Abstract interface to file system operations.
 ///
 /// All front end interaction with the file system goes through this interface;
@@ -17,12 +15,6 @@ import 'package:path/path.dart' as path;
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class FileSystem {
-  /// Returns a path context suitable for use with this [FileSystem].
-  ///
-  /// TODO(paulberry): try to eliminate all usages of this.  Since the
-  /// FileSystem API now uses URIs rather than paths, it should not be needed.
-  path.Context get context;
-
   /// Returns a [FileSystemEntity] corresponding to the given [uri].
   ///
   /// Uses of `..` and `.` in the URI are normalized before returning.
@@ -41,8 +33,7 @@ abstract class FileSystem {
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class FileSystemEntity {
-  /// Returns the absolute normalized URI represented by this file system
-  /// entity.
+  /// The absolute normalized URI represented by this file system entity.
   ///
   /// Note: this is not necessarily the same as the URI that was passed to
   /// [FileSystem.entityForUri], since the URI might have been normalized.
@@ -65,4 +56,12 @@ abstract class FileSystemEntity {
   /// file exists, the entity is a directory, or the file is not valid UTF-8),
   /// the future is completed with an [Exception].
   Future<String> readAsString();
+
+  /// Whether this file system entity exists.
+  Future<bool> exists();
+
+  /// Extracts the last-modification time of the file system entity, if it
+  /// exists and it is a file, otherwise the future is completed with an
+  /// [Exception].
+  Future<DateTime> lastModified();
 }

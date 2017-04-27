@@ -46,7 +46,7 @@ class FileTest extends _BaseTestNative {
   }
 
   test_path() {
-    expect(file.uri, fileSystem.context.toUri(path));
+    expect(file.uri, context.toUri(path));
   }
 
   test_readAsBytes_badUtf8() async {
@@ -86,6 +86,32 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsString(), '\u20ac');
   }
 
+  test_exists_doesNotExist() async {
+    expect(await file.exists(), false);
+  }
+
+  test_exists_exists() async {
+    file.writeAsStringSync('x');
+    expect(await file.exists(), true);
+  }
+
+  test_lastModified_doesNotExist() async {
+    expect(file.lastModified(), throwsException);
+  }
+
+  test_lastModified_increasesOnEachChange() async {
+    file.writeAsStringSync('x');
+    var mod1 = await file.lastModified();
+    file.writeAsStringSync('y');
+    var mod2 = await file.lastModified();
+    expect(mod2.isAfter(mod1), isTrue);
+
+    var file2 = entityForPath(join(tempPath, 'file2.txt'));
+    file2.writeAsStringSync('z');
+    var mod3 = await file2.lastModified();
+    expect(mod3.isAfter(mod2), isTrue);
+  }
+
   test_writeAsBytesSync_modifyAfterRead() async {
     file.writeAsBytesSync([1]);
     (await file.readAsBytes())[0] = 2;
@@ -122,7 +148,7 @@ abstract class MemoryFileSystemTestMixin extends _BaseTest {
 
   setUp() {
     super.setUp();
-    tempUri = fileSystem.context.toUri(tempPath);
+    tempUri = context.toUri(tempPath);
   }
 
   test_currentDirectory_trailingSlash() {
@@ -133,15 +159,11 @@ abstract class MemoryFileSystemTestMixin extends _BaseTest {
     var path = fileSystem.currentDirectory.path;
     var currentDirectoryWithoutSlash = fileSystem.currentDirectory
         .replace(path: path.substring(0, path.length - 1));
-    expect(
-        new MemoryFileSystem(fileSystem.context, currentDirectoryWithoutSlash)
-            .currentDirectory,
+    expect(new MemoryFileSystem(currentDirectoryWithoutSlash).currentDirectory,
         fileSystem.currentDirectory);
     // If the currentDirectory supplied to the MemoryFileSystem constructor
     // already has a trailing slash, no further trailing slash should be added.
-    expect(
-        new MemoryFileSystem(fileSystem.context, fileSystem.currentDirectory)
-            .currentDirectory,
+    expect(new MemoryFileSystem(fileSystem.currentDirectory).currentDirectory,
         fileSystem.currentDirectory);
   }
 
@@ -213,12 +235,13 @@ class MemoryFileSystemTestWindows extends _BaseTestWindows
     with MemoryFileSystemTestMixin {}
 
 abstract class _BaseTest {
+  pathos.Context get context;
   MemoryFileSystem get fileSystem;
 
   String get tempPath;
 
   MemoryFileSystemEntity entityForPath(String path) =>
-      fileSystem.entityForUri(fileSystem.context.toUri(path));
+      fileSystem.entityForUri(context.toUri(path));
 
   String join(String path1, String path2, [String path3, String path4]);
 
@@ -226,6 +249,7 @@ abstract class _BaseTest {
 }
 
 class _BaseTestNative extends _BaseTest {
+  final pathos.Context context = pathos.context;
   MemoryFileSystem fileSystem;
   String tempPath;
 
@@ -234,12 +258,12 @@ class _BaseTestNative extends _BaseTest {
 
   setUp() {
     tempPath = pathos.join(io.Directory.systemTemp.path, 'test_file_system');
-    fileSystem = new MemoryFileSystem(
-        pathos.context, pathos.toUri(io.Directory.current.path));
+    fileSystem = new MemoryFileSystem(pathos.toUri(io.Directory.current.path));
   }
 }
 
 class _BaseTestPosix extends _BaseTest {
+  final pathos.Context context = pathos.posix;
   MemoryFileSystem fileSystem;
   String tempPath;
 
@@ -248,11 +272,12 @@ class _BaseTestPosix extends _BaseTest {
 
   void setUp() {
     tempPath = '/test_file_system';
-    fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///cwd'));
+    fileSystem = new MemoryFileSystem(Uri.parse('file:///cwd'));
   }
 }
 
 class _BaseTestWindows extends _BaseTest {
+  final pathos.Context context = pathos.windows;
   MemoryFileSystem fileSystem;
   String tempPath;
 
@@ -261,7 +286,6 @@ class _BaseTestWindows extends _BaseTest {
 
   void setUp() {
     tempPath = r'c:\test_file_system';
-    fileSystem =
-        new MemoryFileSystem(pathos.windows, Uri.parse('file:///c:/cwd'));
+    fileSystem = new MemoryFileSystem(Uri.parse('file:///c:/cwd'));
   }
 }
