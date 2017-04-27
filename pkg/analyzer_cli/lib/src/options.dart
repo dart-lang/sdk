@@ -225,6 +225,14 @@ class CommandLineOptions {
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
 
+  /// The source files to analyze
+  List<String> get sourceFiles => _sourceFiles;
+
+  /// Replace the sourceFiles parsed from the command line.
+  void rewriteSourceFiles(List<String> newSourceFiles) {
+    _sourceFiles = newSourceFiles;
+  }
+
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
@@ -287,14 +295,6 @@ class CommandLineOptions {
     }
 
     return options;
-  }
-
-  /// The source files to analyze
-  List<String> get sourceFiles => _sourceFiles;
-
-  /// Replace the sourceFiles parsed from the command line.
-  void rewriteSourceFiles(List<String> newSourceFiles) {
-    _sourceFiles = newSourceFiles;
   }
 
   static String _getVersion() {
@@ -479,7 +479,7 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('enable-assert-initializers',
           help: 'Enable parsing of asserts in constructor initializers.',
-          defaultsTo: false,
+          defaultsTo: null,
           negatable: false,
           hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',

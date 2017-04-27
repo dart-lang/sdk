@@ -786,7 +786,9 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.enableAssertInitializer = options.enableAssertInitializer;
+    if (options.enableAssertInitializer != null) {
+      contextOptions.enableAssertInitializer = options.enableAssertInitializer;
+    }
 
     return contextOptions;
   }
