@@ -277,6 +277,9 @@ class ArgListContributor extends DartCompletionContributor {
         sb.write('${parameter.name}: ');
         int offset = sb.length;
         sb.write(defaultValue);
+        if (appendComma) {
+          sb.write(',');
+        }
         suggestion.defaultArgumentListString = sb.toString();
         suggestion.defaultArgumentListTextRanges = [
           offset,
@@ -302,16 +305,14 @@ class ArgListContributor extends DartCompletionContributor {
     // method which returns some enum with 5+ cases.
     if (_isEditingNamedArgLabel(request) || _isAppendingToArgList(request)) {
       if (requiredCount == 0 || requiredCount < _argCount(request)) {
-        _addDefaultParamSuggestions(parameters);
+        bool addTrailingComma =
+            !_isFollowedByAComma(request) && _isInFlutterCreation(request);
+        _addDefaultParamSuggestions(parameters, addTrailingComma);
       }
     } else if (_isInsertingToArgListWithNoSynthetic(request)) {
       _addDefaultParamSuggestions(parameters, true);
     } else if (_isInsertingToArgListWithSynthetic(request)) {
-      var entity = request.target.entity;
-      Token token =
-          entity is AstNode ? entity.endToken : entity is Token ? entity : null;
-      bool followedByComma = token?.next?.type == TokenType.COMMA;
-      _addDefaultParamSuggestions(parameters, !followedByComma);
+      _addDefaultParamSuggestions(parameters, !_isFollowedByAComma(request));
     }
   }
 
@@ -326,6 +327,21 @@ class ArgListContributor extends DartCompletionContributor {
       }
     }
     return null;
+  }
+
+  bool _isFollowedByAComma(DartCompletionRequest request) {
+    var entity = request.target.entity;
+    Token token =
+        entity is AstNode ? entity.endToken : entity is Token ? entity : null;
+    return token?.next?.type == TokenType.COMMA;
+  }
+
+  bool _isInFlutterCreation(DartCompletionRequest request) {
+    AstNode containingNode = request?.target?.containingNode;
+    InstanceCreationExpression newExpr = containingNode != null
+        ? identifyNewExpression(containingNode.parent)
+        : null;
+    return newExpr != null && isFlutterInstanceCreationExpression(newExpr);
   }
 
   /**

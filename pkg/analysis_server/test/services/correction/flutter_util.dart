@@ -17,7 +17,7 @@ class AspectRatio extends SingleChildRenderObjectWidget {}
 class Container extends StatelessWidget { Container({child: null, width: null, height: null}){}}
 class Center extends StatelessWidget { Center({child: null, key: null}){}}
 class DefaultTextStyle extends StatelessWidget { DefaultTextStyle({child: null}){}}
-class Row extends Widget { Row({List<Widget> children: null}){}}
+class Row extends Widget { Row({List<Widget> children: null, key: null}){}}
 class GestureDetector extends SingleChildRenderObjectWidget { GestureDetector({child: null, onTap: null}){}}
 class Scaffold extends Widget { Scaffold({body: null}){}}
 ''';
