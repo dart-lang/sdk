@@ -56,7 +56,13 @@ uninitialized_fields: Crash
 unused_methods: Crash
 void-methods: Crash
 
-inference/local_constructor_from_arguments: Crash
+inference/*: Crash, Fail
+inference/int_upwards_local: Pass
+inference/local_reference_upwards_local: Pass
+inference/type_promotion_simple: Pass
+inference/type_promotion_stopped_by_access_in_a_closure: Pass
+inference/type_promotion_stopped_by_assignment_in_scope: Pass
+inference/type_promotion_stopped_by_mutation_in_a_closure: Pass
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Crash

@@ -120,6 +120,11 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
 
   void _appendElementName(StringBuffer buffer, Element element) {
     String name = element.name;
+    if (element.library == null) {
+      // TODO(scheglov) This is wrong - every element must be in a library.
+      buffer.write('<unknown>::$name');
+      return;
+    }
     String libraryName = element.library.name;
     if (libraryName == '') {
       throw new StateError('The element $name must be in a named library.');
@@ -155,7 +160,7 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
       StringBuffer buffer, List<ParameterElement> parameters) {
     _appendList<ParameterElement>(buffer, '(', ')', parameters, ', ',
         (parameter) {
-      _appendType(buffer, type);
+      _appendType(buffer, parameter.type);
       buffer.write(' ');
       buffer.write(parameter.name);
     }, includeEmpty: true);
@@ -231,6 +236,26 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     if (type is InterfaceType) {
       if (type.typeParameters.isNotEmpty &&
           node.constructorName.type.typeArguments == null) {
+        _recordTypeArguments(node.offset, type.typeArguments);
+      }
+    }
+  }
+
+  visitListLiteral(ListLiteral node) {
+    super.visitListLiteral(node);
+    if (node.typeArguments == null) {
+      DartType type = node.staticType;
+      if (type is InterfaceType) {
+        _recordTypeArguments(node.offset, type.typeArguments);
+      }
+    }
+  }
+
+  visitMapLiteral(MapLiteral node) {
+    super.visitMapLiteral(node);
+    if (node.typeArguments == null) {
+      DartType type = node.staticType;
+      if (type is InterfaceType) {
         _recordTypeArguments(node.offset, type.typeArguments);
       }
     }
