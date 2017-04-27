@@ -133,8 +133,7 @@ Future<Program> kernelForBuildUnit(
 Future<DartLoader> _createLoader(CompilerOptions options,
     {Program program, Uri entry}) async {
   var kernelOptions = _convertOptions(options);
-  var packages = await createPackages(
-      _uriToPath(options.packagesFileUri, options),
+  var packages = await createPackages(_uriToPath(options.packagesFileUri),
       discoveryPath: entry?.path);
   var loader =
       new DartLoader(program ?? new Program(), kernelOptions, packages);
@@ -142,8 +141,7 @@ Future<DartLoader> _createLoader(CompilerOptions options,
 
   // TODO(sigmund,paulberry): use ProcessedOptions so that we can resolve the
   // URIs correctly even if sdkRoot is inferred and not specified explicitly.
-  String resolve(Uri patch) =>
-      options.fileSystem.context.fromUri(options.sdkRoot.resolveUri(patch));
+  String resolve(Uri patch) => _uriToPath(options.sdkRoot.resolveUri(patch));
 
   options.targetPatches.forEach((uri, patches) {
     patchPaths['$uri'] = patches.map(resolve).toList();
@@ -156,12 +154,11 @@ Future<DartLoader> _createLoader(CompilerOptions options,
 DartOptions _convertOptions(CompilerOptions options) {
   return new DartOptions(
       strongMode: options.strongMode,
-      sdk: _uriToPath(options.sdkRoot, options),
+      sdk: _uriToPath(options.sdkRoot),
       // TODO(sigmund): make it possible to use summaries and still compile the
       // sdk sources.
-      sdkSummary:
-          options.compileSdk ? null : _uriToPath(options.sdkSummary, options),
-      packagePath: _uriToPath(options.packagesFileUri, options),
+      sdkSummary: options.compileSdk ? null : _uriToPath(options.sdkSummary),
+      packagePath: _uriToPath(options.packagesFileUri),
       customUriMappings: options.uriOverride,
       declaredVariables: options.declaredVariables);
 }
@@ -173,12 +170,12 @@ void _reportErrors(List errors, ErrorHandler onError) {
   }
 }
 
-String _uriToPath(Uri uri, CompilerOptions options) {
+String _uriToPath(Uri uri) {
   if (uri == null) return null;
   if (uri.scheme != 'file') {
     throw new StateError('Only file URIs are supported: $uri');
   }
-  return options.fileSystem.context.fromUri(uri);
+  return uri.toFilePath();
 }
 
 // TODO(sigmund): delete this class. Dartk should not format errors itself, we
