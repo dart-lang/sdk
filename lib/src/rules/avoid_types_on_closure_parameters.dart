@@ -26,20 +26,6 @@ var names = people.map((person) => person.name);
 
 ''';
 
-NormalFormalParameter _getNormalFormalParameter(FormalParameter node) {
-  if (node is DefaultFormalParameter) {
-    return node.parameter;
-  }
-  return node;
-}
-
-bool _hasNonDynamicType(NormalFormalParameter parameter) {
-  if (parameter is SimpleFormalParameter) {
-    return parameter.type != null && parameter.type.name.name != 'dynamic';
-  }
-  return true;
-}
-
 class AvoidTypesOnClosureParameters extends LintRule {
   _Visitor _visitor;
   AvoidTypesOnClosureParameters()
@@ -55,20 +41,46 @@ class AvoidTypesOnClosureParameters extends LintRule {
   AstVisitor getVisitor() => _visitor;
 }
 
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-  _Visitor(this.rule);
+class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
+  LintRule rule;
+
+  AvoidTypesOnClosureParametersVisitor(this.rule);
+
+  @override
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    node.parameter.accept(this);
+  }
 
   @override
   visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       return;
     }
-    final nonDynamicParameters = node.parameters.parameters
-        .map(_getNormalFormalParameter)
-        .where(_hasNonDynamicType);
-    if (nonDynamicParameters.isNotEmpty) {
-      rule.reportLint(nonDynamicParameters.first);
+    for (final parameter in node.parameters.parameters) {
+      parameter.accept(this);
     }
+  }
+
+  @override
+  visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    rule.reportLint(node);
+  }
+
+  @override
+  visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (node.type != null && node.type.name.name != 'dynamic') {
+      rule.reportLint(node.type);
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor {
+  final LintRule rule;
+  _Visitor(this.rule);
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    final visitor = new AvoidTypesOnClosureParametersVisitor(rule);
+    visitor.visitFunctionExpression(node);
   }
 }
