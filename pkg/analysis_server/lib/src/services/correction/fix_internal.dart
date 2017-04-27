@@ -384,6 +384,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.avoid_init_to_null) {
         _addFix_removeInitializer();
       }
+      if (errorCode.name == LintNames.empty_statements) {
+        _addFix_removeEmptyStatement();
+      }
       if (errorCode.name == LintNames.prefer_collection_literals) {
         _addFix_replaceWithLiteral();
       }
@@ -1816,6 +1819,20 @@ class FixProcessor {
     }
   }
 
+  void _addFix_removeEmptyStatement() {
+    EmptyStatement emptyStatement = node;
+    if (emptyStatement.parent is Block) {
+      _addRemoveEdit(utils.getLinesRange(rf.rangeNode(emptyStatement)));
+      _addFix(DartFixKind.REMOVE_EMPTY_STATEMENT, []);
+    } else {
+      _addReplaceEdit(
+          rf.rangeStartEnd(
+              emptyStatement.beginToken.previous.end, emptyStatement.end),
+          ' {}');
+      _addFix(DartFixKind.REPLACE_WITH_BRACKETS, []);
+    }
+  }
+
   void _addFix_removeInitializer() {
     // Retrieve the linted node.
     VariableDeclaration ancestor =
@@ -3165,6 +3182,7 @@ class FixProcessor {
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String empty_statements = 'empty_statements';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';

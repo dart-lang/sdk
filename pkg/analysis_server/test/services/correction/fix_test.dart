@@ -5943,6 +5943,65 @@ main() {
 ''');
   }
 
+  test_removeEmptyStatement_insideBlock() async {
+    String src = '''
+void foo() {
+  while(true) {
+    /*LINT*/;
+  }
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_STATEMENT);
+
+    verifyResult('''
+void foo() {
+  while(true) {
+  }
+}
+''');
+  }
+
+  test_removeEmptyStatement_outOfBlock_otherLine() async {
+    String src = '''
+void foo() {
+  while(true)
+  /*LINT*/;
+  print('hi');
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REPLACE_WITH_BRACKETS);
+
+    verifyResult('''
+void foo() {
+  while(true) {}
+  print('hi');
+}
+''');
+  }
+
+  test_removeEmptyStatement_outOfBlock_sameLine() async {
+    String src = '''
+void foo() {
+  while(true)/*LINT*/;
+  print('hi');
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REPLACE_WITH_BRACKETS);
+
+    verifyResult('''
+void foo() {
+  while(true) {}
+  print('hi');
+}
+''');
+  }
+
   test_removeInitializer_field() async {
     String src = '''
 class Test {
