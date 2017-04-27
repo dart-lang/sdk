@@ -24,6 +24,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/src/dart/constant/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/dart/element/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/dart/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/dart/parser/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/dart/sdk/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/lint/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />

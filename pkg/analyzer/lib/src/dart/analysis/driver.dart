@@ -30,7 +30,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:meta/meta.dart';
@@ -1021,8 +1020,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               sourceFactory,
               _fsState,
               libraryContext.store,
-              library,
-              _testView.instrumentation);
+              library);
           Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
           List<int> bytes;
@@ -1564,8 +1562,6 @@ class AnalysisDriverTestView {
   int numOfCreatedLibraryContexts = 0;
 
   int numOfAnalyzedLibraries = 0;
-
-  fasta.Instrumentation instrumentation;
 
   AnalysisDriverTestView(this.driver);
 

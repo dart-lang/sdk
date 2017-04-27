@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+/*@testedFeatures=inference*/
 library test;
 
-/*@testedFeatures=inference*/
 main() {
   num n = null;
   if (/*@promotedType=none*/ n is int) {
     var /*@type=num*/ i = /*@promotedType=none*/ n;
   }
-  /*@type=() → Null*/ () {
+  /*@returnType=Null*/ () {
     n = null;
   };
 }

@@ -11,13 +11,13 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ x = /*@type=C<int>*/ new C(42);
+  var /*@type=C<int>*/ x = /*@typeArgs=int*/ new C(42);
 
   num y;
-  C<int> c_int = /*@type=C<int>*/ new C(
+  C<int> c_int = /*@typeArgs=int*/ new C(
       /*info:DOWN_CAST_IMPLICIT*/ /*@promotedType=none*/ y);
 
-  C<num> c_num = /*@type=C<num>*/ new C(123);
+  C<num> c_num = /*@typeArgs=num*/ new C(123);
 
   // Don't infer from explicit dynamic.
   var /*@type=C<dynamic>*/ c_dynamic = new C<dynamic>(42);

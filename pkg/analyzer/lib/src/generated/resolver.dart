@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/fasta/uri_instrumentation.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -4212,11 +4211,6 @@ class InferenceContext {
   final ErrorReporter _errorReporter;
 
   /**
-   * The instrumentation to report inference information.
-   */
-  final UriInstrumentation _instrumentation;
-
-  /**
    * If true, emit hints when types are inferred
    */
   final bool _inferenceHints;
@@ -4246,7 +4240,7 @@ class InferenceContext {
   final List<DartType> _returnStack = <DartType>[];
 
   InferenceContext._(TypeProvider typeProvider, this._typeSystem,
-      this._inferenceHints, this._errorReporter, this._instrumentation)
+      this._inferenceHints, this._errorReporter)
       : _typeProvider = typeProvider;
 
   /**
@@ -4310,8 +4304,6 @@ class InferenceContext {
    * [type] has been inferred as the type of [node].
    */
   void recordInference(Expression node, DartType type) {
-    _instrumentation?.recordInference(node.offset, type);
-
     if (!_inferenceHints) {
       return;
     }
@@ -5000,11 +4992,6 @@ class ResolverVisitor extends ScopedVisitor {
   TypeSystem typeSystem;
 
   /**
-   * The instrumentation to report inference information.
-   */
-  final UriInstrumentation instrumentation;
-
-  /**
    * The class declaration representing the class containing the current node, or `null` if
    * the current node is not contained in a class.
    */
@@ -5073,7 +5060,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope, this.instrumentation})
+      {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     AnalysisOptions options = definingLibrary.context.analysisOptions;
@@ -5084,8 +5071,8 @@ class ResolverVisitor extends ScopedVisitor {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
-    this.inferenceContext = new InferenceContext._(typeProvider, typeSystem,
-        strongModeHints, errorReporter, instrumentation);
+    this.inferenceContext = new InferenceContext._(
+        typeProvider, typeSystem, strongModeHints, errorReporter);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 

@@ -20,6 +20,7 @@ class ValidatingInstrumentation implements Instrumentation {
     'inference': const [
       'topType',
       'typeArg',
+      'typeArgs',
       'promotedType',
       'type',
       'returnType'

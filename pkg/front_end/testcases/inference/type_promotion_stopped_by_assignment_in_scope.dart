@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 /*@testedFeatures=inference*/
+library test;
+
 main() {
   num n = null;
   if (/*@promotedType=none*/ n is int) {

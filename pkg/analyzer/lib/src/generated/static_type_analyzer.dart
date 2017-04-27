@@ -1333,11 +1333,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (element is VariableElement) {
       VariableElement variable = element;
       staticType = _promoteManager.getStaticType(variable);
-      if (_resolver.instrumentation != null && node.inGetterContext()) {
-        node.inGetterContext();
-        DartType type = _promoteManager.getType(variable);
-        _resolver.instrumentation.recordPromotion(node.offset, type);
-      }
     } else if (element is PrefixElement) {
       return null;
     } else if (element is DynamicElementImpl) {
@@ -2102,7 +2097,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
           VariableElement element = node.element;
           if (element is LocalVariableElementImpl) {
-            _resolver.instrumentation?.recordInference(node.name.offset, type);
             element.type = initializer.staticType;
             node.name.staticType = initializer.staticType;
           }
