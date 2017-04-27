@@ -65,6 +65,12 @@ main() {
 };
 
 main(List<String> args) {
+  asyncTest(() async {
+    await mainInternal(args);
+  });
+}
+
+Future mainInternal(List<String> args) async {
   Arguments arguments = new Arguments.from(args);
   Uri entryPoint;
   Map<String, String> memorySourceFiles;
@@ -76,69 +82,63 @@ main(List<String> args) {
     memorySourceFiles = SOURCE;
   }
 
-  asyncTest(() async {
-    enableDebugMode();
+  enableDebugMode();
 
-    print('---- analyze-only ------------------------------------------------');
-    Compiler compiler1 = compilerFor(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
-    ElementResolutionWorldBuilder.useInstantiationMap = true;
-    compiler1.resolution.retainCachesForTesting = true;
-    await compiler1.run(entryPoint);
-    Expect.isFalse(compiler1.compilationFailed);
-    ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
-    BackendUsage backendUsage1 = compiler1.backend.backendUsage;
-    ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
+  print('---- analyze-only ------------------------------------------------');
+  Compiler compiler1 = compilerFor(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  compiler1.resolution.retainCachesForTesting = true;
+  await compiler1.run(entryPoint);
+  Expect.isFalse(compiler1.compilationFailed);
+  ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
+  BackendUsage backendUsage1 = compiler1.backend.backendUsage;
+  ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
-    print('---- analyze-all -------------------------------------------------');
-    Compiler compiler = compilerFor(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        options: [
-          Flags.analyzeAll,
-          Flags.useKernel,
-          Flags.enableAssertMessage
-        ]);
-    await compiler.run(entryPoint);
-    compiler.resolutionWorldBuilder.closeWorld();
+  print('---- analyze-all -------------------------------------------------');
+  Compiler compiler = compilerFor(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+  await compiler.run(entryPoint);
+  compiler.resolutionWorldBuilder.closeWorld();
 
-    print('---- closed world from kernel ------------------------------------');
-    Compiler compiler2 = compilerFor(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        options: [
-          Flags.analyzeOnly,
-          Flags.enableAssertMessage,
-          Flags.loadFromDill
-        ]);
-    ElementResolutionWorldBuilder.useInstantiationMap = true;
-    compiler2.resolution.retainCachesForTesting = true;
-    KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-    KernelToElementMap elementMap = frontEndStrategy.elementMap;
-    compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
-        elementMap,
-        compiler2.reporter,
-        compiler2.measurer,
-        compiler.backend.kernelTask.program);
-    await compiler2.run(entryPoint);
-    Expect.isFalse(compiler2.compilationFailed);
-    ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
-    BackendUsage backendUsage2 = compiler2.backend.backendUsage;
-    ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
-    KernelEquivalence equivalence = new KernelEquivalence(elementMap);
-    checkBackendUsage(backendUsage1, backendUsage2, equivalence);
+  print('---- closed world from kernel ------------------------------------');
+  Compiler compiler2 = compilerFor(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: [
+        Flags.analyzeOnly,
+        Flags.enableAssertMessage,
+        Flags.loadFromDill
+      ]);
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  compiler2.resolution.retainCachesForTesting = true;
+  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
+  KernelToElementMap elementMap = frontEndStrategy.elementMap;
+  compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
+      elementMap,
+      compiler2.reporter,
+      compiler2.measurer,
+      compiler.backend.kernelTask.program);
+  await compiler2.run(entryPoint);
+  Expect.isFalse(compiler2.compilationFailed);
+  ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
+  BackendUsage backendUsage2 = compiler2.backend.backendUsage;
+  ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+  KernelEquivalence equivalence = new KernelEquivalence(elementMap);
+  checkBackendUsage(backendUsage1, backendUsage2, equivalence);
 
-    checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
-        elementEquivalence: equivalence.entityEquivalence,
-        typeEquivalence: (ResolutionDartType a, DartType b) {
-      return equivalence.typeEquivalence(unalias(a), b);
-    }, elementFilter: elementFilter, verbose: arguments.verbose);
+  checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
+      elementEquivalence: equivalence.entityEquivalence,
+      typeEquivalence: (ResolutionDartType a, DartType b) {
+    return equivalence.typeEquivalence(unalias(a), b);
+  }, elementFilter: elementFilter, verbose: arguments.verbose);
 
-    checkClosedWorlds(closedWorld1, closedWorld2, equivalence.entityEquivalence,
-        verbose: arguments.verbose);
-  });
+  checkClosedWorlds(closedWorld1, closedWorld2, equivalence.entityEquivalence,
+      verbose: arguments.verbose);
 }
 
 List createKernelResolutionEnqueuerListener(
