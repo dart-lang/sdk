@@ -152,12 +152,16 @@ class EditDomainHandler extends AbstractRequestHandler {
       //
       // Allow plugins to start computing assists.
       //
-      AnalysisDriver driver = server.getAnalysisDriver(file);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures;
       plugin.EditGetAssistsParams requestParams =
           new plugin.EditGetAssistsParams(file, offset, length);
-      Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
-          .pluginManager
-          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      if (driver == null) {
+        pluginFutures = <PluginInfo, Future<plugin.Response>>{};
+      } else {
+        pluginFutures = server.pluginManager
+            .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      }
       //
       // Compute fixes associated with server-generated errors.
       //
@@ -226,12 +230,16 @@ class EditDomainHandler extends AbstractRequestHandler {
       //
       // Allow plugins to start computing fixes.
       //
-      AnalysisDriver driver = server.getAnalysisDriver(file);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures;
       plugin.EditGetFixesParams requestParams =
           new plugin.EditGetFixesParams(file, offset);
-      Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
-          .pluginManager
-          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      if (driver == null) {
+        pluginFutures = <PluginInfo, Future<plugin.Response>>{};
+      } else {
+        pluginFutures = server.pluginManager
+            .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      }
       //
       // Compute fixes associated with server-generated errors.
       //
@@ -447,7 +455,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     List<engine.AnalysisError> errors;
     if (server.options.enableNewAnalysisDriver) {
       AnalysisDriver driver = server.getAnalysisDriver(file);
-      ParseResult result = await driver.parseFile(file);
+      ParseResult result = await driver?.parseFile(file);
       if (result == null) {
         server.sendResponse(new Response.fileNotAnalyzed(request, file));
         return;
