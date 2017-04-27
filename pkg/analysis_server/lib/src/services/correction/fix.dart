@@ -216,6 +216,8 @@ class DartFixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_THIS_EXPRESSION =
       const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
+  static const REMOVE_TYPE_NAME =
+      const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
   static const REMOVE_UNNECESSARY_CAST =
       const FixKind('REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast");
   static const REMOVE_UNUSED_CATCH_CLAUSE =
@@ -236,6 +238,8 @@ class DartFixKind {
       const FixKind('REPLACE_WITH_BRACKETS', 50, "Replace with { }");
   static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, 'Replace with ??=');
+  static const REPLACE_WITH_IDENTIFIER =
+      const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
   static const REPLACE_WITH_LITERAL =
       const FixKind('REPLACE_WITH_LITERAL', 50, 'Replace with literal');
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
