@@ -19,55 +19,66 @@ import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
 import 'package:kernel/kernel.dart' as fasta;
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/analysis/base.dart';
 
-Future<Null> main() async {
-  await _runFrontEndInferenceTests();
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(RunFrontEndInferenceTest);
+  });
 }
 
-/**
- * Expects that the [Platform.script] is a test inside of `pkg/analyzer/test`
- * folder, and return the absolute path of the `pkg` folder.
- */
-String _findPkgRoot() {
-  String scriptPath = pathos.fromUri(Platform.script);
-  List<String> parts = pathos.split(scriptPath);
-  for (int i = 0; i < parts.length - 2; i++) {
-    if (parts[i] == 'pkg' &&
-        parts[i + 1] == 'analyzer' &&
-        parts[i + 2] == 'test') {
-      return pathos.joinAll(parts.sublist(0, i + 1));
+@reflectiveTest
+class RunFrontEndInferenceTest {
+  test_run() async {
+    String pkgPath = _findPkgRoot();
+    String fePath = pathos.join(pkgPath, 'front_end', 'testcases', 'inference');
+    List<File> dartFiles = new Directory(fePath)
+        .listSync()
+        .where((entry) => entry is File && entry.path.endsWith('.dart'))
+        .map((entry) => entry as File)
+        .toList();
+
+    var allProblems = new StringBuffer();
+    for (File file in dartFiles) {
+      var test = new _FrontEndInferenceTest();
+      await test.setUp();
+      try {
+        String code = file.readAsStringSync();
+        String problems = await test.runTest(file.path, code);
+        if (problems != null) {
+          allProblems.writeln(problems);
+        }
+      } finally {
+        await test.tearDown();
+      }
+    }
+    if (allProblems.isNotEmpty) {
+      fail(allProblems.toString());
     }
   }
-  throw new StateError('Unable to find sdk/pkg/ in $scriptPath');
-}
 
-Future<Null> _runFrontEndInferenceTests() async {
-  String pkgPath = _findPkgRoot();
-  String fePath = pathos.join(pkgPath, 'front_end', 'testcases', 'inference');
-  List<File> dartFiles = new Directory(fePath)
-      .listSync()
-      .where((entry) => entry is File && entry.path.endsWith('.dart'))
-      .map((entry) => entry as File)
-      .toList();
-
-  for (File file in dartFiles) {
-    var test = new _FrontEndInferenceTest();
-    await test.setUp();
-    try {
-      String code = file.readAsStringSync();
-      await test.runTest(file.path, code);
-    } catch (_) {
-      print(_);
-    } finally {
-      await test.tearDown();
+  /**
+   * Expects that the [Platform.script] is a test inside of `pkg/analyzer/test`
+   * folder, and return the absolute path of the `pkg` folder.
+   */
+  String _findPkgRoot() {
+    String scriptPath = pathos.fromUri(Platform.script);
+    List<String> parts = pathos.split(scriptPath);
+    for (int i = 0; i < parts.length - 2; i++) {
+      if (parts[i] == 'pkg' &&
+          parts[i + 1] == 'analyzer' &&
+          parts[i + 2] == 'test') {
+        return pathos.joinAll(parts.sublist(0, i + 1));
+      }
     }
+    throw new StateError('Unable to find sdk/pkg/ in $scriptPath');
   }
 }
 
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
-  Future<Null> runTest(String path, String code) async {
+  Future<String> runTest(String path, String code) async {
     Uri uri = provider.pathContext.toUri(path);
 
     List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
@@ -85,7 +96,9 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
     validation.finish();
 
     if (validation.hasProblems) {
-      fail(validation.problemsAsString);
+      return validation.problemsAsString;
+    } else {
+      return null;
     }
   }
 }
