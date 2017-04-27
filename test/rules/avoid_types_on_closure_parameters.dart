@@ -16,7 +16,7 @@ var badName1 = people.map((Person person) => person.name); // LINT
 var goodName2 = ({person}) => person.name; // OK
 var badName2 = ({Person person}) => person.name; // LINT
 
-var goodName3 = ({person = ""}) => person; // OK
+var goodName3 = ({person : ""}) => person; // OK
 var badName3 = ([String person = ""]) => person; // LINT
 
 var goodName4 = ([person]) => person.name; // OK
