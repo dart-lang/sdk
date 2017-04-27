@@ -11,6 +11,7 @@
     that don't store it in an environment variable.
   * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
     the Dart VM process current and peak resident set size.
+  * Added 'RawSynchronousSocket', a basic synchronous socket implementation.
 
 ### Dart VM
 
