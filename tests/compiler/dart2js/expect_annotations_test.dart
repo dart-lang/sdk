@@ -83,7 +83,8 @@ main() {
         TypeMask expectedParameterType: null,
         TypeMask expectedReturnType: null,
         bool expectAssumeDynamic: false}) {
-      Element method = compiler.mainApp.find(name);
+      LibraryElement mainApp = compiler.mainApp;
+      Element method = mainApp.find(name);
       Expect.isNotNull(method);
       Expect.equals(expectNoInline, backend.annotations.noInline(method),
           "Unexpected annotation of @NoInline on '$method'.");

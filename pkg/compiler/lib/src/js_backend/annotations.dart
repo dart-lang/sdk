@@ -5,9 +5,11 @@
 library js_backend.backend.annotations;
 
 import '../common.dart';
+import '../common_elements.dart' show ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import 'backend.dart';
 
 /// Handling of special annotations for tests.
@@ -25,13 +27,18 @@ class Annotations {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+
   Annotations(this.compiler);
 
-  void onLibraryLoaded(LibraryElement library) {
+  void onLibraryLoaded(LibraryEntity library) {
     if (library.canonicalUri == PACKAGE_EXPECT) {
-      expectNoInlineClass = library.find('NoInline');
-      expectTrustTypeAnnotationsClass = library.find('TrustTypeAnnotations');
-      expectAssumeDynamicClass = library.find('AssumeDynamic');
+      expectNoInlineClass =
+          _elementEnvironment.lookupClass(library, 'NoInline');
+      expectTrustTypeAnnotationsClass =
+          _elementEnvironment.lookupClass(library, 'TrustTypeAnnotations');
+      expectAssumeDynamicClass =
+          _elementEnvironment.lookupClass(library, 'AssumeDynamic');
       if (expectNoInlineClass == null ||
           expectTrustTypeAnnotationsClass == null ||
           expectAssumeDynamicClass == null) {

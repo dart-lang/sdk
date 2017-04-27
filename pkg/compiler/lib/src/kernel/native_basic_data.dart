@@ -39,7 +39,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
 
   void extractJsInteropAnnotations(
       LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    throw new UnimplementedError(
-        'KernelAnnotationProcessor.extractJsInteropAnnotations');
+    // TODO(johnniwinther): Implement this.
   }
 }

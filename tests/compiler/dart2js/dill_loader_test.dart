@@ -6,12 +6,12 @@ import 'dart:async';
 import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
-import 'package:compiler/src/library_loader.dart'
-    show ScriptLoader, DillLibraryLoaderTask;
+import 'package:compiler/src/library_loader.dart' show ScriptLoader;
 import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
@@ -56,7 +56,7 @@ main() {
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output,
-        options: ['--read-dill']);
+        options: [Flags.loadFromDill]);
     await compiler.setupSdk();
     await compiler.libraryLoader.loadLibrary(entryPoint);
 

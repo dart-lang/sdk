@@ -6,19 +6,17 @@
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.closed_world2_test;
 
+import 'dart:async';
+
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/resolution.dart';
-import 'package:compiler/src/common/work.dart';
+import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart'
@@ -40,11 +38,12 @@ import 'package:compiler/src/native/enqueue.dart';
 import 'package:compiler/src/native/resolver.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
+import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
 import '../serialization/model_test_helper.dart';
@@ -106,35 +105,29 @@ main(List<String> args) {
     compiler.resolutionWorldBuilder.closeWorld();
 
     print('---- closed world from kernel ------------------------------------');
-    KernelToElementMap elementMap = new KernelToElementMap(compiler.reporter);
-    elementMap.addProgram(compiler.backend.kernelTask.program);
-    KernelEquivalence equivalence = new KernelEquivalence(elementMap);
-    NativeBasicData nativeBasicData = computeNativeBasicData(elementMap);
-    checkNativeBasicData(
-        compiler1.backend.nativeBasicData, nativeBasicData, equivalence);
-    List list = createKernelResolutionEnqueuerListener(
-        compiler.options,
-        compiler.reporter,
-        compiler.deferredLoadTask,
+    Compiler compiler2 = compilerFor(
+        entryPoint: entryPoint,
+        memorySourceFiles: memorySourceFiles,
+        options: [
+          Flags.analyzeOnly,
+          Flags.enableAssertMessage,
+          Flags.loadFromDill
+        ]);
+    ElementResolutionWorldBuilder.useInstantiationMap = true;
+    compiler2.resolution.retainCachesForTesting = true;
+    KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
+    KernelToElementMap elementMap = frontEndStrategy.elementMap;
+    compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
         elementMap,
-        nativeBasicData);
-    ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
-    BackendUsageBuilder backendUsageBuilder2 = list[1];
-    ImpactTransformer impactTransformer = list[2];
-
-    ResolutionEnqueuer enqueuer2 = new ResolutionEnqueuer(
-        compiler.enqueuer,
-        compiler.options,
-        compiler.reporter,
-        const TreeShakingEnqueuerStrategy(),
-        resolutionEnqueuerListener,
-        new KernelResolutionWorldBuilder(
-            elementMap, nativeBasicData, const OpenWorldStrategy()),
-        new KernelWorkItemBuilder(elementMap, impactTransformer),
-        'enqueuer from kelements');
-    ClosedWorld closedWorld2 = computeClosedWorld(
-        compiler.reporter, enqueuer2, elementMap.elementEnvironment);
-    BackendUsage backendUsage2 = backendUsageBuilder2.close();
+        compiler2.reporter,
+        compiler2.measurer,
+        compiler.backend.kernelTask.program);
+    await compiler2.run(entryPoint);
+    Expect.isFalse(compiler2.compilationFailed);
+    ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
+    BackendUsage backendUsage2 = compiler2.backend.backendUsage;
+    ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+    KernelEquivalence equivalence = new KernelEquivalence(elementMap);
     checkBackendUsage(backendUsage1, backendUsage2, equivalence);
 
     checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
@@ -214,20 +207,6 @@ List createKernelResolutionEnqueuerListener(
   return [listener, backendUsageBuilder, transformer];
 }
 
-/// Computes that NativeBasicData for the libraries in [worldBuilder].
-/// TODO(johnniwinther): Use [KernelAnnotationProcessor] instead.
-NativeBasicData computeNativeBasicData(KernelToElementMap elementMap) {
-  NativeBasicDataBuilderImpl builder = new NativeBasicDataBuilderImpl();
-  ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-  for (LibraryEntity library in elementEnvironment.libraries) {
-    if (library.canonicalUri.scheme == 'dart') {
-      new KernelAnnotationProcessor(elementMap)
-          .extractNativeAnnotations(library, builder);
-    }
-  }
-  return builder.close(elementEnvironment);
-}
-
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
     KernelEquivalence equivalence) {
   checkMapEquivalence(
@@ -295,4 +274,17 @@ void checkBackendUsage(BackendUsageImpl usage1, BackendUsageImpl usage2,
       usage2.isFunctionApplyUsed);
   check(usage1, usage2, 'isNoSuchMethodUsed', usage1.isNoSuchMethodUsed,
       usage2.isNoSuchMethodUsed);
+}
+
+class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
+  final ir.Program program;
+
+  MemoryDillLibraryLoaderTask(KernelToElementMap elementMap,
+      DiagnosticReporter reporter, Measurer measurer, this.program)
+      : super(elementMap, null, null, reporter, measurer);
+
+  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false}) async {
+    return createLoadedLibraries(program);
+  }
 }

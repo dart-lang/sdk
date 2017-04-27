@@ -125,6 +125,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
 
   LibraryEntity lookupLibrary(Uri uri) {
     _KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
+    if (libraryEnv == null) return null;
     return _getLibrary(libraryEnv.library, libraryEnv);
   }
 

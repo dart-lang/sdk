@@ -109,8 +109,8 @@ class FunctionInlineCache {
   static const int _canInline = 4;
   static const int _mustInline = 5;
 
-  final Map<MethodElement, int> _cachedDecisions =
-      new Map<MethodElement, int>();
+  final Map<FunctionEntity, int> _cachedDecisions =
+      new Map<FunctionEntity, int>();
 
   /// Returns the current cache decision. This should only be used for testing.
   int getCurrentCacheDecisionForTesting(Element element) {
@@ -119,7 +119,7 @@ class FunctionInlineCache {
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
-  bool canInline(MethodElement element, {bool insideLoop}) {
+  bool canInline(FunctionEntity element, {bool insideLoop}) {
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -174,7 +174,7 @@ class FunctionInlineCache {
     return null;
   }
 
-  void markAsInlinable(MethodElement element, {bool insideLoop}) {
+  void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -229,7 +229,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNonInlinable(MethodElement element, {bool insideLoop: true}) {
+  void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -287,7 +287,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsMustInline(MethodElement element) {
+  void markAsMustInline(FunctionEntity element) {
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -350,7 +350,7 @@ class JavaScriptBackend {
   /**
    * Set of classes whose `operator ==` methods handle `null` themselves.
    */
-  final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
+  final Set<ClassEntity> specialOperatorEqClasses = new Set<ClassEntity>();
 
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
@@ -725,13 +725,14 @@ class JavaScriptBackend {
   }
 
   void validateInterceptorImplementsAllObjectMethods(
-      ClassElement interceptorClass) {
+      ClassEntity interceptorClass) {
     if (interceptorClass == null) return;
-    interceptorClass.ensureResolved(resolution);
-    ClassElement objectClass = commonElements.objectClass;
-    objectClass.forEachMember((_, Element member) {
-      if (member.isGenerativeConstructor) return;
-      Element interceptorMember = interceptorClass.lookupMember(member.name);
+    ClassEntity objectClass = commonElements.objectClass;
+    compiler.elementEnvironment.forEachClassMember(objectClass,
+        (_, MemberEntity member) {
+      if (member.isConstructor) return;
+      MemberEntity interceptorMember = compiler.elementEnvironment
+          .lookupClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(invariant(interceptorMember,
@@ -830,7 +831,7 @@ class JavaScriptBackend {
         compiler.elementEnvironment,
         commonElements,
         backendUsageBuilder,
-        compiler.frontEndStrategy.createNativeClassResolver(nativeBasicData));
+        compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
     _customElementsResolutionAnalysis = compiler.frontEndStrategy
         .createCustomElementsResolutionAnalysis(
@@ -1169,7 +1170,7 @@ class JavaScriptBackend {
   bool shouldOutput(Element element) => true;
 
   /// Returns `true` if the `native` pseudo keyword is supported for [library].
-  bool canLibraryUseNative(LibraryElement library) {
+  bool canLibraryUseNative(LibraryEntity library) {
     return native.maybeEnableNative(compiler, library);
   }
 
@@ -1191,20 +1192,22 @@ class JavaScriptBackend {
       return;
     }
 
-    MemberElement implementation = element.implementation;
     if (element.isFunction || element.isConstructor) {
-      if (annotations.noInline(implementation)) {
-        inlineCache.markAsNonInlinable(implementation);
+      MethodElement method = element.implementation;
+      if (annotations.noInline(method)) {
+        inlineCache.markAsNonInlinable(method);
       }
     }
+    if (element.isField) return;
+    MethodElement method = element;
 
-    LibraryElement library = element.library;
+    LibraryElement library = method.library;
     if (!library.isPlatformLibrary && !canLibraryUseNative(library)) return;
     bool hasNoInline = false;
     bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-    for (MetadataAnnotation metadata in element.implementation.metadata) {
+    for (MetadataAnnotation metadata in method.implementation.metadata) {
       metadata.ensureResolved(resolution);
       ConstantValue constantValue =
           compiler.constants.getConstantValue(metadata.constant);
@@ -1215,50 +1218,50 @@ class JavaScriptBackend {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Must inline"});
+              method, MessageKind.GENERIC, {'text': "Must inline"});
         }
-        inlineCache.markAsMustInline(element);
+        inlineCache.markAsMustInline(method);
       } else if (cls == commonElements.noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Cannot inline"});
+              method, MessageKind.GENERIC, {'text': "Cannot inline"});
         }
-        inlineCache.markAsNonInlinable(element);
+        inlineCache.markAsNonInlinable(method);
       } else if (cls == commonElements.noThrowsClass) {
         hasNoThrows = true;
-        if (!Elements.isStaticOrTopLevelFunction(element) &&
-            !element.isFactoryConstructor) {
+        if (!Elements.isStaticOrTopLevelFunction(method) &&
+            !method.isFactoryConstructor) {
           reporter.internalError(
-              element,
+              method,
               "@NoThrows() is currently limited to top-level"
               " or static functions and factory constructors.");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Cannot throw"});
+              method, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        closedWorldRefiner.registerCannotThrow(element);
+        closedWorldRefiner.registerCannotThrow(method);
       } else if (cls == commonElements.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Has no side effects"});
+              method, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        closedWorldRefiner.registerSideEffectsFree(element);
+        closedWorldRefiner.registerSideEffectsFree(method);
       }
     }
     if (hasForceInline && hasNoInline) {
       reporter.internalError(
-          element, "@ForceInline() must not be used with @NoInline.");
+          method, "@ForceInline() must not be used with @NoInline.");
     }
     if (hasNoThrows && !hasNoInline) {
       reporter.internalError(
-          element, "@NoThrows() should always be combined with @NoInline.");
+          method, "@NoThrows() should always be combined with @NoInline.");
     }
     if (hasNoSideEffects && !hasNoInline) {
-      reporter.internalError(element,
-          "@NoSideEffects() should always be combined with @NoInline.");
+      reporter.internalError(
+          method, "@NoSideEffects() should always be combined with @NoInline.");
     }
   }
 

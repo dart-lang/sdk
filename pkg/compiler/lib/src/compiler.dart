@@ -9,7 +9,7 @@ import 'dart:async' show Future;
 import '../compiler_new.dart' as api;
 import 'closure.dart' as closureMapping show ClosureTask;
 import 'common/names.dart' show Selectors;
-import 'common/names.dart' show Identifiers, Uris;
+import 'common/names.dart' show Uris;
 import 'common/resolution.dart'
     show
         ParsingContext,
@@ -31,7 +31,6 @@ import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
 import 'elements/entities.dart';
-import 'elements/modelx.dart' show ErroneousElementX;
 import 'elements/resolution_types.dart' show ResolutionDartType, Types;
 import 'elements/types.dart' show DartTypes;
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
@@ -66,7 +65,6 @@ import 'tokens/token_map.dart' show TokenMap;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
-import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
@@ -114,8 +112,8 @@ abstract class Compiler {
 
   ResolvedUriTranslator get resolvedUriTranslator;
 
-  LibraryElement mainApp;
-  MethodElement mainFunction;
+  LibraryEntity mainApp;
+  FunctionEntity mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
   ElementEnvironment get elementEnvironment => _elementEnvironment;
@@ -466,73 +464,7 @@ abstract class Compiler {
       processLoadedLibraries(libraries);
       mainApp = libraries.rootLibrary;
     }
-    compileLoadedLibraries();
-  }
-
-  WorldImpact computeMain() {
-    if (mainApp == null) return const WorldImpact();
-
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    Element main = mainApp.findExported(Identifiers.main);
-    ErroneousElement errorElement = null;
-    if (main == null) {
-      if (options.analyzeOnly) {
-        if (!analyzeAll) {
-          errorElement = new ErroneousElementX(MessageKind.CONSIDER_ANALYZE_ALL,
-              {'main': Identifiers.main}, Identifiers.main, mainApp);
-        }
-      } else {
-        // Compilation requires a main method.
-        errorElement = new ErroneousElementX(MessageKind.MISSING_MAIN,
-            {'main': Identifiers.main}, Identifiers.main, mainApp);
-      }
-      mainFunction = backend.helperForMissingMain();
-    } else if (main.isError && main.isSynthesized) {
-      if (main is ErroneousElement) {
-        errorElement = main;
-      } else {
-        reporter.internalError(main, 'Problem with ${Identifiers.main}.');
-      }
-      mainFunction = backend.helperForBadMain();
-    } else if (!main.isFunction) {
-      errorElement = new ErroneousElementX(MessageKind.MAIN_NOT_A_FUNCTION,
-          {'main': Identifiers.main}, Identifiers.main, main);
-      mainFunction = backend.helperForBadMain();
-    } else {
-      mainFunction = main;
-      mainFunction.computeType(resolution);
-      FunctionSignature parameters = mainFunction.functionSignature;
-      if (parameters.requiredParameterCount > 2) {
-        int index = 0;
-        parameters.orderedForEachParameter((Element parameter) {
-          if (index++ < 2) return;
-          errorElement = new ErroneousElementX(
-              MessageKind.MAIN_WITH_EXTRA_PARAMETER,
-              {'main': Identifiers.main},
-              Identifiers.main,
-              parameter);
-          // Don't warn about main not being used:
-          impactBuilder.registerStaticUse(
-              new StaticUse.staticInvoke(mainFunction, CallStructure.NO_ARGS));
-
-          mainFunction = backend.helperForMainArity();
-        });
-      }
-    }
-    if (mainFunction == null) {
-      if (errorElement == null && !options.analyzeOnly && !analyzeAll) {
-        reporter.internalError(mainApp, "Problem with '${Identifiers.main}'.");
-      } else {
-        mainFunction = errorElement;
-      }
-    }
-    if (errorElement != null &&
-        errorElement.isSynthesized &&
-        !mainApp.isSynthesized) {
-      reporter.reportWarningMessage(errorElement, errorElement.messageKind,
-          errorElement.messageArguments);
-    }
-    return impactBuilder;
+    compileLoadedLibraries(mainApp);
   }
 
   /// Analyze all members of the library in [libraryUri].
@@ -576,12 +508,13 @@ abstract class Compiler {
   }
 
   /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries() =>
+  void compileLoadedLibraries(LibraryEntity rootLibrary) =>
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
-        WorldImpact mainImpact = computeMain();
+        WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+        mainFunction = frontEndStrategy.computeMain(rootLibrary, mainImpact);
 
-        mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
+        mirrorUsageAnalyzerTask.analyzeUsage(rootLibrary);
 
         // In order to see if a library is deferred, we must compute the
         // compile-time constants that are metadata.  This means adding
@@ -608,8 +541,9 @@ abstract class Compiler {
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (options.analyzeMain) {
-          if (mainApp != null) {
-            resolutionEnqueuer.applyImpact(computeImpactForLibrary(mainApp));
+          if (rootLibrary != null) {
+            resolutionEnqueuer
+                .applyImpact(computeImpactForLibrary(rootLibrary));
           }
           if (librariesToAnalyzeWhenRun != null) {
             for (Uri libraryUri in librariesToAnalyzeWhenRun) {
@@ -620,13 +554,8 @@ abstract class Compiler {
         }
         resolveLibraryMetadata();
         reporter.log('Resolving...');
-        MethodElement mainMethod;
-        if (mainFunction != null && !mainFunction.isMalformed) {
-          mainFunction.computeType(resolution);
-          mainMethod = mainFunction;
-        }
 
-        processQueue(resolutionEnqueuer, mainMethod, libraryLoader.libraries,
+        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries,
             onProgress: showResolutionProgress);
         backend.onResolutionEnd();
         resolutionEnqueuer.logSummary(reporter.log);
@@ -635,6 +564,7 @@ abstract class Compiler {
 
         if (compilationFailed) {
           if (!options.generateCodeWithCompileTimeErrors) return;
+          if (mainFunction == null) return;
           if (!backend
               .enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
             return;
@@ -676,7 +606,7 @@ abstract class Compiler {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(codegenEnqueuer, mainMethod, libraryLoader.libraries,
+        processQueue(codegenEnqueuer, mainFunction, libraryLoader.libraries,
             onProgress: showCodegenProgress);
         codegenEnqueuer.logSummary(reporter.log);
 
@@ -767,6 +697,7 @@ abstract class Compiler {
   // resolve metadata classes referenced only from metadata on library tags.
   // TODO(ahe): Figure out how to do this lazily.
   void resolveLibraryMetadata() {
+    if (commonElements.mirrorsLibrary == null) return;
     for (LibraryElement library in libraryLoader.libraries) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
@@ -796,7 +727,7 @@ abstract class Compiler {
     });
   }
 
-  void processQueue(Enqueuer enqueuer, MethodElement mainMethod,
+  void processQueue(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries,
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
@@ -812,7 +743,7 @@ abstract class Compiler {
       impactStrategy.onImpactUsed(enqueuer.impactUse);
       backend.onQueueClosed();
       assert(compilationFailed ||
-          enqueuer.checkNoEnqueuedInvokedInstanceMethods());
+          enqueuer.checkNoEnqueuedInvokedInstanceMethods(elementEnvironment));
     });
   }
 
@@ -1004,7 +935,7 @@ abstract class Compiler {
         // Record as global error.
         // TODO(zarah): Extend element model to represent compile-time
         // errors instead of using a map.
-        element = mainFunction;
+        element = mainFunction as MethodElement;
       }
       elementsWithCompileTimeErrors
           .putIfAbsent(element, () => <DiagnosticMessage>[])
@@ -1036,7 +967,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
   final DiagnosticOptions options;
 
-  Element _currentElement;
+  Entity _currentElement;
   bool hasCrashed = false;
 
   /// `true` if the last diagnostic was filtered, in which case the
@@ -1049,7 +980,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   CompilerDiagnosticReporter(this.compiler, this.options);
 
-  Element get currentElement => _currentElement;
+  Entity get currentElement => _currentElement;
 
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]) {
@@ -1142,8 +1073,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
    * error occurs then report it as having occurred during compilation of
    * [element].  Can be nested.
    */
-  withCurrentElement(Element element, f()) {
-    Element old = currentElement;
+  withCurrentElement(Entity element, f()) {
+    Entity old = currentElement;
     _currentElement = element;
     try {
       return f();
@@ -1191,7 +1122,11 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri == null && currentElement != null) {
-      uri = currentElement.compilationUnit.script.resourceUri;
+      if (currentElement is! Element) {
+        throw 'Can only find tokens from an Element.';
+      }
+      Element element = currentElement;
+      uri = element.compilationUnit.script.resourceUri;
       assert(invariant(currentElement, () {
         bool sameToken(Token token, Token sought) {
           if (token == sought) return true;
@@ -1228,7 +1163,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
           // Create a good message for when the tokens were not found.
           StringBuffer sb = new StringBuffer();
-          sb.write('Invalid current element: $currentElement. ');
+          sb.write('Invalid current element: $element. ');
           sb.write('Looking for ');
           sb.write('[${begin} (${begin.hashCode}),');
           sb.write('${end} (${end.hashCode})] in');
@@ -1244,14 +1179,14 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           return sb.toString();
         }
 
-        if (currentElement.enclosingClass != null &&
-            currentElement.enclosingClass.isEnumClass) {
+        if (element.enclosingClass != null &&
+            element.enclosingClass.isEnumClass) {
           // Enums ASTs are synthesized (and give messed up messages).
           return true;
         }
 
-        if (currentElement is AstElement) {
-          AstElement astElement = currentElement;
+        if (element is AstElement) {
+          AstElement astElement = element;
           if (astElement.hasNode) {
             Token from = astElement.node.getBeginToken();
             Token to = astElement.node.getEndToken();
@@ -1267,7 +1202,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           }
         }
         return true;
-      }, message: "Invalid current element: $currentElement [$begin,$end]."));
+      }, message: "Invalid current element: $element [$begin,$end]."));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
@@ -1362,7 +1297,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     throw 'Internal Error: $message';
   }
 
-  void unhandledExceptionOnElement(Element element) {
+  void unhandledExceptionOnElement(Entity element) {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(createMessage(element, MessageKind.COMPILER_CRASHED),

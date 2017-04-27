@@ -173,7 +173,8 @@ class Class {
 }
 """;
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Class");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Class");
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
@@ -412,7 +413,8 @@ class Class {
 }
 """;
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Class");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Class");
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
@@ -1355,7 +1357,8 @@ testThis(MockCompiler compiler) {
                        void method() {}
                      }""";
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Foo");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Foo");
   foo.ensureResolved(compiler.resolution);
   Element method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ int i = this; }", warnings: NOT_ASSIGNABLE);
@@ -1375,7 +1378,8 @@ testSuper(MockCompiler compiler) {
     }
     ''';
   compiler.parseScript(script);
-  ClassElement B = compiler.mainApp.find("B");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement B = mainApp.find("B");
   B.ensureResolved(compiler.resolution);
   Element method = B.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ int i = super.field; }",
@@ -1672,7 +1676,8 @@ void testTypeVariableExpressions(MockCompiler compiler) {
                        void method() {}
                      }""";
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Foo");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Foo");
   foo.ensureResolved(compiler.resolution);
   Element method = foo.lookupLocalMember('method');
 
@@ -1707,7 +1712,8 @@ class Test<S extends Foo, T> {
 """;
 
   compiler.parseScript(script);
-  ClassElement classTest = compiler.mainApp.find("Test");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement classTest = mainApp.find("Test");
   classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
@@ -1747,7 +1753,8 @@ class Test<S extends T, T extends Foo> {
 }""";
 
   compiler.parseScript(script);
-  ClassElement classTest = compiler.mainApp.find("Test");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement classTest = mainApp.find("Test");
   classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
@@ -1769,7 +1776,8 @@ class Test<S extends T, T extends S> {
 }""";
 
   compiler.parseScript(script);
-  ClassElement classTest = compiler.mainApp.find("Test");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement classTest = mainApp.find("Test");
   classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
@@ -2499,7 +2507,8 @@ testAwait(MockCompiler compiler) {
                        Foo self() => this;
                      }""";
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Foo");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Foo");
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ await 0; }");

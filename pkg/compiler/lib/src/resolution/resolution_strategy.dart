@@ -7,11 +7,13 @@ library dart2js.resolution_strategy;
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
+import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../environment.dart';
 import '../enqueue.dart';
@@ -29,7 +31,9 @@ import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
 import '../universe/call_structure.dart';
+import '../universe/use.dart';
 import '../universe/world_builder.dart';
+import '../universe/world_impact.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
@@ -67,7 +71,7 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
       _annotationProcessor ??= new _ElementAnnotationProcessor(_compiler);
 
   @override
-  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData) {
+  NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
     return new ResolutionNativeClassFinder(
         _compiler.resolution,
         _compiler.reporter,
@@ -113,6 +117,81 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
   WorkItemBuilder createResolutionWorkItemBuilder(
       ImpactTransformer impactTransformer) {
     return new ResolutionWorkItemBuilder(_compiler.resolution);
+  }
+
+  FunctionEntity computeMain(
+      LibraryElement mainApp, WorldImpactBuilder impactBuilder) {
+    if (mainApp == null) return null;
+    MethodElement mainFunction;
+    Element main = mainApp.findExported(Identifiers.main);
+    ErroneousElement errorElement = null;
+    if (main == null) {
+      if (_compiler.options.analyzeOnly) {
+        if (!_compiler.analyzeAll) {
+          errorElement = new ErroneousElementX(MessageKind.CONSIDER_ANALYZE_ALL,
+              {'main': Identifiers.main}, Identifiers.main, mainApp);
+        }
+      } else {
+        // Compilation requires a main method.
+        errorElement = new ErroneousElementX(MessageKind.MISSING_MAIN,
+            {'main': Identifiers.main}, Identifiers.main, mainApp);
+      }
+      mainFunction = _compiler.backend.helperForMissingMain();
+    } else if (main.isError && main.isSynthesized) {
+      if (main is ErroneousElement) {
+        errorElement = main;
+      } else {
+        _compiler.reporter
+            .internalError(main, 'Problem with ${Identifiers.main}.');
+      }
+      mainFunction = _compiler.backend.helperForBadMain();
+    } else if (!main.isFunction) {
+      errorElement = new ErroneousElementX(MessageKind.MAIN_NOT_A_FUNCTION,
+          {'main': Identifiers.main}, Identifiers.main, main);
+      mainFunction = _compiler.backend.helperForBadMain();
+    } else {
+      mainFunction = main;
+      mainFunction.computeType(_compiler.resolution);
+      FunctionSignature parameters = mainFunction.functionSignature;
+      if (parameters.requiredParameterCount > 2) {
+        int index = 0;
+        parameters.orderedForEachParameter((Element parameter) {
+          if (index++ < 2) return;
+          errorElement = new ErroneousElementX(
+              MessageKind.MAIN_WITH_EXTRA_PARAMETER,
+              {'main': Identifiers.main},
+              Identifiers.main,
+              parameter);
+          // Don't warn about main not being used:
+          impactBuilder.registerStaticUse(
+              new StaticUse.staticInvoke(mainFunction, CallStructure.NO_ARGS));
+
+          mainFunction = _compiler.backend.helperForMainArity();
+        });
+      }
+    }
+    if (mainFunction == null) {
+      if (errorElement == null &&
+          !_compiler.options.analyzeOnly &&
+          !_compiler.analyzeAll) {
+        _compiler.reporter
+            .internalError(mainApp, "Problem with '${Identifiers.main}'.");
+      } else {
+        mainFunction = errorElement;
+      }
+    }
+    if (errorElement != null &&
+        errorElement.isSynthesized &&
+        !mainApp.isSynthesized) {
+      _compiler.reporter.reportWarningMessage(errorElement,
+          errorElement.messageKind, errorElement.messageArguments);
+    }
+    MethodElement mainMethod;
+    if (mainFunction != null && !mainFunction.isMalformed) {
+      mainFunction.computeType(_compiler.resolution);
+      mainMethod = mainFunction;
+    }
+    return mainMethod;
   }
 }
 

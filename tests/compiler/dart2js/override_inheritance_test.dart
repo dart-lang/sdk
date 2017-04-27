@@ -27,7 +27,8 @@ Future check(String source, {errors, warnings, hints, infos}) {
   return MockCompiler.create((MockCompiler compiler) {
     compiler.diagnosticHandler = createHandler(compiler, source);
     compiler.parseScript(source);
-    var cls = compiler.mainApp.find('Class');
+    var mainApp = compiler.mainApp;
+    var cls = mainApp.find('Class');
     cls.ensureResolved(compiler.resolution);
     MembersCreator.computeAllClassMembers(compiler.resolution, cls);
 

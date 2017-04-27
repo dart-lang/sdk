@@ -31,7 +31,8 @@ checkCode(String annotatedCode, CheckMemberFunction checkMember,
   compiler.stopAfterTypeInference = true;
   Uri mainUri = Uri.parse('memory:main.dart');
   await compiler.run(mainUri);
-  compiler.mainApp.forEachLocalMember((member) {
+  LibraryElement mainApp = compiler.mainApp;
+  mainApp.forEachLocalMember((member) {
     if (member.isClass) {
       member.forEachLocalMember((member) {
         checkMember(compiler, expectedMap, member);

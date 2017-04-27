@@ -24,7 +24,8 @@ import 'package:compiler/src/parser/node_listener.dart' show NodeListener;
 import 'package:compiler/src/parser/diet_parser_task.dart' show PartialParser;
 import 'package:compiler/src/platform_configuration.dart' as platform;
 import 'package:compiler/src/source_file_provider.dart';
-import 'package:compiler/src/universe/world_impact.dart' show WorldImpact;
+import 'package:compiler/src/universe/world_impact.dart'
+    show WorldImpactBuilderImpl;
 import 'package:front_end/src/fasta/parser.dart' show Listener, Parser;
 import 'package:front_end/src/fasta/scanner.dart' show Token, scan;
 import 'package:package_config/discovery.dart' show findPackages;
@@ -345,10 +346,11 @@ class MyCompiler extends CompilerImpl {
       : super(provider, null, handler, options) {}
 
   /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries() =>
+  void compileLoadedLibraries(LibraryEntity rootLibrary) =>
       selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
-        WorldImpact mainImpact = computeMain();
+        WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+        mainFunction = frontEndStrategy.computeMain(rootLibrary, mainImpact);
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
         deferredLoadTask.beforeResolution(this);
