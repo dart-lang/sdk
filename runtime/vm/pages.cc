@@ -1217,7 +1217,11 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   if (allocated_since_previous_gc > 0) {
     const intptr_t garbage = before.used_in_words - after.used_in_words;
     ASSERT(garbage >= 0);
-    const double k = garbage / static_cast<double>(allocated_since_previous_gc);
+    // It makes no sense to expect that each kb allocated will cause more than
+    // one kb of garbage, so we clamp k at 1.0.
+    const double k = Utils::Minimum(
+        1.0, garbage / static_cast<double>(allocated_since_previous_gc));
+
     const int garbage_ratio = static_cast<int>(k * 100);
     heap_->RecordData(PageSpace::kGarbageRatio, garbage_ratio);
 
@@ -1247,7 +1251,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       while (min < max) {
         local_grow_heap = (max + min) / 2;
         const intptr_t limit = after.capacity_in_words +
-                               (grow_heap_ * PageSpace::kPageSizeInWords);
+                               (local_grow_heap * PageSpace::kPageSizeInWords);
         const intptr_t allocated_before_next_gc = limit - after.used_in_words;
         const double estimated_garbage = k * allocated_before_next_gc;
         if (t <= estimated_garbage / limit) {
