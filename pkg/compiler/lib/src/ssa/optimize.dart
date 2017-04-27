@@ -235,12 +235,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // If the replacement instruction does not know its
         // source element, use the source element of the
         // instruction.
-        if (replacement.sourceElement == null) {
-          replacement.sourceElement = instruction.sourceElement;
-        }
-        if (replacement.sourceInformation == null) {
-          replacement.sourceInformation = instruction.sourceInformation;
-        }
+        replacement.sourceElement ??= instruction.sourceElement;
+        replacement.sourceInformation ??= instruction.sourceInformation;
         if (!replacement.isInBasicBlock()) {
           // The constant folding can return an instruction that is already
           // part of the graph (like an input), so we only add the replacement
@@ -1760,6 +1756,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         if (replacement.dominates(phi)) {
           block.rewrite(phi, replacement);
           block.removePhi(phi);
+          if (replacement.sourceElement == null &&
+              phi.sourceElement != null &&
+              replacement is! HThis) {
+            replacement.sourceElement = phi.sourceElement;
+          }
         }
       });
     }
@@ -1965,6 +1966,11 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
       }
       phi.block.rewrite(phi, candidate);
       phi.block.removePhi(phi);
+      if (candidate.sourceElement == null &&
+          phi.sourceElement != null &&
+          candidate is! HThis) {
+        candidate.sourceElement = phi.sourceElement;
+      }
     }
   }
 }
