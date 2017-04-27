@@ -200,6 +200,8 @@ class DartFixKind {
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const REMOVE_EMPTY_STATEMENT =
+      const FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
   static const REMOVE_INITIALIZER =
       const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
   static const REMOVE_METHOD_DECLARATION = const FixKind(
@@ -230,6 +232,8 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_WITH_BRACKETS =
+      const FixKind('REPLACE_WITH_BRACKETS', 50, "Replace with { }");
   static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, 'Replace with ??=');
   static const REPLACE_WITH_LITERAL =
