@@ -251,7 +251,6 @@ class BinaryPrinter extends Visitor {
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
     writeDeferredImports(node);
-    writeNodeList(node.typedefs);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
     writeNodeList(node.procedures);
@@ -272,15 +271,6 @@ class BinaryPrinter extends Visitor {
   void writeDeferredImport(DeferredImport node) {
     writeLibraryReference(node.importedLibrary);
     writeStringReference(node.name);
-  }
-
-  void visitTypedef(Typedef node) {
-    writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
-    writeOffset(node.fileOffset);
-    writeStringReference(node.name);
-    writeUriReference(node.fileUri ?? '');
-    writeNodeList(node.typeParameters);
-    writeNode(node.type);
   }
 
   void writeAnnotation(Expression annotation) {
@@ -1017,12 +1007,6 @@ class BinaryPrinter extends Visitor {
 
   visitVectorType(VectorType node) {
     writeByte(Tag.VectorType);
-  }
-
-  visitTypedefType(TypedefType node) {
-    writeByte(Tag.TypedefType);
-    writeReference(node.typedefReference);
-    writeNodeList(node.typeArguments);
   }
 
   visitTypeParameter(TypeParameter node) {

@@ -105,7 +105,6 @@ enum Tag {
   kFunctionDeclaration = 79,
   kAsyncForInStatement = 80,
 
-  kTypedefType = 87,
   kVectorType = 88,
   kInvalidType = 90,
   kDynamicType = 91,

@@ -145,8 +145,6 @@ abstract class SubtypeTester {
 
   /// Returns true if [subtype] is a subtype of [supertype].
   bool isSubtypeOf(DartType subtype, DartType supertype) {
-    subtype = subtype.unalias;
-    supertype = supertype.unalias;
     if (identical(subtype, supertype)) return true;
     if (subtype is BottomType) return true;
     if (supertype is DynamicType ||

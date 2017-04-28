@@ -88,7 +88,6 @@ class Tag {
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
 
-  static const int TypedefType = 87;
   static const int VectorType = 88;
   static const int BottomType = 89;
   static const int InvalidType = 90;

@@ -221,7 +221,6 @@ class TreeVisitor<R>
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);
   R visitDeferredImport(DeferredImport node) => defaultTreeNode(node);
-  R visitTypedef(Typedef node) => defaultTreeNode(node);
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);
   R visitArguments(Arguments node) => defaultTreeNode(node);
@@ -243,7 +242,6 @@ class DartTypeVisitor<R> {
   R visitVectorType(VectorType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
-  R visitTypedefType(TypedefType node) => defaultDartType(node);
 }
 
 class MemberReferenceVisitor<R> {
@@ -270,11 +268,9 @@ class Visitor<R> extends TreeVisitor<R>
   R visitVectorType(VectorType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
-  R visitTypedefType(TypedefType node) => defaultDartType(node);
 
   // Class references
   R visitClassReference(Class node) => null;
-  R visitTypedefReference(Typedef node) => null;
 
   // Member references
   R defaultMemberReference(Member node) => null;

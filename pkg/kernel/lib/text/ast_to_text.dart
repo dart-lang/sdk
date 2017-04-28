@@ -210,12 +210,6 @@ class Printer extends Visitor<Null> {
     return '$library::$name';
   }
 
-  String getTypedefReference(Typedef node) {
-    if (node == null) return '<No Typedef>';
-    String library = getLibraryReference(node.enclosingLibrary);
-    return '$library::${node.name}';
-  }
-
   static final String emptyNameString = '•';
   static final Name emptyName = new Name(emptyNameString);
 
@@ -287,7 +281,6 @@ class Printer extends Visitor<Null> {
     }
     endLine();
     var inner = new Printer._inner(this, imports);
-    library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
     library.procedures.forEach(inner.writeNode);
@@ -320,7 +313,6 @@ class Printer extends Visitor<Null> {
       writeWord(prefix);
       endLine(' {');
       ++inner.indentation;
-      library.typedefs.forEach(inner.writeNode);
       library.classes.forEach(inner.writeNode);
       library.fields.forEach(inner.writeNode);
       library.procedures.forEach(inner.writeNode);
@@ -435,15 +427,6 @@ class Printer extends Visitor<Null> {
 
   visitVectorType(VectorType type) {
     writeWord('Vector');
-  }
-
-  visitTypedefType(TypedefType type) {
-    writeTypedefReference(type.typedefNode);
-    if (type.typeArguments.isNotEmpty) {
-      writeSymbol('<');
-      writeList(type.typeArguments, writeType);
-      writeSymbol('>');
-    }
   }
 
   void writeModifier(bool isThere, String name) {
@@ -627,10 +610,6 @@ class Printer extends Visitor<Null> {
     writeWord(getClassReference(classNode));
   }
 
-  void writeTypedefReference(Typedef typedefNode) {
-    writeWord(getTypedefReference(typedefNode));
-  }
-
   void writeLibraryReference(Library library) {
     writeWord(getLibraryReference(library));
   }
@@ -770,16 +749,6 @@ class Printer extends Visitor<Null> {
     --indentation;
     writeIndentation();
     endLine('}');
-  }
-
-  visitTypedef(Typedef node) {
-    writeIndentation();
-    writeWord('typedef');
-    writeWord(node.name);
-    writeTypeParameterList(node.typeParameters);
-    writeSpaced('=');
-    writeNode(node.type);
-    endLine(';');
   }
 
   visitInvalidExpression(InvalidExpression node) {

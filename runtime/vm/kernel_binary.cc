@@ -215,11 +215,6 @@ Library* Library::ReadFrom(Reader* reader) {
   if (num_imports != 0) {
     FATAL("Deferred imports not implemented in VM");
   }
-  int num_typedefs = reader->ReadUInt();
-  typedefs().EnsureInitialized(num_typedefs);
-  for (intptr_t i = 0; i < num_typedefs; i++) {
-    typedefs().GetOrCreate<Typedef>(i, this)->ReadFrom(reader);
-  }
   int num_classes = reader->ReadUInt();
   classes().EnsureInitialized(num_classes);
   for (intptr_t i = 0; i < num_classes; i++) {
@@ -231,20 +226,6 @@ Library* Library::ReadFrom(Reader* reader) {
 
   fields().ReadFrom<Field>(reader, this);
   procedures().ReadFrom<Procedure>(reader, this);
-  return this;
-}
-
-
-Typedef* Typedef::ReadFrom(Reader* reader) {
-  TRACE_READ_OFFSET();
-
-  canonical_name_ = reader->ReadCanonicalNameReference();
-  position_ = reader->ReadPosition(false);
-  name_ = Reference::ReadStringFrom(reader);
-  source_uri_index_ = reader->ReadUInt();
-  type_parameters_.ReadFrom(reader);
-  type_ = DartType::ReadFrom(reader);
-
   return this;
 }
 
@@ -327,20 +308,6 @@ CanonicalName* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
   if (canonical_name != NULL) {
     canonical_name->set_referenced(true);
   }
-
-  return canonical_name;
-}
-
-
-CanonicalName* Reference::ReadTypedefFrom(Reader* reader) {
-  TRACE_READ_OFFSET();
-
-  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
-  if (canonical_name == NULL) {
-    FATAL("Expected a valid typedef reference, but got `null`");
-  }
-
-  canonical_name->set_referenced(true);
 
   return canonical_name;
 }
@@ -1444,8 +1411,6 @@ DartType* DartType::ReadFrom(Reader* reader) {
       return TypeParameterType::ReadFrom(reader);
     case kVectorType:
       return VectorType::ReadFrom(reader);
-    case kTypedefType:
-      return TypedefType::ReadFrom(reader);
     default:
       UNREACHABLE();
   }
@@ -1487,15 +1452,6 @@ InterfaceType* InterfaceType::ReadFrom(Reader* reader,
   CanonicalName* klass_name = Reference::ReadClassFrom(reader);
   InterfaceType* type = new InterfaceType(klass_name);
   ASSERT(_without_type_arguments_);
-  return type;
-}
-
-
-TypedefType* TypedefType::ReadFrom(Reader* reader) {
-  TRACE_READ_OFFSET();
-  CanonicalName* typedef_name = Reference::ReadTypedefFrom(reader);
-  TypedefType* type = new TypedefType(typedef_name);
-  type->type_arguments().ReadFromStatic<DartType>(reader);
   return type;
 }
 
