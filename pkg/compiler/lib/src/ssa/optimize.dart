@@ -2393,6 +2393,10 @@ class SsaTypeConversionInserter extends HBaseVisitor
       if (user is HIf) {
         trueTargets?.add(user.thenBlock);
         falseTargets?.add(user.elseBlock);
+      } else if (user is HLoopBranch) {
+        trueTargets?.add(user.block.successors.first);
+        // Don't insert refinements on else-branch - may be a critical edge
+        // block which we currently need to keep empty (except for phis).
       } else if (user is HNot) {
         collectTargets(user, falseTargets, trueTargets);
       } else if (user is HPhi) {
