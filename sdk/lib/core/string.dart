@@ -143,6 +143,12 @@ abstract class String implements Comparable<String>, Pattern {
    *
    *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
    */
+  // The .fromEnvironment() constructors are special in that we do not want
+  // users to call them using "new". We prohibit that by giving them bodies
+  // that throw, even though const constructors are not allowed to have bodies.
+  // Disable those static errors.
+  //ignore: const_constructor_with_body
+  //ignore: const_factory
   external const factory String.fromEnvironment(String name,
       {String defaultValue});
 

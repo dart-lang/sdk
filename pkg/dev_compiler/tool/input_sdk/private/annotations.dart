@@ -4,6 +4,11 @@
 
 part of dart._js_helper;
 
+/// Tells the optimizing compiler to always inline the annotated method.
+class ForceInline {
+  const ForceInline();
+}
+
 /// Tells the optimizing compiler that the annotated method cannot throw.
 /// Requires @NoInline() to function correctly.
 class NoThrows {

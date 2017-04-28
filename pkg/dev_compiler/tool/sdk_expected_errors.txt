@@ -1,4 +1,3 @@
-[error] A value of type 'Future<Null>' can't be assigned to a variable of type '_Future'. (dart:async/future.dart, line 138, col 38)
 [error] Couldn't infer type parameter 'T'.
 
 Tried to infer '_ControllerEventSinkWrapper<dynamic>' for 'T' which doesn't work:
@@ -12,7 +11,6 @@ Consider passing explicit type argument(s) to the generic.
 
  (dart:async/stream.dart, line 1322, col 16)
 [error] The argument type 'ZoneUnaryCallback(EventSink<T>) → dynamic' can't be assigned to the parameter type '(_ControllerEventSinkWrapper<dynamic>) → dynamic'. (dart:async/stream.dart, line 1322, col 32)
-[error] Type parameter bound types must be instantiated. (dart:collection/queue.dart, line 97, col 32)
 [error] Invalid override. The type of '_UnicodeSubsetEncoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 106, col 3)
 [error] Invalid override. The type of '_UnicodeSubsetEncoder.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 114, col 3)
 [error] Invalid override. The type of '_UnicodeSubsetDecoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 219, col 3)
@@ -40,22 +38,12 @@ Consider passing explicit type argument(s) to the generic.
 [error] Invalid override. The type of 'Utf8Encoder.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 129, col 3)
 [error] Invalid override. The type of 'Utf8Decoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 357, col 3)
 [error] Invalid override. The type of 'Utf8Decoder.bind' ('(Stream<List<int>>) → Stream<String>') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.bind' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 368, col 3)
-[error] Only redirecting factory constructors can be declared to be 'const'. (dart:core/bool.dart, line 41, col 9)
-[error] Const constructors can't throw exceptions. (dart:core/bool.dart, line 42, col 5)
-[error] Only redirecting factory constructors can be declared to be 'const'. (dart:core/int.dart, line 33, col 9)
-[error] Const constructors can't throw exceptions. (dart:core/int.dart, line 34, col 5)
-[error] Annotation must be either a const variable reference or const constructor invocation. (dart:core/stacktrace.dart, line 43, col 3)
-[error] Only redirecting factory constructors can be declared to be 'const'. (dart:core/string.dart, line 156, col 9)
-[error] Const constructors can't throw exceptions. (dart:core/string.dart, line 157, col 5)
-[error] Annotation must be either a const variable reference or const constructor invocation. (dart:developer, line 39, col 1)
 [error] The getter 'value' isn't defined for the class 'num'. (dart:html, line 40486, col 21)
 [error] A value of type 'Dimension' can't be assigned to a variable of type 'num'. (dart:html, line 40486, col 44)
 [error] The getter 'value' isn't defined for the class 'num'. (dart:html, line 40506, col 20)
 [error] A value of type 'Dimension' can't be assigned to a variable of type 'num'. (dart:html, line 40506, col 42)
 [error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<List<int>>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<List<int>, List<int>, List<int>, List<int>>.bind' ('(dynamic) → dynamic'). (dart:io/data_transformer.dart, line 295, col 19)
 [error] Invalid override. The type of 'ZLibEncoder.startChunkedConversion' ('(Sink<List<int>>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, List<int>, List<int>, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:io/data_transformer.dart, line 388, col 3)
-[error] The argument type '(RandomAccessFile) → Future<RandomAccessFile>' can't be assigned to the parameter type '(RandomAccessFile) → FutureOr<File>'. (dart:io/file_impl.dart, line 202, col 30)
-[error] The return type 'Future<Object>' isn't a 'FutureOr<File>', as defined by the method ''. (dart:io/file_impl.dart, line 591, col 14)
 [error] Undefined name 'lineMode'. (dart:io/stdio.dart, line 57, col 10)
 [error] The name 'echoMode=' is already defined. (dart:io/stdio.dart, line 122, col 12)
 [error] The name 'lineMode=' is already defined. (dart:io/stdio.dart, line 143, col 12)
