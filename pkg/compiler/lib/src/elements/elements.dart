@@ -743,7 +743,7 @@ class Elements {
     return '${aUri}'.compareTo('${bUri}');
   }
 
-  static List<Element> sortedByPosition(Iterable<Element> elements) {
+  static List<E> sortedByPosition<E extends Element>(Iterable<E> elements) {
     return elements.toList()..sort(compareByPosition);
   }
 

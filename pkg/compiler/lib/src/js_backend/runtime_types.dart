@@ -455,7 +455,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
 
   @override
   TypeChecks computeChecks(
-      Set<ClassElement> instantiated, Set<ClassElement> checked) {
+      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
