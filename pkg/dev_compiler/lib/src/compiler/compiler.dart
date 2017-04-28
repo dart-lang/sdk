@@ -90,7 +90,8 @@ class ModuleCompiler {
     summaryData ??= new SummaryDataStore(options.summaryPaths,
         resourceProvider: resourceProvider,
         recordDependencyInfo: true,
-        disallowOverlappingSummaries: true);
+        // TODO(vsm): Reset this to true once we cleanup internal build rules.
+        disallowOverlappingSummaries: false);
 
     var sdkSummaryBundle = sdk.getLinkedBundle();
     if (sdkSummaryBundle != null) {
