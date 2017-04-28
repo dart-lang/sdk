@@ -649,6 +649,7 @@ class Server {
   Future start({
     bool checked: true,
     int diagnosticPort,
+    String instrumentationLogFile,
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
@@ -695,6 +696,9 @@ class Server {
     if (diagnosticPort != null) {
       arguments.add('--port');
       arguments.add(diagnosticPort.toString());
+    }
+    if (instrumentationLogFile != null) {
+      arguments.add('--instrumentation-log-file=$instrumentationLogFile');
     }
     if (sdkPath != null) {
       arguments.add('--sdk=$sdkPath');
