@@ -11,9 +11,8 @@ library analysis_server.plugin.protocol.protocol;
 import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
 
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-
-part 'generated_protocol.dart';
 
 /**
  * A [RequestHandler] that supports [startup] and [shutdown] methods.
@@ -74,14 +73,14 @@ class Notification {
    * A table mapping the names of notification parameters to their values, or
    * `null` if there are no notification parameters.
    */
-  Map<String, Object> _params;
+  final Map<String, Object> params;
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.
    * If [_params] is provided, it will be used as the params; otherwise no
    * params will be used.
    */
-  Notification(this.event, [this._params]);
+  Notification(this.event, [this.params]);
 
   /**
    * Initialize a newly created instance based on the given JSON data.
@@ -98,8 +97,8 @@ class Notification {
   Map<String, Object> toJson() {
     Map<String, Object> jsonObject = {};
     jsonObject[EVENT] = event;
-    if (_params != null) {
-      jsonObject[PARAMS] = _params;
+    if (params != null) {
+      jsonObject[PARAMS] = params;
     }
     return jsonObject;
   }
@@ -145,7 +144,7 @@ class Request {
   /**
    * A table mapping the names of request parameters to their values.
    */
-  final Map<String, Object> _params;
+  final Map<String, Object> params;
 
   /**
    * The time (milliseconds since epoch) at which the client made the request
@@ -160,7 +159,7 @@ class Request {
    */
   Request(this.id, this.method,
       [Map<String, Object> params, this.clientRequestTime])
-      : _params = params ?? new HashMap<String, Object>();
+      : params = params ?? new HashMap<String, Object>();
 
   /**
    * Return a request parsed from the given json, or `null` if the [data] is
@@ -240,8 +239,8 @@ class Request {
     Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[ID] = id;
     jsonObject[METHOD] = method;
-    if (_params.isNotEmpty) {
-      jsonObject[PARAMS] = _params;
+    if (params.isNotEmpty) {
+      jsonObject[PARAMS] = params;
     }
     if (clientRequestTime != null) {
       jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;

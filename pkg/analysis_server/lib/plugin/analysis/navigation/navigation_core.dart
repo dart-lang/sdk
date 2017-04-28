@@ -4,7 +4,7 @@
 
 library analysis_server.plugin.analysis.navigation.navigation_core;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     show ElementKind, Location;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;

@@ -4,7 +4,8 @@
 
 library test.analysis.reanalyze;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';

@@ -4,8 +4,8 @@
 
 library protocol.server;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
@@ -22,8 +22,9 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
-export 'package:analysis_server/plugin/protocol/protocol.dart';
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
+export 'package:analysis_server/protocol/protocol.dart';
+export 'package:analysis_server/protocol/protocol_generated.dart';
 
 /**
  * Returns a list of AnalysisErrors corresponding to the given list of Engine

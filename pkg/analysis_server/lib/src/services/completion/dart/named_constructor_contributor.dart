@@ -6,7 +6,7 @@ library services.completion.contributor.dart.named_constructor;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/protocol/protocol_generated.dart' hide Element;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';

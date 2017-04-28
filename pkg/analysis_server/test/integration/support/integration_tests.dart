@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';

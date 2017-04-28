@@ -4,7 +4,7 @@
 
 library services.src.refactoring.sort_members;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/protocol/protocol_generated.dart' hide Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 

@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 
-import '../../test/integration/integration_tests.dart';
+import '../../test/integration/support/integration_tests.dart';
 
 void printMemoryResults(String id, String description, List<int> sizes) {
   int minMemory = sizes.fold(sizes.first, min);

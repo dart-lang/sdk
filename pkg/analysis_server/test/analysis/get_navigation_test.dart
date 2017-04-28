@@ -4,7 +4,8 @@
 
 library test.analysis.get_navigation;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';

@@ -8,7 +8,8 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/file_system/file_system.dart';

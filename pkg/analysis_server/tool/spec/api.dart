@@ -6,8 +6,6 @@
  * Data structures representing an API definition, and visitor base classes
  * for visiting those data structures.
  */
-library api;
-
 import 'dart:collection';
 
 import 'package:html/dom.dart' as dom;
@@ -133,7 +131,7 @@ class HierarchicalApiVisitor extends ApiVisitor {
   }
 
   void visitRefactorings(Refactorings refactorings) {
-    refactorings.forEach(visitRefactoring);
+    refactorings?.forEach(visitRefactoring);
   }
 
   void visitRequest(Request request) {
@@ -347,8 +345,8 @@ class Request extends ApiNode {
  * Base class for all possible types.
  */
 abstract class TypeDecl extends ApiNode {
-  TypeDecl(dom.Element html, bool experimental)
-      : super(html, experimental, false);
+  TypeDecl(dom.Element html, bool experimental, bool deprecated)
+      : super(html, experimental, deprecated);
 
   accept(ApiVisitor visitor);
 }
@@ -372,9 +370,10 @@ class TypeDefinition extends ApiNode {
 class TypeEnum extends TypeDecl {
   final List<TypeEnumValue> values;
 
-  TypeEnum(this.values, dom.Element html, {bool experimental})
-      : super(html, experimental);
+  TypeEnum(this.values, dom.Element html, {bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 
+  @override
   accept(ApiVisitor visitor) => visitor.visitTypeEnum(this);
 }
 
@@ -396,8 +395,9 @@ class TypeList extends TypeDecl {
   final TypeDecl itemType;
 
   TypeList(this.itemType, dom.Element html, {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 
+  @override
   accept(ApiVisitor visitor) => visitor.visitTypeList(this);
 }
 
@@ -418,8 +418,9 @@ class TypeMap extends TypeDecl {
   final TypeDecl valueType;
 
   TypeMap(this.keyType, this.valueType, dom.Element html, {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 
+  @override
   accept(ApiVisitor visitor) => visitor.visitTypeMap(this);
 }
 
@@ -429,9 +430,11 @@ class TypeMap extends TypeDecl {
 class TypeObject extends TypeDecl {
   final List<TypeObjectField> fields;
 
-  TypeObject(this.fields, dom.Element html, {bool experimental})
-      : super(html, experimental);
+  TypeObject(this.fields, dom.Element html,
+      {bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 
+  @override
   accept(ApiVisitor visitor) => visitor.visitTypeObject(this);
 
   /**
@@ -473,12 +476,13 @@ class TypeReference extends TypeDecl {
   final String typeName;
 
   TypeReference(this.typeName, dom.Element html, {bool experimental})
-      : super(html, experimental) {
+      : super(html, experimental, false) {
     if (typeName.isEmpty) {
       throw new Exception('Empty type name');
     }
   }
 
+  @override
   accept(ApiVisitor visitor) => visitor.visitTypeReference(this);
 }
 
@@ -513,7 +517,8 @@ class TypeUnion extends TypeDecl {
   final String field;
 
   TypeUnion(this.choices, this.field, dom.Element html, {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 
+  @override
   accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
 }

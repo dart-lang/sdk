@@ -44,7 +44,7 @@ class Notification {
    * A table mapping the names of notification parameters to their values, or
    * `null` if there are no notification parameters.
    */
-  Map<String, Object> params;
+  final Map<String, Object> params;
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.

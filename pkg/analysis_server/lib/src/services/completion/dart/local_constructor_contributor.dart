@@ -6,7 +6,7 @@ library services.completion.contributor.dart.constructor;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
+import 'package:analysis_server/protocol/protocol_generated.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;

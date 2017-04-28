@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
+import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -29,7 +30,8 @@ const Map<String, String> specialElementFlags = const {
 
 final GeneratedFile target =
     new GeneratedFile('lib/protocol/protocol_generated.dart', (String pkgPath) {
-  CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi(pkgPath));
+  CodegenProtocolVisitor visitor =
+      new CodegenProtocolVisitor(path.basename(pkgPath), readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -66,6 +68,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       'Clients may not extend, implement or mix-in this class.';
 
   /**
+   * The name of the package into which code is being generated.
+   */
+  final String packageName;
+
+  /**
    * Visitor used to produce doc comments.
    */
   final ToHtmlVisitor toHtmlVisitor;
@@ -77,7 +84,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   final Map<String, ImpliedType> impliedTypes;
 
-  CodegenProtocolVisitor(Api api)
+  CodegenProtocolVisitor(this.packageName, Api api)
       : toHtmlVisitor = new ToHtmlVisitor(api),
         impliedTypes = computeImpliedTypes(api),
         super(api) {
@@ -1127,9 +1134,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln("import 'dart:convert' hide JsonDecoder;");
     writeln();
     writeln("import 'package:analyzer/src/generated/utilities_general.dart';");
-    writeln("import 'package:analyzer_plugin/protocol/protocol.dart';");
+    writeln("import 'package:$packageName/protocol/protocol.dart';");
     writeln(
-        "import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';");
+        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
     emitClasses();
   }
 }

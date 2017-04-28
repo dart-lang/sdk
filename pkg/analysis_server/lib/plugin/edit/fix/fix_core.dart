@@ -6,7 +6,7 @@ library analysis_server.plugin.edit.fix.fix_core;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     show SourceChange;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
