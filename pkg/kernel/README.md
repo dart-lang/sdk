@@ -27,7 +27,7 @@ pub get
 Command-Line Tool
 -----------------
 
-Run `bin/dartk.dart` from the command-line to convert between .dart files
+Run `tool/dartk.dart` from the command-line to convert between .dart files
 and the serialized binary and textual formats.
 
 `dartk` expects the `.dill` extension for files in the binary format.
