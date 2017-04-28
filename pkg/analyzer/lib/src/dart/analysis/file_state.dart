@@ -380,8 +380,9 @@ class FileState {
 
     if (USE_FASTA_PARSER) {
       try {
-        fasta.ScannerResult scanResult =
-            fasta.scan(_contentBytes, includeComments: true);
+        fasta.ScannerResult scanResult = fasta.scan(_contentBytes,
+            includeComments: true,
+            scanGenericMethodComments: analysisOptions.strongMode);
 
         var astBuilder = new fasta.AstBuilder(
             new ErrorReporter(errorListener, source),
@@ -390,6 +391,8 @@ class FileState {
             new _FastaElementStoreProxy(),
             new fasta.Scope.top(isModifiable: true),
             uri);
+        astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
+
         var parser = new fasta.Parser(astBuilder);
         astBuilder.parser = parser;
         parser.parseUnit(scanResult.tokens);

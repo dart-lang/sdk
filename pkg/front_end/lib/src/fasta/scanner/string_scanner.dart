@@ -21,9 +21,10 @@ class StringScanner extends ArrayBasedScanner {
   /** The current offset in [string]. */
   int scanOffset = -1;
 
-  StringScanner(String string, {bool includeComments: false})
+  StringScanner(String string,
+      {bool includeComments: false, bool scanGenericMethodComments: false})
       : string = ensureZeroTermination(string),
-        super(includeComments);
+        super(includeComments, scanGenericMethodComments);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
