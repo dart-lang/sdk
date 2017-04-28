@@ -2311,14 +2311,23 @@ Fragment FlowGraphBuilder::AdjustContextTo(int depth) {
 }
 
 
+bool FlowGraphBuilder::HasContextScope() const {
+  const ContextScope& context_scope =
+      ContextScope::Handle(parsed_function_->function().context_scope());
+  return !context_scope.IsNull() && context_scope.num_variables() > 0;
+}
+
+
 Fragment FlowGraphBuilder::PushContext(int size) {
   ASSERT(size > 0);
   Fragment instructions = AllocateContext(size);
-  LocalVariable* context = MakeTemporary();
-  instructions += LoadLocal(context);
-  instructions += LoadLocal(parsed_function_->current_context_var());
-  instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Context::parent_offset());
+  if (context_depth_ != 0 || HasContextScope()) {
+    LocalVariable* context = MakeTemporary();
+    instructions += LoadLocal(context);
+    instructions += LoadLocal(parsed_function_->current_context_var());
+    instructions +=
+        StoreInstanceField(TokenPosition::kNoSource, Context::parent_offset());
+  }
   instructions += StoreLocal(TokenPosition::kNoSource,
                              parsed_function_->current_context_var());
   ++context_depth_;
