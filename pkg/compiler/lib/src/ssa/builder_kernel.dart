@@ -1924,7 +1924,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       inputs.add(argList);
     }
 
-    assert(constructor.kind == ir.ProcedureKind.Factory);
+    assert(constructor != null && constructor.kind == ir.ProcedureKind.Factory);
 
     ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfMapLiteral(mapLiteral));
