@@ -173,6 +173,14 @@ abstract class Substitution {
         type.classNode.typeParameters, type.typeArguments));
   }
 
+  /// Substitutes the type parameters on the typedef of [type] with the
+  /// type arguments provided in [type].
+  static Substitution fromTypedefType(TypedefType type) {
+    if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    return fromMap(new Map<TypeParameter, DartType>.fromIterables(
+        type.typedefNode.typeParameters, type.typeArguments));
+  }
+
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
   /// [types].
   static Substitution fromPairs(
@@ -373,6 +381,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, typeArguments);
+  }
+
+  DartType visitTypedefType(TypedefType node) {
+    if (node.typeArguments.isEmpty) return node;
+    int before = useCounter;
+    var typeArguments = node.typeArguments.map(visit).toList();
+    if (useCounter == before) return node;
+    return new TypedefType(node.typedefNode, typeArguments);
   }
 
   List<TypeParameter> freshTypeParameters(List<TypeParameter> parameters) {
@@ -652,6 +668,10 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
   bool visitVectorType(VectorType node) => false;
 
   bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 

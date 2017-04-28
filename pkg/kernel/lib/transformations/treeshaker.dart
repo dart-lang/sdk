@@ -1056,6 +1056,10 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
+  visitTypedefType(TypedefType node) {
+    throw 'TypedefType is not implemented in tree shaker';
+  }
+
   visitFunctionType(FunctionType node) {
     visit(node.returnType);
     for (int i = 0; i < node.positionalParameters.length; ++i) {

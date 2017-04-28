@@ -141,6 +141,8 @@ class DartTypeParser {
           return fail('Unresolved type $name');
         } else if (target is Class) {
           return new InterfaceType(target, parseOptionalTypeArgumentList());
+        } else if (target is Typedef) {
+          return new TypedefType(target, parseOptionalTypeArgumentList());
         } else if (target is TypeParameter) {
           if (peekToken() == Token.LeftAngle) {
             return fail('Attempt to apply type arguments to a type variable');
