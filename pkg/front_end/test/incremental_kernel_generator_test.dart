@@ -10,6 +10,7 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:kernel/ast.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,7 +37,7 @@ class IncrementalKernelGeneratorTest {
   static final sdkSummaryUri = Uri.parse('special:sdk_summary');
 
   /// Virtual filesystem for testing.
-  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
 
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
