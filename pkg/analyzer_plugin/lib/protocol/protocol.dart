@@ -267,6 +267,8 @@ class Request {
 /**
  * A collection of utility methods that create instances of the generated class
  * [RequestError].
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestErrorFactory {
 //  /**

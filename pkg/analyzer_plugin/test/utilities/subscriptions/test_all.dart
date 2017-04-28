@@ -4,10 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'subscriptions/test_all.dart' as subscriptions;
+import 'subscription_manager_test.dart' as subscription_manager_test;
 
 main() {
   defineReflectiveSuite(() {
-    subscriptions.main();
-  }, name: 'utilities');
+    subscription_manager_test.main();
+  }, name: 'subscriptions');
 }

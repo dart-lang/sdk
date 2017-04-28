@@ -6,6 +6,8 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
 /**
  * An object that manages the subscriptions for analysis results.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SubscriptionManager {
   /**
