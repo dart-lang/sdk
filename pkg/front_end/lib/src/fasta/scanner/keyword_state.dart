@@ -22,7 +22,7 @@ abstract class KeywordState {
     if (_KEYWORD_STATE == null) {
       List<String> strings = new List<String>(analyzer.Keyword.values.length);
       for (int i = 0; i < analyzer.Keyword.values.length; i++) {
-        strings[i] = analyzer.Keyword.values[i].syntax;
+        strings[i] = analyzer.Keyword.values[i].lexeme;
       }
       strings.sort((a, b) => a.compareTo(b));
       _KEYWORD_STATE = computeKeywordStateTable(0, strings, 0, strings.length);
@@ -144,5 +144,5 @@ class LeafKeywordState implements KeywordState {
   KeywordState next(int c) => null;
   KeywordState nextCapital(int c) => null;
 
-  String toString() => keyword.syntax;
+  String toString() => keyword.lexeme;
 }

@@ -272,7 +272,7 @@ class Place : public ValueObject {
   //
   //    - for places that depend on an instance X.f, X.@offs, X[i], X[C]
   //      we drop X if X is not an allocation because in this case X does not
-  //      posess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
+  //      possess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
   //      respectively;
   //    - for non-constant indexed places X[i] we drop information about the
   //      index obtaining alias X[*].

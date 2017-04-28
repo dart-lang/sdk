@@ -272,8 +272,8 @@ class GlobalTypeInferenceTask extends CompilerTask {
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(Element mainElement, ClosedWorld closedWorld,
-      ClosedWorldRefiner closedWorldRefiner) {
+  void runGlobalTypeInference(MethodElement mainElement,
+      ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     measure(() {
       typesInferrerInternal ??=
           new TypeGraphInferrer(compiler, closedWorld, closedWorldRefiner);

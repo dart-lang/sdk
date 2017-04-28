@@ -8,7 +8,6 @@ import 'constants/constant_system.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
 import 'elements/types.dart';
-import 'elements/resolution_types.dart' show DartTypes;
 import 'tree/dartstring.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();

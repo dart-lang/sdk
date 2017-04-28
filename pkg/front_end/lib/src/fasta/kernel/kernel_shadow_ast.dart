@@ -18,7 +18,9 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
 /// Concrete shadow object representing a statement block in kernel form.
@@ -42,6 +44,17 @@ abstract class KernelExpression implements Expression {
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded);
 }
 
+/// Concrete shadow object representing an expression statement in kernel form.
+class KernelExpressionStatement extends ExpressionStatement
+    implements KernelStatement {
+  KernelExpressionStatement(Expression expression) : super(expression);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.inferExpressionStatement(expression);
+  }
+}
+
 /// Concrete shadow object representing a field in kernel form.
 class KernelField extends Field {
   bool _implicitlyTyped = true;
@@ -49,6 +62,8 @@ class KernelField extends Field {
   FieldNode<KernelField> _fieldNode;
 
   bool _isInferred = false;
+
+  KernelTypeInferrer _typeInferrer;
 
   KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
 
@@ -80,8 +95,32 @@ class KernelFunctionExpression extends FunctionExpression
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(paulberry): implement.
-    return typeNeeded ? const DynamicType() : null;
+    var asyncMarker = function.asyncMarker;
+    bool isAsync = asyncMarker == AsyncMarker.Async ||
+        asyncMarker == AsyncMarker.AsyncStar;
+    bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
+        asyncMarker == AsyncMarker.AsyncStar;
+    return inferrer.inferFunctionExpression(
+        typeContext,
+        typeNeeded,
+        function.body,
+        function.body is ReturnStatement,
+        isAsync,
+        isGenerator,
+        fileOffset, (type) {
+      function.returnType = type;
+    }, () => function.functionType);
+  }
+}
+
+/// Concrete shadow object representing an if statement in kernel form.
+class KernelIfStatement extends IfStatement implements KernelStatement {
+  KernelIfStatement(Expression condition, Statement then, Statement otherwise)
+      : super(condition, then, otherwise);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.inferIfStatement(condition, then, otherwise);
   }
 }
 
@@ -93,6 +132,31 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferIntLiteral(typeContext, typeNeeded);
+  }
+}
+
+/// Concrete shadow object representing a non-inverted "is" test in kernel form.
+class KernelIsExpression extends IsExpression implements KernelExpression {
+  KernelIsExpression(Expression operand, DartType type) : super(operand, type);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferIsExpression(typeContext, typeNeeded, operand);
+  }
+}
+
+/// Concrete shadow object representing an inverted "is" test in kernel form.
+class KernelIsNotExpression extends Not implements KernelExpression {
+  KernelIsNotExpression(Expression operand, DartType type, int charOffset)
+      : super(new IsExpression(operand, type)..fileOffset = charOffset);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    IsExpression isExpression = this.operand;
+    return inferrer.inferIsExpression(
+        typeContext, typeNeeded, isExpression.operand);
   }
 }
 
@@ -150,11 +214,10 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
   }
 }
 
-/// Concrete implementation of [TypeInferrer] specialized to work with kernel
-/// objects.
-class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
-    KernelVariableDeclaration, KernelField> {
-  KernelTypeInferrer(Instrumentation instrumentation, bool strongMode)
+/// Concrete implementation of [TypeInferenceEngine] specialized to work with
+/// kernel objects.
+class KernelTypeInferenceEngine extends TypeInferenceEngineImpl<KernelField> {
+  KernelTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
       : super(instrumentation, strongMode);
 
   @override
@@ -170,6 +233,22 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
   }
 
   @override
+  KernelTypeInferrer createLocalTypeInferrer(Uri uri) {
+    return new KernelTypeInferrer._(this, uri.toString());
+  }
+
+  @override
+  KernelTypeInferrer createTopLevelTypeInferrer(KernelField field) {
+    return field._typeInferrer =
+        new KernelTypeInferrer._(this, getFieldUri(field));
+  }
+
+  @override
+  bool fieldHasInitializer(KernelField field) {
+    return field.initializer != null;
+  }
+
+  @override
   DartType getFieldDeclaredType(KernelField field) {
     return field._implicitlyTyped ? null : field.type;
   }
@@ -178,6 +257,42 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
   List<FieldNode<KernelField>> getFieldDependencies(KernelField field) {
     return field._fieldNode?.dependencies;
   }
+
+  @override
+  int getFieldOffset(KernelField field) {
+    return field.fileOffset;
+  }
+
+  @override
+  KernelTypeInferrer getFieldTypeInferrer(KernelField field) {
+    return field._typeInferrer;
+  }
+
+  @override
+  String getFieldUri(KernelField field) {
+    return field._fileUri;
+  }
+
+  @override
+  bool isFieldInferred(KernelField field) {
+    return field._isInferred;
+  }
+
+  @override
+  void setFieldInferredType(KernelField field, DartType inferredType) {
+    field._setInferredType(inferredType);
+  }
+}
+
+/// Concrete implementation of [TypeInferrer] specialized to work with kernel
+/// objects.
+class KernelTypeInferrer extends TypeInferrerImpl<Statement, Expression,
+    VariableDeclaration, KernelField> {
+  @override
+  final typePromoter = new KernelTypePromoter();
+
+  KernelTypeInferrer._(KernelTypeInferenceEngine engine, String uri)
+      : super(engine, uri);
 
   @override
   Expression getFieldInitializer(KernelField field) {
@@ -191,16 +306,6 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
     } else {
       return null;
     }
-  }
-
-  @override
-  int getFieldOffset(KernelField field) {
-    return field.fileOffset;
-  }
-
-  @override
-  String getFieldUri(KernelField field) {
-    return field._fileUri;
   }
 
   @override
@@ -223,6 +328,12 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
   }
 
   @override
+  DartType inferFieldInitializer(
+      KernelField field, DartType type, bool typeNeeded) {
+    return inferExpression(field.initializer, type, typeNeeded);
+  }
+
+  @override
   void inferStatement(Statement statement) {
     if (statement is KernelStatement) {
       // Use polymorphic dispatch on [KernelStatement] to perform whatever kind
@@ -238,15 +349,70 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
       // everything, this case should no longer be needed.
     }
   }
+}
 
+/// Concrete implementation of [TypePromoter] specialized to work with kernel
+/// objects.
+///
+/// Note: the second type parameter really ought to be
+/// KernelVariableDeclaration, but we can't do that yet because BodyBuilder
+/// still uses raw VariableDeclaration objects sometimes.
+/// TODO(paulberry): fix this.
+class KernelTypePromoter
+    extends TypePromoterImpl<Expression, VariableDeclaration> {
   @override
-  bool isFieldInferred(KernelField field) {
-    return field._isInferred;
+  int getVariableFunctionNestingLevel(VariableDeclaration variable) {
+    if (variable is KernelVariableDeclaration) {
+      return variable._functionNestingLevel;
+    } else {
+      // Hack to deal with the fact that BodyBuilder still creates raw
+      // VariableDeclaration objects sometimes.
+      // TODO(paulberry): get rid of this once the type parameter is
+      // KernelVariableDeclaration.
+      return 0;
+    }
   }
 
   @override
-  void setFieldInferredType(KernelField field, DartType inferredType) {
-    field._setInferredType(inferredType);
+  bool sameExpressions(Expression a, Expression b) {
+    return identical(a, b);
+  }
+
+  @override
+  void setVariableMutatedAnywhere(VariableDeclaration variable) {
+    if (variable is KernelVariableDeclaration) {
+      variable._mutatedAnywhere = true;
+    } else {
+      // Hack to deal with the fact that BodyBuilder still creates raw
+      // VariableDeclaration objects sometimes.
+      // TODO(paulberry): get rid of this once the type parameter is
+      // KernelVariableDeclaration.
+    }
+  }
+
+  @override
+  void setVariableMutatedInClosure(VariableDeclaration variable) {
+    if (variable is KernelVariableDeclaration) {
+      variable._mutatedInClosure = true;
+    } else {
+      // Hack to deal with the fact that BodyBuilder still creates raw
+      // VariableDeclaration objects sometimes.
+      // TODO(paulberry): get rid of this once the type parameter is
+      // KernelVariableDeclaration.
+    }
+  }
+
+  @override
+  bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
+    if (variable is KernelVariableDeclaration) {
+      return variable._mutatedAnywhere;
+    } else {
+      // Hack to deal with the fact that BodyBuilder still creates raw
+      // VariableDeclaration objects sometimes.
+      // TODO(paulberry): get rid of this once the type parameter is
+      // KernelVariableDeclaration.
+      return true;
+    }
   }
 }
 
@@ -255,7 +421,13 @@ class KernelVariableDeclaration extends VariableDeclaration
     implements KernelStatement {
   final bool _implicitlyTyped;
 
-  KernelVariableDeclaration(String name,
+  final int _functionNestingLevel;
+
+  bool _mutatedInClosure = false;
+
+  bool _mutatedAnywhere = false;
+
+  KernelVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
       bool isFinal: false,
@@ -266,6 +438,8 @@ class KernelVariableDeclaration extends VariableDeclaration
             type: type ?? const DynamicType(),
             isFinal: isFinal,
             isConst: isConst);
+
+  DartType get _declaredType => _implicitlyTyped ? null : type;
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
@@ -278,13 +452,33 @@ class KernelVariableDeclaration extends VariableDeclaration
 
 /// Concrete shadow object representing a read from a variable in kernel form.
 class KernelVariableGet extends VariableGet implements KernelExpression {
-  KernelVariableGet(VariableDeclaration variable, [DartType promotedType])
-      : super(variable, promotedType);
+  final TypePromotionFact<VariableDeclaration> _fact;
+
+  final TypePromotionScope _scope;
+
+  KernelVariableGet(VariableDeclaration variable, this._fact, this._scope)
+      : super(variable);
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(paulberry): implement.
-    return typeNeeded ? const DynamicType() : null;
+    bool mutatedInClosure;
+    DartType declaredType;
+    var variable = this.variable;
+    if (variable is KernelVariableDeclaration) {
+      mutatedInClosure = variable._mutatedInClosure;
+      declaredType = variable._declaredType;
+    } else {
+      // Hack to deal with the fact that BodyBuilder still creates raw
+      // VariableDeclaration objects sometimes.
+      // TODO(paulberry): get rid of this once the type parameter is
+      // KernelVariableDeclaration.
+      mutatedInClosure = true;
+      declaredType = variable.type;
+    }
+    return inferrer.inferVariableGet(typeContext, typeNeeded, mutatedInClosure,
+        _fact, _scope, fileOffset, declaredType, (type) {
+      promotedType = type;
+    });
   }
 }

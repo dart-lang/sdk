@@ -1761,8 +1761,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary));
     Selector selector = node.selector;
-    js.Name methodName =
-        _oneShotInterceptorData.registerOneShotInterceptor(selector, _namer);
+    js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(
+        selector, _namer, _closedWorld);
     push(js
         .propertyCall(isolate, methodName, arguments)
         .withSourceInformation(node.sourceInformation));
@@ -1889,13 +1889,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeStatic(HInvokeStatic node) {
     MemberEntity element = node.element;
-    List<DartType> instantiatedTypes = node.instantiatedTypes;
-
-    if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
-      instantiatedTypes.forEach((type) {
-        _registry.registerInstantiation(type);
-      });
-    }
+    node.instantiatedTypes?.forEach(_registry.registerInstantiation);
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 

@@ -1135,7 +1135,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "This class can't implement the deferred class '{0}'.",
           "Try specifying a different interface, "
           "removing the class from the list, or "
-          "changing the import to not be deferred..");
+          "changing the import to not be deferred.");
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or

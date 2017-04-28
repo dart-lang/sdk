@@ -66,13 +66,13 @@ class AnalyzerImpl {
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity get maxErrorSeverity {
-    var status = ErrorSeverity.NONE;
+    ErrorSeverity status = ErrorSeverity.NONE;
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
-        if (_processError(error) == null) {
+        if (_defaultSeverityProcessor(error) == null) {
           continue;
         }
-        var severity = computeSeverity(error, options);
+        ErrorSeverity severity = computeSeverity(error, options);
         status = status.max(severity);
       }
     }
@@ -118,9 +118,10 @@ class AnalyzerImpl {
   /// information is printed. If [printMode] is `1`, then errors will be printed.
   /// If [printMode] is `2`, then performance information will be printed, and
   /// it will be marked as being for a cold VM.
-  Future<ErrorSeverity> analyze({int printMode: 1}) async {
+  Future<ErrorSeverity> analyze(ErrorFormatter formatter,
+      {int printMode: 1}) async {
     setupForAnalysis();
-    return await _analyze(printMode);
+    return await _analyze(printMode, formatter);
   }
 
   /// Fills [errorInfos] using [sources].
@@ -160,7 +161,8 @@ class AnalyzerImpl {
     }
   }
 
-  Future<ErrorSeverity> _analyze(int printMode) async {
+  Future<ErrorSeverity> _analyze(
+      int printMode, ErrorFormatter formatter) async {
     // Don't try to analyze parts.
     String path = librarySource.fullName;
     SourceKind librarySourceKind = analysisDriver != null
@@ -178,7 +180,7 @@ class AnalyzerImpl {
 
     // Print errors and performance numbers.
     if (printMode == 1) {
-      _printErrors();
+      formatter.formatErrors(errorInfos);
     } else if (printMode == 2) {
       _printColdPerf();
     }
@@ -240,23 +242,8 @@ class AnalyzerImpl {
     outSink.writeln("total-cold:$totalTime");
   }
 
-  void _printErrors() {
-    // The following is a hack. We currently print out to stderr to ensure that
-    // when in batch mode we print to stderr, this is because the prints from
-    // batch are made to stderr. The reason that options.shouldBatch isn't used
-    // is because when the argument flags are constructed in BatchRunner and
-    // passed in from batch mode which removes the batch flag to prevent the
-    // "cannot have the batch flag and source file" error message.
-    StringSink sink = options.machineFormat ? errorSink : outSink;
-
-    // Print errors.
-    ErrorFormatter formatter =
-        new ErrorFormatter(sink, options, stats, _processError);
-    formatter.formatErrors(errorInfos);
-  }
-
-  ProcessedSeverity _processError(AnalysisError error) =>
-      processError(error, options, analysisOptions);
+  ProcessedSeverity _defaultSeverityProcessor(AnalysisError error) =>
+      determineProcessedSeverity(error, options, analysisOptions);
 
   Future<LibraryElement> _resolveLibrary() async {
     PerformanceTag previous = _resolveLibraryTag.makeCurrent();

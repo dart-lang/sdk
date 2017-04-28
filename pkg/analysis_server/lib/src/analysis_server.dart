@@ -69,6 +69,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
+import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
@@ -374,6 +375,12 @@ class AnalysisServer {
   Function onNoAnalysisResult;
 
   /**
+   * This exists as a temporary stopgap for plugins, until the official plugin
+   * API is complete.
+   */
+  Function onNoAnalysisCompletion;
+
+  /**
    * The set of the files that are currently priority.
    */
   final Set<String> priorityFiles = new Set<String>();
@@ -422,8 +429,6 @@ class AnalysisServer {
         options.enableIncrementalResolutionApi;
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
-    defaultContextOptions.finerGrainedInvalidation =
-        options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
 
@@ -1894,7 +1899,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool finerGrainedInvalidation = false;
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
@@ -2106,6 +2110,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyFileRemoved(nd.AnalysisDriver driver, String file) {
     driver.removeFile(file);
     sendAnalysisNotificationFlushResults(analysisServer, [file]);
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 
   @override

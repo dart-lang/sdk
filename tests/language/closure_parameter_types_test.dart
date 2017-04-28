@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-// Regression test for dart2js, where the optimizer was too agressive
+// Regression test for dart2js, where the optimizer was too aggressive
 // about parameter types of closures.
 
 class A {

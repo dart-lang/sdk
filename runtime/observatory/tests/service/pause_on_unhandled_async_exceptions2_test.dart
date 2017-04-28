@@ -37,7 +37,7 @@ testeeMain() async {
 var tests = [
   hasStoppedWithUnhandledException,
   (Isolate isolate) async {
-    print("We stoppped!");
+    print("We stopped!");
     var stack = await isolate.getStack();
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];

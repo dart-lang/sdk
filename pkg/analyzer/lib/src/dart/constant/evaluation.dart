@@ -740,6 +740,9 @@ class ConstantEvaluationEngine {
         // it redirects to.
         ConstructorElement constructor = initializer.staticElement;
         if (constructor != null && constructor.isConst) {
+          // Instantiate the constructor with the in-scope type arguments.
+          constructor = ConstructorMember.from(constructor, definingClass);
+
           DartObjectImpl result = evaluateConstructorCall(
               node,
               initializer.argumentList.arguments,

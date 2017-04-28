@@ -14,6 +14,7 @@ import '../../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(_ControlFlowCompletionTest);
     defineReflectiveTests(_DoCompletionTest);
     defineReflectiveTests(_ForCompletionTest);
     defineReflectiveTests(_ForEachCompletionTest);
@@ -89,6 +90,177 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit(sourceCode);
     await _computeCompletion(offset);
+  }
+}
+
+@reflectiveTest
+class _ControlFlowCompletionTest extends StatementCompletionTest {
+  test_doReturnExprLineComment() async {
+    await _prepareCompletion(
+        'return 3',
+        '''
+ex(e) {
+  do {
+    return 3//
+  } while (true);
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  do {
+    return 3;//
+  } while (true);
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_doReturnUnterminated() async {
+    await _prepareCompletion(
+        'return',
+        '''
+ex(e) {
+  do {
+    return
+  } while (true);
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  do {
+    return;
+  } while (true);
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_forEachReturn() async {
+    await _prepareCompletion(
+        'return;',
+        '''
+ex(e) {
+  for (var x in e) {
+    return;
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  for (var x in e) {
+    return;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_forThrowUnterminated() async {
+    await _prepareCompletion(
+        'throw e',
+        '''
+ex(e) {
+  for (int i = 0; i < 3; i++) {
+    throw e
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  for (int i = 0; i < 3; i++) {
+    throw e;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_ifThrow() async {
+    await _prepareCompletion(
+        'throw e;',
+        '''
+ex(e) {
+  if (true) {
+    throw e;
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  if (true) {
+    throw e;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_ifThrowUnterminated() async {
+    await _prepareCompletion(
+        'throw e',
+        '''
+ex(e) {
+  if (true) {
+    throw e
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  if (true) {
+    throw e;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_whileReturnExpr() async {
+    await _prepareCompletion(
+        '+ 4',
+        '''
+ex(e) {
+  while (true) {
+    return 3 + 4
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+ex(e) {
+  while (true) {
+    return 3 + 4;
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
   }
 }
 
@@ -420,11 +592,7 @@ main() {
 @reflectiveTest
 class _IfCompletionTest extends StatementCompletionTest {
   test_afterCondition_BAD() async {
-    // TODO(messick): Fix the code to make this like test_completeIfWithCondition.
-    // Recap: Finding the node at the selectionOffset returns the block, not the
-    // if-statement. Need to understand if that only happens when the if-statement
-    // is the only statement in the block, or perhaps first or last? And what
-    // happens when it is in the middle of other statements?
+    // TODO(messick) Stop inserting the space after the closing brace.
     await _prepareCompletion(
         'if (true) ', // Trigger completion after space.
         '''
@@ -434,15 +602,15 @@ main() {
 ''',
         atEnd: true);
     _assertHasChange(
-        // Note: This is not what we want.
-        'Insert a newline at the end of the current line',
+        'Complete if-statement',
         '''
 main() {
-  if (true) ////
-  }
+  if (true) {
+    ////
+  } ////
 }
 ''',
-        (s) => _after(s, 'if (true) '));
+        (s) => _after(s, '    '));
   }
 
   test_emptyCondition() async {
@@ -597,6 +765,52 @@ main() {
 
 @reflectiveTest
 class _SwitchCompletionTest extends StatementCompletionTest {
+  test_caseNoColon() async {
+    await _prepareCompletion(
+        'label',
+        '''
+main(x) {
+  switch (x) {
+    case label
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main(x) {
+  switch (x) {
+    case label: ////
+  }
+}
+''',
+        (s) => _after(s, 'label: '));
+  }
+
+  test_defaultNoColon() async {
+    await _prepareCompletion(
+        'default',
+        '''
+main(x) {
+  switch (x) {
+    default
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main(x) {
+  switch (x) {
+    default: ////
+  }
+}
+''',
+        (s) => _after(s, 'default: '));
+  }
+
   test_emptyCondition() async {
     await _prepareCompletion(
         'switch',
@@ -665,7 +879,7 @@ main() {
 class _TryCompletionTest extends StatementCompletionTest {
   test_catchOnly() async {
     await _prepareCompletion(
-        'catch',
+        '{} catch',
         '''
 main() {
   try {
@@ -684,6 +898,31 @@ main() {
 }
 ''',
         (s) => _after(s, 'catch ('));
+  }
+
+  test_catchSecond() async {
+    await _prepareCompletion(
+        '} catch ',
+        '''
+main() {
+  try {
+  } catch() {
+  } catch(e){} catch ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } catch() {
+  } catch(e){} catch () {
+    ////
+  }
+}
+''',
+        (s) => _afterLast(s, 'catch ('));
   }
 
   test_finallyOnly() async {

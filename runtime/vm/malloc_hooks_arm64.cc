@@ -6,16 +6,12 @@
 
 #include "vm/globals.h"
 
-#if defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM64)
 
 namespace dart {
 
-#if defined(DEBUG)
-const intptr_t kSkipCount = 6;
-#elif !(defined(PRODUCT) || defined(DEBUG))
 const intptr_t kSkipCount = 5;
-#endif
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64)
+#endif  // defined(HOST_ARCH_ARM64)

@@ -21,6 +21,56 @@ import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/source.dart';
 
 /**
+ * A [ConflictingSummaryException] indicates that two different summaries
+ * provided to a [SummaryDataStore] conflict.
+ */
+class ConflictingSummaryException implements Exception {
+  final String duplicatedUri;
+  final String summary1Uri;
+  final String summary2Uri;
+  String _message;
+
+  ConflictingSummaryException(Iterable<String> summaryPaths, this.duplicatedUri,
+      this.summary1Uri, this.summary2Uri) {
+    // Paths are often quite long.  Find and extract out a common prefix to
+    // build a more readable error message.
+    var prefix = _commonPrefix(summaryPaths.toList());
+    _message = '''
+These summaries conflict because they overlap:
+- ${summary1Uri.substring(prefix)}
+- ${summary2Uri.substring(prefix)}
+Both contain the file: ${duplicatedUri}.
+This typically indicates an invalid build rule where two or more targets
+include the same source.
+  ''';
+  }
+
+  String toString() => _message;
+
+  /// Given a set of file paths, find a common prefix.
+  int _commonPrefix(List<String> strings) {
+    if (strings.isEmpty) return 0;
+    var first = strings.first;
+    int common = first.length;
+    for (int i = 1; i < strings.length; ++i) {
+      var current = strings[i];
+      common = min(common, current.length);
+      for (int j = 0; j < common; ++j) {
+        if (first[j] != current[j]) {
+          common = j;
+          if (common == 0) return 0;
+          break;
+        }
+      }
+    }
+    // The prefix should end with a file separator.
+    var last =
+        first.substring(0, common).lastIndexOf(io.Platform.pathSeparator);
+    return last < 0 ? 0 : last + 1;
+  }
+}
+
+/**
  * The [ResultProvider] that provides results from input package summaries.
  */
 class InputPackagesResultProvider extends ResynthesizerResultProvider {
@@ -307,56 +357,6 @@ class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
 }
 
 /**
- * A [ConflictingSummaryException] indicates that two different summaries
- * provided to a [SummaryDataStore] conflict.
- */
-class ConflictingSummaryException implements Exception {
-  final String duplicatedUri;
-  final String summary1Uri;
-  final String summary2Uri;
-  String _message;
-
-  ConflictingSummaryException(Iterable<String> summaryPaths, this.duplicatedUri,
-      this.summary1Uri, this.summary2Uri) {
-    // Paths are often quite long.  Find and extract out a common prefix to
-    // build a more readable error message.
-    var prefix = _commonPrefix(summaryPaths.toList());
-    _message = '''
-These summaries conflict because they overlap:
-- ${summary1Uri.substring(prefix)}
-- ${summary2Uri.substring(prefix)}
-Both contain the file: ${duplicatedUri}.
-This typically indicates an invalid build rule where two or more targets
-include the same source.
-  ''';
-  }
-
-  /// Given a set of file paths, find a common prefix.
-  int _commonPrefix(List<String> strings) {
-    if (strings.isEmpty) return 0;
-    var first = strings.first;
-    int common = first.length;
-    for (int i = 1; i < strings.length; ++i) {
-      var current = strings[i];
-      common = min(common, current.length);
-      for (int j = 0; j < common; ++j) {
-        if (first[j] != current[j]) {
-          common = j;
-          if (common == 0) return 0;
-          break;
-        }
-      }
-    }
-    // The prefix should end with a file separator.
-    var last =
-        first.substring(0, common).lastIndexOf(io.Platform.pathSeparator);
-    return last < 0 ? 0 : last + 1;
-  }
-
-  String toString() => _message;
-}
-
-/**
  * A [SummaryDataStore] is a container for the data extracted from a set of
  * summary package bundles.  It contains maps which can be used to find linked
  * and unlinked summaries by URI.
@@ -472,6 +472,14 @@ class SummaryDataStore {
   }
 
   /**
+   * Add into this store the unlinked units and linked libraries of [other].
+   */
+  void addStore(SummaryDataStore other) {
+    unlinkedMap.addAll(other.unlinkedMap);
+    linkedMap.addAll(other.linkedMap);
+  }
+
+  /**
    * Add the given [unlinkedUnit] with the given [uri].
    */
   void addUnlinkedUnit(String uri, UnlinkedUnit unlinkedUnit) {
@@ -501,6 +509,14 @@ class SummaryDataStore {
       }
     });
     return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
+  }
+
+  /**
+   * Return `true` if the store contains the unlinked summary for the unit
+   * with the given absolute [uri].
+   */
+  bool hasUnlinkedUnit(String uri) {
+    return unlinkedMap.containsKey(uri);
   }
 
   void _fillMaps(String path, ResourceProvider resourceProvider) {

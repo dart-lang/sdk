@@ -508,7 +508,7 @@ class ReplacementRange {
 
   factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
     bool isKeywordOrIdentifier(Token token) =>
-        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
+        token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
     //TODO(danrubel) Ideally this needs to be pushed down into the contributors
     // but that implies that each suggestion can have a different

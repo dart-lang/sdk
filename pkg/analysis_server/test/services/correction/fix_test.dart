@@ -5943,6 +5943,65 @@ main() {
 ''');
   }
 
+  test_removeEmptyStatement_insideBlock() async {
+    String src = '''
+void foo() {
+  while(true) {
+    /*LINT*/;
+  }
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_STATEMENT);
+
+    verifyResult('''
+void foo() {
+  while(true) {
+  }
+}
+''');
+  }
+
+  test_removeEmptyStatement_outOfBlock_otherLine() async {
+    String src = '''
+void foo() {
+  while(true)
+  /*LINT*/;
+  print('hi');
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REPLACE_WITH_BRACKETS);
+
+    verifyResult('''
+void foo() {
+  while(true) {}
+  print('hi');
+}
+''');
+  }
+
+  test_removeEmptyStatement_outOfBlock_sameLine() async {
+    String src = '''
+void foo() {
+  while(true)/*LINT*/;
+  print('hi');
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REPLACE_WITH_BRACKETS);
+
+    verifyResult('''
+void foo() {
+  while(true) {}
+  print('hi');
+}
+''');
+  }
+
   test_removeInitializer_field() async {
     String src = '''
 class Test {
@@ -5983,6 +6042,474 @@ var /*LINT*/x = null;
 
     verifyResult('''
 var x;
+''');
+  }
+
+  test_removeMethodDeclaration_getter() async {
+    String src = '''
+class A {
+  int x;
+}
+class B extends A {
+  @override
+  int get /*LINT*/x => super.x;
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+  int x;
+}
+class B extends A {
+}
+''');
+  }
+
+  test_removeMethodDeclaration_method() async {
+    String src = '''
+class A {
+  @override
+  String /*LINT*/toString() => super.toString();
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+}
+''');
+  }
+
+  test_removeMethodDeclaration_setter() async {
+    String src = '''
+class A {
+  int x;
+}
+class B extends A {
+  @override
+  set /*LINT*/x(int other) {
+    this.x = other;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+  int x;
+}
+class B extends A {
+}
+''');
+  }
+
+  test_removeThisExpression_methodInvocation_oneCharacterOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_methodInvocation_twoCharactersOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this?.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_oneCharacterOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_twoCharactersOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this?.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withCodeBeforeAndAfter() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    print('hi');
+    /*LINT*/if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+    print('hi');
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    print('hi');
+    _fullName ??= getFullUserName(this);
+    print('hi');
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withOneBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withoutBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null)
+      _fullName = getFullUserName(this);
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withTwoBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null) {{
+      _fullName = getFullUserName(this);
+    }}
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<int,/*comment*/int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <int,/*comment*/int>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withDynamicGenerics() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<dynamic,dynamic>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <dynamic,dynamic>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<int,int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <int,int>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withoutGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = {};
+''');
+  }
+
+  test_replaceWithLiteral_list_withGeneric() async {
+    String src = '''
+final a = /*LINT*/new List<int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = <int>[];
+''');
+  }
+
+  test_replaceWithLiteral_list_withoutGeneric() async {
+    String src = '''
+final a = /*LINT*/new List();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = [];
+''');
+  }
+
+  test_replaceWithLiteral_map_withGeneric() async {
+    String src = '''
+final a = /*LINT*/new Map<int,int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = <int,int>{};
+''');
+  }
+
+  test_replaceWithLiteral_map_withoutGeneric() async {
+    String src = '''
+final a = /*LINT*/new Map();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = {};
+''');
+  }
+
+  test_replaceWithTearOff_function_oneParameter() async {
+    String src = '''
+final x = /*LINT*/(name) {
+  print(name);
+};
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+final x = print;
+''');
+  }
+
+  test_replaceWithTearOff_function_zeroParameters() async {
+    String src = '''
+void foo(){}
+Function finalVar() {
+  return /*LINT*/() {
+    foo();
+  };
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+void foo(){}
+Function finalVar() {
+  return foo;
+}
+''');
+  }
+
+  test_replaceWithTearOff_lambda_asArgument() async {
+    String src = '''
+void foo() {
+  bool isPair(int a) => a % 2 == 0;
+  final finalList = <int>[];
+  finalList.where(/*LINT*/(number) =>
+    isPair(number));
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+void foo() {
+  bool isPair(int a) => a % 2 == 0;
+  final finalList = <int>[];
+  finalList.where(isPair);
+}
+''');
+  }
+
+  test_replaceWithTearOff_method_oneParameter() async {
+    String src = '''
+var a = /*LINT*/(x) => finalList.remove(x);
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+var a = finalList.remove;
+''');
+  }
+
+  test_replaceWithTearOff_method_zeroParameter() async {
+    String src = '''
+final Object a;
+Function finalVar() {
+  return /*LINT*/() {
+    return a.toString();
+  };
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+final Object a;
+Function finalVar() {
+  return a.toString;
+}
 ''');
   }
 

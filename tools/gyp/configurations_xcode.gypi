@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # The purpose of this file and others in this directory is to simulate
-# the Chromium build enviroment. This file is included in all GYP
+# the Chromium build environment. This file is included in all GYP
 # files that are used by the Dart project.
 
 # READ BEFORE EDITING:

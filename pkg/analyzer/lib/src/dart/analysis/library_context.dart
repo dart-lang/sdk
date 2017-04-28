@@ -4,13 +4,13 @@
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -47,10 +47,15 @@ class LibraryContext {
       AnalysisOptions options,
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
-      FileTracker fileTracker) {
+      SummaryDataStore externalSummaries,
+      FileSystemState fsState) {
     return logger.run('Create library context', () {
       Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
+
+      if (externalSummaries != null) {
+        store.addStore(externalSummaries);
+      }
 
       if (sdkBundle != null) {
         store.addBundle(null, sdkBundle);
@@ -60,6 +65,10 @@ class LibraryContext {
         if (!libraries.containsKey(library.uriStr)) {
           // Serve 'dart:' URIs from the SDK bundle.
           if (sdkBundle != null && library.uri.scheme == 'dart') {
+            return;
+          }
+
+          if (library.isInExternalSummaries) {
             return;
           }
 
@@ -122,8 +131,9 @@ class LibraryContext {
         byteStore.put(key, bytes);
       });
 
-      var analysisContext = _createAnalysisContext(
-          options, declaredVariables, sourceFactory, fileTracker, store);
+      AnalysisContextImpl analysisContext = _createAnalysisContext(
+          options, declaredVariables, sourceFactory, store);
+      analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       return new LibraryContext._(store, analysisContext);
     });
@@ -161,19 +171,37 @@ class LibraryContext {
     return new ResolutionResult(resolvedUnit, errors);
   }
 
-  static AnalysisContext _createAnalysisContext(
-      AnalysisOptions _analysisOptions,
+  /**
+   * Resynthesize the [LibraryElement] from the given [store].
+   */
+  static LibraryElement resynthesizeLibraryElement(
+      AnalysisOptions analysisOptions,
       DeclaredVariables declaredVariables,
-      SourceFactory _sourceFactory,
-      FileTracker fileTracker,
+      SourceFactory sourceFactory,
+      SummaryDataStore store,
+      String uri) {
+    AnalysisContextImpl analysisContext = _createAnalysisContext(
+        analysisOptions, declaredVariables, sourceFactory, store);
+    try {
+      return new StoreBasedSummaryResynthesizer(
+              analysisContext, sourceFactory, analysisOptions.strongMode, store)
+          .getLibraryElement(uri);
+    } finally {
+      analysisContext.dispose();
+    }
+  }
+
+  static AnalysisContextImpl _createAnalysisContext(
+      AnalysisOptions analysisOptions,
+      DeclaredVariables declaredVariables,
+      SourceFactory sourceFactory,
       SummaryDataStore store) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
-    analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.analysisOptions = analysisOptions;
     analysisContext.declaredVariables.addAll(declaredVariables);
-    analysisContext.sourceFactory = _sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(fileTracker);
+    analysisContext.sourceFactory = sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, store);
     return analysisContext;
@@ -195,9 +223,9 @@ class ResolutionResult {
  * [ContentCache] wrapper around [FileContentOverlay].
  */
 class _ContentCacheWrapper implements ContentCache {
-  final FileTracker fileTracker;
+  final FileSystemState fsState;
 
-  _ContentCacheWrapper(this.fileTracker);
+  _ContentCacheWrapper(this.fsState);
 
   @override
   void accept(ContentCacheVisitor visitor) {
@@ -212,6 +240,10 @@ class _ContentCacheWrapper implements ContentCache {
   @override
   bool getExists(Source source) {
     if (source.isInSystemLibrary) {
+      return true;
+    }
+    String uriStr = source.uri.toString();
+    if (fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
       return true;
     }
     return _getFileForSource(source).exists;
@@ -232,6 +264,6 @@ class _ContentCacheWrapper implements ContentCache {
 
   FileState _getFileForSource(Source source) {
     String path = source.fullName;
-    return fileTracker.fsState.getFileForPath(path);
+    return fsState.getFileForPath(path);
   }
 }

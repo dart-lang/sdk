@@ -39,7 +39,6 @@ class ErrorsReportedOnceTest {
     exitHandler = savedExitHandler;
   }
 
-  @failingTest // #25697
   test_once() async {
     String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
     Driver driver = new Driver();

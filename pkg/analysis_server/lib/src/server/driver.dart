@@ -249,11 +249,6 @@ class Driver implements ServerStarter {
       'disable-new-analysis-driver';
 
   /**
-   * The name of the option used to enable fined grained invalidation.
-   */
-  static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
-
-  /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
@@ -396,8 +391,6 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
         !results[DISABLE_NEW_ANALYSIS_DRIVER];
-    analysisServerOptions.finerGrainedInvalidation =
-        results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
@@ -557,10 +550,6 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addFlag(DISABLE_NEW_ANALYSIS_DRIVER,
         help: "disable using new analysis driver",
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(FINER_GRAINED_INVALIDATION,
-        help: "enable finer grained invalidation",
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,

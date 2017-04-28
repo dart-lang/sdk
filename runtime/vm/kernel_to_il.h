@@ -371,7 +371,7 @@ class TranslationHelper {
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
-  // if asked.  The result will be avilable in [name_to_modify] and it is also
+  // if asked.  The result will be available in [name_to_modify] and it is also
   // returned.  If the name is private, the canonical name [parent] will be used
   // to get the import URI of the library where the name is visible.
   dart::String& ManglePrivateName(CanonicalName* parent,
@@ -975,6 +975,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment AssertBool();
   Fragment AssertAssignable(const dart::AbstractType& dst_type,
                             const dart::String& dst_name);
+
+  template <class Invocation>
+  bool RecognizeComparisonWithNull(Token::Kind token_kind, Invocation* node);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);

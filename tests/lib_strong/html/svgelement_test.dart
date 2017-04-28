@@ -75,7 +75,7 @@ main() {
     });
   });
 
-  // Unfortunately, because the filtering mechanism in unitttest is a regex done
+  // Unfortunately, because the filtering mechanism in unittest is a regex done
   group('supported_animate', () {
     test('supported', () {
       expect(svg.AnimateElement.supported, true);

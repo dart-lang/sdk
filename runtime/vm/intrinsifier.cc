@@ -309,7 +309,7 @@ class BlockBuilder : public ValueObject {
   Instruction* AddInstruction(Instruction* instr) {
     if (instr->ComputeCanDeoptimize()) {
       // Since we use the presence of an environment to determine if an
-      // instructions can deoptimize, we need an empty enviroment for
+      // instructions can deoptimize, we need an empty environment for
       // instructions that "deoptimize" to the intrinsic fall-through code.
       instr->SetEnvironment(fall_through_env_);
     }

@@ -9,7 +9,8 @@ import 'dart:typed_data';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -30,6 +31,7 @@ import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -73,7 +75,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 33;
+  static const int DATA_VERSION = 34;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -103,6 +105,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * It can be shared with other [AnalysisDriver]s.
    */
   final ByteStore _byteStore;
+
+  /**
+   * The optional store with externally provided unlinked and corresponding
+   * linked summaries. These summaries are always added to the store for any
+   * file analysis.
+   */
+  final SummaryDataStore _externalSummaries;
 
   /**
    * This [ContentCache] is consulted for a file content before reading
@@ -232,6 +241,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   AnalysisDriverTestView _testView;
 
+  FileSystemState _fsState;
+
   /**
    * The [FileTracker] used by this driver.
    */
@@ -276,13 +287,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {PackageBundle sdkBundle,
-      this.disableChangesAndCacheAllResults: false})
+      this.disableChangesAndCacheAllResults: false,
+      SummaryDataStore externalSummaries})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
-        _sdkBundle = sdkBundle {
+        _sdkBundle = sdkBundle,
+        _externalSummaries = externalSummaries {
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
-    _createFileTracker(logger);
+    _createFileTracker();
     _scheduler.add(this);
     _search = new Search(this);
   }
@@ -305,7 +318,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The current file system state.
    */
-  FileSystemState get fsState => _fileTracker.fsState;
+  FileSystemState get fsState => _fsState;
 
   /**
    * Return `true` if the driver has a file to analyze.
@@ -323,7 +336,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * always include all added files or all implicitly used file. If a file has
    * not been processed yet, it might be missing.
    */
-  Set<String> get knownFiles => _fileTracker.fsState.knownFilePaths;
+  Set<String> get knownFiles => _fsState.knownFilePaths;
 
   /**
    * Return the path of the folder at the root of the context.
@@ -456,7 +469,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The results of analysis are eventually produced by the [results] stream.
    */
   void addFile(String path) {
-    if (!_fileTracker.fsState.hasUri(path)) {
+    if (!_fsState.hasUri(path)) {
       return;
     }
     if (AnalysisEngine.isDartFileName(path)) {
@@ -504,7 +517,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _sourceFactory = sourceFactory;
     }
     Iterable<String> addedFiles = _fileTracker.addedFiles;
-    _createFileTracker(_logger);
+    _createFileTracker();
     _fileTracker.addFiles(addedFiles);
   }
 
@@ -573,7 +586,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * analyzed.
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
-    if (!_fileTracker.fsState.hasUri(path)) {
+    if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
     var completer = new Completer<AnalysisDriverUnitIndex>();
@@ -582,6 +595,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
+  }
+
+  /**
+   * Return a [Future] that completes with the [LibraryElement] for the given
+   * [uri], which is either resynthesized from the provided external summary
+   * store, or built for a file to which the given [uri] is resolved.
+   */
+  Future<LibraryElement> getLibraryByUri(String uri) async {
+    if (_externalSummaries != null && _externalSummaries.hasUnlinkedUnit(uri)) {
+      return LibraryContext.resynthesizeLibraryElement(analysisOptions,
+          declaredVariables, sourceFactory, _externalSummaries, uri);
+    }
+    Source source = sourceFactory.resolveUri(null, uri);
+    UnitElementResult unitResult = await getUnitElement(source.fullName);
+    return unitResult.element.library;
   }
 
   ApiSignature getResolvedUnitKeyByPath(String path) {
@@ -609,7 +637,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * time the analysis state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    if (!_fileTracker.fsState.hasUri(path)) {
+    if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
 
@@ -642,7 +670,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   Future<SourceKind> getSourceKind(String path) async {
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fileTracker.fsState.getFileForPath(path);
+      FileState file = _fsState.getFileForPath(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;
@@ -665,7 +693,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * file with the given [path], or with `null` if the file cannot be analyzed.
    */
   Future<UnitElementResult> getUnitElement(String path) {
-    if (!_fileTracker.fsState.hasUri(path)) {
+    if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
     var completer = new Completer<UnitElementResult>();
@@ -683,10 +711,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    *
    * The signature is based the APIs of the files of the library (including
    * the file itself) of the requested file and the transitive closure of files
-   * imported and exported by the the library.
+   * imported and exported by the library.
    */
   Future<String> getUnitElementSignature(String path) {
-    if (!_fileTracker.fsState.hasUri(path)) {
+    if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
     var completer = new Completer<String>();
@@ -948,7 +976,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       {bool withUnit: false,
       bool asIsIfPartWithoutLibrary: false,
       bool skipIfSameSignature: false}) {
-    FileState file = _fileTracker.fsState.getFileForPath(path);
+    FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
     FileState library = file.isPart ? file.library : file;
@@ -990,7 +1018,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               analysisOptions,
               declaredVariables,
               sourceFactory,
-              _fileTracker.fsState,
+              _fsState,
               libraryContext.store,
               library);
           Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
@@ -1044,7 +1072,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   UnitElementResult _computeUnitElement(String path) {
-    FileState file = _fileTracker.fsState.getFileForPath(path);
+    FileState file = _fsState.getFileForPath(path);
     FileState library = file.library ?? file;
 
     // Create the AnalysisContext to resynthesize elements in.
@@ -1062,36 +1090,41 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   String _computeUnitElementSignature(String path) {
-    FileState file = _fileTracker.fsState.getFileForPath(path);
+    FileState file = _fsState.getFileForPath(path);
     FileState library = file.library ?? file;
     return library.transitiveSignature;
   }
 
   /**
-   * Creates a new [FileTracker] object and stores it in [_fileTracker].
+   * Creates new [FileSystemState] and [FileTracker] objects.
    *
    * This is used both on initial construction and whenever the configuration
    * changes.
    */
-  void _createFileTracker(PerformanceLog logger) {
+  void _createFileTracker() {
     _fillSalt();
-    _fileTracker = new FileTracker(logger, _byteStore, _contentOverlay,
-        _resourceProvider, sourceFactory, _analysisOptions, _salt, _changeHook);
+    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
+        _resourceProvider, sourceFactory, analysisOptions, _salt,
+        externalSummaries: _externalSummaries);
+    _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
   }
 
   /**
    * Return the context in which the [library] should be analyzed.
    */
-  LibraryContext _createLibraryContext(FileState library) =>
-      new LibraryContext.forSingleLibrary(
-          library,
-          _logger,
-          _sdkBundle,
-          _byteStore,
-          _analysisOptions,
-          declaredVariables,
-          _sourceFactory,
-          _fileTracker);
+  LibraryContext _createLibraryContext(FileState library) {
+    _testView.numOfCreatedLibraryContexts++;
+    return new LibraryContext.forSingleLibrary(
+        library,
+        _logger,
+        _sdkBundle,
+        _byteStore,
+        _analysisOptions,
+        declaredVariables,
+        _sourceFactory,
+        _externalSummaries,
+        fsState);
+  }
 
   /**
    * Fill [_salt] with data.
@@ -1526,6 +1559,8 @@ class AnalysisDriverScheduler {
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
 
+  int numOfCreatedLibraryContexts = 0;
+
   int numOfAnalyzedLibraries = 0;
 
   AnalysisDriverTestView(this.driver);
@@ -1533,6 +1568,16 @@ class AnalysisDriverTestView {
   FileTracker get fileTracker => driver._fileTracker;
 
   Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
+
+  SummaryDataStore getSummaryStore(String libraryPath) {
+    FileState library = driver.fsState.getFileForPath(libraryPath);
+    LibraryContext libraryContext = driver._createLibraryContext(library);
+    try {
+      return libraryContext.store;
+    } finally {
+      libraryContext.dispose();
+    }
+  }
 }
 
 /**
@@ -1594,7 +1639,7 @@ class AnalysisResult {
 
   /**
    * The signature of the result based on the content of the file, and the
-   * transitive closure of files imported and exported by the the library of
+   * transitive closure of files imported and exported by the library of
    * the requested file.
    */
   final String _signature;
@@ -1859,7 +1904,7 @@ class UnitElementResult {
   /**
    * The signature of the [element] is based the APIs of the files of the
    * library (including the file itself) of the requested file and the
-   * transitive closure of files imported and exported by the the library.
+   * transitive closure of files imported and exported by the library.
    */
   final String signature;
 
@@ -1934,7 +1979,7 @@ class _FilesDefiningClassMemberNameTask {
 
       // Check the next file.
       String path = filesToCheck.removeLast();
-      FileState file = driver._fileTracker.fsState.getFileForPath(path);
+      FileState file = driver._fsState.getFileForPath(path);
       if (file.definedClassMemberNames.contains(name)) {
         definingFiles.add(path);
       }
@@ -1991,7 +2036,7 @@ class _FilesReferencingNameTask {
 
       // Check the next file.
       String path = filesToCheck.removeLast();
-      FileState file = driver._fileTracker.fsState.getFileForPath(path);
+      FileState file = driver._fsState.getFileForPath(path);
       if (file.referencedNames.contains(name)) {
         referencingFiles.add(path);
       }
@@ -2041,7 +2086,7 @@ class _TopLevelNameDeclarationsTask {
     // Check the next file.
     String path = filesToCheck.removeLast();
     if (checkedFiles.add(path)) {
-      FileState file = driver._fileTracker.fsState.getFileForPath(path);
+      FileState file = driver._fsState.getFileForPath(path);
       if (!file.isPart) {
         bool isExported = false;
         TopLevelDeclaration declaration = file.topLevelDeclarations[name];

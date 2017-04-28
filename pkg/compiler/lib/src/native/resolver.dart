@@ -7,7 +7,7 @@ import 'package:front_end/src/fasta/scanner.dart'
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../compiler.dart' show Compiler;
@@ -17,7 +17,6 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         FieldElement,
-        LibraryElement,
         MemberElement,
         MetadataAnnotation,
         MethodElement;
@@ -29,74 +28,6 @@ import '../js_backend/native_data.dart';
 import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';
-
-/// Class that performs the mechanics to investigate annotations in the code.
-abstract class AnnotationProcessor {
-  factory AnnotationProcessor(Compiler compiler) =>
-      compiler.options.loadFromDill
-          ? new _KernelAnnotationProcessor()
-          : new _ElementAnnotationProcessor(compiler);
-
-  void extractNativeAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
-
-  void extractJsInteropAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
-}
-
-class _KernelAnnotationProcessor implements AnnotationProcessor {
-  void extractNativeAnnotations(
-      LibraryEntity entity, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    throw new UnimplementedError(
-        '_KernelAnnotationProcessor.extractNativeAnnotations');
-  }
-
-  void extractJsInteropAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    throw new UnimplementedError(
-        '_KernelAnnotationProcessor.extractJsInteropAnnotations');
-  }
-}
-
-/// Original logic for annotation processing, which involves in some cases
-/// triggering pre-parsing and validation of the annotations.
-class _ElementAnnotationProcessor implements AnnotationProcessor {
-  Compiler _compiler;
-
-  _ElementAnnotationProcessor(this._compiler);
-
-  /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-  /// native name from the annotation.
-  void extractNativeAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    library.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        EagerAnnotationHandler.checkAnnotation(_compiler, element,
-            new NativeAnnotationHandler(nativeBasicDataBuilder));
-      }
-    });
-  }
-
-  void extractJsInteropAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
-    bool checkJsInteropAnnotation(Element element) {
-      return EagerAnnotationHandler.checkAnnotation(
-          _compiler, element, const JsInteropAnnotationHandler());
-    }
-
-    if (checkJsInteropAnnotation(library)) {
-      nativeBasicDataBuilder.markAsJsInteropLibrary(library);
-    }
-    library.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (checkJsInteropAnnotation(element)) {
-          nativeBasicDataBuilder.markAsJsInteropClass(cls);
-        }
-      }
-    });
-  }
-}
 
 /// Interface for computing native members and [NativeBehavior]s in member code
 /// based on the AST.
@@ -294,33 +225,21 @@ class NativeDataResolverImpl implements NativeDataResolver {
   /// Returns the JSName annotation string or `null` if no JSName annotation is
   /// present.
   String _findJsNameFromAnnotation(Element element) {
-    String name = null;
-    ClassElement annotationClass =
-        _compiler.commonElements.annotationJSNameClass;
+    String jsName = null;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(_compiler.resolution);
       ConstantValue value =
           _compiler.constants.getConstantValue(annotation.constant);
-      if (!value.isConstructedObject) continue;
-      ConstructedConstantValue constructedObject = value;
-      if (constructedObject.type.element != annotationClass) continue;
-
-      Iterable<ConstantValue> fields = constructedObject.fields.values;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || fields.single is! StringConstantValue) {
-        _reporter.internalError(
-            annotation, 'Annotations needs one string: ${annotation}');
-      }
-      StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.toDartString().slowToString();
-      if (name == null) {
-        name = specString;
-      } else {
-        _reporter.internalError(
+      String name = readAnnotationName(
+          annotation, value, _compiler.commonElements.annotationJSNameClass);
+      if (jsName == null) {
+        jsName = name;
+      } else if (name != null) {
+        throw new SpannableAssertionFailure(
             annotation, 'Too many JSName annotations: ${annotation}');
       }
     }
-    return name;
+    return jsName;
   }
 
   @override
@@ -341,14 +260,6 @@ class NativeDataResolverImpl implements NativeDataResolver {
     return NativeBehavior.ofJsBuiltinCallSend(
         node, _reporter, _compiler.commonElements, resolver);
   }
-}
-
-/// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-/// native name from the annotation.
-checkNativeAnnotation(Compiler compiler, ClassElement cls,
-    NativeBasicDataBuilder nativeBasicDataBuilder) {
-  EagerAnnotationHandler.checkAnnotation(
-      compiler, cls, new NativeAnnotationHandler(nativeBasicDataBuilder));
 }
 
 /// Annotation handler for pre-resolution detection of `@Native(...)`
@@ -376,7 +287,8 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
       ClassElement cls = element;
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, native);
+        String tagText = native.substring(1, native.length - 1);
+        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, tagText);
         return native;
       }
     }
@@ -432,25 +344,25 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   bool get defaultResult => false;
 }
 
-/// Interface for computing all native classes in a set of libraries.
-abstract class NativeClassResolver {
+/// Determines all native classes in a set of libraries.
+abstract class NativeClassFinder {
+  /// Returns the set of all native classes declared in [libraries].
   Iterable<ClassEntity> computeNativeClasses(Iterable<LibraryEntity> libraries);
 }
 
-class NativeClassResolverImpl implements NativeClassResolver {
-  final DiagnosticReporter _reporter;
-  final Resolution _resolution;
+class BaseNativeClassFinder implements NativeClassFinder {
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final NativeBasicData _nativeBasicData;
 
-  Map<String, ClassElement> _tagOwner = new Map<String, ClassElement>();
+  Map<String, ClassEntity> _tagOwner = new Map<String, ClassEntity>();
 
-  NativeClassResolverImpl(this._resolution, this._reporter,
-      this._commonElements, this._nativeBasicData);
+  BaseNativeClassFinder(
+      this._elementEnvironment, this._commonElements, this._nativeBasicData);
 
-  Iterable<ClassElement> computeNativeClasses(
-      Iterable<LibraryElement> libraries) {
-    Set<ClassElement> nativeClasses = new Set<ClassElement>();
+  Iterable<ClassEntity> computeNativeClasses(
+      Iterable<LibraryEntity> libraries) {
+    Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
     libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
     if (_commonElements.isolateHelperLibrary != null) {
       _processNativeClassesInLibrary(
@@ -460,61 +372,64 @@ class NativeClassResolverImpl implements NativeClassResolver {
     return nativeClasses;
   }
 
+  /// Adds all directly native classes declared in [library] to [nativeClasses].
   void _processNativeClassesInLibrary(
-      LibraryElement library, Set<ClassElement> nativeClasses) {
-    // Use implementation to ensure the inclusion of injected members.
-    library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (_nativeBasicData.isNativeClass(cls)) {
-          _processNativeClass(element, nativeClasses);
-        }
+      LibraryEntity library, Set<ClassEntity> nativeClasses) {
+    _elementEnvironment.forEachClass(library, (ClassEntity cls) {
+      if (_nativeBasicData.isNativeClass(cls)) {
+        _processNativeClass(cls, nativeClasses);
       }
     });
   }
 
-  void _processNativeClass(
-      ClassElement classElement, Set<ClassElement> nativeClasses) {
-    nativeClasses.add(classElement);
-    // Resolve class to ensure the class has valid inheritance info.
-    classElement.ensureResolved(_resolution);
+  /// Adds [cls] to [nativeClasses] and performs further processing of [cls],
+  /// if necessary.
+  void _processNativeClass(ClassEntity cls, Set<ClassEntity> nativeClasses) {
+    nativeClasses.add(cls);
     // Js Interop interfaces do not have tags.
-    if (_nativeBasicData.isJsInteropClass(classElement)) return;
+    if (_nativeBasicData.isJsInteropClass(cls)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in _nativeBasicData.getNativeTagsOfClass(classElement)) {
-      ClassElement owner = _tagOwner[tag];
+    for (String tag in _nativeBasicData.getNativeTagsOfClass(cls)) {
+      ClassEntity owner = _tagOwner[tag];
       if (owner != null) {
-        if (owner != classElement) {
-          _reporter.internalError(
-              classElement, "Tag '$tag' already in use by '${owner.name}'");
+        if (owner != cls) {
+          throw new SpannableAssertionFailure(
+              cls, "Tag '$tag' already in use by '${owner.name}'");
         }
       } else {
-        _tagOwner[tag] = classElement;
+        _tagOwner[tag] = cls;
       }
     }
   }
 
+  /// Returns the name of the super class of [cls] or `null` of [cls] has
+  /// no explicit superclass.
+  String _findExtendsNameOfClass(ClassEntity cls) {
+    return _elementEnvironment.getSuperClass(cls)?.name;
+  }
+
+  /// Adds all subclasses of [nativeClasses] found in [libraries] to
+  /// [nativeClasses].
   void _processSubclassesOfNativeClasses(
-      Iterable<LibraryElement> libraries, Set<ClassElement> nativeClasses) {
-    Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
+      Iterable<LibraryEntity> libraries, Set<ClassEntity> nativeClasses) {
+    Set<ClassEntity> nativeClassesAndSubclasses = new Set<ClassEntity>();
     // Collect potential subclasses, e.g.
     //
     //     class B extends foo.A {}
     //
     // String "A" has a potential subclass B.
 
-    var potentialExtends = new Map<String, Set<ClassElement>>();
+    Map<String, Set<ClassEntity>> potentialExtends =
+        <String, Set<ClassEntity>>{};
 
-    libraries.forEach((library) {
-      library.implementation.forEachLocalMember((element) {
-        if (element.isClass) {
-          String extendsName = _findExtendsNameOfClass(element);
-          if (extendsName != null) {
-            Set<ClassElement> potentialSubclasses = potentialExtends
-                .putIfAbsent(extendsName, () => new Set<ClassElement>());
-            potentialSubclasses.add(element);
-          }
+    libraries.forEach((LibraryEntity library) {
+      _elementEnvironment.forEachClass(library, (ClassEntity cls) {
+        String extendsName = _findExtendsNameOfClass(cls);
+        if (extendsName != null) {
+          Set<ClassEntity> potentialSubclasses = potentialExtends.putIfAbsent(
+              extendsName, () => new Set<ClassEntity>());
+          potentialSubclasses.add(cls);
         }
       });
     });
@@ -523,19 +438,19 @@ class NativeClassResolverImpl implements NativeClassResolver {
     // [potentialExtends], and then check that the properly resolved class is in
     // fact a subclass of a native class.
 
-    ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (_nativeBasicData.isNativeClass(classElement)) return classElement;
-      if (classElement.superclass == null) return null;
-      return nativeSuperclassOf(classElement.superclass);
+    ClassEntity nativeSuperclassOf(ClassEntity cls) {
+      if (_nativeBasicData.isNativeClass(cls)) return cls;
+      ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
+      if (superclass == null) return null;
+      return nativeSuperclassOf(superclass);
     }
 
-    void walkPotentialSubclasses(ClassElement element) {
+    void walkPotentialSubclasses(ClassEntity element) {
       if (nativeClassesAndSubclasses.contains(element)) return;
-      element.ensureResolved(_resolution);
-      ClassElement nativeSuperclass = nativeSuperclassOf(element);
+      ClassEntity nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
-        Set<ClassElement> potentialSubclasses = potentialExtends[element.name];
+        Set<ClassEntity> potentialSubclasses = potentialExtends[element.name];
         if (potentialSubclasses != null) {
           potentialSubclasses.forEach(walkPotentialSubclasses);
         }
@@ -544,6 +459,28 @@ class NativeClassResolverImpl implements NativeClassResolver {
 
     nativeClasses.forEach(walkPotentialSubclasses);
     nativeClasses.addAll(nativeClassesAndSubclasses);
+  }
+}
+
+/// Native class finder that extends [BaseNativeClassFinder] to handle
+/// unresolved classes encountered during the native classes computation.
+class ResolutionNativeClassFinder extends BaseNativeClassFinder {
+  final DiagnosticReporter _reporter;
+  final Resolution _resolution;
+
+  ResolutionNativeClassFinder(
+      this._resolution,
+      this._reporter,
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      NativeBasicData nativeBasicData)
+      : super(elementEnvironment, commonElements, nativeBasicData);
+
+  void _processNativeClass(
+      ClassElement classElement, Set<ClassEntity> nativeClasses) {
+    // Resolve class to ensure the class has valid inheritance info.
+    classElement.ensureResolved(_resolution);
+    super._processNativeClass(classElement, nativeClasses);
   }
 
   /**
@@ -591,7 +528,7 @@ class NativeClassResolverImpl implements NativeClassResolver {
       if (token.stringValue == 'abstract') token = token.next;
       if (token.stringValue != 'class') return null;
       token = token.next;
-      if (!token.isIdentifier()) return null;
+      if (!token.isIdentifier) return null;
       token = token.next;
       //  class F<X extends B<X>> extends ...
       if (token.stringValue == '<') {
@@ -604,7 +541,7 @@ class NativeClassResolverImpl implements NativeClassResolver {
         token = token.next;
         if (token.stringValue != '.') break;
         token = token.next;
-        if (!token.isIdentifier()) return null;
+        if (!token.isIdentifier) return null;
         id = token;
       }
       // Should be at '{', 'with', 'implements', '<' or 'native'.
@@ -615,4 +552,22 @@ class NativeClassResolverImpl implements NativeClassResolver {
       return scanForExtendsName(classElement.position);
     });
   }
+}
+
+/// Extracts the name if [value] is a named annotation based on
+/// [annotationClass], otherwise returns `null`.
+String readAnnotationName(
+    Spannable spannable, ConstantValue value, ClassEntity annotationClass) {
+  if (!value.isConstructedObject) return null;
+  ConstructedConstantValue constructedObject = value;
+  if (constructedObject.type.element != annotationClass) return null;
+
+  Iterable<ConstantValue> fields = constructedObject.fields.values;
+  // TODO(sra): Better validation of the constant.
+  if (fields.length != 1 || fields.single is! StringConstantValue) {
+    throw new SpannableAssertionFailure(
+        spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+  }
+  StringConstantValue specStringConstant = fields.single;
+  return specStringConstant.toDartString().slowToString();
 }

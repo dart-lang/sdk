@@ -248,7 +248,7 @@ String _escapeString(String str) {
 
 /// A collection of methods where all methods have the same name.
 /// This class is intended to optimize whether a specific invocation is
-/// appropritate for at least some of the methods in the collection.
+/// appropriate for at least some of the methods in the collection.
 class _DeclarationSet {
   _DeclarationSet() : _members = <mirrors.DeclarationMirror>[];
 
@@ -306,7 +306,7 @@ class _DeclarationSet {
       }
       startNamed++;
 
-      // TODO(jacobr): we are unneccessarily using an O(n^2) algorithm here.
+      // TODO(jacobr): we are unnecessarily using an O(n^2) algorithm here.
       // If we have JS APIs with a lange number of named parameters we should
       // optimize this. Either use a HashSet or invert this, walking over
       // parameters, querying invocation, and making sure we match

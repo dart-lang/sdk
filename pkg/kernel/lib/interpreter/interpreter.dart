@@ -131,17 +131,9 @@ class Evaluator
       return new ExpressionConfiguration(
           node.arguments.positional.first, config.environment, cont);
     } else {
-      // Currently supports only static invocations with no arguments.
-      if (node.arguments.positional.isEmpty && node.arguments.named.isEmpty) {
-        State statementState = new State.initial()
-            .withExpressionContinuation(config.continuation)
-            .withConfiguration(new ExitConfiguration(config.continuation));
-
-        return new StatementConfiguration(
-            node.target.function.body, statementState);
-      }
-      throw new NotImplemented(
-          'Support for static invocation with arguments is not implemented');
+      var cont = new ActualArgumentsContinuation(node.arguments,
+          node.target.function, config.environment, config.continuation);
+      return cont.createCurrentConfiguration();
     }
   }
 
@@ -418,13 +410,141 @@ class SetterContinuation extends ExpressionContinuation {
   }
 }
 
-class StaticInvocationContinuation extends ExpressionContinuation {
+/// Represents a continuation to be called after the evaluation of an actual
+/// argument for function invocation.
+/// TODO: Add checks for validation of arguments according to spec.
+class ActualArgumentsContinuation extends ExpressionContinuation {
+  final Arguments arguments;
+  final FunctionNode functionNode;
+  final Environment environment;
   final ExpressionContinuation continuation;
 
-  StaticInvocationContinuation(this.continuation);
+  final List<Value> _positional = <Value>[];
+  int _currentPositional = 0;
+  final Map<String, Value> _named = <String, Value>{};
+  int _currentNamed = 0;
+
+  ActualArgumentsContinuation(
+      this.arguments, this.functionNode, this.environment, this.continuation);
 
   Configuration call(Value v) {
-    return new ContinuationConfiguration(continuation, v);
+    if (_currentPositional < arguments.positional.length) {
+      _positional.add(v);
+      _currentPositional++;
+    } else {
+      assert(_currentNamed < arguments.named.length);
+      String name = arguments.named[_currentNamed].name;
+      _named[name] = v;
+      _currentNamed++;
+    }
+
+    return createCurrentConfiguration();
+  }
+
+  Configuration createCurrentConfiguration() {
+    // Next argument to evaluate is a provided positional argument.
+    if (_currentPositional < arguments.positional.length) {
+      return new ExpressionConfiguration(
+          arguments.positional[_currentPositional], environment, this);
+    }
+    // Next argument to evaluate is a provided named argument.
+    if (_currentNamed < arguments.named.length) {
+      return new ExpressionConfiguration(
+          arguments.named[_currentNamed].value, environment, this);
+    }
+
+    // TODO: check if the number of actual arguments is larger then the number
+    // of required arguments and smaller then the number of formal arguments.
+
+    return new OptionalArgumentsContinuation(
+            _positional, _named, functionNode, environment, continuation)
+        .createCurrentConfiguration();
+  }
+}
+
+class OptionalArgumentsContinuation extends ExpressionContinuation {
+  final List<Value> positional;
+  final Map<String, Value> named;
+  final FunctionNode functionNode;
+  final Environment environment;
+  final ExpressionContinuation continuation;
+
+  final Map<String, VariableDeclaration> _missingFormalNamed =
+      <String, VariableDeclaration>{};
+
+  int _currentPositional;
+  String _currentNamed;
+
+  OptionalArgumentsContinuation(this.positional, this.named, this.functionNode,
+      this.environment, this.continuation) {
+    _currentPositional = positional.length;
+    assert(_currentPositional >= functionNode.requiredParameterCount);
+
+    for (VariableDeclaration vd in functionNode.namedParameters) {
+      if (named[vd.name] == null) {
+        _missingFormalNamed[vd.name] = vd;
+      }
+    }
+  }
+
+  Configuration call(Value v) {
+    if (_currentPositional < functionNode.positionalParameters.length) {
+      // Value is a optional positional argument
+      positional.add(v);
+      _currentPositional++;
+    } else {
+      // Value is a optional named argument.
+      assert(named[_currentNamed] == null);
+      named[_currentNamed] = v;
+    }
+
+    return createCurrentConfiguration();
+  }
+
+  /// Creates the current configuration for the evaluation of invocation a
+  /// function.
+  Configuration createCurrentConfiguration() {
+    if (_currentPositional < functionNode.positionalParameters.length) {
+      // Next argument to evaluate is a missing positional argument.
+      // Evaluate its initializer.
+      return new ExpressionConfiguration(
+          functionNode.positionalParameters[_currentPositional].initializer,
+          environment,
+          this);
+    }
+    if (named.length < functionNode.namedParameters.length) {
+      // Next argument to evaluate is a missing named argument.
+      // Evaluate its initializer.
+      _currentNamed = _missingFormalNamed.keys.first;
+      Expression initializer = _missingFormalNamed[_currentNamed].initializer;
+      _missingFormalNamed.remove(_currentNamed);
+      return new ExpressionConfiguration(initializer, environment, this);
+    }
+
+    Environment newEnv = _createEnvironment();
+    State bodyState = new State.initial()
+        .withExpressionContinuation(continuation)
+        .withConfiguration(new ExitConfiguration(continuation))
+        .withEnvironment(newEnv);
+
+    return new StatementConfiguration(functionNode.body, bodyState);
+  }
+
+  /// Creates an environment binding actual argument values to formal parameters
+  /// of the function in a new environment, which is used to execute the
+  /// body od the function.
+  Environment _createEnvironment() {
+    Environment newEnv = new Environment.empty();
+    // Add positional parameters.
+    for (int i = 0; i < positional.length; ++i) {
+      newEnv.expand(functionNode.positionalParameters[i], positional[i]);
+    }
+    // Add named parameters.
+    for (VariableDeclaration v in functionNode.namedParameters) {
+      newEnv.expand(v, named[v.name.toString()]);
+    }
+
+    return newEnv;
   }
 }
 

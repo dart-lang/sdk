@@ -33,7 +33,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart'
     show isDynamicInvoke, setIsDynamicInvoke, getImplicitAssignmentCast;
-import 'package:path/path.dart' show relative, separator;
+import 'package:path/path.dart' show isWithin, relative, separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../js_ast/js_ast.dart' as JS;
@@ -437,9 +437,7 @@ class CodeGenerator extends Object
       return _jsInteropStaticMemberName(e.getter, name: e.name) ??
           _jsInteropStaticMemberName(e.setter, name: e.name);
     }
-    if (e is ExecutableElement &&
-        e.isExternal &&
-        findAnnotation(e, isPublicJSAnnotation) != null) {
+    if (e is ExecutableElement && e.isExternal) {
       return getAnnotationName(e, isPublicJSAnnotation) ?? name ?? e.name;
     }
     return null;
@@ -752,30 +750,40 @@ class CodeGenerator extends Object
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAliasElement element = node.element;
+  visitFunctionTypeAlias(FunctionTypeAlias node) => _emitTypedef(node);
+
+  @override
+  visitGenericTypeAlias(GenericTypeAlias node) => _emitTypedef(node);
+
+  JS.Statement _emitTypedef(TypeAlias node) {
+    var element = node.element as FunctionTypeAliasElement;
+    FunctionType type;
+    var typeFormals = element.typeParameters;
+    if (element is GenericTypeAliasElement) {
+      type = element.function.type;
+    } else {
+      type = element.type;
+      if (typeFormals.isNotEmpty) {
+        // Skip past the type formals, we'll add them back below, so these
+        // type parameter names will end up in scope in the generated JS.
+        type = type.instantiate(typeFormals.map((f) => f.type).toList());
+      }
+    }
 
     JS.Expression body = annotate(
         _callHelper('typedef(#, () => #)', [
           js.string(element.name, "'"),
-          _emitType(element.type, nameType: false, lowerTypedef: true)
+          _emitType(type, nameType: false, lowerTypedef: true)
         ]),
         node,
         element);
 
-    var typeFormals = element.typeParameters;
     if (typeFormals.isNotEmpty) {
       return _defineClassTypeArguments(element, typeFormals,
           js.statement('const # = #;', [element.name, body]));
     } else {
       return js.statement('# = #;', [_emitTopLevelName(element), body]);
     }
-  }
-
-  @override
-  visitGenericTypeAlias(GenericTypeAlias node) {
-    throw new UnimplementedError('Generic type aliases are not implemented. '
-        'See https://github.com/dart-lang/sdk/issues/27971');
   }
 
   @override
@@ -3039,7 +3047,7 @@ class CodeGenerator extends Object
     }
 
     var typeFormals = type.typeFormals;
-    if (typeFormals.isNotEmpty && !lowerTypedef) {
+    if (typeFormals.isNotEmpty) {
       // TODO(jmesserly): this is a suboptimal representation for universal
       // function types (as callable functions). See discussion at
       // https://github.com/dart-lang/sdk/issues/27333
@@ -6024,7 +6032,7 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
-  } else if (uri.toFilePath().startsWith(libraryRoot)) {
+  } else if (isWithin(libraryRoot, uri.toFilePath())) {
     qualifiedPath = uri.path
         .substring(libraryRoot.length)
         .replaceAll(separator, encodedSeparator);
@@ -6043,7 +6051,7 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
   if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
 
   var filePath = uri.toFilePath();
-  if (!filePath.startsWith(libraryRoot)) {
+  if (!isWithin(libraryRoot, filePath)) {
     throw 'Invalid library root. $libraryRoot does not contain ${uri
         .toFilePath()}';
   }

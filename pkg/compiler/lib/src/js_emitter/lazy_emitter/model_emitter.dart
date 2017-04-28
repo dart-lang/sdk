@@ -149,7 +149,7 @@ class ModelEmitter {
 
     program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
 
-    // TODO(johnnniwinther): Support source maps in this emitter.
+    // TODO(johnniwinther): Support source maps in this emitter.
     for (int i = 0; i < fragmentsCode.length; ++i) {
       String code = js
           .createCodeBuffer(fragmentsCode[i], compiler.options,

@@ -2994,7 +2994,7 @@ class _Uri implements Uri {
   ];
 
   // Characters allowed in the userinfo as of RFC 3986.
-  // RFC 3986 Apendix A
+  // RFC 3986 Appendix A
   // userinfo = *( unreserved / pct-encoded / sub-delims / ':')
   static const _userinfoTable = const [
     //                     LSB            MSB
@@ -3016,7 +3016,7 @@ class _Uri implements Uri {
   ];
 
   // Characters allowed in the reg-name as of RFC 3986.
-  // RFC 3986 Apendix A
+  // RFC 3986 Appendix A
   // reg-name = *( unreserved / pct-encoded / sub-delims )
   static const _regNameTable = const [
     //                     LSB            MSB

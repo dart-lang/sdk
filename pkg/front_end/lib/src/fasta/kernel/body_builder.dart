@@ -14,10 +14,18 @@ import '../parser/identifier_context.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelField, KernelVariableDeclaration;
+    show KernelField;
+
+import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
+
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
+    show FieldNode;
 
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show FieldNode, TypeInferrer;
+    show TypeInferrer;
+
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
+    show TypePromoter;
 
 import 'package:kernel/ast.dart';
 
@@ -87,10 +95,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final Uri uri;
 
-  final TypeInferrer<Statement, Expression, KernelVariableDeclaration,
-      KernelField> _typeInferrer;
+  final TypeInferrer<Statement, Expression, VariableDeclaration, KernelField>
+      _typeInferrer;
 
+  @override
   final AstFactory astFactory;
+
+  @override
+  final TypePromoter<Expression, VariableDeclaration> typePromoter;
 
   /// If not `null`, dependencies on fields are accumulated into this list.
   ///
@@ -153,6 +165,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         isDartLibrary = library.uri.scheme == "dart",
         needsImplicitSuperInitializer =
             coreTypes.objectClass != classBuilder?.cls,
+        typePromoter = _typeInferrer.typePromoter,
         super(scope);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
@@ -233,7 +246,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return list;
   }
 
-  Block popBlock(int count, int charOffset) {
+  Block popBlock(int count, Token beginToken) {
     List<dynamic /*Statement | List<Statement>*/ > statements =
         popList(count) ?? <Statement>[];
     List<Statement> copy;
@@ -248,7 +261,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         copy.add(statement);
       }
     }
-    return astFactory.block(copy ?? statements, charOffset);
+    return astFactory.block(copy ?? statements, beginToken);
   }
 
   Statement popStatementIfNotNull(Object value) {
@@ -315,8 +328,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     doFields(count);
-    // There's no metadata here because of a slight assymetry between
-    // [parseTopLevelMember] and [parseMember]. This assymetry leads to
+    // There's no metadata here because of a slight asymmetry between
+    // [parseTopLevelMember] and [parseMember]. This asymmetry leads to
     // DietListener discarding top-level member metadata.
   }
 
@@ -366,7 +379,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       assert(count == 0);
       push(NullValue.Block);
     } else {
-      Block block = popBlock(count, beginToken.charOffset);
+      Block block = popBlock(count, beginToken);
       exitLocalScope();
       push(block);
     }
@@ -452,7 +465,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    _typeInferrer.inferBody(body, uri);
+    typePromoter.finished();
+    _typeInferrer.inferStatement(body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
     if (formals?.optional != null) {
@@ -526,7 +540,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
-    push(new ExpressionStatement(popForEffect()));
+    push(astFactory.expressionStatement(popForEffect()));
   }
 
   @override
@@ -563,8 +577,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpression(
-        this, popForValue(), token.endGroup.charOffset));
+    push(new ParenthesizedExpression(this, popForValue(), token.endGroup));
   }
 
   @override
@@ -581,9 +594,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (receiver is Identifier) {
       Name name = new Name(receiver.name, library.library);
       if (arguments == null) {
-        push(new IncompletePropertyAccessor(this, beginToken.charOffset, name));
+        push(new IncompletePropertyAccessor(this, beginToken, name));
       } else {
-        push(new SendAccessor(this, beginToken.charOffset, name, arguments));
+        push(new SendAccessor(this, beginToken, name, arguments));
       }
     } else if (arguments == null) {
       push(receiver);
@@ -619,14 +632,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression expression = popForValue();
     if (expression is CascadeReceiver) {
       push(expression);
-      push(new VariableAccessor(
-          this, expression.fileOffset, expression.variable));
+      push(new VariableAccessor(this, token, expression.variable));
       expression.extend();
     } else {
       VariableDeclaration variable =
           new VariableDeclaration.forValue(expression);
       push(new CascadeReceiver(variable));
-      push(new VariableAccessor(this, expression.fileOffset, variable));
+      push(new VariableAccessor(this, token, variable));
     }
   }
 
@@ -812,7 +824,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           this.scope.parent == enclosingScope);
       // This deals with this kind of initializer: `C(a) : a = a;`
       Scope scope = inInitializer ? enclosingScope : this.scope;
-      push(scopeLookup(scope, name, token.charOffset));
+      push(scopeLookup(scope, name, token));
       return;
     } else if (context.inDeclaration) {
       if (context == IdentifierContext.topLevelVariableDeclaration ||
@@ -824,17 +836,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       addCompileTimeError(
           token.charOffset, "Not a constant expression: $context");
     }
-    push(new Identifier(name, token.charOffset));
+    push(new Identifier(token));
   }
 
-  /// Look up [name] in [scope] using [charOffset] to report any
-  /// problems. [isQualified] should be true if [name] is a qualified access
+  /// Look up [name] in [scope] using [token] as location information (both to
+  /// report problems and as the file offset in the generated kernel code).
+  /// [isQualified] should be true if [name] is a qualified access
   /// (which implies that it shouldn't be turned into a [ThisPropertyAccessor]
   /// if the name doesn't resolve in the scope).
   @override
-  scopeLookup(Scope scope, String name, int charOffset,
+  scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix}) {
-    Builder builder = scope.lookup(name, charOffset, uri);
+    Builder builder = scope.lookup(name, offsetForToken(token), uri);
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       Name n = new Name(name, library.library);
       if (prefix != null &&
@@ -842,36 +855,38 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           builder == null &&
           "loadLibrary" == name) {
         return buildCompileTimeError(
-            "Deferred loading isn't implemented yet.", charOffset);
+            "Deferred loading isn't implemented yet.", offsetForToken(token));
       } else if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired) {
-          return new UnresolvedAccessor(this, n, charOffset);
+          return new UnresolvedAccessor(this, n, token);
         }
-        return new ThisPropertyAccessor(this, charOffset, n, null, null);
+        return new ThisPropertyAccessor(this, token, n, null, null);
       } else if (isDartLibrary &&
           name == "main" &&
           library.uri.path == "_builtin" &&
           member?.name == "_getMainClosure") {
         // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
-        return new NullLiteral()..fileOffset = charOffset;
+        return new NullLiteral()..fileOffset = offsetForToken(token);
       } else {
-        return new UnresolvedAccessor(this, n, charOffset);
+        return new UnresolvedAccessor(this, n, token);
       }
     } else if (builder.isTypeDeclaration) {
       if (constantExpressionRequired &&
           builder.isTypeVariable &&
           !member.isConstructor) {
-        addCompileTimeError(charOffset, "Not a constant expression.");
+        addCompileTimeError(
+            offsetForToken(token), "Not a constant expression.");
       }
       return builder;
     } else if (builder.isLocal) {
       if (constantExpressionRequired &&
           !builder.isConst &&
           !member.isConstructor) {
-        addCompileTimeError(charOffset, "Not a constant expression.");
+        addCompileTimeError(
+            offsetForToken(token), "Not a constant expression.");
       }
-      return new VariableAccessor(this, charOffset, builder.target);
+      return new VariableAccessor(this, token, builder.target);
     } else if (builder.isInstanceMember) {
       if (constantExpressionRequired &&
           !inInitializer &&
@@ -880,17 +895,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           // semantics, such parameters introduces a new parameter with that
           // name that should be resolved here.
           !member.isConstructor) {
-        addCompileTimeError(charOffset, "Not a constant expression.");
+        addCompileTimeError(
+            offsetForToken(token), "Not a constant expression.");
       }
       return new ThisPropertyAccessor(
-          this, charOffset, new Name(name, library.library), null, null);
+          this, token, new Name(name, library.library), null, null);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      return new StaticAccessor(this, charOffset, builder.target, null);
+      return new StaticAccessor(this, token, builder.target, null);
     } else if (builder is PrefixBuilder) {
       if (constantExpressionRequired && builder.deferred) {
         addCompileTimeError(
-            charOffset,
+            offsetForToken(token),
             "'$name' can't be used in a constant expression because it's "
             "marked as 'deferred' which means it isn't available until "
             "loaded.\n"
@@ -904,18 +920,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (builder.isSetter) {
         setter = builder;
       } else if (builder.isGetter) {
-        setter = scope.lookupSetter(name, charOffset, uri);
+        setter = scope.lookupSetter(name, offsetForToken(token), uri);
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
       StaticAccessor accessor =
-          new StaticAccessor.fromBuilder(this, builder, charOffset, setter);
+          new StaticAccessor.fromBuilder(this, builder, token, setter);
       if (constantExpressionRequired) {
         Member readTarget = accessor.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
-          addCompileTimeError(charOffset, "Not a constant expression.");
+          addCompileTimeError(
+              offsetForToken(token), "Not a constant expression.");
         }
       }
       return accessor;
@@ -1010,7 +1027,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(astFactory.intLiteral(int.parse(token.lexeme), token.charOffset));
+    push(astFactory.intLiteral(int.parse(token.lexeme), token));
   }
 
   @override
@@ -1039,19 +1056,33 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginThenStatement(Token token) {
+    Expression condition = popForValue();
+    typePromoter.enterThen(condition);
+    push(condition);
+    super.beginThenStatement(token);
+  }
+
+  @override
+  void endThenStatement(Token token) {
+    typePromoter.enterElse();
+    super.endThenStatement(token);
+  }
+
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popStatementIfNotNull(elseToken);
     Statement thenPart = popStatement();
     Expression condition = popForValue();
-    push(new IfStatement(condition, thenPart, elsePart));
+    typePromoter.exitConditional();
+    push(astFactory.ifStatement(condition, thenPart, elsePart));
   }
 
   @override
   void endVariableInitializer(Token assignmentOperator) {
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
-    pushNewLocalVariable(popForValue(),
-        equalsCharOffset: assignmentOperator.charOffset);
+    pushNewLocalVariable(popForValue(), equalsToken: assignmentOperator);
   }
 
   @override
@@ -1060,19 +1091,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     pushNewLocalVariable(null);
   }
 
-  void pushNewLocalVariable(Expression initializer,
-      {int equalsCharOffset: TreeNode.noOffset}) {
+  void pushNewLocalVariable(Expression initializer, {Token equalsToken}) {
     Identifier identifier = pop();
     assert(currentLocalVariableModifiers != -1);
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == constantExpressionRequired);
-    push(astFactory.variableDeclaration(identifier.name, identifier.fileOffset,
+    push(astFactory.variableDeclaration(
+        identifier.name, identifier.token, functionNestingLevel,
         initializer: initializer,
         type: currentLocalVariableType,
         isFinal: isFinal,
         isConst: isConst,
-        equalsCharOffset: equalsCharOffset));
+        equalsToken: equalsToken));
   }
 
   @override
@@ -1137,7 +1168,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endBlock(int count, Token beginToken, Token endToken) {
     debugEvent("Block");
-    Block block = popBlock(count, beginToken.charOffset);
+    Block block = popBlock(count, beginToken);
     exitLocalScope();
     push(block);
   }
@@ -1154,7 +1185,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
       push(new DelayedAssignment(
-          this, token.charOffset, accessor, value, token.stringValue));
+          this, token, accessor, value, token.stringValue));
     }
   }
 
@@ -1207,7 +1238,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (variableOrExpression == null) {
       // Do nothing.
     } else if (variableOrExpression is Expression) {
-      begin = new ExpressionStatement(variableOrExpression);
+      begin = astFactory.expressionStatement(variableOrExpression);
     } else {
       return internalError("Unhandled: ${variableOrExpression.runtimeType}");
     }
@@ -1330,7 +1361,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralSymbol");
     String value;
     if (identifierCount == 1) {
-      value = symbolPartToString(popForValue());
+      value = symbolPartToString(pop());
     } else {
       List parts = popList(identifierCount);
       value = symbolPartToString(parts.first);
@@ -1395,7 +1426,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
       }
       if (builder is PrefixBuilder) {
-        name = scopeLookup(builder.exports, suffix, beginToken.charOffset,
+        name = scopeLookup(builder.exports, suffix, beginToken,
             isQualified: true, prefix: builder);
       } else {
         push(const DynamicType());
@@ -1457,13 +1488,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
     DartType type = pop();
-    Expression expression = popForValue();
-    expression = new IsExpression(expression, type)
-      ..fileOffset = operator.charOffset;
-    if (not != null) {
-      expression = new Not(expression);
+    Expression operand = popForValue();
+    bool isInverted = not != null;
+    Expression isExpression =
+        astFactory.isExpression(operand, type, operator, isInverted);
+    if (operand is VariableGet) {
+      typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
+          type, functionNestingLevel);
     }
-    push(expression);
+    push(isExpression);
   }
 
   @override
@@ -1531,17 +1564,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               thisKeyword.charOffset);
         }
         type = field.target.type ?? const DynamicType();
-        variable = astFactory.variableDeclaration(name.name, name.fileOffset,
+        variable = astFactory.variableDeclaration(
+            name.name, name.token, functionNestingLevel,
             type: type,
             initializer: name.initializer,
             isFinal: isFinal,
             isConst: isConst);
       } else {
-        addCompileTimeError(
-            name.fileOffset, "'${name.name}' isn't a field in this class.");
+        addCompileTimeError(offsetForToken(name.token),
+            "'${name.name}' isn't a field in this class.");
       }
     }
-    variable ??= astFactory.variableDeclaration(name.name, name.fileOffset,
+    variable ??= astFactory.variableDeclaration(
+        name.name, name.token, functionNestingLevel,
         type: type ?? const DynamicType(),
         initializer: name.initializer,
         isFinal: isFinal,
@@ -1586,7 +1621,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
     Identifier name = pop();
-    push(new InitializedIdentifier(name.name, initializer, name.fileOffset));
+    push(new InitializedIdentifier(name.token, initializer));
   }
 
   @override
@@ -1688,11 +1723,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, receiver.offset, index,
+      push(new SuperIndexAccessor(this, receiver.token, index,
           lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
     } else {
-      push(IndexAccessor.make(this, openCurlyBracket.charOffset,
-          toValue(receiver), index, null, null));
+      push(IndexAccessor.make(
+          this, openCurlyBracket, toValue(receiver), index, null, null));
     }
   }
 
@@ -1709,7 +1744,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (receiver is ThisAccessor && receiver.isSuper) {
         push(toSuperMethodInvocation(buildMethodInvocation(
-            new ThisExpression()..fileOffset = receiver.offset,
+            new ThisExpression()..fileOffset = offsetForToken(receiver.token),
             new Name(operator),
             new Arguments.empty(),
             token.charOffset)));
@@ -1744,7 +1779,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     var accessor = pop();
     if (accessor is FastaAccessor) {
       push(new DelayedPostfixIncrement(
-          this, token.charOffset, accessor, incrementOperator(token), null));
+          this, token, accessor, incrementOperator(token), null));
     } else {
       push(wrapInvalid(toValue(accessor)));
     }
@@ -1781,13 +1816,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       var prefix = type[0];
       identifier = type[1];
       if (prefix is PrefixBuilder) {
-        type = scopeLookup(prefix.exports, identifier.name, start.charOffset,
+        type = scopeLookup(prefix.exports, identifier.name, start,
             isQualified: true, prefix: prefix);
         identifier = null;
       } else if (prefix is ClassBuilder) {
         type = prefix;
       } else {
-        type = new Identifier(start.lexeme, start.charOffset);
+        type = new Identifier(start);
       }
     }
     String name;
@@ -1971,10 +2006,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (context.isScopeReference && isInstanceContext) {
-      push(new ThisAccessor(this, token.charOffset, inInitializer));
+      push(new ThisAccessor(this, token, inInitializer));
     } else {
       push(new IncompleteError(
-          this, token.charOffset, "Expected identifier, but got 'this'."));
+          this, token, "Expected identifier, but got 'this'."));
     }
   }
 
@@ -1984,11 +2019,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (context.isScopeReference && isInstanceContext) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
-      push(new ThisAccessor(this, token.charOffset, inInitializer,
-          isSuper: true));
+      push(new ThisAccessor(this, token, inInitializer, isSuper: true));
     } else {
       push(new IncompleteError(
-          this, token.charOffset, "Expected identifier, but got 'super'."));
+          this, token, "Expected identifier, but got 'super'."));
     }
   }
 
@@ -2004,8 +2038,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    VariableDeclaration variable = astFactory
-        .variableDeclaration(name.name, name.fileOffset, isFinal: true);
+    VariableDeclaration variable = astFactory.variableDeclaration(
+        name.name, name.token, functionNestingLevel,
+        isFinal: true);
     push(new FunctionDeclaration(
         variable, new FunctionNode(new InvalidStatement()))
       ..fileOffset = beginToken.charOffset);
@@ -2085,7 +2120,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);
-    push(new FunctionExpression(function)..fileOffset = beginToken.charOffset);
+    push(astFactory.functionExpression(function, beginToken));
   }
 
   @override
@@ -2151,7 +2186,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new ExpressionStatement(lvalue
+          astFactory.expressionStatement(lvalue
               .buildAssignment(new VariableGet(variable), voidContext: true)),
           body);
     } else {
@@ -2213,7 +2248,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endRethrowStatement(Token throwToken, Token endToken) {
     debugEvent("RethrowStatement");
     if (inCatchBlock) {
-      push(new ExpressionStatement(
+      push(astFactory.expressionStatement(
           new Rethrow()..fileOffset = throwToken.charOffset));
     } else {
       push(buildCompileTimeErrorStatement(
@@ -2315,7 +2350,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Token firstToken,
       Token endToken) {
     debugEvent("SwitchCase");
-    Block block = popBlock(statementCount, firstToken.charOffset);
+    Block block = popBlock(statementCount, firstToken);
     exitLocalScope();
     List<Label> labels = pop();
     List<Expression> expressions = pop();
@@ -2421,8 +2456,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Can't find label '$name'.", continueKeyword.next.charOffset));
           return;
         }
-        switchScope.forwardDeclareLabel(
-            identifier.name, target = createGotoTarget(identifier.fileOffset));
+        switchScope.forwardDeclareLabel(identifier.name,
+            target = createGotoTarget(offsetForToken(identifier.token)));
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
@@ -2522,7 +2557,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {
-    return new ExpressionStatement(buildCompileTimeError(error, charOffset));
+    return astFactory
+        .expressionStatement(buildCompileTimeError(error, charOffset));
   }
 
   @override
@@ -2565,7 +2601,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
-    push(new Identifier(token.stringValue, token.charOffset));
+    push(new Identifier(token));
   }
 
   dynamic addCompileTimeError(int charOffset, String message,
@@ -2619,7 +2655,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  StaticGet makeStaticGet(Member readTarget, int offset) {
+  StaticGet makeStaticGet(Member readTarget, Token token) {
     // TODO(paulberry): only record the dependencies mandated by the top level
     // type inference spec.
     if (fieldDependencies != null && readTarget is KernelField) {
@@ -2628,17 +2664,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         fieldDependencies.add(fieldNode);
       }
     }
-    return astFactory.staticGet(readTarget, offset);
+    return astFactory.staticGet(readTarget, token);
   }
 }
 
-// TODO(ahe): Shouldn't need to be an expression.
-class Identifier extends InvalidExpression {
-  final String name;
+class Identifier {
+  final Token token;
+  String get name => token.lexeme;
 
-  Identifier(this.name, int charOffset) {
-    fileOffset = charOffset;
-  }
+  Identifier(this.token);
 
   Expression get initializer => null;
 
@@ -2657,8 +2691,7 @@ class Operator extends InvalidExpression {
 class InitializedIdentifier extends Identifier {
   final Expression initializer;
 
-  InitializedIdentifier(String name, this.initializer, int charOffset)
-      : super(name, charOffset);
+  InitializedIdentifier(Token token, this.initializer) : super(token);
 
   String toString() => "initialized-identifier($name, $initializer)";
 }
@@ -2705,9 +2738,9 @@ abstract class ContextAccessor extends FastaAccessor {
 
   final FastaAccessor accessor;
 
-  final int offset;
+  final Token token;
 
-  ContextAccessor(this.helper, this.offset, this.accessor);
+  ContextAccessor(this.helper, this.token, this.accessor);
 
   @override
   Expression get builtBinary => internalError("Unsupported operation.");
@@ -2769,7 +2802,8 @@ abstract class ContextAccessor extends FastaAccessor {
 
   Expression makeInvalidWrite(Expression value) {
     return helper.buildCompileTimeError(
-        "Can't be used as left-hand side of assignment.", offset);
+        "Can't be used as left-hand side of assignment.",
+        offsetForToken(token));
   }
 }
 
@@ -2778,9 +2812,9 @@ class DelayedAssignment extends ContextAccessor {
 
   final String assignmentOperator;
 
-  DelayedAssignment(BuilderHelper helper, int charOffset,
-      FastaAccessor accessor, this.value, this.assignmentOperator)
-      : super(helper, charOffset, accessor);
+  DelayedAssignment(BuilderHelper helper, Token token, FastaAccessor accessor,
+      this.value, this.assignmentOperator)
+      : super(helper, token, accessor);
 
   Expression buildSimpleRead() {
     return handleAssignment(false);
@@ -2795,40 +2829,40 @@ class DelayedAssignment extends ContextAccessor {
       return accessor.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(plusName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("-=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(minusName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("*=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(multiplyName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(percentName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(ampersandName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(divisionName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(leftShiftName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(rightShiftName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
       return accessor.buildNullAwareAssignment(value, const DynamicType(),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(caretName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(barName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("~/=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(mustacheName, value,
-          offset: offset, voidContext: voidContext);
+          offset: offsetForToken(token), voidContext: voidContext);
     } else {
       return internalError("Unhandled: $assignmentOperator");
     }
@@ -2856,18 +2890,22 @@ class DelayedPostfixIncrement extends ContextAccessor {
 
   final Procedure interfaceTarget;
 
-  DelayedPostfixIncrement(BuilderHelper helper, int offset,
+  DelayedPostfixIncrement(BuilderHelper helper, Token token,
       FastaAccessor accessor, this.binaryOperator, this.interfaceTarget)
-      : super(helper, offset, accessor);
+      : super(helper, token, accessor);
 
   Expression buildSimpleRead() {
     return accessor.buildPostfixIncrement(binaryOperator,
-        offset: offset, voidContext: false, interfaceTarget: interfaceTarget);
+        offset: offsetForToken(token),
+        voidContext: false,
+        interfaceTarget: interfaceTarget);
   }
 
   Expression buildForEffect() {
     return accessor.buildPostfixIncrement(binaryOperator,
-        offset: offset, voidContext: true, interfaceTarget: interfaceTarget);
+        offset: offsetForToken(token),
+        voidContext: true,
+        interfaceTarget: interfaceTarget);
   }
 }
 

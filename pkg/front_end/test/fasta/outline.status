@@ -4,6 +4,16 @@
 
 function_type_recovery: Fail
 
+inference/*: Fail
+inference/int_upwards_local: Pass
+inference/local_constructor_from_arguments: Pass
+inference/local_reference_upwards_local: Pass
+inference/toplevel_inference_toplevel_var: Pass
+inference/type_promotion_simple: Pass
+inference/type_promotion_stopped_by_access_in_a_closure: Pass
+inference/type_promotion_stopped_by_assignment_in_scope: Pass
+inference/type_promotion_stopped_by_mutation_in_a_closure: Pass
+
 rasta/bad_redirection: Fail
 rasta/generic_factory: Fail
 rasta/issue_000002: Fail

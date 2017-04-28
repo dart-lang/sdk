@@ -388,16 +388,14 @@ Future testShutdown() async {
         () => socket.readSync(data.length), (e) => e is SocketException);
     socket.closeSync();
 
-    // Close the socket for reading, do a write, and see if we can get any
-    // response from the server (we shouldn't be able to).
+    // Close the socket for reading then try and perform a read. This should
+    // cause a SocketException.
     socket = RawSynchronousSocket.connectSync(
         LOOPBACK_IP_V4_STRING, serverInternetPort);
     socket.shutdown(SocketDirection.RECEIVE);
-    socket.writeFromSync(data);
     // Throws exception when the socket is closed for RECEIVE.
     Expect.throws(
         () => socket.readSync(data.length), (e) => e is SocketException);
-    Expect.isTrue(socket.available() == 0);
     socket.closeSync();
 
     // Close the socket for writing and try to do a write. This should cause an

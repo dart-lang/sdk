@@ -118,6 +118,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       bool isPotential: false,
       String elemFile,
       int elemOffset,
+      int selectionOffset,
       String paramName,
       String paramType,
       String defaultArgListString: _UNCHECKED,
@@ -134,7 +135,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.relevance, equals(relevance), reason: completion);
     }
     expect(cs.importUri, importUri);
-    expect(cs.selectionOffset, equals(completion.length));
+    expect(cs.selectionOffset, equals(selectionOffset ?? completion.length));
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));

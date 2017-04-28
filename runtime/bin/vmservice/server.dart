@@ -335,7 +335,7 @@ class Server {
       try {
         var address;
         if (Platform.isFuchsia) {
-          address = InternetAddress.ANY_IP_V4;
+          address = InternetAddress.ANY_IP_V6;
         } else {
           var addresses = await InternetAddress.lookup(_ip);
           // Prefer IPv4 addresses.

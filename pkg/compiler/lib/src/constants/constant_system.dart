@@ -5,7 +5,6 @@
 library dart2js.constant_system;
 
 import '../common_elements.dart' show CommonElements;
-import '../elements/resolution_types.dart' show DartTypes;
 import '../elements/types.dart';
 import '../resolution/operators.dart';
 import '../tree/dartstring.dart' show DartString;

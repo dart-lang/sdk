@@ -27,6 +27,7 @@ import 'elements/elements.dart'
         LibraryElement,
         MetadataAnnotation,
         ScopeContainerElement;
+import 'elements/entities.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' show NamedArgument, NewExpression, Node;
 
@@ -91,7 +92,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
 
   /// Collect @MirrorsUsed annotations in all libraries.  Called by the
   /// compiler after all libraries are loaded, but before resolution.
-  void analyzeUsage(LibraryElement mainApp) {
+  void analyzeUsage(LibraryEntity mainApp) {
     if (mainApp == null || compiler.commonElements.mirrorsLibrary == null) {
       return;
     }

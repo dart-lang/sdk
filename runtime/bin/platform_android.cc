@@ -58,7 +58,11 @@ const char* Platform::LibraryExtension() {
 
 
 const char* Platform::LocaleName() {
-  return getenv("LANG");
+  char* lang = getenv("LANG");
+  if (lang == NULL) {
+    return "en_US";
+  }
+  return lang;
 }
 
 

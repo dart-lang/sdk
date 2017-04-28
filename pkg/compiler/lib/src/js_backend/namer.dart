@@ -53,7 +53,7 @@ part 'namer_names.dart';
  * uniqueness within some namespace (e.g. as fields on the same JS object).
  * In [MinifyNamer], disambiguated names are also minified.
  *
- * Annotated names are names generated from a disambiguated name. Annnotated
+ * Annotated names are names generated from a disambiguated name. Annotated
  * names must be computable at runtime by prefixing/suffixing constant strings
  * onto the disambiguated name.
  *
@@ -2110,7 +2110,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 }
 
-class FunctionTypeNamer extends BaseDartTypeVisitor {
+class FunctionTypeNamer extends BaseResolutionDartTypeVisitor {
   final RuntimeTypesEncoder rtiEncoder;
   StringBuffer sb;
 

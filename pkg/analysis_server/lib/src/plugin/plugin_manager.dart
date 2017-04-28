@@ -12,8 +12,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
@@ -21,6 +23,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:watcher/watcher.dart' as watcher;
 
 /**
  * Information about a single plugin.
@@ -98,6 +101,15 @@ class PluginInfo {
   }
 
   /**
+   * If the plugin is currently running, send a request based on the given
+   * [params] to the plugin. If the plugin is not running, the request will
+   * silently be dropped.
+   */
+  void sendRequest(RequestParams params) {
+    currentSession?.sendRequest(params);
+  }
+
+  /**
    * Start a new isolate that is running the plugin. Return the state object
    * used to interact with the plugin.
    */
@@ -168,6 +180,27 @@ class PluginManager {
   Map<String, PluginInfo> _pluginMap = <String, PluginInfo>{};
 
   /**
+   * The parameters for the last 'analysis.setPriorityFiles' request that was
+   * received from the client. Because plugins are lazily discovered, this needs
+   * to be retained so that it can be sent after a plugin has been started.
+   */
+  AnalysisSetPriorityFilesParams _analysisSetPriorityFilesParams;
+
+  /**
+   * The parameters for the last 'analysis.setSubscriptions' request that was
+   * received from the client. Because plugins are lazily discovered, this needs
+   * to be retained so that it can be sent after a plugin has been started.
+   */
+  AnalysisSetSubscriptionsParams _analysisSetSubscriptionsParams;
+
+  /**
+   * The current state of content overlays. Because plugins are lazily
+   * discovered, the state needs to be retained so that it can be sent after a
+   * plugin has been started.
+   */
+  Map<String, dynamic> _overlayState = <String, dynamic>{};
+
+  /**
    * Initialize a newly created plugin manager. The notifications from the
    * running plugins will be handled by the given [notificationManager].
    */
@@ -182,8 +215,12 @@ class PluginManager {
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     PluginInfo plugin = _pluginMap[path];
-    if (plugin == null) {
+    bool isNew = plugin == null;
+    if (isNew) {
       List<String> pluginPaths = _pathsFor(path);
+      if (pluginPaths == null) {
+        return;
+      }
       plugin = new PluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
@@ -195,6 +232,17 @@ class PluginManager {
       }
     }
     plugin.addContextRoot(contextRoot);
+    if (isNew) {
+      if (_analysisSetSubscriptionsParams != null) {
+        plugin.sendRequest(_analysisSetSubscriptionsParams);
+      }
+      if (_overlayState.isNotEmpty) {
+        plugin.sendRequest(new AnalysisUpdateContentParams(_overlayState));
+      }
+      if (_analysisSetPriorityFilesParams != null) {
+        plugin.sendRequest(_analysisSetPriorityFilesParams);
+      }
+    }
   }
 
   /**
@@ -203,8 +251,8 @@ class PluginManager {
    * containing futures that will complete when each of the plugins have sent a
    * response.
    */
-  Map<PluginInfo, Future<Response>> broadcast(
-      analyzer.ContextRoot contextRoot, RequestParams params) {
+  Map<PluginInfo, Future<Response>> broadcastRequest(RequestParams params,
+      {analyzer.ContextRoot contextRoot}) {
     List<PluginInfo> plugins = pluginsForContextRoot(contextRoot);
     Map<PluginInfo, Future<Response>> responseMap =
         <PluginInfo, Future<Response>>{};
@@ -215,11 +263,46 @@ class PluginManager {
   }
 
   /**
+   * Broadcast the given [watchEvent] to all of the plugins that are analyzing
+   * in contexts containing the file associated with the event. Return a list
+   * containing futures that will complete when each of the plugins have sent a
+   * response.
+   */
+  Future<List<Future<Response>>> broadcastWatchEvent(
+      watcher.WatchEvent watchEvent) async {
+    String filePath = watchEvent.path;
+
+    /**
+     * Return `true` if the given glob [pattern] matches the file being watched.
+     */
+    bool matches(String pattern) =>
+        new Glob(path.separator, pattern).matches(filePath);
+
+    WatchEvent event = null;
+    List<Future<Response>> responses = <Future<Response>>[];
+    for (PluginInfo plugin in _pluginMap.values) {
+      PluginSession session = plugin.currentSession;
+      if (session != null &&
+          path.isWithin(plugin.path, filePath) &&
+          session.interestingFiles.any(matches)) {
+        event ??= _convertWatchEvent(watchEvent);
+        AnalysisHandleWatchEventsParams params =
+            new AnalysisHandleWatchEventsParams([event]);
+        responses.add(session.sendRequest(params));
+      }
+    }
+    return responses;
+  }
+
+  /**
    * Return a list of all of the plugins that are currently associated with the
    * given [contextRoot].
    */
   @visibleForTesting
   List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
+    if (contextRoot == null) {
+      return _pluginMap.values.toList();
+    }
     List<PluginInfo> plugins = <PluginInfo>[];
     for (PluginInfo plugin in _pluginMap.values) {
       if (plugin.contextRoots.contains(contextRoot)) {
@@ -244,10 +327,82 @@ class PluginManager {
   }
 
   /**
+   * Send a request based on the given [params] to existing plugins to set the
+   * priority files to those specified by the [params]. As a side-effect, record
+   * the parameters so that they can be sent to any newly started plugins.
+   */
+  void setAnalysisSetPriorityFilesParams(
+      AnalysisSetPriorityFilesParams params) {
+    for (PluginInfo plugin in _pluginMap.values) {
+      plugin.sendRequest(params);
+    }
+    _analysisSetPriorityFilesParams = params;
+  }
+
+  /**
+   * Send a request based on the given [params] to existing plugins to set the
+   * subscriptions to those specified by the [params]. As a side-effect, record
+   * the parameters so that they can be sent to any newly started plugins.
+   */
+  void setAnalysisSetSubscriptionsParams(
+      AnalysisSetSubscriptionsParams params) {
+    for (PluginInfo plugin in _pluginMap.values) {
+      plugin.sendRequest(params);
+    }
+    _analysisSetSubscriptionsParams = params;
+  }
+
+  /**
+   * Send a request based on the given [params] to existing plugins to set the
+   * content overlays to those specified by the [params]. As a side-effect,
+   * update the overlay state so that it can be sent to any newly started
+   * plugins.
+   */
+  void setAnalysisUpdateContentParams(AnalysisUpdateContentParams params) {
+    for (PluginInfo plugin in _pluginMap.values) {
+      plugin.sendRequest(params);
+    }
+    Map<String, dynamic> files = params.files;
+    for (String file in files.keys) {
+      Object overlay = files[file];
+      if (overlay is RemoveContentOverlay) {
+        _overlayState.remove(file);
+      } else if (overlay is AddContentOverlay) {
+        _overlayState[file] = overlay;
+      } else if (overlay is ChangeContentOverlay) {
+        AddContentOverlay previousOverlay = _overlayState[file];
+        String newContent =
+            SourceEdit.applySequence(previousOverlay.content, overlay.edits);
+        _overlayState[file] = new AddContentOverlay(newContent);
+      } else {
+        throw new ArgumentError(
+            'Invalid class of overlay: ${overlay.runtimeType}');
+      }
+    }
+  }
+
+  /**
    * Stop all of the plugins that are currently running.
    */
   Future<List<Null>> stopAll() {
     return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
+  }
+
+  WatchEventType _convertChangeType(watcher.ChangeType type) {
+    switch (type) {
+      case watcher.ChangeType.ADD:
+        return WatchEventType.ADD;
+      case watcher.ChangeType.MODIFY:
+        return WatchEventType.MODIFY;
+      case watcher.ChangeType.REMOVE:
+        return WatchEventType.REMOVE;
+      default:
+        throw new StateError('Unknown change type: $type');
+    }
+  }
+
+  WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {
+    return new WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
   }
 
   /**
@@ -289,8 +444,9 @@ class PluginManager {
           if (!packagesFile.exists) {
             packagesFile = null;
           }
+        } else {
+          packagesFile = null;
         }
-        packagesFile = null;
       }
       return <String>[pluginFile.path, packagesFile?.path];
     }
@@ -406,6 +562,14 @@ class PluginSession {
    * Handle the given [notification].
    */
   void handleNotification(Notification notification) {
+    if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
+      PluginErrorParams params =
+          new PluginErrorParams.fromNotification(notification);
+      if (params.isFatal) {
+        info.stop();
+        stop();
+      }
+    }
     info.notificationManager.handlePluginNotification(info.path, notification);
   }
 

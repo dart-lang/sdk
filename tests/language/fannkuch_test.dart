@@ -4,7 +4,7 @@
 // The Great Computer Language Shootout
 // http://shootout.alioth.debian.org/
 // Ported from JavaScript contributed by Isaac Gouy.
-// Description: Repeatedly acccess a tiny integer-sequence.
+// Description: Repeatedly access a tiny integer-sequence.
 
 import "package:expect/expect.dart";
 

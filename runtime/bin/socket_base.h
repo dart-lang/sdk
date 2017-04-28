@@ -63,133 +63,20 @@ class SocketAddress {
 
   ~SocketAddress() {}
 
-  int GetType() {
-    if (addr_.ss.ss_family == AF_INET6) {
-      return TYPE_IPV6;
-    }
-    return TYPE_IPV4;
-  }
+  int GetType();
 
   const char* as_string() const { return as_string_; }
   const RawAddr& addr() const { return addr_; }
 
-  static intptr_t GetAddrLength(const RawAddr& addr) {
-    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
-    return (addr.ss.ss_family == AF_INET6) ? sizeof(struct sockaddr_in6)
-                                           : sizeof(struct sockaddr_in);
-  }
-
-  static intptr_t GetInAddrLength(const RawAddr& addr) {
-    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
-    return (addr.ss.ss_family == AF_INET6) ? sizeof(struct in6_addr)
-                                           : sizeof(struct in_addr);
-  }
-
-  static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
-    if (a.ss.ss_family == AF_INET) {
-      if (b.ss.ss_family != AF_INET) {
-        return false;
-      }
-      return memcmp(&a.in.sin_addr, &b.in.sin_addr, sizeof(a.in.sin_addr)) == 0;
-    } else if (a.ss.ss_family == AF_INET6) {
-      if (b.ss.ss_family != AF_INET6) {
-        return false;
-      }
-      return memcmp(&a.in6.sin6_addr, &b.in6.sin6_addr,
-                    sizeof(a.in6.sin6_addr)) == 0;
-    } else {
-      UNREACHABLE();
-      return false;
-    }
-  }
-
-  static void GetSockAddr(Dart_Handle obj, RawAddr* addr) {
-    Dart_TypedData_Type data_type;
-    uint8_t* data = NULL;
-    intptr_t len;
-    Dart_Handle result = Dart_TypedDataAcquireData(
-        obj, &data_type, reinterpret_cast<void**>(&data), &len);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
-    if ((data_type != Dart_TypedData_kUint8) ||
-        ((len != sizeof(in_addr)) && (len != sizeof(in6_addr)))) {
-      Dart_PropagateError(
-          Dart_NewApiError("Unexpected type for socket address"));
-    }
-    memset(reinterpret_cast<void*>(addr), 0, sizeof(RawAddr));
-    if (len == sizeof(in_addr)) {
-      addr->in.sin_family = AF_INET;
-      memmove(reinterpret_cast<void*>(&addr->in.sin_addr), data, len);
-    } else {
-      ASSERT(len == sizeof(in6_addr));
-      addr->in6.sin6_family = AF_INET6;
-      memmove(reinterpret_cast<void*>(&addr->in6.sin6_addr), data, len);
-    }
-    Dart_TypedDataReleaseData(obj);
-  }
-
-  static int16_t FromType(int type) {
-    if (type == TYPE_ANY) {
-      return AF_UNSPEC;
-    }
-    if (type == TYPE_IPV4) {
-      return AF_INET;
-    }
-    ASSERT((type == TYPE_IPV6) && "Invalid type");
-    return AF_INET6;
-  }
-
-  static void SetAddrPort(RawAddr* addr, intptr_t port) {
-    if (addr->ss.ss_family == AF_INET) {
-      addr->in.sin_port = htons(port);
-    } else {
-      addr->in6.sin6_port = htons(port);
-    }
-  }
-
-  static intptr_t GetAddrPort(const RawAddr& addr) {
-    if (addr.ss.ss_family == AF_INET) {
-      return ntohs(addr.in.sin_port);
-    } else {
-      return ntohs(addr.in6.sin6_port);
-    }
-  }
-
-  static Dart_Handle ToTypedData(const RawAddr& addr) {
-    int len = GetInAddrLength(addr);
-    Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
-    Dart_Handle err;
-    if (addr.addr.sa_family == AF_INET6) {
-      err = Dart_ListSetAsBytes(
-          result, 0, reinterpret_cast<const uint8_t*>(&addr.in6.sin6_addr),
-          len);
-    } else {
-      err = Dart_ListSetAsBytes(
-          result, 0, reinterpret_cast<const uint8_t*>(&addr.in.sin_addr), len);
-    }
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
-    return result;
-  }
-
-  static CObjectUint8Array* ToCObject(const RawAddr& addr) {
-    int in_addr_len = SocketAddress::GetInAddrLength(addr);
-    const void* in_addr;
-    CObjectUint8Array* data =
-        new CObjectUint8Array(CObject::NewUint8Array(in_addr_len));
-    if (addr.addr.sa_family == AF_INET6) {
-      in_addr = reinterpret_cast<const void*>(&addr.in6.sin6_addr);
-    } else {
-      in_addr = reinterpret_cast<const void*>(&addr.in.sin_addr);
-    }
-    memmove(data->Buffer(), in_addr, in_addr_len);
-    return data;
-  }
+  static intptr_t GetAddrLength(const RawAddr& addr);
+  static intptr_t GetInAddrLength(const RawAddr& addr);
+  static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b);
+  static void GetSockAddr(Dart_Handle obj, RawAddr* addr);
+  static int16_t FromType(int type);
+  static void SetAddrPort(RawAddr* addr, intptr_t port);
+  static intptr_t GetAddrPort(const RawAddr& addr);
+  static Dart_Handle ToTypedData(const RawAddr& addr);
+  static CObjectUint8Array* ToCObject(const RawAddr& addr);
 
  private:
   char as_string_[INET6_ADDRSTRLEN];
@@ -197,7 +84,6 @@ class SocketAddress {
 
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
 };
-
 
 class InterfaceSocketAddress {
  public:
@@ -221,7 +107,6 @@ class InterfaceSocketAddress {
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
 };
-
 
 template <typename T>
 class AddressList {
@@ -255,22 +140,35 @@ class SocketBase : public AllStatic {
     kReverseLookupRequest = 2,
   };
 
+  enum SocketOpKind {
+    kSync,
+    kAsync,
+  };
+
   // TODO(dart:io): Convert these to instance methods where possible.
   static bool Initialize();
   static intptr_t Available(intptr_t fd);
-  static intptr_t Read(intptr_t fd, void* buffer, intptr_t num_bytes);
-  static intptr_t Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+  static intptr_t Read(intptr_t fd,
+                       void* buffer,
+                       intptr_t num_bytes,
+                       SocketOpKind sync);
+  static intptr_t Write(intptr_t fd,
+                        const void* buffer,
+                        intptr_t num_bytes,
+                        SocketOpKind sync);
   // Send data on a socket. The port to send to is specified in the port
   // component of the passed RawAddr structure. The RawAddr structure is only
   // used for datagram sockets.
   static intptr_t SendTo(intptr_t fd,
                          const void* buffer,
                          intptr_t num_bytes,
-                         const RawAddr& addr);
+                         const RawAddr& addr,
+                         SocketOpKind sync);
   static intptr_t RecvFrom(intptr_t fd,
                            void* buffer,
                            intptr_t num_bytes,
-                           RawAddr* addr);
+                           RawAddr* addr,
+                           SocketOpKind sync);
   // Returns true if the given error-number is because the system was not able
   // to bind the socket to a specific IP.
   static bool IsBindError(intptr_t error_number);

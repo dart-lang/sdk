@@ -6,22 +6,21 @@
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.closed_world2_test;
 
+import 'dart:async';
+
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/resolution.dart';
-import 'package:compiler/src/common/work.dart';
+import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend.dart'
+    hide RuntimeTypesNeedBuilderImpl;
 import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
@@ -29,23 +28,52 @@ import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/js_backend/impact_transformer.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart';
-import 'package:compiler/src/js_backend/mirrors_analysis.dart';
+import 'package:compiler/src/js_backend/mirrors_analysis.dart'
+    hide MirrorsResolutionAnalysisImpl;
 import 'package:compiler/src/js_backend/mirrors_data.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/native/enqueue.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/native/resolver.dart';
+import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
+import 'package:expect/expect.dart';
+import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
+import '../serialization/model_test_helper.dart';
+import '../serialization/test_helper.dart';
 
-import 'closed_world_test.dart';
+import 'closed_world_test.dart' hide KernelWorkItemBuilder;
+import 'impact_test.dart';
+
+const SOURCE = const {
+  'main.dart': '''
+import 'dart:html';
+import 'package:expect/expect.dart';
+
+@NoInline()
+main() {
+  print('Hello World');
+  ''.contains; // Trigger member closurization.
+  new Element.div();
+}
+'''
+};
 
 main(List<String> args) {
+  asyncTest(() async {
+    await mainInternal(args);
+  });
+}
+
+Future mainInternal(List<String> args,
+    {bool skipWarnings: false, bool skipErrors: false}) async {
   Arguments arguments = new Arguments.from(args);
   Uri entryPoint;
   Map<String, String> memorySourceFiles;
@@ -57,63 +85,93 @@ main(List<String> args) {
     memorySourceFiles = SOURCE;
   }
 
-  asyncTest(() async {
-    enableDebugMode();
-    Compiler compiler = compilerFor(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        options: [
-          Flags.analyzeAll,
-          Flags.useKernel,
-          Flags.enableAssertMessage
-        ]);
-    ElementResolutionWorldBuilder.useInstantiationMap = true;
-    compiler.resolution.retainCachesForTesting = true;
-    await compiler.run(entryPoint);
-    compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
+  enableDebugMode();
 
-    KernelWorldBuilder worldBuilder = new KernelWorldBuilder(
-        compiler.reporter, compiler.backend.kernelTask.program);
-    List list = createKernelResolutionEnqueuerListener(compiler.options,
-        compiler.reporter, compiler.deferredLoadTask, worldBuilder);
-    ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
-    ImpactTransformer impactTransformer = list[1];
-    ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
-        compiler.enqueuer,
-        compiler.options,
-        compiler.reporter,
-        const TreeShakingEnqueuerStrategy(),
-        resolutionEnqueuerListener,
-        new KernelResolutionWorldBuilder(
-            worldBuilder.elementEnvironment,
-            worldBuilder.commonElements,
-            new NativeBasicDataImpl(),
-            const OpenWorldStrategy()),
-        new KernelWorkItemBuilder(worldBuilder, impactTransformer),
-        'enqueuer from kelements');
+  print('---- analyze-only ------------------------------------------------');
+  DiagnosticCollector collector = new DiagnosticCollector();
+  Compiler compiler1 = compilerFor(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      diagnosticHandler: collector,
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  compiler1.resolution.retainCachesForTesting = true;
+  await compiler1.run(entryPoint);
+  if (collector.errors.isNotEmpty && skipErrors) {
+    print('Skipping due to errors.');
+    return;
+  }
+  if (collector.warnings.isNotEmpty && skipWarnings) {
+    print('Skipping due to warnings.');
+    return;
+  }
+  Expect.isFalse(compiler1.compilationFailed);
+  ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
+  BackendUsage backendUsage1 = compiler1.backend.backendUsage;
+  ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
-    computeClosedWorld(
-        compiler.reporter, enqueuer, worldBuilder.elementEnvironment);
-  });
+  print('---- analyze-all -------------------------------------------------');
+  Compiler compiler = compilerFor(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+  await compiler.run(entryPoint);
+  compiler.resolutionWorldBuilder.closeWorld();
+
+  print('---- closed world from kernel ------------------------------------');
+  Compiler compiler2 = compilerFor(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: [
+        Flags.analyzeOnly,
+        Flags.enableAssertMessage,
+        Flags.loadFromDill
+      ]);
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  compiler2.resolution.retainCachesForTesting = true;
+  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
+  KernelToElementMap elementMap = frontEndStrategy.elementMap;
+  compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
+      elementMap,
+      compiler2.reporter,
+      compiler2.measurer,
+      compiler.backend.kernelTask.program);
+  await compiler2.run(entryPoint);
+  Expect.isFalse(compiler2.compilationFailed);
+  ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
+  BackendUsage backendUsage2 = compiler2.backend.backendUsage;
+  ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+  KernelEquivalence equivalence = new KernelEquivalence(elementMap);
+  checkBackendUsage(backendUsage1, backendUsage2, equivalence);
+
+  checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
+      elementEquivalence: equivalence.entityEquivalence,
+      typeEquivalence: (ResolutionDartType a, DartType b) {
+    return equivalence.typeEquivalence(unalias(a), b);
+  }, elementFilter: elementFilter, verbose: arguments.verbose);
+
+  checkClosedWorlds(closedWorld1, closedWorld2, equivalence.entityEquivalence,
+      verbose: arguments.verbose);
 }
 
 List createKernelResolutionEnqueuerListener(
     CompilerOptions options,
     DiagnosticReporter reporter,
     DeferredLoadTask deferredLoadTask,
-    KernelWorldBuilder worldBuilder) {
-  ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
-  CommonElements commonElements = worldBuilder.commonElements;
+    KernelToElementMap elementMap,
+    NativeBasicData nativeBasicData) {
+  ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
+  CommonElements commonElements = elementMap.commonElements;
   BackendImpacts impacts = new BackendImpacts(options, commonElements);
 
   // TODO(johnniwinther): Create Kernel based implementations for these:
-  NativeBasicData nativeBasicData = new NativeBasicDataImpl();
   RuntimeTypesNeedBuilder rtiNeedBuilder = new RuntimeTypesNeedBuilderImpl();
   MirrorsDataBuilder mirrorsDataBuilder = new MirrorsDataBuilderImpl();
   CustomElementsResolutionAnalysis customElementsResolutionAnalysis =
       new CustomElementsResolutionAnalysisImpl();
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis =
       new MirrorsResolutionAnalysisImpl();
+
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
       new LookupMapResolutionAnalysis(reporter, elementEnvironment);
   InterceptorDataBuilder interceptorDataBuilder =
@@ -122,10 +180,12 @@ List createKernelResolutionEnqueuerListener(
   BackendUsageBuilder backendUsageBuilder =
       new BackendUsageBuilderImpl(commonElements);
   NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
-      commonElements, new KernelNoSuchMethodResolver(worldBuilder));
+      commonElements, new KernelNoSuchMethodResolver(elementMap));
+  NativeClassFinder nativeClassFinder = new BaseNativeClassFinder(
+      elementEnvironment, commonElements, nativeBasicData);
   NativeResolutionEnqueuer nativeResolutionEnqueuer =
       new NativeResolutionEnqueuer(options, elementEnvironment, commonElements,
-          backendUsageBuilder, new KernelNativeClassResolver(worldBuilder));
+          backendUsageBuilder, nativeClassFinder);
 
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       options,
@@ -157,144 +217,87 @@ List createKernelResolutionEnqueuerListener(
       mirrorsDataBuilder,
       customElementsResolutionAnalysis,
       rtiNeedBuilder);
-  return [listener, transformer];
+  return [listener, backendUsageBuilder, transformer];
 }
 
-class NativeBasicDataImpl implements NativeBasicData {
-  @override
-  bool isNativeClass(ClassEntity element) {
-    // TODO(johnniwinther): Implement this.
-    return false;
-  }
-
-  @override
-  bool isJsInteropClass(ClassEntity element) {
-    throw new UnimplementedError('NativeBasicDataImpl.isJsInteropClass');
-  }
-
-  @override
-  bool isJsInteropLibrary(LibraryEntity element) {
-    throw new UnimplementedError('NativeBasicDataImpl.isJsInteropLibrary');
-  }
-
-  @override
-  bool isNativeOrExtendsNative(ClassEntity element) {
-    // TODO(johnniwinther): Implement this.
-    return false;
-  }
-
-  @override
-  bool hasNativeTagsForcedNonLeaf(ClassEntity cls) {
-    throw new UnimplementedError(
-        'NativeBasicDataImpl.hasNativeTagsForcedNonLeaf');
-  }
-
-  @override
-  List<String> getNativeTagsOfClass(ClassEntity cls) {
-    throw new UnimplementedError('NativeBasicDataImpl.getNativeTagsOfClass');
-  }
+void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
+    KernelEquivalence equivalence) {
+  checkMapEquivalence(
+      data1,
+      data2,
+      'nativeClassTagInfo',
+      data1.nativeClassTagInfo,
+      data2.nativeClassTagInfo,
+      equivalence.entityEquivalence,
+      (a, b) => a == b);
+  // TODO(johnniwinther): Check the remaining properties.
 }
 
-class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
-  @override
-  void registerClassUsingTypeVariableExpression(ClassEntity cls) {}
-
-  @override
-  RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
-      CommonElements commonElements,
-      BackendUsage backendUsage,
-      {bool enableTypeAssertions}) {
-    throw new UnimplementedError(
-        'RuntimeTypesNeedBuilderImpl.computeRuntimeTypesNeed');
-  }
-
-  @override
-  void registerRtiDependency(ClassEntity element, ClassEntity dependency) {}
+void checkBackendUsage(BackendUsageImpl usage1, BackendUsageImpl usage2,
+    KernelEquivalence equivalence) {
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'globalClassDependencies',
+      usage1.globalClassDependencies,
+      usage2.globalClassDependencies,
+      equivalence.entityEquivalence);
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'globalFunctionDependencies',
+      usage1.globalFunctionDependencies,
+      usage2.globalFunctionDependencies,
+      equivalence.entityEquivalence);
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'helperClassesUsed',
+      usage1.helperClassesUsed,
+      usage2.helperClassesUsed,
+      equivalence.entityEquivalence);
+  checkSetEquivalence(
+      usage1,
+      usage2,
+      'helperFunctionsUsed',
+      usage1.helperFunctionsUsed,
+      usage2.helperFunctionsUsed,
+      equivalence.entityEquivalence);
+  check(
+      usage1,
+      usage2,
+      'needToInitializeIsolateAffinityTag',
+      usage1.needToInitializeIsolateAffinityTag,
+      usage2.needToInitializeIsolateAffinityTag);
+  check(
+      usage1,
+      usage2,
+      'needToInitializeDispatchProperty',
+      usage1.needToInitializeDispatchProperty,
+      usage2.needToInitializeDispatchProperty);
+  check(usage1, usage2, 'requiresPreamble', usage1.requiresPreamble,
+      usage2.requiresPreamble);
+  check(usage1, usage2, 'isInvokeOnUsed', usage1.isInvokeOnUsed,
+      usage2.isInvokeOnUsed);
+  check(usage1, usage2, 'isRuntimeTypeUsed', usage1.isRuntimeTypeUsed,
+      usage2.isRuntimeTypeUsed);
+  check(usage1, usage2, 'isIsolateInUse', usage1.isIsolateInUse,
+      usage2.isIsolateInUse);
+  check(usage1, usage2, 'isFunctionApplyUsed', usage1.isFunctionApplyUsed,
+      usage2.isFunctionApplyUsed);
+  check(usage1, usage2, 'isNoSuchMethodUsed', usage1.isNoSuchMethodUsed,
+      usage2.isNoSuchMethodUsed);
 }
 
-class MirrorsDataBuilderImpl implements MirrorsDataBuilder {
-  @override
-  void registerUsedMember(MemberEntity member) {}
+class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
+  final ir.Program program;
 
-  @override
-  void computeMembersNeededForReflection(
-      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {}
+  MemoryDillLibraryLoaderTask(KernelToElementMap elementMap,
+      DiagnosticReporter reporter, Measurer measurer, this.program)
+      : super(elementMap, null, null, reporter, measurer);
 
-  @override
-  void maybeMarkClosureAsNeededForReflection(
-      ClosureClassElement globalizedElement,
-      FunctionElement callFunction,
-      FunctionElement function) {}
-
-  @override
-  void registerConstSymbol(String name) {}
-
-  @override
-  void registerMirrorUsage(
-      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {}
-}
-
-class CustomElementsResolutionAnalysisImpl
-    implements CustomElementsResolutionAnalysis {
-  @override
-  CustomElementsAnalysisJoin get join {
-    throw new UnimplementedError('CustomElementsResolutionAnalysisImpl.join');
-  }
-
-  @override
-  WorldImpact flush() {
-    // TODO(johnniwinther): Implement this.
-    return const WorldImpact();
-  }
-
-  @override
-  void registerStaticUse(MemberEntity element) {}
-
-  @override
-  void registerInstantiatedClass(ClassEntity classElement) {}
-
-  @override
-  void registerTypeLiteral(DartType type) {}
-}
-
-class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
-  @override
-  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {}
-
-  @override
-  MirrorsCodegenAnalysis close() {
-    throw new UnimplementedError('MirrorsResolutionAnalysisImpl.close');
-  }
-
-  @override
-  void onResolutionComplete() {}
-}
-
-class KernelWorkItemBuilder implements WorkItemBuilder {
-  final KernelWorldBuilder _worldBuilder;
-  final ImpactTransformer _impactTransformer;
-
-  KernelWorkItemBuilder(this._worldBuilder, this._impactTransformer);
-
-  @override
-  WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(_worldBuilder, _impactTransformer, entity);
-  }
-}
-
-class KernelWorkItem implements ResolutionWorkItem {
-  final KernelWorldBuilder _worldBuilder;
-  final ImpactTransformer _impactTransformer;
-  final MemberEntity element;
-
-  KernelWorkItem(this._worldBuilder, this._impactTransformer, this.element);
-
-  @override
-  WorldImpact run() {
-    ResolutionImpact impact = _worldBuilder.computeWorldImpact(element);
-    return _impactTransformer.transformResolutionImpact(impact);
+  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false}) async {
+    return createLoadedLibraries(program);
   }
 }

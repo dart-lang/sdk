@@ -65,7 +65,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   /**
    * Assert that the number and codes of errors occurred during parsing is the
-   * same the the [expectedErrorCodes].
+   * same as the [expectedErrorCodes].
    */
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes);
 
@@ -3943,6 +3943,36 @@ m() {
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+    ]);
+  }
+
+  void test_typedef_incomplete() {
+    // TODO(brianwilkerson) Improve recovery for this case.
+    parseCompilationUnit(
+        '''
+class A {}
+class B extends A {}
+
+typedef T
+
+main() {
+  Function<
+}
+''',
+        [
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.UNEXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_EXECUTABLE
+        ]);
+  }
+
+  void test_typedef_namedFunction() {
+    // TODO(brianwilkerson) Improve recovery for this case.
+    parseCompilationUnit('typedef void Function();', [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_EXECUTABLE,
+      ParserErrorCode.MISSING_TYPEDEF_PARAMETERS
     ]);
   }
 
@@ -10849,7 +10879,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
@@ -10861,7 +10891,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
@@ -10873,7 +10903,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNull);
   }
@@ -10885,7 +10915,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
@@ -10897,7 +10927,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
@@ -10909,7 +10939,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNull);
   }
@@ -10921,7 +10951,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
@@ -10997,7 +11027,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.VAR);
     expect(result.type, isNull);
   }

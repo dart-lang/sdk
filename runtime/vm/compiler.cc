@@ -2199,32 +2199,32 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile script %s", script.ToCString());
   return Error::null();
 }
 
 
 RawError* Compiler::CompileClass(const Class& cls) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
 
 RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
-  UNREACHABLE();
+  FATAL1("Attempt to parse function %s", function.ToCString());
   return Error::null();
 }
 
 
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                           const Function& function) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
@@ -2232,13 +2232,14 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                               const Function& function,
                                               intptr_t osr_id) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
 
 
 RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile function %s",
+         parsed_function->function().ToCString());
   return Error::null();
 }
 
@@ -2249,13 +2250,13 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
-  UNREACHABLE();
+  FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 
 
 RawError* Compiler::ParseAllFunctions(const Class& cls) {
-  UNREACHABLE();
+  FATAL1("Attempt to parse class %s", cls.ToCString());
   return Error::null();
 }
 

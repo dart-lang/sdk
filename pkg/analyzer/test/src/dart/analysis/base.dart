@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:test/test.dart';
 import 'package:typed_mock/typed_mock.dart';
 
@@ -74,6 +75,29 @@ class BaseAnalysisDriverTest {
     }
   }
 
+  AnalysisDriver createAnalysisDriver({SummaryDataStore externalSummaries}) {
+    return new AnalysisDriver(
+        scheduler,
+        logger,
+        provider,
+        byteStore,
+        contentOverlay,
+        null,
+        new SourceFactory([
+          new DartUriResolver(sdk),
+          generatedUriResolver,
+          new PackageMapUriResolver(provider, <String, List<Folder>>{
+            'test': [provider.getFolder(testProject)]
+          }),
+          new ResourceUriResolver(provider)
+        ], null, provider),
+        new AnalysisOptionsImpl()
+          ..strongMode = true
+          ..enableUriInPartOf = true,
+        disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
+        externalSummaries: externalSummaries);
+  }
+
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
     if (offset < 0) {
@@ -109,30 +133,14 @@ class BaseAnalysisDriverTest {
     testFile = _p('/test/lib/test.dart');
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
-    driver = new AnalysisDriver(
-        scheduler,
-        logger,
-        provider,
-        byteStore,
-        contentOverlay,
-        null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          generatedUriResolver,
-          new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)]
-          }),
-          new ResourceUriResolver(provider)
-        ], null, provider),
-        new AnalysisOptionsImpl()
-          ..strongMode = true
-          ..enableUriInPartOf = true,
-        disableChangesAndCacheAllResults: disableChangesAndCacheAllResults);
+    driver = createAnalysisDriver();
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);
     driver.exceptions.listen(allExceptions.add);
   }
+
+  void tearDown() {}
 
   String _p(String path) => provider.convertPath(path);
 }

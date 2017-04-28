@@ -4,6 +4,7 @@
 
 library test.context.directory.manager;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
@@ -33,6 +34,7 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:watcher/watcher.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -2598,6 +2600,14 @@ analyzer:
     // Verify that analysis options was parsed and strong-mode set.
     expect(analysisOptions.strongMode, true);
   }
+
+  test_watchEvents() async {
+    String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    newFile([libPath, 'main.dart']);
+    await new Future.delayed(new Duration(milliseconds: 1));
+    expect(callbacks.watchEvents, hasLength(1));
+  }
 }
 
 class TestContextManagerCallbacks extends ContextManagerCallbacks {
@@ -2663,6 +2673,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    * The list of `flushedFiles` in the last [removeContext] invocation.
    */
   List<String> lastFlushedFiles;
+
+  /**
+   * The watch events that have been broadcast.
+   */
+  List<WatchEvent> watchEvents = <WatchEvent>[];
 
   TestContextManagerCallbacks(
       this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
@@ -2799,6 +2814,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
   void assertContextPaths(List<String> expected) {
     expect(currentContextRoots, unorderedEquals(expected));
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    watchEvents.add(event);
   }
 
   @override

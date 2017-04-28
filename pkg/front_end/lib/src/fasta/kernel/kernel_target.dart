@@ -230,7 +230,7 @@ class KernelTarget extends TargetImplementation {
   Future<Program> writeOutline(Uri uri) async {
     if (loader.first == null) return null;
     try {
-      loader.createTopLevelTypeInferrer();
+      loader.createTypeInferenceEngine();
       await loader.buildOutlines();
       loader.coreLibrary
           .becomeCoreLibrary(const DynamicType(), const VoidType());

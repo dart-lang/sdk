@@ -1244,14 +1244,6 @@ abstract class AnalysisOptions {
   List<String> get excludePatterns;
 
   /**
-   * A flag indicating whether finer grained dependencies should be used
-   * instead of just source level dependencies.
-   *
-   * This option is experimental and subject to change.
-   */
-  bool get finerGrainedInvalidation;
-
-  /**
    * Return `true` if errors, warnings and hints should be generated for sources
    * that are implicitly being analyzed. The default value is `true`.
    */
@@ -1487,9 +1479,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   List<String> nonnullableTypes = NONNULLABLE_TYPES;
 
-  @override
-  bool finerGrainedInvalidation = false;
-
   /**
    * A flag indicating whether implicit dynamic type is allowed, on by default.
    *
@@ -1540,7 +1529,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
-    finerGrainedInvalidation = options.finerGrainedInvalidation;
     patchPaths = options.patchPaths;
   }
 
@@ -1691,7 +1679,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableUriInPartOf = true;
     _errorProcessors = null;
     _excludePatterns = null;
-    finerGrainedInvalidation = false;
     generateImplicitErrors = true;
     generateSdkErrors = false;
     hint = true;

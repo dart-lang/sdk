@@ -281,4 +281,24 @@ abstract class GraphBuilder {
   /// The element for which this SSA builder is being used.
   Element get targetElement;
   TypeBuilder get typeBuilder;
+
+  /// Helper to implement JS_GET_FLAG.
+  ///
+  /// The concrete SSA graph builder will extract a flag parameter from the
+  /// JS_GET_FLAG call and then push a boolean result onto the stack. This
+  /// function provides the boolean value corresponding to the given [flagName].
+  /// If [flagName] is not recognized, this function returns `null` and the
+  /// concrete SSA builder reports an error.
+  bool getFlagValue(String flagName) {
+    switch (flagName) {
+      case 'MUST_RETAIN_METADATA':
+        return mirrorsData.mustRetainMetadata;
+      case 'USE_CONTENT_SECURITY_POLICY':
+        return options.useContentSecurityPolicy;
+      case 'IS_FULL_EMITTER':
+        return !USE_LAZY_EMITTER && !options.useStartupEmitter;
+      default:
+        return null;
+    }
+  }
 }

@@ -14,7 +14,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/elements.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
@@ -242,7 +242,7 @@ bool checkMapEquivalence(var object1, var object2, String property, Map map1,
     throw message;
   }
   for (List pair in common) {
-    check(object1, object2, 'Map value for `$property`', map1[pair[0]],
+    check(pair[0], pair[1], 'Map value for `$property`', map1[pair[0]],
         map2[pair[1]], sameValue);
   }
   return true;
@@ -645,7 +645,7 @@ class KernelEquivalence {
   Set<Pair<ClassEntity, ClassEntity>> assumedMixinApplications =
       new Set<Pair<ClassEntity, ClassEntity>>();
 
-  KernelEquivalence(KernelWorldBuilder builder)
+  KernelEquivalence(KernelToElementMap builder)
       : testing = new WorldDeconstructionForTesting(builder);
 
   TestStrategy get defaultStrategy => new TestStrategy(

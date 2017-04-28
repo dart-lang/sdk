@@ -103,7 +103,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
     // parameterWriter parameter.
     if (isAbstract) {
-      write(Keyword.ABSTRACT.syntax);
+      write(Keyword.ABSTRACT.lexeme);
       write(' ');
     }
     write('class ');
@@ -139,7 +139,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       List<String> fieldNames,
       bool isConst: false}) {
     if (isConst) {
-      write(Keyword.CONST.syntax);
+      write(Keyword.CONST.lexeme);
       write(' ');
     }
     write(className);
@@ -178,21 +178,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       DartType type,
       String typeGroupName}) {
     if (isStatic) {
-      write(Keyword.STATIC.syntax);
+      write(Keyword.STATIC.lexeme);
       write(' ');
     }
     bool typeRequired = true;
     if (isConst) {
-      write(Keyword.CONST.syntax);
+      write(Keyword.CONST.lexeme);
       typeRequired = false;
     } else if (isFinal) {
-      write(Keyword.FINAL.syntax);
+      write(Keyword.FINAL.lexeme);
       typeRequired = false;
     }
     if (type != null) {
       writeType(type, groupName: typeGroupName, required: true);
     } else if (typeRequired) {
-      write(Keyword.VAR.syntax);
+      write(Keyword.VAR.lexeme);
     }
     write(' ');
     if (nameGroupName != null) {
@@ -218,7 +218,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       DartType returnType,
       String returnTypeGroupName}) {
     if (isStatic) {
-      write(Keyword.STATIC.syntax);
+      write(Keyword.STATIC.lexeme);
       write(' ');
     }
     if (returnType != null) {
@@ -257,14 +257,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       DartType returnType,
       String returnTypeGroupName}) {
     if (isStatic) {
-      write(Keyword.STATIC.syntax);
+      write(Keyword.STATIC.lexeme);
       write(' ');
     }
     if (returnType != null && !returnType.isDynamic) {
       writeType(returnType, groupName: returnTypeGroupName);
       write(' ');
     }
-    write(Keyword.GET.syntax);
+    write(Keyword.GET.lexeme);
     write(' ');
     if (nameGroupName != null) {
       addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
@@ -291,10 +291,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String typeGroupName}) {
     bool typeRequired = true;
     if (isConst) {
-      write(Keyword.CONST.syntax);
+      write(Keyword.CONST.lexeme);
       typeRequired = false;
     } else if (isFinal) {
-      write(Keyword.FINAL.syntax);
+      write(Keyword.FINAL.lexeme);
       typeRequired = false;
     }
     if (type != null) {
@@ -304,7 +304,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       writeType(type, groupName: typeGroupName);
     } else if (typeRequired) {
-      write(Keyword.VAR.syntax);
+      write(Keyword.VAR.lexeme);
     }
     write(' ');
     if (nameGroupName != null) {
@@ -346,13 +346,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         writeType(member.type.returnType, groupName: returnTypeGroupName);
     write(' ');
     if (isGetter) {
-      write(Keyword.GET.syntax);
+      write(Keyword.GET.lexeme);
       write(' ');
     } else if (isSetter) {
-      write(Keyword.SET.syntax);
+      write(Keyword.SET.lexeme);
       write(' ');
     } else if (isOperator) {
-      write(Keyword.OPERATOR.syntax);
+      write(Keyword.OPERATOR.lexeme);
       write(' ');
     }
     // name
@@ -501,7 +501,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     if (required) {
-      write(Keyword.VAR.syntax);
+      write(Keyword.VAR.lexeme);
       return true;
     }
     return false;

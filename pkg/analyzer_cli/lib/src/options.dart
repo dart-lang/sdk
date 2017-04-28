@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.options;
-
 import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
 
 const _binaryName = 'dartanalyzer';
 
@@ -51,6 +49,9 @@ class CommandLineOptions {
 
   /// List of summary file paths to use in build mode.
   final List<String> buildSummaryInputs;
+
+  /// List of unlinked summary file paths to use in build mode.
+  final List<String> buildSummaryUnlinkedInputs;
 
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
@@ -161,6 +162,8 @@ class CommandLineOptions {
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
         buildSummaryInputs = args['build-summary-input'] as List<String>,
+        buildSummaryUnlinkedInputs =
+            args['build-summary-unlinked-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
@@ -222,6 +225,14 @@ class CommandLineOptions {
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
 
+  /// The source files to analyze
+  List<String> get sourceFiles => _sourceFiles;
+
+  /// Replace the sourceFiles parsed from the command line.
+  void rewriteSourceFiles(List<String> newSourceFiles) {
+    _sourceFiles = newSourceFiles;
+  }
+
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
@@ -231,12 +242,7 @@ class CommandLineOptions {
     // Check SDK.
     if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
-      if (options.dartSdkPath == null) {
-        Directory sdkDir = getSdkDir(args);
-        if (sdkDir != null) {
-          options.dartSdkPath = sdkDir.path;
-        }
-      }
+      options.dartSdkPath ??= getSdkPath(args);
 
       String sdkPath = options.dartSdkPath;
 
@@ -280,7 +286,8 @@ class CommandLineOptions {
             'together with --build-summary-only.');
         return null; // Only reachable in testing.
       }
-      if (options.buildSummaryInputs.isNotEmpty) {
+      if (options.buildSummaryInputs.isNotEmpty ||
+          options.buildSummaryUnlinkedInputs.isNotEmpty) {
         printAndFail('No summaries should be provided in combination with '
             '--build-summary-only-unlinked, they aren\'t needed.');
         return null; // Only reachable in testing.
@@ -288,14 +295,6 @@ class CommandLineOptions {
     }
 
     return options;
-  }
-
-  /// The source files to analyze
-  List<String> get sourceFiles => _sourceFiles;
-
-  /// Replace the sourceFiles parsed from the command line.
-  void rewriteSourceFiles(List<String> newSourceFiles) {
-    _sourceFiles = newSourceFiles;
   }
 
   static String _getVersion() {
@@ -386,8 +385,13 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addOption('build-summary-input',
-          help: 'Path to a summary file that contains information from a '
-              'previous analysis run; may be specified multiple times.',
+          help: 'Path to a linked summary file that contains information from '
+              'a previous analysis run; may be specified multiple times.',
+          allowMultiple: true,
+          hide: hide)
+      ..addOption('build-summary-unlinked-input',
+          help: 'Path to an unlinked summary file that contains information '
+              'from a previous analysis run; may be specified multiple times.',
           allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
@@ -419,7 +423,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('color',
-          help: 'Use asni colors when printing messages.',
+          help: 'Use ansi colors when printing messages.',
           defaultsTo: ansi.terminalSupportsAnsi(),
           hide: hide);
 
@@ -475,7 +479,7 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('enable-assert-initializers',
           help: 'Enable parsing of asserts in constructor initializers.',
-          defaultsTo: false,
+          defaultsTo: null,
           negatable: false,
           hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',

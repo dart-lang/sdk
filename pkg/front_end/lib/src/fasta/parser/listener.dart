@@ -6,11 +6,12 @@ library fasta.parser.listener;
 
 import '../fasta_codes.dart' show FastaMessage;
 
+import '../../scanner/token.dart' show TokenType;
+
 import '../scanner/token.dart' show BeginGroupToken, SymbolToken, Token;
 
 import '../util/link.dart' show Link;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart' show RECOVERY_INFO;
 import 'parser.dart' show FormalParameterType;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -1055,7 +1056,7 @@ class Listener {
   /// If [next] is `null`, `null` is returned.
   Token newSyntheticToken(Token next) {
     if (next == null) return null;
-    return new SymbolToken(RECOVERY_INFO, next.charOffset)..next = next;
+    return new SymbolToken(TokenType.RECOVERY, next.charOffset)..next = next;
   }
 }
 

@@ -429,7 +429,7 @@ class WhereIterable<E> extends Iterable<E> {
 
 class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   WhereIterator(this._iterator, this._f);
 

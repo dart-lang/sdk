@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+
+static method main() → dynamic {
+  asy::Future<dynamic> futureInt = null;
+  dynamic x = futureInt;
+}

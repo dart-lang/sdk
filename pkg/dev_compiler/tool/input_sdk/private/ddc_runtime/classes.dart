@@ -271,11 +271,16 @@ bind(obj, name, f) => JS(
     '',
     '''(() => {
   if ($f === void 0) $f = $obj[$name];
-  $f = $f.bind($obj);
   // TODO(jmesserly): track the function's signature on the function, instead
   // of having to go back to the class?
   let sig = $getMethodType($getType($obj), $name);
-  $assert_(sig);
+
+  // JS interop case: do not bind this for compatibility with the dart2js
+  // implementation where we cannot bind this reliably here until we trust
+  // types more.
+  if (sig === void 0) return $f;
+
+  $f = $f.bind($obj);
   $tag($f, sig);
   return $f;
 })()''');
@@ -286,7 +291,7 @@ bind(obj, name, f) => JS(
 /// associated function type.
 gbind(f, @rest typeArgs) {
   var result = JS('', '#.apply(null, #)', f, typeArgs);
-  var sig = JS('', '#.apply(null, #)', _getRuntimeType(f), typeArgs);
+  var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
   tag(result, sig);
   return result;
 }

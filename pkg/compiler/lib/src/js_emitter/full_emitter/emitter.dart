@@ -80,9 +80,6 @@ class EmitterFactory implements js_emitter.EmitterFactory {
   EmitterFactory({this.generateSourceMap});
 
   @override
-  String get patchVersion => "full";
-
-  @override
   bool get supportsReflection => true;
 
   @override

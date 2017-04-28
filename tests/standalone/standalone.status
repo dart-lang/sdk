@@ -9,7 +9,6 @@
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
-io/raw_synchronous_socket_test: Pass, RuntimeError # Issue 29343
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
@@ -232,7 +231,6 @@ io/process_stdin_transform_unsubscribe_test: Pass, Timeout # Issue #28558
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 io/socket_info_ipv6_test: RuntimeError # Issue 27876
-io/raw_synchronous_socket_test: Crash # Issue 29333, currently unsupported
 
 [ $system == windows && $compiler == dart2analyzer ]
 package/package_isolate_test: Crash # Issue 28645
@@ -410,7 +408,6 @@ io/secure_server_closing_test: RuntimeError
 # The Android command runner doesn't correctly handle non-UTF8 formatted output.
 # https://github.com/dart-lang/sdk/issues/28872
 io/non_utf8_output_test: Skip
-io/locale_name_test: RuntimeError  # Issue 29211
 
 [ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426

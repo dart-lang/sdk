@@ -173,6 +173,17 @@ class NotificationManager {
                     converter.convertOutline(outline))
                 .toList());
         break;
+      case plugin.PLUGIN_NOTIFICATION_ERROR:
+        plugin.PluginErrorParams params =
+            new plugin.PluginErrorParams.fromNotification(notification);
+        // TODO(brianwilkerson) There is no indication for the client as to the
+        // fact that the error came from a plugin, let alone which plugin it
+        // came from. We should consider whether we really want to send them to
+        // the client.
+        channel.sendNotification(new server.ServerErrorParams(
+                params.isFatal, params.message, params.stackTrace)
+            .toNotification());
+        break;
     }
   }
 

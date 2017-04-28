@@ -58,27 +58,15 @@ import '../scanner.dart' show ErrorToken;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
-import '../../scanner/token.dart' show Keyword;
-
-import '../scanner/precedence.dart'
+import '../../scanner/token.dart'
     show
         ASSIGNMENT_PRECEDENCE,
-        AS_INFO,
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
-        GT_INFO,
-        IS_INFO,
-        MINUS_MINUS_INFO,
-        OPEN_PAREN_INFO,
-        OPEN_SQUARE_BRACKET_INFO,
-        PERIOD_INFO,
-        PLUS_PLUS_INFO,
+        Keyword,
         POSTFIX_PRECEDENCE,
-        PrecedenceInfo,
-        QUESTION_INFO,
-        QUESTION_PERIOD_INFO,
         RELATIONAL_PRECEDENCE,
-        SCRIPT_INFO;
+        TokenType;
 
 import '../scanner/token.dart'
     show
@@ -305,7 +293,7 @@ class Parser {
   }
 
   Token _parseTopLevelDeclaration(Token token) {
-    if (identical(token.info, SCRIPT_INFO)) {
+    if (identical(token.info, TokenType.SCRIPT_TAG)) {
       return parseScript(token);
     }
     token = parseMetadataStar(token);
@@ -515,7 +503,7 @@ class Parser {
     assert(optional('of', token.next));
     Token partKeyword = token;
     token = token.next.next;
-    bool hasName = token.isIdentifier();
+    bool hasName = token.isIdentifier;
     if (hasName) {
       token = parseQualified(token, IdentifierContext.partName,
           IdentifierContext.partNameContinuation);
@@ -682,7 +670,7 @@ class Parser {
     //    void foo(covariant);
     Token covariantKeyword;
     if (identical(token.stringValue, 'covariant') &&
-        (token.next.isIdentifier() || isModifier(token.next))) {
+        (token.next.isIdentifier || isModifier(token.next))) {
       covariantKeyword = token;
       token = token.next;
     }
@@ -697,7 +685,7 @@ class Parser {
           parseIdentifier(token, IdentifierContext.formalParameterDeclaration);
     } else if (inFunctionType) {
       token = parseType(token);
-      if (token.isIdentifier()) {
+      if (token.isIdentifier) {
         token = parseIdentifier(
             token, IdentifierContext.formalParameterDeclaration);
       } else {
@@ -805,7 +793,7 @@ class Parser {
     }
     token = listener.injectGenericCommentTypeAssign(token);
     Token peek = peekAfterIfType(token);
-    if (peek != null && (peek.isIdentifier() || optional('this', peek))) {
+    if (peek != null && (peek.isIdentifier || optional('this', peek))) {
       return parseType(token);
     }
     listener.handleNoType(token);
@@ -817,7 +805,7 @@ class Parser {
     if (identical(kind, IDENTIFIER_TOKEN)) return true;
     if (identical(kind, KEYWORD_TOKEN)) {
       Keyword keyword = (token as KeywordToken).keyword;
-      String value = keyword.syntax;
+      String value = keyword.lexeme;
       return keyword.isPseudo ||
           (identical(value, 'dynamic')) ||
           (identical(value, 'void'));
@@ -895,7 +883,7 @@ class Parser {
     // [token] is '>>' of which the final '>' that we are parsing is the first
     // character. In order to keep the parsing process on track we must return
     // a synthetic '>' corresponding to the second character of that '>>'.
-    Token syntheticToken = new SymbolToken(GT_INFO, token.charOffset + 1);
+    Token syntheticToken = new SymbolToken(TokenType.GT, token.charOffset + 1);
     syntheticToken.next = token.next;
     return syntheticToken;
   }
@@ -1050,7 +1038,7 @@ class Parser {
   }
 
   Token parseIdentifier(Token token, IdentifierContext context) {
-    if (!token.isIdentifier()) {
+    if (!token.isIdentifier) {
       token =
           reportUnrecoverableErrorCodeWithToken(token, codeExpectedIdentifier)
               .next;
@@ -1207,8 +1195,8 @@ class Parser {
       } while (optional(',', token));
       Token next = token.next;
       if (identical(token.stringValue, '>>')) {
-        token = new SymbolToken(GT_INFO, token.charOffset);
-        token.next = new SymbolToken(GT_INFO, token.charOffset + 1);
+        token = new SymbolToken(TokenType.GT, token.charOffset);
+        token.next = new SymbolToken(TokenType.GT, token.charOffset + 1);
         token.next.next = next;
       }
       endStuff(count, begin, token);
@@ -1565,7 +1553,7 @@ class Parser {
           // type ...
           if (optional('.', token.next)) {
             // type '.' ...
-            if (token.next.next.isIdentifier()) {
+            if (token.next.next.isIdentifier) {
               // type '.' identifier
               token = token.next.next;
             }
@@ -1752,7 +1740,7 @@ class Parser {
   Token peekAfterNominalType(Token token) {
     Token peek = token.next;
     if (identical(peek.kind, PERIOD_TOKEN)) {
-      if (peek.next.isIdentifier()) {
+      if (peek.next.isIdentifier) {
         // Look past a library prefix.
         peek = peek.next.next;
       }
@@ -1818,7 +1806,7 @@ class Parser {
   /// If [token] is the start of a type, returns the token after that type.
   /// If [token] is not the start of a type, null is returned.
   Token peekAfterIfType(Token token) {
-    if (!optional('void', token) && !token.isIdentifier()) {
+    if (!optional('void', token) && !token.isIdentifier) {
       return null;
     }
     return peekAfterType(token);
@@ -2413,7 +2401,7 @@ class Parser {
       throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
-    } else if (token.isIdentifier()) {
+    } else if (token.isIdentifier) {
       return parseExpressionStatementOrDeclaration(token);
     } else {
       return parseExpressionStatement(token);
@@ -2454,7 +2442,7 @@ class Parser {
 
   Token peekIdentifierAfterType(Token token) {
     Token peek = peekAfterType(token);
-    if (peek != null && peek.isIdentifier()) {
+    if (peek != null && peek.isIdentifier) {
       // We are looking at "type identifier".
       return peek;
     } else {
@@ -2464,10 +2452,10 @@ class Parser {
 
   Token peekIdentifierAfterOptionalType(Token token) {
     Token peek = peekAfterIfType(token);
-    if (peek != null && peek.isIdentifier()) {
+    if (peek != null && peek.isIdentifier) {
       // We are looking at "type identifier".
       return peek;
-    } else if (token.isIdentifier()) {
+    } else if (token.isIdentifier) {
       // We are looking at "identifier".
       return token;
     } else {
@@ -2479,10 +2467,10 @@ class Parser {
     if (!inPlainSync && optional("await", token)) {
       return parseExpressionStatement(token);
     }
-    assert(token.isIdentifier() || identical(token.stringValue, 'void'));
+    assert(token.isIdentifier || identical(token.stringValue, 'void'));
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
-      assert(identifier.isIdentifier());
+      assert(identifier.isIdentifier);
 
       // If the identifier token has a type substitution comment /*=T*/,
       // then the set of tokens type tokens should be replaced with the
@@ -2577,7 +2565,7 @@ class Parser {
     listener.injectGenericCommentTypeAssign(token.next);
     Token identifier = peekIdentifierAfterOptionalType(token.next);
     if (identifier != null) {
-      assert(identifier.isIdentifier());
+      assert(identifier.isIdentifier);
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (identical(afterIdKind, EQ_TOKEN) ||
@@ -2606,7 +2594,7 @@ class Parser {
     do {
       token = parseLabel(token);
       labelCount++;
-    } while (token.isIdentifier() && optional(':', token.next));
+    } while (token.isIdentifier && optional(':', token.next));
     listener.beginLabeledStatement(token, labelCount);
     token = parseStatement(token);
     listener.endLabeledStatement(labelCount);
@@ -2726,7 +2714,7 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    PrecedenceInfo info = token.info;
+    TokenType info = token.info;
     int tokenLevel = info.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (identical(tokenLevel, level)) {
@@ -2743,8 +2731,8 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
-          if (identical(info, PERIOD_INFO) ||
-              identical(info, QUESTION_PERIOD_INFO)) {
+          if (identical(info, TokenType.PERIOD) ||
+              identical(info, TokenType.QUESTION_PERIOD)) {
             // Left associative, so we recurse at the next higher precedence
             // level. However, POSTFIX_PRECEDENCE is the highest level, so we
             // should just call [parseUnaryExpression] directly. However, a
@@ -2753,21 +2741,21 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.handleBinaryExpression(operator);
-          } else if ((identical(info, OPEN_PAREN_INFO)) ||
-              (identical(info, OPEN_SQUARE_BRACKET_INFO))) {
+          } else if ((identical(info, TokenType.OPEN_PAREN)) ||
+              (identical(info, TokenType.OPEN_SQUARE_BRACKET))) {
             token = parseArgumentOrIndexStar(token);
-          } else if ((identical(info, PLUS_PLUS_INFO)) ||
-              (identical(info, MINUS_MINUS_INFO))) {
+          } else if ((identical(info, TokenType.PLUS_PLUS)) ||
+              (identical(info, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
             token = reportUnexpectedToken(token).next;
           }
-        } else if (identical(info, IS_INFO)) {
+        } else if (identical(info, TokenType.IS)) {
           token = parseIsOperatorRest(token);
-        } else if (identical(info, AS_INFO)) {
+        } else if (identical(info, TokenType.AS)) {
           token = parseAsOperatorRest(token);
-        } else if (identical(info, QUESTION_INFO)) {
+        } else if (identical(info, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token);
         } else {
           // Left associative, so we recurse at the next higher
@@ -2797,7 +2785,7 @@ class Parser {
     token = token.next;
     if (optional('[', token)) {
       token = parseArgumentOrIndexStar(token);
-    } else if (token.isIdentifier()) {
+    } else if (token.isIdentifier) {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.handleBinaryExpression(cascadeOperator);
     } else {
@@ -2914,7 +2902,7 @@ class Parser {
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
-      } else if (token.isIdentifier()) {
+      } else if (token.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
       } else {
         return expressionExpected(token);
@@ -3487,7 +3475,7 @@ class Parser {
     }
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
-      assert(identifier.isIdentifier());
+      assert(identifier.isIdentifier);
       if (isOneOf4(identifier.next, '=', ';', ',', 'in')) {
         return parseVariablesDeclarationNoSemicolon(token);
       }
@@ -3690,7 +3678,7 @@ class Parser {
   /// is used to determine if the labels belong to a statement or a
   /// switch case.
   Token peekPastLabels(Token token) {
-    while (token.isIdentifier() && optional(':', token.next)) {
+    while (token.isIdentifier && optional(':', token.next)) {
       token = token.next.next;
     }
     return token;
@@ -3763,7 +3751,7 @@ class Parser {
     Token breakKeyword = token;
     token = token.next;
     bool hasTarget = false;
-    if (token.isIdentifier()) {
+    if (token.isIdentifier) {
       token = parseIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
     }
@@ -3798,7 +3786,7 @@ class Parser {
     Token continueKeyword = token;
     token = token.next;
     bool hasTarget = false;
-    if (token.isIdentifier()) {
+    if (token.isIdentifier) {
       token = parseIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
     }

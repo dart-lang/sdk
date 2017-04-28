@@ -965,7 +965,7 @@ class ClassElementZ extends DeserializedElementZ
               .subst(typeVariables, mixinElement.typeVariables);
         }
         _supertype = supertype;
-        _allSupertypesAndSelf = new OrderedTypeSetBuilder(this)
+        _allSupertypesAndSelf = new ResolutionOrderedTypeSetBuilder(this)
             .createOrderedTypeSet(_supertype, _interfaces);
         _callType = _decoder.getType(Key.CALL_TYPE, isOptional: true);
       }
@@ -1173,7 +1173,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   @override
   OrderedTypeSet get allSupertypesAndSelf {
     if (_allSupertypesAndSelf == null) {
-      _allSupertypesAndSelf = new OrderedTypeSetBuilder(this)
+      _allSupertypesAndSelf = new ResolutionOrderedTypeSetBuilder(this)
           .createOrderedTypeSet(supertype, interfaces);
     }
     return _allSupertypesAndSelf;

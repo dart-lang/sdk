@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
+#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
 
 #include "vm/malloc_hooks.h"
 
@@ -138,7 +138,8 @@ class AllocationInfo {
         MallocHooksState::stack_trace_collection_enabled()) {
       sample_ = Profiler::SampleNativeAllocation(kSkipCount, address,
                                                  allocation_size);
-      ASSERT(sample_->native_allocation_address() == address_);
+      ASSERT((sample_ == NULL) ||
+             (sample_->native_allocation_address() == address_));
     }
   }
 
@@ -443,5 +444,4 @@ void MallocHooksState::RecordFreeHook(const void* ptr) {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
-        // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT)

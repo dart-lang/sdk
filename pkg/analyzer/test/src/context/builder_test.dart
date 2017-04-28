@@ -1025,7 +1025,6 @@ analyzer:
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
     expect(actual.disableCacheFlushing, expected.disableCacheFlushing);
-    expect(actual.finerGrainedInvalidation, expected.finerGrainedInvalidation);
   }
 
   Uri _relativeUri(String path, {String from}) {

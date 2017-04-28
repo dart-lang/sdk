@@ -7,7 +7,6 @@
 library dart2js.kernel.closed_world_test;
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -15,34 +14,20 @@ import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/common/work.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
-import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
-import 'package:compiler/src/js_backend/native_data.dart';
-import 'package:compiler/src/js_backend/impact_transformer.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
-import 'package:compiler/src/js_backend/lookup_map_analysis.dart';
-import 'package:compiler/src/js_backend/mirrors_analysis.dart';
-import 'package:compiler/src/js_backend/mirrors_data.dart';
-import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
-import 'package:compiler/src/native/enqueue.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
-import 'package:compiler/src/options.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
-import 'package:kernel/ast.dart' as ir;
 import 'impact_test.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
@@ -100,71 +85,80 @@ main(List<String> args) {
     ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
+    compiler.resolutionWorldBuilder.closeWorld();
 
     JavaScriptBackend backend = compiler.backend;
     // Create a new resolution enqueuer and feed it with the [WorldImpact]s
     // computed from kernel through the [build] in `kernel_impact.dart`.
+    List list = createResolutionEnqueuerListener(compiler);
+    ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
+    BackendUsageBuilder backendUsageBuilder = list[1];
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
         compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
-        createResolutionEnqueuerListener(compiler),
+        resolutionEnqueuerListener,
         new ElementResolutionWorldBuilder(
             backend, compiler.resolution, const OpenWorldStrategy()),
         new KernelWorkItemBuilder(compiler),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(
         compiler.reporter, enqueuer, compiler.elementEnvironment);
-    BackendUsage backendUsage = compiler.backend.backendUsageBuilder.close();
+    BackendUsage backendUsage = backendUsageBuilder.close();
     checkResolutionEnqueuers(
         backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
-    }, elementFilter: (Element element) {
-      if (element is ConstructorElement && element.isRedirectingFactory) {
-        // Redirecting factory constructors are skipped in kernel.
-        return false;
-      }
-      if (element is ClassElement) {
-        for (ConstructorElement constructor in element.constructors) {
-          if (!constructor.isRedirectingFactory) {
-            return true;
-          }
-        }
-        // The class cannot itself be instantiated.
-        return false;
-      }
-      return true;
-    }, verbose: arguments.verbose);
-    checkClosedWorlds(
-        compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
+    }, elementFilter: elementFilter, verbose: arguments.verbose);
+    checkClosedWorlds(compiler.resolutionWorldBuilder.closedWorldForTesting,
+        closedWorld, areElementsEquivalent,
         verbose: arguments.verbose);
   });
 }
 
-EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
+bool elementFilter(Entity element) {
+  if (element is ConstructorElement && element.isRedirectingFactory) {
+    // Redirecting factory constructors are skipped in kernel.
+    return false;
+  }
+  if (element is ClassElement) {
+    for (ConstructorElement constructor in element.constructors) {
+      if (!constructor.isRedirectingFactory) {
+        return true;
+      }
+    }
+    // The class cannot itself be instantiated.
+    return false;
+  }
+  return true;
+}
+
+List createResolutionEnqueuerListener(Compiler compiler) {
   JavaScriptBackend backend = compiler.backend;
-  return new ResolutionEnqueuerListener(
+  BackendUsageBuilder backendUsageBuilder =
+      new BackendUsageBuilderImpl(compiler.commonElements);
+  ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       compiler.options,
       compiler.elementEnvironment,
       compiler.commonElements,
       backend.impacts,
       backend.nativeBasicData,
-      backend.interceptorDataBuilder,
-      backend.backendUsageBuilder,
+      new InterceptorDataBuilderImpl(backend.nativeBasicData,
+          compiler.elementEnvironment, compiler.commonElements),
+      backendUsageBuilder,
       backend.rtiNeedBuilder,
       backend.mirrorsDataBuilder,
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
       backend.lookupMapResolutionAnalysis,
       backend.mirrorsResolutionAnalysis,
-      new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
-          backend.impacts, backend.backendUsageBuilder),
+      new TypeVariableResolutionAnalysis(
+          compiler.elementEnvironment, backend.impacts, backendUsageBuilder),
       backend.nativeResolutionEnqueuer,
       compiler.deferredLoadTask,
       backend.kernelTask);
+  return [listener, backendUsageBuilder];
 }
 
 ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
@@ -174,7 +168,7 @@ ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
   enqueuer.forEach((WorkItem work) {
     enqueuer.applyImpact(work.run(), impactSource: work.element);
   });
-  return enqueuer.worldBuilder.closeWorld(reporter);
+  return enqueuer.worldBuilder.closeWorld();
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {

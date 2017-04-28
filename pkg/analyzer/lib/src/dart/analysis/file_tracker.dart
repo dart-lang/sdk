@@ -3,14 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:typed_data';
 
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * Callback used by [FileTracker] to report to its client that files have been
@@ -40,12 +35,12 @@ class FileTracker {
   /**
    * The logger to write performed operations and performance to.
    */
-  final PerformanceLog logger;
+  final PerformanceLog _logger;
 
   /**
    * The current file system state.
    */
-  final FileSystemState fsState;
+  final FileSystemState _fsState;
 
   /**
    * The set of added files.
@@ -82,17 +77,7 @@ class FileTracker {
    */
   var _pendingFiles = new LinkedHashSet<String>();
 
-  FileTracker(
-      this.logger,
-      ByteStore byteStore,
-      FileContentOverlay contentOverlay,
-      ResourceProvider resourceProvider,
-      SourceFactory sourceFactory,
-      AnalysisOptions analysisOptions,
-      Uint32List salt,
-      this._changeHook)
-      : fsState = new FileSystemState(logger, byteStore, contentOverlay,
-            resourceProvider, sourceFactory, analysisOptions, salt);
+  FileTracker(this._logger, this._fsState, this._changeHook);
 
   /**
    * Returns the path to exactly one that needs analysis.  Throws a [StateError]
@@ -218,7 +203,7 @@ class FileTracker {
     _pendingFiles.remove(path);
     // TODO(paulberry): removing the path from [fsState] and re-analyzing all
     // files seems extreme.
-    fsState.removeFile(path);
+    _fsState.removeFile(path);
     _pendingFiles.addAll(addedFiles);
     _changeHook();
   }
@@ -228,9 +213,9 @@ class FileTracker {
    * which linked libraries should be invalidated, and files reanalyzed.
    */
   FileState verifyApiSignature(String path) {
-    return logger.run('Verify API signature of $path', () {
+    return _logger.run('Verify API signature of $path', () {
       bool anyApiChanged = false;
-      List<FileState> files = fsState.getFilesForPath(path);
+      List<FileState> files = _fsState.getFilesForPath(path);
       for (FileState file in files) {
         bool apiChanged = file.refresh();
         if (apiChanged) {
@@ -238,7 +223,7 @@ class FileTracker {
         }
       }
       if (anyApiChanged) {
-        logger.writeln('API signatures mismatch found for $path');
+        _logger.writeln('API signatures mismatch found for $path');
         // TODO(scheglov) schedule analysis of only affected files
         var pendingChangedFiles = new LinkedHashSet<String>();
         var pendingImportFiles = new LinkedHashSet<String>();
@@ -252,7 +237,7 @@ class FileTracker {
 
         // Add files that directly import the changed file.
         for (String addedPath in addedFiles) {
-          FileState addedFile = fsState.getFileForPath(addedPath);
+          FileState addedFile = _fsState.getFileForPath(addedPath);
           for (FileState changedFile in files) {
             if (addedFile.importedFiles.contains(changedFile)) {
               pendingImportFiles.add(addedPath);
@@ -262,7 +247,7 @@ class FileTracker {
 
         // Add files with errors or warnings that might be fixed.
         for (String addedPath in addedFiles) {
-          FileState addedFile = fsState.getFileForPath(addedPath);
+          FileState addedFile = _fsState.getFileForPath(addedPath);
           if (addedFile.hasErrorOrWarning) {
             pendingErrorFiles.add(addedPath);
           }
@@ -300,7 +285,7 @@ class FileTracker {
       _changedFiles.remove(path);
       // If the file has not been accessed yet, we either will eventually read
       // it later while analyzing one of the added files, or don't need it.
-      if (fsState.knownFilePaths.contains(path)) {
+      if (_fsState.knownFilePaths.contains(path)) {
         verifyApiSignature(path);
       }
       return true;

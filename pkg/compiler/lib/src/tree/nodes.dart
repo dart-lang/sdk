@@ -4,19 +4,19 @@
 
 import 'dart:collection' show IterableMixin;
 
-import '../common.dart';
-import '../elements/elements.dart' show MetadataAnnotation;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
-    show FUNCTION_INFO;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show PLUS_TOKEN;
 import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/scanner/token.dart' show TokenType;
+
+import '../common.dart';
+import '../elements/elements.dart' show MetadataAnnotation;
 import '../util/util.dart';
 import 'dartstring.dart';
 import 'prettyprint.dart';
 import 'unparser.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 
 abstract class Visitor<R> {
   const Visitor();
@@ -1527,7 +1527,7 @@ class Return extends Statement {
   bool get hasExpression => expression != null;
 
   /// `true` if this return is of the form `=> e;`.
-  bool get isArrowBody => beginToken.info == Precedence.FUNCTION_INFO;
+  bool get isArrowBody => beginToken.info == TokenType.FUNCTION;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 

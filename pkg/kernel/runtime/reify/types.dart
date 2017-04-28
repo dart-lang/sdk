@@ -429,7 +429,7 @@ class Intersection extends ReifiedType {
 ///     class Box<T> {}
 ///
 /// Defines one type variable. In the type `Box<int>`, there are no type
-/// variables.  However, `int` is a type argument to the the type
+/// variables.  However, `int` is a type argument to the type
 /// parameter/variable `T`.
 class TypeVariable extends ReifiedType {
   final int _id;

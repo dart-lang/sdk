@@ -165,6 +165,7 @@ class TypeBuilder {
   /// Check that [type] is valid in the context of `localsHandler.contextClass`.
   /// This should only be called in assertions.
   bool assertTypeInContext(ResolutionDartType type, [Spannable spannable]) {
+    if (builder.compiler.options.useKernel) return true;
     return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
         () {
       ClassElement contextClass = Types.getClassContext(type);

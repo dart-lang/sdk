@@ -1231,7 +1231,8 @@ class SsaBuilder extends ast.Visitor
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
-      instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
+      instantiatedTypes =
+          new List<ResolutionInterfaceType>.from(currentInlinedInstantiations);
     }
 
     HInstruction newObject;
@@ -2708,19 +2709,13 @@ class SsaBuilder extends ast.Visitor
           {'text': 'Error: Expected a literal string.'});
     }
     String name = string.dartString.slowToString();
-    bool value = false;
-    switch (name) {
-      case 'MUST_RETAIN_METADATA':
-        value = mirrorsData.mustRetainMetadata;
-        break;
-      case 'USE_CONTENT_SECURITY_POLICY':
-        value = options.useContentSecurityPolicy;
-        break;
-      default:
-        reporter.reportErrorMessage(node, MessageKind.GENERIC,
-            {'text': 'Error: Unknown internal flag "$name".'});
+    bool value = getFlagValue(name);
+    if (value == null) {
+      reporter.reportErrorMessage(node, MessageKind.GENERIC,
+          {'text': 'Error: Unknown internal flag "$name".'});
+    } else {
+      stack.add(graph.addConstantBool(value, closedWorld));
     }
-    stack.add(graph.addConstantBool(value, closedWorld));
   }
 
   void handleForeignJsGetName(ast.Send node) {
@@ -4118,8 +4113,8 @@ class SsaBuilder extends ast.Visitor
           targetCanThrow: targetCanThrow)
         ..sourceInformation = sourceInformation;
       if (currentInlinedInstantiations.isNotEmpty) {
-        instruction.instantiatedTypes =
-            new List<ResolutionDartType>.from(currentInlinedInstantiations);
+        instruction.instantiatedTypes = new List<ResolutionInterfaceType>.from(
+            currentInlinedInstantiations);
       }
       instruction.sideEffects = closedWorld.getSideEffectsOfElement(element);
     }

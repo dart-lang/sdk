@@ -3,100 +3,80 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
-import 'package:kernel/ast.dart' show DartType, DynamicType, Member;
-import 'package:kernel/class_hierarchy.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, InterfaceType, Member;
 import 'package:kernel/core_types.dart';
 
-/// Data structure for tracking dependencies between fields that require type
-/// inference.
+/// Keeps track of the local state for the type inference that occurs during
+/// compilation of a single method body or top level initializer.
 ///
-/// TODO(paulberry): see if it's possible to make this class more lightweight
-/// by changing the API so that the walker is passed to computeDependencies().
-/// (This should allow us to drop the _typeInferrer field).
-class FieldNode<F> extends dependencyWalker.Node<FieldNode<F>> {
-  final TypeInferrer _typeInferrer;
-
-  final F _field;
-
-  final dependencies = <FieldNode<F>>[];
-
-  FieldNode(this._typeInferrer, this._field);
-
-  @override
-  bool get isEvaluated => _typeInferrer.isFieldInferred(_field);
-
-  @override
-  List<FieldNode<F>> computeDependencies() {
-    return dependencies;
-  }
-}
-
-/// Abstract implementation of type inference which is independent of the
-/// underlying AST representation (but still uses DartType from kernel).
-///
-/// TODO(paulberry): would it make more sense to abstract away the
-/// representation of types as well?
+/// This class abstracts away the representation of the underlying AST using
+/// generic parameters.  TODO(paulberry): would it make more sense to abstract
+/// away the representation of types as well?
 ///
 /// Derived classes should set S, E, V, and F to the class they use to represent
 /// statements, expressions, variable declarations, and field declarations,
 /// respectively.
+///
+/// This class describes the interface for use by clients of type inference
+/// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
 abstract class TypeInferrer<S, E, V, F> {
-  final Instrumentation instrumentation;
-
-  final bool strongMode;
-
-  final fieldNodes = <FieldNode<F>>[];
-
-  CoreTypes coreTypes;
-
-  ClassHierarchy classHierarchy;
+  /// Gets the [TypePromoter] that can be used to perform type promotion within
+  /// this method body or initializer.
+  TypePromoter<E, V> get typePromoter;
 
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
-  String uri;
-
-  /// Indicates whether we are currently performing top level inference.
-  bool isTopLevel = false;
-
-  TypeInferrer(this.instrumentation, this.strongMode);
-
-  /// Cleares the initializer of [field].
-  void clearFieldInitializer(F field);
-
-  /// Creates a [FieldNode] to track dependencies of the given [field].
-  FieldNode<F> createFieldNode(F field);
-
-  /// Gets the declared type of the given [field], or `null` if the type is
-  /// implicit.
-  DartType getFieldDeclaredType(F field);
-
-  /// Gets the list of top level type inference dependencies of the given
-  /// [field].
-  List<FieldNode<F>> getFieldDependencies(F field);
-
-  /// Gets the initializer for the given [field], or `null` if there is no
-  /// initializer.
-  E getFieldInitializer(F field);
+  String get uri;
 
   /// Gets the [FieldNode] corresponding to the given [readTarget], if any.
   FieldNode<F> getFieldNodeForReadTarget(Member readTarget);
 
-  /// Gets the character offset of the declaration of [field] within its
-  /// compilation unit.
-  int getFieldOffset(F field);
-
-  /// Gets the URI of the compilation unit the [field] is declared in.
-  String getFieldUri(F field);
-
-  /// Performs type inference on a method with the given method [body].
+  /// Performs type inference on the given [statement].
   ///
-  /// [uri] is the URI of the file the method is contained in--this is used for
-  /// testing.
-  void inferBody(S body, Uri uri) {
-    this.uri = uri.toString();
-    inferStatement(body);
-  }
+  /// Derived classes should override this method with logic that dispatches on
+  /// the statement type and calls the appropriate specialized "infer" method.
+  void inferStatement(S statement);
+}
+
+/// Derived class containing generic implementations of [TypeInferrer].
+///
+/// This class contains as much of the implementation of type inference as
+/// possible without knowing the identity of the type parameters.  It defers to
+/// abstract methods for everything else.
+abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
+  @override
+  final String uri;
+
+  /// Indicates whether the construct we are currently performing inference for
+  /// is outside of a method body, and hence top level type inference rules
+  /// should apply.
+  final bool isTopLevel = false;
+
+  final CoreTypes coreTypes;
+
+  final bool strongMode;
+
+  final Instrumentation instrumentation;
+
+  /// Context information for the current closure, or `null` if we are not
+  /// inside a closure.
+  _ClosureContext _closureContext;
+
+  TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri)
+      : coreTypes = engine.coreTypes,
+        strongMode = engine.strongMode,
+        instrumentation = engine.instrumentation;
+
+  /// Gets the type promoter that should be used to promote types during
+  /// inference.
+  TypePromoter<E, V> get typePromoter;
+
+  /// Gets the initializer for the given [field], or `null` if there is no
+  /// initializer.
+  E getFieldInitializer(F field);
 
   /// Performs type inference on the given [expression].
   ///
@@ -109,41 +89,77 @@ abstract class TypeInferrer<S, E, V, F> {
   /// the expression type and calls the appropriate specialized "infer" method.
   DartType inferExpression(E expression, DartType typeContext, bool typeNeeded);
 
-  /// Performs type inference on the given [field].
-  void inferField(F field) {
-    var initializer = getFieldInitializer(field);
-    if (initializer != null) {
-      var type = getFieldDeclaredType(field);
-      uri = getFieldUri(field);
-      isTopLevel = true;
-      var inferredType = inferExpression(initializer, type, type == null);
-      if (type == null && strongMode) {
-        instrumentation?.record(
-            'topType',
-            Uri.parse(uri),
-            getFieldOffset(field),
-            new InstrumentationValueForType(inferredType));
-        setFieldInferredType(field, inferredType);
+  /// Performs the core type inference algorithm for expression statements.
+  void inferExpressionStatement(E expression) {
+    inferExpression(expression, null, false);
+  }
+
+  /// Performs type inference on the given [field]'s initializer expression.
+  ///
+  /// Derived classes should provide an implementation that calls
+  /// [inferExpression] for the given [field]'s initializer expression.
+  DartType inferFieldInitializer(F field, DartType type, bool typeNeeded);
+
+  /// Performs the core type inference algorithm for function expressions.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [body] is the body of the expression.  [isExpressionFunction] indicates
+  /// whether the function expression was declared using "=>" syntax.  [isAsync]
+  /// and [isGenerator] together indicate whether the function is marked as
+  /// "async", "async*", or "sync*".  [offset] is the character offset of the
+  /// function expression.
+  ///
+  /// [setReturnType] is a callback that will be used to store the return type
+  /// of the function expression.  [getFunctionType] is a callback that will be
+  /// used to query the function expression for its full expression type.
+  DartType inferFunctionExpression(
+      DartType typeContext,
+      bool typeNeeded,
+      S body,
+      bool isExpressionFunction,
+      bool isAsync,
+      bool isGenerator,
+      int offset,
+      void setReturnType(DartType type),
+      DartType getFunctionType()) {
+    // TODO(paulberry): do we also need to visit default parameter values?
+    // TODO(paulberry): infer argument types and type parameters.
+    // TODO(paulberry): full support for generators.
+    // TODO(paulberry): Dart 1.0 rules say we only need to set the function
+    // node's return type if it uses expression syntax.  Does that make sense
+    // for Dart 2.0?
+    bool needToSetReturnType = isExpressionFunction;
+    _ClosureContext oldClosureContext = _closureContext;
+    _closureContext = new _ClosureContext(isAsync, isGenerator);
+    inferStatement(body);
+    DartType inferredReturnType;
+    if (needToSetReturnType || typeNeeded) {
+      inferredReturnType = _closureContext.inferredReturnType;
+      if (isAsync) {
+        inferredReturnType = new InterfaceType(
+            coreTypes.futureClass, <DartType>[inferredReturnType]);
       }
-      // TODO(paulberry): if type != null, then check that the type of the
-      // initializer is assignable to it.
-      // TODO(paulberry): the following is a hack so that outlines don't contain
-      // initializers.  But it means that we rebuild the initializers when doing
-      // a full compile.  There should be a better way.
-      clearFieldInitializer(field);
+    }
+    if (needToSetReturnType) {
+      instrumentation?.record(Uri.parse(uri), offset, 'returnType',
+          new InstrumentationValueForType(inferredReturnType));
+      setReturnType(inferredReturnType);
+    }
+    _closureContext = oldClosureContext;
+    if (typeNeeded) {
+      return getFunctionType();
+    } else {
+      return null;
     }
   }
 
-  /// Makes a note that the given [field] is part of a circularity, so its type
-  /// can't be inferred.
-  void inferFieldCircular(F field) {
-    // TODO(paulberry): report the appropriate error.
-    if (getFieldDeclaredType(field) == null) {
-      var uri = getFieldUri(field);
-      instrumentation?.record('topType', Uri.parse(uri), getFieldOffset(field),
-          const InstrumentationValueLiteral('circular'));
-      setFieldInferredType(field, const DynamicType());
-    }
+  /// Performs the core type inference algorithm for if statements.
+  void inferIfStatement(E condition, S then, S otherwise) {
+    inferExpression(condition, coreTypes.boolClass.rawType, false);
+    inferStatement(then);
+    if (otherwise != null) inferStatement(otherwise);
   }
 
   /// Performs the core type inference algorithm for integer literals.
@@ -154,11 +170,16 @@ abstract class TypeInferrer<S, E, V, F> {
     return typeNeeded ? coreTypes.intClass.rawType : null;
   }
 
-  /// Performs type inference on the given [statement].
+  /// Performs the core type inference algorithm for an "is" expression.
   ///
-  /// Derived classes should override this method with logic that dispatches on
-  /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement(S statement);
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [operand] is the expression appearing to the left of "is".
+  DartType inferIsExpression(DartType typeContext, bool typeNeeded, E operand) {
+    inferExpression(operand, null, false);
+    return typeNeeded ? coreTypes.boolClass.rawType : null;
+  }
 
   /// Performs the core type inference algorithm for static variable getters.
   ///
@@ -185,50 +206,55 @@ abstract class TypeInferrer<S, E, V, F> {
     var inferredType =
         inferExpression(initializer, declaredType, declaredType == null);
     if (strongMode && declaredType == null) {
-      instrumentation?.record('type', Uri.parse(uri), offset,
+      instrumentation?.record(Uri.parse(uri), offset, 'type',
           new InstrumentationValueForType(inferredType));
       setType(inferredType);
     }
   }
 
-  /// Determines if top level type inference has been completed for [field].
-  bool isFieldInferred(F field);
-
-  /// Performs top level type inference for all fields that have been passed to
-  /// [recordField].
-  void performInitializerInference() {
-    for (var fieldNode in fieldNodes) {
-      if (fieldNode.isEvaluated) continue;
-      new _FieldWalker<F>().walk(fieldNode);
-    }
+  DartType inferVariableGet(
+      DartType typeContext,
+      bool typeNeeded,
+      bool mutatedInClosure,
+      TypePromotionFact<V> typePromotionFact,
+      TypePromotionScope typePromotionScope,
+      int offset,
+      DartType declaredType,
+      void setPromotedType(DartType type)) {
+    DartType promotedType = typePromoter.computePromotedType(
+        typePromotionFact, typePromotionScope, mutatedInClosure);
+    instrumentation?.record(
+        Uri.parse(uri),
+        offset,
+        'promotedType',
+        promotedType != null
+            ? new InstrumentationValueForType(promotedType)
+            : const InstrumentationValueLiteral('none'));
+    setPromotedType(promotedType);
+    return typeNeeded
+        ? (promotedType ?? declaredType ?? const DynamicType())
+        : null;
   }
-
-  /// Records that the given [field] will need top level type inference.
-  void recordField(F field) {
-    fieldNodes.add(createFieldNode(field));
-  }
-
-  /// Stores [inferredType] as the inferred type of [field].
-  void setFieldInferredType(F field, DartType inferredType);
 }
 
-/// Subtype of [dependencyWalker.DependencyWalker] which is specialized to
-/// perform top level type inference.
-class _FieldWalker<F> extends dependencyWalker.DependencyWalker<FieldNode<F>> {
-  _FieldWalker();
+/// Keeps track of information about the innermost function or closure being
+/// inferred.
+class _ClosureContext {
+  final bool isAsync;
 
-  @override
-  void evaluate(FieldNode<F> f) {
-    f._typeInferrer.inferField(f._field);
-  }
+  final bool isGenerator;
 
-  @override
-  void evaluateScc(List<FieldNode<F>> scc) {
-    for (var f in scc) {
-      f._typeInferrer.inferFieldCircular(f._field);
+  DartType _inferredReturnType;
+
+  _ClosureContext(this.isAsync, this.isGenerator);
+
+  /// Gets the return type that was inferred for the current closure.
+  get inferredReturnType {
+    if (_inferredReturnType == null) {
+      // No return statement found.
+      // TODO(paulberry): is it correct to infer `dynamic`?
+      return const DynamicType();
     }
-    for (var f in scc) {
-      f._typeInferrer.inferField(f._field);
-    }
+    return _inferredReturnType;
   }
 }

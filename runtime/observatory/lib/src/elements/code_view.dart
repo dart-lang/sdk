@@ -429,7 +429,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     return '$pcent (${tick.exclusiveTicks})';
   }
 
-  void _updateDiasssemblyTable() {
+  void _updateDisassemblyTable() {
     S.Code code = _code as S.Code;
     disassemblyTable.clearRows();
     if (code == null) {
@@ -530,7 +530,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
   }
 
   void _updateDisassembly() {
-    _updateDiasssemblyTable();
+    _updateDisassemblyTable();
     _updateDisassemblyDOMTable();
   }
 

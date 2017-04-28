@@ -19,6 +19,9 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
   /// The source_maps builder we write JavaScript code to.
   final sourceMap = new SourceMapBuilder();
 
+  /// The cache of URIs for paths.
+  final _sourceUrlCache = <String, Object>{};
+
   CompilationUnit unit;
   String sourcePath;
   AstNode _currentTopLevelDeclaration;
@@ -97,10 +100,12 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     if (next.lineNumber == loc.lineNumber + 1) {
       loc = next;
     }
-    var sourceUrl =
-        sourcePath.startsWith('dart:') || sourcePath.startsWith('package:')
-            ? sourcePath
-            : new Uri.file(sourcePath);
+    var sourceUrl = _sourceUrlCache.putIfAbsent(
+        sourcePath,
+        () =>
+            sourcePath.startsWith('dart:') || sourcePath.startsWith('package:')
+                ? sourcePath
+                : new Uri.file(sourcePath));
     sourceMap.addLocation(
         new SourceLocation(offset,
             sourceUrl: sourceUrl,

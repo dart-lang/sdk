@@ -181,15 +181,18 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries) {
     if (_deferredLoadTask.isProgramSplit) {
-      enqueuer.applyImpact(_computeDeferredLoadingImpact());
+      enqueuer.applyImpact(_computeDeferredLoadingImpact(),
+          impactSource: 'deferred load');
     }
-    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
+    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries),
+        impactSource: 'native classes');
     if (mainMethod != null) {
-      enqueuer.applyImpact(_computeMainImpact(mainMethod));
+      enqueuer.applyImpact(_computeMainImpact(mainMethod),
+          impactSource: 'main impact');
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
-    enqueuer.applyImpact(computeHelpersImpact());
+    enqueuer.applyImpact(computeHelpersImpact(), impactSource: 'helpers');
   }
 
   @override
@@ -199,9 +202,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(_customElementsAnalysis.flush());
-    enqueuer.applyImpact(_lookupMapResolutionAnalysis.flush());
-    enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush());
+    enqueuer.applyImpact(_customElementsAnalysis.flush(),
+        impactSource: _customElementsAnalysis);
+    enqueuer.applyImpact(_lookupMapResolutionAnalysis.flush(),
+        impactSource: _lookupMapResolutionAnalysis);
+    enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush(),
+        impactSource: _typeVariableResolutionAnalysis);
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element =

@@ -1679,7 +1679,7 @@ class TypeArguments : public Object {
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 
-  // Returns a formatted list of occuring type arguments with their URI.
+  // Returns a formatted list of occurring type arguments with their URI.
   RawString* EnumerateURIs() const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
@@ -2074,7 +2074,6 @@ class ICData : public Object {
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
-  bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& owner,
@@ -2679,22 +2678,26 @@ class Function : public Object {
   // the other function.
   bool IsSubtypeOf(const Function& other,
                    Error* bound_error,
+                   TrailPtr bound_trail,
                    Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, bound_error, space);
+    return TypeTest(kIsSubtypeOf, other, bound_error, bound_trail, space);
   }
 
   // Returns true if the type of this function is more specific than the type of
   // the other function.
   bool IsMoreSpecificThan(const Function& other,
                           Error* bound_error,
+                          TrailPtr bound_trail,
                           Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
+    return TypeTest(kIsMoreSpecificThan, other, bound_error, bound_trail,
+                    space);
   }
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const Function& other,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   bool IsDispatcherOrImplicitAccessor() const {
@@ -3023,6 +3026,7 @@ class Function : public Object {
                          intptr_t other_parameter_position,
                          const Function& other,
                          Error* bound_error,
+                         TrailPtr bound_trail,
                          Heap::Space space) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
@@ -5804,7 +5808,7 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
-  // Returns a formatted list of occuring types with their URI.
+  // Returns a formatted list of occurring types with their URI.
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;

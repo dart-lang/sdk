@@ -297,6 +297,12 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    _overrideChecker.check(node);
+    super.visitClassTypeAlias(node);
+  }
+
+  @override
   void visitComment(Comment node) {
     // skip, no need to do typechecking inside comments (they may contain
     // comment references which would require resolution).
@@ -1114,7 +1120,8 @@ class CodeChecker extends RecursiveAstVisitor {
         n is DoubleLiteral ||
         n is IntegerLiteral ||
         n is StringLiteral ||
-        n is SymbolLiteral) {
+        n is SymbolLiteral ||
+        n is IndexExpression) {
       // Nothing to validate.
     } else if (n is AwaitExpression) {
       _validateTopLevelInitializer(name, n.expression);
@@ -1233,12 +1240,15 @@ class _OverrideChecker {
       : _checker = checker,
         rules = checker.rules;
 
-  void check(ClassDeclaration node) {
-    if (resolutionMap.elementDeclaredByClassDeclaration(node).type.isObject)
+  void check(Declaration node) {
+    var element =
+        resolutionMap.elementDeclaredByDeclaration(node) as ClassElement;
+    if (element.type.isObject) {
       return;
-    _checkSuperOverrides(node);
-    _checkMixinApplicationOverrides(node);
-    _checkAllInterfaceOverrides(node);
+    }
+    _checkSuperOverrides(node, element);
+    _checkMixinApplicationOverrides(node, element);
+    _checkAllInterfaceOverrides(node, element);
   }
 
   /// Checks that implementations correctly override all reachable interfaces.
@@ -1256,7 +1266,7 @@ class _OverrideChecker {
   ///     E against H and I // no check against G because B is a concrete class
   ///     F against H and I
   ///     A against H and I
-  void _checkAllInterfaceOverrides(ClassDeclaration node) {
+  void _checkAllInterfaceOverrides(Declaration node, ClassElement element) {
     var seen = new Set<String>();
     // Helper function to collect all reachable interfaces.
     find(InterfaceType interfaceType, Set result) {
@@ -1271,10 +1281,10 @@ class _OverrideChecker {
     // Check all interfaces reachable from the `implements` clause in the
     // current class against definitions here and in superclasses.
     var localInterfaces = new Set<InterfaceType>();
-    var type = resolutionMap.elementDeclaredByClassDeclaration(node).type;
+    var type = element.type;
     type.interfaces.forEach((i) => find(i, localInterfaces));
-    _checkInterfacesOverrides(node, localInterfaces, seen,
-        includeParents: true);
+    _checkInterfacesOverrides(type, localInterfaces, seen,
+        includeParents: true, classNode: node);
 
     // Check also how we override locally the interfaces from parent classes if
     // the parent class is abstract. Otherwise, these will be checked as
@@ -1288,8 +1298,8 @@ class _OverrideChecker {
       parent.interfaces.forEach((i) => find(i, superInterfaces));
       parent = parent.superclass;
     }
-    _checkInterfacesOverrides(node, superInterfaces, seen,
-        includeParents: false);
+    _checkInterfacesOverrides(type, superInterfaces, seen,
+        includeParents: false, classNode: node);
   }
 
   /// Check that individual methods and fields in [node] correctly override
@@ -1297,9 +1307,9 @@ class _OverrideChecker {
   ///
   /// The [errorLocation] node indicates where errors are reported, see
   /// [_checkSingleOverride] for more details.
-  _checkIndividualOverridesFromClass(ClassDeclaration node,
-      InterfaceType baseType, Set<String> seen, bool isSubclass) {
-    for (var member in node.members) {
+  _checkIndividualOverridesFromClass(Declaration node, InterfaceType baseType,
+      Set<String> seen, bool isSubclass) {
+    for (var member in _classMembers(node)) {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           continue;
@@ -1379,15 +1389,11 @@ class _OverrideChecker {
   /// [ClassDeclaration]s errors are reported on the member that contains the
   /// invalid override, for [InterfaceType]s we use [errorLocation] instead.
   void _checkInterfacesOverrides(
-      cls, Iterable<InterfaceType> interfaces, Set<String> seen,
+      InterfaceType type, Iterable<InterfaceType> interfaces, Set<String> seen,
       {Set<InterfaceType> visited,
       bool includeParents: true,
-      AstNode errorLocation}) {
-    var node = cls is ClassDeclaration ? cls : null;
-    var type = cls is InterfaceType
-        ? cls
-        : resolutionMap.elementDeclaredByClassDeclaration(node).type;
-
+      AstNode errorLocation,
+      Declaration classNode}) {
     if (visited == null) {
       visited = new Set<InterfaceType>();
     } else if (visited.contains(type)) {
@@ -1399,8 +1405,9 @@ class _OverrideChecker {
 
     // Check direct overrides on [type]
     for (var interfaceType in interfaces) {
-      if (node != null) {
-        _checkIndividualOverridesFromClass(node, interfaceType, seen, false);
+      if (classNode != null) {
+        _checkIndividualOverridesFromClass(
+            classNode, interfaceType, seen, false);
       } else {
         _checkIndividualOverridesFromType(
             type, interfaceType, errorLocation, seen, false);
@@ -1409,7 +1416,7 @@ class _OverrideChecker {
 
     // Check overrides from its mixins
     for (int i = 0; i < type.mixins.length; i++) {
-      var loc = errorLocation ?? node.withClause.mixinTypes[i];
+      var loc = errorLocation ?? _withClause(classNode).mixinTypes[i];
       for (var interfaceType in interfaces) {
         // We copy [seen] so we can report separately if more than one mixin or
         // the base class have an invalid override.
@@ -1424,7 +1431,7 @@ class _OverrideChecker {
       if (parent.isObject) {
         return;
       }
-      var loc = errorLocation ?? node.extendsClause;
+      var loc = errorLocation ?? _extendsErrorLocation(classNode);
       // No need to copy [seen] here because we made copies above when reporting
       // errors on mixins.
       _checkInterfacesOverrides(parent, interfaces, seen,
@@ -1440,8 +1447,8 @@ class _OverrideChecker {
   ///
   ///      B & E against B (equivalently how E overrides B)
   ///      B & E & F against B & E (equivalently how F overrides both B and E)
-  void _checkMixinApplicationOverrides(ClassDeclaration node) {
-    var type = resolutionMap.elementDeclaredByClassDeclaration(node).type;
+  void _checkMixinApplicationOverrides(Declaration node, ClassElement element) {
+    var type = element.type;
     var parent = type.superclass;
     var mixins = type.mixins;
 
@@ -1449,7 +1456,7 @@ class _OverrideChecker {
     for (int i = 0; i < mixins.length; i++) {
       var seen = new Set<String>();
       var current = mixins[i];
-      var errorLocation = node.withClause.mixinTypes[i];
+      var errorLocation = _withClause(node).mixinTypes[i];
       for (int j = i - 1; j >= 0; j--) {
         _checkIndividualOverridesFromType(
             current, mixins[j], errorLocation, seen, true);
@@ -1512,9 +1519,11 @@ class _OverrideChecker {
     }
     if (!rules.isOverrideSubtypeOf(subType, baseType)) {
       ErrorCode errorCode;
-      if (errorLocation is ExtendsClause) {
+      var parent = errorLocation?.parent;
+      if (errorLocation is ExtendsClause ||
+          parent is ClassTypeAlias && parent.superclass == errorLocation) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;
-      } else if (errorLocation.parent is WithClause) {
+      } else if (parent is WithClause) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN;
       } else {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE;
@@ -1558,9 +1567,9 @@ class _OverrideChecker {
   ///     class Test extends Parent {
   ///         m(B a) {} // invalid override
   ///     }
-  void _checkSuperOverrides(ClassDeclaration node) {
+  void _checkSuperOverrides(Declaration node, ClassElement element) {
     var seen = new Set<String>();
-    var current = resolutionMap.elementDeclaredByClassDeclaration(node).type;
+    var current = element.type;
     var visited = new Set<InterfaceType>();
     do {
       visited.add(current);
@@ -1569,5 +1578,27 @@ class _OverrideChecker {
       _checkIndividualOverridesFromClass(node, current.superclass, seen, true);
       current = current.superclass;
     } while (!current.isObject && !visited.contains(current));
+  }
+
+  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
+  /// a [ClassTypeAlias] this returns an empty list.
+  Iterable<ClassMember> _classMembers(Declaration node) {
+    return node is ClassDeclaration ? node.members : [];
+  }
+
+  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
+  /// a [ClassTypeAlias] this returns an empty list.
+  WithClause _withClause(Declaration node) {
+    return node is ClassDeclaration
+        ? node.withClause
+        : (node as ClassTypeAlias).withClause;
+  }
+
+  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
+  /// a [ClassTypeAlias] this returns an empty list.
+  AstNode _extendsErrorLocation(Declaration node) {
+    return node is ClassDeclaration
+        ? node.extendsClause
+        : (node as ClassTypeAlias).superclass;
   }
 }

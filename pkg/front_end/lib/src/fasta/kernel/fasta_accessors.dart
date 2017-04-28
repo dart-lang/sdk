@@ -6,7 +6,16 @@ library fasta.fasta_accessors;
 
 export 'frontend_accessors.dart' show wrapInvalid;
 
+import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
+
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+
 import 'frontend_accessors.dart' show Accessor, buildIsNull, makeLet;
+
+import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
+
+import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
+    show TypePromoter;
 
 import 'package:kernel/ast.dart';
 
@@ -35,6 +44,12 @@ import '../names.dart' show callName;
 abstract class BuilderHelper {
   Uri get uri;
 
+  TypePromoter get typePromoter;
+
+  int get functionNestingLevel;
+
+  AstFactory get astFactory;
+
   Constructor lookupConstructor(Name name, {bool isSuper});
 
   Expression toSuperMethodInvocation(MethodInvocation node);
@@ -43,7 +58,7 @@ abstract class BuilderHelper {
 
   Member lookupSuperMember(Name name, {bool isSetter: false});
 
-  scopeLookup(Scope scope, String name, int offset,
+  scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
   finishSend(Object receiver, Arguments arguments, int offset);
@@ -71,7 +86,7 @@ abstract class BuilderHelper {
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
 
-  StaticGet makeStaticGet(Member readTarget, int offset);
+  StaticGet makeStaticGet(Member readTarget, Token token);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -89,6 +104,7 @@ abstract class FastaAccessor implements Accessor {
 
   Initializer buildFieldInitializer(
       Map<String, FieldInitializer> initializers) {
+    int offset = offsetForToken(token);
     return helper.buildInvalidIntializer(
         helper.buildCompileTimeError(
             // TODO(ahe): This error message is really bad.
@@ -112,11 +128,11 @@ abstract class FastaAccessor implements Accessor {
   /* Expression | FastaAccessor */ buildPropertyAccess(
       IncompleteSend send, bool isNullAware) {
     if (send is SendAccessor) {
-      return buildMethodInvocation(
-          buildSimpleRead(), send.name, send.arguments, send.offset,
+      return buildMethodInvocation(buildSimpleRead(), send.name, send.arguments,
+          offsetForToken(send.token),
           isNullAware: isNullAware);
     } else {
-      return PropertyAccessor.make(helper, send.offset, buildSimpleRead(),
+      return PropertyAccessor.make(helper, send.token, buildSimpleRead(),
           send.name, null, null, isNullAware);
     }
   }
@@ -128,8 +144,8 @@ abstract class FastaAccessor implements Accessor {
       bool isSetter: false,
       String name,
       int offset}) {
-    return helper.throwNoSuchMethodError(
-        name ?? plainNameForWrite, arguments, offset ?? this.offset,
+    return helper.throwNoSuchMethodError(name ?? plainNameForWrite, arguments,
+        offset ?? offsetForToken(this.token),
         isGetter: isGetter, isSetter: isSetter, isSuper: isSuper);
   }
 
@@ -245,13 +261,13 @@ abstract class ErrorAccessor implements FastaAccessor {
 class ThisAccessor extends FastaAccessor {
   final BuilderHelper helper;
 
-  final int offset;
+  final Token token;
 
   final bool isInitializer;
 
   final bool isSuper;
 
-  ThisAccessor(this.helper, this.offset, this.isInitializer,
+  ThisAccessor(this.helper, this.token, this.isInitializer,
       {this.isSuper: false});
 
   @override
@@ -277,13 +293,14 @@ class ThisAccessor extends FastaAccessor {
       return new ThisExpression();
     } else {
       return helper.buildCompileTimeError(
-          "Can't use `super` as an expression.", offset);
+          "Can't use `super` as an expression.", offsetForToken(token));
     }
   }
 
   Initializer buildFieldInitializer(
       Map<String, FieldInitializer> initializers) {
     String keyword = isSuper ? "super" : "this";
+    int offset = offsetForToken(token);
     return helper.buildInvalidIntializer(
         helper.buildCompileTimeError(
             "Can't use '$keyword' here, did you mean '$keyword()'?", offset),
@@ -293,23 +310,23 @@ class ThisAccessor extends FastaAccessor {
   buildPropertyAccess(IncompleteSend send, bool isNullAware) {
     if (isInitializer && send is SendAccessor) {
       return buildConstructorInitializer(
-          send.offset, send.name, send.arguments);
+          offsetForToken(send.token), send.name, send.arguments);
     }
     if (send is SendAccessor) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
-      MethodInvocation result = buildMethodInvocation(
-          new ThisExpression(), send.name, send.arguments, offset);
+      MethodInvocation result = buildMethodInvocation(new ThisExpression(),
+          send.name, send.arguments, offsetForToken(token));
       return isSuper ? helper.toSuperMethodInvocation(result) : result;
     } else {
       if (isSuper) {
         Member getter = helper.lookupSuperMember(send.name);
         Member setter = helper.lookupSuperMember(send.name, isSetter: true);
         return new SuperPropertyAccessor(
-            helper, send.offset, send.name, getter, setter);
+            helper, send.token, send.name, getter, setter);
       } else {
         return new ThisPropertyAccessor(
-            helper, send.offset, send.name, null, null);
+            helper, send.token, send.name, null, null);
       }
     }
   }
@@ -373,21 +390,24 @@ class ThisAccessor extends FastaAccessor {
   Expression buildAssignmentError() {
     String message =
         isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
-    return helper.buildCompileTimeError(message, offset);
+    return helper.buildCompileTimeError(message, offsetForToken(token));
   }
 
-  toString() => "ThisAccessor($offset${isSuper ? ', super' : ''})";
+  toString() {
+    int offset = offsetForToken(token);
+    return "ThisAccessor($offset${isSuper ? ', super' : ''})";
+  }
 }
 
 abstract class IncompleteSend extends FastaAccessor {
   final BuilderHelper helper;
 
   @override
-  final int offset;
+  final Token token;
 
   final Name name;
 
-  IncompleteSend(this.helper, this.offset, this.name);
+  IncompleteSend(this.helper, this.token, this.name);
 
   @override
   Expression get builtBinary => internalError("Unsupported operation.");
@@ -411,13 +431,14 @@ abstract class IncompleteSend extends FastaAccessor {
 class IncompleteError extends IncompleteSend with ErrorAccessor {
   final Object error;
 
-  IncompleteError(BuilderHelper helper, int offset, this.error)
-      : super(helper, offset, null);
+  IncompleteError(BuilderHelper helper, Token token, this.error)
+      : super(helper, token, null);
 
   @override
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
-    return helper.buildCompileTimeError(error, offset ?? this.offset);
+    return helper.buildCompileTimeError(
+        error, offset ?? offsetForToken(this.token));
   }
 
   @override
@@ -427,8 +448,8 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
 class SendAccessor extends IncompleteSend {
   final Arguments arguments;
 
-  SendAccessor(BuilderHelper helper, int offset, Name name, this.arguments)
-      : super(helper, offset, name) {
+  SendAccessor(BuilderHelper helper, Token token, Name name, this.arguments)
+      : super(helper, token, name) {
     assert(arguments != null);
   }
 
@@ -453,36 +474,41 @@ class SendAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
-      receiver = helper.scopeLookup(prefix.exports, name.name, offset,
+      receiver = helper.scopeLookup(prefix.exports, name.name, token,
           isQualified: true, prefix: prefix);
-      return helper.finishSend(receiver, arguments, offset);
+      return helper.finishSend(receiver, arguments, offsetForToken(token));
     }
     Expression result;
     if (receiver is KernelClassBuilder) {
-      Builder builder = receiver.findStaticBuilder(name.name, offset, uri);
+      Builder builder =
+          receiver.findStaticBuilder(name.name, offsetForToken(token), uri);
       if (builder == null || builder is AccessErrorBuilder) {
         return buildThrowNoSuchMethodError(arguments);
       }
       if (builder.hasProblem) {
-        result = helper.buildProblemExpression(builder, offset);
+        result = helper.buildProblemExpression(builder, offsetForToken(token));
       } else {
         Member target = builder.target;
         if (target != null) {
           if (target is Field) {
-            result = buildMethodInvocation(new StaticGet(target), callName,
-                arguments, offset + (target.name?.name?.length ?? 0),
+            result = buildMethodInvocation(
+                new StaticGet(target),
+                callName,
+                arguments,
+                offsetForToken(token) + (target.name?.name?.length ?? 0),
                 isNullAware: isNullAware);
           } else {
             result = helper.buildStaticInvocation(target, arguments)
-              ..fileOffset = offset;
+              ..fileOffset = offsetForToken(token);
           }
         } else {
-          result = buildThrowNoSuchMethodError(arguments)..fileOffset = offset;
+          result = buildThrowNoSuchMethodError(arguments)
+            ..fileOffset = offsetForToken(token);
         }
       }
     } else {
       result = buildMethodInvocation(
-          helper.toValue(receiver), name, arguments, offset,
+          helper.toValue(receiver), name, arguments, offsetForToken(token),
           isNullAware: isNullAware);
     }
     return result;
@@ -512,12 +538,15 @@ class SendAccessor extends IncompleteSend {
     return internalError("Unhandled");
   }
 
-  toString() => "SendAccessor($offset, $name, $arguments)";
+  toString() {
+    int offset = offsetForToken(token);
+    return "SendAccessor($offset, $name, $arguments)";
+  }
 }
 
 class IncompletePropertyAccessor extends IncompleteSend {
-  IncompletePropertyAccessor(BuilderHelper helper, int offset, Name name)
-      : super(helper, offset, name);
+  IncompletePropertyAccessor(BuilderHelper helper, Token token, Name name)
+      : super(helper, token, name);
 
   String get plainNameForRead => name.name;
 
@@ -539,11 +568,12 @@ class IncompletePropertyAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
-      return helper.scopeLookup(prefix.exports, name.name, offset,
+      return helper.scopeLookup(prefix.exports, name.name, token,
           isQualified: true, prefix: prefix);
     }
     if (receiver is KernelClassBuilder) {
-      Builder builder = receiver.findStaticBuilder(name.name, offset, uri);
+      Builder builder =
+          receiver.findStaticBuilder(name.name, offsetForToken(token), uri);
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
         return buildThrowNoSuchMethodError(new Arguments.empty(),
@@ -553,15 +583,16 @@ class IncompletePropertyAccessor extends IncompleteSend {
       if (builder.isSetter) {
         setter = builder;
       } else if (builder.isGetter) {
-        setter =
-            receiver.findStaticBuilder(name.name, offset, uri, isSetter: true);
+        setter = receiver.findStaticBuilder(
+            name.name, offsetForToken(token), uri,
+            isSetter: true);
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      return new StaticAccessor.fromBuilder(helper, builder, offset, setter);
+      return new StaticAccessor.fromBuilder(helper, builder, token, setter);
     }
-    return PropertyAccessor.make(helper, offset, helper.toValue(receiver), name,
-        null, null, isNullAware);
+    return PropertyAccessor.make(
+        helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
@@ -588,15 +619,18 @@ class IncompletePropertyAccessor extends IncompleteSend {
     return internalError("Unhandled");
   }
 
-  toString() => "IncompletePropertyAccessor($offset, $name)";
+  toString() {
+    int offset = offsetForToken(token);
+    return "IncompletePropertyAccessor($offset, $name)";
+  }
 }
 
 class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
   final BuilderHelper helper;
 
-  IndexAccessor.internal(this.helper, int offset, Expression receiver,
+  IndexAccessor.internal(this.helper, Token token, Expression receiver,
       Expression index, Procedure getter, Procedure setter)
-      : super.internal(receiver, index, getter, setter, offset);
+      : super.internal(receiver, index, getter, setter, token);
 
   String get plainNameForRead => "[]";
 
@@ -611,16 +645,16 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   static FastaAccessor make(
       BuilderHelper helper,
-      int offset,
+      Token token,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter) {
     if (receiver is ThisExpression) {
-      return new ThisIndexAccessor(helper, offset, index, getter, setter);
+      return new ThisIndexAccessor(helper, token, index, getter, setter);
     } else {
       return new IndexAccessor.internal(
-          helper, offset, receiver, index, getter, setter);
+          helper, token, receiver, index, getter, setter);
     }
   }
 }
@@ -628,9 +662,9 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
   final BuilderHelper helper;
 
-  PropertyAccessor.internal(this.helper, int offset, Expression receiver,
+  PropertyAccessor.internal(this.helper, Token token, Expression receiver,
       Name name, Member getter, Member setter)
-      : super.internal(receiver, name, getter, setter, offset);
+      : super.internal(receiver, name, getter, setter, token);
 
   String get plainNameForRead => name.name;
 
@@ -644,33 +678,33 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 
   static FastaAccessor make(
       BuilderHelper helper,
-      int offset,
+      Token token,
       Expression receiver,
       Name name,
       Member getter,
       Member setter,
       bool isNullAware) {
     if (receiver is ThisExpression) {
-      return new ThisPropertyAccessor(helper, offset, name, getter, setter);
+      return new ThisPropertyAccessor(helper, token, name, getter, setter);
     } else {
       return isNullAware
           ? new NullAwarePropertyAccessor(
-              helper, offset, receiver, name, getter, setter, null)
+              helper, token, receiver, name, getter, setter, null)
           : new PropertyAccessor.internal(
-              helper, offset, receiver, name, getter, setter);
+              helper, token, receiver, name, getter, setter);
     }
   }
 }
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   StaticAccessor(
-      BuilderHelper helper, int offset, Member readTarget, Member writeTarget)
-      : super(helper, readTarget, writeTarget, offset) {
+      BuilderHelper helper, Token token, Member readTarget, Member writeTarget)
+      : super(helper, readTarget, writeTarget, token) {
     assert(readTarget != null || writeTarget != null);
   }
 
   factory StaticAccessor.fromBuilder(BuilderHelper helper, Builder builder,
-      int offset, Builder builderSetter) {
+      Token token, Builder builderSetter) {
     if (builder is AccessErrorBuilder) {
       AccessErrorBuilder error = builder;
       builder = error.builder;
@@ -687,7 +721,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
         setter = builderSetter.target;
       }
     }
-    return new StaticAccessor(helper, offset, getter, setter);
+    return new StaticAccessor(helper, token, getter, setter);
   }
 
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
@@ -710,8 +744,8 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
   final BuilderHelper helper;
 
   SuperPropertyAccessor(
-      this.helper, int offset, Name name, Member getter, Member setter)
-      : super(name, getter, setter, offset);
+      this.helper, Token token, Name name, Member getter, Member setter)
+      : super(name, getter, setter, token);
 
   String get plainNameForRead => name.name;
 
@@ -731,9 +765,9 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
 class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
   final BuilderHelper helper;
 
-  ThisIndexAccessor(this.helper, int offset, Expression index, Procedure getter,
-      Procedure setter)
-      : super(index, getter, setter, offset);
+  ThisIndexAccessor(this.helper, Token token, Expression index,
+      Procedure getter, Procedure setter)
+      : super(index, getter, setter, token);
 
   String get plainNameForRead => "[]";
 
@@ -751,8 +785,8 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
   final BuilderHelper helper;
 
   SuperIndexAccessor(
-      this.helper, int offset, Expression index, Member getter, Member setter)
-      : super(index, getter, setter, offset);
+      this.helper, Token token, Expression index, Member getter, Member setter)
+      : super(index, getter, setter, token);
 
   String get plainNameForRead => "[]";
 
@@ -771,8 +805,8 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
   final BuilderHelper helper;
 
   ThisPropertyAccessor(
-      this.helper, int offset, Name name, Member getter, Member setter)
-      : super(name, getter, setter, offset);
+      this.helper, Token token, Name name, Member getter, Member setter)
+      : super(name, getter, setter, token);
 
   String get plainNameForRead => name.name;
 
@@ -795,9 +829,9 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
     with FastaAccessor {
   final BuilderHelper helper;
 
-  NullAwarePropertyAccessor(this.helper, int offset, Expression receiver,
+  NullAwarePropertyAccessor(this.helper, Token token, Expression receiver,
       Name name, Member getter, Member setter, DartType type)
-      : super(receiver, name, getter, setter, type, offset);
+      : super(receiver, name, getter, setter, type, token);
 
   String get plainNameForRead => name.name;
 
@@ -809,11 +843,12 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
 }
 
 class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
+  @override
   final BuilderHelper helper;
 
-  VariableAccessor(this.helper, int offset, VariableDeclaration variable,
+  VariableAccessor(this.helper, Token token, VariableDeclaration variable,
       [DartType promotedType])
-      : super(variable, promotedType, offset);
+      : super(variable, promotedType, token);
 
   String get plainNameForRead => variable.name;
 
@@ -833,8 +868,8 @@ class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
   final String plainNameForRead;
 
   ReadOnlyAccessor(
-      this.helper, Expression expression, this.plainNameForRead, int offset)
-      : super(expression, offset);
+      this.helper, Expression expression, this.plainNameForRead, Token token)
+      : super(expression, token);
 
   Expression doInvocation(int offset, Arguments arguments) {
     return buildMethodInvocation(
@@ -844,18 +879,18 @@ class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
 
 class ParenthesizedExpression extends ReadOnlyAccessor {
   ParenthesizedExpression(
-      BuilderHelper helper, Expression expression, int offset)
-      : super(helper, expression, "<a parenthesized expression>", offset);
+      BuilderHelper helper, Expression expression, Token token)
+      : super(helper, expression, "<a parenthesized expression>", token);
 
   Expression makeInvalidWrite(Expression value) {
     return helper.buildCompileTimeError(
-        "Can't assign to a parenthesized expression.", offset);
+        "Can't assign to a parenthesized expression.", offsetForToken(token));
   }
 }
 
 class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
   @override
-  final int offset;
+  final Token token;
 
   @override
   final BuilderHelper helper;
@@ -863,7 +898,7 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
   @override
   final Name name;
 
-  UnresolvedAccessor(this.helper, this.name, this.offset);
+  UnresolvedAccessor(this.helper, this.name, this.token);
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     return buildError(arguments, offset: charOffset);
@@ -873,7 +908,7 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     return helper.throwNoSuchMethodError(
-        plainNameForRead, arguments, offset ?? this.offset,
+        plainNameForRead, arguments, offset ?? offsetForToken(this.token),
         isGetter: isGetter, isSetter: isSetter);
   }
 }

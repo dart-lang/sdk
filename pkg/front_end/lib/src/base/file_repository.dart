@@ -32,7 +32,7 @@ class FileRepository {
     }
   }
 
-  /// Return the contents of the file whose arbitary path is [path].
+  /// Return the contents of the file whose arbitrary path is [path].
   ///
   /// The path must have been returned by a previous call to [store] or
   /// [pathForUri].

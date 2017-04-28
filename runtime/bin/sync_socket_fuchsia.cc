@@ -12,18 +12,11 @@
 #include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/socket_base.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
-
-SynchronousSocket::SynchronousSocket(intptr_t fd) : fd_(fd) {}
-
-
-void SynchronousSocket::SetClosedFd() {
-  fd_ = kClosedFd;
-}
-
 
 bool SynchronousSocket::Initialize() {
   // Nothing to do on Fuchsia.
@@ -63,6 +56,35 @@ intptr_t SynchronousSocket::CreateConnect(const RawAddr& addr) {
 }
 
 
+intptr_t SynchronousSocket::Available(intptr_t fd) {
+  return SocketBase::Available(fd);
+}
+
+
+intptr_t SynchronousSocket::GetPort(intptr_t fd) {
+  return SocketBase::GetPort(fd);
+}
+
+
+SocketAddress* SynchronousSocket::GetRemotePeer(intptr_t fd, intptr_t* port) {
+  return SocketBase::GetRemotePeer(fd, port);
+}
+
+
+intptr_t SynchronousSocket::Read(intptr_t fd,
+                                 void* buffer,
+                                 intptr_t num_bytes) {
+  return SocketBase::Read(fd, buffer, num_bytes, SocketBase::kSync);
+}
+
+
+intptr_t SynchronousSocket::Write(intptr_t fd,
+                                  const void* buffer,
+                                  intptr_t num_bytes) {
+  return SocketBase::Write(fd, buffer, num_bytes, SocketBase::kSync);
+}
+
+
 void SynchronousSocket::ShutdownRead(intptr_t fd) {
   VOID_NO_RETRY_EXPECTED(shutdown(fd, SHUT_RD));
 }
@@ -70,6 +92,11 @@ void SynchronousSocket::ShutdownRead(intptr_t fd) {
 
 void SynchronousSocket::ShutdownWrite(intptr_t fd) {
   VOID_NO_RETRY_EXPECTED(shutdown(fd, SHUT_WR));
+}
+
+
+void SynchronousSocket::Close(intptr_t fd) {
+  return SocketBase::Close(fd);
 }
 
 }  // namespace bin

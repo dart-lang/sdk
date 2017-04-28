@@ -784,10 +784,134 @@ abstract class ResolutionWorldBuilderBase
     _StaticMemberUsage usage = _staticMemberUsage[member];
     return usage != null && usage.hasUse;
   }
+
+  bool checkClass(ClassEntity cls);
+  bool validateClass(ClassEntity cls);
+
+  /// Returns the class mixed into [cls] if any.
+  ClassEntity getAppliedMixin(ClassEntity cls);
+
+  /// Returns the hierarchy depth of [cls].
+  int getHierarchyDepth(ClassEntity cls);
+
+  /// Returns `true` if [cls] implements `Function` either explicitly or through
+  /// a `call` method.
+  bool implementsFunction(ClassEntity cls);
+
+  /// Returns the superclass of [cls] if any.
+  ClassEntity getSuperClass(ClassEntity cls);
+
+  /// Returns all supertypes of [cls].
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls);
+
+  ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
+    assert(checkClass(cls));
+    return _classHierarchyNodes.putIfAbsent(cls, () {
+      ClassHierarchyNode parentNode;
+      ClassEntity superclass = getSuperClass(cls);
+      if (superclass != null) {
+        parentNode = _ensureClassHierarchyNode(superclass);
+      }
+      return new ClassHierarchyNode(parentNode, cls, getHierarchyDepth(cls));
+    });
+  }
+
+  ClassSet _ensureClassSet(ClassEntity cls) {
+    assert(checkClass(cls));
+    return _classSets.putIfAbsent(cls, () {
+      ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+      ClassSet classSet = new ClassSet(node);
+
+      for (InterfaceType type in getSupertypes(cls)) {
+        // TODO(johnniwinther): Optimization: Avoid adding [cls] to
+        // superclasses.
+        ClassSet subtypeSet = _ensureClassSet(type.element);
+        subtypeSet.addSubtype(node);
+      }
+
+      ClassEntity appliedMixin = getAppliedMixin(cls);
+      if (appliedMixin != null) {
+        // TODO(johnniwinther): Store this in the [ClassSet].
+        registerMixinUse(cls, appliedMixin);
+      }
+
+      return classSet;
+    });
+  }
+
+  void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
+    // Ensure that classes implicitly implementing `Function` are in its
+    // subtype set.
+    ClassEntity cls = node.cls;
+    if (cls != _commonElements.functionClass && implementsFunction(cls)) {
+      ClassSet subtypeSet = _ensureClassSet(_commonElements.functionClass);
+      subtypeSet.addSubtype(node);
+    }
+    if (!node.isInstantiated && node.parentNode != null) {
+      _updateSuperClassHierarchyNodeForClass(node.parentNode);
+    }
+  }
+
+  void _updateClassHierarchyNodeForClass(ClassEntity cls,
+      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
+    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+    _updateSuperClassHierarchyNodeForClass(node);
+    if (directlyInstantiated) {
+      node.isDirectlyInstantiated = true;
+    }
+    if (abstractlyInstantiated) {
+      node.isAbstractlyInstantiated = true;
+    }
+  }
+
+  Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        new Map<ClassEntity, Set<ClassEntity>>();
+
+    /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
+    /// properties of the [ClassHierarchyNode] for [cls].
+
+    void addSubtypes(ClassEntity cls, InstantiationInfo info) {
+      if (!info.hasInstantiation) {
+        return;
+      }
+      assert(checkClass(cls));
+      if (!validateClass(cls)) {
+        throw new SpannableAssertionFailure(
+            cls, 'Class "${cls.name}" is not resolved.');
+      }
+
+      _updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
+
+      // Walk through the superclasses, and record the types
+      // implemented by that type on the superclasses.
+      ClassEntity superclass = getSuperClass(cls);
+      while (superclass != null) {
+        Set<ClassEntity> typesImplementedBySubclassesOfCls =
+            typesImplementedBySubclasses.putIfAbsent(
+                superclass, () => new Set<ClassEntity>());
+        for (InterfaceType current in getSupertypes(cls)) {
+          typesImplementedBySubclassesOfCls.add(current.element);
+        }
+        superclass = getSuperClass(superclass);
+      }
+    }
+
+    // Use the [:seenClasses:] set to include non-instantiated
+    // classes: if the superclass of these classes require RTI, then
+    // they also need RTI, so that a constructor passes the type
+    // variables to the super constructor.
+    forEachInstantiatedClass(addSubtypes);
+
+    return typesImplementedBySubclasses;
+  }
 }
 
-class KernelResolutionWorldBuilder extends ResolutionWorldBuilderBase {
-  KernelResolutionWorldBuilder(
+abstract class KernelResolutionWorldBuilderBase
+    extends ResolutionWorldBuilderBase {
+  KernelResolutionWorldBuilderBase(
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       NativeBasicData nativeBasicData,
@@ -796,9 +920,25 @@ class KernelResolutionWorldBuilder extends ResolutionWorldBuilderBase {
             selectorConstraintsStrategy);
 
   @override
-  ClosedWorld closeWorld(DiagnosticReporter reporter) {
+  ClosedWorld closeWorld() {
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        populateHierarchyNodes();
+    _closed = true;
     // TODO(johnniwinther): Implement this.
-    return null;
+    return _closedWorldCache = new KernelClosedWorld(
+        commonElements: _commonElements,
+        // TODO(johnniwinther): Compute these.
+        constantSystem: null,
+        nativeData: null,
+        interceptorData: null,
+        backendUsage: null,
+        resolutionWorldBuilder: this,
+        functionSetBuilder: _allFunctions,
+        allTypedefs: _allTypedefs,
+        mixinUses: _mixinUses,
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        classHierarchyNodes: _classHierarchyNodes,
+        classSets: _classSets);
   }
 
   @override

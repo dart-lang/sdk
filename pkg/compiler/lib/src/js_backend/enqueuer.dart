@@ -10,6 +10,7 @@ import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
+import '../common_elements.dart' show ElementEnvironment;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart' show MemberElement;
@@ -109,8 +110,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
     });
   }
 
-  bool checkNoEnqueuedInvokedInstanceMethods() {
-    return strategy.checkEnqueuerConsistency(this);
+  bool checkNoEnqueuedInvokedInstanceMethods(
+      ElementEnvironment elementEnvironment) {
+    return strategy.checkEnqueuerConsistency(this, elementEnvironment);
   }
 
   void checkClass(ClassEntity cls) {

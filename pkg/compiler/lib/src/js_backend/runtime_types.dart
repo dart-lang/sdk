@@ -236,7 +236,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   }
 }
 
-class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
+class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final Map<ClassElement, Set<ClassElement>> rtiDependencies =
       <ClassElement, Set<ClassElement>>{};
@@ -533,7 +533,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector();
 
-    // We need to add classes occuring in function type arguments, like for
+    // We need to add classes occurring in function type arguments, like for
     // instance 'I' for [: o is C<f> :] where f is [: typedef I f(); :].
     void collectFunctionTypeArguments(Iterable<ResolutionDartType> types) {
       for (ResolutionDartType type in types) {
@@ -579,7 +579,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector();
 
-    // We need to add types occuring in function type arguments, like for
+    // We need to add types occurring in function type arguments, like for
     // instance 'J' for [: (J j) {} is f :] where f is
     // [: typedef void f(I i); :] and 'J' is a subtype of 'I'.
     void collectFunctionTypeArguments(Iterable<ResolutionDartType> types) {
@@ -852,7 +852,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   }
 }
 
-class TypeRepresentationGenerator implements DartTypeVisitor {
+class TypeRepresentationGenerator implements ResolutionDartTypeVisitor {
   final Namer namer;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
@@ -1072,7 +1072,7 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends DartTypeVisitor {
+class ArgumentCollector extends ResolutionDartTypeVisitor {
   final Set<ClassElement> classes = new Set<ClassElement>();
 
   collect(ResolutionDartType type, {bool isTypeArgument: false}) {
@@ -1101,7 +1101,7 @@ class ArgumentCollector extends DartTypeVisitor {
   }
 }
 
-class FunctionArgumentCollector extends DartTypeVisitor {
+class FunctionArgumentCollector extends ResolutionDartTypeVisitor {
   final Set<ClassElement> classes = new Set<ClassElement>();
 
   FunctionArgumentCollector();

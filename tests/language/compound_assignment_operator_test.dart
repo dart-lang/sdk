@@ -1,7 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Tests that lhs of a compound assignement is executed only once.
+// Tests that lhs of a compound assignment is executed only once.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";

@@ -29,14 +29,13 @@ import '../string_validator.dart' show StringValidator;
 import 'package:front_end/src/fasta/scanner.dart'
     show Keyword, BeginGroupToken, ErrorToken, KeywordToken, StringToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
-    show IDENTIFIER_INFO;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/parser.dart'
     show Listener, ParserError, optional;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
+import 'package:front_end/src/scanner/token.dart' show TokenType;
 import 'partial_elements.dart'
     show
         PartialClassElement,
@@ -302,7 +301,7 @@ class ElementListener extends Listener {
     if (name.token is KeywordToken) {
       Keyword keyword = (name.token as KeywordToken).keyword;
       if (!keyword.isPseudo) {
-        recoverableError(name, "Illegal name '${keyword.syntax}'.");
+        recoverableError(name, "Illegal name '${keyword.lexeme}'.");
       }
     }
   }
@@ -773,8 +772,8 @@ class ElementListener extends Listener {
   /// Finds the preceding token via the begin token of the last AST node pushed
   /// on the [nodes] stack.
   Token synthesizeIdentifier(Token token) {
-    Token synthesizedToken = new StringToken.fromString(
-        Precedence.IDENTIFIER_INFO, '?', token.charOffset);
+    Token synthesizedToken =
+        new StringToken.fromString(TokenType.IDENTIFIER, '?', token.charOffset);
     synthesizedToken.next = token.next;
     return synthesizedToken;
   }

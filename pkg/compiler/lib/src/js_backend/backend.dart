@@ -9,8 +9,7 @@ import '../common/backend_api.dart'
     show ForeignResolver, NativeRegistry, ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart'
-    show Frontend, Resolution, ResolutionImpact, Target;
+import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -29,8 +28,8 @@ import '../enqueue.dart'
         Enqueuer,
         EnqueueTask,
         ResolutionEnqueuer,
-        ResolutionWorkItemBuilder,
         TreeShakingEnqueuerStrategy;
+import '../frontend_strategy.dart';
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -110,8 +109,8 @@ class FunctionInlineCache {
   static const int _canInline = 4;
   static const int _mustInline = 5;
 
-  final Map<MethodElement, int> _cachedDecisions =
-      new Map<MethodElement, int>();
+  final Map<FunctionEntity, int> _cachedDecisions =
+      new Map<FunctionEntity, int>();
 
   /// Returns the current cache decision. This should only be used for testing.
   int getCurrentCacheDecisionForTesting(Element element) {
@@ -120,7 +119,7 @@ class FunctionInlineCache {
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
-  bool canInline(MethodElement element, {bool insideLoop}) {
+  bool canInline(FunctionEntity element, {bool insideLoop}) {
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -175,7 +174,7 @@ class FunctionInlineCache {
     return null;
   }
 
-  void markAsInlinable(MethodElement element, {bool insideLoop}) {
+  void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -230,7 +229,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNonInlinable(MethodElement element, {bool insideLoop: true}) {
+  void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -288,7 +287,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsMustInline(MethodElement element) {
+  void markAsMustInline(FunctionEntity element) {
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -308,12 +307,10 @@ class JavaScriptBackend {
 
   final Compiler compiler;
 
-  String get patchVersion => emitter.patchVersion;
-
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
-  final Annotations annotations;
+  final OptimizerHintsForTests annotations;
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
@@ -353,7 +350,7 @@ class JavaScriptBackend {
   /**
    * Set of classes whose `operator ==` methods handle `null` themselves.
    */
-  final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
+  final Set<ClassEntity> specialOperatorEqClasses = new Set<ClassEntity>();
 
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
@@ -363,8 +360,7 @@ class JavaScriptBackend {
     return result;
   }
 
-  final RuntimeTypesNeedBuilder _rtiNeedBuilder =
-      new _RuntimeTypesNeedBuilder();
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   RuntimeTypesNeed _rtiNeed;
   final _RuntimeTypes _rti;
 
@@ -447,9 +443,6 @@ class JavaScriptBackend {
 
   BackendImpacts impacts;
 
-  /// Backend access to the front-end.
-  final JSFrontendAccess frontend;
-
   Target _target;
 
   Tracer tracer;
@@ -485,18 +478,18 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : _rti = new _RuntimeTypes(compiler),
-        annotations = new Annotations(compiler),
+        annotations = new OptimizerHintsForTests(compiler),
         this.sourceInformationStrategy = createSourceInformationStrategy(
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
             useNewSourceInfo: useNewSourceInfo),
-        frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
-        _nativeDataResolver = new NativeDataResolverImpl(compiler) {
+        _nativeDataResolver = new NativeDataResolverImpl(compiler),
+        _rtiNeedBuilder =
+            compiler.frontEndStrategy.createRuntimeTypesNeedBuilder() {
     _target = new JavaScriptBackendTarget(this);
     impacts = new BackendImpacts(compiler.options, commonElements);
-    _mirrorsData = new MirrorsDataImpl(
-        compiler, compiler.options, commonElements, constants);
+    _mirrorsData = compiler.frontEndStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements);
     emitter =
@@ -506,12 +499,12 @@ class JavaScriptBackend {
         compiler.elementEnvironment, impacts, backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
-        new MirrorsResolutionAnalysisImpl(this, compiler.resolution);
+        compiler.frontEndStrategy.createMirrorsResolutionAnalysis(this);
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
-        commonElements, new NoSuchMethodResolverImpl());
+        commonElements, compiler.frontEndStrategy.createNoSuchMethodResolver());
     kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
@@ -732,13 +725,14 @@ class JavaScriptBackend {
   }
 
   void validateInterceptorImplementsAllObjectMethods(
-      ClassElement interceptorClass) {
+      ClassEntity interceptorClass) {
     if (interceptorClass == null) return;
-    interceptorClass.ensureResolved(resolution);
-    ClassElement objectClass = commonElements.objectClass;
-    objectClass.forEachMember((_, Element member) {
-      if (member.isGenerativeConstructor) return;
-      Element interceptorMember = interceptorClass.lookupMember(member.name);
+    ClassEntity objectClass = commonElements.objectClass;
+    compiler.elementEnvironment.forEachClassMember(objectClass,
+        (_, MemberEntity member) {
+      if (member.isConstructor) return;
+      MemberEntity interceptorMember = compiler.elementEnvironment
+          .lookupClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(invariant(interceptorMember,
@@ -750,6 +744,7 @@ class JavaScriptBackend {
     });
   }
 
+  /// Called before processing of the resolution queue is started.
   void onResolutionStart(ResolutionEnqueuer enqueuer) {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
@@ -764,7 +759,14 @@ class JavaScriptBackend {
     validateInterceptorImplementsAllObjectMethods(commonElements.jsNullClass);
   }
 
-  void onResolutionComplete(
+  /// Called when the resolution queue has been closed.
+  void onResolutionEnd() {
+    _backendUsage = backendUsageBuilder.close();
+    _interceptorData = interceptorDataBuilder.onResolutionComplete();
+  }
+
+  /// Called when the closed world from resolution has been computed.
+  void onResolutionClosedWorld(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (MemberEntity entity
         in compiler.enqueuer.resolution.processedEntities) {
@@ -772,7 +774,6 @@ class JavaScriptBackend {
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    _backendUsage = backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         compiler.enqueuer.resolution.worldBuilder,
         closedWorld,
@@ -780,7 +781,6 @@ class JavaScriptBackend {
         commonElements,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, commonElements);
     mirrorsResolutionAnalysis.onResolutionComplete();
@@ -831,15 +831,11 @@ class JavaScriptBackend {
         compiler.elementEnvironment,
         commonElements,
         backendUsageBuilder,
-        new NativeClassResolverImpl(
-            compiler.resolution, reporter, commonElements, nativeBasicData));
+        compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
-    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        nativeBasicData,
-        backendUsageBuilder);
+    _customElementsResolutionAnalysis = compiler.frontEndStrategy
+        .createCustomElementsResolutionAnalysis(
+            nativeBasicData, backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
@@ -878,9 +874,10 @@ class JavaScriptBackend {
             _nativeResolutionEnqueuer,
             compiler.deferredLoadTask,
             kernelTask),
-        new ElementResolutionWorldBuilder(
-            this, compiler.resolution, const OpenWorldStrategy()),
-        new ResolutionWorkItemBuilder(compiler.resolution));
+        compiler.frontEndStrategy.createResolutionWorldBuilder(
+            nativeBasicData, const OpenWorldStrategy()),
+        compiler.frontEndStrategy
+            .createResolutionWorkItemBuilder(impactTransformer));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
@@ -1081,7 +1078,8 @@ class JavaScriptBackend {
   /// been loaded.
   void setAnnotations(LibraryEntity library) {
     if (!compiler.serialization.isDeserialized(library)) {
-      AnnotationProcessor processor = new AnnotationProcessor(compiler);
+      AnnotationProcessor processor =
+          compiler.frontEndStrategy.annotationProcesser;
       if (canLibraryUseNative(library)) {
         processor.extractNativeAnnotations(library, nativeBasicDataBuilder);
       }
@@ -1093,7 +1091,6 @@ class JavaScriptBackend {
     } else if (uri == LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP) {
       lookupMapResolutionAnalysis.init(library);
     }
-    annotations.onLibraryLoaded(library);
   }
 
   /// This method is called when all new libraries loaded through
@@ -1172,7 +1169,7 @@ class JavaScriptBackend {
   bool shouldOutput(Element element) => true;
 
   /// Returns `true` if the `native` pseudo keyword is supported for [library].
-  bool canLibraryUseNative(LibraryElement library) {
+  bool canLibraryUseNative(LibraryEntity library) {
     return native.maybeEnableNative(compiler, library);
   }
 
@@ -1194,20 +1191,22 @@ class JavaScriptBackend {
       return;
     }
 
-    MemberElement implementation = element.implementation;
     if (element.isFunction || element.isConstructor) {
-      if (annotations.noInline(implementation)) {
-        inlineCache.markAsNonInlinable(implementation);
+      MethodElement method = element.implementation;
+      if (annotations.noInline(method)) {
+        inlineCache.markAsNonInlinable(method);
       }
     }
+    if (element.isField) return;
+    MethodElement method = element;
 
-    LibraryElement library = element.library;
+    LibraryElement library = method.library;
     if (!library.isPlatformLibrary && !canLibraryUseNative(library)) return;
     bool hasNoInline = false;
     bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-    for (MetadataAnnotation metadata in element.implementation.metadata) {
+    for (MetadataAnnotation metadata in method.implementation.metadata) {
       metadata.ensureResolved(resolution);
       ConstantValue constantValue =
           compiler.constants.getConstantValue(metadata.constant);
@@ -1218,50 +1217,50 @@ class JavaScriptBackend {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Must inline"});
+              method, MessageKind.GENERIC, {'text': "Must inline"});
         }
-        inlineCache.markAsMustInline(element);
+        inlineCache.markAsMustInline(method);
       } else if (cls == commonElements.noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Cannot inline"});
+              method, MessageKind.GENERIC, {'text': "Cannot inline"});
         }
-        inlineCache.markAsNonInlinable(element);
+        inlineCache.markAsNonInlinable(method);
       } else if (cls == commonElements.noThrowsClass) {
         hasNoThrows = true;
-        if (!Elements.isStaticOrTopLevelFunction(element) &&
-            !element.isFactoryConstructor) {
+        if (!Elements.isStaticOrTopLevelFunction(method) &&
+            !method.isFactoryConstructor) {
           reporter.internalError(
-              element,
+              method,
               "@NoThrows() is currently limited to top-level"
               " or static functions and factory constructors.");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Cannot throw"});
+              method, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        closedWorldRefiner.registerCannotThrow(element);
+        closedWorldRefiner.registerCannotThrow(method);
       } else if (cls == commonElements.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
-              element, MessageKind.GENERIC, {'text': "Has no side effects"});
+              method, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        closedWorldRefiner.registerSideEffectsFree(element);
+        closedWorldRefiner.registerSideEffectsFree(method);
       }
     }
     if (hasForceInline && hasNoInline) {
       reporter.internalError(
-          element, "@ForceInline() must not be used with @NoInline.");
+          method, "@ForceInline() must not be used with @NoInline.");
     }
     if (hasNoThrows && !hasNoInline) {
       reporter.internalError(
-          element, "@NoThrows() should always be combined with @NoInline.");
+          method, "@NoThrows() should always be combined with @NoInline.");
     }
     if (hasNoSideEffects && !hasNoInline) {
-      reporter.internalError(element,
-          "@NoSideEffects() should always be combined with @NoInline.");
+      reporter.internalError(
+          method, "@NoSideEffects() should always be combined with @NoInline.");
     }
   }
 
@@ -1342,19 +1341,6 @@ class JavaScriptBackend {
   }
 
   EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
-}
-
-class JSFrontendAccess implements Frontend {
-  final Compiler compiler;
-
-  JSFrontendAccess(this.compiler);
-
-  Resolution get resolution => compiler.resolution;
-
-  @override
-  ResolutionImpact getResolutionImpact(Element element) {
-    return resolution.getResolutionImpact(element);
-  }
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {

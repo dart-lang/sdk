@@ -205,7 +205,7 @@ class FlowGraph : public ZoneAllocated {
 
   void MergeBlocks();
 
-  // Compute information about effects occuring in different blocks and
+  // Compute information about effects occurring in different blocks and
   // discover side-effect free paths.
   void ComputeBlockEffects();
   BlockEffects* block_effects() const { return block_effects_; }

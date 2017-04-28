@@ -1743,7 +1743,7 @@ UsePosition* AllocationFinger::FirstRegisterBeneficialUse(intptr_t after) {
 UsePosition* AllocationFinger::FirstInterferingUse(intptr_t after) {
   if (IsInstructionEndPosition(after)) {
     // If after is a position at the end of the instruction disregard
-    // any use occuring at it.
+    // any use occurring at it.
     after += 1;
   }
   return FirstRegisterUse(after);

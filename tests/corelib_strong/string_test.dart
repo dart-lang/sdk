@@ -330,7 +330,7 @@ void testContains() {
 void testReplaceAll() {
   Expect.equals("AtoBtoCDtoE", "AfromBfromCDfromE".replaceAll("from", "to"));
 
-  // Test with the replaced string at the begining.
+  // Test with the replaced string at the beginning.
   Expect.equals("toABtoCDtoE", "fromABfromCDfromE".replaceAll("from", "to"));
 
   // Test with the replaced string at the end.

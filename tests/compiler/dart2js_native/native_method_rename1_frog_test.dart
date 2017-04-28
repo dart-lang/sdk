@@ -27,7 +27,7 @@ class B {
 }
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function A(){}
 A.prototype.fooA = function(){return 100;};
 A.prototype.barA = function(){return 200;};

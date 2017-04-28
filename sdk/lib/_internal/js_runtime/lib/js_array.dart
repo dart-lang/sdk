@@ -198,7 +198,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     // to the [test] function. First the elements to retain are found, and then
     // the original list is updated to contain those elements.
 
-    // TODO(sra): Replace this algorthim with one that retains a list of ranges
+    // TODO(sra): Replace this algorithm with one that retains a list of ranges
     // to be removed.  Most real uses remove 0, 1 or a few clustered elements.
 
     List retained = [];
@@ -224,8 +224,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return new WhereIterable<E>(this, f);
   }
 
-  Iterable expand(Iterable f(E element)) {
-    return new ExpandIterable<E, dynamic>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) {
+    return new ExpandIterable<E, T>(this, f);
   }
 
   void addAll(Iterable<E> collection) {
@@ -253,8 +253,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  Iterable map(f(E element)) {
-    return new MappedListIterable(this, f);
+  Iterable<T> map<T>(T f(E element)) {
+    return new MappedListIterable<E, T>(this, f);
   }
 
   String join([String separator = ""]) {
@@ -295,7 +295,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return value;
   }
 
-  fold(var initialValue, combine(var previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {

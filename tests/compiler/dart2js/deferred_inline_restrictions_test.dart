@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that we do not accidentially leak code from deferred libraries but do
+// Test that we do not accidentally leak code from deferred libraries but do
 // allow inlining of empty functions and from main.
 
 import 'package:async_helper/async_helper.dart';

@@ -5,6 +5,10 @@
 /// A library to help transform compounds and null-aware accessors into
 /// let expressions.
 
+import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
+
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+
 import 'package:front_end/src/fasta/kernel/fasta_accessors.dart'
     show BuilderHelper;
 
@@ -27,7 +31,7 @@ final Name indexSetName = new Name("[]=");
 /// [Accessor] object.  Later, after `= b` is parsed, [buildAssignment] will be
 /// called.
 abstract class Accessor {
-  final int offset;
+  final Token token;
 
   // [builtBinary] and [builtGetter] capture the inner nodes. Used by
   // dart2js+rasta for determining how subexpressions map to legacy dart2js Ast
@@ -36,7 +40,7 @@ abstract class Accessor {
   Expression builtBinary;
   Expression builtGetter;
 
-  Accessor(this.offset);
+  Accessor(this.token);
 
   /// Builds an [Expression] representing a read from the accessor.
   Expression buildSimpleRead() {
@@ -141,21 +145,28 @@ abstract class Accessor {
   makeInvalidWrite(Expression value) => wrapInvalid(value);
 }
 
-class VariableAccessor extends Accessor {
+abstract class VariableAccessor extends Accessor {
   VariableDeclaration variable;
   DartType promotedType;
 
-  VariableAccessor(this.variable, this.promotedType, int offset)
-      : super(offset);
+  BuilderHelper get helper;
 
-  Expression _makeRead() =>
-      new VariableGet(variable, promotedType)..fileOffset = offset;
+  VariableAccessor(this.variable, this.promotedType, Token token)
+      : super(token);
+
+  Expression _makeRead() {
+    var fact = helper.typePromoter
+        .getFactForAccess(variable, helper.functionNestingLevel);
+    var scope = helper.typePromoter.currentScope;
+    return helper.astFactory.variableGet(variable, fact, scope, token);
+  }
 
   Expression _makeWrite(Expression value, bool voidContext) {
+    helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
     return variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
         : new VariableSet(variable, value)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 }
 
@@ -167,37 +178,40 @@ class PropertyAccessor extends Accessor {
 
   static Accessor make(
       Expression receiver, Name name, Member getter, Member setter,
-      {int offset: TreeNode.noOffset}) {
+      {Token token}) {
     if (receiver is ThisExpression) {
-      return new ThisPropertyAccessor(name, getter, setter, offset);
+      return new ThisPropertyAccessor(name, getter, setter, token);
     } else {
       return new PropertyAccessor.internal(
-          receiver, name, getter, setter, offset);
+          receiver, name, getter, setter, token);
     }
   }
 
   PropertyAccessor.internal(
-      this.receiver, this.name, this.getter, this.setter, int offset)
-      : super(offset);
+      this.receiver, this.name, this.getter, this.setter, Token token)
+      : super(token);
 
-  Expression _makeSimpleRead() =>
-      new PropertyGet(receiver, name, getter)..fileOffset = offset;
+  Expression _makeSimpleRead() => new PropertyGet(receiver, name, getter)
+    ..fileOffset = offsetForToken(token);
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiver, name, value, setter)..fileOffset = offset;
+    return new PropertySet(receiver, name, value, setter)
+      ..fileOffset = offsetForToken(token);
   }
 
   receiverAccess() {
     _receiverVariable ??= new VariableDeclaration.forValue(receiver);
-    return new VariableGet(_receiverVariable)..fileOffset = offset;
+    return new VariableGet(_receiverVariable)
+      ..fileOffset = offsetForToken(token);
   }
 
-  Expression _makeRead() => builtGetter =
-      new PropertyGet(receiverAccess(), name, getter)..fileOffset = offset;
+  Expression _makeRead() =>
+      builtGetter = new PropertyGet(receiverAccess(), name, getter)
+        ..fileOffset = offsetForToken(token);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(receiverAccess(), name, value, setter)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _finish(Expression body) => makeLet(_receiverVariable, body);
@@ -209,15 +223,16 @@ class ThisPropertyAccessor extends Accessor {
   Name name;
   Member getter, setter;
 
-  ThisPropertyAccessor(this.name, this.getter, this.setter, int offset)
-      : super(offset);
+  ThisPropertyAccessor(this.name, this.getter, this.setter, Token token)
+      : super(token);
 
-  Expression _makeRead() => builtGetter =
-      new PropertyGet(new ThisExpression(), name, getter)..fileOffset = offset;
+  Expression _makeRead() =>
+      builtGetter = new PropertyGet(new ThisExpression(), name, getter)
+        ..fileOffset = offsetForToken(token);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(new ThisExpression(), name, value, setter)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 }
 
@@ -228,9 +243,9 @@ class NullAwarePropertyAccessor extends Accessor {
   DartType type;
 
   NullAwarePropertyAccessor(Expression receiver, this.name, this.getter,
-      this.setter, this.type, int offset)
+      this.setter, this.type, Token token)
       : this.receiver = makeOrReuseVariable(receiver),
-        super(offset);
+        super(token);
 
   receiverAccess() => new VariableGet(receiver);
 
@@ -251,20 +266,21 @@ class SuperPropertyAccessor extends Accessor {
   Name name;
   Member getter, setter;
 
-  SuperPropertyAccessor(this.name, this.getter, this.setter, int offset)
-      : super(offset);
+  SuperPropertyAccessor(this.name, this.getter, this.setter, Token token)
+      : super(token);
 
   Expression _makeRead() {
     if (getter == null) return makeInvalidRead();
     // TODO(ahe): Use [DirectPropertyGet] when possible.
     return builtGetter = new SuperPropertyGet(name, getter)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (setter == null) return makeInvalidWrite(value);
     // TODO(ahe): Use [DirectPropertySet] when possible.
-    return new SuperPropertySet(name, value, setter)..fileOffset = offset;
+    return new SuperPropertySet(name, value, setter)
+      ..fileOffset = offsetForToken(token);
   }
 }
 
@@ -277,53 +293,53 @@ class IndexAccessor extends Accessor {
 
   static Accessor make(
       Expression receiver, Expression index, Procedure getter, Procedure setter,
-      {int offset: TreeNode.noOffset}) {
+      {Token token}) {
     if (receiver is ThisExpression) {
-      return new ThisIndexAccessor(index, getter, setter, offset);
+      return new ThisIndexAccessor(index, getter, setter, token);
     } else {
-      return new IndexAccessor.internal(
-          receiver, index, getter, setter, offset);
+      return new IndexAccessor.internal(receiver, index, getter, setter, token);
     }
   }
 
   IndexAccessor.internal(
-      this.receiver, this.index, this.getter, this.setter, int offset)
-      : super(offset);
+      this.receiver, this.index, this.getter, this.setter, Token token)
+      : super(token);
 
   Expression _makeSimpleRead() => new MethodInvocation(
       receiver, indexGetName, new Arguments(<Expression>[index]), getter)
-    ..fileOffset = offset;
+    ..fileOffset = offsetForToken(token);
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(receiver, indexSetName,
         new Arguments(<Expression>[index, value]), setter)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   receiverAccess() {
     // We cannot reuse the receiver if it is a variable since it might be
     // reassigned in the index expression.
     receiverVariable ??= new VariableDeclaration.forValue(receiver);
-    return new VariableGet(receiverVariable)..fileOffset = offset;
+    return new VariableGet(receiverVariable)
+      ..fileOffset = offsetForToken(token);
   }
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
-    return new VariableGet(indexVariable)..fileOffset = offset;
+    return new VariableGet(indexVariable)..fileOffset = offsetForToken(token);
   }
 
   Expression _makeRead() {
     return builtGetter = new MethodInvocation(receiverAccess(), indexGetName,
         new Arguments(<Expression>[indexAccess()]), getter)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(receiverAccess(), indexSetName,
         new Arguments(<Expression>[indexAccess(), value]), setter)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   // TODO(dmitryas): remove this method after the "[]=" operator of the Context
@@ -338,7 +354,7 @@ class IndexAccessor extends Accessor {
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter)
-      ..fileOffset = offset);
+      ..fileOffset = offsetForToken(token));
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -355,8 +371,8 @@ class ThisIndexAccessor extends Accessor {
   VariableDeclaration indexVariable;
   Procedure getter, setter;
 
-  ThisIndexAccessor(this.index, this.getter, this.setter, int offset)
-      : super(offset);
+  ThisIndexAccessor(this.index, this.getter, this.setter, Token token)
+      : super(token);
 
   Expression _makeSimpleRead() {
     return new MethodInvocation(new ThisExpression(), indexGetName,
@@ -406,8 +422,8 @@ class SuperIndexAccessor extends Accessor {
   VariableDeclaration indexVariable;
   Member getter, setter;
 
-  SuperIndexAccessor(this.index, this.getter, this.setter, int offset)
-      : super(offset);
+  SuperIndexAccessor(this.index, this.getter, this.setter, Token token)
+      : super(token);
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -455,18 +471,18 @@ class StaticAccessor extends Accessor {
   Member readTarget;
   Member writeTarget;
 
-  StaticAccessor(this.helper, this.readTarget, this.writeTarget, int offset)
-      : super(offset);
+  StaticAccessor(this.helper, this.readTarget, this.writeTarget, Token token)
+      : super(token);
 
   Expression _makeRead() => builtGetter = readTarget == null
       ? makeInvalidRead()
-      : helper.makeStaticGet(readTarget, offset);
+      : helper.makeStaticGet(readTarget, token);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
         ? makeInvalidWrite(value)
         : new StaticSet(writeTarget, value)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 }
 
@@ -474,7 +490,7 @@ class ReadOnlyAccessor extends Accessor {
   Expression expression;
   VariableDeclaration value;
 
-  ReadOnlyAccessor(this.expression, int offset) : super(offset);
+  ReadOnlyAccessor(this.expression, Token token) : super(token);
 
   Expression _makeSimpleRead() => expression;
 

@@ -158,17 +158,17 @@ class Modifiers {
  * A parser used to parse tokens into an AST structure.
  */
 class Parser {
-  static String ASYNC = Keyword.ASYNC.syntax;
+  static String ASYNC = Keyword.ASYNC.lexeme;
 
-  static String _AWAIT = Keyword.AWAIT.syntax;
+  static String _AWAIT = Keyword.AWAIT.lexeme;
 
-  static String _HIDE = Keyword.HIDE.syntax;
+  static String _HIDE = Keyword.HIDE.lexeme;
 
-  static String _SHOW = Keyword.SHOW.syntax;
+  static String _SHOW = Keyword.SHOW.lexeme;
 
-  static String SYNC = Keyword.SYNC.syntax;
+  static String SYNC = Keyword.SYNC.lexeme;
 
-  static String _YIELD = Keyword.YIELD.syntax;
+  static String _YIELD = Keyword.YIELD.lexeme;
 
   static const int _MAX_TREE_DEPTH = 300;
 
@@ -391,7 +391,7 @@ class Parser {
    */
   SimpleIdentifier createSyntheticIdentifier({bool isDeclaration: false}) {
     Token syntheticToken;
-    if (_currentToken.type == TokenType.KEYWORD) {
+    if (_currentToken.type.isKeyword) {
       // Consider current keyword token as an identifier.
       // It is not always true, e.g. "^is T" where "^" is place the place for
       // synthetic identifier. By creating SyntheticStringToken we can
@@ -585,7 +585,7 @@ class Parser {
     //     String get getterName
     if (allowAdditionalTokens) {
       if (type == TokenType.CLOSE_CURLY_BRACKET ||
-          type == TokenType.KEYWORD ||
+          type.isKeyword ||
           type == TokenType.IDENTIFIER ||
           type == TokenType.OPEN_CURLY_BRACKET) {
         return true;
@@ -3167,7 +3167,7 @@ class Parser {
       Token star = null;
       bool foundAsync = false;
       bool foundSync = false;
-      if (type == TokenType.KEYWORD) {
+      if (type.isKeyword) {
         String lexeme = _currentToken.lexeme;
         if (lexeme == ASYNC) {
           foundAsync = true;
@@ -4033,8 +4033,7 @@ class Parser {
         }
       }
       return parseBlock();
-    } else if (type == TokenType.KEYWORD &&
-        !_currentToken.keyword.isBuiltInOrPseudo) {
+    } else if (type.isKeyword && !_currentToken.keyword.isBuiltInOrPseudo) {
       Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
@@ -5535,6 +5534,9 @@ class Parser {
     Token next = startToken.next; // Skip 'Function'
     if (_tokenMatches(next, TokenType.LT)) {
       next = skipTypeParameterList(next);
+      if (next == null) {
+        return null;
+      }
     }
     return skipFormalParameterList(next);
   }
@@ -5653,9 +5655,9 @@ class Parser {
     Token next = null;
     if (_atGenericFunctionTypeAfterReturnType(startToken)) {
       next = skipGenericFunctionTypeAfterReturnType(startToken);
-    } else if (_currentToken.keyword == Keyword.VOID &&
-        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
-      next = next.next;
+    } else if (startToken.keyword == Keyword.VOID &&
+        _atGenericFunctionTypeAfterReturnType(startToken.next)) {
+      next = startToken.next;
     } else {
       next = skipTypeName(startToken);
     }
@@ -6011,7 +6013,7 @@ class Parser {
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
     _reportErrorForCurrentToken(
-        ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
+        ParserErrorCode.EXPECTED_TOKEN, [keyword.lexeme]);
     return _currentToken;
   }
 
@@ -6569,7 +6571,7 @@ class Parser {
       withClause = parseWithClause();
     } else {
       _reportErrorForCurrentToken(
-          ParserErrorCode.EXPECTED_TOKEN, [Keyword.WITH.syntax]);
+          ParserErrorCode.EXPECTED_TOKEN, [Keyword.WITH.lexeme]);
     }
     ImplementsClause implementsClause = null;
     if (_matchesKeyword(Keyword.IMPLEMENTS)) {
@@ -7567,7 +7569,7 @@ class Parser {
     // TODO(brianwilkerson) Should this function also return true for valid
     // top-level keywords?
     bool isKeywordAfterUri(Token token) =>
-        token.lexeme == Keyword.AS.syntax ||
+        token.lexeme == Keyword.AS.lexeme ||
         token.lexeme == _HIDE ||
         token.lexeme == _SHOW;
     TokenType type = _currentToken.type;
@@ -8082,8 +8084,7 @@ class Parser {
    * Return `true` if the given [token] is either an identifier or a keyword.
    */
   bool _tokenMatchesIdentifierOrKeyword(Token token) =>
-      _tokenMatches(token, TokenType.IDENTIFIER) ||
-      _tokenMatches(token, TokenType.KEYWORD);
+      _tokenMatches(token, TokenType.IDENTIFIER) || token.type.isKeyword;
 
   /**
    * Return `true` if the given [token] matches the given [keyword].

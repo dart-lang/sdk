@@ -463,33 +463,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes(node);
-      ExtendsClause extendsClause = node.extendsClause;
+      TypeName superclass = node.extendsClause?.superclass;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
+
       // Only do error checks on the clause nodes if there is a non-null clause
       if (implementsClause != null ||
-          extendsClause != null ||
+          superclass != null ||
           withClause != null) {
-        // Only check for all of the inheritance logic around clauses if there
-        // isn't an error code such as "Cannot extend double" already on the
-        // class.
-        if (!_checkForImplementsDisallowedClass(implementsClause) &&
-            !_checkForExtendsDisallowedClass(extendsClause) &&
-            !_checkForAllMixinErrorCodes(withClause)) {
-          _checkForExtendsDeferredClass(extendsClause);
-          _checkForImplementsDeferredClass(implementsClause);
-          _checkForNonAbstractClassInheritsAbstractMember(node.name);
-          _checkForInconsistentMethodInheritance();
-          _checkForRecursiveInterfaceInheritance(_enclosingClass);
-          _checkForConflictingGetterAndMethod();
-          _checkForConflictingInstanceGetterAndSuperclassMember();
-          _checkImplementsSuperClass(node);
-          _checkImplementsFunctionWithoutCall(node);
-          _checkForMixinHasNoConstructors(node);
-          if (_options.strongMode) {
-            _checkForMixinWithConflictingPrivateMember(node);
-          }
-        }
+        _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
       visitClassDeclarationIncrementally(node);
       _checkForFinalNotInitializedInClass(node);
@@ -533,19 +515,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElementImpl outerClassElement = _enclosingClass;
     try {
       _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
-      ImplementsClause implementsClause = node.implementsClause;
-      // Only check for all of the inheritance logic around clauses if there
-      // isn't an error code such as "Cannot extend double" already on the
-      // class.
-      if (!_checkForExtendsDisallowedClassInTypeAlias(node) &&
-          !_checkForImplementsDisallowedClass(implementsClause) &&
-          !_checkForAllMixinErrorCodes(node.withClause)) {
-        _checkForExtendsDeferredClassInTypeAlias(node);
-        _checkForImplementsDeferredClass(implementsClause);
-        _checkForRecursiveInterfaceInheritance(_enclosingClass);
-        _checkForNonAbstractClassInheritsAbstractMember(node.name);
-        _checkForMixinHasNoConstructors(node);
-      }
+      _checkClassInheritance(
+          node, node.superclass, node.withClause, node.implementsClause);
     } finally {
       _enclosingClass = outerClassElement;
     }
@@ -696,12 +667,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _inAsync = wasInAsync;
       _inGenerator = wasInGenerator;
     }
-  }
-
-  @override
-  Object visitExtendsClause(ExtendsClause node) {
-    _checkForImplicitDynamicType(node.superclass);
-    return super.visitExtendsClause(node);
   }
 
   @override
@@ -1307,6 +1272,39 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(errorCode, node);
     }
     return super.visitYieldStatement(node);
+  }
+
+  /**
+   * Checks the class for problems with the superclass, mixins, or implemented
+   * interfaces.
+   */
+  void _checkClassInheritance(
+      NamedCompilationUnitMember node,
+      TypeName superclass,
+      WithClause withClause,
+      ImplementsClause implementsClause) {
+    // Only check for all of the inheritance logic around clauses if there
+    // isn't an error code such as "Cannot extend double" already on the
+    // class.
+    if (!_checkForExtendsDisallowedClass(superclass) &&
+        !_checkForImplementsDisallowedClass(implementsClause) &&
+        !_checkForAllMixinErrorCodes(withClause)) {
+      _checkForImplicitDynamicType(superclass);
+      _checkForExtendsDeferredClass(superclass);
+      _checkForImplementsDeferredClass(implementsClause);
+      _checkForNonAbstractClassInheritsAbstractMember(node.name);
+      _checkForInconsistentMethodInheritance();
+      _checkForRecursiveInterfaceInheritance(_enclosingClass);
+      _checkForConflictingGetterAndMethod();
+      _checkForConflictingInstanceGetterAndSuperclassMember();
+      _checkImplementsSuperClass(implementsClause);
+      _checkImplementsFunctionWithoutCall(node.name);
+      _checkForMixinHasNoConstructors(node);
+
+      if (_options.strongMode) {
+        _checkForMixinWithConflictingPrivateMember(withClause, superclass);
+      }
+    }
   }
 
   /**
@@ -2627,7 +2625,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForBuiltInIdentifierAsName(
       SimpleIdentifier identifier, ErrorCode errorCode) {
     Token token = identifier.token;
-    if (token.type == TokenType.KEYWORD && token.keyword?.isPseudo != true) {
+    if (token.type.isKeyword && token.keyword?.isPseudo != true) {
       _errorReporter
           .reportErrorForNode(errorCode, identifier, [identifier.name]);
     }
@@ -2854,7 +2852,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // prepare accessor properties
       String name = accessor.displayName;
       bool getter = accessor.isGetter;
-      // if non-final variable, ignore setter - we alreay reported problem for
+      // if non-final variable, ignore setter - we already reported problem for
       // getter
       if (accessor.isSetter && accessor.isSynthetic) {
         continue;
@@ -3589,25 +3587,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
    */
-  void _checkForExtendsDeferredClass(ExtendsClause clause) {
-    if (clause == null) {
+  void _checkForExtendsDeferredClass(TypeName superclass) {
+    if (superclass == null) {
       return;
     }
     _checkForExtendsOrImplementsDeferredClass(
-        clause.superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
-  }
-
-  /**
-   * Verify that the given type [alias] does not extend a deferred class.
-   *
-   * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
-   */
-  void _checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias alias) {
-    if (alias == null) {
-      return;
-    }
-    _checkForExtendsOrImplementsDeferredClass(
-        alias.superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+        superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
   }
 
   /**
@@ -3616,26 +3601,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
    */
-  bool _checkForExtendsDisallowedClass(ExtendsClause clause) {
-    if (clause == null) {
+  bool _checkForExtendsDisallowedClass(TypeName superclass) {
+    if (superclass == null) {
       return false;
     }
     return _checkForExtendsOrImplementsDisallowedClass(
-        clause.superclass, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
-  }
-
-  /**
-   * Verify that the given type [alias] does not extend classes such as 'num' or
-   * 'String'.
-   *
-   * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
-   */
-  bool _checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias alias) {
-    if (alias == null) {
-      return false;
-    }
-    return _checkForExtendsOrImplementsDisallowedClass(
-        alias.superclass, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+        superclass, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
   }
 
   /**
@@ -4896,12 +4867,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * library that defines a private member that conflicts with a private name
    * from the same library but from a superclass or a different mixin.
    */
-  void _checkForMixinWithConflictingPrivateMember(ClassDeclaration node) {
-    WithClause withClause = node.withClause;
+  void _checkForMixinWithConflictingPrivateMember(
+      WithClause withClause, TypeName superclassName) {
     if (withClause == null) {
       return;
     }
-    DartType declaredSupertype = node.extendsClause?.superclass?.type;
+    DartType declaredSupertype = superclassName?.type;
     if (declaredSupertype is! InterfaceType) {
       return;
     }
@@ -6194,12 +6165,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [StaticWarningCode.FUNCTION_WITHOUT_CALL].
    */
-  void _checkImplementsFunctionWithoutCall(ClassDeclaration declaration) {
-    if (declaration.isAbstract) {
+  void _checkImplementsFunctionWithoutCall(AstNode className) {
+    ClassElement classElement = _enclosingClass;
+    if (classElement == null) {
       return;
     }
-    ClassElement classElement = declaration.element;
-    if (classElement == null) {
+    if (classElement.isAbstract) {
       return;
     }
     if (!_typeSystem.isSubtypeOf(
@@ -6217,7 +6188,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         callMethod is! MethodElement ||
         (callMethod as MethodElement).isAbstract) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.FUNCTION_WITHOUT_CALL, declaration.name);
+          StaticWarningCode.FUNCTION_WITHOUT_CALL, className);
     }
   }
 
@@ -6227,14 +6198,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
    */
-  void _checkImplementsSuperClass(ClassDeclaration declaration) {
+  void _checkImplementsSuperClass(ImplementsClause implementsClause) {
     // prepare super type
     InterfaceType superType = _enclosingClass.supertype;
     if (superType == null) {
       return;
     }
     // prepare interfaces
-    ImplementsClause implementsClause = declaration.implementsClause;
     if (implementsClause == null) {
       return;
     }

@@ -708,7 +708,12 @@ main() {
     });
 
     test('convert a Map', () {
-      var map = {'a': 1, 'b': 2, 'c': 3};
+      var map = {
+        'a': 1,
+        'b': 2,
+        'c': 3,
+        'd': allowInteropCaptureThis((that) => 42)
+      };
       var jsMap = new JsObject.jsify(map);
       expect(!context.callMethod('isArray', [jsMap]), isTrue);
       for (final key in map.keys) {

@@ -11,7 +11,7 @@ import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import '../tree/dartstring.dart' show DartString;
 
-/// A canonical but arbrary ordering of constants. The ordering is 'stable'
+/// A canonical but arbitrary ordering of constants. The ordering is 'stable'
 /// under perturbation of the source.
 int deepCompareConstants(ConstantValue a, ConstantValue b) {
   return _CompareVisitor.compareValues(a, b);

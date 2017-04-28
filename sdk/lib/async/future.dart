@@ -135,7 +135,7 @@ abstract class FutureOr<T> {
  */
 abstract class Future<T> {
   // The `_nullFuture` is a completed Future with the value `null`.
-  static final _Future _nullFuture = new Future.value(null);
+  static final _Future<Null> _nullFuture = new Future.value(null);
 
   /**
    * Creates a future containing the result of calling [computation]
@@ -289,20 +289,26 @@ abstract class Future<T> {
   /**
    * Wait for all the given futures to complete and collect their values.
    *
-   * Returns a future which will complete once all the futures in a list are
-   * complete. If any of the futures in the list completes with an error,
-   * the resulting future also completes with an error. Otherwise the value
-   * of the returned future will be a list of all the values that were
-   * produced.
+   * Returns a future which will complete once all the futures in a list
+   * have completed.
    *
-   * If `eagerError` is true, the future completes with an error immediately on
-   * the first error from one of the futures. Otherwise all futures must
-   * complete before the returned future is completed (still with the first
-   * error to occur, the remaining errors are silently dropped).
+   * The value of the returned future will be a list of all the values that
+   * were produced.
    *
-   * If [cleanUp] is provided, in the case of an error, any non-null result of
-   * a successful future is passed to `cleanUp`, which can then release any
-   * resources that the successful operation allocated.
+   * If any of the given futures completes with an error, then the returned
+   * future completes with that error. If other futures complete with errors,
+   * those errors are discarded.
+   *
+   * If `eagerError` is true, the returned future completes with an error
+   * immediately on the first error from one of the futures. Otherwise all
+   * futures must complete before the returned future is completed (still with
+   * the first error; the remaining errors are silently dropped).
+   *
+   * In the case of an error, [cleanUp] (if provided), is invoked on any
+   * non-null result of successful futures.
+   * This makes it posible to `cleanUp` resources that would otherwise be
+   * lost (since the returned future does not provide access to these values).
+   * The [cleanup] function is unused if there is no error.
    *
    * The call to `cleanUp` should not throw. If it does, the error will be an
    * uncaught asynchronous error.
@@ -445,7 +451,7 @@ abstract class Future<T> {
     return doWhile(() {
       if (!iterator.moveNext()) return false;
       var result = f(iterator.current);
-      if (result is Future<T>) return result.then(_kTrue);
+      if (result is Future) return result.then(_kTrue);
       return true;
     });
   }

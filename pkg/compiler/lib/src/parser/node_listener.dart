@@ -4,15 +4,15 @@
 
 library dart2js.parser.node_listener;
 
-import '../common.dart';
-import '../elements/elements.dart' show CompilationUnitElement;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
-    show INDEX_INFO;
-import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show SymbolToken, Token;
+import 'package:front_end/src/scanner/token.dart' show TokenType;
+
+import '../common.dart';
+import '../elements/elements.dart' show CompilationUnitElement;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
@@ -718,8 +718,8 @@ class NodeListener extends ElementListener {
     NodeList arguments =
         makeNodeList(1, openSquareBracket, closeSquareBracket, null);
     Node receiver = popNode();
-    Token token = new StringToken.fromString(
-        Precedence.INDEX_INFO, '[]', openSquareBracket.charOffset);
+    Token token =
+        new SymbolToken(TokenType.INDEX, openSquareBracket.charOffset);
     Node selector = new Operator(token);
     pushNode(new Send(receiver, selector, arguments));
   }

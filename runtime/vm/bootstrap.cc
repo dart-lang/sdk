@@ -358,6 +358,7 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     pending.set_is_marked_for_parsing();
   }
 
+  // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);
   String& dart_name = String::Handle(zone);
   for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
@@ -376,7 +377,18 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     }
   }
 
+  // Finish bootstrapping, including class finalization.
   Finish(thread, /*from_kernel=*/true);
+
+  // The platform binary may contain other libraries (e.g., dart:_builtin or
+  // dart:io) that will not be bundled with application.  Load them now.
+  reader.ReadProgram();
+
+  // The builtin library should be registered with the VM.
+  dart_name = String::New("dart:_builtin");
+  library = Library::LookupLibrary(thread, dart_name);
+  isolate->object_store()->set_builtin_library(library);
+
   return Error::null();
 }
 #else

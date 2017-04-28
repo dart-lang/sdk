@@ -10,6 +10,7 @@ generic_local_functions_test: CompileTimeError # Issue 28515
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: StaticWarning # Issue 29081
+regress_29405_test: StaticWarning # Issue 29421
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip

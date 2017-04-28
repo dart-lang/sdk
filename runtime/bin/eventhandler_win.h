@@ -64,7 +64,7 @@ class OverlappedBuffer {
 
   // Write data to a buffer before sending it. Returns the number of bytes
   // actually written to the buffer. Calls to Write will always write to
-  // the buffer from the begining.
+  // the buffer from the beginning.
   int Write(const void* buffer, int num_bytes);
 
   // Check the amount of data in a read buffer which has not been read yet.
@@ -156,7 +156,6 @@ class OverlappedBuffer {
 
   DISALLOW_COPY_AND_ASSIGN(OverlappedBuffer);
 };
-
 
 // Abstract super class for holding information on listen and connected
 // sockets.

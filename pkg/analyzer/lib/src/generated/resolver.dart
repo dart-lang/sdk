@@ -391,7 +391,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     String rhsNameStr = typeName is TypeName ? typeName.name.name : null;
     // if x is dynamic
-    if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.syntax) {
+    if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.lexeme) {
       if (node.notOperator == null) {
         // the is case
         _errorReporter.reportErrorForNode(
@@ -4239,8 +4239,8 @@ class InferenceContext {
    */
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(this._errorReporter, TypeProvider typeProvider,
-      this._typeSystem, this._inferenceHints)
+  InferenceContext._(TypeProvider typeProvider, this._typeSystem,
+      this._inferenceHints, this._errorReporter)
       : _typeProvider = typeProvider;
 
   /**
@@ -4323,7 +4323,7 @@ class InferenceContext {
   }
 
   /**
-   * Clear the type information assocated with [node].
+   * Clear the type information associated with [node].
    */
   static void clearType(AstNode node) {
     node?.setProperty(_typeProperty, null);
@@ -5072,7 +5072,7 @@ class ResolverVisitor extends ScopedVisitor {
       strongModeHints = options.strongModeHints;
     }
     this.inferenceContext = new InferenceContext._(
-        errorReporter, typeProvider, typeSystem, strongModeHints);
+        typeProvider, typeSystem, strongModeHints, errorReporter);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
@@ -8618,7 +8618,7 @@ class TypeNameResolver {
    */
   static bool _isBuiltInIdentifier(TypeName typeName) {
     Token token = typeName.name.beginToken;
-    return token.type == TokenType.KEYWORD;
+    return token.type.isKeyword;
   }
 
   /**
@@ -10347,7 +10347,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
-    if (name.name == Keyword.DYNAMIC.syntax) {
+    if (name.name == Keyword.DYNAMIC.lexeme) {
       errorReporter.reportErrorForNode(dynamicTypeError, name, [name.name]);
     } else if (!nameScope.shouldIgnoreUndefined(name)) {
       errorReporter.reportErrorForNode(nonTypeError, name, [name.name]);

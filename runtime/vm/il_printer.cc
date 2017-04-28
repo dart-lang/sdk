@@ -195,6 +195,42 @@ const char* CompileType::ToCString() const {
 }
 
 
+static void PrintTargetsHelper(BufferFormatter* f,
+                               const CallTargets& targets,
+                               intptr_t num_checks_to_print) {
+  f->Print(" IC[");
+  f->Print("%" Pd ": ", targets.length());
+  Function& target = Function::Handle();
+  if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
+      (num_checks_to_print > targets.length())) {
+    num_checks_to_print = targets.length();
+  }
+  for (intptr_t i = 0; i < num_checks_to_print; i++) {
+    const CidRangeTarget& range = targets[i];
+    const intptr_t count = range.count;
+    target ^= range.target->raw();
+    if (i > 0) {
+      f->Print(" | ");
+    }
+    if (range.cid_start == range.cid_end) {
+      const Class& cls =
+          Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+      f->Print("%s", String::Handle(cls.Name()).ToCString());
+      f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    } else {
+      const Class& cls = Class::Handle(range.target->Owner());
+      f->Print("cid %" Pd "-%" Pd " %s", range.cid_start, range.cid_end,
+               String::Handle(cls.Name()).ToCString());
+      f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    }
+  }
+  if (num_checks_to_print < targets.length()) {
+    f->Print("...");
+  }
+  f->Print("]");
+}
+
+
 static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
@@ -253,6 +289,16 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data,
   THR_Print("%s ", buffer);
   const Array& a = Array::Handle(ic_data.arguments_descriptor());
   THR_Print(" arg-desc %" Pd "\n", a.Length());
+}
+
+
+void FlowGraphPrinter::PrintCidRangeData(const CallTargets& targets,
+                                         intptr_t num_checks_to_print) {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTargetsHelper(&f, targets, num_checks_to_print);
+  THR_Print("%s ", buffer);
+  // TODO(erikcorry): Print args descriptor.
 }
 
 
@@ -467,11 +513,7 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
-  if (FLAG_display_sorted_ic_data) {
-    PrintICDataSortedHelper(f, ic_data());
-  } else {
-    PrintICDataHelper(f, ic_data(), FlowGraphPrinter::kPrintAll);
-  }
+  PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
   if (with_checks()) {
     f->Print(" WITH-CHECKS");
   }

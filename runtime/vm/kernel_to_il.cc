@@ -4925,7 +4925,35 @@ void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
 
 
 void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  if (node->kernel_offset() != -1) {
+    fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+    return;
+  }
+  // A StaticGet will always have a kernel_offset, except for the StaticGet that
+  // was manually created for _getMainClosure in dart:_builtin.  Compile that
+  // one specially here.
+  const dart::Library& builtin =
+      dart::Library::Handle(Z, I->object_store()->builtin_library());
+  const Object& main =
+      Object::Handle(Z, builtin.LookupObjectAllowPrivate(dart::String::Handle(
+                            Z, dart::String::New("main"))));
+  if (main.IsField()) {
+    UNIMPLEMENTED();
+  } else if (main.IsFunction()) {
+    const Function& function = Function::Cast(main);
+    if (function.kind() == RawFunction::kRegularFunction) {
+      const Function& closure_function =
+          Function::Handle(Z, function.ImplicitClosureFunction());
+      closure_function.set_kernel_function(function.kernel_function());
+      const Instance& closure =
+          Instance::ZoneHandle(Z, closure_function.ImplicitStaticClosure());
+      fragment_ = Constant(closure);
+    } else {
+      UNIMPLEMENTED();
+    }
+  } else {
+    UNIMPLEMENTED();
+  }
 }
 
 
@@ -5132,6 +5160,27 @@ static bool IsNumberLiteral(Node* node) {
   return node->IsIntLiteral() || node->IsDoubleLiteral();
 }
 
+template <class Invocation>
+bool FlowGraphBuilder::RecognizeComparisonWithNull(Token::Kind token_kind,
+                                                   Invocation* node) {
+  if (token_kind == Token::kEQ || token_kind == Token::kNE) {
+    if (node->arguments()->positional().length() != 1) return false;
+    Fragment instructions;
+    Expression* left = node->receiver();
+    Expression* right = node->arguments()->positional()[0];
+    if (left->IsNullLiteral() || right->IsNullLiteral()) {
+      instructions += TranslateExpression(left);
+      instructions += TranslateExpression(right);
+      Token::Kind strict_cmp_kind =
+          token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
+      fragment_ = instructions + StrictCompare(strict_cmp_kind,
+                                               /*number_check = */ true);
+      return true;
+    }
+  }
+  return false;
+}
+
 
 void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
   const dart::String& name = H.DartMethodName(node->name());
@@ -5154,6 +5203,8 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
       }
     }
   }
+
+  if (RecognizeComparisonWithNull(token_kind, node)) return;
 
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
@@ -5187,6 +5238,10 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
 void FlowGraphBuilder::VisitDirectMethodInvocation(
     DirectMethodInvocation* node) {
   const dart::String& method_name = H.DartProcedureName(node->target());
+  const Token::Kind token_kind = MethodKind(method_name);
+
+  if (RecognizeComparisonWithNull(token_kind, node)) return;
+
   const Function& target = Function::ZoneHandle(
       Z, LookupMethodByMember(node->target(), method_name));
 

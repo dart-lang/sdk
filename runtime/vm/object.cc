@@ -4521,7 +4521,7 @@ void Class::InsertCanonicalNumber(Zone* zone,
   Array& canonical_list = Array::Handle(zone, constants());
   const intptr_t list_len = canonical_list.Length();
   if (index >= list_len) {
-    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
+    const intptr_t new_length = list_len + 4 + (list_len >> 2);
     canonical_list ^= Array::Grow(canonical_list, new_length, Heap::kOld);
     set_constants(canonical_list);
   }
@@ -5088,12 +5088,11 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   intptr_t length = prior_instantiations.Length();
   if ((index + StubCode::kInstantiationSizeInWords) >= length) {
     // TODO(regis): Should we limit the number of cached instantiations?
-    // Grow the instantiations array.
+    // Grow the instantiations array by about 50%, but at least by 1.
     // The initial array is Object::zero_array() of length 1.
-    length = (length > 64)
-                 ? (length + 64)
-                 : ((length == 1) ? StubCode::kInstantiationSizeInWords + 1
-                                  : ((length - 1) * 2 + 1));
+    intptr_t entries = (length - 1) / StubCode::kInstantiationSizeInWords;
+    intptr_t new_entries = entries + (entries >> 1) + 1;
+    length = new_entries * StubCode::kInstantiationSizeInWords + 1;
     prior_instantiations =
         Array::Grow(prior_instantiations, length, Heap::kOld);
     set_instantiations(prior_instantiations);
@@ -5616,6 +5615,11 @@ void Function::set_parent_function(const Function& value) const {
 
 
 bool Function::HasGenericParent() const {
+  if (IsImplicitClosureFunction()) {
+    // The parent function of an implicit closure function is not the enclosing
+    // function we are asking about here.
+    return false;
+  }
   Function& parent = Function::Handle(parent_function());
   while (!parent.IsNull()) {
     if (parent.IsGeneric()) {
@@ -6014,6 +6018,9 @@ intptr_t Function::NumTypeParameters(Thread* thread) const {
 
 
 intptr_t Function::NumParentTypeParameters() const {
+  if (IsImplicitClosureFunction()) {
+    return 0;
+  }
   Thread* thread = Thread::Current();
   Function& parent = Function::Handle(parent_function());
   intptr_t num_parent_type_params = 0;
@@ -6051,6 +6058,11 @@ RawTypeParameter* Function::LookupTypeParameter(
           return type_param.raw();
         }
       }
+    }
+    if (function.IsImplicitClosureFunction()) {
+      // The parent function is not the enclosing function, but the closurized
+      // function with identical type parameters.
+      break;
     }
     function ^= function.parent_function();
     if (function_level != NULL) {
@@ -6447,7 +6459,8 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         Object::null_type_arguments(), Object::null_type_arguments(),
         Heap::kOld);
   }
-  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, Heap::kOld)) {
+  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, NULL,
+                         Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
     *bound_error = LanguageError::NewFormatted(
@@ -6522,6 +6535,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t other_parameter_position,
                                  const Function& other,
                                  Error* bound_error,
+                                 TrailPtr bound_trail,
                                  Heap::Space space) const {
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
@@ -6534,14 +6548,16 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error, NULL, space) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error, NULL, space)) {
+    if (!param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                space) &&
+        !other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                      space)) {
       return false;
     }
   } else {
     ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error, NULL,
-                                       space)) {
+    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error,
+                                       bound_trail, space)) {
       return false;
     }
   }
@@ -6586,6 +6602,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
 bool Function::TypeTest(TypeTestKind test_kind,
                         const Function& other,
                         Error* bound_error,
+                        TrailPtr bound_trail,
                         Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
@@ -6624,13 +6641,15 @@ bool Function::TypeTest(TypeTestKind test_kind,
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error, NULL, space) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error, NULL, space)) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                space) &&
+          !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                      space)) {
         return false;
       }
     } else {
       ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error, NULL,
+      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error, bound_trail,
                                        space)) {
         return false;
       }
@@ -6642,7 +6661,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
        i++) {
     if (!TestParameterType(test_kind, i + num_ignored_params,
                            i + other_num_ignored_params, other, bound_error,
-                           space)) {
+                           bound_trail, space)) {
       return false;
     }
   }
@@ -6670,7 +6689,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
-        if (!TestParameterType(test_kind, j, i, other, bound_error, space)) {
+        if (!TestParameterType(test_kind, j, i, other, bound_error, bound_trail,
+                               space)) {
           return false;
         }
         break;
@@ -10865,7 +10885,7 @@ void Library::AddImport(const Namespace& ns) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
   if (num_imports() == capacity) {
-    capacity = capacity + kImportsCapacityIncrement;
+    capacity = capacity + kImportsCapacityIncrement + (capacity >> 2);
     imports = Array::Grow(imports, capacity);
     StorePointer(&raw_ptr()->imports_, imports.raw());
   }
@@ -11425,7 +11445,7 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
   const intptr_t length = (imports.IsNull()) ? 0 : imports.Length();
   // Grow the list if it is full.
   if (num_current_imports >= length) {
-    const intptr_t new_length = length + kIncrementSize;
+    const intptr_t new_length = length + kIncrementSize + (length >> 2);
     imports = Array::Grow(imports, new_length, Heap::kOld);
     set_imports(imports);
   }
@@ -13874,19 +13894,6 @@ bool ICData::HasOneTarget() const {
 }
 
 
-bool ICData::HasOnlyDispatcherOrImplicitAccessorTargets() const {
-  const intptr_t len = NumberOfChecks();
-  Function& target = Function::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    target = GetTargetAt(i);
-    if (!target.IsDispatcherOrImplicitAccessor()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                                    GrowableArray<intptr_t>* second) const {
   ASSERT(NumArgsTested() == 2);
@@ -15850,7 +15857,7 @@ bool Instance::IsInstanceOf(
       sig_fun = sig_fun.InstantiateSignatureFrom(
           instantiator_type_arguments, function_type_arguments, Heap::kOld);
     }
-    return sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld);
+    return sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
@@ -15905,7 +15912,7 @@ bool Instance::IsInstanceOf(
       }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
-      if (sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld)) {
+      if (sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld)) {
         return true;
       }
     }
@@ -16351,7 +16358,9 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
     ASSERT((len % 2) == 0);
     const bool this_is_typeref = IsTypeRef();
     const bool buddy_is_typeref = buddy.IsTypeRef();
-    ASSERT(this_is_typeref || buddy_is_typeref);
+    // Note that at least one of 'this' and 'buddy' should be a typeref, with
+    // one exception, when the class of the 'this' type implements the 'call'
+    // method, thereby possibly creating a recursive type (see regress_29405).
     for (intptr_t i = 0; i < len; i += 2) {
       if ((((*trail)->At(i).raw() == this->raw()) ||
            (buddy_is_typeref && (*trail)->At(i).Equals(*this))) &&
@@ -16713,16 +16722,24 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // Check for two function types.
       const Function& fun =
           Function::Handle(zone, Type::Cast(*this).signature());
-      return fun.TypeTest(test_kind, other_fun, bound_error, space);
+      return fun.TypeTest(test_kind, other_fun, bound_error, bound_trail,
+                          space);
     }
     // Check if type S has a call() method of function type T.
     const Function& call_function =
         Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
     if (!call_function.IsNull()) {
-      if (other_is_dart_function_type ||
-          call_function.TypeTest(
+      if (other_is_dart_function_type) {
+        return true;
+      }
+      // Shortcut the test involving the call function if the
+      // pair <this, other> is already in the trail.
+      if (TestAndAddBuddyToTrail(&bound_trail, other)) {
+        return true;
+      }
+      if (call_function.TypeTest(
               test_kind, Function::Handle(zone, Type::Cast(other).signature()),
-              bound_error, space)) {
+              bound_error, bound_trail, space)) {
         return true;
       }
     }
@@ -21134,7 +21151,8 @@ static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
 
     if (ch == Library::kPrivateKeySeparator) {
       // Consume a private key separator.
-      while ((pos < len) && (T1::CharAt(str1, pos) != '.')) {
+      while ((pos < len) && (T1::CharAt(str1, pos) != '.') &&
+             (T1::CharAt(str1, pos) != '&')) {
         pos++;
       }
       // Resume matching characters.

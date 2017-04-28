@@ -758,7 +758,8 @@ void main() {
             .registerTypeUse(new TypeUse.instantiation(element.rawType));
       }
     });
-    ClassElement patternImplClass = compiler.mainApp.find('PatternImpl');
+    LibraryElement mainApp = compiler.mainApp;
+    ClassElement patternImplClass = mainApp.find('PatternImpl');
     patternImplClass.ensureResolved(compiler.resolution);
 
     impactBuilder.registerTypeUse(
@@ -768,6 +769,7 @@ void main() {
     impactBuilder
         .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
     compiler.enqueuer.resolution.applyImpact(impactBuilder);
+    backend.onResolutionEnd();
     compiler.closeResolution();
     ClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;

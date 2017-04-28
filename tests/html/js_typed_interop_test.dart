@@ -169,7 +169,7 @@ external String get JS$JS$hasJsInName;
 @JS()
 external int JS$JS$hasJsInNameMethod(int x);
 
-// This is the prefered way to handle static or top level members that start
+// This is the preferred way to handle static or top level members that start
 // with JS$. We verify that JS$JS$ works purely to prevent bugs.
 @JS(r'JS$hasJsInName')
 external String get JS$hasJsInName;

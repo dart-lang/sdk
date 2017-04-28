@@ -15,7 +15,6 @@ import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';

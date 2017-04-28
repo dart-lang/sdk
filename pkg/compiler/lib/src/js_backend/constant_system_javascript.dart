@@ -9,7 +9,6 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/types.dart';
-import '../elements/resolution_types.dart' show DartTypes;
 import '../elements/entities.dart';
 import '../tree/dartstring.dart' show DartString, LiteralDartString;
 

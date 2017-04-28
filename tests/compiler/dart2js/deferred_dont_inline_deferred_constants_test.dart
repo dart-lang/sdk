@@ -37,7 +37,8 @@ void main() {
     var foo2 = lib2.find("foo");
     var ou_lib2 = outputUnitForElement(foo2);
 
-    var fooMain = compiler.mainApp.find("foo");
+    var mainApp = compiler.mainApp;
+    var fooMain = mainApp.find("foo");
     var ou_lib1_lib2 = outputUnitForElement(fooMain);
 
     String mainOutput = collector.getOutput("", OutputType.js);

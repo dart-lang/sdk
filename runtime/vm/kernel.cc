@@ -30,7 +30,8 @@ SourceTable::~SourceTable() {
 }
 
 
-CanonicalName::CanonicalName() : is_referenced_(false) {}
+CanonicalName::CanonicalName()
+    : parent_(NULL), name_(NULL), is_referenced_(false) {}
 
 
 CanonicalName::~CanonicalName() {

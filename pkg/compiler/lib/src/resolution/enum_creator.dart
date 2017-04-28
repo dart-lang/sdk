@@ -10,8 +10,7 @@ import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence;
+import 'package:front_end/src/scanner/token.dart' show TokenType;
 import '../tree/tree.dart';
 import '../util/util.dart';
 
@@ -46,11 +45,10 @@ class AstBuilder {
   }
 
   Token stringToken(String text) {
-    return new StringToken.fromString(
-        Precedence.IDENTIFIER_INFO, text, charOffset);
+    return new StringToken.fromString(TokenType.IDENTIFIER, text, charOffset);
   }
 
-  Token symbolToken(PrecedenceInfo info) {
+  Token symbolToken(TokenType info) {
     return new SymbolToken(info, charOffset);
   }
 
@@ -72,13 +70,13 @@ class AstBuilder {
   }
 
   NodeList argumentList(List<Node> nodes) {
-    return new NodeList(symbolToken(Precedence.OPEN_PAREN_INFO),
-        linkedList(nodes), symbolToken(Precedence.CLOSE_PAREN_INFO), ',');
+    return new NodeList(symbolToken(TokenType.OPEN_PAREN), linkedList(nodes),
+        symbolToken(TokenType.CLOSE_PAREN), ',');
   }
 
   Return returnStatement(Expression expression) {
-    return new Return(keywordToken('return'),
-        symbolToken(Precedence.SEMICOLON_INFO), expression);
+    return new Return(
+        keywordToken('return'), symbolToken(TokenType.SEMICOLON), expression);
   }
 
   FunctionExpression functionExpression(Modifiers modifiers, String name,
@@ -98,7 +96,7 @@ class AstBuilder {
   }
 
   EmptyStatement emptyStatement() {
-    return new EmptyStatement(symbolToken(Precedence.COMMA_INFO));
+    return new EmptyStatement(symbolToken(TokenType.COMMA));
   }
 
   LiteralInt literalInt(int value) {
@@ -115,19 +113,16 @@ class AstBuilder {
     return new LiteralList(
         null,
         new NodeList(
-            symbolToken(Precedence.OPEN_SQUARE_BRACKET_INFO),
+            symbolToken(TokenType.OPEN_SQUARE_BRACKET),
             linkedList(elements),
-            symbolToken(Precedence.CLOSE_SQUARE_BRACKET_INFO),
+            symbolToken(TokenType.CLOSE_SQUARE_BRACKET),
             ','),
         isConst ? keywordToken('const') : null);
   }
 
   Node createDefinition(Identifier name, Expression initializer) {
     if (initializer == null) return name;
-    return new SendSet(
-        null,
-        name,
-        new Operator(symbolToken(Precedence.EQ_INFO)),
+    return new SendSet(null, name, new Operator(symbolToken(TokenType.EQ)),
         new NodeList.singleton(initializer));
   }
 
@@ -151,21 +146,21 @@ class AstBuilder {
   }
 
   Send indexGet(Expression receiver, Expression index) {
-    return new Send(receiver, new Operator(symbolToken(Precedence.INDEX_INFO)),
+    return new Send(receiver, new Operator(symbolToken(TokenType.INDEX)),
         new NodeList.singleton(index));
   }
 
   LiteralMapEntry mapLiteralEntry(Expression key, Expression value) {
-    return new LiteralMapEntry(key, symbolToken(Precedence.COLON_INFO), value);
+    return new LiteralMapEntry(key, symbolToken(TokenType.COLON), value);
   }
 
   LiteralMap mapLiteral(List<LiteralMapEntry> entries, {bool isConst: false}) {
     return new LiteralMap(
         null, // Type arguments.
         new NodeList(
-            symbolToken(Precedence.OPEN_CURLY_BRACKET_INFO),
+            symbolToken(TokenType.OPEN_CURLY_BRACKET),
             linkedList(entries),
-            symbolToken(Precedence.CLOSE_CURLY_BRACKET_INFO),
+            symbolToken(TokenType.CLOSE_CURLY_BRACKET),
             ','),
         isConst ? keywordToken('const') : null);
   }

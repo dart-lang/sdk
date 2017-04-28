@@ -514,20 +514,6 @@ class PoorMansIncrementalResolutionTest extends ResolverTestCase {
   CompilationUnit oldUnit;
   CompilationUnitElement oldUnitElement;
 
-  void assertSameReferencedNames(
-      ReferencedNames incNames, ReferencedNames fullNames) {
-    expectEqualSets(Iterable actual, Iterable expected) {
-      expect(actual, unorderedEquals(expected));
-    }
-
-    expectEqualSets(incNames.names, fullNames.names);
-    expectEqualSets(incNames.instantiatedNames, fullNames.instantiatedNames);
-    expectEqualSets(incNames.superToSubs.keys, fullNames.superToSubs.keys);
-    for (String key in fullNames.superToSubs.keys) {
-      expectEqualSets(incNames.superToSubs[key], fullNames.superToSubs[key]);
-    }
-  }
-
   @override
   void setUp() {
     super.setUp();
@@ -2097,8 +2083,6 @@ class B extends A {}
     logger.expectNoErrors();
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     LineInfo newLineInfo = analysisContext.getLineInfo(source);
-    ReferencedNames newReferencedNames =
-        analysisContext.getResult(source, REFERENCED_NAMES);
     // check for expected failure
     if (!expectedSuccess) {
       expect(newUnit.element, isNot(same(oldUnitElement)));
@@ -2131,10 +2115,6 @@ class B extends A {}
       _assertEqualTokens(newUnit, fullNewUnit);
       // Validate LineInfo
       _assertEqualLineInfo(newLineInfo, analysisContext.getLineInfo(source));
-      // Validate referenced names.
-      ReferencedNames fullReferencedNames =
-          analysisContext.getResult(source, REFERENCED_NAMES);
-      assertSameReferencedNames(newReferencedNames, fullReferencedNames);
       // Validate that "incremental" and "full" units have the same resolution.
       try {
         assertSameResolution(newUnit, fullNewUnit, validateTypes: true);

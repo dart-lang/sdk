@@ -46,11 +46,6 @@ def PkgSteps(build_info):
   # We have some unreproducible vm crashes on these bots
   common_args.append('--copy-coredumps')
 
-  # We are seeing issues with pub get calls on the windows bots.
-  # Experiment with not running concurrent calls.
-  if build_info.system == 'windows':
-    common_args.append('-j1')
-
   bot.RunTest('pkg', build_info,
               common_args + ['pkg', 'docs'],
               swallow_error=True)
@@ -62,11 +57,6 @@ def PkgSteps(build_info):
       if os.path.isdir(path):
         bot.RunTestRunner(build_info, path)
 
-  pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
-                                      build_info.system, checked=False)
-
-  public_args = (common_args + ['--append_logs', 'pkgbuild'])
-  bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, public_args)
 
 if __name__ == '__main__':
   bot.RunBot(PkgConfig, PkgSteps)
