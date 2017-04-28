@@ -22,10 +22,12 @@
   M(InterfaceType)                                                             \
   M(FunctionType)                                                              \
   M(TypeParameterType)                                                         \
-  M(VectorType)
+  M(VectorType)                                                                \
+  M(TypedefType)
 
 #define KERNEL_TREE_NODES_DO(M)                                                \
   M(Library)                                                                   \
+  M(Typedef)                                                                   \
   M(Class)                                                                     \
   M(NormalClass)                                                               \
   M(MixinClass)                                                                \
@@ -375,6 +377,7 @@ KERNEL_VISITORS_DO(DO)
   DEFINE_IS_OPERATION(TreeNode)                                                \
   KERNEL_TREE_NODES_DO(DEFINE_IS_OPERATION)
 
+class Typedef;
 class Class;
 class Constructor;
 class Field;
@@ -488,6 +491,7 @@ class Library : public LinkedNode {
   String* import_uri() { return import_uri_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   String* name() { return name_; }
+  List<Typedef>& typedefs() { return typedefs_; }
   List<Class>& classes() { return classes_; }
   List<Field>& fields() { return fields_; }
   List<Procedure>& procedures() { return procedures_; }
@@ -504,6 +508,7 @@ class Library : public LinkedNode {
   Ref<String> name_;
   Ref<String> import_uri_;
   intptr_t source_uri_index_;
+  List<Typedef> typedefs_;
   List<Class> classes_;
   List<Field> fields_;
   List<Procedure> procedures_;
@@ -511,6 +516,40 @@ class Library : public LinkedNode {
   intptr_t kernel_data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(Library);
+};
+
+
+class Typedef : public LinkedNode {
+ public:
+  Typedef* ReadFrom(Reader* reader);
+
+  virtual ~Typedef();
+
+  DEFINE_CASTING_OPERATIONS(Typedef);
+
+  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Library* parent() { return parent_; }
+  String* name() { return name_; }
+  intptr_t source_uri_index() { return source_uri_index_; }
+  TokenPosition position() { return position_; }
+  TypeParameterList& type_parameters() { return type_parameters_; }
+  DartType* type() { return type_; }
+
+ protected:
+  Typedef() : position_(TokenPosition::kNoSource) {}
+
+ private:
+  template <typename T>
+  friend class List;
+
+  Ref<Library> parent_;
+  Ref<String> name_;
+  intptr_t source_uri_index_;
+  TokenPosition position_;
+  TypeParameterList type_parameters_;
+  Child<DartType> type_;
 };
 
 
@@ -2755,6 +2794,32 @@ class InterfaceType : public DartType {
 };
 
 
+class TypedefType : public DartType {
+ public:
+  static TypedefType* ReadFrom(Reader* reader);
+
+  explicit TypedefType(CanonicalName* class_reference)
+      : typedef_reference_(class_reference) {}
+  virtual ~TypedefType();
+
+  DEFINE_CASTING_OPERATIONS(TypedefType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  CanonicalName* typedef_reference() { return typedef_reference_; }
+  List<DartType>& type_arguments() { return type_arguments_; }
+
+ private:
+  TypedefType() {}
+
+  Ref<CanonicalName> typedef_reference_;  // Typedef.
+  List<DartType> type_arguments_;
+
+  DISALLOW_COPY_AND_ASSIGN(TypedefType);
+};
+
+
 class FunctionType : public DartType {
  public:
   static FunctionType* ReadFrom(Reader* reader);
@@ -2898,6 +2963,8 @@ class Reference : public AllStatic {
   static CanonicalName* ReadMemberFrom(Reader* reader, bool allow_null = false);
 
   static CanonicalName* ReadClassFrom(Reader* reader, bool allow_null = false);
+
+  static CanonicalName* ReadTypedefFrom(Reader* reader);
 
   static String* ReadStringFrom(Reader* reader);
 };
@@ -3148,6 +3215,9 @@ class DartTypeVisitor {
     VisitDefaultDartType(node);
   }
   virtual void VisitVectorType(VectorType* node) { VisitDefaultDartType(node); }
+  virtual void VisitTypedefType(TypedefType* node) {
+    VisitDefaultDartType(node);
+  }
 };
 
 
@@ -3187,6 +3257,7 @@ class TreeVisitor : public ExpressionVisitor,
   virtual void VisitCatch(Catch* node) { VisitDefaultTreeNode(node); }
   virtual void VisitMapEntry(MapEntry* node) { VisitDefaultTreeNode(node); }
   virtual void VisitProgram(Program* node) { VisitDefaultTreeNode(node); }
+  virtual void VisitTypedef(Typedef* node) { VisitDefaultTreeNode(node); }
 };
 
 
