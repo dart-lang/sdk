@@ -5,4 +5,4 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=() → dynamic*/ v = /*@returnType=dynamic*/ () => null;
+var /*@topType=() -> dynamic*/ v = /*@returnType=dynamic*/ () => null;

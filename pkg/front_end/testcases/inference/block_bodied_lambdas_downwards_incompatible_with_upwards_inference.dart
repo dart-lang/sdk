@@ -7,7 +7,7 @@ library test;
 
 main() {
   String f() => null;
-  var /*@type=f() → String*/ g = f;
+  var /*@type=f() -> String*/ g = f;
   g = /*@returnType=String*/ () {
     return /*error:RETURN_OF_INVALID_TYPE*/ 1;
   };

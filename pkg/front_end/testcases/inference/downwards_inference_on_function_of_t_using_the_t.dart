@@ -8,12 +8,12 @@ library test;
 void main() {
   {
     T f<T>(T x) => null;
-    var /*@type=f(T x) → T*/ v1 = f;
+    var /*@type=f(T) -> T*/ v1 = f;
     v1 = /*@returnType=S*/ <S>(/*@type=S*/ x) => x;
   }
   {
     List<T> f<T>(T x) => null;
-    var /*@type=f(T x) → List<T>*/ v2 = f;
+    var /*@type=f(T) -> List<T>*/ v2 = f;
     v2 = /*@returnType=List<S>*/ <S>(/*@type=S*/ x) => /*@typeArgs=S*/ [x];
     Iterable<int> r = /*@promotedType=none*/ v2(42);
     Iterable<String> s = /*@promotedType=none*/ v2('hello');

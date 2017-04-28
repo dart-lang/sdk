@@ -6,6 +6,6 @@
 library test;
 
 class C {
-  static final /*@topType=(bool b) → bool*/ f = /*@returnType=bool*/ (bool b) =>
+  static final /*@topType=(bool) -> bool*/ f = /*@returnType=bool*/ (bool b) =>
       b;
 }

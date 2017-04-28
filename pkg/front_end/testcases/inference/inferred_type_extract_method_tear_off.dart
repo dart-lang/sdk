@@ -10,4 +10,4 @@ class C {
 }
 
 C f() => null;
-var /*@topType=g() → bool*/ x = f().g;
+var /*@topType=g() -> bool*/ x = f().g;

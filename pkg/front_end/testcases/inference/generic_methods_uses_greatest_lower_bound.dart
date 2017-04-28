@@ -11,7 +11,7 @@ typedef List<int> G(double x);
 T generic<T>(a(T _), b(T _)) => null;
 
 main() {
-  var /*@type=(num x) → List<int>*/ v = generic(
+  var /*@type=(num) -> List<int>*/ v = generic(
       /*@returnType=dynamic*/ (F f) => null,
       /*@returnType=dynamic*/ (G g) => null);
 }
