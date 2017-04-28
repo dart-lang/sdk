@@ -119,7 +119,7 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
   }
 
   void _appendElementName(StringBuffer buffer, Element element) {
-    String name = element.name;
+    String name = element.name ?? '';
     if (element.library == null) {
       // TODO(scheglov) This is wrong - every element must be in a library.
       buffer.write('<unknown>::$name');

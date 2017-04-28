@@ -9609,6 +9609,9 @@ class B extends A {
   }
 
   void test_inferredType_usesSyntheticFunctionType_functionTypedParam() {
+    // AnalysisContext does not set the enclosing element for the synthetic
+    // FunctionElement created for the [f, g] type argument.
+    shouldCompareLibraryElements = false;
     var library = checkLibrary('''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;

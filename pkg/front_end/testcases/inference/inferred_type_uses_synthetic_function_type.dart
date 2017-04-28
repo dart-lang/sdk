@@ -7,7 +7,4 @@ library test;
 
 int f() => null;
 String g() => null;
-var /*@topType=List<<unknown>::() → Object>*/ v = /*@typeArgs=<unknown>::() → Object*/ [
-  f,
-  g
-];
+var /*@topType=List<() → Object>*/ v = /*@typeArgs=() → Object*/ [f, g];
