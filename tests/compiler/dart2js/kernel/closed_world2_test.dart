@@ -16,6 +16,7 @@ import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
@@ -61,12 +62,26 @@ class ClassWithSetter {
   void set setter(_) {}
 }
 
+class Mixin {
+  method1() {}
+  method2() {}
+  method3() {}
+}
+class Class1 = Object with Mixin;
+class Class2 extends Object with Mixin {
+  method3() {}
+}
+ 
+
 @NoInline()
 main() {
   print('Hello World');
   ''.contains; // Trigger member closurization.
   new Element.div();
   new ClassWithSetter().setter = null;
+  new Class1().method1();
+  new Class2().method2();
+  new Class2().method3();
 }
 '''
 };
@@ -122,6 +137,7 @@ Future mainInternal(List<String> args,
       options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
   await compiler.run(entryPoint);
   compiler.resolutionWorldBuilder.closeWorld();
+  ElementEnvironment environment1 = compiler.elementEnvironment;
 
   print('---- closed world from kernel ------------------------------------');
   Compiler compiler2 = compilerFor(
@@ -143,10 +159,15 @@ Future mainInternal(List<String> args,
       compiler.backend.kernelTask.program);
   await compiler2.run(entryPoint);
   Expect.isFalse(compiler2.compilationFailed);
+
+  KernelEquivalence equivalence = new KernelEquivalence(elementMap);
+
+  ElementEnvironment environment2 = compiler2.elementEnvironment;
+  checkElementEnvironment(environment1, environment2, equivalence);
+
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
   BackendUsage backendUsage2 = compiler2.backend.backendUsage;
   ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
-  KernelEquivalence equivalence = new KernelEquivalence(elementMap);
   checkBackendUsage(backendUsage1, backendUsage2, equivalence);
 
   checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
@@ -292,6 +313,45 @@ void checkBackendUsage(BackendUsageImpl usage1, BackendUsageImpl usage2,
       usage2.isFunctionApplyUsed);
   check(usage1, usage2, 'isNoSuchMethodUsed', usage1.isNoSuchMethodUsed,
       usage2.isNoSuchMethodUsed);
+}
+
+checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
+    KernelEquivalence equivalence) {
+  checkSetEquivalence(env1, env2, 'libraries', env1.libraries, env2.libraries,
+      equivalence.entityEquivalence,
+      onSameElement: (LibraryEntity lib1, LibraryEntity lib2) {
+    List<ClassEntity> classes2 = <ClassEntity>[];
+    env1.forEachClass(lib1, (ClassEntity cls1) {
+      String className = cls1.name;
+      ClassEntity cls2 = env2.lookupClass(lib2, className);
+      Expect.isNotNull(cls2, 'Missing class $className in $lib2');
+      check(lib1, lib2, 'class:${className}', cls1, cls2,
+          equivalence.entityEquivalence);
+
+      check(cls1, cls2, 'superclass', env1.getSuperClass(cls1),
+          env2.getSuperClass(cls2), equivalence.entityEquivalence);
+
+      Map<MemberEntity, ClassEntity> members1 = <MemberEntity, ClassEntity>{};
+      Map<MemberEntity, ClassEntity> members2 = <MemberEntity, ClassEntity>{};
+      env1.forEachClassMember(cls1,
+          (ClassEntity declarer1, MemberEntity member1) {
+        members1[member1] = declarer1;
+      });
+      env1.forEachClassMember(cls1,
+          (ClassEntity declarer2, MemberEntity member2) {
+        members2[member2] = declarer2;
+      });
+      checkMapEquivalence(cls1, cls2, 'members', members1, members2,
+          equivalence.entityEquivalence, equivalence.entityEquivalence);
+
+      classes2.add(cls2);
+    });
+    env2.forEachClass(lib2, (ClassEntity cls2) {
+      Expect.isTrue(classes2.contains(cls2), "Extra class $cls2 in $lib2");
+    });
+  });
+
+  // TODO(johnniwinther): Test the remaining properties of [ElementEnvironment].
 }
 
 class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {

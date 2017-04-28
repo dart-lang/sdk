@@ -162,7 +162,9 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   void _forEachClass(KLibrary library, void f(ClassEntity cls)) {
     _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     libraryEnv.forEachClass((_KClassEnv classEnv) {
-      f(_getClass(classEnv.cls, classEnv));
+      if (!classEnv.isUnnamedMixinApplication) {
+        f(_getClass(classEnv.cls, classEnv));
+      }
     });
   }
 
@@ -707,6 +709,7 @@ class _KLibraryEnv {
 /// Environment for fast lookup of class members.
 class _KClassEnv {
   final ir.Class cls;
+  final bool isUnnamedMixinApplication;
 
   InterfaceType thisType;
   InterfaceType rawType;
@@ -720,34 +723,46 @@ class _KClassEnv {
 
   Iterable<ConstantExpression> _metadata;
 
-  _KClassEnv(this.cls);
+  _KClassEnv(this.cls)
+      // TODO(johnniwinther): Change this to use a property on [cls] when such
+      // is added to kernel.
+      : isUnnamedMixinApplication = cls.name.contains('+');
 
   void _ensureMaps() {
     if (_memberMap == null) {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       _constructorMap = <String, ir.Member>{};
-      for (ir.Member member in cls.members) {
-        if (member is ir.Constructor ||
-            member is ir.Procedure && member.kind == ir.ProcedureKind.Factory) {
-          _constructorMap[member.name.name] = member;
-        } else if (member is ir.Procedure) {
-          if (member.kind == ir.ProcedureKind.Setter) {
-            _setterMap[member.name.name] = member;
-          } else {
+
+      void addMembers(ir.Class c) {
+        for (ir.Member member in c.members) {
+          if (member is ir.Constructor ||
+              member is ir.Procedure &&
+                  member.kind == ir.ProcedureKind.Factory) {
+            _constructorMap[member.name.name] = member;
+          } else if (member is ir.Procedure) {
+            if (member.kind == ir.ProcedureKind.Setter) {
+              _setterMap[member.name.name] = member;
+            } else {
+              _memberMap[member.name.name] = member;
+            }
+          } else if (member is ir.Field) {
             _memberMap[member.name.name] = member;
+            if (member.isMutable) {
+              _setterMap[member.name.name] = member;
+            }
+            _memberMap[member.name.name] = member;
+          } else {
+            throw new SpannableAssertionFailure(
+                NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
           }
-        } else if (member is ir.Field) {
-          _memberMap[member.name.name] = member;
-          if (member.isMutable) {
-            _setterMap[member.name.name] = member;
-          }
-          _memberMap[member.name.name] = member;
-        } else {
-          throw new SpannableAssertionFailure(
-              NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
         }
       }
+
+      if (cls.mixedInClass != null) {
+        addMembers(cls.mixedInClass);
+      }
+      addMembers(cls);
     }
   }
 
@@ -1235,15 +1250,6 @@ class WorldDeconstructionForTesting {
 
   WorldDeconstructionForTesting(this.builder);
 
-  Uri getLibraryUri(KLibrary library) {
-    return builder._libraryEnvs[library.libraryIndex].library.importUri;
-  }
-
-  KLibrary getLibraryForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
-    return builder.getLibrary(env.cls.enclosingLibrary);
-  }
-
   KLibrary _getLibrary<E>(E member, Map<ir.Member, E> map) {
     ir.Library library;
     map.forEach((ir.Member node, E other) {
@@ -1268,6 +1274,11 @@ class WorldDeconstructionForTesting {
     ir.Supertype supertype = env.cls.supertype;
     if (supertype == null) return null;
     return builder.getClass(supertype.classNode);
+  }
+
+  bool isUnnamedMixinApplication(KClass cls) {
+    _KClassEnv env = builder._classEnvs[cls.classIndex];
+    return env.isUnnamedMixinApplication;
   }
 
   InterfaceType getMixinTypeForClass(KClass cls) {
