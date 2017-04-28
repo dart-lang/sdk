@@ -57,11 +57,16 @@ const SOURCE = const {
 import 'dart:html';
 import 'package:expect/expect.dart';
 
+class ClassWithSetter {
+  void set setter(_) {}
+}
+
 @NoInline()
 main() {
   print('Hello World');
   ''.contains; // Trigger member closurization.
   new Element.div();
+  new ClassWithSetter().setter = null;
 }
 '''
 };

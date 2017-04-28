@@ -766,6 +766,13 @@ class _KClassEnv {
   void forEachMember(f(ir.Member member)) {
     _ensureMaps();
     _memberMap.values.forEach(f);
+    for (ir.Member member in _setterMap.values) {
+      if (member is ir.Procedure) {
+        f(member);
+      } else {
+        // Skip fields; these are also in _memberMap.
+      }
+    }
   }
 
   Iterable<ConstantExpression> getMetadata(KernelToElementMap worldBuilder) {
