@@ -66,6 +66,7 @@ import 'package:linter/src/rules/prefer_contains.dart';
 import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
 import 'package:linter/src/rules/prefer_final_locals.dart';
+import 'package:linter/src/rules/prefer_foreach.dart';
 import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
 import 'package:linter/src/rules/prefer_initializing_formals.dart';
 import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
@@ -160,6 +161,7 @@ void registerLintRules() {
     ..register(new PreferExpressionFunctionBodies())
     ..register(new PreferFinalFields())
     ..register(new PreferFinalLocals())
+    ..register(new PreferForeach())
     ..register(new PreferFunctionDeclarationsOverVariables())
     ..register(new PreferInitializingFormals())
     ..register(new PreferInterpolationToComposeStrings())
