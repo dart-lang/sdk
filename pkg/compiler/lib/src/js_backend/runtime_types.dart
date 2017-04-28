@@ -759,7 +759,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
       List<String> parameters = const <String>[];
       if (contextClass != null) {
         parameters = contextClass.typeVariables.map((type) {
-          return type.toString();
+          return type.name;
         }).toList();
       }
       return js('function(#) { return # }', [parameters, encoding]);

@@ -250,7 +250,7 @@ class ResolutionTypeVariableType extends ResolutionDartType
     return identical(other.element, element);
   }
 
-  String toString() => name;
+  String toString() => '${element.typeDeclaration.name}.$name';
 }
 
 /// Provides a thin model of method type variables: They are treated as if
