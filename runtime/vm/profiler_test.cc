@@ -985,9 +985,9 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT_STREQ("new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List._internal", walker.CurrentName());
+    EXPECT_STREQ("new List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1037,11 +1037,11 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT_STREQ("new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_GrowableList._GrowableList", walker.CurrentName());
+    EXPECT_STREQ("new _GrowableList", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List._internal", walker.CurrentName());
+    EXPECT_STREQ("new List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("bar", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1240,7 +1240,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("TypedData_Float32Array_new", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
+    EXPECT_STREQ("new Float32List", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());

@@ -3333,14 +3333,14 @@ TEST_CASE(StackTraceFormat) {
                "Unhandled exception:\n"
                "MyException\n"
                "#0      baz (test-lib:2:3)\n"
-               "#1      _OtherClass._OtherClass._named (test-lib:7:5)\n"
+               "#1      new _OtherClass._named (test-lib:7:5)\n"
                "#2      globalVar= (test-lib:12:7)\n"
                "#3      _bar (test-lib:16:3)\n"
                "#4      MyClass.field (test-lib:25:5)\n"
                "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
                "#6      MyClass.foo (test-lib:32:14)\n"
-               "#7      MyClass.MyClass.<anonymous closure> (test-lib:21:12)\n"
-               "#8      MyClass.MyClass (test-lib:21:18)\n"
+               "#7      new MyClass.<anonymous closure> (test-lib:21:12)\n"
+               "#8      new MyClass (test-lib:21:18)\n"
                "#9      main.<anonymous closure> (test-lib:37:14)\n"
                "#10     main (test-lib:37:24)");
 }

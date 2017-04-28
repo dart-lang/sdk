@@ -55,6 +55,8 @@ covariant_test/32: MissingCompileTimeError, OK # Accepts `covariant` for statics
 covariant_test/34: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
 covariant_test/36: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
 
+stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
+
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
