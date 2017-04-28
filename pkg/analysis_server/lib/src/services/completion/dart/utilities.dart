@@ -76,7 +76,7 @@ void addDefaultArgDetails(
       if (isFlutterWidget(element.enclosingElement)) {
         for (ParameterElement param in element.parameters) {
           if (param.name == 'children') {
-            String defaultValue = getDefaultStringParameterValue(param);
+            String defaultValue = getDefaultStringParameterValue(param) ?? '';
             if (sb.isNotEmpty) {
               sb.write(', ');
             }
