@@ -25,6 +25,16 @@ type_variable_as_super: Fail
 uninitialized_fields: Fail # Missing types and unnecessary default values.
 void-methods: Fail # Bad return from setters.
 
+inference/*: Fail
+inference/int_upwards_local: Pass
+inference/local_constructor_from_arguments: Pass
+inference/local_reference_upwards_local: Pass
+inference/toplevel_inference_toplevel_var: Pass
+inference/type_promotion_simple: Pass
+inference/type_promotion_stopped_by_access_in_a_closure: Pass
+inference/type_promotion_stopped_by_assignment_in_scope: Pass
+inference/type_promotion_stopped_by_mutation_in_a_closure: Pass
+
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail

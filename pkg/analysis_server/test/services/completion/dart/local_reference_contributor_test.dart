@@ -2,12 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.local_ref;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide Element, ElementKind;
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
@@ -32,9 +27,9 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
+    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, returnType != null ? returnType : 'dynamic');
@@ -47,9 +42,9 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.PARAMETER));
+    expect(element.kind, equals(ElementKind.PARAMETER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType,

@@ -817,7 +817,10 @@ class _BasicWorkspace extends Workspace {
       throw new ArgumentError('not absolute: $path');
     }
     path = context.normalize(path);
-
+    Resource resource = provider.getResource(path);
+    if (resource is File) {
+      path = resource.parent.path;
+    }
     return new _BasicWorkspace._(provider, path, builder);
   }
 }

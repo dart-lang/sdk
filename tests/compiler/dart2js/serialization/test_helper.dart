@@ -675,44 +675,48 @@ class KernelEquivalence {
           List<InterfaceType> aMixinTypes = [];
           List<InterfaceType> bMixinTypes = [];
           ClassElement aClass = a;
-          while (aClass.isMixinApplication) {
-            MixinApplicationElement aMixinApplication = aClass;
-            aMixinTypes.add(aMixinApplication.mixinType);
-            aClass = aMixinApplication.superclass;
-          }
-          KClass bClass = b;
-          while (bClass != null) {
-            InterfaceType mixinType = testing.getMixinTypeForClass(bClass);
-            if (mixinType == null) break;
-            bMixinTypes.add(mixinType);
-            bClass = testing.getSuperclassForClass(bClass);
-          }
-          if (aMixinTypes.isNotEmpty || aMixinTypes.isNotEmpty) {
-            if (aClass.isNamedMixinApplication &&
-                !strategy.test(a, b, 'name', a.name, b.name)) {
+          if (aClass.isUnnamedMixinApplication) {
+            if (!testing.isUnnamedMixinApplication(b)) {
               return false;
             }
-            Pair<ClassEntity, ClassEntity> pair =
-                new Pair<ClassEntity, ClassEntity>(aClass, bClass);
-            if (assumedMixinApplications.contains(pair)) {
-              return true;
-            } else {
-              assumedMixinApplications.add(pair);
-              bool result = strategy.testTypeLists(
-                  a, b, 'mixinTypes', aMixinTypes, bMixinTypes);
-              assumedMixinApplications.remove(pair);
-              return result;
+            while (aClass.isMixinApplication) {
+              MixinApplicationElement aMixinApplication = aClass;
+              aMixinTypes.add(aMixinApplication.mixinType);
+              aClass = aMixinApplication.superclass;
+            }
+            KClass bClass = b;
+            while (bClass != null) {
+              InterfaceType mixinType = testing.getMixinTypeForClass(bClass);
+              if (mixinType == null) break;
+              bMixinTypes.add(mixinType);
+              bClass = testing.getSuperclassForClass(bClass);
+            }
+            if (aMixinTypes.isNotEmpty || aMixinTypes.isNotEmpty) {
+              Pair<ClassEntity, ClassEntity> pair =
+                  new Pair<ClassEntity, ClassEntity>(aClass, bClass);
+              if (assumedMixinApplications.contains(pair)) {
+                return true;
+              } else {
+                assumedMixinApplications.add(pair);
+                bool result = strategy.testTypeLists(
+                    a, b, 'mixinTypes', aMixinTypes, bMixinTypes);
+                assumedMixinApplications.remove(pair);
+                return result;
+              }
+            }
+          } else {
+            if (testing.isUnnamedMixinApplication(b)) {
+              return false;
             }
           }
           return strategy.test(a, b, 'name', a.name, b.name) &&
-              strategy.testElements(
-                  a, b, 'library', a.library, testing.getLibraryForClass(b));
+              strategy.testElements(a, b, 'library', a.library, b.library);
         }
         return false;
       case ElementKind.LIBRARY:
         if (b is KLibrary) {
           LibraryElement libraryA = a;
-          return libraryA.canonicalUri == testing.getLibraryUri(b);
+          return libraryA.canonicalUri == b.canonicalUri;
         }
         return false;
       case ElementKind.FUNCTION:

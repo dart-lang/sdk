@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
 
 /**

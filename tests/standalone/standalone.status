@@ -408,7 +408,6 @@ io/secure_server_closing_test: RuntimeError
 # The Android command runner doesn't correctly handle non-UTF8 formatted output.
 # https://github.com/dart-lang/sdk/issues/28872
 io/non_utf8_output_test: Skip
-io/locale_name_test: RuntimeError  # Issue 29211
 
 [ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426

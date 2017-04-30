@@ -4,7 +4,8 @@
 
 library test.edit.statement_completion;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';

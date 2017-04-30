@@ -63,7 +63,8 @@ main() {
         compiler.resolutionWorldBuilder.closedWorldForTesting;
 
     void check(String methodName, TypeMask expectedReturnType) {
-      MemberElement element = compiler.mainApp.find(methodName);
+      LibraryElement mainApp = compiler.mainApp;
+      MemberElement element = mainApp.find(methodName);
       TypeMask typeMask = simplify(
           compiler.globalInference.results.resultOfMember(element).returnType,
           closedWorld);

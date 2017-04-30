@@ -5,7 +5,7 @@
 /**
  * A collection of utility methods used by completion contributors.
  */
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
+import 'package:analysis_server/protocol/protocol_generated.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -76,7 +76,7 @@ void addDefaultArgDetails(
       if (isFlutterWidget(element.enclosingElement)) {
         for (ParameterElement param in element.parameters) {
           if (param.name == 'children') {
-            String defaultValue = getDefaultStringParameterValue(param);
+            String defaultValue = getDefaultStringParameterValue(param) ?? '';
             if (sb.isNotEmpty) {
               sb.write(', ');
             }

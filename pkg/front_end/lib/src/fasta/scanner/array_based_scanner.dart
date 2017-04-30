@@ -33,8 +33,10 @@ import '../util/link.dart' show Link;
 abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
 
-  ArrayBasedScanner(bool includeComments, {int numberOfBytesHint})
-      : super(includeComments, numberOfBytesHint: numberOfBytesHint);
+  ArrayBasedScanner(bool includeComments, bool scanGenericMethodComments,
+      {int numberOfBytesHint})
+      : super(includeComments, scanGenericMethodComments,
+            numberOfBytesHint: numberOfBytesHint);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -75,7 +77,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Appends a keyword token whose kind is determined by [keyword].
    */
   void appendKeywordToken(Keyword keyword) {
-    String syntax = keyword.syntax;
+    String syntax = keyword.lexeme;
     // Type parameters and arguments cannot contain 'this'.
     if (identical(syntax, 'this')) {
       discardOpenLt();

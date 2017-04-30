@@ -503,7 +503,7 @@ class Parser {
     assert(optional('of', token.next));
     Token partKeyword = token;
     token = token.next.next;
-    bool hasName = token.isIdentifier();
+    bool hasName = token.isIdentifier;
     if (hasName) {
       token = parseQualified(token, IdentifierContext.partName,
           IdentifierContext.partNameContinuation);
@@ -670,7 +670,7 @@ class Parser {
     //    void foo(covariant);
     Token covariantKeyword;
     if (identical(token.stringValue, 'covariant') &&
-        (token.next.isIdentifier() || isModifier(token.next))) {
+        (token.next.isIdentifier || isModifier(token.next))) {
       covariantKeyword = token;
       token = token.next;
     }
@@ -685,7 +685,7 @@ class Parser {
           parseIdentifier(token, IdentifierContext.formalParameterDeclaration);
     } else if (inFunctionType) {
       token = parseType(token);
-      if (token.isIdentifier()) {
+      if (token.isIdentifier) {
         token = parseIdentifier(
             token, IdentifierContext.formalParameterDeclaration);
       } else {
@@ -793,7 +793,7 @@ class Parser {
     }
     token = listener.injectGenericCommentTypeAssign(token);
     Token peek = peekAfterIfType(token);
-    if (peek != null && (peek.isIdentifier() || optional('this', peek))) {
+    if (peek != null && (peek.isIdentifier || optional('this', peek))) {
       return parseType(token);
     }
     listener.handleNoType(token);
@@ -805,7 +805,7 @@ class Parser {
     if (identical(kind, IDENTIFIER_TOKEN)) return true;
     if (identical(kind, KEYWORD_TOKEN)) {
       Keyword keyword = (token as KeywordToken).keyword;
-      String value = keyword.syntax;
+      String value = keyword.lexeme;
       return keyword.isPseudo ||
           (identical(value, 'dynamic')) ||
           (identical(value, 'void'));
@@ -1038,7 +1038,7 @@ class Parser {
   }
 
   Token parseIdentifier(Token token, IdentifierContext context) {
-    if (!token.isIdentifier()) {
+    if (!token.isIdentifier) {
       token =
           reportUnrecoverableErrorCodeWithToken(token, codeExpectedIdentifier)
               .next;
@@ -1553,7 +1553,7 @@ class Parser {
           // type ...
           if (optional('.', token.next)) {
             // type '.' ...
-            if (token.next.next.isIdentifier()) {
+            if (token.next.next.isIdentifier) {
               // type '.' identifier
               token = token.next.next;
             }
@@ -1740,7 +1740,7 @@ class Parser {
   Token peekAfterNominalType(Token token) {
     Token peek = token.next;
     if (identical(peek.kind, PERIOD_TOKEN)) {
-      if (peek.next.isIdentifier()) {
+      if (peek.next.isIdentifier) {
         // Look past a library prefix.
         peek = peek.next.next;
       }
@@ -1806,7 +1806,7 @@ class Parser {
   /// If [token] is the start of a type, returns the token after that type.
   /// If [token] is not the start of a type, null is returned.
   Token peekAfterIfType(Token token) {
-    if (!optional('void', token) && !token.isIdentifier()) {
+    if (!optional('void', token) && !token.isIdentifier) {
       return null;
     }
     return peekAfterType(token);
@@ -2401,7 +2401,7 @@ class Parser {
       throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
-    } else if (token.isIdentifier()) {
+    } else if (token.isIdentifier) {
       return parseExpressionStatementOrDeclaration(token);
     } else {
       return parseExpressionStatement(token);
@@ -2442,7 +2442,7 @@ class Parser {
 
   Token peekIdentifierAfterType(Token token) {
     Token peek = peekAfterType(token);
-    if (peek != null && peek.isIdentifier()) {
+    if (peek != null && peek.isIdentifier) {
       // We are looking at "type identifier".
       return peek;
     } else {
@@ -2452,10 +2452,10 @@ class Parser {
 
   Token peekIdentifierAfterOptionalType(Token token) {
     Token peek = peekAfterIfType(token);
-    if (peek != null && peek.isIdentifier()) {
+    if (peek != null && peek.isIdentifier) {
       // We are looking at "type identifier".
       return peek;
-    } else if (token.isIdentifier()) {
+    } else if (token.isIdentifier) {
       // We are looking at "identifier".
       return token;
     } else {
@@ -2467,10 +2467,10 @@ class Parser {
     if (!inPlainSync && optional("await", token)) {
       return parseExpressionStatement(token);
     }
-    assert(token.isIdentifier() || identical(token.stringValue, 'void'));
+    assert(token.isIdentifier || identical(token.stringValue, 'void'));
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
-      assert(identifier.isIdentifier());
+      assert(identifier.isIdentifier);
 
       // If the identifier token has a type substitution comment /*=T*/,
       // then the set of tokens type tokens should be replaced with the
@@ -2565,7 +2565,7 @@ class Parser {
     listener.injectGenericCommentTypeAssign(token.next);
     Token identifier = peekIdentifierAfterOptionalType(token.next);
     if (identifier != null) {
-      assert(identifier.isIdentifier());
+      assert(identifier.isIdentifier);
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (identical(afterIdKind, EQ_TOKEN) ||
@@ -2594,7 +2594,7 @@ class Parser {
     do {
       token = parseLabel(token);
       labelCount++;
-    } while (token.isIdentifier() && optional(':', token.next));
+    } while (token.isIdentifier && optional(':', token.next));
     listener.beginLabeledStatement(token, labelCount);
     token = parseStatement(token);
     listener.endLabeledStatement(labelCount);
@@ -2785,7 +2785,7 @@ class Parser {
     token = token.next;
     if (optional('[', token)) {
       token = parseArgumentOrIndexStar(token);
-    } else if (token.isIdentifier()) {
+    } else if (token.isIdentifier) {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.handleBinaryExpression(cascadeOperator);
     } else {
@@ -2902,7 +2902,7 @@ class Parser {
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
-      } else if (token.isIdentifier()) {
+      } else if (token.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
       } else {
         return expressionExpected(token);
@@ -3475,7 +3475,7 @@ class Parser {
     }
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
-      assert(identifier.isIdentifier());
+      assert(identifier.isIdentifier);
       if (isOneOf4(identifier.next, '=', ';', ',', 'in')) {
         return parseVariablesDeclarationNoSemicolon(token);
       }
@@ -3678,7 +3678,7 @@ class Parser {
   /// is used to determine if the labels belong to a statement or a
   /// switch case.
   Token peekPastLabels(Token token) {
-    while (token.isIdentifier() && optional(':', token.next)) {
+    while (token.isIdentifier && optional(':', token.next)) {
       token = token.next.next;
     }
     return token;
@@ -3751,7 +3751,7 @@ class Parser {
     Token breakKeyword = token;
     token = token.next;
     bool hasTarget = false;
-    if (token.isIdentifier()) {
+    if (token.isIdentifier) {
       token = parseIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
     }
@@ -3786,7 +3786,7 @@ class Parser {
     Token continueKeyword = token;
     token = token.next;
     bool hasTarget = false;
-    if (token.isIdentifier()) {
+    if (token.isIdentifier) {
       token = parseIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
     }

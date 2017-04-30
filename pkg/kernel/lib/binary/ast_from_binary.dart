@@ -313,6 +313,10 @@ class BinaryBuilder {
     return name?.getReference();
   }
 
+  Reference readTypedefReference() {
+    return readCanonicalNameReference().getReference();
+  }
+
   Name readName() {
     String text = readStringReference();
     if (text.isNotEmpty && text[0] == '_') {
@@ -350,6 +354,7 @@ class BinaryBuilder {
 
     debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
 
+    _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
     _mergeNamedNodeList(library.fields, readField, library);
     _mergeNamedNodeList(library.procedures, readProcedure, library);
@@ -371,6 +376,29 @@ class BinaryBuilder {
           readLibraryReference(), readStringReference())
         ..parent = library;
     }
+  }
+
+  Typedef readTypedef() {
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    Typedef node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Typedef(null, null, reference: reference);
+    }
+    int fileOffset = readOffset();
+    String name = readStringReference();
+    String fileUri = readUriReference();
+    readAndPushTypeParameterList(node.typeParameters, node);
+    var type = readDartType();
+    typeParameterStack.length = 0;
+    if (shouldWriteData) {
+      node.fileOffset = fileOffset;
+      node.name = name;
+      node.fileUri = fileUri;
+      node.type = type;
+    }
+    return node;
   }
 
   Class readClass() {
@@ -1019,6 +1047,9 @@ class BinaryBuilder {
   DartType readDartType() {
     int tag = readByte();
     switch (tag) {
+      case Tag.TypedefType:
+        return new TypedefType.byReference(
+            readTypedefReference(), readDartTypeList());
       case Tag.VectorType:
         return const VectorType();
       case Tag.BottomType:

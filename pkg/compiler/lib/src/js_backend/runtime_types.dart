@@ -455,7 +455,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
 
   @override
   TypeChecks computeChecks(
-      Set<ClassElement> instantiated, Set<ClassElement> checked) {
+      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
@@ -759,7 +759,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
       List<String> parameters = const <String>[];
       if (contextClass != null) {
         parameters = contextClass.typeVariables.map((type) {
-          return type.toString();
+          return type.name;
         }).toList();
       }
       return js('function(#) { return # }', [parameters, encoding]);

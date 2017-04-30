@@ -29,9 +29,7 @@ class Loader {
                                      uint8_t** payload,
                                      intptr_t* payload_length);
 
-  static Dart_Handle ResolveAsFilePath(Dart_Handle url,
-                                       uint8_t** payload,
-                                       intptr_t* payload_length);
+  static void ResolveDependenciesAsFilePaths();
 
   // A static tag handler that hides all usage of a loader for an isolate.
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
@@ -98,6 +96,10 @@ class Loader {
                                          Dart_Handle url,
                                          uint8_t** payload,
                                          intptr_t* payload_length);
+
+  static Dart_Handle ResolveAsFilePath(Dart_Handle url,
+                                       uint8_t** payload,
+                                       intptr_t* payload_length);
 
   // Send a request from the tag handler to the kernel isolate.
   void SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url);

@@ -18,6 +18,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart'
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:watcher/watcher.dart' as watcher;
 
 main() {
   defineReflectiveSuite(() {
@@ -127,7 +128,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  test_broadcast_many() async {
+  test_broadcastRequest_many() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -140,14 +141,63 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
-                Map<PluginInfo, Future<Response>> responses = manager.broadcast(
-                    contextRoot,
-                    new CompletionGetSuggestionsParams(
+                Map<PluginInfo, Future<Response>> responses =
+                    manager.broadcastRequest(
+                        new CompletionGetSuggestionsParams(
+                            '/pkg1/lib/pkg1.dart', 100),
+                        contextRoot: contextRoot);
+                expect(responses, hasLength(2));
+
+                await manager.stopAll();
+              });
+        });
+    pkg1Dir.deleteSync(recursive: true);
+  }
+
+  test_broadcastRequest_many_noContextRoot() async {
+    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    await withPlugin(
+        pluginName: 'plugin1',
+        test: (String plugin1Path) async {
+          await withPlugin(
+              pluginName: 'plugin2',
+              test: (String plugin2Path) async {
+                ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+                await manager.addPluginToContextRoot(contextRoot, plugin1Path);
+                await manager.addPluginToContextRoot(contextRoot, plugin2Path);
+
+                Map<PluginInfo, Future<Response>> responses =
+                    manager.broadcastRequest(new CompletionGetSuggestionsParams(
                         '/pkg1/lib/pkg1.dart', 100));
                 expect(responses, hasLength(2));
 
                 await manager.stopAll();
               });
+        });
+    pkg1Dir.deleteSync(recursive: true);
+  }
+
+  test_broadcastWatchEvent() async {
+    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    await withPlugin(
+        pluginName: 'plugin1',
+        test: (String plugin1Path) async {
+          ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+          await manager.addPluginToContextRoot(contextRoot, plugin1Path);
+          List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
+          expect(plugins, hasLength(1));
+          watcher.WatchEvent watchEvent = new watcher.WatchEvent(
+              watcher.ChangeType.MODIFY,
+              path.join(plugin1Path, 'lib', 'lib.dart'));
+          List<Future<Response>> responses =
+              await manager.broadcastWatchEvent(watchEvent);
+          expect(responses, hasLength(1));
+          Response response = await responses[0];
+          expect(response, isNotNull);
+          expect(response.error, isNull);
+          await manager.stopAll();
         });
     pkg1Dir.deleteSync(recursive: true);
   }
@@ -224,10 +274,11 @@ class PluginManagerTest {
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
-  void test_broadcast_none() {
+  void test_broadcastRequest_none() {
     ContextRoot contextRoot = new ContextRoot('/pkg1', []);
-    Map<PluginInfo, Future<Response>> responses = manager.broadcast(contextRoot,
-        new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100));
+    Map<PluginInfo, Future<Response>> responses = manager.broadcastRequest(
+        new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
+        contextRoot: contextRoot);
     expect(responses, hasLength(0));
   }
 
@@ -460,6 +511,7 @@ import 'dart:isolate';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/starter.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -472,13 +524,18 @@ class MinimalPlugin extends ServerPlugin {
   MinimalPlugin(ResourceProvider provider) : super(provider);
 
   @override
-  List<String> get fileGlobsToAnalyze => <String>[];
+  List<String> get fileGlobsToAnalyze => <String>['**/*.dart'];
 
   @override
   String get name => 'minimal';
 
   @override
   String get version => '0.0.1';
+
+  @override
+  AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
+          Map<String, Object> parameters) =>
+    new AnalysisHandleWatchEventsResult();
 
   @override
   bool isCompatibleWith(Version serverVersion) => true;
@@ -503,8 +560,7 @@ class MinimalPlugin extends ServerPlugin {
    * Return the path to the '.packages' file in the root of the SDK checkout.
    */
   String _sdkPackagesPath() {
-    String packagesPath =
-        io.Platform.script.toFilePath(windows: io.Platform.isWindows);
+    String packagesPath = io.Platform.script.toFilePath();
     while (packagesPath.isNotEmpty &&
         path.basename(packagesPath) != 'analysis_server') {
       packagesPath = path.dirname(packagesPath);

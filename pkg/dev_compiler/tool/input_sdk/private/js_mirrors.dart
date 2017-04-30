@@ -81,6 +81,10 @@ dynamic _getMixins(type) {
   return JS('', '#.getMixins(#, [])', _dart, type);
 }
 
+dynamic _getFunctionType(type) {
+  return JS('', '#.getFunctionTypeMirror(#)', _dart, type);
+}
+
 typedef T _Lazy<T>();
 
 dynamic _getESSymbol(Symbol symbol) =>
@@ -627,11 +631,7 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
 
     // TODO(vsm): Handle generic function types properly.  Or deprecate mirrors
     // before we need to!
-    if (JS('bool', 'typeof(#) == "function"', ftype)) {
-      // Instantiate the generic version.
-      // TODO(vsm): Can't use arguments.length on arrow function.
-      ftype = JS('', '#.apply(null, #)', ftype, [dynamic, dynamic, dynamic]);
-    }
+    ftype = _getFunctionType(ftype);
 
     // TODO(vsm): Add named args.
     List args = ftype.args;

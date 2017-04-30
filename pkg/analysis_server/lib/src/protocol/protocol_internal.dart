@@ -7,7 +7,8 @@ library analysis_server.src.protocol.protocol_internal;
 import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     new HashMap<String, RefactoringKind>();
@@ -244,31 +245,6 @@ abstract class HasToJson {
 }
 
 /**
- * Jenkins hash function, optimized for small integers.  Borrowed from
- * sdk/lib/math/jenkins_smi_hash.dart.
- *
- * TODO(paulberry): Move to somewhere that can be shared with other code.
- */
-class JenkinsSmiHash {
-  static int combine(int hash, int value) {
-    hash = 0x1fffffff & (hash + value);
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
-
-  static int hash4(a, b, c, d) =>
-      finish(combine(combine(combine(combine(0, a), b), c), d));
-}
-
-/**
  * Base class for decoding JSON objects.  The derived class must implement
  * error reporting logic.
  */
@@ -446,6 +422,14 @@ class RequestDecoder extends JsonDecoder {
   }
 }
 
+abstract class RequestParams implements HasToJson {
+  /**
+   * Return a request whose parameters are taken from this object and that has
+   * the given [id].
+   */
+  Request toRequest(String id);
+}
+
 /**
  * JsonDecoder for decoding responses from the server.  This is intended to be
  * used only for testing.  Errors are reported using bare [Exception] objects.
@@ -474,4 +458,15 @@ class ResponseDecoder extends JsonDecoder {
   dynamic missingKey(String jsonPath, String key) {
     return new Exception('Missing key $key at $jsonPath');
   }
+}
+
+/**
+ * The result data associated with a response.
+ */
+abstract class ResponseResult implements HasToJson {
+  /**
+   * Return a response whose result data is this object for the request with the
+   * given [id].
+   */
+  Response toResponse(String id);
 }

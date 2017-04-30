@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 /*@testedFeatures=inference*/
+library test;
+
 main() {
   num n = null;
   if (/*@promotedType=none*/ n is int) {
-    var /*@type=dart.core::num*/ i = /*@promotedType=none*/ n;
+    var /*@type=num*/ i = /*@promotedType=none*/ n;
     n = null;
   }
 }

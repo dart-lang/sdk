@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -11,6 +11,11 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
  * protocol and the server protocol.
  */
 class RequestConverter {
+  plugin.AnalysisReanalyzeParams convertAnalysisReanalyzeParams(
+      server.AnalysisReanalyzeParams params) {
+    return new plugin.AnalysisReanalyzeParams(roots: params.roots);
+  }
+
   plugin.AnalysisService convertAnalysisService(
       server.AnalysisService service) {
     return new plugin.AnalysisService(service.name);

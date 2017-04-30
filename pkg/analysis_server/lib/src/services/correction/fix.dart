@@ -111,6 +111,7 @@ bool hasFix(ErrorCode errorCode) =>
         (errorCode.name == LintNames.annotate_overrides ||
             errorCode.name == LintNames.avoid_init_to_null ||
             errorCode.name == LintNames.prefer_collection_literals ||
+            errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
@@ -199,8 +200,13 @@ class DartFixKind {
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
+  static const REMOVE_EMPTY_STATEMENT =
+      const FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
   static const REMOVE_INITIALIZER =
       const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
+  static const REMOVE_METHOD_DECLARATION = const FixKind(
+      'REMOVE_METHOD_DECLARATION', 50, 'Remove method declaration');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,
@@ -211,6 +217,8 @@ class DartFixKind {
       "Remove parentheses in getter invocation");
   static const REMOVE_THIS_EXPRESSION =
       const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
+  static const REMOVE_TYPE_NAME =
+      const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
   static const REMOVE_UNNECESSARY_CAST =
       const FixKind('REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast");
   static const REMOVE_UNUSED_CATCH_CLAUSE =
@@ -227,6 +235,12 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_WITH_BRACKETS =
+      const FixKind('REPLACE_WITH_BRACKETS', 50, "Replace with { }");
+  static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
+      'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, 'Replace with ??=');
+  static const REPLACE_WITH_IDENTIFIER =
+      const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
   static const REPLACE_WITH_LITERAL =
       const FixKind('REPLACE_WITH_LITERAL', 50, 'Replace with literal');
   static const REPLACE_WITH_NULL_AWARE = const FixKind(

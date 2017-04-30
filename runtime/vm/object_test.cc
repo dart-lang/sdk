@@ -3191,6 +3191,16 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   bare_name = OneByteString::New("food");
   EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
+  // Private mixin application match.
+  mangled_name = OneByteString::New("_M1@12345&_M2@12345&_M3@12345");
+  bare_name = OneByteString::New("_M1&_M2&_M3");
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
+  // Private mixin application mismatch.
+  mangled_name = OneByteString::New("_M1@12345&_M2@12345&_M3@12345");
+  bare_name = OneByteString::New("_M1&_M2&_M4");
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
   // Private constructor match.
   mangled_name = OneByteString::New("foo@12345.");
   bare_name = OneByteString::New("foo.");
@@ -3323,14 +3333,14 @@ TEST_CASE(StackTraceFormat) {
                "Unhandled exception:\n"
                "MyException\n"
                "#0      baz (test-lib:2:3)\n"
-               "#1      _OtherClass._OtherClass._named (test-lib:7:5)\n"
+               "#1      new _OtherClass._named (test-lib:7:5)\n"
                "#2      globalVar= (test-lib:12:7)\n"
                "#3      _bar (test-lib:16:3)\n"
                "#4      MyClass.field (test-lib:25:5)\n"
                "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
                "#6      MyClass.foo (test-lib:32:14)\n"
-               "#7      MyClass.MyClass.<anonymous closure> (test-lib:21:12)\n"
-               "#8      MyClass.MyClass (test-lib:21:18)\n"
+               "#7      new MyClass.<anonymous closure> (test-lib:21:12)\n"
+               "#8      new MyClass (test-lib:21:18)\n"
                "#9      main.<anonymous closure> (test-lib:37:14)\n"
                "#10     main (test-lib:37:24)");
 }

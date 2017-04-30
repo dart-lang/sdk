@@ -133,6 +133,11 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     _resolvedAst = _resolvedAstStack.removeLast();
   }
 
+  void assertAtResolvedAstFor(ir.Node node) {
+    assert(invariant(getElement(node),
+        _resolvedAst.element == getElement(node).declaration));
+  }
+
   Compiler get _compiler => _backend.compiler;
   TreeElements get elements => _resolvedAst.elements;
   DiagnosticReporter get reporter => _compiler.reporter;

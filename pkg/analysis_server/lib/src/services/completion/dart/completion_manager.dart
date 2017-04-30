@@ -6,7 +6,7 @@ library services.completion.dart.manager;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
@@ -508,7 +508,7 @@ class ReplacementRange {
 
   factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
     bool isKeywordOrIdentifier(Token token) =>
-        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
+        token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
     //TODO(danrubel) Ideally this needs to be pushed down into the contributors
     // but that implies that each suggestion can have a different

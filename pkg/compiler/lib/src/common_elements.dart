@@ -1085,6 +1085,50 @@ class CommonElements {
 
   FunctionEntity get callInIsolate =>
       _findLibraryMember(isolateHelperLibrary, '_callInIsolate');
+
+  static final Uri PACKAGE_EXPECT =
+      new Uri(scheme: 'package', path: 'expect/expect.dart');
+
+  bool _expectAnnotationChecked = false;
+  ClassEntity _expectNoInlineClass;
+  ClassEntity _expectTrustTypeAnnotationsClass;
+  ClassEntity _expectAssumeDynamicClass;
+
+  void _ensureExpectAnnotations() {
+    if (!_expectAnnotationChecked) {
+      _expectAnnotationChecked = true;
+      LibraryEntity library = _env.lookupLibrary(PACKAGE_EXPECT);
+      if (library != null) {
+        _expectNoInlineClass = _env.lookupClass(library, 'NoInline');
+        _expectTrustTypeAnnotationsClass =
+            _env.lookupClass(library, 'TrustTypeAnnotations');
+        _expectAssumeDynamicClass = _env.lookupClass(library, 'AssumeDynamic');
+        if (_expectNoInlineClass == null ||
+            _expectTrustTypeAnnotationsClass == null ||
+            _expectAssumeDynamicClass == null) {
+          // This is not the package you're looking for.
+          _expectNoInlineClass = null;
+          _expectTrustTypeAnnotationsClass = null;
+          _expectAssumeDynamicClass = null;
+        }
+      }
+    }
+  }
+
+  ClassEntity get expectNoInlineClass {
+    _ensureExpectAnnotations();
+    return _expectNoInlineClass;
+  }
+
+  ClassEntity get expectTrustTypeAnnotationsClass {
+    _ensureExpectAnnotations();
+    return _expectTrustTypeAnnotationsClass;
+  }
+
+  ClassEntity get expectAssumeDynamicClass {
+    _ensureExpectAnnotations();
+    return _expectAssumeDynamicClass;
+  }
 }
 
 /// Interface for accessing libraries, classes and members.

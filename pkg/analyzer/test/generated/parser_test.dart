@@ -10879,7 +10879,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
@@ -10891,7 +10891,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
@@ -10903,7 +10903,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNull);
   }
@@ -10915,7 +10915,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
@@ -10927,7 +10927,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
@@ -10939,7 +10939,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNull);
   }
@@ -10951,7 +10951,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
@@ -11027,7 +11027,7 @@ void''');
     listener.assertNoErrors();
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
-    expect(keyword.type, TokenType.KEYWORD);
+    expect(keyword.type.isKeyword, true);
     expect(keyword.keyword, Keyword.VAR);
     expect(result.type, isNull);
   }

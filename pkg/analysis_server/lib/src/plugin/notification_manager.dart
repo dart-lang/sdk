@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
@@ -172,6 +172,17 @@ class NotificationManager {
                 .map((plugin.Outline outline) =>
                     converter.convertOutline(outline))
                 .toList());
+        break;
+      case plugin.PLUGIN_NOTIFICATION_ERROR:
+        plugin.PluginErrorParams params =
+            new plugin.PluginErrorParams.fromNotification(notification);
+        // TODO(brianwilkerson) There is no indication for the client as to the
+        // fact that the error came from a plugin, let alone which plugin it
+        // came from. We should consider whether we really want to send them to
+        // the client.
+        channel.sendNotification(new server.ServerErrorParams(
+                params.isFatal, params.message, params.stackTrace)
+            .toNotification());
         break;
     }
   }

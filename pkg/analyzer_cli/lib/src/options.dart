@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
 
 const _binaryName = 'dartanalyzer';
 
@@ -225,6 +225,14 @@ class CommandLineOptions {
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
 
+  /// The source files to analyze
+  List<String> get sourceFiles => _sourceFiles;
+
+  /// Replace the sourceFiles parsed from the command line.
+  void rewriteSourceFiles(List<String> newSourceFiles) {
+    _sourceFiles = newSourceFiles;
+  }
+
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
@@ -234,12 +242,7 @@ class CommandLineOptions {
     // Check SDK.
     if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
-      if (options.dartSdkPath == null) {
-        Directory sdkDir = getSdkDir(args);
-        if (sdkDir != null) {
-          options.dartSdkPath = sdkDir.path;
-        }
-      }
+      options.dartSdkPath ??= getSdkPath(args);
 
       String sdkPath = options.dartSdkPath;
 
@@ -292,14 +295,6 @@ class CommandLineOptions {
     }
 
     return options;
-  }
-
-  /// The source files to analyze
-  List<String> get sourceFiles => _sourceFiles;
-
-  /// Replace the sourceFiles parsed from the command line.
-  void rewriteSourceFiles(List<String> newSourceFiles) {
-    _sourceFiles = newSourceFiles;
   }
 
   static String _getVersion() {
@@ -484,7 +479,7 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('enable-assert-initializers',
           help: 'Enable parsing of asserts in constructor initializers.',
-          defaultsTo: false,
+          defaultsTo: null,
           negatable: false,
           hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',

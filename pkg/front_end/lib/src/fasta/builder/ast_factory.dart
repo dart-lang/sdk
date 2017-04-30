@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
@@ -35,43 +36,40 @@ import 'package:kernel/ast.dart';
 /// exact tokens that were used to specify a type.
 abstract class AstFactory<V> {
   /// Creates a statement block.
-  Block block(List<Statement> statements, int charOffset);
+  Block block(List<Statement> statements, Token beginToken);
 
   /// Creates an expression statement.
   ExpressionStatement expressionStatement(Expression expression);
 
-  /// Creates a field.
-  Field field(Name name, int charOffset, {String fileUri});
-
   /// Creates a function expression.
-  FunctionExpression functionExpression(FunctionNode function, int charOffset);
+  FunctionExpression functionExpression(FunctionNode function, Token token);
 
   /// Creates an `if` statement.
   Statement ifStatement(
       Expression condition, Statement thenPart, Statement elsePart);
 
   /// Creates an integer literal.
-  IntLiteral intLiteral(value, int charOffset);
+  IntLiteral intLiteral(value, Token token);
 
   /// Creates an `is` expression.
   Expression isExpression(
-      Expression expression, DartType type, int charOffset, bool isInverted);
+      Expression expression, DartType type, Token token, bool isInverted);
 
   /// Creates a list literal expression.
   ///
   /// If the list literal did not have an explicitly declared type argument,
   /// [typeArgument] should be `null`.
   ListLiteral listLiteral(List<Expression> expressions, DartType typeArgument,
-      bool isConst, int charOffset);
+      bool isConst, Token token);
 
   /// Creates a null literal expression.
-  NullLiteral nullLiteral(int charOffset);
+  NullLiteral nullLiteral(Token token);
 
   /// Creates a return statement.
-  Statement returnStatement(Expression expression, int charOffset);
+  Statement returnStatement(Expression expression, Token token);
 
   /// Creates a read of a static variable.
-  StaticGet staticGet(Member readTarget, int offset);
+  StaticGet staticGet(Member readTarget, Token token);
 
   /// Creates a variable declaration statement declaring one variable.
   ///
@@ -83,14 +81,14 @@ abstract class AstFactory<V> {
   /// If the variable declaration did not have an explicitly declared type,
   /// [type] should be `null`.
   VariableDeclaration variableDeclaration(
-      String name, int charOffset, int functionNestingLevel,
+      String name, Token token, int functionNestingLevel,
       {DartType type,
       Expression initializer,
-      int equalsCharOffset = TreeNode.noOffset,
+      Token equalsToken,
       bool isFinal: false,
       bool isConst: false});
 
   /// Creates a read of a local variable.
   variableGet(VariableDeclaration variable, TypePromotionFact<V> fact,
-      TypePromotionScope scope, int charOffset);
+      TypePromotionScope scope, Token token);
 }

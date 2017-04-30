@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 /*@testedFeatures=inference*/
+library test;
+
 import 'dart:async';
 
 main() {
   Future<int> futureInt = null;
-  var /*@type=dart.async::Future<dart.core::int>*/ x =
-      /*@promotedType=none*/ futureInt;
+  var /*@type=Future<int>*/ x = /*@promotedType=none*/ futureInt;
 }

@@ -846,18 +846,22 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       bytes.removeLast();
       new BinaryBuilder(bytes).readProgram(program);
       return measure(() {
-        _elementMap.addProgram(program);
-        program.libraries.forEach((ir.Library library) => _allLoadedLibraries
-            .add(_elementMap.lookupLibrary(library.importUri)));
-        LibraryEntity rootLibrary = null;
-        if (program.mainMethod != null) {
-          rootLibrary = _elementMap
-              .lookupLibrary(program.mainMethod.enclosingLibrary.importUri);
-        }
-        return new _LoadedLibrariesAdapter(
-            rootLibrary, _allLoadedLibraries, _elementMap);
+        return createLoadedLibraries(program);
       });
     });
+  }
+
+  LoadedLibraries createLoadedLibraries(ir.Program program) {
+    _elementMap.addProgram(program);
+    program.libraries.forEach((ir.Library library) =>
+        _allLoadedLibraries.add(_elementMap.lookupLibrary(library.importUri)));
+    LibraryEntity rootLibrary = null;
+    if (program.mainMethod != null) {
+      rootLibrary = _elementMap
+          .lookupLibrary(program.mainMethod.enclosingLibrary.importUri);
+    }
+    return new _LoadedLibrariesAdapter(
+        rootLibrary, _allLoadedLibraries, _elementMap);
   }
 
   KernelToElementMap get elementMap => _elementMap;
@@ -885,9 +889,7 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         'DillLibraryLoaderTask.registerDeferredAction');
   }
 
-  Iterable<DeferredAction> pullDeferredActions() {
-    throw new UnimplementedError('DillLibraryLoaderTask.pullDeferredActions');
-  }
+  Iterable<DeferredAction> pullDeferredActions() => const <DeferredAction>[];
 }
 
 /// A state machine for checking script tags come in the correct order.

@@ -10,7 +10,8 @@ import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions, Element;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -69,6 +70,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
+import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
@@ -372,6 +374,12 @@ class AnalysisServer {
    * API is complete.
    */
   Function onNoAnalysisResult;
+
+  /**
+   * This exists as a temporary stopgap for plugins, until the official plugin
+   * API is complete.
+   */
+  Function onNoAnalysisCompletion;
 
   /**
    * The set of the files that are currently priority.
@@ -2103,6 +2111,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyFileRemoved(nd.AnalysisDriver driver, String file) {
     driver.removeFile(file);
     sendAnalysisNotificationFlushResults(analysisServer, [file]);
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 
   @override

@@ -24,22 +24,23 @@ class Collector {
   final OneShotInterceptorData _oneShotInterceptorData;
   final MirrorsData _mirrorsData;
   final ClosedWorld _closedWorld;
-  final Set<ClassElement> _rtiNeededClasses;
+  final Set<ClassEntity> _rtiNeededClasses;
   final Map<MemberElement, js.Expression> _generatedCode;
+  final Sorter _sorter;
 
-  final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  final Set<ClassEntity> neededClasses = new Set<ClassEntity>();
   // This field is set in [computeNeededDeclarations].
-  Set<ClassElement> classesOnlyNeededForRti;
-  final Map<OutputUnit, List<ClassElement>> outputClassLists =
-      new Map<OutputUnit, List<ClassElement>>();
+  Set<ClassEntity> classesOnlyNeededForRti;
+  final Map<OutputUnit, List<ClassEntity>> outputClassLists =
+      new Map<OutputUnit, List<ClassEntity>>();
   final Map<OutputUnit, List<ConstantValue>> outputConstantLists =
       new Map<OutputUnit, List<ConstantValue>>();
-  final Map<OutputUnit, List<Element>> outputStaticLists =
-      new Map<OutputUnit, List<Element>>();
-  final Map<OutputUnit, List<VariableElement>> outputStaticNonFinalFieldLists =
-      new Map<OutputUnit, List<VariableElement>>();
-  final Map<OutputUnit, Set<LibraryElement>> outputLibraryLists =
-      new Map<OutputUnit, Set<LibraryElement>>();
+  final Map<OutputUnit, List<MemberEntity>> outputStaticLists =
+      new Map<OutputUnit, List<MemberEntity>>();
+  final Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists =
+      new Map<OutputUnit, List<FieldEntity>>();
+  final Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists =
+      new Map<OutputUnit, Set<LibraryEntity>>();
 
   /// True, if the output contains a constant list.
   ///
@@ -64,7 +65,8 @@ class Collector {
       this._mirrorsData,
       this._closedWorld,
       this._rtiNeededClasses,
-      this._generatedCode);
+      this._generatedCode,
+      this._sorter);
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
@@ -271,51 +273,52 @@ class Collector {
     }
 
     // 4. Finally, sort the classes.
-    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
+    List<ClassEntity> sortedClasses = _sorter.sortClasses(neededClasses);
 
-    for (ClassElement element in sortedClasses) {
-      if (_nativeData.isNativeOrExtendsNative(element) &&
-          !classesOnlyNeededForRti.contains(element)) {
+    for (ClassEntity cls in sortedClasses) {
+      if (_nativeData.isNativeOrExtendsNative(cls) &&
+          !classesOnlyNeededForRti.contains(cls)) {
         // For now, native classes and related classes cannot be deferred.
-        nativeClassesAndSubclasses.add(element);
-        assert(invariant(element, !_deferredLoadTask.isDeferred(element)));
+        nativeClassesAndSubclasses.add(cls);
+        assert(invariant(cls, !_deferredLoadTask.isDeferredClass(cls)));
         outputClassLists
             .putIfAbsent(_deferredLoadTask.mainOutputUnit,
                 () => new List<ClassElement>())
-            .add(element);
+            .add(cls);
       } else {
         outputClassLists
-            .putIfAbsent(_deferredLoadTask.outputUnitForElement(element),
+            .putIfAbsent(_deferredLoadTask.outputUnitForClass(cls),
                 () => new List<ClassElement>())
-            .add(element);
+            .add(cls);
       }
     }
   }
 
   void computeNeededStatics() {
-    bool isStaticFunction(MemberElement element) =>
+    bool isStaticFunction(MemberEntity element) =>
         !element.isInstanceMember && !element.isField;
 
-    Iterable<MemberElement> elements =
+    Iterable<MemberEntity> elements =
         _generatedCode.keys.where(isStaticFunction);
 
-    for (Element element in Elements.sortedByPosition(elements)) {
-      List<Element> list = outputStaticLists.putIfAbsent(
-          _deferredLoadTask.outputUnitForElement(element),
-          () => new List<Element>());
-      list.add(element);
+    for (MemberEntity member in _sorter.sortMembers(elements)) {
+      List<MemberEntity> list = outputStaticLists.putIfAbsent(
+          _deferredLoadTask.outputUnitForMember(member),
+          () => new List<MemberEntity>());
+      list.add(member);
     }
   }
 
   void computeNeededStaticNonFinalFields() {
-    addToOutputUnit(Element element) {
-      List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
-          _deferredLoadTask.outputUnitForElement(element),
-          () => new List<VariableElement>());
+    addToOutputUnit(FieldEntity element) {
+      List<FieldEntity> list = outputStaticNonFinalFieldLists.putIfAbsent(
+          // ignore: UNNECESSARY_CAST
+          _deferredLoadTask.outputUnitForMember(element as MemberEntity),
+          () => new List<FieldEntity>());
       list.add(element);
     }
 
-    Iterable<FieldElement> fields =
+    Iterable<FieldEntity> fields =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.allReferencedStaticFields.where((FieldElement field) {
@@ -331,20 +334,24 @@ class Collector {
       }
     });
 
-    Elements.sortedByPosition(fields).forEach(addToOutputUnit);
+    _sorter.sortMembers(fields).forEach(addToOutputUnit);
   }
 
   void computeNeededLibraries() {
-    void addSurroundingLibraryToSet(Element element) {
-      OutputUnit unit = _deferredLoadTask.outputUnitForElement(element);
-      LibraryElement library = element.library;
+    _generatedCode.keys.forEach((MemberEntity element) {
+      OutputUnit unit = _deferredLoadTask.outputUnitForMember(element);
+      LibraryEntity library = element.library;
       outputLibraryLists
-          .putIfAbsent(unit, () => new Set<LibraryElement>())
+          .putIfAbsent(unit, () => new Set<LibraryEntity>())
           .add(library);
-    }
-
-    _generatedCode.keys.forEach(addSurroundingLibraryToSet);
-    neededClasses.forEach(addSurroundingLibraryToSet);
+    });
+    neededClasses.forEach((ClassEntity element) {
+      OutputUnit unit = _deferredLoadTask.outputUnitForClass(element);
+      LibraryEntity library = element.library;
+      outputLibraryLists
+          .putIfAbsent(unit, () => new Set<LibraryEntity>())
+          .add(library);
+    });
   }
 
   void collect() {

@@ -6,7 +6,7 @@ library server.performance.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 
 import 'benchmark_scenario.dart';
 import 'memory_tests.dart';

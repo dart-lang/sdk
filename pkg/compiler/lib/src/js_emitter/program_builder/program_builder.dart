@@ -9,7 +9,7 @@ import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
-import '../../common_elements.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show
@@ -65,6 +65,7 @@ import '../js_emitter.dart'
         RuntimeTypeGenerator,
         TypeTestProperties;
 import '../model.dart';
+import '../sorter.dart';
 
 part 'collector.dart';
 part 'field_visitor.dart';
@@ -74,6 +75,7 @@ part 'registry.dart';
 /// emitted more easily by the individual emitters.
 class ProgramBuilder {
   final CompilerOptions _options;
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
@@ -115,6 +117,7 @@ class ProgramBuilder {
 
   ProgramBuilder(
       this._options,
+      this._elementEnvironment,
       this._commonElements,
       this._types,
       this._deferredLoadTask,
@@ -138,7 +141,7 @@ class ProgramBuilder {
       this._namer,
       this._task,
       this._closedWorld,
-      Set<ClassElement> rtiNeededClasses,
+      Set<ClassEntity> rtiNeededClasses,
       this._mainFunction,
       {bool isMockCompilation})
       : this._isMockCompilation = isMockCompilation,
@@ -156,12 +159,13 @@ class ProgramBuilder {
             _mirrorsData,
             _closedWorld,
             rtiNeededClasses,
-            _generatedCode),
-        this._registry = new Registry(_deferredLoadTask);
+            _generatedCode,
+            _task.sorter),
+        this._registry = new Registry(_deferredLoadTask, _task.sorter);
 
-  /// Mapping from [ClassElement] to constructed [Class]. We need this to
+  /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
-  final Map<ClassElement, Class> _classes = <ClassElement, Class>{};
+  final Map<ClassEntity, Class> _classes = <ClassEntity, Class>{};
 
   /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
@@ -188,11 +192,10 @@ class ProgramBuilder {
     // happens when the deferred code is dead-code eliminated but we still need
     // to check that the library has been loaded.
     _deferredLoadTask.allOutputUnits.forEach(_registry.registerOutputUnit);
-    collector.outputClassLists.forEach(_registry.registerElements);
-    collector.outputStaticLists.forEach(_registry.registerElements);
+    collector.outputClassLists.forEach(_registry.registerClasses);
+    collector.outputStaticLists.forEach(_registry.registerMembers);
     collector.outputConstantLists.forEach(_registerConstants);
-    collector.outputStaticNonFinalFieldLists
-        .forEach(_registry.registerElements);
+    collector.outputStaticNonFinalFieldLists.forEach(_registry.registerMembers);
 
     // We always add the current isolate holder.
     _registerStaticStateHolder();
@@ -201,31 +204,32 @@ class ProgramBuilder {
     // preparation code, in turn needs the classes to be set up.
     // We thus build the classes before building their containers.
     collector.outputClassLists
-        .forEach((OutputUnit _, List<ClassElement> classes) {
+        .forEach((OutputUnit _, List<ClassEntity> classes) {
       classes.forEach(_buildClass);
     });
 
     // Resolve the superclass references after we've processed all the classes.
-    _classes.forEach((ClassElement element, Class c) {
-      if (element.superclass != null) {
-        c.setSuperclass(_classes[element.superclass]);
-        assert(invariant(element, c.superclass != null,
+    _classes.forEach((ClassEntity cls, Class c) {
+      ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
+      if (superclass != null) {
+        c.setSuperclass(_classes[superclass]);
+        assert(invariant(cls, c.superclass != null,
             message: "No Class for has been created for superclass "
-                "${element.superclass} of $c."));
+                "${superclass} of $c."));
       }
       if (c is MixinApplication) {
-        c.setMixinClass(_classes[computeMixinClass(element)]);
+        c.setMixinClass(_classes[computeMixinClass(cls)]);
         assert(c.mixinClass != null);
       }
     });
 
     List<Class> nativeClasses = collector.nativeClassesAndSubclasses
-        .map((ClassElement classElement) => _classes[classElement])
+        .map((ClassEntity classElement) => _classes[classElement])
         .toList();
 
-    Set<ClassElement> interceptorClassesNeededByConstants =
+    Set<ClassEntity> interceptorClassesNeededByConstants =
         collector.computeInterceptorsReferencedFromConstants();
-    Set<ClassElement> classesModifiedByEmitRTISupport =
+    Set<ClassEntity> classesModifiedByEmitRTISupport =
         _task.typeTestRegistry.computeClassesModifiedByEmitRuntimeTypeSupport();
 
     _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
@@ -344,7 +348,7 @@ class ProgramBuilder {
   }
 
   List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
-    List<VariableElement> staticNonFinalFields =
+    List<FieldEntity> staticNonFinalFields =
         collector.outputStaticNonFinalFieldLists[librariesMap.outputUnit];
     if (staticNonFinalFields == null) return const <StaticField>[];
 
@@ -406,8 +410,9 @@ class ProgramBuilder {
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
     List<Library> libraries = new List<Library>(librariesMap.length);
     int count = 0;
-    librariesMap.forEach((LibraryElement library, List<Element> elements) {
-      libraries[count++] = _buildLibrary(library, elements);
+    librariesMap.forEach((LibraryEntity library, List<ClassEntity> classes,
+        List<MemberEntity> members) {
+      libraries[count++] = _buildLibrary(library, classes, members);
     });
     return libraries;
   }
@@ -431,9 +436,10 @@ class ProgramBuilder {
     // that conflict on whether the member is a getter or a method.
     var interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
     var stubNames = new Set<String>();
-    librariesMap.forEach((LibraryElement library, List<Element> elements) {
-      for (Element e in elements) {
-        if (e is ClassElement && _nativeData.isJsInteropClass(e)) {
+    librariesMap
+        .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
+      for (ClassElement e in classElements) {
+        if (_nativeData.isJsInteropClass(e)) {
           e.declaration.forEachMember((_, Element member) {
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
@@ -550,11 +556,12 @@ class ProgramBuilder {
 
   // Note that a library-element may have multiple [Library]s, if it is split
   // into multiple output units.
-  Library _buildLibrary(LibraryElement library, List<Element> elements) {
+  Library _buildLibrary(LibraryElement library, List<ClassEntity> classElements,
+      List<MemberEntity> memberElements) {
     String uri = library.canonicalUri.toString();
 
-    List<StaticMethod> statics = elements
-        .where((e) => e is FunctionElement)
+    List<StaticMethod> statics = memberElements
+        .where((e) => e is MethodElement)
         .map(_buildStaticMethod)
         .toList();
 
@@ -563,8 +570,7 @@ class ProgramBuilder {
       statics.addAll(_generateOneShotInterceptors());
     }
 
-    List<Class> classes = elements
-        .where((e) => e is ClassElement)
+    List<Class> classes = classElements
         .map((ClassElement classElement) => _classes[classElement])
         .where((Class cls) =>
             !cls.isNative || !_unneededNativeClasses.contains(cls))

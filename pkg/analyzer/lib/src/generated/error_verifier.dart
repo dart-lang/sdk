@@ -2625,7 +2625,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForBuiltInIdentifierAsName(
       SimpleIdentifier identifier, ErrorCode errorCode) {
     Token token = identifier.token;
-    if (token.type == TokenType.KEYWORD && token.keyword?.isPseudo != true) {
+    if (token.type.isKeyword && token.keyword?.isPseudo != true) {
       _errorReporter
           .reportErrorForNode(errorCode, identifier, [identifier.name]);
     }

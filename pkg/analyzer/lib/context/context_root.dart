@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * Information about the root directory associated with an analysis context.
@@ -42,6 +43,24 @@ class ContextRoot {
           _listEqual(exclude, other.exclude, (String a, String b) => a == b);
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the file with the given [filePath] is contained within
+   * this context root. A file contained in a context root if it is within the
+   * context [root] neither explicitly excluded or within one of the excluded
+   * directories.
+   */
+  bool containsFile(String filePath) {
+    if (!path.isWithin(root, filePath)) {
+      return false;
+    }
+    for (String excluded in exclude) {
+      if (filePath == excluded || path.isWithin(excluded, filePath)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

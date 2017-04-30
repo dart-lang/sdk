@@ -226,7 +226,7 @@ class InferrerEngine {
   }
 
   JavaScriptBackend get backend => compiler.backend;
-  Annotations get annotations => backend.annotations;
+  OptimizerHintsForTests get annotations => backend.annotations;
   DiagnosticReporter get reporter => compiler.reporter;
   CommonMasks get commonMasks => closedWorld.commonMasks;
 

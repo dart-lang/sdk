@@ -4,7 +4,8 @@
 
 library test.analysis.reanalyze;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
@@ -71,5 +72,14 @@ class ReanalyzeTest extends AbstractAnalysisTest {
       List<AnalysisError> errors = filesErrors[testFile];
       expect(errors, hasLength(1));
     }
+  }
+
+  test_sentToPlugins() async {
+    createProject();
+    await waitForTasksFinished();
+    Request request = new Request("0", ANALYSIS_REANALYZE);
+    handleSuccessfulRequest(request);
+    // verify
+    expect(pluginManager.broadcastedRequest, isNotNull);
   }
 }

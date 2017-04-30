@@ -82,17 +82,18 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': SOURCE});
     Compiler compiler = result.compiler;
+    LibraryElement mainApp = compiler.mainApp;
 
     Element lookup(String name) {
       Element element;
       int dotPosition = name.indexOf('.');
       if (dotPosition != -1) {
         String clsName = name.substring(0, dotPosition);
-        ClassElement cls = compiler.mainApp.find(clsName);
+        ClassElement cls = mainApp.find(clsName);
         Expect.isNotNull(cls, "Class '$clsName' not found.");
         element = cls.localLookup(name.substring(dotPosition + 1));
       } else {
-        element = compiler.mainApp.find(name);
+        element = mainApp.find(name);
       }
       Expect.isNotNull(element, "Element '$name' not found.");
       return element;

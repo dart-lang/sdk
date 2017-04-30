@@ -2426,7 +2426,7 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
    * with this element. The single instance of this class should be accessed
    * through the method [instance].
    */
-  DynamicElementImpl() : super(Keyword.DYNAMIC.syntax, -1) {
+  DynamicElementImpl() : super(Keyword.DYNAMIC.lexeme, -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
 
@@ -4543,17 +4543,10 @@ class FunctionElementImpl_forFunctionTypedParameter
  * that was synthesized by a LUB computation.
  */
 class FunctionElementImpl_forLUB extends FunctionElementImpl {
-  @override
-  final CompilationUnitElementImpl enclosingUnit;
-
-  @override
-  final TypeParameterizedElementMixin enclosingTypeParameterContext;
-
   final EntityRef _entityRef;
 
-  FunctionElementImpl_forLUB(
-      this.enclosingUnit, this.enclosingTypeParameterContext, this._entityRef)
-      : super('', -1);
+  FunctionElementImpl_forLUB(ElementImpl enclosingElement, this._entityRef)
+      : super.forSerialized(null, enclosingElement);
 
   @override
   bool get isSynthetic => true;

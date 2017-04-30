@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -123,6 +124,16 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
     server.Outline serverOutline1 = serverOutline(0, 0);
     _verifyOutlines(fileA, serverOutline1);
+  }
+
+  void test_handlePluginNotification_pluginError() {
+    bool isFatal = false;
+    String message = 'message';
+    String stackTrace = 'stackTrace';
+    plugin.PluginErrorParams params =
+        new plugin.PluginErrorParams(isFatal, message, stackTrace);
+    manager.handlePluginNotification('a', params.toNotification());
+    _verifyPluginError(isFatal, message, stackTrace);
   }
 
   void test_recordAnalysisErrors_noSubscription() {
@@ -470,6 +481,19 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.outline, equals(expectedOutline));
+    channel.sentNotification = null;
+  }
+
+  void _verifyPluginError(bool isFatal, String message, String stackTrace) {
+    server.Notification notification = channel.sentNotification;
+    expect(notification, isNotNull);
+    expect(notification.event, 'server.error');
+    server.ServerErrorParams params =
+        new server.ServerErrorParams.fromNotification(notification);
+    expect(params, isNotNull);
+    expect(params.isFatal, isFatal);
+    expect(params.message, message);
+    expect(params.stackTrace, stackTrace);
     channel.sentNotification = null;
   }
 }

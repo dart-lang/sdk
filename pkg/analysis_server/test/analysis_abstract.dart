@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -27,6 +28,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
+import 'package:watcher/watcher.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -274,6 +276,7 @@ class TestPluginManager implements PluginManager {
   plugin.AnalysisSetPriorityFilesParams analysisSetPriorityFilesParams;
   plugin.AnalysisSetSubscriptionsParams analysisSetSubscriptionsParams;
   plugin.AnalysisUpdateContentParams analysisUpdateContentParams;
+  plugin.RequestParams broadcastedRequest;
   Map<PluginInfo, Future<plugin.Response>> broadcastResults;
 
   @override
@@ -308,9 +311,17 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Map<PluginInfo, Future<plugin.Response>> broadcast(
-      analyzer.ContextRoot contextRoot, plugin.RequestParams params) {
+  Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
+      plugin.RequestParams params,
+      {analyzer.ContextRoot contextRoot}) {
+    broadcastedRequest = params;
     return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
+  }
+
+  @override
+  Future<List<Future<plugin.Response>>> broadcastWatchEvent(
+      WatchEvent watchEvent) async {
+    return <Future<plugin.Response>>[];
   }
 
   @override

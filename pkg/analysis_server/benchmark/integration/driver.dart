@@ -9,8 +9,8 @@ import 'dart:math' show max, sqrt;
 
 import 'package:logging/logging.dart';
 
-import '../../test/integration/integration_test_methods.dart';
-import '../../test/integration/integration_tests.dart';
+import '../../test/integration/support/integration_test_methods.dart';
+import '../../test/integration/support/integration_tests.dart';
 import 'operation.dart';
 
 final SPACE = ' '.codeUnitAt(0);

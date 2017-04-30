@@ -35,7 +35,7 @@ class DependencyGrapherTest {
     // If no starting points given, assume the first entry in [contents] is the
     // single starting point.
     startingPoints ??= [contents.keys.first];
-    var fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
+    var fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
     contents.forEach((path, text) {
       fileSystem.entityForUri(pathos.posix.toUri(path)).writeAsStringSync(text);
     });

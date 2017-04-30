@@ -2499,6 +2499,9 @@ class HThis extends HParameterValue {
   HThis(ThisLocal element, TypeMask type) : super(element, type);
 
   ThisLocal get sourceElement => super.sourceElement;
+  void set sourceElement(ThisLocal local) {
+    super.sourceElement = local;
+  }
 
   accept(HVisitor visitor) => visitor.visitThis(this);
 

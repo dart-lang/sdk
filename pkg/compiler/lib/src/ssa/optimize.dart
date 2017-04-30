@@ -235,12 +235,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // If the replacement instruction does not know its
         // source element, use the source element of the
         // instruction.
-        if (replacement.sourceElement == null) {
-          replacement.sourceElement = instruction.sourceElement;
-        }
-        if (replacement.sourceInformation == null) {
-          replacement.sourceInformation = instruction.sourceInformation;
-        }
+        replacement.sourceElement ??= instruction.sourceElement;
+        replacement.sourceInformation ??= instruction.sourceInformation;
         if (!replacement.isInBasicBlock()) {
           // The constant folding can return an instruction that is already
           // part of the graph (like an input), so we only add the replacement
@@ -1623,6 +1619,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       instruction = previous;
     }
     block.forEachPhi(simplifyPhi);
+    evacuateTakenBranch(block);
   }
 
   void simplifyPhi(HPhi phi) {
@@ -1702,6 +1699,30 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return null;
   }
 
+  /// If [block] is an always-taken branch, move the code from the taken branch
+  /// into [block]. This has the effect of making the instructions available for
+  /// further optimizations by moving them to a position that dominates the join
+  /// point of the if-then-else.
+  // TODO(29475): Delete dead blocks instead.
+  void evacuateTakenBranch(HBasicBlock block) {
+    if (!block.isLive) return;
+    HControlFlow branch = block.last;
+    if (branch is HIf) {
+      if (branch.thenBlock.isLive == branch.elseBlock.isLive) return;
+      assert(branch.condition.isConstant());
+      HBasicBlock target =
+          branch.thenBlock.isLive ? branch.thenBlock : branch.elseBlock;
+      HInstruction instruction = target.first;
+      while (!instruction.isControlFlow()) {
+        HInstruction next = instruction.next;
+        if (instruction is HTypeKnown && instruction.isPinned) break;
+        instruction.block.detach(instruction);
+        block.moveAtExit(instruction);
+        instruction = next;
+      }
+    }
+  }
+
   void cleanPhis() {
     L:
     for (HBasicBlock block in _graph.blocks) {
@@ -1735,6 +1756,11 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
         if (replacement.dominates(phi)) {
           block.rewrite(phi, replacement);
           block.removePhi(phi);
+          if (replacement.sourceElement == null &&
+              phi.sourceElement != null &&
+              replacement is! HThis) {
+            replacement.sourceElement = phi.sourceElement;
+          }
         }
       });
     }
@@ -1940,6 +1966,11 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
       }
       phi.block.rewrite(phi, candidate);
       phi.block.removePhi(phi);
+      if (candidate.sourceElement == null &&
+          phi.sourceElement != null &&
+          candidate is! HThis) {
+        candidate.sourceElement = phi.sourceElement;
+      }
     }
   }
 }
@@ -2362,6 +2393,10 @@ class SsaTypeConversionInserter extends HBaseVisitor
       if (user is HIf) {
         trueTargets?.add(user.thenBlock);
         falseTargets?.add(user.elseBlock);
+      } else if (user is HLoopBranch) {
+        trueTargets?.add(user.block.successors.first);
+        // Don't insert refinements on else-branch - may be a critical edge
+        // block which we currently need to keep empty (except for phis).
       } else if (user is HNot) {
         collectTargets(user, falseTargets, trueTargets);
       } else if (user is HPhi) {
@@ -2389,9 +2424,9 @@ class SsaTypeConversionInserter extends HBaseVisitor
 }
 
 /**
- * Optimization phase that tries to eliminate memory loads (for
- * example [HFieldGet]), when it knows the value stored in that memory
- * location.
+ * Optimization phase that tries to eliminate memory loads (for example
+ * [HFieldGet]), when it knows the value stored in that memory location, and
+ * stores that overwrite with the same value.
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
@@ -2487,9 +2522,12 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitFieldSet(HFieldSet instruction) {
+    FieldEntity element = instruction.element;
     HInstruction receiver = instruction.getDartReceiver(closedWorld).nonCheck();
-    memorySet.registerFieldValueUpdate(
-        instruction.element, receiver, instruction.inputs.last);
+    if (memorySet.registerFieldValueUpdate(
+        element, receiver, instruction.value)) {
+      instruction.block.remove(instruction);
+    }
   }
 
   void visitCreate(HCreate instruction) {
@@ -2576,8 +2614,10 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitStaticStore(HStaticStore instruction) {
-    memorySet.registerFieldValueUpdate(
-        instruction.element, null, instruction.inputs.last);
+    if (memorySet.registerFieldValueUpdate(
+        instruction.element, null, instruction.inputs.last)) {
+      instruction.block.remove(instruction);
+    }
   }
 
   void visitLiteralList(HLiteralList instruction) {
@@ -2707,23 +2747,25 @@ class MemorySet {
 
   /**
    * Sets `receiver.element` to contain [value]. Kills all potential places that
-   * may be affected by this update.
+   * may be affected by this update. Returns `true` if the update is redundant.
    */
-  void registerFieldValueUpdate(
+  bool registerFieldValueUpdate(
       MemberEntity element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
     if (closedWorld.nativeData.isNativeMember(element)) {
-      return; // TODO(14955): Remove this restriction?
+      return false; // TODO(14955): Remove this restriction?
     }
-    // [value] is being set in some place in memory, we remove it from
-    // the non-escaping set.
+    // [value] is being set in some place in memory, we remove it from the
+    // non-escaping set.
     nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
         fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
+    bool isRedundant = map[receiver] == value;
     map.forEach((key, value) {
       if (mayAlias(receiver, key)) map[key] = null;
     });
     map[receiver] = value;
+    return isRedundant;
   }
 
   /**

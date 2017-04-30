@@ -2,15 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.dart.util;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide Element, ElementKind;
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
@@ -113,11 +107,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
       int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
-      protocol.ElementKind elemKind: null,
+      ElementKind elemKind: null,
       bool isDeprecated: false,
       bool isPotential: false,
       String elemFile,
       int elemOffset,
+      int selectionOffset,
       String paramName,
       String paramType,
       String defaultArgListString: _UNCHECKED,
@@ -134,7 +129,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.relevance, equals(relevance), reason: completion);
     }
     expect(cs.importUri, importUri);
-    expect(cs.selectionOffset, equals(completion.length));
+    expect(cs.selectionOffset, equals(selectionOffset ?? completion.length));
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
@@ -182,9 +177,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         isDeprecated: isDeprecated,
         elemFile: elemFile,
         elemOffset: elemOffset);
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.CLASS));
+    expect(element.kind, equals(ElementKind.CLASS));
     expect(element.name, equals(elemName ?? name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
@@ -197,9 +192,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION}) {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.CLASS_TYPE_ALIAS));
+    expect(element.kind, equals(ElementKind.CLASS_TYPE_ALIAS));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
@@ -219,9 +214,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
+    expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     int index = name.indexOf('.');
     expect(element.name, index >= 0 ? name.substring(index + 1) : '');
     return cs;
@@ -232,7 +227,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     CompletionSuggestion suggestion =
         assertSuggest(completion, isDeprecated: isDeprecated);
     expect(suggestion.isDeprecated, isDeprecated);
-    expect(suggestion.element.kind, protocol.ElementKind.ENUM);
+    expect(suggestion.element.kind, ElementKind.ENUM);
     return suggestion;
   }
 
@@ -242,7 +237,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         relevance: relevance, isDeprecated: isDeprecated);
     expect(suggestion.completion, completion);
     expect(suggestion.isDeprecated, isDeprecated);
-    expect(suggestion.element.kind, protocol.ElementKind.ENUM_CONSTANT);
+    expect(suggestion.element.kind, ElementKind.ENUM_CONSTANT);
     return suggestion;
   }
 
@@ -255,13 +250,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        elemKind: protocol.ElementKind.FIELD,
+        elemKind: ElementKind.FIELD,
         isDeprecated: isDeprecated);
     // The returnType represents the type of a field
     expect(cs.returnType, type != null ? type : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.FIELD));
+    expect(element.kind, equals(ElementKind.FIELD));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     // The returnType represents the type of a field
@@ -289,9 +284,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
     }
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.FUNCTION));
+    expect(element.kind, equals(ElementKind.FUNCTION));
     expect(element.name, equals(name));
     expect(element.isDeprecated, equals(isDeprecated));
     String param = element.parameters;
@@ -325,9 +320,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     } else {
       expect(cs.returnType, isNull);
     }
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.FUNCTION_TYPE_ALIAS));
+    expect(element.kind, equals(ElementKind.FUNCTION_TYPE_ALIAS));
     expect(element.name, equals(name));
     expect(element.isDeprecated, equals(isDeprecated));
     // TODO (danrubel) Determine why params are null
@@ -351,12 +346,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        elemKind: protocol.ElementKind.GETTER,
+        elemKind: ElementKind.GETTER,
         isDeprecated: isDeprecated);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.GETTER));
+    expect(element.kind, equals(ElementKind.GETTER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType,
@@ -382,9 +377,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.METHOD));
+    expect(element.kind, equals(ElementKind.METHOD));
     expect(element.name, equals(name));
     String param = element.parameters;
     expect(param, isNotNull);
@@ -419,10 +414,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        elemKind: protocol.ElementKind.SETTER);
-    protocol.Element element = cs.element;
+        elemKind: ElementKind.SETTER);
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.SETTER));
+    expect(element.kind, equals(ElementKind.SETTER));
     expect(element.name, equals(name));
     // TODO (danrubel) assert setter param
     //expect(element.parameters, isNull);
@@ -445,9 +440,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
     }
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
+    expect(element.kind, equals(ElementKind.TOP_LEVEL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     if (returnType != null) {
@@ -577,7 +572,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion getSuggest(
       {String completion: null,
       CompletionSuggestionKind csKind: null,
-      protocol.ElementKind elemKind: null}) {
+      ElementKind elemKind: null}) {
     CompletionSuggestion cs;
     if (suggestions != null) {
       suggestions.forEach((CompletionSuggestion s) {
@@ -588,7 +583,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
           return;
         }
         if (elemKind != null) {
-          protocol.Element element = s.element;
+          Element element = s.element;
           if (element == null || elemKind != element.kind) {
             return;
           }

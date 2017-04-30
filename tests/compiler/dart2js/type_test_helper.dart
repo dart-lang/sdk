@@ -13,7 +13,12 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/elements.dart'
-    show Element, MemberElement, TypeDeclarationElement, ClassElement;
+    show
+        Element,
+        MemberElement,
+        TypeDeclarationElement,
+        ClassElement,
+        LibraryElement;
 import 'package:compiler/src/world.dart' show ClosedWorld;
 
 GenericType instantiate(
@@ -86,7 +91,8 @@ class TypeEnvironment {
   TypeEnvironment._(Compiler this.compiler);
 
   Element getElement(String name) {
-    var element = compiler.mainApp.find(name);
+    LibraryElement mainApp = compiler.mainApp;
+    var element = mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {
       element.ensureResolved(compiler.resolution);

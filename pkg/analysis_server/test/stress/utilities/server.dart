@@ -12,7 +12,8 @@ import 'dart:convert' hide JsonDecoder;
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 
 import 'logger.dart';

@@ -1562,7 +1562,7 @@ class UnknownInferredType extends TypeImpl {
   static final UnknownInferredType instance = new UnknownInferredType._();
 
   UnknownInferredType._()
-      : super(UnknownInferredTypeElement.instance, Keyword.DYNAMIC.syntax);
+      : super(UnknownInferredTypeElement.instance, Keyword.DYNAMIC.lexeme);
 
   @override
   int get hashCode => 1;
@@ -1636,7 +1636,7 @@ class UnknownInferredTypeElement extends ElementImpl
   static final UnknownInferredTypeElement instance =
       new UnknownInferredTypeElement._();
 
-  UnknownInferredTypeElement._() : super(Keyword.DYNAMIC.syntax, -1) {
+  UnknownInferredTypeElement._() : super(Keyword.DYNAMIC.lexeme, -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
 

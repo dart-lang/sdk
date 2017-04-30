@@ -11,6 +11,7 @@
     that don't store it in an environment variable.
   * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
     the Dart VM process current and peak resident set size.
+  * Added 'RawSynchronousSocket', a basic synchronous socket implementation.
 
 ### Dart VM
 
@@ -20,6 +21,11 @@
     * `pub build` will use a failing exit code if there are errors in any
       transformer.
     * Allow publishing packages that depend on the Flutter SDK.
+
+* dartfmt
+    * Preserve type parameters in new generic function typedef syntax.
+    * Add self-test validation to ensure formatter bugs do not cause user code
+      to be lost.
 
 ## 1.23.0
 

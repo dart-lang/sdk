@@ -10,7 +10,7 @@ import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
@@ -381,17 +381,38 @@ class FixProcessor {
       if (errorCode.name == LintNames.annotate_overrides) {
         _addLintFixAddOverrideAnnotation();
       }
+      if (errorCode.name == LintNames.avoid_annotating_with_dynamic) {
+        _addFix_removeTypeName();
+      }
       if (errorCode.name == LintNames.avoid_init_to_null) {
         _addFix_removeInitializer();
       }
+      if (errorCode.name == LintNames.avoid_return_types_on_setters) {
+        _addFix_removeTypeName();
+      }
+      if (errorCode.name == LintNames.avoid_types_on_closure_parameters) {
+        _addFix_replaceWithIdentifier();
+      }
+      if (errorCode.name == LintNames.await_only_futures) {
+        _addFix_removeAwait();
+      }
+      if (errorCode.name == LintNames.empty_statements) {
+        _addFix_removeEmptyStatement();
+      }
       if (errorCode.name == LintNames.prefer_collection_literals) {
         _addFix_replaceWithLiteral();
+      }
+      if (errorCode.name == LintNames.prefer_conditional_assignment) {
+        _addFix_replaceWithConditionalAssignment();
       }
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
       }
       if (errorCode.name == LintNames.unnecessary_lambdas) {
         _addFix_replaceWithTearOff();
+      }
+      if (errorCode.name == LintNames.unnecessary_override) {
+        _addFix_removeMethodDeclaration();
       }
       if (errorCode.name == LintNames.unnecessary_this) {
         _addFix_removeThisExpression();
@@ -1778,6 +1799,16 @@ class FixProcessor {
     _addFix(DartFixKind.ADD_NE_NULL, []);
   }
 
+  void _addFix_removeAwait() {
+    final awaitExpression = node;
+    if (awaitExpression is AwaitExpression) {
+      final awaitToken = awaitExpression.awaitKeyword;
+      _addRemoveEdit(
+          rf.rangeStartEnd(awaitToken.offset, awaitToken.next.offset));
+      _addFix(DartFixKind.REMOVE_AWAIT, []);
+    }
+  }
+
   void _addFix_removeDeadCode() {
     AstNode coveringNode = this.coveredNode;
     if (coveringNode is Expression) {
@@ -1810,6 +1841,20 @@ class FixProcessor {
     }
   }
 
+  void _addFix_removeEmptyStatement() {
+    EmptyStatement emptyStatement = node;
+    if (emptyStatement.parent is Block) {
+      _addRemoveEdit(utils.getLinesRange(rf.rangeNode(emptyStatement)));
+      _addFix(DartFixKind.REMOVE_EMPTY_STATEMENT, []);
+    } else {
+      _addReplaceEdit(
+          rf.rangeStartEnd(
+              emptyStatement.beginToken.previous.end, emptyStatement.end),
+          ' {}');
+      _addFix(DartFixKind.REPLACE_WITH_BRACKETS, []);
+    }
+  }
+
   void _addFix_removeInitializer() {
     // Retrieve the linted node.
     VariableDeclaration ancestor =
@@ -1822,6 +1867,15 @@ class FixProcessor {
     final end = ancestor.initializer.end;
     _addRemoveEdit(rf.rangeStartLength(start, end - start));
     _addFix(DartFixKind.REMOVE_INITIALIZER, []);
+  }
+
+  void _addFix_removeMethodDeclaration() {
+    MethodDeclaration declaration =
+        node.getAncestor((node) => node is MethodDeclaration);
+    if (declaration != null) {
+      _addRemoveEdit(utils.getLinesRange(rf.rangeNode(declaration)));
+      _addFix(DartFixKind.REMOVE_METHOD_DECLARATION, []);
+    }
   }
 
   void _addFix_removeParameters_inGetterDeclaration() {
@@ -1857,6 +1911,14 @@ class FixProcessor {
     } else if (parent is MethodInvocation) {
       _addRemoveEdit(rf.rangeStartEnd(parent.offset, parent.operator.end));
       _addFix(DartFixKind.REMOVE_THIS_EXPRESSION, []);
+    }
+  }
+
+  void _addFix_removeTypeName() {
+    final TypeName type = node.getAncestor((node) => node is TypeName);
+    if (type != null) {
+      _addRemoveEdit(rf.rangeStartEnd(type.offset, type.endToken.next.offset));
+      _addFix(DartFixKind.REMOVE_TYPE_NAME, []);
     }
   }
 
@@ -1917,11 +1979,50 @@ class FixProcessor {
     _addFix(DartFixKind.REPLACE_VAR_WITH_DYNAMIC, []);
   }
 
+  void _addFix_replaceWithConditionalAssignment() {
+    IfStatement ifStatement = node is IfStatement
+        ? node
+        : node.getAncestor((node) => node is IfStatement);
+    var thenStatement = ifStatement.thenStatement;
+    Statement uniqueStatement(Statement statement) {
+      if (statement is Block) {
+        return uniqueStatement(statement.statements.first);
+      }
+      return statement;
+    }
+
+    thenStatement = uniqueStatement(thenStatement);
+    if (thenStatement is ExpressionStatement) {
+      final expression = thenStatement.expression.unParenthesized;
+      if (expression is AssignmentExpression) {
+        final buffer = new StringBuffer();
+        buffer.write(utils.getNodeText(expression.leftHandSide));
+        buffer.write(' ??= ');
+        buffer.write(utils.getNodeText(expression.rightHandSide));
+        buffer.write(';');
+        _addReplaceEdit(rf.rangeNode(ifStatement), buffer.toString());
+        _addFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT, []);
+      }
+    }
+  }
+
   void _addFix_replaceWithConstInstanceCreation() {
     if (coveredNode is InstanceCreationExpression) {
       var instanceCreation = coveredNode as InstanceCreationExpression;
       _addReplaceEdit(rf.rangeToken(instanceCreation.keyword), 'const');
       _addFix(DartFixKind.USE_CONST, []);
+    }
+  }
+
+  void _addFix_replaceWithIdentifier() {
+    final FunctionTypedFormalParameter functionTyped =
+        node.getAncestor((node) => node is FunctionTypedFormalParameter);
+    if (functionTyped != null) {
+      _addReplaceEdit(rf.rangeNode(functionTyped),
+          utils.getNodeText(functionTyped.identifier));
+      _addFix(DartFixKind.REPLACE_WITH_IDENTIFIER, []);
+    } else {
+      _addFix_removeTypeName();
     }
   }
 
@@ -3122,11 +3223,22 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String avoid_annotating_with_dynamic =
+      'avoid_annotating_with_dynamic';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_return_types_on_setters =
+      'avoid_return_types_on_setters';
+  static const String avoid_types_on_closure_parameters =
+      'avoid_types_on_closure_parameters';
+  static const String await_only_futures = 'await_only_futures';
+  static const String empty_statements = 'empty_statements';
   static const String prefer_collection_literals = 'prefer_collection_literals';
+  static const String prefer_conditional_assignment =
+      'prefer_conditional_assignment';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
+  static const String unnecessary_override = 'unnecessary_override';
   static const String unnecessary_this = 'unnecessary_this';
 }
 

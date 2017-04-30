@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.dart.keyword;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -220,7 +218,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
+    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
     ['import', 'export', 'part'].forEach((s) {
       if (expectedCompletions.contains(s)) {
         expectedCompletions.remove(s);
@@ -251,11 +249,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     }
     for (CompletionSuggestion s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
-        if (s.completion.startsWith(Keyword.IMPORT.syntax)) {
+        if (s.completion.startsWith(Keyword.IMPORT.lexeme)) {
           int importRelevance = relevance;
           expect(s.relevance, equals(importRelevance), reason: s.completion);
         } else {
-          if (s.completion == Keyword.RETHROW.syntax) {
+          if (s.completion == Keyword.RETHROW.lexeme) {
             expect(s.relevance, equals(relevance - 1), reason: s.completion);
           } else {
             expect(s.relevance, equals(relevance), reason: s.completion);

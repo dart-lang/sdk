@@ -67,13 +67,20 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
       _annotationProcesser ??= new KernelAnnotationProcessor(elementMap);
 
   @override
-  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData) {
+  NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
     return new BaseNativeClassFinder(elementMap.elementEnvironment,
         elementMap.commonElements, nativeBasicData);
   }
 
   NoSuchMethodResolver createNoSuchMethodResolver() {
     return new KernelNoSuchMethodResolver(elementMap);
+  }
+
+  /// Computes the main function from [mainLibrary] adding additional world
+  /// impact to [impactBuilder].
+  FunctionEntity computeMain(
+      LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder) {
+    return elementEnvironment.mainFunction;
   }
 
   CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(

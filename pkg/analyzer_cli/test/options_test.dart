@@ -35,7 +35,7 @@ main() {
         expect(options.enableStrictCallChecks, isFalse);
         expect(options.enableSuperMixins, isFalse);
         expect(options.enableTypeChecks, isFalse);
-        expect(options.enableAssertInitializer, isFalse);
+        expect(options.enableAssertInitializer, isNull);
         expect(options.hintsAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);

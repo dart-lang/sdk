@@ -283,14 +283,14 @@ class DynamicTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   DynamicTypeImpl._()
-      : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
+      : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme) {
     (element as DynamicElementImpl).type = this;
   }
 
   /**
    * Constructor used by [CircularTypeImpl].
    */
-  DynamicTypeImpl._circular() : super(instance.element, Keyword.DYNAMIC.syntax);
+  DynamicTypeImpl._circular() : super(instance.element, Keyword.DYNAMIC.lexeme);
 
   @override
   int get hashCode => 1;
@@ -2842,7 +2842,7 @@ class UndefinedTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   UndefinedTypeImpl._()
-      : super(DynamicElementImpl.instance, Keyword.DYNAMIC.syntax);
+      : super(DynamicElementImpl.instance, Keyword.DYNAMIC.lexeme);
 
   @override
   int get hashCode => 1;
@@ -2911,7 +2911,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * Prevent the creation of instances of this class.
    */
-  VoidTypeImpl._() : super(null, Keyword.VOID.syntax);
+  VoidTypeImpl._() : super(null, Keyword.VOID.lexeme);
 
   @override
   int get hashCode => 2;

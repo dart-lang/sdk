@@ -7,7 +7,7 @@ library services.completion.dart.keyword;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
@@ -182,11 +182,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestion2('${Keyword.IMPORT.syntax} \'\';',
+      _addSuggestion2('${Keyword.IMPORT.lexeme} \'\';',
           offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2('${Keyword.EXPORT.syntax} \'\';',
+      _addSuggestion2('${Keyword.EXPORT.lexeme} \'\';',
           offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2('${Keyword.PART.syntax} \'\';',
+      _addSuggestion2('${Keyword.PART.lexeme} \'\';',
           offset: 6, relevance: DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
@@ -561,7 +561,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   void _addSuggestion(Keyword keyword,
       [int relevance = DART_RELEVANCE_KEYWORD]) {
-    _addSuggestion2(keyword.syntax, relevance: relevance);
+    _addSuggestion2(keyword.lexeme, relevance: relevance);
   }
 
   void _addSuggestion2(String completion,

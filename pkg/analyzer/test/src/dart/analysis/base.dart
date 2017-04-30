@@ -140,6 +140,8 @@ class BaseAnalysisDriverTest {
     driver.exceptions.listen(allExceptions.add);
   }
 
+  void tearDown() {}
+
   String _p(String path) => provider.convertPath(path);
 }
 

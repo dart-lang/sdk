@@ -24,6 +24,7 @@ import 'serialization/task.dart';
 import 'patch_parser.dart';
 import 'resolved_uri_translator.dart';
 import 'universe/world_builder.dart';
+import 'universe/world_impact.dart';
 
 /// Strategy pattern that defines the connection between the input format and
 /// the resolved element model.
@@ -48,7 +49,7 @@ abstract class FrontEndStrategy {
   AnnotationProcessor get annotationProcesser;
 
   /// Creates the [NativeClassFinder] for this strategy.
-  NativeClassFinder createNativeClassResolver(NativeBasicData nativeBasicData);
+  NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData);
 
   /// Creates the [NoSuchMethodResolver] corresponding the resolved model of
   /// this strategy.
@@ -64,6 +65,11 @@ abstract class FrontEndStrategy {
   /// a single member is obtained in this strategy.
   WorkItemBuilder createResolutionWorkItemBuilder(
       ImpactTransformer impactTransformer);
+
+  /// Computes the main function from [mainLibrary] adding additional world
+  /// impact to [impactBuilder].
+  FunctionEntity computeMain(
+      LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
 
   // TODO(johnniwinther): Reuse the following classes between strategies:
 

@@ -101,7 +101,7 @@ abstract class Token implements analyzer.TokenWithComment {
    * True if this token is an identifier. Some keywords allowed as identifiers,
    * see implementation in [KeywordToken].
    */
-  bool isIdentifier();
+  bool get isIdentifier;
 
   bool get isPseudo => false;
 
@@ -262,7 +262,7 @@ class SymbolToken extends Token {
   String get stringValue => info.value;
 
   @override
-  bool isIdentifier() => false;
+  bool get isIdentifier => false;
 
   @override
   String toString() => "SymbolToken(${isEof ? '-eof-' : lexeme})";
@@ -332,11 +332,11 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
 
   TokenType get info => keyword.info;
 
-  String get lexeme => keyword.syntax;
+  String get lexeme => keyword.lexeme;
 
-  String get stringValue => keyword.syntax;
+  String get stringValue => keyword.lexeme;
 
-  bool isIdentifier() => keyword.isPseudo || keyword.isBuiltIn;
+  bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   bool get isPseudo => keyword.isPseudo;
 
@@ -464,7 +464,7 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
   /// See [Token.stringValue] for an explanation.
   String get stringValue => null;
 
-  bool isIdentifier() => identical(kind, IDENTIFIER_TOKEN);
+  bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
   String toString() => "StringToken($lexeme)";
 

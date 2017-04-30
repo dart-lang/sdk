@@ -7,7 +7,7 @@ library server.performance.analysis.timing;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:args/args.dart';
 import 'package:test/test.dart';
 

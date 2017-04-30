@@ -61,18 +61,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
   final Instrumentation instrumentation;
 
-  _InferenceContext _context;
+  /// Context information for the current closure, or `null` if we are not
+  /// inside a closure.
+  _ClosureContext _closureContext;
 
   TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
-        instrumentation = engine.instrumentation {
-    // The return type only needs to be inferred for closures, so we can safely
-    // set isAsync and isGenerator to false in the outermost context.
-    // TODO(paulberry): this seems brittle.  Would it be better to leave
-    // _context as `null` here?
-    _context = new _InferenceContext(false, false);
-  }
+        instrumentation = engine.instrumentation;
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -135,12 +131,12 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     // node's return type if it uses expression syntax.  Does that make sense
     // for Dart 2.0?
     bool needToSetReturnType = isExpressionFunction;
-    _InferenceContext oldContext = _context;
-    _context = new _InferenceContext(isAsync, isGenerator);
+    _ClosureContext oldClosureContext = _closureContext;
+    _closureContext = new _ClosureContext(isAsync, isGenerator);
     inferStatement(body);
     DartType inferredReturnType;
     if (needToSetReturnType || typeNeeded) {
-      inferredReturnType = _context.inferredReturnType;
+      inferredReturnType = _closureContext.inferredReturnType;
       if (isAsync) {
         inferredReturnType = new InterfaceType(
             coreTypes.futureClass, <DartType>[inferredReturnType]);
@@ -151,7 +147,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
           new InstrumentationValueForType(inferredReturnType));
       setReturnType(inferredReturnType);
     }
-    _context = oldContext;
+    _closureContext = oldClosureContext;
     if (typeNeeded) {
       return getFunctionType();
     } else {
@@ -243,14 +239,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
-class _InferenceContext {
+class _ClosureContext {
   final bool isAsync;
 
   final bool isGenerator;
 
   DartType _inferredReturnType;
 
-  _InferenceContext(this.isAsync, this.isGenerator);
+  _ClosureContext(this.isAsync, this.isGenerator);
 
   /// Gets the return type that was inferred for the current closure.
   get inferredReturnType {

@@ -1481,6 +1481,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   }
 
   if (snapshot_deps_filename != NULL) {
+    Loader::ResolveDependenciesAsFilePaths();
     IsolateData* isolate_data =
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     ASSERT(isolate_data != NULL);

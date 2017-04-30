@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,6 +19,24 @@ main() {
 @reflectiveTest
 class FindElementReferencesTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
+
+  test_badTarget() async {
+    String text = r'''
+main() {
+  if /* target */ (true) {
+    print('Hello');
+  }
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    standardAnalysisSetup();
+    await analysisFinished;
+
+    List<SearchResult> results = await _findElementReferences(text);
+    expect(results, isNull);
+  }
 
   test_findReferences() async {
     String text = r'''
@@ -39,24 +57,6 @@ main() {
     expect(result.isPotential, isFalse);
     expect(result.kind.name, SearchResultKind.INVOCATION.name);
     expect(result.path.first.name, 'main');
-  }
-
-  test_badTarget() async {
-    String text = r'''
-main() {
-  if /* target */ (true) {
-    print('Hello');
-  }
-}
-''';
-
-    pathname = sourcePath('foo.dart');
-    writeFile(pathname, text);
-    standardAnalysisSetup();
-    await analysisFinished;
-
-    List<SearchResult> results = await _findElementReferences(text);
-    expect(results, isNull);
   }
 
   Future<List<SearchResult>> _findElementReferences(String text) async {

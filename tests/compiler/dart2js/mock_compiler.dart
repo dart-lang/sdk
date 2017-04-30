@@ -209,7 +209,8 @@ class MockCompiler extends Compiler {
 
   CollectingTreeElements resolveStatement(String text) {
     parsedTree = parseStatement(text);
-    return resolveNodeStatement(parsedTree, new MockElement(mainApp));
+    LibraryElement library = mainApp;
+    return resolveNodeStatement(parsedTree, new MockElement(library));
   }
 
   TreeElementMapping resolveNodeStatement(
@@ -231,7 +232,8 @@ class MockCompiler extends Compiler {
   }
 
   resolverVisitor() {
-    Element mockElement = new MockElement(mainApp.entryCompilationUnit);
+    LibraryElement library = mainApp;
+    Element mockElement = new MockElement(library.entryCompilationUnit);
     ResolverVisitor visitor = new ResolverVisitor(
         this.resolution,
         mockElement,

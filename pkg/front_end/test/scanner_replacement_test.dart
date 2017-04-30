@@ -35,17 +35,12 @@ class ScannerTest_Replacement extends ScannerTest {
   analyzer.Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
-    if (genericMethodComments) {
-      // Fasta doesn't support generic method comments.
-      // TODO(danrubel): once the analyzer toolchain no longer needs generic
-      // method comments, remove tests that exercise them.
-      fail('No generic method comment support in Fasta');
-    }
     // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
     // so we can ignore the `lazyAssignmentOperators` flag.
     // TODO(danrubel): once lazyAssignmentOperators are fully supported by
     // Dart, remove this flag.
-    fasta.ScannerResult result = fasta.scanString(source, includeComments: true,
+    fasta.ScannerResult result = fasta.scanString(source,
+        includeComments: true, scanGenericMethodComments: genericMethodComments,
         recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
       // perform recovery as a separate step
       // so that the token stream can be validated before and after recovery
@@ -76,22 +71,6 @@ class ScannerTest_Replacement extends ScannerTest {
     // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
     // operators.
     super.test_bar_bar_eq();
-  }
-
-  @override
-  @failingTest
-  void test_comment_generic_method_type_assign() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
-    // syntax.
-    super.test_comment_generic_method_type_assign();
-  }
-
-  @override
-  @failingTest
-  void test_comment_generic_method_type_list() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
-    // syntax.
-    super.test_comment_generic_method_type_list();
   }
 
   void _assertOpenClosePair(String source) {

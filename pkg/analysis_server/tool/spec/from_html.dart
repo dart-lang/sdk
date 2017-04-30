@@ -5,8 +5,6 @@
 /**
  * Code for reading an HTML API description.
  */
-library from.html;
-
 import 'dart:io';
 
 import 'package:analyzer/src/codegen/html.dart';

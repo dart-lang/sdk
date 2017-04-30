@@ -5,7 +5,7 @@ library kernel.batch_consistency;
 
 import 'dart:async';
 import 'dart:io';
-import '../bin/dartk.dart' as dartk;
+import '../tool/dartk.dart' as dartk;
 import '../bin/batch_util.dart';
 import 'package:path/path.dart' as pathlib;
 import 'package:test/test.dart';

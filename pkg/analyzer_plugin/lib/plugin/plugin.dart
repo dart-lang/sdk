@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
-import 'package:analyzer_plugin/utilities/subscription_manager.dart';
+import 'package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /**
