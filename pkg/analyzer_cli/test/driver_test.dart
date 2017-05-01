@@ -358,7 +358,7 @@ linter:
             '--packages',
             path.join(testDir, '_packages'),
           ],
-          options: path.join(testDir, '.analysis_options'),
+          options: path.join(testDir, 'analysis_options.yaml'),
         );
         expect(exitCode, 3);
         expect(outSink.toString(),
