@@ -19,13 +19,13 @@ num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) =>
 double sqrt(num x) => JS('num', r'Math.sqrt(#)', checkNum(x));
 
 @patch
-double sin(num radians) => JS('num', r'Math.sin(#)', checkNum(radians));
+double sin(num x) => JS('num', r'Math.sin(#)', checkNum(x));
 
 @patch
-double cos(num radians) => JS('num', r'Math.cos(#)', checkNum(radians));
+double cos(num x) => JS('num', r'Math.cos(#)', checkNum(x));
 
 @patch
-double tan(num radians) => JS('num', r'Math.tan(#)', checkNum(radians));
+double tan(num x) => JS('num', r'Math.tan(#)', checkNum(x));
 
 @patch
 double acos(num x) => JS('num', r'Math.acos(#)', checkNum(x));

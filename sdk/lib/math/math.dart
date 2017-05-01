@@ -4,9 +4,9 @@
 
 /**
  * Mathematical constants and functions, plus a random number generator.
- *
+ * 
  * To use this library in your code:
- *
+ * 
  *     import 'dart:math';
  */
 library dart.math;
@@ -25,19 +25,11 @@ const double E = 2.718281828459045;
 
 /**
  * Natural logarithm of 10.
- *
- * The natural logarithm of 10 is the number such that `pow(E, LN10) == 10`.
- * This value is not exact, but it is the closest representable double to the
- * exact mathematical value.
  */
 const double LN10 = 2.302585092994046;
 
 /**
  * Natural logarithm of 2.
- *
- * The natural logarithm of 2 is the number such that `pow(E, LN2) == 2`.
- * This value is not exact, but it is the closest representable double to the
- * exact mathematical value.
  */
 const double LN2 = 0.6931471805599453;
 
@@ -142,11 +134,10 @@ T max<T extends num>(T a, T b) {
 /**
  * A variant of [atan].
  *
- * Converts both arguments to [double]s.
+ * Converts both arguments to doubles.
  *
- * Returns the angle in radians between the positive x-axis
- * and the vector ([b],[a]).
- * The result is in the range -PI..PI.
+ * Returns the angle between the positive x-axis and the vector ([b],[a]).
+ * The result, in radians, is in the range -PI..PI.
  *
  * If [b] is positive, this is the same as `atan(b/a)`.
  *
@@ -201,30 +192,30 @@ external double atan2(num a, num b);
 external num pow(num x, num exponent);
 
 /**
- * Converts [radians] to a [double] and returns the sine of the value.
+ * Converts [x] to a double and returns the sine of the value.
  *
- * If [radians] is not a finite number, the result is NaN.
+ * If [x] is not a finite number, the result is NaN.
  */
-external double sin(num radians);
+external double sin(num x);
 
 /**
- * Converts [radians] to a [double] and returns the cosine of the value.
+ * Converts [x] to a double and returns the cosine of the value.
  *
- * If [radians] is not a finite number, the result is NaN.
+ * If [x] is not a finite number, the result is NaN.
  */
-external double cos(num radians);
+external double cos(num x);
 
 /**
- * Converts [radians] to a [double] and returns the tangent of the value.
+ * Converts [x] to a double and returns the tangent of the value.
  *
- * The tangent function is equivalent to `sin(radians)/cos(radians)` and may be
- * infinite (positive or negative) when `cos(radians)` is equal to zero.
- * If [radians] is not a finite number, the result is NaN.
+ * The tangent function is equivalent to `sin(x)/cos(x)` and may be
+ * infinite (positive or negative) when `cos(x)` is equal to zero.
+ * If [x] is not a finite number, the result is NaN.
  */
-external double tan(num radians);
+external double tan(num x);
 
 /**
- * Converts [x] to a [double] and returns its arc cosine in radians.
+ * Converts [x] to a double and returns the arc cosine of the value.
  *
  * Returns a value in the range 0..PI, or NaN if [x] is outside
  * the range -1..1.
@@ -232,7 +223,7 @@ external double tan(num radians);
 external double acos(num x);
 
 /**
- * Converts [x] to a [double] and returns its arc sine in radians.
+ * Converts [x] to a double and returns the arc sine of the value.
  *
  * Returns a value in the range -PI/2..PI/2, or NaN if [x] is outside
  * the range -1..1.
@@ -240,21 +231,21 @@ external double acos(num x);
 external double asin(num x);
 
 /**
- * Converts [x] to a [double] and returns its arc tangent in radians.
+ * Converts [x] to a double and returns the arc tangent of the value.
  *
  * Returns a value in the range -PI/2..PI/2, or NaN if [x] is NaN.
  */
 external double atan(num x);
 
 /**
- * Converts [x] to a [double] and returns the positive square root of the value.
+ * Converts [x] to a double and returns the positive square root of the value.
  *
  * Returns -0.0 if [x] is -0.0, and NaN if [x] is otherwise negative or NaN.
  */
 external double sqrt(num x);
 
 /**
- * Converts [x] to a [double] and returns the natural exponent, [E],
+ * Converts [x] to a double and returns the natural exponent, [E],
  * to the power [x].
  *
  * Returns NaN if [x] is NaN.
@@ -262,7 +253,7 @@ external double sqrt(num x);
 external double exp(num x);
 
 /**
- * Converts [x] to a [double] and returns the natural logarithm of the value.
+ * Converts [x] to a double and returns the natural logarithm of the value.
  *
  * Returns negative infinity if [x] is equal to zero.
  * Returns NaN if [x] is NaN or less than zero.
