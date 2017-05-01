@@ -517,6 +517,7 @@ class Parser {
   }
 
   Token parseMetadataStar(Token token, {bool forParameter: false}) {
+    token = listener.injectGenericCommentTypeAssign(token);
     listener.beginMetadataStar(token);
     int count = 0;
     while (optional('@', token)) {
@@ -1142,6 +1143,15 @@ class Parser {
       listener.handleType(begin, token);
     }
 
+    {
+      Token newBegin =
+          listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
+      if (!identical(newBegin, begin)) {
+        listener.discardTypeReplacedWithCommentTypeAssign();
+        return parseType(newBegin);
+      }
+    }
+
     // While we see a `Function(` treat the pushed type as return type.
     // For example: `int Function() Function(int) Function(String x)`.
     while (isGeneralizedFunctionType(token)) {
@@ -1545,11 +1555,13 @@ class Parser {
       } else if (isGetter) {
         hasName = true;
       }
+      token = listener.injectGenericCommentTypeAssign(token);
       identifiers = identifiers.prepend(token);
 
       if (!isGeneralizedFunctionType(token)) {
         // Read a potential return type.
         if (isValidTypeReference(token)) {
+          Token type = token;
           // type ...
           if (optional('.', token.next)) {
             // type '.' ...
@@ -1566,6 +1578,18 @@ class Parser {
               } else {
                 token = beginGroup.endGroup;
               }
+            }
+          }
+          // If the next token after a type has a type substitution comment
+          // /*=T*/, then the previous type tokens and the reference to them
+          // from the link should be replaced.
+          {
+            Token newType = listener.replaceTokenWithGenericCommentTypeAssign(
+                type, token.next);
+            if (!identical(newType, type)) {
+              identifiers = identifiers.tail;
+              token = newType;
+              continue;
             }
           }
         }

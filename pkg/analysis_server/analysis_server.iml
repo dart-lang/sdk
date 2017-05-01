@@ -21,6 +21,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/integration/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/search/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/server/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/integration/support/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/operation/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/plugin/packages" />

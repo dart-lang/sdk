@@ -1503,8 +1503,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
         A<int, String> a3 = new F.named(3, "hello");
         A<int, String> a4 = new F.named(3, "hello", "hello", 3);
         A<int, String> a5 = new F.named(3, "hello", "hello");
-      }
-    }''';
+      }''';
     CompilationUnit unit = await resolveSource(code);
 
     Expression rhs(VariableDeclarationStatement stmt) {
@@ -1867,7 +1866,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     String code = r'''
       class A {
         List<String> m0(int x) => ["hello"];
-        List<String> m1(int x) {return [3];};
+        List<String> m1(int x) {return [3];}
       }
    ''';
     CompilationUnit unit = await resolveSource(code);
@@ -2277,7 +2276,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
   test_superConstructorInvocation_propagation() async {
     String code = r'''
       class B {
-        B(List<String>);
+        B(List<String> p);
       }
       class A extends B {
         A() : super([]);

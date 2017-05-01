@@ -1051,6 +1051,11 @@ class Listener {
     return tokenToStartReplacing;
   }
 
+  /// A type has been just parsed, and the parser noticed that the next token
+  /// has a type substitution comment /*=T*. So, the type that has been just
+  /// parsed should be discarded, and a new type should be parsed instead.
+  void discardTypeReplacedWithCommentTypeAssign() {}
+
   /// Creates a new synthetic token whose `next` pointer points to [next].
   ///
   /// If [next] is `null`, `null` is returned.
