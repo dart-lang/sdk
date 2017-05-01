@@ -82,6 +82,7 @@ main() {
   new Class1().method1();
   new Class2().method2();
   new Class2().method3();
+  null is List<int>;
 }
 '''
 };

@@ -115,6 +115,13 @@ class InterfaceType extends DartType {
     return this;
   }
 
+  bool get treatAsRaw {
+    for (DartType type in typeArguments) {
+      if (!type.treatAsDynamic) return false;
+    }
+    return true;
+  }
+
   @override
   R accept<R, A>(DartTypeVisitor visitor, A argument) =>
       visitor.visitInterfaceType(this, argument);
