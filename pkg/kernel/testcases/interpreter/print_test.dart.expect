@@ -1,0 +1,5 @@
+print(String: hello)
+print(int: 1)
+print(bool: true)
+print(double: 4.2)
+print(Null: null)
