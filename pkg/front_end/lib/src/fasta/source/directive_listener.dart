@@ -7,7 +7,6 @@
 library front_end.src.fasta.source.directive_listener;
 
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
-import '../parser/dart_vm_native.dart' show skipNativeClause;
 import '../parser/listener.dart';
 import '../quote.dart';
 import '../scanner/token.dart';
@@ -20,9 +19,6 @@ import '../scanner/token.dart';
 /// any top-level declaration, but we recommend to continue parsing the entire
 /// file in order to gracefully handle input errors.
 class DirectiveListener extends Listener {
-  /// Whether we accept the native-syntax used by the VM patch files.
-  final bool acceptsNativeClause;
-
   /// Collects URIs that occur on any import directive.
   final Set<String> imports = new Set<String>();
 
@@ -32,7 +28,7 @@ class DirectiveListener extends Listener {
   /// Collects URIs that occur on any part directive.
   final Set<String> parts = new Set<String>();
 
-  DirectiveListener({this.acceptsNativeClause: false});
+  DirectiveListener();
 
   /// Set when entering the context of a directive, null when the parser is not
   /// looking at a directive.
@@ -79,10 +75,14 @@ class DirectiveListener extends Listener {
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (acceptsNativeClause && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token);
+    if (message.code == codeExpectedBlockToSkip) {
+      Token recover = handleNativeClause(token);
       if (recover != null) return recover;
     }
     return super.handleUnrecoverableError(token, message);
   }
+
+  /// Defines how native clauses are handled. By default, they are not handled
+  /// and an error is thrown;
+  Token handleNativeClause(Token token) => null;
 }

@@ -270,10 +270,8 @@ class KernelTarget extends TargetImplementation {
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();
-      transformMixinApplications();
-      // TODO(ahe): Don't call this from two different places.
-      setup_builtin_library.transformProgram(program);
-      otherTransformations();
+      runBuildTransformations();
+
       if (dumpIr) this.dumpIr();
       if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
@@ -389,7 +387,7 @@ class KernelTarget extends TargetImplementation {
       }
     }
     if (errors.isEmpty || dillTarget.isLoaded) {
-      setup_builtin_library.transformProgram(program);
+      runLinkTransformations(program);
     }
     ticker.logMs("Linked program");
     return program;
@@ -675,6 +673,20 @@ class KernelTarget extends TargetImplementation {
         }
       }
     });
+  }
+
+  /// Run all transformations that are needed when building a program for the
+  /// first time.
+  void runBuildTransformations() {
+    transformMixinApplications();
+    // TODO(ahe): Don't call this from two different places.
+    setup_builtin_library.transformProgram(program);
+    otherTransformations();
+  }
+
+  /// Run all transformations that are needed when linking a program.
+  void runLinkTransformations(Program program) {
+    setup_builtin_library.transformProgram(program);
   }
 
   void transformMixinApplications() {

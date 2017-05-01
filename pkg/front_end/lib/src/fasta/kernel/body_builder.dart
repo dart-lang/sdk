@@ -39,8 +39,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
-import '../parser/dart_vm_native.dart' show skipNativeClause;
-
 import '../scanner/token.dart'
     show BeginGroupToken, Token, isBinaryOperator, isMinusOperator;
 
@@ -2525,7 +2523,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (isDartLibrary && message.code == codeExpectedFunctionBody) {
-      Token recover = skipNativeClause(token);
+      Token recover = library.loader.target.skipNativeClause(token);
       if (recover != null) return recover;
     } else if (message.code == codeExpectedButGot) {
       String expected = message.arguments["string"];
