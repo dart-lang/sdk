@@ -78,6 +78,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// initializer.
   E getFieldInitializer(F field);
 
+  /// Performs the core type inference algorithm for double literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferDoubleLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.doubleClass.rawType : null;
+  }
+
   /// Performs type inference on the given [expression].
   ///
   /// [typeContext] is the expected type of the expression, based on surrounding

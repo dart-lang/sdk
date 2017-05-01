@@ -1304,8 +1304,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new DoubleLiteral(double.parse(token.lexeme))
-      ..fileOffset = token.charOffset);
+    push(astFactory.doubleLiteral(double.parse(token.lexeme), token));
   }
 
   @override

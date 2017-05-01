@@ -38,6 +38,9 @@ abstract class AstFactory<V> {
   /// Creates a statement block.
   Block block(List<Statement> statements, Token beginToken);
 
+  /// Creates a double literal.
+  DoubleLiteral doubleLiteral(double value, Token token);
+
   /// Creates an expression statement.
   ExpressionStatement expressionStatement(Expression expression);
 
@@ -49,7 +52,7 @@ abstract class AstFactory<V> {
       Expression condition, Statement thenPart, Statement elsePart);
 
   /// Creates an integer literal.
-  IntLiteral intLiteral(value, Token token);
+  IntLiteral intLiteral(int value, Token token);
 
   /// Creates an `is` expression.
   Expression isExpression(

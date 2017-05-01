@@ -35,6 +35,17 @@ class KernelBlock extends Block implements KernelStatement {
   }
 }
 
+/// Concrete shadow object representing a double literal in kernel form.
+class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
+  KernelDoubleLiteral(double value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferDoubleLiteral(typeContext, typeNeeded);
+  }
+}
+
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
 abstract class KernelExpression implements Expression {

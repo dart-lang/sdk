@@ -18,6 +18,11 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   }
 
   @override
+  KernelDoubleLiteral doubleLiteral(double value, Token token) {
+    return new KernelDoubleLiteral(value)..fileOffset = offsetForToken(token);
+  }
+
+  @override
   ExpressionStatement expressionStatement(Expression expression) {
     return new KernelExpressionStatement(expression);
   }
@@ -35,7 +40,7 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   }
 
   @override
-  KernelIntLiteral intLiteral(value, Token token) {
+  KernelIntLiteral intLiteral(int value, Token token) {
     return new KernelIntLiteral(value)..fileOffset = offsetForToken(token);
   }
 
