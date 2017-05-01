@@ -707,6 +707,11 @@ class TokenType {
       identical(lexeme, '++') || identical(lexeme, '--');
 
   /**
+   * Return `true` if this type of token is a keyword.
+   */
+  bool get isKeyword => this == KEYWORD;
+
+  /**
    * Return `true` if this type of token represents a multiplicative operator.
    */
   bool get isMultiplicativeOperator =>
