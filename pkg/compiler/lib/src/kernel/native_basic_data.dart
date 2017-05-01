@@ -41,10 +41,4 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
       LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder) {
     // TODO(johnniwinther): Implement this.
   }
-
-  @override
-  void processJsInteropAnnotations(
-      NativeBasicData nativeData, NativeDataBuilder nativeDataBuilder) {
-    // TODO(johnniwinther): Implement this.
-  }
 }

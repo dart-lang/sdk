@@ -30,9 +30,6 @@ abstract class NativeBasicData {
   /// Returns `true` if [element] or any of its superclasses is native.
   bool isNativeOrExtendsNative(ClassEntity element);
 
-  /// Returns `true` if js interop features are used.
-  bool get isJsInteropUsed;
-
   /// Returns `true` if [element] is a JsInterop library.
   bool isJsInteropLibrary(LibraryEntity element);
 
@@ -81,9 +78,6 @@ abstract class NativeData extends NativeBasicData {
 
   /// Returns the explicit js interop name for library [element].
   String getJsInteropLibraryName(LibraryEntity element);
-
-  /// Returns `true` if [element] has an `@Anonymous` annotation.
-  bool isAnonymousJsInteropClass(ClassEntity element);
 
   /// Returns the explicit js interop name for class [element].
   String getJsInteropClassName(ClassEntity element);
@@ -137,9 +131,6 @@ abstract class NativeDataBuilder {
 
   /// Sets the explicit js interop [name] for the library [element].
   void setJsInteropLibraryName(LibraryEntity element, String name);
-
-  /// Marks [element] as having an `@Anonymous` annotation.
-  void markJsInteropClassAsAnonymous(ClassEntity element);
 
   /// Sets the explicit js interop [name] for the class [element].
   void setJsInteropClassName(ClassEntity element, String name);
@@ -228,9 +219,6 @@ class NativeBasicDataImpl implements NativeBasicData {
     return nativeClassTagInfo[cls].isNonLeaf;
   }
 
-  bool get isJsInteropUsed =>
-      jsInteropLibraries.isNotEmpty || jsInteropClasses.isNotEmpty;
-
   /// Returns `true` if [element] is explicitly marked as part of JsInterop.
   bool isJsInteropLibrary(LibraryEntity element) {
     return jsInteropLibraries.contains(element);
@@ -276,7 +264,6 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
   /// The JavaScript names for elements implemented via typed JavaScript
   /// interop.
   Map<LibraryEntity, String> jsInteropLibraryNames = <LibraryEntity, String>{};
-  Set<ClassEntity> anonymousJsInteropClasses = new Set<ClassEntity>();
   Map<ClassEntity, String> jsInteropClassNames = <ClassEntity, String>{};
 
   /// The JavaScript names for elements implemented via typed JavaScript
@@ -322,16 +309,6 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
     jsInteropLibraryNames[element] = name;
   }
 
-  @override
-  bool isAnonymousJsInteropClass(ClassEntity element) {
-    return anonymousJsInteropClasses.contains(element);
-  }
-
-  @override
-  void markJsInteropClassAsAnonymous(ClassEntity element) {
-    anonymousJsInteropClasses.add(element);
-  }
-
   /// Sets the explicit js interop [name] for the class [element].
   void setJsInteropClassName(ClassEntity element, String name) {
     assert(invariant(element, _nativeBasicData.isJsInteropClass(element),
@@ -369,8 +346,6 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
   bool hasNativeTagsForcedNonLeaf(ClassEntity cls) =>
       _nativeBasicData.hasNativeTagsForcedNonLeaf(cls);
-
-  bool get isJsInteropUsed => _nativeBasicData.isJsInteropUsed;
 
   /// Returns `true` if [element] is a JsInterop library.
   bool isJsInteropLibrary(LibraryEntity element) =>

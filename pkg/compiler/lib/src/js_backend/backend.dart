@@ -761,8 +761,6 @@ class JavaScriptBackend {
 
   /// Called when the resolution queue has been closed.
   void onResolutionEnd() {
-    compiler.frontEndStrategy.annotationProcesser
-        .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
     _backendUsage = backendUsageBuilder.close();
     _interceptorData = interceptorDataBuilder.onResolutionComplete();
   }
@@ -1113,6 +1111,12 @@ class JavaScriptBackend {
         ..add(commonElements.jsInterceptorClass)
         ..add(commonElements.jsNullClass);
     }
+  }
+
+  /// Called after the queue is closed. [onQueueEmpty] may be called multiple
+  /// times, but [onQueueClosed] is only called once.
+  void onQueueClosed() {
+    jsInteropAnalysis.onQueueClosed();
   }
 
   // TODO(johnniwinther): Create a CodegenPhase object for the backend to hold
