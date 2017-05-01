@@ -729,7 +729,7 @@ class ExpressionScope extends TypeScope {
   /// Throws a NoSuchMethodError corresponding to a call to [memberName] on
   /// [receiver] with the given [arguments].
   ///
-  /// If provided, [candiateTarget] provides the expected arity and argument
+  /// If provided, [candidateTarget] provides the expected arity and argument
   /// names for the best candidate target.
   ast.Expression buildThrowNoSuchMethodError(
       ast.Expression receiver, String memberName, ast.Arguments arguments,

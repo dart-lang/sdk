@@ -32,7 +32,7 @@ void main() {
     var sameContextInline = lib3.find("sameContextInline");
     var ou_lib3 = outputUnitForElement(sameContextInline);
 
-    // Test that we actually got differnt output units.
+    // Test that we actually got different output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
     String mainOutput = collector.getOutput("", OutputType.js);

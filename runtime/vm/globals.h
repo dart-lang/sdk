@@ -79,7 +79,7 @@ typedef uword cpp_vtable;
 
 
 // When using GCC we can use GCC attributes to ensure that certain
-// contants are 8 or 16 byte aligned.
+// constants are 8 or 16 byte aligned.
 #if defined(HOST_OS_WINDOWS)
 #define ALIGN8 __declspec(align(8))
 #define ALIGN16 __declspec(align(16))

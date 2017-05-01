@@ -453,32 +453,32 @@ class MirrorUsageBuilder {
         result.add(type.element);
       } else {
         String string = entry;
-        LibraryElement libraryCandiate;
-        String libraryNameCandiate;
+        LibraryElement libraryCandidate;
+        String libraryNameCandidate;
         for (LibraryElement l in compiler.libraryLoader.libraries) {
           if (l.hasLibraryName) {
             String libraryName = l.libraryName;
             if (string == libraryName) {
               // Found an exact match.
-              libraryCandiate = l;
-              libraryNameCandiate = libraryName;
+              libraryCandidate = l;
+              libraryNameCandidate = libraryName;
               break;
             } else if (string.startsWith('$libraryName.')) {
-              if (libraryNameCandiate == null ||
-                  libraryNameCandiate.length < libraryName.length) {
-                // Found a better candiate
-                libraryCandiate = l;
-                libraryNameCandiate = libraryName;
+              if (libraryNameCandidate == null ||
+                  libraryNameCandidate.length < libraryName.length) {
+                // Found a better candidate
+                libraryCandidate = l;
+                libraryNameCandidate = libraryName;
               }
             }
           }
         }
         Element e;
-        if (libraryNameCandiate == string) {
-          e = libraryCandiate;
-        } else if (libraryNameCandiate != null) {
-          e = resolveLocalExpression(libraryCandiate,
-              string.substring(libraryNameCandiate.length + 1).split('.'));
+        if (libraryNameCandidate == string) {
+          e = libraryCandidate;
+        } else if (libraryNameCandidate != null) {
+          e = resolveLocalExpression(libraryCandidate,
+              string.substring(libraryNameCandidate.length + 1).split('.'));
         } else {
           e = resolveExpression(string);
         }

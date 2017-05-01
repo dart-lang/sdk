@@ -3951,7 +3951,7 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
  * member of an element that is not a container (e.g. accessing the "length"
  * property of a constant).
  *
- * Accesses to a chain of non-static members separated by '.' are andled by
+ * Accesses to a chain of non-static members separated by '.' are handled by
  * creating a [NonstaticMemberElementForLink] that points to another
  * [NonstaticMemberElementForLink], to whatever nesting level is necessary.
  */

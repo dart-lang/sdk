@@ -28,7 +28,7 @@ class ResultCollector<E> {
    * A multi-keyed map, where the first key is the (normalized and absolute)
    * path to the file associated with the results, and the second is the id of
    * the plugin that provided the partial results. The value is the partial
-   * results contrinuted by the plugin for the file.
+   * results contributed by the plugin for the file.
    */
   Map<String, Map<String, E>> resultMap = <String, Map<String, E>>{};
 

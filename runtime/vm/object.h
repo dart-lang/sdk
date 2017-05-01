@@ -4606,7 +4606,7 @@ class ExceptionHandlers : public Object {
 
 // Holds deopt information at one deoptimization point. The information consists
 // of two parts:
-//  - first a prefix consiting of kMaterializeObject instructions describing
+//  - first a prefix consisting of kMaterializeObject instructions describing
 //    objects which had their allocation removed as part of AllocationSinking
 //    pass and have to be materialized;
 //  - followed by a list of DeoptInstr objects, specifying transformation

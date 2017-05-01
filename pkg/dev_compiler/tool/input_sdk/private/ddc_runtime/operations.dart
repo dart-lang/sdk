@@ -614,7 +614,7 @@ notNull(x) {
 ///
 // TODO(jmesserly): this could be faster
 // TODO(jmesserly): we can use default values `= dynamic` once #417 is fixed.
-// TODO(jmesserly): move this to classes for consistentcy with list literals?
+// TODO(jmesserly): move this to classes for consistency with list literals?
 map(values, [K, V]) => JS(
     '',
     '''(() => {

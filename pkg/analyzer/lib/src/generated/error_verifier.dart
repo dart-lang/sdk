@@ -3824,9 +3824,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that final fields in the given clas [declaration] that are declared,
-   * without any constructors in the enclosing class, are initialized. Cases in
-   * which there is at least one constructor are handled at the end of
+   * Verify that final fields in the given class [declaration] that are
+   * declared, without any constructors in the enclosing class, are
+   * initialized. Cases in which there is at least one constructor are handled
+   * at the end of
    * [_checkForAllFinalInitializedErrorCodes].
    *
    * See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and

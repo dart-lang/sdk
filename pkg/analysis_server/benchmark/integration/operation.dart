@@ -222,7 +222,7 @@ class WaitForAnalysisCompleteOperation extends Operation {
         completer.complete();
         return;
       }
-      // Timeout if no communcation received within the last 60 seconds.
+      // Timeout if no communication received within the last 60 seconds.
       double currentTime = driver.server.currentElapseTime;
       double lastTime = driver.server.lastCommunicationTime;
       if (currentTime - lastTime > 60) {

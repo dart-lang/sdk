@@ -196,7 +196,7 @@ class SyntheticConstantExpression extends ConstantExpression {
 
 /// A boolean, int, double, string, or null constant.
 abstract class PrimitiveConstantExpression extends ConstantExpression {
-  /// The primitive value of this contant expression.
+  /// The primitive value of this constant expression.
   get primitiveValue;
 }
 

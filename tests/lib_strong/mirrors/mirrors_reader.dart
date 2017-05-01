@@ -53,7 +53,7 @@ class MirrorsReader extends MirrorsVisitor {
     if (fatalError) return true;
     if (mirror is TypeMirror) {
       if (mirror.isOriginalDeclaration) {
-        // Visit the declation once.
+        // Visit the declaration once.
         return !declarations.add(mirror);
       } else {
         // Visit only one instantiation.

@@ -1676,7 +1676,7 @@ class AsyncRewriter extends AsyncRewriterBase {
   /// - The completer object [completer]
   final js.Expression asyncHelper;
 
-  /// Contructor used to initialize the [completer] variable.
+  /// Constructor used to initialize the [completer] variable.
   ///
   /// Specific to async methods.
   final js.Expression newCompleter;
@@ -1799,7 +1799,7 @@ class AsyncRewriter extends AsyncRewriterBase {
 class SyncStarRewriter extends AsyncRewriterBase {
   bool get isSyncStar => true;
 
-  /// Contructor creating the Iterable for a sync* method. Called with
+  /// Constructor creating the Iterable for a sync* method. Called with
   /// [bodyName].
   final js.Expression newIterable;
 
@@ -1966,7 +1966,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   /// - null.
   final js.Expression asyncStarHelper;
 
-  /// Contructor used to initialize the [controllerName] variable.
+  /// Constructor used to initialize the [controllerName] variable.
   ///
   /// Specific to async* methods.
   final js.Expression newController;

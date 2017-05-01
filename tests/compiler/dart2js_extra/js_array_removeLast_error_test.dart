@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test that optimized JSArray removeLast() calls generate the same error as
-// dyncamically dispatched calls.
+// dynamically dispatched calls.
 
 import 'package:expect/expect.dart';
 

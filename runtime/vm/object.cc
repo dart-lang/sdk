@@ -19730,7 +19730,7 @@ static double Uint64ToDouble(uint64_t x) {
   //
   // which results in a different rounding.
   //
-  // For consistency between platforms fallback to GCC style converstion
+  // For consistency between platforms fallback to GCC style conversion
   // on Win64.
   //
   const int64_t y = static_cast<int64_t>(x);

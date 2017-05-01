@@ -1253,7 +1253,7 @@ class BlockEntryInstr : public Instruction {
   // connect live ranges at the start of the block.
   ParallelMoveInstr* parallel_move_;
 
-  // Bit vector containg loop blocks for a loop header indexed by block
+  // Bit vector containing loop blocks for a loop header indexed by block
   // preorder number.
   BitVector* loop_info_;
 

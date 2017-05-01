@@ -1939,7 +1939,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushq(Immediate(0));  // Result slot.
   __ pushq(RDI);           // Arg0: function to optimize
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ popq(RAX);  // Disard argument.
+  __ popq(RAX);  // Discard argument.
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
   __ LeaveStubFrame();

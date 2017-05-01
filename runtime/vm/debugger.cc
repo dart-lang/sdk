@@ -2580,7 +2580,7 @@ void Debugger::FindCompiledFunctions(const Script& script,
         continue;
       }
       // Note: we need to check the functions of this class even if
-      // the class is defined in a differenct 'script'. There could
+      // the class is defined in a different 'script'. There could
       // be mixin functions from the given script in this class.
       functions = cls.functions();
       if (!functions.IsNull()) {
@@ -2648,7 +2648,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
       cls = class_table.At(i);
       // Note: if this class has been parsed and finalized already,
       // we need to check the functions of this class even if
-      // it is defined in a differenct 'script'. There could
+      // it is defined in a different 'script'. There could
       // be mixin functions from the given script in this class.
       // However, if this class is not parsed yet (not finalized),
       // we can ignore it and avoid the side effect of parsing it.

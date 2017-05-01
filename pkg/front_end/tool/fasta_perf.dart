@@ -197,7 +197,7 @@ class _PartialAstBuilder extends AstBuilder {
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
-// TODO(sigmund): update to uyse the frontend api once fasta is beind hit.
+// TODO(sigmund): update to use the frontend api once fasta is being hit.
 generateKernel(Uri entryUri,
     {bool compileSdk: true, bool strongMode: false}) async {
   // TODO(sigmund): this is here only to compute the input size,

@@ -25,7 +25,7 @@ handler(fun) {
 main() {
   // Test that scheduleMicrotask interception works.
   var result = runZonedScheduleMicrotask(body, onScheduleMicrotask: handler);
-  // No need for a ReceivePort: If the runZonedScheduleMicrotask disbehaved we
+  // No need for a ReceivePort: If the runZonedScheduleMicrotask misbehaved we
   // would have an [events] list that is different from what we expect.
   Expect.listEquals(
       ["body entry", "handler", "run async body", "handler done"], events);

@@ -47,7 +47,7 @@ class Swarm extends App {
     sections.refresh();
 
     // Hook up listeners about any data source additions or deletions.  We don't
-    // differeniate additions or deletions just the fact that data feeds have
+    // differentiate additions or deletions just the fact that data feeds have
     // changed.  We might want more fidelity later.
     sections.sectionTitles.forEach((title) {
       Section section = sections.findSection(title);

@@ -91,7 +91,7 @@ abstract class RuntimeTypesSubstitutions {
 
   Substitution getSubstitution(ClassElement cls, ClassElement other);
 
-  /// Compute the required type checkes and substitutions for the given
+  /// Compute the required type checks and substitutions for the given
   /// instantitated and checked classes.
   TypeChecks computeChecks(
       Set<ClassElement> instantiated, Set<ClassElement> checked);

@@ -22,7 +22,7 @@ typedef void HandleWatchEvent<T>(WatchEvent event, List<T> tokens);
  * An object that manages a collections of folders that need to be watched in
  * order to ensure that we are watching the minimum number of folders.
  *
- * Each folder can be watched multiple times. In order to differenciate between
+ * Each folder can be watched multiple times. In order to differentiate between
  * the watch requests, each watch request has a *token* associated with it. The
  * tokens that are used must correctly implement both [==] and [hashCode].
  */

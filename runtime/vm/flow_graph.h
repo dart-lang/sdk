@@ -213,7 +213,7 @@ class FlowGraph : public ZoneAllocated {
   // Insert a redefinition of an original definition after prev and rename all
   // dominated uses of the original.  If an equivalent redefinition is already
   // present, nothing is inserted.
-  // Returns the redefintion, if a redefinition was inserted, NULL otherwise.
+  // Returns the redefinition, if a redefinition was inserted, NULL otherwise.
   RedefinitionInstr* EnsureRedefinition(Instruction* prev,
                                         Definition* original,
                                         CompileType compile_type);

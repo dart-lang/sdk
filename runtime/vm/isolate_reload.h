@@ -191,7 +191,7 @@ class IsolateReloadContext {
   // Reports all reasons for cancelling reload.
   void ReportReasonsForCancelling();
 
-  // Reports the deails of a reload operation.
+  // Reports the details of a reload operation.
   void ReportOnJSON(JSONStream* stream);
 
   // Store morphing operation.

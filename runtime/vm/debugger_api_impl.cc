@@ -15,7 +15,7 @@
 
 namespace dart {
 
-// Facilitate quick access to the current zone once we have the curren thread.
+// Facilitate quick access to the current zone once we have the current thread.
 #define Z (T->zone())
 
 #ifndef PRODUCT

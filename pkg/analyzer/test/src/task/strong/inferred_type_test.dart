@@ -2894,7 +2894,7 @@ var d = <dynamic, dynamic>{'a': 'b'};     // map literals
 var e = new A()..x = 3; // cascades
 var f = 2 + 3;          // binary expressions are OK if the left operand
                         // is from a library in a different strongest
-                        // conected component.
+                        // connected component.
 var g = -3;
 var h = new A() + 3;
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();

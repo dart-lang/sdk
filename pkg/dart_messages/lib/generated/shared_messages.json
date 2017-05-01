@@ -441,7 +441,7 @@
     ],
     "template": "The method '#{memberName}' is not defined for the class '#{className}', but a constructor with that name is defined.",
     "templateHoleOrder": null,
-    "howToFix": "Try adding 'new' or 'const' to invoke the constuctor, or change the method name.",
+    "howToFix": "Try adding 'new' or 'const' to invoke the constructor, or change the method name.",
     "options": null,
     "usedBy": [
       "Platform.analyzer"

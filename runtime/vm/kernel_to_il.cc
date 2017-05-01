@@ -3561,7 +3561,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       }
       if (i == (yield_continuations_.length() - 1)) {
         // We reached the last possility, no need to build more ifs.
-        // Coninue to the last continuation.
+        // Continue to the last continuation.
         // Note: continuations start with nop DropTemps instruction
         // which acts like an anchor, so we need to skip it.
         block->set_try_index(yield_continuations_[i].try_index);
@@ -3627,9 +3627,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
   }
 
   if (NeedsDebugStepCheck(dart_function, function->position())) {
-    // If a switch was added above: Start the switch by injecting a debugable
+    // If a switch was added above: Start the switch by injecting a debuggable
     // safepoint so stepping over an await works.
-    // If not, still start the body with a debugable safepoint to ensure
+    // If not, still start the body with a debuggable safepoint to ensure
     // breaking on a method always happens, even if there are no
     // assignments/calls/runtimecalls in the first basic block.
     // Place this check at the last parameter to ensure parameters

@@ -2838,7 +2838,7 @@ void AllocationSinking::RemoveUnusedMaterializations() {
     if ((mat->input_use_list() == NULL) && (mat->env_use_list() == NULL)) {
       // Check if this materialization failed to compute and remove any
       // unforwarded loads. There were no loads from any allocation sinking
-      // candidate in the beggining so it is safe to assume that any encountered
+      // candidate in the beginning so it is safe to assume that any encountered
       // load was inserted by CreateMaterializationAt.
       for (intptr_t i = 0; i < mat->InputCount(); i++) {
         LoadFieldInstr* load = mat->InputAt(i)->definition()->AsLoadField();

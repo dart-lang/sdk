@@ -8,7 +8,7 @@
 //     v1 <- UnboxedIntConverter([tr] mint->uint32, v0)
 //     v2 <- UnboxedIntConverter(uint32->mint, v1)
 //
-// optimizer must *not* replace v2 with v0 because the first convertion is
+// optimizer must *not* replace v2 with v0 because the first conversion is
 // truncating and is erasing the high part of the mint value.
 //
 // VMOptions=--optimization-counter-threshold=5 --no-background-compilation

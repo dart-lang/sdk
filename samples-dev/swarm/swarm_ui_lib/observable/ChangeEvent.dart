@@ -6,7 +6,7 @@ part of observable;
 
 /** A change to an observable instance. */
 class ChangeEvent {
-  // TODO(sigmund): capture language issues around enums & create a cannonical
+  // TODO(sigmund): capture language issues around enums & create a canonical
   // Dart enum design.
   /** Type denoting an in-place update event. */
   static const UPDATE = 0;

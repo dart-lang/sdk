@@ -125,7 +125,7 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
       // has changed while running pub list. This is done
       // by writing to a file rather than getting millisecondsSinceEpoch
       // because file modification time has different granularity
-      // on diferent systems.
+      // on different systems.
       int startStamp;
       try {
         startStamp = _writeFile(_touchFile, 'touch');

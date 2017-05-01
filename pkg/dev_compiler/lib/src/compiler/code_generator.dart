@@ -3231,7 +3231,7 @@ class CodeGenerator extends Object
     if (op == '??') {
       // Desugar `l ??= r` as ((x) => x == null ? l = r : x)(l)
       // Note that if `x` contains subexpressions, we need to ensure those
-      // are also evaluated only once. This is similar to desguaring for
+      // are also evaluated only once. This is similar to desugaring for
       // postfix expressions like `i++`.
 
       // Handle the left hand side, to ensure each of its subexpressions are
@@ -4386,7 +4386,7 @@ class CodeGenerator extends Object
 
     // If the consumer of the expression is '==' or '!=' with a constant that
     // fits in 31 bits, adding a coercion does not change the result of the
-    // comparision, e.g.  `a & ~b == 0`.
+    // comparison, e.g.  `a & ~b == 0`.
     if (parent is BinaryExpression) {
       var tokenType = parent.operator.type;
       Expression left = parent.leftOperand;

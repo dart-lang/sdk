@@ -619,7 +619,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
             element.functionDeclaration) ||
         inferrer.annotations.assumeDynamic(declaration)) {
-      // Do not infer types for parameters that have a correspondign annotation
+      // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
       giveUp(inferrer);
       return safeType(inferrer);
@@ -1308,7 +1308,7 @@ class NarrowTypeInformation extends TypeInformation {
 
 /**
  * An [InferredTypeInformation] is a [TypeInformation] that
- * defaults to the dynamic type until it is marked as beeing
+ * defaults to the dynamic type until it is marked as being
  * inferred, at which point it computes its type based on
  * its assignments.
  */

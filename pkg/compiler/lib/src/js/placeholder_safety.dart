@@ -167,7 +167,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       if (canBeNull(receiver)) safe = false;
       return value;
     }
-    // Be conserative with unrecognized LHS expressions.
+    // Be conservative with unrecognized LHS expressions.
     safe = false;
     return leftToRight();
   }

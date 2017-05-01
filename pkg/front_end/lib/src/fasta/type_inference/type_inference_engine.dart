@@ -98,7 +98,7 @@ abstract class TypeInferenceEngineImpl<F> extends TypeInferenceEngine<F> {
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
-  /// Cleares the initializer of [field].
+  /// Clears the initializer of [field].
   void clearFieldInitializer(F field);
 
   /// Creates a [FieldNode] to track dependencies of the given [field].

@@ -982,7 +982,7 @@ function(x, y, k) async {
         } else {
           continue;
         }
-      default: // defaul case
+      default: // default case
         break lab; // break to label
       }
       foo();

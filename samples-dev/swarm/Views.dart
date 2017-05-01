@@ -47,7 +47,7 @@ class EventListeners {
 }
 
 /**
- * Private view class used to store placeholder views for detatched ListView
+ * Private view class used to store placeholder views for detached ListView
  * elements.
  */
 class _PlaceholderView extends View {
@@ -496,13 +496,13 @@ class GenericListView<D> extends View {
 
   /**
    * Detach a subview from the view replacing it with an empty placeholder view.
-   * The detatched subview can be safely reparented.
+   * The detached subview can be safely reparented.
    */
   View detachSubview(D itemData) {
     int index = findIndex(itemData);
     View view = _itemViews[index];
     if (view == null) {
-      // Edge case: add the view so we can detatch as the view is currently
+      // Edge case: add the view so we can detach as the view is currently
       // outside but might soon be inside the visible area.
       assert(!_activeInterval.contains(index));
       _addView(index);

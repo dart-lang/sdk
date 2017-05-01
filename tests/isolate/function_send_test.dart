@@ -69,7 +69,7 @@ void main() {
   // The result of `toplevel.call` and `staticFunc.call` may or may not be
   // identical to `toplevel` and `staticFunc` respectively. If they are not
   // equal, they may or may not be considered toplevel/static functions anyway,
-  // and therefore sendable. The VM and dart2js curretnly disagrees on whether
+  // and therefore sendable. The VM and dart2js currently disagree on whether
   // `toplevel` and `toplevel.call` are identical, both allow them to be sent.
   // If this is ever specified to something else, use:
   //     testUnsendable("toplevel.call", toplevel.call);

@@ -309,7 +309,7 @@ funtionality is publicly exposed.
   corresponding classes when we create the corresponding JS model, removing the
   need of the fake elements.
 
-* `lib/src/colors.dart`: ANSII support for reporting error messages with colors.
+* `lib/src/colors.dart`: ANSI support for reporting error messages with colors.
 
   AI: this file should move under a utilities folder.
 

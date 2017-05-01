@@ -139,7 +139,7 @@ class Blink_Utils {
   }
 
   // Defines an interceptor if there is an appropriate JavaScript prototype to define it on.
-  // In any case, returns a typed JS wrapper compatibile with dart:html and the new
+  // In any case, returns a typed JS wrapper compatible with dart:html and the new
   // typed JS Interop.
   static defineInterceptorCustomElement(jsObject, Type type) native "Utils_defineInterceptorCustomElement";
   static defineInterceptor(jsObject, Type type) native "Utils_defineInterceptor";
