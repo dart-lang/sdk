@@ -721,14 +721,10 @@ class KernelEquivalence {
         return false;
       case ElementKind.FUNCTION:
         if (b is KMethod) {
-          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
-          if (b.enclosingClass != null) {
-            return strategy.testElements(
-                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
-          } else {
-            return strategy.testElements(
-                a, b, 'library', a.library, testing.getLibraryForFunction(b));
-          }
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
+              strategy.testElements(a, b, 'library', a.library, b.library);
         } else if (b is KLocalFunction) {
           LocalFunctionElement aLocalFunction = a;
           return strategy.test(a, b, 'name', a.name, b.name ?? '') &&
@@ -740,38 +736,26 @@ class KernelEquivalence {
         return false;
       case ElementKind.GETTER:
         if (b is KGetter) {
-          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
-          if (b.enclosingClass != null) {
-            return strategy.testElements(
-                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
-          } else {
-            return strategy.testElements(
-                a, b, 'library', a.library, testing.getLibraryForFunction(b));
-          }
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
+              strategy.testElements(a, b, 'library', a.library, b.library);
         }
         return false;
       case ElementKind.SETTER:
         if (b is KSetter) {
-          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
-          if (b.enclosingClass != null) {
-            return strategy.testElements(
-                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
-          } else {
-            return strategy.testElements(
-                a, b, 'library', a.library, testing.getLibraryForFunction(b));
-          }
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
+              strategy.testElements(a, b, 'library', a.library, b.library);
         }
         return false;
       case ElementKind.FIELD:
         if (b is KField) {
-          if (!strategy.test(a, b, 'name', a.name, b.name)) return false;
-          if (b.enclosingClass != null) {
-            return strategy.testElements(
-                a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
-          } else {
-            return strategy.testElements(
-                a, b, 'library', a.library, testing.getLibraryForField(b));
-          }
+          return strategy.test(a, b, 'name', a.name, b.name) &&
+              strategy.testElements(
+                  a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
+              strategy.testElements(a, b, 'library', a.library, b.library);
         }
         return false;
       case ElementKind.TYPE_VARIABLE:
