@@ -1303,11 +1303,10 @@ class CodeGenerator extends Object
     // TODO(jacobr): make field readonly when that is supported.
     var tInstanceFields = <JS.Property>[
       new JS.Property(
-          _emitMemberName('index'), _emitAnnotatedType(intClass.type, null))
+          _emitMemberName('index'), _emitFieldSignature(types.intType))
     ];
-    var sigFields = <JS.Property>[
-      _buildSignatureField('fields', tInstanceFields)
-    ];
+    var sigFields = <JS.Property>[];
+    _buildSignatureField(sigFields, 'fields', tInstanceFields);
     var sig = new JS.ObjectInitializer(sigFields);
 
     var result = [
@@ -1846,11 +1845,13 @@ class CodeGenerator extends Object
     emitExtensions(className, _classProperties.extensionMembers);
   }
 
-  JS.Property _buildSignatureField(String name, List<JS.Property> elements) {
+  void _buildSignatureField(
+      List<JS.Property> sigFields, String name, List<JS.Property> elements) {
+    if (elements.isEmpty) return;
     var o = new JS.ObjectInitializer(elements, multiline: elements.length > 1);
     // TODO(vsm): Remove
     var e = js.call('() => #', o);
-    return new JS.Property(_propertyName(name), e);
+    sigFields.add(new JS.Property(_propertyName(name), e));
   }
 
   /// Emit the signature on the class recording the runtime type information
@@ -1884,15 +1885,23 @@ class CodeGenerator extends Object
       if (node.isAbstract) {
         continue;
       }
-      if (node.isStatic &&
-          !options.emitMetadata &&
+      // Static getters/setters cannot be called with dynamic dispatch, nor
+      // can they be torn off.
+      // TODO(jmesserly): can we attach static method type info at the tearoff
+      // point, and avoid saving the information otherwise? Same trick would
+      // work for top-level functions.
+      if (!options.emitMetadata &&
+          node.isStatic &&
           (node.isGetter || node.isSetter)) {
         continue;
       }
       List<JS.Property> tMember;
+      // TODO(jmesserly): these 3 variables should be typed.
       Function getOverride;
       Function lookup;
       Function elementToType;
+      // TODO(jmesserly): we could reduce work by not saving a full function
+      // type for getters/setters. These only need 1 type to be saved.
       if (node.isGetter) {
         elementToType = (ExecutableElement element) => element.type;
         getOverride = classElem.lookUpInheritedConcreteGetter;
@@ -1935,7 +1944,7 @@ class CodeGenerator extends Object
         var memberName = _declareMemberName(element);
         var property = new JS.Property(memberName, type);
         tMember.add(property);
-        // We record the names of static methods seperately so we can
+        // We record the names of static methods separately so we can
         // attach metadata to them individually.
         // TODO(leafp): Revisit this.
         if (node.isStatic && !node.isGetter && !node.isSetter) {
@@ -1947,13 +1956,17 @@ class CodeGenerator extends Object
     var tInstanceFields = <JS.Property>[];
     var tStaticFields = <JS.Property>[];
     for (FieldDeclaration node in fields) {
-      if (!node.isStatic || options.emitMetadata) {
+      // Only instance fields need to be saved for dynamic dispatch.
+      var isStatic = node.isStatic;
+      if (options.emitMetadata || !isStatic) {
         for (VariableDeclaration field in node.fields.variables) {
           var element = field.element as FieldElement;
+          var fieldList = isStatic ? tStaticFields : tInstanceFields;
+
           var memberName = _declareMemberName(element.getter);
-          var type = _emitAnnotatedType(element.type, node.metadata);
-          var property = new JS.Property(memberName, type);
-          (node.isStatic ? tStaticFields : tInstanceFields).add(property);
+          var fieldSig = _emitFieldSignature(element.type,
+              metadata: node.metadata, isFinal: element.isFinal);
+          fieldList.add(new JS.Property(memberName, fieldSig));
         }
       }
     }
@@ -1974,38 +1987,21 @@ class CodeGenerator extends Object
       }
     }
     var sigFields = <JS.Property>[];
-    if (!tCtors.isEmpty) {
-      sigFields.add(_buildSignatureField('constructors', tCtors));
-    }
-    if (!tInstanceFields.isEmpty) {
-      sigFields.add(_buildSignatureField('fields', tInstanceFields));
-    }
-    if (!tInstanceGetters.isEmpty) {
-      sigFields.add(_buildSignatureField('getters', tInstanceGetters));
-    }
-    if (!tInstanceSetters.isEmpty) {
-      sigFields.add(_buildSignatureField('setters', tInstanceSetters));
-    }
-    if (!tInstanceMethods.isEmpty) {
-      sigFields.add(_buildSignatureField('methods', tInstanceMethods));
-    }
-    if (!tStaticFields.isEmpty) {
-      sigFields.add(_buildSignatureField('sfields', tStaticFields));
-    }
-    if (!tStaticGetters.isEmpty) {
-      sigFields.add(_buildSignatureField('sgetters', tStaticGetters));
-    }
-    if (!tStaticSetters.isEmpty) {
-      sigFields.add(_buildSignatureField('ssetters', tStaticSetters));
-    }
+    _buildSignatureField(sigFields, 'constructors', tCtors);
+    _buildSignatureField(sigFields, 'fields', tInstanceFields);
+    _buildSignatureField(sigFields, 'getters', tInstanceGetters);
+    _buildSignatureField(sigFields, 'setters', tInstanceSetters);
+    _buildSignatureField(sigFields, 'methods', tInstanceMethods);
+    _buildSignatureField(sigFields, 'sfields', tStaticFields);
+    _buildSignatureField(sigFields, 'sgetters', tStaticGetters);
+    _buildSignatureField(sigFields, 'ssetters', tStaticSetters);
+    _buildSignatureField(sigFields, 'statics', tStaticMethods);
     if (!tStaticMethods.isEmpty) {
       assert(!sNames.isEmpty);
       // Emit names so that we can lazily attach metadata to statics
       // TODO(leafp): revisit this strategy
-      var aNames = new JS.Property(
-          _propertyName('names'), new JS.ArrayInitializer(sNames));
-      sigFields.add(_buildSignatureField('statics', tStaticMethods));
-      sigFields.add(aNames);
+      sigFields.add(new JS.Property(
+          _propertyName('names'), new JS.ArrayInitializer(sNames)));
     }
     // We set signature here, even if empty, to simplify the work of
     // defineExtensionMembers at runtime. See _defineExtensionMembers.
@@ -2953,6 +2949,16 @@ class CodeGenerator extends Object
     metadata ??= [];
     var typeName = _emitType(type, nameType: nameType, hoistType: hoistType);
     return _emitAnnotatedResult(typeName, metadata);
+  }
+
+  JS.Expression _emitFieldSignature(DartType type,
+      {List<Annotation> metadata, bool isFinal: true}) {
+    var args = [_emitType(type)];
+    if (options.emitMetadata && metadata != null && metadata.isNotEmpty) {
+      args.add(new JS.ArrayInitializer(
+          metadata.map(_instantiateAnnotation).toList()));
+    }
+    return _callHelper(isFinal ? 'finalFieldType(#)' : 'fieldType(#)', args);
   }
 
   JS.ArrayInitializer _emitTypeNames(

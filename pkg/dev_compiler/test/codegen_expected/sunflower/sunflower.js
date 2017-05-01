@@ -101,9 +101,9 @@ define(['dart_sdk'], function(dart_sdk) {
   const radius$ = Symbol("Circle.radius");
   dart.setSignature(circle.Circle, {
     fields: () => ({
-      x: core.num,
-      y: core.num,
-      radius: core.num
+      x: dart.finalFieldType(core.num),
+      y: dart.finalFieldType(core.num),
+      radius: dart.finalFieldType(core.num)
     })
   });
   painter.CirclePainter = class CirclePainter extends core.Object {
@@ -130,7 +130,7 @@ define(['dart_sdk'], function(dart_sdk) {
   const color = Symbol("CirclePainter.color");
   painter.CirclePainter[dart.implements] = () => [circle.Circle];
   dart.setSignature(painter.CirclePainter, {
-    fields: () => ({color: core.String}),
+    fields: () => ({color: dart.fieldType(core.String)}),
     methods: () => ({draw: dart.definiteFunctionType(dart.void, [html.CanvasRenderingContext2D])})
   });
   sunflower.SunflowerSeed = class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
