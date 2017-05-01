@@ -552,7 +552,9 @@ abstract class Compiler {
             }
           }
         }
-        resolveLibraryMetadata();
+        if (commonElements.mirrorsLibrary != null) {
+          resolveLibraryMetadata();
+        }
         reporter.log('Resolving...');
 
         processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries,
@@ -697,7 +699,7 @@ abstract class Compiler {
   // resolve metadata classes referenced only from metadata on library tags.
   // TODO(ahe): Figure out how to do this lazily.
   void resolveLibraryMetadata() {
-    if (commonElements.mirrorsLibrary == null) return;
+    assert(commonElements.mirrorsLibrary != null);
     for (LibraryElement library in libraryLoader.libraries) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
