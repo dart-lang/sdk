@@ -1,10 +1,5 @@
 ## 1.24.0
 
-### Core library changes
-* `dart:convert`
-  * Removed deprecated `ChunkedConverter` class.
-
-
 ### Language
 
 #### Strong Mode
@@ -17,6 +12,8 @@
   * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
     the Dart VM process current and peak resident set size.
   * Added 'RawSynchronousSocket', a basic synchronous socket implementation.
+* `dart:convert`
+  * Removed deprecated `ChunkedConverter` class.
 
 ### Dart VM
 
