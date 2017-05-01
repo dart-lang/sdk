@@ -7,6 +7,8 @@ import 'package:sdk_library_metadata/libraries.dart'
 
 void main(_) {
   libraries.forEach((String name, LibraryInfo info) {
-    print('"$name": sdk.resolve("lib/${info.path}"),');
+    if (info.isVmLibrary) {
+      print('"$name": sdk.resolve("lib/${info.path}"),');
+    }
   });
 }

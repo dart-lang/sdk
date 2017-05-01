@@ -37,40 +37,16 @@ class TranslateUri {
   }
 
   static Future<TranslateUri> parse(Uri sdk, [Uri uri]) async {
-    // This list below is generated with [bin/generate_dart_libraries.dart] and
-    // additional entries for _builtin, _vmservice, profiler, and vmservice_io.
+    // This list is generated with [bin/generate_dart_libraries.dart] below.
     //
     // TODO(ahe): This is only used with the option --compile-sdk, and
     // currently doesn't work outside the SDK source tree.
     Map<String, Uri> dartLibraries = <String, Uri>{};
     if (sdk != null) {
       dartLibraries = <String, Uri>{
-        "_async_await_error_codes": sdk.resolve(
-            "lib/_internal/js_runtime/lib/shared/async_await_error_codes.dart"),
-        "_blink": sdk.resolve("lib/_blink/dartium/_blink_dartium.dart"),
-        "_builtin": sdk.resolve("lib/_builtin/_builtin.dart"),
-        "_chrome": sdk.resolve("lib/_chrome/dart2js/chrome_dart2js.dart"),
-        "_foreign_helper":
-            sdk.resolve("lib/_internal/js_runtime/lib/foreign_helper.dart"),
-        "_interceptors":
-            sdk.resolve("lib/_internal/js_runtime/lib/interceptors.dart"),
-        "_internal": sdk.resolve("lib/internal/internal.dart"),
-        "_isolate_helper":
-            sdk.resolve("lib/_internal/js_runtime/lib/isolate_helper.dart"),
-        "_js_embedded_names": sdk
-            .resolve("lib/_internal/js_runtime/lib/shared/embedded_names.dart"),
-        "_js_helper":
-            sdk.resolve("lib/_internal/js_runtime/lib/js_helper.dart"),
-        "_js_mirrors":
-            sdk.resolve("lib/_internal/js_runtime/lib/js_mirrors.dart"),
-        "_js_names": sdk.resolve("lib/_internal/js_runtime/lib/js_names.dart"),
-        "_js_primitives":
-            sdk.resolve("lib/_internal/js_runtime/lib/js_primitives.dart"),
-        "_metadata": sdk.resolve("lib/html/html_common/metadata.dart"),
-        "_native_typed_data":
-            sdk.resolve("lib/_internal/js_runtime/lib/native_typed_data.dart"),
-        "_vmservice": sdk.resolve("lib/vmservice/vmservice.dart"),
         "async": sdk.resolve("lib/async/async.dart"),
+        "_blink": sdk.resolve("lib/_blink/dartium/_blink_dartium.dart"),
+        "_chrome": sdk.resolve("lib/_chrome/dart2js/chrome_dart2js.dart"),
         "collection": sdk.resolve("lib/collection/collection.dart"),
         "convert": sdk.resolve("lib/convert/convert.dart"),
         "core": sdk.resolve("lib/core/core.dart"),
@@ -86,14 +62,17 @@ class TranslateUri {
         "math": sdk.resolve("lib/math/math.dart"),
         "mirrors": sdk.resolve("lib/mirrors/mirrors.dart"),
         "nativewrappers": sdk.resolve("lib/html/dartium/nativewrappers.dart"),
-        "profiler": sdk.resolve("lib/profiler/profiler.dart"),
-        "svg": sdk.resolve("lib/svg/dartium/svg_dartium.dart"),
         "typed_data": sdk.resolve("lib/typed_data/typed_data.dart"),
-        "vmservice_io": sdk.resolve("lib/vmservice_io/vmservice_io.dart"),
+        "svg": sdk.resolve("lib/svg/dartium/svg_dartium.dart"),
         "web_audio":
             sdk.resolve("lib/web_audio/dartium/web_audio_dartium.dart"),
         "web_gl": sdk.resolve("lib/web_gl/dartium/web_gl_dartium.dart"),
         "web_sql": sdk.resolve("lib/web_sql/dartium/web_sql_dartium.dart"),
+        "_internal": sdk.resolve("lib/internal/internal.dart"),
+        "profiler": sdk.resolve("lib/profiler/profiler.dart"),
+        "vmservice_io": sdk.resolve("lib/vmservice_io/vmservice_io.dart"),
+        "_vmservice": sdk.resolve("lib/vmservice/vmservice.dart"),
+        "_builtin": sdk.resolve("lib/_builtin/_builtin.dart"),
       };
     }
     uri ??= Uri.base.resolve(".packages");

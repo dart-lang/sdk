@@ -8,13 +8,7 @@ import 'package:kernel/target/vm.dart' show VmTarget;
 
 import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
-import 'parser/dart_vm_native.dart' as vm show skipNativeClause;
-
-import 'scanner/token.dart' show Token;
-
 import 'loader.dart' show Loader;
-
-import 'quote.dart' show unescapeString;
 
 import 'target.dart' show Target;
 
@@ -83,11 +77,6 @@ abstract class TargetImplementation extends Target {
       loader.read(Uri.parse(uri));
     }
   }
-
-  Token skipNativeClause(Token token) => vm.skipNativeClause(token);
-
-  String extractNativeMethodName(Token token) =>
-      unescapeString(token.next.lexeme);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode);

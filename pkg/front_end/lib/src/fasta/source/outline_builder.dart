@@ -28,7 +28,8 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 
-import '../parser/dart_vm_native.dart' show removeNativeClause;
+import '../parser/dart_vm_native.dart'
+    show removeNativeClause, skipNativeClause;
 
 import '../operator.dart'
     show
@@ -807,10 +808,9 @@ class OutlineBuilder extends UnhandledListener {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
-      var target = library.loader.target;
-      Token recover = target.skipNativeClause(token);
+      Token recover = skipNativeClause(token);
       if (recover != null) {
-        nativeMethodName = target.extractNativeMethodName(token);
+        nativeMethodName = unescapeString(token.next.lexeme);
         return recover;
       }
     }

@@ -110,10 +110,6 @@ class CompileTask {
 
   CompileTask(this.c, this.ticker);
 
-  DillTarget createDillTarget(TranslateUri uriTranslator) {
-    return new DillTarget(ticker, uriTranslator);
-  }
-
   KernelTarget createKernelTarget(
       DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode) {
     return new KernelTarget(
@@ -124,7 +120,7 @@ class CompileTask {
     TranslateUri uriTranslator =
         await TranslateUri.parse(c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = createDillTarget(uriTranslator);
+    DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
     KernelTarget kernelTarget =
         createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
     if (c.options.strongMode) {

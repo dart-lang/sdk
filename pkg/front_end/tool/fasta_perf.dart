@@ -13,14 +13,12 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
-import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/translate_uri.dart';
-import 'package:front_end/src/fasta/parser/dart_vm_native.dart'
-    show skipNativeClause;
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -159,17 +157,12 @@ Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
 /// Parse [contents] as a Dart program and return the URIs that appear in its
 /// import, export, and part directives.
 Set<String> extractDirectiveUris(List<int> contents) {
-  var listener = new DirectiveListenerWithNative();
+  var listener = new DirectiveListener(acceptsNativeClause: true);
   new TopLevelParser(listener).parseUnit(tokenize(contents));
   return new Set<String>()
     ..addAll(listener.imports)
     ..addAll(listener.exports)
     ..addAll(listener.parts);
-}
-
-class DirectiveListenerWithNative extends DirectiveListener {
-  @override
-  Token handleNativeClause(Token token) => skipNativeClause(token);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
