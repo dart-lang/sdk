@@ -1,5 +1,10 @@
 ## 1.24.0
 
+### Core library changes
+* `dart:convert`
+  * Removed deprecated `ChunkedConverter` class.
+
+
 ### Language
 
 #### Strong Mode
