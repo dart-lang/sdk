@@ -7,10 +7,10 @@ library server.performance;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 
-import '../../test/integration/integration_tests.dart';
+import '../../test/integration/support/integration_tests.dart';
 
 /**
  * Base class for analysis server performance tests.

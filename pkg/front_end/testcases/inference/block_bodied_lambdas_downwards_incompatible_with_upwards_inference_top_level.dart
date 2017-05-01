@@ -6,4 +6,4 @@
 library test;
 
 String f() => null;
-var /*@topType=f() → String*/ g = f;
+var /*@topType=f() -> String*/ g = f;

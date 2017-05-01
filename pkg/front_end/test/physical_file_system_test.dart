@@ -136,7 +136,7 @@ class DirectoryTest extends _BaseTest {
   }
 
   test_readAsBytes() async {
-    new io.Directory(path).create();
+    await new io.Directory(path).create();
     expect(dir.readAsBytes(), throwsException);
   }
 
@@ -149,7 +149,7 @@ class DirectoryTest extends _BaseTest {
   }
 
   test_exists_directoryExists() async {
-    new io.Directory(path).create();
+    await new io.Directory(path).create();
     expect(await dir.exists(), isTrue);
   }
 }

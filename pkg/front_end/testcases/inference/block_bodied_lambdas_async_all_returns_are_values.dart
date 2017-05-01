@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:math' show Random;
 
 main() {
-  var /*@type=() → Future<num>*/ f = /*@returnType=Future<num>*/ () async {
+  var /*@type=() -> Future<num>*/ f = /*@returnType=Future<num>*/ () async {
     if (new Random().nextBool()) {
       return 1;
     } else {

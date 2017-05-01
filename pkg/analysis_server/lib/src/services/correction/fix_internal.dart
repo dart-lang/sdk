@@ -10,7 +10,7 @@ import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
@@ -381,8 +381,20 @@ class FixProcessor {
       if (errorCode.name == LintNames.annotate_overrides) {
         _addLintFixAddOverrideAnnotation();
       }
+      if (errorCode.name == LintNames.avoid_annotating_with_dynamic) {
+        _addFix_removeTypeName();
+      }
       if (errorCode.name == LintNames.avoid_init_to_null) {
         _addFix_removeInitializer();
+      }
+      if (errorCode.name == LintNames.avoid_return_types_on_setters) {
+        _addFix_removeTypeName();
+      }
+      if (errorCode.name == LintNames.avoid_types_on_closure_parameters) {
+        _addFix_replaceWithIdentifier();
+      }
+      if (errorCode.name == LintNames.await_only_futures) {
+        _addFix_removeAwait();
       }
       if (errorCode.name == LintNames.empty_statements) {
         _addFix_removeEmptyStatement();
@@ -1787,6 +1799,16 @@ class FixProcessor {
     _addFix(DartFixKind.ADD_NE_NULL, []);
   }
 
+  void _addFix_removeAwait() {
+    final awaitExpression = node;
+    if (awaitExpression is AwaitExpression) {
+      final awaitToken = awaitExpression.awaitKeyword;
+      _addRemoveEdit(
+          rf.rangeStartEnd(awaitToken.offset, awaitToken.next.offset));
+      _addFix(DartFixKind.REMOVE_AWAIT, []);
+    }
+  }
+
   void _addFix_removeDeadCode() {
     AstNode coveringNode = this.coveredNode;
     if (coveringNode is Expression) {
@@ -1892,6 +1914,14 @@ class FixProcessor {
     }
   }
 
+  void _addFix_removeTypeName() {
+    final TypeName type = node.getAncestor((node) => node is TypeName);
+    if (type != null) {
+      _addRemoveEdit(rf.rangeStartEnd(type.offset, type.endToken.next.offset));
+      _addFix(DartFixKind.REMOVE_TYPE_NAME, []);
+    }
+  }
+
   void _addFix_removeUnnecessaryCast() {
     if (coveredNode is! AsExpression) {
       return;
@@ -1981,6 +2011,18 @@ class FixProcessor {
       var instanceCreation = coveredNode as InstanceCreationExpression;
       _addReplaceEdit(rf.rangeToken(instanceCreation.keyword), 'const');
       _addFix(DartFixKind.USE_CONST, []);
+    }
+  }
+
+  void _addFix_replaceWithIdentifier() {
+    final FunctionTypedFormalParameter functionTyped =
+        node.getAncestor((node) => node is FunctionTypedFormalParameter);
+    if (functionTyped != null) {
+      _addReplaceEdit(rf.rangeNode(functionTyped),
+          utils.getNodeText(functionTyped.identifier));
+      _addFix(DartFixKind.REPLACE_WITH_IDENTIFIER, []);
+    } else {
+      _addFix_removeTypeName();
     }
   }
 
@@ -3181,7 +3223,14 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String avoid_annotating_with_dynamic =
+      'avoid_annotating_with_dynamic';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_return_types_on_setters =
+      'avoid_return_types_on_setters';
+  static const String avoid_types_on_closure_parameters =
+      'avoid_types_on_closure_parameters';
+  static const String await_only_futures = 'await_only_futures';
   static const String empty_statements = 'empty_statements';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =

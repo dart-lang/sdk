@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';

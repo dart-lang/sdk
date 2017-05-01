@@ -147,7 +147,11 @@ class Test<E> {
         try {
           op(list);
         } catch (e2) {
-          Expect.equals(e.runtimeType, e2.runtimeType);
+          Expect.equals(
+              e.runtimeType,
+              e2.runtimeType,
+              "$name :: $opName threw different exceptions: "
+              "${e.runtimeType} vs ${e2.runtimeType}");
           return;
         }
         Expect.fail("$name-$opName didn't throw, expected: $e");

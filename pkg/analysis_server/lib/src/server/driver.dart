@@ -561,7 +561,7 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
         help: "set a destination for the new analysis driver's log");
-    parser.addOption(VERBOSE_FLUTTER_COMPLETIONS,
+    parser.addFlag(VERBOSE_FLUTTER_COMPLETIONS,
         help: "enable verbose code completion for Flutter (experimental)");
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"

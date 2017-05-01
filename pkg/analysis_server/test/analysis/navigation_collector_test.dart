@@ -4,7 +4,7 @@
 
 library test.analysis.navigation_collector;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

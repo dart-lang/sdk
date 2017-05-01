@@ -70,7 +70,8 @@ abstract class AbstractScanner implements Scanner {
 
   final List<int> lineStarts;
 
-  AbstractScanner(this.includeComments, {int numberOfBytesHint})
+  AbstractScanner(this.includeComments, this.scanGenericMethodComments,
+      {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
   }

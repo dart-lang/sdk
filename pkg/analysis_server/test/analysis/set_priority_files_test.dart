@@ -4,7 +4,8 @@
 
 library test.analysis.set_priority_files;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;

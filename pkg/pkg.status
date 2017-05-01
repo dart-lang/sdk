@@ -33,10 +33,11 @@ front_end/test/fasta/rasta/*: SkipByDesign
 # way.
 front_end/test/fasta/sdk_test: SkipByDesign
 
-front_end/test/fasta/bootstrap_test: Pass, Slow
-front_end/test/fasta/compile_test: Pass, Slow
-front_end/test/fasta/kompile_test: Pass, Slow
-front_end/test/fasta/strong_test: Pass, Slow
+front_end/test/fasta/bootstrap_test: Fail, Slow  # Issue 29511
+front_end/test/fasta/compile_test: Fail, Slow  # Issue 29511
+front_end/test/fasta/kompile_test: Fail, Slow  # Issue 29511
+front_end/test/fasta/strong_test: Fail, Slow  # Issue 29511
+front_end/test/fasta/outline_test: Fail  # Issue 29511
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
@@ -80,6 +81,7 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
+analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 
 [ $runtime == vm && $checked && $system == windows ]
 front_end/tool/perf_test: Slow, Pass

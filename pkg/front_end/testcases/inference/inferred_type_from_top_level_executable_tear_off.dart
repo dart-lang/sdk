@@ -5,4 +5,4 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=print(Object object) → void*/ v = print;
+var /*@topType=print(Object) -> void*/ v = print;

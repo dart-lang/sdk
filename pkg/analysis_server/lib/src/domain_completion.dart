@@ -6,7 +6,8 @@ library domain.completion;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';

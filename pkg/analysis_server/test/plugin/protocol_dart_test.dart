@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.computer.element;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/ast/visitor.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;

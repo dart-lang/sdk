@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.rename;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/protocol/protocol_generated.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';

@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';

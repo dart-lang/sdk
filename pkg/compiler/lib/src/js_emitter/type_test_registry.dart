@@ -5,6 +5,9 @@
 library dart2js.js_emitter.type_test_registry;
 
 import '../common.dart';
+import '../elements/elements.dart'
+    show ClassElement, Element, ElementKind, MemberElement, MethodElement;
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show
         ResolutionDartType,
@@ -12,8 +15,6 @@ import '../elements/resolution_types.dart'
         ResolutionInterfaceType,
         Types,
         ResolutionTypeVariableType;
-import '../elements/elements.dart'
-    show ClassElement, Element, ElementKind, MemberElement, MethodElement;
 import '../js_backend/js_backend.dart'
     show
         RuntimeTypesChecks,
@@ -41,7 +42,7 @@ class TypeTestRegistry {
 
   /// After [computeNeededClasses] this set only contains classes that are only
   /// used for RTI.
-  Set<ClassElement> _rtiNeededClasses;
+  Set<ClassEntity> _rtiNeededClasses;
 
   Iterable<ClassElement> cachedClassesUsingTypeVariableTests;
 
@@ -68,7 +69,7 @@ class TypeTestRegistry {
     return _rtiChecks;
   }
 
-  Iterable<ClassElement> get rtiNeededClasses {
+  Iterable<ClassEntity> get rtiNeededClasses {
     assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeededClasses != null,
         message: "rtiNeededClasses has not been computed yet."));
     return _rtiNeededClasses;
@@ -92,7 +93,7 @@ class TypeTestRegistry {
 
   void computeRtiNeededClasses(RuntimeTypesSubstitutions rtiSubstitutions,
       MirrorsData mirrorsData, Iterable<MemberElement> liveMembers) {
-    _rtiNeededClasses = new Set<ClassElement>();
+    _rtiNeededClasses = new Set<ClassEntity>();
 
     void addClassWithSuperclasses(ClassElement cls) {
       _rtiNeededClasses.add(cls);

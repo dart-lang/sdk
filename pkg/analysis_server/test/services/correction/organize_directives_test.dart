@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.organize_directives;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analyzer/error/error.dart';

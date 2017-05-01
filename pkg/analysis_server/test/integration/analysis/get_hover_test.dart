@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {

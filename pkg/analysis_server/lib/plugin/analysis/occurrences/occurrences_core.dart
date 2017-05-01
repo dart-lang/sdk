@@ -4,7 +4,8 @@
 
 library analysis_server.plugin.analysis.occurrences.occurrences_core;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' show Occurrences;
+import 'package:analysis_server/protocol/protocol_generated.dart'
+    show Occurrences;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 

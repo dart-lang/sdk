@@ -84,6 +84,20 @@ void Library::VisitChildren(Visitor* visitor) {
 }
 
 
+Typedef::~Typedef() {}
+
+
+void Typedef::AcceptTreeVisitor(TreeVisitor* visitor) {
+  visitor->VisitTypedef(this);
+}
+
+
+void Typedef::VisitChildren(Visitor* visitor) {
+  VisitList(&type_parameters(), visitor);
+  type()->AcceptDartTypeVisitor(visitor);
+}
+
+
 Class::~Class() {}
 
 
@@ -1188,6 +1202,19 @@ void InterfaceType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
 
 
 void InterfaceType::VisitChildren(Visitor* visitor) {
+  VisitList(&type_arguments(), visitor);
+}
+
+
+TypedefType::~TypedefType() {}
+
+
+void TypedefType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
+  visitor->VisitTypedefType(this);
+}
+
+
+void TypedefType::VisitChildren(Visitor* visitor) {
   VisitList(&type_arguments(), visitor);
 }
 

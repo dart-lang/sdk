@@ -6,7 +6,7 @@
 library test;
 
 main() {
-  var /*@type=() → (int x) → double*/ f = /*@returnType=(int x) → double*/ () {
+  var /*@type=() -> (int) -> double*/ f = /*@returnType=(int) -> double*/ () {
     return /*@returnType=double*/ (int x) {
       return 2.0 * x;
     };

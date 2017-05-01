@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.correction.fix;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -5943,6 +5941,40 @@ main() {
 ''');
   }
 
+  test_removeAwait_intLiteral() async {
+    String src = '''
+bad() async {
+  print(/*LINT*/await 23);
+}
+''';
+    await findLint(src, LintNames.await_only_futures);
+
+    await applyFix(DartFixKind.REMOVE_AWAIT);
+
+    verifyResult('''
+bad() async {
+  print(23);
+}
+''');
+  }
+
+  test_removeAwait_StringLiteral() async {
+    String src = '''
+bad() async {
+  print(/*LINT*/await 'hola');
+}
+''';
+    await findLint(src, LintNames.await_only_futures);
+
+    await applyFix(DartFixKind.REMOVE_AWAIT);
+
+    verifyResult('''
+bad() async {
+  print('hola');
+}
+''');
+  }
+
   test_removeEmptyStatement_insideBlock() async {
     String src = '''
 void foo() {
@@ -6195,6 +6227,151 @@ class A {
     x = 2;
   }
 }
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_InsideFunctionTypedFormalParameter() async {
+    String src = '''
+bad(void foo(/*LINT*/dynamic x)) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad(void foo(x)) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_NamedParameter() async {
+    String src = '''
+bad({/*LINT*/dynamic defaultValue}) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad({defaultValue}) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_NormalParameter() async {
+    String src = '''
+bad(/*LINT*/dynamic defaultValue) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad(defaultValue) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_OptionalParameter() async {
+    String src = '''
+bad([/*LINT*/dynamic defaultValue]) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad([defaultValue]) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidReturnTypesOnSetters_void() async {
+    String src = '''
+/*LINT*/void set speed2(int ms) {}
+''';
+    await findLint(src, LintNames.avoid_return_types_on_setters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+set speed2(int ms) {}
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_FunctionTypedFormalParameter() async {
+    String src = '''
+var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REPLACE_WITH_IDENTIFIER);
+
+    verifyResult('''
+var functionWithFunction = (f) => f(0);
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_NamedParameter() async {
+    String src = '''
+var x = ({/*LINT*/Future<int> defaultValue}) {
+  return null;
+};
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+var x = ({defaultValue}) {
+  return null;
+};
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_NormalParameter() async {
+    String src = '''
+var x = (/*LINT*/Future<int> defaultValue) {
+  return null;
+};
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+var x = (defaultValue) {
+  return null;
+};
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_OptionalParameter() async {
+    String src = '''
+var x = ([/*LINT*/Future<int> defaultValue]) {
+  return null;
+};
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+var x = ([defaultValue]) {
+  return null;
+};
 ''');
   }
 

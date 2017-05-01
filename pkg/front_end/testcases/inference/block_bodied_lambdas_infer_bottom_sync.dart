@@ -9,7 +9,7 @@ var /*@topType=dynamic*/ h = null;
 void foo(int f(Object _)) {}
 
 main() {
-  var /*@type=(Object x) → Null*/ f = /*@returnType=Null*/ (Object x) {
+  var /*@type=(Object) -> Null*/ f = /*@returnType=Null*/ (Object x) {
     return null;
   };
   String y = /*@promotedType=none*/ f(42);

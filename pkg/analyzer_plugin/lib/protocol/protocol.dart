@@ -44,7 +44,7 @@ class Notification {
    * A table mapping the names of notification parameters to their values, or
    * `null` if there are no notification parameters.
    */
-  Map<String, Object> params;
+  final Map<String, Object> params;
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.
@@ -267,6 +267,8 @@ class Request {
 /**
  * A collection of utility methods that create instances of the generated class
  * [RequestError].
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestErrorFactory {
 //  /**

@@ -6,7 +6,7 @@ library services.src.correction.util;
 
 import 'dart:math';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     show SourceChange, SourceEdit;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;

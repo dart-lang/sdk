@@ -6,7 +6,7 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     show RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';

@@ -1688,8 +1688,8 @@ class _UnitResynthesizer {
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
       return element.type;
     } else if (type.syntheticReturnType != null) {
-      FunctionElementImpl element = new FunctionElementImpl_forLUB(
-          unit, context.typeParameterContext, type);
+      FunctionElementImpl element =
+          new FunctionElementImpl_forLUB(context, type);
       return element.type;
     } else {
       DartType getTypeArgument(int i) {

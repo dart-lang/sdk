@@ -28,8 +28,7 @@ import '../../elements/elements.dart'
         FunctionSignature,
         LibraryElement,
         MethodElement,
-        TypedefElement,
-        VariableElement;
+        TypedefElement;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -56,6 +55,7 @@ import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../js_emitter.dart' as js_emitter show Emitter, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
+import '../sorter.dart';
 
 import 'class_builder.dart';
 import 'class_emitter.dart';
@@ -85,8 +85,8 @@ class EmitterFactory implements js_emitter.EmitterFactory {
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(
-        task.compiler, namer, closedWorld, generateSourceMap, task);
+    return new Emitter(task.compiler, namer, closedWorld, generateSourceMap,
+        task, task.sorter);
   }
 }
 
@@ -96,14 +96,15 @@ class Emitter implements js_emitter.Emitter {
 
   // The following fields will be set to copies of the program-builder's
   // collector.
-  Map<OutputUnit, List<VariableElement>> outputStaticNonFinalFieldLists;
-  Map<OutputUnit, Set<LibraryElement>> outputLibraryLists;
+  Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists;
+  Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
   List<TypedefElement> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter;
   final NsmEmitter nsmEmitter;
   final InterceptorEmitter interceptorEmitter;
+  final Sorter _sorter;
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final List<jsAst.Statement> cachedEmittedConstantsAst = <jsAst.Statement>[];
@@ -171,7 +172,7 @@ class Emitter implements js_emitter.Emitter {
   final bool generateSourceMap;
 
   Emitter(Compiler compiler, Namer namer, ClosedWorld closedWorld,
-      this.generateSourceMap, this.task)
+      this.generateSourceMap, this.task, this._sorter)
       : this.compiler = compiler,
         this.namer = namer,
         classEmitter = new ClassEmitter(closedWorld),
@@ -597,7 +598,7 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildStaticNonFinalFieldInitializations(
       OutputUnit outputUnit) {
     jsAst.Statement buildInitialization(
-        Element element, jsAst.Expression initialValue) {
+        FieldElement element, jsAst.Expression initialValue) {
       return js.statement('${namer.staticStateHolder}.# = #',
           [namer.globalPropertyName(element), initialValue]);
     }
@@ -606,7 +607,7 @@ class Emitter implements js_emitter.Emitter {
     JavaScriptConstantCompiler handler = backend.constants;
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    Iterable<Element> fields = outputStaticNonFinalFieldLists[outputUnit];
+    Iterable<FieldEntity> fields = outputStaticNonFinalFieldLists[outputUnit];
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
@@ -621,10 +622,10 @@ class Emitter implements js_emitter.Emitter {
     if (inMainUnit && outputStaticNonFinalFieldLists.length > 1) {
       // In the main output-unit we output a stub initializer for deferred
       // variables, so that `isolateProperties` stays a fast object.
-      outputStaticNonFinalFieldLists.forEach(
-          (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
+      outputStaticNonFinalFieldLists
+          .forEach((OutputUnit fieldsOutputUnit, Iterable<FieldEntity> fields) {
         if (fieldsOutputUnit == outputUnit) return; // Skip the main unit.
-        for (Element element in fields) {
+        for (FieldEntity element in fields) {
           reporter.withCurrentElement(element, () {
             parts.add(buildInitialization(element, jsAst.number(0)));
           });
@@ -1347,11 +1348,11 @@ class Emitter implements js_emitter.Emitter {
 
     checkEverythingEmitted(descriptors.keys);
 
-    Iterable<LibraryElement> libraries = outputLibraryLists[mainOutputUnit];
+    Iterable<LibraryEntity> libraries = outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = <LibraryElement>[];
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
-    for (LibraryElement library in Elements.sortedByPosition(libraries)) {
+    for (LibraryEntity library in _sorter.sortLibraries(libraries)) {
       parts.add(generateLibraryDescriptor(library, mainFragment));
       descriptors.remove(library);
     }
@@ -1568,12 +1569,12 @@ class Emitter implements js_emitter.Emitter {
       Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
 
       if (descriptors != null && descriptors.isNotEmpty) {
-        Iterable<LibraryElement> libraries = outputLibraryLists[outputUnit];
+        Iterable<LibraryEntity> libraries = outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
         List<jsAst.Expression> parts = <jsAst.Expression>[];
-        for (LibraryElement library in Elements.sortedByPosition(libraries)) {
+        for (LibraryEntity library in _sorter.sortLibraries(libraries)) {
           parts.add(generateLibraryDescriptor(library, fragment));
           descriptors.remove(library);
         }

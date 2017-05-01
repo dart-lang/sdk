@@ -24,6 +24,7 @@ import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
+import 'sorter.dart';
 
 const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
@@ -71,6 +72,11 @@ class CodeEmitterTask extends CompilerTask {
         message: "Emitter has not been created yet."));
     return _emitter;
   }
+
+  /// Returns the [Sorter] use for ordering elements in the generated
+  /// JavaScript.
+  // TODO(johnniwinther): Switch this based on the used entity model.
+  Sorter get sorter => const ElementSorter();
 
   String get name => 'Code emitter';
 
@@ -176,6 +182,7 @@ class CodeEmitterTask extends CompilerTask {
       _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
+          compiler.elementEnvironment,
           compiler.commonElements,
           compiler.types,
           compiler.deferredLoadTask,

@@ -44,7 +44,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   }
 
   @override
-  problem(TreeNode node, String details) {
+  problem(TreeNode node, String details, {TreeNode context}) {
+    context ??= this.context;
     VerificationError error = new VerificationError(context, node, details);
     printUnexpected(Uri.parse(fileUri), node?.fileOffset ?? -1, "$error");
     errors.add(error);

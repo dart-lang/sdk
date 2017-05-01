@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 

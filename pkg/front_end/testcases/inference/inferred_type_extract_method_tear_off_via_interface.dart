@@ -12,4 +12,4 @@ class I {
 abstract class C implements I {}
 
 C f() => null;
-var /*@topType=g() → bool*/ x = f().g;
+var /*@topType=g() -> bool*/ x = f().g;

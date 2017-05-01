@@ -224,7 +224,9 @@ class BackendImpacts {
           // Also register the types of the arguments passed to this method.
           _needsList(
               'Needed to encode the arguments for throw NoSuchMethodError.'),
-          _needsString('Needed to encode the name for throw NoSuchMethodError.')
+          _needsString(
+              'Needed to encode the name for throw NoSuchMethodError.'),
+          mapLiteralClass, // noSuchMethod helpers are passed a Map.
         ]);
   }
 

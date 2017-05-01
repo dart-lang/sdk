@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisErrorFixes;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:meta/meta.dart';

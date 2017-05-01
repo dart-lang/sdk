@@ -241,10 +241,12 @@ main() {
         helloJS.path,
         helloDart.path,
       ]);
-      expect(result.exitCode, 65);
-      expect(result.stdout, contains("conflict"));
-      expect(result.stdout, contains('${toUri(greetingDart.path)}'));
-      expect(helloJS.existsSync(), isFalse);
+      // TODO(vsm): Re-enable when we turn this check back on.
+      expect(result.exitCode, 0);
+      // expect(result.exitCode, 65);
+      // expect(result.stdout, contains("conflict"));
+      // expect(result.stdout, contains('${toUri(greetingDart.path)}'));
+      // expect(helloJS.existsSync(), isFalse);
     });
   });
 

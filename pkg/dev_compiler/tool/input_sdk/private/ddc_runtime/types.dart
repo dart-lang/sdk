@@ -512,6 +512,19 @@ functionType(returnType, args, extra) =>
 definiteFunctionType(returnType, args, extra) =>
     _functionType(true, returnType, args, extra);
 
+///
+/// TODO(vsm): Remove when mirrors is deprecated.
+/// This is a temporary workaround to support dart:mirrors, which doesn't
+/// understand generic methods.
+///
+getFunctionTypeMirror(AbstractFunctionType type) {
+  if (type is GenericFunctionType) {
+    var typeArgs = new List.filled(type.formalCount, dynamic);
+    return type.instantiate(typeArgs);
+  }
+  return type;
+}
+
 bool isType(obj) => JS(
     '',
     '''(() => {

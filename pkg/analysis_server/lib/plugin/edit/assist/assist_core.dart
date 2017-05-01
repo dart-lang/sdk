@@ -6,7 +6,7 @@ library analysis_server.plugin.edit.assist.assist_core;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     show SourceChange;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';

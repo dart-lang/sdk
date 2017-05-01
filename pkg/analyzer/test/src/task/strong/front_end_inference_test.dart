@@ -119,16 +119,18 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
   }
 
   void _appendElementName(StringBuffer buffer, Element element) {
-    String name = element.name;
-    if (element.library == null) {
-      // TODO(scheglov) This is wrong - every element must be in a library.
-      buffer.write('<unknown>::$name');
+    // Synthetic FunctionElement(s) don't have a name or enclosing library.
+    if (element.isSynthetic && element is FunctionElement) {
       return;
     }
-    String libraryName = element.library.name;
-    if (libraryName == '') {
-      throw new StateError('The element $name must be in a named library.');
+
+    LibraryElement library = element.library;
+    if (library == null) {
+      throw new StateError('Unexpected element without library: $element');
     }
+    String libraryName = library.name;
+
+    String name = element.name ?? '';
     if (libraryName != 'dart.core' &&
         libraryName != 'dart.async' &&
         libraryName != 'test') {
@@ -161,8 +163,6 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
     _appendList<ParameterElement>(buffer, '(', ')', parameters, ', ',
         (parameter) {
       _appendType(buffer, parameter.type);
-      buffer.write(' ');
-      buffer.write(parameter.name);
     }, includeEmpty: true);
   }
 
@@ -172,7 +172,7 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
       _appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
       _appendParameters(buffer, type.parameters);
-      buffer.write(' → ');
+      buffer.write(' -> ');
       _appendType(buffer, type.returnType);
     } else if (type is InterfaceType) {
       ClassElement element = type.element;

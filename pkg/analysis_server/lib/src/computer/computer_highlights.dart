@@ -4,7 +4,7 @@
 
 library computer.highlights;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/protocol/protocol_generated.dart' hide Element;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';

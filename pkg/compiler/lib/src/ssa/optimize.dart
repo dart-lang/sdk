@@ -2393,6 +2393,10 @@ class SsaTypeConversionInserter extends HBaseVisitor
       if (user is HIf) {
         trueTargets?.add(user.thenBlock);
         falseTargets?.add(user.elseBlock);
+      } else if (user is HLoopBranch) {
+        trueTargets?.add(user.block.successors.first);
+        // Don't insert refinements on else-branch - may be a critical edge
+        // block which we currently need to keep empty (except for phis).
       } else if (user is HNot) {
         collectTargets(user, falseTargets, trueTargets);
       } else if (user is HPhi) {
@@ -2420,9 +2424,9 @@ class SsaTypeConversionInserter extends HBaseVisitor
 }
 
 /**
- * Optimization phase that tries to eliminate memory loads (for
- * example [HFieldGet]), when it knows the value stored in that memory
- * location.
+ * Optimization phase that tries to eliminate memory loads (for example
+ * [HFieldGet]), when it knows the value stored in that memory location, and
+ * stores that overwrite with the same value.
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
@@ -2518,9 +2522,12 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitFieldSet(HFieldSet instruction) {
+    FieldEntity element = instruction.element;
     HInstruction receiver = instruction.getDartReceiver(closedWorld).nonCheck();
-    memorySet.registerFieldValueUpdate(
-        instruction.element, receiver, instruction.inputs.last);
+    if (memorySet.registerFieldValueUpdate(
+        element, receiver, instruction.value)) {
+      instruction.block.remove(instruction);
+    }
   }
 
   void visitCreate(HCreate instruction) {
@@ -2607,8 +2614,10 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitStaticStore(HStaticStore instruction) {
-    memorySet.registerFieldValueUpdate(
-        instruction.element, null, instruction.inputs.last);
+    if (memorySet.registerFieldValueUpdate(
+        instruction.element, null, instruction.inputs.last)) {
+      instruction.block.remove(instruction);
+    }
   }
 
   void visitLiteralList(HLiteralList instruction) {
@@ -2738,23 +2747,25 @@ class MemorySet {
 
   /**
    * Sets `receiver.element` to contain [value]. Kills all potential places that
-   * may be affected by this update.
+   * may be affected by this update. Returns `true` if the update is redundant.
    */
-  void registerFieldValueUpdate(
+  bool registerFieldValueUpdate(
       MemberEntity element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
     if (closedWorld.nativeData.isNativeMember(element)) {
-      return; // TODO(14955): Remove this restriction?
+      return false; // TODO(14955): Remove this restriction?
     }
-    // [value] is being set in some place in memory, we remove it from
-    // the non-escaping set.
+    // [value] is being set in some place in memory, we remove it from the
+    // non-escaping set.
     nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
         fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
+    bool isRedundant = map[receiver] == value;
     map.forEach((key, value) {
       if (mayAlias(receiver, key)) map[key] = null;
     });
     map[receiver] = value;
+    return isRedundant;
   }
 
   /**

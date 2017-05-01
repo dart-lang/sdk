@@ -10,7 +10,8 @@ import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions, Element;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';

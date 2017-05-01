@@ -122,13 +122,22 @@ void checkResolutionEnqueuers(
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
-  checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
-      "Processed element mismatch", elementEquivalence, elementFilter: (e) {
-    return elementFilter != null ? elementFilter(e) : true;
-  }, verbose: verbose);
-
   ResolutionWorldBuilderBase worldBuilder1 = enqueuer1.worldBuilder;
   ResolutionWorldBuilderBase worldBuilder2 = enqueuer2.worldBuilder;
+
+  checkSets(
+      enqueuer1.worldBuilder.instantiatedTypes,
+      enqueuer2.worldBuilder.instantiatedTypes,
+      "Instantiated types mismatch",
+      typeEquivalence,
+      verbose: verbose);
+
+  checkSets(
+      enqueuer1.worldBuilder.directlyInstantiatedClasses,
+      enqueuer2.worldBuilder.directlyInstantiatedClasses,
+      "Directly instantiated classes mismatch",
+      elementEquivalence,
+      verbose: verbose);
 
   checkMaps(
       worldBuilder1.getInstantiationMap(),
@@ -139,19 +148,10 @@ void checkResolutionEnqueuers(
           a, b, elementEquivalence, typeEquivalence),
       verbose: verbose);
 
-  checkSets(
-      enqueuer1.worldBuilder.directlyInstantiatedClasses,
-      enqueuer2.worldBuilder.directlyInstantiatedClasses,
-      "Directly instantiated classes mismatch",
-      elementEquivalence,
-      verbose: verbose);
-
-  checkSets(
-      enqueuer1.worldBuilder.instantiatedTypes,
-      enqueuer2.worldBuilder.instantiatedTypes,
-      "Instantiated types mismatch",
-      typeEquivalence,
-      verbose: verbose);
+  checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
+      "Processed element mismatch", elementEquivalence, elementFilter: (e) {
+    return elementFilter != null ? elementFilter(e) : true;
+  }, verbose: verbose);
 
   checkSets(enqueuer1.worldBuilder.isChecks, enqueuer2.worldBuilder.isChecks,
       "Is-check mismatch", typeEquivalence,

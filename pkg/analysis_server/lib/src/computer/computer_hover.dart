@@ -4,7 +4,7 @@
 
 library computer.hover;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';

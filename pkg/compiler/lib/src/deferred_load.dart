@@ -184,6 +184,16 @@ class DeferredLoadTask extends CompilerTask {
     return _elementToOutputUnit[element];
   }
 
+  /// Returns the [OutputUnit] where [element] belongs.
+  OutputUnit outputUnitForClass(ClassElement element) {
+    return outputUnitForElement(element);
+  }
+
+  /// Returns the [OutputUnit] where [element] belongs.
+  OutputUnit outputUnitForMember(MemberElement element) {
+    return outputUnitForElement(element);
+  }
+
   /// Direct access to the output-unit to element relation used for testing.
   OutputUnit getOutputUnitForElementForTesting(Element element) {
     return _elementToOutputUnit[element];
@@ -201,6 +211,10 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   bool isDeferred(Element element) {
+    return outputUnitForElement(element) != mainOutputUnit;
+  }
+
+  bool isDeferredClass(ClassElement element) {
     return outputUnitForElement(element) != mainOutputUnit;
   }
 

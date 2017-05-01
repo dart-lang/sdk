@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library generate.all;
-
 import 'dart:io';
 
 import 'package:front_end/src/codegen/tools.dart';
@@ -17,7 +15,7 @@ import 'codegen_matchers.dart' as codegen_matchers;
 import 'to_html.dart' as to_html;
 
 /**
- * Generate all targets
+ * Generate all targets.
  */
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
