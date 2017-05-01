@@ -24,9 +24,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../dart/analysis/base.dart';
 
 main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(RunFrontEndInferenceTest);
-  });
+  // Use a group() wrapper to specify the timeout.
+  group('front_end_inference_test', () {
+    defineReflectiveSuite(() {
+      defineReflectiveTests(RunFrontEndInferenceTest);
+    });
+  }, timeout: new Timeout(const Duration(seconds: 60)));
 }
 
 @reflectiveTest
