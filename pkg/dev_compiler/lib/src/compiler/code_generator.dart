@@ -4555,7 +4555,7 @@ class CodeGenerator extends Object
   bool _isNull(Expression expr) => expr is NullLiteral;
 
   SimpleIdentifier _createTemporary(String name, DartType type,
-      {bool nullable: true, JS.Expression variable}) {
+      {bool nullable: true, JS.Expression variable, bool dynamicInvoke}) {
     // We use an invalid source location to signal that this is a temporary.
     // See [_isTemporary].
     // TODO(jmesserly): alternatives are
@@ -4570,7 +4570,7 @@ class CodeGenerator extends Object
 
     id.staticElement = new TemporaryVariableElement.forNode(id, variable);
     id.staticType = type;
-    setIsDynamicInvoke(id, type.isDynamic);
+    setIsDynamicInvoke(id, dynamicInvoke ?? type.isDynamic);
     addTemporaryVariable(id.staticElement, nullable: nullable);
     return id;
   }
@@ -4665,7 +4665,10 @@ class CodeGenerator extends Object
     if (isStateless(_currentFunction, expr, context)) return expr;
 
     var variable = new JS.MetaLetVariable(name);
-    var t = _createTemporary(name, getStaticType(expr), variable: variable);
+    var t = _createTemporary(name, getStaticType(expr),
+        variable: variable,
+        dynamicInvoke: isDynamicInvoke(expr),
+        nullable: isNullable(expr));
     scope[variable] = _visit(expr);
     return t;
   }
@@ -4867,8 +4870,8 @@ class CodeGenerator extends Object
           break;
         }
 
-        var param =
-            _createTemporary('_', nodeTarget.staticType, nullable: false);
+        var param = _createTemporary('_', nodeTarget.staticType,
+            nullable: false, dynamicInvoke: isDynamicInvoke(node));
         var baseNode = _stripNullAwareOp(node, param);
         tail.add(
             new JS.ArrowFun(<JS.Parameter>[_visit(param)], _visit(baseNode)));

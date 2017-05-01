@@ -1,57 +1,11 @@
-[error] Couldn't infer type parameter 'T'.
-
-Tried to infer '_ControllerEventSinkWrapper<dynamic>' for 'T' which doesn't work:
-  Parameter 'action' declared as     '(T) → R'
-                     but argument is '(EventSink<T>) → dynamic'.
-The type '_ControllerEventSinkWrapper<dynamic>' was inferred from:
-  Parameter 'argument' declared as     'T'
-                       but argument is '_ControllerEventSinkWrapper<dynamic>'.
-
-Consider passing explicit type argument(s) to the generic.
-
- (dart:async/stream.dart, line 1322, col 16)
-[error] The argument type 'ZoneUnaryCallback(EventSink<T>) → dynamic' can't be assigned to the parameter type '(_ControllerEventSinkWrapper<dynamic>) → dynamic'. (dart:async/stream.dart, line 1322, col 32)
-[error] Invalid override. The type of '_UnicodeSubsetEncoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 106, col 3)
-[error] Invalid override. The type of '_UnicodeSubsetEncoder.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 114, col 3)
-[error] Invalid override. The type of '_UnicodeSubsetDecoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 219, col 3)
-[error] Invalid override. The type of '_UnicodeSubsetDecoder.bind' ('(Stream<List<int>>) → Stream<String>') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.bind' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 222, col 3)
-[error] Invalid override. The type of 'AsciiDecoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 235, col 3)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<List<int>>) → Stream<String>') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.bind' ('(dynamic) → dynamic'). (dart:convert/base64.dart, line 208, col 21)
-[error] Invalid override. The type of 'Base64Encoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/base64.dart, line 222, col 3)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/base64.dart, line 468, col 21)
-[error] Invalid override. The type of 'Base64Decoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/base64.dart, line 481, col 3)
-[error] Invalid override. The type of 'ChunkedConverter.bind' ('(dynamic) → dynamic') isn't a subtype of 'Converter<S, T>.bind' ('(Stream<S>) → Stream<T>'). (dart:convert/chunked_conversion.dart, line 14, col 3)
-[error] Invalid override. The type of 'ChunkedConverter.bind' ('(dynamic) → dynamic') isn't a subtype of 'StreamTransformer<S, T>.bind' ('(Stream<S>) → Stream<T>'). (dart:convert/chunked_conversion.dart, line 14, col 3)
-[error] Invalid override. The type of 'ChunkedConverter.startChunkedConversion' ('(dynamic) → dynamic') isn't a subtype of 'Converter<S, T>.startChunkedConversion' ('(Sink<T>) → Sink<S>'). (dart:convert/chunked_conversion.dart, line 15, col 3)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<S>) → Stream<T>') isn't a subtype of 'ChunkedConverter<S, T, S, T>.bind' ('(dynamic) → dynamic'). (dart:convert/converter.dart, line 53, col 32)
-[error] Invalid override. The type of '_FusedConverter.startChunkedConversion' ('(Sink<T>) → Sink<S>') isn't a subtype of 'ChunkedConverter<S, T, S, T>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/converter.dart, line 62, col 3)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<String>) → Stream<String>') isn't a subtype of 'ChunkedConverter<String, String, String, String>.bind' ('(dynamic) → dynamic'). (dart:convert/html_escape.dart, line 154, col 18)
-[error] Invalid override. The type of 'HtmlEscape.startChunkedConversion' ('(Sink<String>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, String, String, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/html_escape.dart, line 217, col 3)
-[error] Invalid override. The type of 'JsonEncoder.startChunkedConversion' ('(Sink<String>) → ChunkedConversionSink<Object>') isn't a subtype of 'ChunkedConverter<Object, String, Object, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/json.dart, line 254, col 3)
-[error] Invalid override. The type of 'JsonEncoder.bind' ('(Stream<Object>) → Stream<String>') isn't a subtype of 'ChunkedConverter<Object, String, Object, String>.bind' ('(dynamic) → dynamic'). (dart:convert/json.dart, line 268, col 3)
-[error] Invalid override. The type of 'JsonUtf8Encoder.startChunkedConversion' ('(Sink<List<int>>) → ChunkedConversionSink<Object>') isn't a subtype of 'ChunkedConverter<Object, List<int>, Object, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/json.dart, line 382, col 3)
-[error] Invalid override. The type of 'JsonUtf8Encoder.bind' ('(Stream<Object>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<Object, List<int>, Object, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/json.dart, line 394, col 3)
-[error] Invalid override. The type of 'JsonDecoder.startChunkedConversion' ('(Sink<Object>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, Object, String, Object>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/json.dart, line 503, col 3)
-[error] Invalid override. The type of 'JsonDecoder.bind' ('(Stream<String>) → Stream<Object>') isn't a subtype of 'ChunkedConverter<String, Object, String, Object>.bind' ('(dynamic) → dynamic'). (dart:convert/json.dart, line 508, col 3)
-[error] Invalid override. The type of 'Latin1Decoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/latin1.dart, line 100, col 3)
-[error] Invalid override. The type of 'Utf8Encoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 121, col 3)
-[error] Invalid override. The type of 'Utf8Encoder.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 129, col 3)
-[error] Invalid override. The type of 'Utf8Decoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 357, col 3)
-[error] Invalid override. The type of 'Utf8Decoder.bind' ('(Stream<List<int>>) → Stream<String>') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.bind' ('(dynamic) → dynamic'). (dart:convert/utf.dart, line 368, col 3)
 [error] The getter 'value' isn't defined for the class 'num'. (dart:html, line 40486, col 21)
 [error] A value of type 'Dimension' can't be assigned to a variable of type 'num'. (dart:html, line 40486, col 44)
 [error] The getter 'value' isn't defined for the class 'num'. (dart:html, line 40506, col 20)
 [error] A value of type 'Dimension' can't be assigned to a variable of type 'num'. (dart:html, line 40506, col 42)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<List<int>>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<List<int>, List<int>, List<int>, List<int>>.bind' ('(dynamic) → dynamic'). (dart:io/data_transformer.dart, line 295, col 19)
-[error] Invalid override. The type of 'ZLibEncoder.startChunkedConversion' ('(Sink<List<int>>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, List<int>, List<int>, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:io/data_transformer.dart, line 388, col 3)
 [error] Undefined name 'lineMode'. (dart:io/stdio.dart, line 57, col 10)
 [error] The name 'echoMode=' is already defined. (dart:io/stdio.dart, line 122, col 12)
 [error] The name 'lineMode=' is already defined. (dart:io/stdio.dart, line 143, col 12)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:io/string_transformer.dart, line 45, col 31)
-[error] Invalid override. The type of '_WindowsCodePageEncoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:io/string_transformer.dart, line 60, col 3)
-[error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<List<int>>) → Stream<String>') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.bind' ('(dynamic) → dynamic'). (dart:io/string_transformer.dart, line 98, col 31)
-[error] Invalid override. The type of '_WindowsCodePageDecoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:io/string_transformer.dart, line 109, col 3)
-[error] The getter 'packagesBase' isn't defined for the class 'IsolateNatives'. (dart:isolate, line 716, col 61)
+[error] The getter 'packagesBase' isn't defined for the class 'IsolateNatives'. (dart:isolate, line 719, col 61)
 [error] Invalid override. The type of 'JsArray.[]=' ('(Object, E) → void') isn't a subtype of 'JsObject.[]=' ('(Object, dynamic) → dynamic'). (dart:js, line 370, col 3)
 [error] The argument type 'List' can't be assigned to the parameter type 'Iterable<Null>'. (dart:js_util, line 112, col 29)
 [error] The return type 'double' isn't a 'T', as defined by the method 'min'. (dart:math, line 90, col 16)
