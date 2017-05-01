@@ -3992,7 +3992,7 @@ class SsaBuilder extends ast.Visitor
     nativeEmitter.nativeMethods.add(element);
 
     if (element.isFactoryConstructor &&
-        jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass)) {
+        nativeData.isAnonymousJsInteropClass(element.contextClass)) {
       // Factory constructor that is syntactic sugar for creating a JavaScript
       // object literal.
       ConstructorElement constructor = element;

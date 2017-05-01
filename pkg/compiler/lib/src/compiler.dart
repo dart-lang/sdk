@@ -741,7 +741,6 @@ abstract class Compiler {
       // Notify the impact strategy impacts are no longer needed for this
       // enqueuer.
       impactStrategy.onImpactUsed(enqueuer.impactUse);
-      backend.onQueueClosed();
       assert(compilationFailed ||
           enqueuer.checkNoEnqueuedInvokedInstanceMethods(elementEnvironment));
     });
