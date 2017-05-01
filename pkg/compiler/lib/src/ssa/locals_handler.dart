@@ -126,11 +126,7 @@ class LocalsHandler {
   }
 
   HInstruction createBox() {
-    // TODO(floitsch): Clean up this hack. Should we create a box-object by
-    // just creating an empty object literal?
-    HInstruction box = new HForeignCode(
-        js.js.parseForeignJS('{}'), commonMasks.nonNullType, <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
+    HInstruction box = new HCreateBox(commonMasks.nonNullType);
     builder.add(box);
     return box;
   }
