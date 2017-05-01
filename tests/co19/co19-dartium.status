@@ -1223,6 +1223,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # 
 
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Issue 28724
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
@@ -1332,7 +1333,6 @@ LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError # co19-
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Issue 18251
