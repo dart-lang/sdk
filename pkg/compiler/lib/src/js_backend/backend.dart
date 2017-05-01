@@ -1288,7 +1288,7 @@ class JavaScriptBackend {
             asyncHelper:
                 emitter.staticFunctionAccess(commonElements.asyncHelper),
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-            newCompleter: emitter
+            completerFactory: emitter
                 .staticFunctionAccess(commonElements.syncCompleterConstructor),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
@@ -1297,7 +1297,7 @@ class JavaScriptBackend {
         rewriter = new SyncStarRewriter(reporter, element,
             endOfIteration:
                 emitter.staticFunctionAccess(commonElements.endOfIteration),
-            newIterable: emitter.staticFunctionAccess(
+            iterableFactory: emitter.staticFunctionAccess(
                 commonElements.syncStarIterableConstructor),
             yieldStarExpression:
                 emitter.staticFunctionAccess(commonElements.yieldStar),

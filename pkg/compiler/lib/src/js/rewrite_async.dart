@@ -28,8 +28,7 @@ import 'js.dart' as js;
 abstract class AsyncRewriterBase extends js.NodeVisitor {
   // Local variables are hoisted to the top of the function, so they are
   // collected here.
-  List<js.VariableDeclaration> localVariables =
-      new List<js.VariableDeclaration>();
+  List<js.VariableDeclaration> localVariables = <js.VariableDeclaration>[];
 
   Map<js.Node, int> continueLabels = new Map<js.Node, int>();
   Map<js.Node, int> breakLabels = new Map<js.Node, int>();
@@ -65,14 +64,13 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   ///
   /// When jumping to a target it is necessary to visit all finallies that
   /// are on the way to target (i.e. more nested than the jump target).
-  List<js.Node> jumpTargets = new List<js.Node>();
+  List<js.Node> jumpTargets = <js.Node>[];
 
-  List<int> continueStack = new List<int>();
-  List<int> breakStack = new List<int>();
-  List<int> returnStack = new List<int>();
+  List<int> continueStack = <int>[];
+  List<int> breakStack = <int>[];
+  List<int> returnStack = <int>[];
 
-  List<Pair<String, String>> variableRenamings =
-      new List<Pair<String, String>>();
+  List<Pair<String, String>> variableRenamings = <Pair<String, String>>[];
 
   PreTranslationAnalysis analysis;
 
@@ -299,7 +297,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   ///
   /// Also inserts a comment describing the label if available.
   js.Block gotoAndBreak(int label) {
-    List<js.Statement> statements = new List<js.Statement>();
+    List<js.Statement> statements = <js.Statement>[];
     if (labelComments.containsKey(label)) {
       statements.add(new js.Comment("goto ${labelComments[label]}"));
     }
@@ -683,8 +681,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       rewrittenBody = new js.LabeledStatement(outerLabelName, rewrittenBody);
     }
     rewrittenBody = js.js.statement('while (true) {#}', rewrittenBody);
-    List<js.VariableInitialization> variables =
-        new List<js.VariableInitialization>();
+    List<js.VariableInitialization> variables = <js.VariableInitialization>[];
 
     variables.add(_makeVariableInitializer(goto, js.number(0)));
     variables.addAll(variableInitializations());
@@ -939,7 +936,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // Compute a stack of all the 'finally' nodes that must be visited before
     // the jump.
     // The bottom of the stack is the label where the jump goes to.
-    List<int> jumpStack = new List<int>();
+    List<int> jumpStack = <int>[];
     for (js.Node node in jumpTargets.reversed) {
       if (finallyLabels[node] != null) {
         jumpStack.add(finallyLabels[node]);
@@ -1367,7 +1364,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     } else {
       bool hasDefault = false;
       int i = 0;
-      List<js.SwitchClause> clauses = new List<js.SwitchClause>();
+      List<js.SwitchClause> clauses = <js.SwitchClause>[];
       for (js.SwitchClause clause in node.cases) {
         if (clause is js.Case) {
           labels[i] = newLabel("case");
@@ -1421,7 +1418,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   List<int> _finalliesUpToAndEnclosingHandler() {
-    List<int> result = new List<int>();
+    List<int> result = <int>[];
     for (int i = jumpTargets.length - 1; i >= 0; i--) {
       js.Node node = jumpTargets[i];
       int handlerLabel = handlerLabels[node];
@@ -1679,13 +1676,13 @@ class AsyncRewriter extends AsyncRewriterBase {
   /// Constructor used to initialize the [completer] variable.
   ///
   /// Specific to async methods.
-  final js.Expression newCompleter;
+  final js.Expression completerFactory;
 
   final js.Expression wrapBody;
 
   AsyncRewriter(DiagnosticReporter reporter, Spannable spannable,
       {this.asyncHelper,
-      this.newCompleter,
+      this.completerFactory,
       this.wrapBody,
       String safeVariableName(String proposedName),
       js.Name bodyName})
@@ -1728,10 +1725,9 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   @override
   Iterable<js.VariableInitialization> variableInitializations() {
-    List<js.VariableInitialization> variables =
-        new List<js.VariableInitialization>();
-    variables
-        .add(_makeVariableInitializer(completer, new js.New(newCompleter, [])));
+    List<js.VariableInitialization> variables = <js.VariableInitialization>[];
+    variables.add(
+        _makeVariableInitializer(completer, new js.Call(completerFactory, [])));
     if (analysis.hasExplicitReturns) {
       variables.add(_makeVariableInitializer(returnValue, null));
     }
@@ -1801,7 +1797,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   /// Constructor creating the Iterable for a sync* method. Called with
   /// [bodyName].
-  final js.Expression newIterable;
+  final js.Expression iterableFactory;
 
   /// A JS Expression that creates a marker showing that iteration is over.
   ///
@@ -1818,7 +1814,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
       {this.endOfIteration,
-      this.newIterable,
+      this.iterableFactory,
       this.yieldStarExpression,
       this.uncaughtErrorExpression,
       String safeVariableName(String proposedName),
@@ -1850,8 +1846,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
     // TODO(sigurdm): We only need to do this copying for parameters that are
     // mutated.
     List<js.VariableInitialization> declarations =
-        new List<js.VariableInitialization>();
-    List<js.Parameter> renamedParameters = new List<js.Parameter>();
+        <js.VariableInitialization>[];
+    List<js.Parameter> renamedParameters = <js.Parameter>[];
     for (js.Parameter parameter in parameters) {
       String name = parameter.name;
       String renamedName = freshName(name);
@@ -1866,7 +1862,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
           function (#renamedParameters) {
             if (#needsThis)
               var #self = this;
-            return new #newIterable(function () {
+            return #iterableFactory(function () {
               if (#hasParameters) {
                 #copyParameters;
               }
@@ -1889,7 +1885,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
           "copyParameters": copyParameters,
           "varDecl": variableDeclarations,
           "errorCode": errorCodeName,
-          "newIterable": newIterable,
+          "iterableFactory": iterableFactory,
           "body": bodyName,
           "self": selfName,
           "result": resultName,
@@ -1918,8 +1914,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   @override
   Iterable<js.VariableInitialization> variableInitializations() {
-    List<js.VariableInitialization> variables =
-        new List<js.VariableInitialization>();
+    List<js.VariableInitialization> variables = <js.VariableInitialization>[];
     return variables;
   }
 
@@ -2112,8 +2107,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   @override
   Iterable<js.VariableInitialization> variableInitializations() {
-    List<js.VariableInitialization> variables =
-        new List<js.VariableInitialization>();
+    List<js.VariableInitialization> variables = <js.VariableInitialization>[];
     variables.add(_makeVariableInitializer(
         controller, js.js('#(#)', [newController, bodyName])));
     if (analysis.hasYield) {
@@ -2155,9 +2149,8 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   Set<js.Node> hasAwaitOrYield = new Set<js.Node>();
 
   Map<js.Node, js.Node> targets = new Map<js.Node, js.Node>();
-  List<js.Node> loopsAndSwitches = new List<js.Node>();
-  List<js.LabeledStatement> labelledStatements =
-      new List<js.LabeledStatement>();
+  List<js.Node> loopsAndSwitches = <js.Node>[];
+  List<js.LabeledStatement> labelledStatements = <js.LabeledStatement>[];
   Set<String> usedNames = new Set<String>();
 
   bool hasExplicitReturns = false;

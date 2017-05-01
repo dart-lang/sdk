@@ -27,7 +27,7 @@ void testAsyncTransform(String source, String expected) {
           null, // The diagnostic helper should not be used in these tests.
           null,
           asyncHelper: new VariableUse("thenHelper"),
-          newCompleter: new VariableUse("Completer"),
+          completerFactory: new VariableUse("NewCompleter"),
           wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
           safeVariableName: (String name) => "__$name",
           bodyName: new StringBackedName("body")));
@@ -39,7 +39,7 @@ void testSyncStarTransform(String source, String expected) {
       expected,
       new SyncStarRewriter(null, null,
           endOfIteration: new VariableUse("endOfIteration"),
-          newIterable: new VariableUse("newIterable"),
+          iterableFactory: new VariableUse("NewIterable"),
           yieldStarExpression: new VariableUse("yieldStar"),
           uncaughtErrorExpression: new VariableUse("uncaughtError"),
           safeVariableName: (String name) => "__$name",
@@ -61,7 +61,7 @@ main() {
 
           /// 01: ok
           r"""function() {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, closures, v0, v1, v2, v3;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, closures, v0, v1, v2, v3;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -104,7 +104,7 @@ function(a) async {
 }""",
       """
 function(a) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __self = this;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, __self = this;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -156,7 +156,7 @@ function(a) {
   }""",
       """
 function(b) {
-  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
+  var __goto = 0, __completer = NewCompleter(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -268,7 +268,7 @@ function(c) async {
 }""",
       """
 function(c) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, __temp1;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, a, b, c, d, e, f, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -327,7 +327,7 @@ function(c) {
   }""",
       """
 function(d2) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, g, h, __temp1;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, a, b, c, d, e, f, g, h, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -466,7 +466,7 @@ function(x, y) async {
 }""",
       """
 function(x, y) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -557,7 +557,7 @@ function(x, y) {
   """,
       """
 function(f) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, a;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -624,7 +624,7 @@ function(g) async {
 """,
       """
 function(g) {
-  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, i, __temp1;
+  var __goto = 0, __completer = NewCompleter(), __returnValue, __handler = 2, __currentError, i, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -711,7 +711,7 @@ function(g) {
   """,
       """
 function(a, h) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, x, __temp1, __temp2;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, x, __temp1, __temp2;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -794,7 +794,7 @@ function(c, i) async {
 """,
       """
 function(c, i) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -906,7 +906,7 @@ function(c, i) {
   """,
       """
 function(x, y, j) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __temp1, __temp2, __temp3;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, __temp1, __temp2, __temp3;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -991,7 +991,7 @@ function(x, y, k) async {
 }""",
       """
 function(x, y, k) {
-  var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __temp1;
+  var __goto = 0, __completer = NewCompleter(), __returnValue, __handler = 2, __currentError, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -1121,7 +1121,7 @@ function(x, y, k) {
   }""",
       """
 function(l) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -1175,7 +1175,7 @@ function(l) {
   }""",
       """
 function(m) {
-  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], exception, __exception;
+  var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, __next = [], exception, __exception;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
@@ -1245,7 +1245,7 @@ function(a) sync* {
 }""",
       """
 function(__a) {
-  return new newIterable(function() {
+  return NewIterable(function() {
     var a = __a;
     var __goto = 0, __handler = 2, __currentError;
     return function body(__errorCode, __result) {
