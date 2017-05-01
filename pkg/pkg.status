@@ -33,11 +33,11 @@ front_end/test/fasta/rasta/*: SkipByDesign
 # way.
 front_end/test/fasta/sdk_test: SkipByDesign
 
-front_end/test/fasta/bootstrap_test: Fail, Slow  # Issue 29511
-front_end/test/fasta/compile_test: Fail, Slow  # Issue 29511
-front_end/test/fasta/kompile_test: Fail, Slow  # Issue 29511
-front_end/test/fasta/strong_test: Fail, Slow  # Issue 29511
-front_end/test/fasta/outline_test: Fail, Slow  # Issue 29511
+front_end/test/fasta/bootstrap_test: Pass, Slow
+front_end/test/fasta/compile_test: Pass, Slow
+front_end/test/fasta/kompile_test: Pass, Slow
+front_end/test/fasta/strong_test: Pass, Slow
+front_end/test/fasta/outline_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
