@@ -6,7 +6,6 @@ library services.completion.contributor.dart.arglist;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -253,6 +252,21 @@ class ArgListContributor extends DartCompletionContributor {
         completion += ': ';
       }
       int selectionOffset = completion.length;
+
+      // Optionally add Flutter child widget details.
+      Element element = parameter.enclosingElement;
+      if (element is ConstructorElement) {
+        if (isFlutterWidget(element.enclosingElement) &&
+            parameter.name == 'children') {
+          String value = getDefaultStringParameterValue(parameter);
+          if (value != null) {
+            completion += value;
+            // children: <Widget>[]
+            selectionOffset = completion.length - 1; // before closing ']'
+          }
+        }
+      }
+
       if (appendComma) {
         completion += ',';
       }
@@ -269,22 +283,6 @@ class ArgListContributor extends DartCompletionContributor {
       if (parameter is FieldFormalParameterElement) {
         _setDocumentation(suggestion, parameter.field?.documentationComment);
         suggestion.element = convertElement(parameter);
-      }
-
-      String defaultValue = _getDefaultValue(parameter, request.ideOptions);
-      if (defaultValue != null) {
-        StringBuffer sb = new StringBuffer();
-        sb.write('${parameter.name}: ');
-        int offset = sb.length;
-        sb.write(defaultValue);
-        if (appendComma) {
-          sb.write(',');
-        }
-        suggestion.defaultArgumentListString = sb.toString();
-        suggestion.defaultArgumentListTextRanges = [
-          offset,
-          defaultValue.length
-        ];
       }
 
       suggestions.add(suggestion);
@@ -314,19 +312,6 @@ class ArgListContributor extends DartCompletionContributor {
     } else if (_isInsertingToArgListWithSynthetic(request)) {
       _addDefaultParamSuggestions(parameters, !_isFollowedByAComma(request));
     }
-  }
-
-  String _getDefaultValue(ParameterElement param, IdeOptions options) {
-    if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
-      Element element = param.enclosingElement;
-      if (element is ConstructorElement) {
-        if (isFlutterWidget(element.enclosingElement) &&
-            param.name == 'children') {
-          return getDefaultStringParameterValue(param);
-        }
-      }
-    }
-    return null;
   }
 
   bool _isFollowedByAComma(DartCompletionRequest request) {
