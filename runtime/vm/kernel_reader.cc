@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "vm/dart_api_impl.h"
+#include "vm/kernel_binary.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -118,24 +119,32 @@ KernelReader::KernelReader(Program* program)
   intptr_t source_file_count = program->source_table().size();
   scripts_ = Array::New(source_file_count, Heap::kOld);
 
-  // Copy the Kernel strings out of the binary and into the VM's heap.  The size
-  // of the string data can be computed from the offset and size of the last
-  // string.  This relies on the strings occurring in order in the program's
-  // string table.
-  List<String>& strings = program->string_table().strings();
-  String* last_string = strings[strings.length() - 1];
-  intptr_t size = last_string->offset() + last_string->size();
-  TypedData& data = TypedData::Handle(
-      Z, TypedData::New(kTypedDataUint8ArrayCid, size, Heap::kOld));
-  ASSERT(program->string_data_offset() >= 0);
   // We need at least one library to get access to the binary.
   ASSERT(program->libraries().length() > 0);
+  Library* library = program->libraries()[0];
+  Reader reader(library->kernel_data(), library->kernel_data_size());
+
+  // Copy the Kernel string offsets out of the binary and into the VM's heap.
+  ASSERT(program->string_table_offset() >= 0);
+  reader.set_offset(program->string_table_offset());
+  intptr_t count = reader.ReadUInt() + 1;
+  TypedData& offsets = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
+  offsets.SetUint32(0, 0);
+  intptr_t end_offset = 0;
+  for (intptr_t i = 1; i < count; ++i) {
+    end_offset = reader.ReadUInt();
+    offsets.SetUint32(i << 2, end_offset);
+  }
+
+  // Copy the string data out of the binary and into the VM's heap.
+  TypedData& data = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint8ArrayCid, end_offset, Heap::kOld));
   {
     NoSafepointScope no_safepoint;
-    memmove(data.DataAddr(0), program->libraries()[0]->kernel_data() +
-                                  program->string_data_offset(),
-            size);
+    memmove(data.DataAddr(0), reader.buffer() + reader.offset(), end_offset);
   }
+  H.SetStringOffsets(offsets);
   H.SetStringData(data);
 }
 
@@ -487,12 +496,12 @@ void KernelReader::ReadProcedure(const dart::Library& library,
           ConstructorInvocation::Cast(annotation);
       CanonicalName* annotation_class = H.EnclosingName(invocation->target());
       ASSERT(H.IsClass(annotation_class));
-      String* class_name = annotation_class->name();
+      intptr_t class_name_index = annotation_class->name();
       // Just compare by name, do not generate the annotation class.
-      if (!H.StringEquals(class_name, "ExternalName")) continue;
+      if (!H.StringEquals(class_name_index, "ExternalName")) continue;
       ASSERT(H.IsLibrary(annotation_class->parent()));
-      String* library_name = annotation_class->parent()->name();
-      if (!H.StringEquals(library_name, "dart:_internal")) continue;
+      intptr_t library_name_index = annotation_class->parent()->name();
+      if (!H.StringEquals(library_name_index, "dart:_internal")) continue;
 
       is_external = false;
       ASSERT(invocation->arguments()->positional().length() == 1 &&
@@ -607,7 +616,7 @@ static RawArray* AsSortedDuplicateFreeArray(
   }
 }
 
-Script& KernelReader::ScriptAt(intptr_t index, String* import_uri) {
+Script& KernelReader::ScriptAt(intptr_t index, intptr_t import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(index);
   if (script.IsNull()) {
@@ -616,14 +625,15 @@ Script& KernelReader::ScriptAt(intptr_t index, String* import_uri) {
     intptr_t uri_size = program_->source_table().UriSizeFor(index);
     dart::String& uri_string = H.DartString(uri_buffer, uri_size, Heap::kOld);
     dart::String& import_uri_string =
-        import_uri == NULL ? uri_string : H.DartString(import_uri, Heap::kOld);
+        import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
     uint8_t* source_buffer = program_->source_table().SourceCodeFor(index);
     intptr_t source_size = program_->source_table().SourceCodeSizeFor(index);
     dart::String& source_code =
         H.DartString(source_buffer, source_size, Heap::kOld);
     script = Script::New(import_uri_string, uri_string, source_code,
                          RawScript::kKernelTag);
-    script.set_kernel_strings(H.string_data());
+    script.set_kernel_string_offsets(H.string_offsets());
+    script.set_kernel_string_data(H.string_data());
     scripts_.SetAt(index, script);
 
     // Create line_starts array for the script.

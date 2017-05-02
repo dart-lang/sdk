@@ -31,7 +31,7 @@ SourceTable::~SourceTable() {
 
 
 CanonicalName::CanonicalName()
-    : parent_(NULL), name_(NULL), is_referenced_(false) {}
+    : parent_(NULL), name_index_(-1), is_referenced_(false) {}
 
 
 CanonicalName::~CanonicalName() {
@@ -46,10 +46,10 @@ CanonicalName* CanonicalName::NewRoot() {
 }
 
 
-CanonicalName* CanonicalName::AddChild(String* name) {
+CanonicalName* CanonicalName::AddChild(intptr_t name_index) {
   CanonicalName* child = new CanonicalName();
   child->parent_ = this;
-  child->name_ = name;
+  child->name_index_ = name_index;
   children_.Add(child);
   return child;
 }
@@ -1231,7 +1231,7 @@ void FunctionType::VisitChildren(Visitor* visitor) {
   VisitList(&type_parameters(), visitor);
   VisitList(&positional_parameters(), visitor);
   for (int i = 0; i < named_parameters().length(); ++i) {
-    named_parameters()[i]->second()->AcceptDartTypeVisitor(visitor);
+    named_parameters()[i]->type()->AcceptDartTypeVisitor(visitor);
   }
   return_type()->AcceptDartTypeVisitor(visitor);
 }

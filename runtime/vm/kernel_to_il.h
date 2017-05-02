@@ -281,10 +281,16 @@ class TranslationHelper {
   Heap::Space allocation_space() { return allocation_space_; }
 
   // Access to strings.
+  const TypedData& string_offsets() { return string_offsets_; }
+  void SetStringOffsets(const TypedData& string_data);
+
   const TypedData& string_data() { return string_data_; }
   void SetStringData(const TypedData& string_data);
-  uint8_t CharacterAt(String* str, intptr_t index);
-  bool StringEquals(String* str, const char* other);
+
+  intptr_t StringOffset(intptr_t string_index) const;
+  intptr_t StringSize(intptr_t string_index) const;
+  uint8_t CharacterAt(intptr_t string_index, intptr_t index);
+  bool StringEquals(intptr_t string_index, const char* other);
 
   // Predicates on CanonicalNames.
   bool IsAdministrative(CanonicalName* name);
@@ -312,10 +318,10 @@ class TranslationHelper {
   }
   const dart::String& DartString(const char* content, Heap::Space space);
 
-  dart::String& DartString(String* content) {
-    return DartString(content, allocation_space_);
+  dart::String& DartString(intptr_t string_index) {
+    return DartString(string_index, allocation_space_);
   }
-  dart::String& DartString(String* content, Heap::Space space);
+  dart::String& DartString(intptr_t string_index, Heap::Space space);
 
   dart::String& DartString(const uint8_t* utf8_array, intptr_t len) {
     return DartString(utf8_array, len, allocation_space_);
@@ -325,7 +331,7 @@ class TranslationHelper {
                            Heap::Space space);
 
   const dart::String& DartSymbol(const char* content) const;
-  dart::String& DartSymbol(String* content) const;
+  dart::String& DartSymbol(intptr_t string_index) const;
   dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
 
   const dart::String& DartClassName(CanonicalName* kernel_class);
@@ -378,15 +384,16 @@ class TranslationHelper {
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
 
-  const dart::String& DartSetterName(CanonicalName* parent, String* setter);
-  const dart::String& DartGetterName(CanonicalName* parent, String* getter);
-  const dart::String& DartMethodName(CanonicalName* parent, String* method);
+  const dart::String& DartSetterName(CanonicalName* parent, intptr_t setter);
+  const dart::String& DartGetterName(CanonicalName* parent, intptr_t getter);
+  const dart::String& DartMethodName(CanonicalName* parent, intptr_t method);
 
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
   Heap::Space allocation_space_;
 
+  TypedData& string_offsets_;
   TypedData& string_data_;
 };
 

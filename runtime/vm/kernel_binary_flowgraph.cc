@@ -93,9 +93,10 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
   }
 }
 
+
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
   int str_index = builder_->ReadUInt();
-  const dart::String& symbol_value = builder_->DartSymbol(str_index);
+  const dart::String& symbol_value = H.DartSymbol(str_index);
 
   const dart::Class& symbol_class =
       dart::Class::ZoneHandle(Z, I->object_store()->symbol_class());
@@ -107,11 +108,13 @@ void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
       symbol_class, TypeArguments::Handle(Z), symbol_constructor, symbol_value);
 }
 
+
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
   int str_index = builder_->ReadUInt();
-  result_ = dart::Double::New(builder_->DartString(str_index), Heap::kOld);
+  result_ = dart::Double::New(H.DartString(str_index), Heap::kOld);
   result_ = H.Canonicalize(result_);
 }
+
 
 RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
     const dart::Class& type_class,
@@ -308,26 +311,6 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
 }
 
 
-intptr_t StreamingFlowGraphBuilder::GetStringOffset(intptr_t index) {
-  if (string_offsets_ == NULL) {
-    intptr_t saved_offset = ReaderOffset();
-    reader_->set_offset(4);  // Skip kMagicProgramFile to the string table.
-    string_offset_count_ = ReadListLength() + 1;
-    string_offsets_ = new intptr_t[string_offset_count_];
-
-    // Build a table of the 0-based string start and end offsets.
-    string_offsets_[0] = 0;
-    for (intptr_t i = 1; i < string_offset_count_; ++i) {
-      string_offsets_[i] = ReadUInt();
-    }
-    // Mark the start of the string data to use for decoding strings.
-    reader_->MarkStringDataOffset();
-    SetOffset(saved_offset);
-  }
-  return string_offsets_[index];
-}
-
-
 CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
   if (index == 0) return NULL;
   --index;
@@ -395,8 +378,7 @@ CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
     }
     ASSERT(parent != NULL);
     intptr_t name_index = ReadUInt();
-    String* name = KernelString(name_index);
-    CanonicalName* canonical_name = parent->AddChild(name);
+    CanonicalName* canonical_name = parent->AddChild(name_index);
     canonical_names_[canonical_names_entries_read_] = canonical_name;
   }
 
@@ -454,29 +436,6 @@ ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
 
 ParsedFunction* StreamingFlowGraphBuilder::parsed_function() {
   return flow_graph_builder_->parsed_function_;
-}
-
-
-dart::String& StreamingFlowGraphBuilder::DartSymbol(intptr_t index) {
-  intptr_t start = GetStringOffset(index);
-  intptr_t end = GetStringOffset(index + 1);
-  return H.DartSymbol(reader_->buffer() + reader_->string_data_offset() + start,
-                      end - start);
-}
-
-
-dart::String& StreamingFlowGraphBuilder::DartString(intptr_t index) {
-  intptr_t start = GetStringOffset(index);
-  intptr_t end = GetStringOffset(index + 1);
-  return H.DartString(reader_->buffer() + reader_->string_data_offset() + start,
-                      end - start);
-}
-
-
-String* StreamingFlowGraphBuilder::KernelString(intptr_t index) {
-  intptr_t start = GetStringOffset(index);
-  intptr_t end = GetStringOffset(index + 1);
-  return new String(start, end - start);
 }
 
 
@@ -603,14 +562,14 @@ Fragment StreamingFlowGraphBuilder::BuildRethrow() {
 
 
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral() {
-  const dart::String& value = DartString(ReadUInt());
+  const dart::String& value = H.DartString(ReadUInt());
   return Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
 
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral() {
   intptr_t str_index = ReadUInt();
-  return Constant(DartSymbol(str_index));
+  return Constant(H.DartSymbol(str_index));
 }
 
 

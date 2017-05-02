@@ -331,7 +331,14 @@ class ReaderHelper {
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : buffer_(buffer), size_(size), offset_(0), string_data_offset_(-1) {}
+      : buffer_(buffer),
+        size_(size),
+        offset_(0),
+        string_table_offset_(-1),
+        string_data_offset_(-1),
+        string_offsets_(NULL) {}
+
+  ~Reader() { delete[] string_offsets_; }
 
   uint32_t ReadUInt32() {
     ASSERT(offset_ + 4 <= size_);
@@ -504,15 +511,25 @@ class Reader {
 
   const uint8_t* buffer() { return buffer_; }
 
+  intptr_t string_table_offset() { return string_table_offset_; }
+  void MarkStringTableOffset() {
+    ASSERT(string_table_offset_ == -1);
+    string_table_offset_ = offset_;
+  }
+
   intptr_t string_data_offset() { return string_data_offset_; }
   void MarkStringDataOffset() {
     ASSERT(string_data_offset_ == -1);
     string_data_offset_ = offset_;
   }
 
-  uint8_t CharacterAt(String* str, intptr_t index) {
-    ASSERT(index < str->size());
-    return buffer_[string_data_offset_ + str->offset() + index];
+  intptr_t StringLength(intptr_t string_index) {
+    return string_offsets_[string_index + 1] - string_offsets_[string_index];
+  }
+
+  uint8_t CharacterAt(intptr_t string_index, intptr_t index) {
+    ASSERT(index < StringLength(string_index));
+    return buffer_[string_data_offset_ + string_offsets_[string_index] + index];
   }
 
  private:
@@ -524,9 +541,17 @@ class Reader {
   TokenPosition min_position_;
   intptr_t current_script_id_;
 
+  // When the binary is deserialized the offset of the start of the string table
+  // (the length) and the offset of the start of the string data are recorded.
+  intptr_t string_table_offset_;
   intptr_t string_data_offset_;
 
+  // The string offsets are decoded to support efficient access to string UTF-8
+  // encodings.
+  intptr_t* string_offsets_;
+
   friend class PositionScope;
+  friend class Program;
 };
 
 

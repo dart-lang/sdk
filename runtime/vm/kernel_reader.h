@@ -67,11 +67,11 @@ class KernelReader {
 
   void ReadLibrary(Library* kernel_library);
 
-  const dart::String& DartSymbol(String* str) {
-    return translation_helper_.DartSymbol(str);
+  const dart::String& DartSymbol(intptr_t string_index) {
+    return translation_helper_.DartSymbol(string_index);
   }
 
-  uint8_t CharacterAt(String* str, intptr_t index);
+  uint8_t CharacterAt(intptr_t string_index, intptr_t index);
 
  private:
   friend class BuildingTranslationHelper;
@@ -92,7 +92,7 @@ class KernelReader {
   // Otherwise return klass.
   const Object& ClassForScriptAt(const dart::Class& klass,
                                  intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index, String* import_uri = NULL);
+  Script& ScriptAt(intptr_t source_uri_index, intptr_t import_uri = -1);
 
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <set>
-#include <string>
 
 #include "vm/kernel_to_il.h"
 
@@ -71,7 +70,8 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function, TreeNode* node)
       name_index_(0),
       needs_expr_temp_(false) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.SetStringData(TypedData::Handle(Z, script.kernel_strings()));
+  H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
+  H.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
 }
 
 
@@ -261,7 +261,7 @@ void ScopeBuilder::AddVariable(VariableDeclaration* declaration) {
   // In case `declaration->IsConst()` the flow graph building will take care of
   // evaluating the constant and setting it via
   // `declaration->SetConstantValue()`.
-  const dart::String& name = declaration->name()->is_empty()
+  const dart::String& name = (H.StringSize(declaration->name()) == 0)
                                  ? GenerateName(":var", name_index_++)
                                  : H.DartSymbol(declaration->name());
   LocalVariable* variable =
@@ -1043,7 +1043,14 @@ TranslationHelper::TranslationHelper(dart::Thread* thread)
       zone_(thread->zone()),
       isolate_(thread->isolate()),
       allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld),
-      string_data_(TypedData::Handle(zone_)) {}
+      string_offsets_(TypedData::Handle(Z)),
+      string_data_(TypedData::Handle(Z)) {}
+
+
+void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
+  ASSERT(string_offsets_.IsNull());
+  string_offsets_ = string_offsets.raw();
+}
 
 
 void TranslationHelper::SetStringData(const TypedData& string_data) {
@@ -1052,29 +1059,42 @@ void TranslationHelper::SetStringData(const TypedData& string_data) {
 }
 
 
-uint8_t TranslationHelper::CharacterAt(String* string, intptr_t index) {
-  ASSERT(index < string->size());
-  return string_data_.GetUint8(string->offset() + index);
+intptr_t TranslationHelper::StringOffset(intptr_t string_index) const {
+  return string_offsets_.GetUint32(string_index << 2);
 }
 
 
-bool TranslationHelper::StringEquals(String* string, const char* other) {
+intptr_t TranslationHelper::StringSize(intptr_t string_index) const {
+  return StringOffset(string_index + 1) - StringOffset(string_index);
+}
+
+
+uint8_t TranslationHelper::CharacterAt(intptr_t string_index, intptr_t index) {
+  ASSERT(index < StringSize(string_index));
+  return string_data_.GetUint8(StringOffset(string_index) + index);
+}
+
+
+bool TranslationHelper::StringEquals(intptr_t string_index, const char* other) {
   NoSafepointScope no_safepoint;
   intptr_t length = strlen(other);
-  return (length == string->size()) &&
-         memcmp(string_data_.DataAddr(string->offset()), other, length) == 0;
+  return (length == StringSize(string_index)) &&
+         (memcmp(string_data_.DataAddr(StringOffset(string_index)), other,
+                 length) == 0);
 }
 
 
 bool TranslationHelper::IsAdministrative(CanonicalName* name) {
   // Administrative names start with '@'.
-  return (name->name()->size() > 0) && (CharacterAt(name->name(), 0) == '@');
+  return (StringSize(name->name()) > 0) &&
+         (CharacterAt(name->name(), 0) == '@');
 }
 
 
 bool TranslationHelper::IsPrivate(CanonicalName* name) {
   // Private names start with '_'.
-  return (name->name()->size() > 0) && (CharacterAt(name->name(), 0) == '_');
+  return (StringSize(name->name()) > 0) &&
+         (CharacterAt(name->name(), 0) == '_');
 }
 
 
@@ -1228,13 +1248,13 @@ const dart::String& TranslationHelper::DartString(const char* content,
 }
 
 
-dart::String& TranslationHelper::DartString(String* content,
+dart::String& TranslationHelper::DartString(intptr_t string_index,
                                             Heap::Space space) {
-  intptr_t length = content->size();
+  intptr_t length = StringSize(string_index);
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
   {
     NoSafepointScope no_safepoint;
-    memmove(buffer, string_data_.DataAddr(content->offset()), length);
+    memmove(buffer, string_data_.DataAddr(StringOffset(string_index)), length);
   }
   return dart::String::ZoneHandle(
       Z, dart::String::FromUTF8(buffer, length, space));
@@ -1254,12 +1274,12 @@ const dart::String& TranslationHelper::DartSymbol(const char* content) const {
 }
 
 
-dart::String& TranslationHelper::DartSymbol(String* content) const {
-  intptr_t length = content->size();
+dart::String& TranslationHelper::DartSymbol(intptr_t string_index) const {
+  intptr_t length = StringSize(string_index);
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
   {
     NoSafepointScope no_safepoint;
-    memmove(buffer, string_data_.DataAddr(content->offset()), length);
+    memmove(buffer, string_data_.DataAddr(StringOffset(string_index)), length);
   }
   return dart::String::ZoneHandle(
       Z, dart::Symbols::FromUTF8(thread_, buffer, length));
@@ -1307,12 +1327,12 @@ const dart::String& TranslationHelper::DartSetterName(CanonicalName* setter) {
 
 
 const dart::String& TranslationHelper::DartSetterName(Name* setter_name) {
-  return DartSetterName(setter_name->library(), setter_name->string());
+  return DartSetterName(setter_name->library(), setter_name->string_index());
 }
 
 
 const dart::String& TranslationHelper::DartSetterName(CanonicalName* parent,
-                                                      String* setter) {
+                                                      intptr_t setter) {
   // The names flowing into [setter] are coming from the Kernel file:
   //   * user-defined setters: `fieldname=`
   //   * property-set expressions:  `fieldname`
@@ -1321,19 +1341,18 @@ const dart::String& TranslationHelper::DartSetterName(CanonicalName* parent,
   //
   // => In order to be consistent, we remove the `=` always and adopt the VM
   //    conventions.
-  ASSERT(setter->size() > 0);
-  intptr_t skip = 0;
-  if (CharacterAt(setter, setter->size() - 1) == '=') {
-    skip = 1;
+  intptr_t size = StringSize(setter);
+  ASSERT(size > 0);
+  if (CharacterAt(setter, size - 1) == '=') {
+    --size;
   }
-  intptr_t length = setter->size() - skip;
-  uint8_t* buffer = Z->Alloc<uint8_t>(length);
+  uint8_t* buffer = Z->Alloc<uint8_t>(size);
   {
     NoSafepointScope no_safepoint;
-    memmove(buffer, string_data_.DataAddr(setter->offset()), length);
+    memmove(buffer, string_data_.DataAddr(StringOffset(setter)), size);
   }
   dart::String& name = dart::String::ZoneHandle(
-      Z, dart::String::FromUTF8(buffer, length, allocation_space_));
+      Z, dart::String::FromUTF8(buffer, size, allocation_space_));
   ManglePrivateName(parent, &name, false);
   name = dart::Field::SetterSymbol(name);
   return name;
@@ -1346,12 +1365,12 @@ const dart::String& TranslationHelper::DartGetterName(CanonicalName* getter) {
 
 
 const dart::String& TranslationHelper::DartGetterName(Name* getter_name) {
-  return DartGetterName(getter_name->library(), getter_name->string());
+  return DartGetterName(getter_name->library(), getter_name->string_index());
 }
 
 
 const dart::String& TranslationHelper::DartGetterName(CanonicalName* parent,
-                                                      String* getter) {
+                                                      intptr_t getter) {
   dart::String& name = DartString(getter);
   ManglePrivateName(parent, &name, false);
   name = dart::Field::GetterSymbol(name);
@@ -1360,7 +1379,7 @@ const dart::String& TranslationHelper::DartGetterName(CanonicalName* parent,
 
 
 const dart::String& TranslationHelper::DartFieldName(Name* kernel_name) {
-  dart::String& name = DartString(kernel_name->string());
+  dart::String& name = DartString(kernel_name->string_index());
   return ManglePrivateName(kernel_name->library(), &name);
 }
 
@@ -1380,12 +1399,12 @@ const dart::String& TranslationHelper::DartMethodName(CanonicalName* method) {
 
 
 const dart::String& TranslationHelper::DartMethodName(Name* method_name) {
-  return DartMethodName(method_name->library(), method_name->string());
+  return DartMethodName(method_name->library(), method_name->string_index());
 }
 
 
 const dart::String& TranslationHelper::DartMethodName(CanonicalName* parent,
-                                                      String* method) {
+                                                      intptr_t method) {
   dart::String& name = DartString(method);
   return ManglePrivateName(parent, &name);
 }
@@ -2057,10 +2076,8 @@ void ConstantEvaluator::VisitNot(Not* node) {
 
 
 void ConstantEvaluator::VisitPropertyGet(PropertyGet* node) {
-  const intptr_t kLengthLen = sizeof("length") - 1;
-
-  String* string = node->name()->string();
-  if ((string->size() == kLengthLen) && H.StringEquals(string, "length")) {
+  intptr_t string_index = node->name()->string_index();
+  if (H.StringEquals(string_index, "length")) {
     node->receiver()->AcceptExpressionVisitor(this);
     if (result_.IsString()) {
       const dart::String& str =
@@ -2187,7 +2204,8 @@ FlowGraphBuilder::FlowGraphBuilder(
       constant_evaluator_(this, zone_, &translation_helper_, &type_translator_),
       streaming_flow_graph_builder_(NULL) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.SetStringData(TypedData::Handle(Z, script.kernel_strings()));
+  H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
+  H.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
 }
 
 
@@ -4682,13 +4700,13 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
     parameter_names.SetAt(pos, H.DartSymbol("noname"));
   }
   for (intptr_t i = 0; i < named_count; i++, pos++) {
-    Tuple<String, DartType>* tuple = node->named_parameters()[i];
-    tuple->second()->AcceptDartTypeVisitor(this);
+    NamedParameter* parameter = node->named_parameters()[i];
+    parameter->type()->AcceptDartTypeVisitor(this);
     if (result_.IsMalformed()) {
       result_ = AbstractType::dynamic_type().raw();
     }
     parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbol(tuple->first()));
+    parameter_names.SetAt(pos, H.DartSymbol(parameter->name()));
   }
 
   Type& signature_type =
@@ -6733,7 +6751,9 @@ RawObject* EvaluateMetadata(const dart::Field& metadata_field) {
 
     TranslationHelper helper(thread);
     Script& script = Script::Handle(Z, metadata_field.Script());
-    helper.SetStringData(TypedData::Handle(Z, script.kernel_strings()));
+    helper.SetStringOffsets(
+        TypedData::Handle(Z, script.kernel_string_offsets()));
+    helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
     DartTypeTranslator type_translator(&helper, NULL, true);
     ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
                                          &helper, &type_translator);

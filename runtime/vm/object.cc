@@ -9098,8 +9098,13 @@ void Script::set_compile_time_constants(const Array& value) const {
 }
 
 
-void Script::set_kernel_strings(const TypedData& strings) const {
-  StorePointer(&raw_ptr()->kernel_strings_, strings.raw());
+void Script::set_kernel_string_offsets(const TypedData& offsets) const {
+  StorePointer(&raw_ptr()->kernel_string_offsets_, offsets.raw());
+}
+
+
+void Script::set_kernel_string_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->kernel_string_data_, data.raw());
 }
 
 

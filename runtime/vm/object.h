@@ -3591,8 +3591,15 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  RawTypedData* kernel_strings() const { return raw_ptr()->kernel_strings_; }
-  void set_kernel_strings(const TypedData& strings) const;
+  RawTypedData* kernel_string_offsets() const {
+    return raw_ptr()->kernel_string_offsets_;
+  }
+  void set_kernel_string_offsets(const TypedData& offsets) const;
+
+  RawTypedData* kernel_string_data() const {
+    return raw_ptr()->kernel_string_data_;
+  }
+  void set_kernel_string_data(const TypedData& data) const;
 
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
