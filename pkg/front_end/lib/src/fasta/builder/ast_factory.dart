@@ -38,6 +38,9 @@ abstract class AstFactory<V> {
   /// Creates a statement block.
   Block block(List<Statement> statements, Token beginToken);
 
+  /// Creates a boolean literal.
+  BoolLiteral boolLiteral(bool value, Token token);
+
   /// Creates a double literal.
   DoubleLiteral doubleLiteral(double value, Token token);
 
@@ -73,6 +76,13 @@ abstract class AstFactory<V> {
 
   /// Creates a read of a static variable.
   StaticGet staticGet(Member readTarget, Token token);
+
+  /// Creates a string concatenation.
+  StringConcatenation stringConcatenation(
+      List<Expression> expressions, Token token);
+
+  /// Creates a string literal.
+  StringLiteral stringLiteral(String value, Token token);
 
   /// Creates a variable declaration statement declaring one variable.
   ///

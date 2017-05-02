@@ -1,0 +1,7 @@
+library test;
+import self as self;
+
+static field dynamic topSimple = "aaa";
+static method main() → dynamic {
+  dynamic localSimple = "ccc";
+}

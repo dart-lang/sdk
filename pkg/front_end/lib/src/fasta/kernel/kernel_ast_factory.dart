@@ -18,6 +18,11 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   }
 
   @override
+  KernelBoolLiteral boolLiteral(bool value, Token token) {
+    return new KernelBoolLiteral(value)..fileOffset = offsetForToken(token);
+  }
+
+  @override
   KernelDoubleLiteral doubleLiteral(double value, Token token) {
     return new KernelDoubleLiteral(value)..fileOffset = offsetForToken(token);
   }
@@ -77,6 +82,18 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   @override
   StaticGet staticGet(Member readTarget, Token token) {
     return new KernelStaticGet(readTarget)..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  StringConcatenation stringConcatenation(
+      List<Expression> expressions, Token token) {
+    return new KernelStringConcatenation(expressions)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  StringLiteral stringLiteral(String value, Token token) {
+    return new KernelStringLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override

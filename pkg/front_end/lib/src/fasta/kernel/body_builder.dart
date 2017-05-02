@@ -962,8 +962,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(new StringLiteral(unescapeString(token.lexeme))
-        ..fileOffset = token.charOffset);
+      String value = unescapeString(token.lexeme);
+      push(astFactory.stringLiteral(value, token));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
@@ -972,14 +972,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       List<Expression> expressions = <Expression>[];
       // Contains more than just \' or \".
       if (first.lexeme.length > 1) {
-        expressions.add(
-            new StringLiteral(unescapeFirstStringPart(first.lexeme, quote)));
+        String value = unescapeFirstStringPart(first.lexeme, quote);
+        expressions.add(astFactory.stringLiteral(value, first));
       }
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
-            expressions.add(new StringLiteral(unescape(part.lexeme, quote)));
+            String value = unescape(part.lexeme, quote);
+            expressions.add(astFactory.stringLiteral(value, part));
           }
         } else {
           expressions.add(toValue(part));
@@ -987,11 +988,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       // Contains more than just \' or \".
       if (last.lexeme.length > 1) {
-        expressions
-            .add(new StringLiteral(unescapeLastStringPart(last.lexeme, quote)));
+        String value = unescapeLastStringPart(last.lexeme, quote);
+        expressions.add(astFactory.stringLiteral(value, last));
       }
-      push(new StringConcatenation(expressions)
-        ..fileOffset = endToken.charOffset);
+      push(astFactory.stringConcatenation(expressions, endToken));
     }
   }
 
@@ -1296,7 +1296,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralBool");
     bool value = optional("true", token);
     assert(value || optional("false", token));
-    push(new BoolLiteral(value)..fileOffset = token.charOffset);
+    push(astFactory.boolLiteral(value, token));
   }
 
   @override

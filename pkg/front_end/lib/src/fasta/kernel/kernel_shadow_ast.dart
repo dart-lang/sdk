@@ -35,6 +35,17 @@ class KernelBlock extends Block implements KernelStatement {
   }
 }
 
+/// Concrete shadow object representing a boolean literal in kernel form.
+class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
+  KernelBoolLiteral(bool value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferBoolLiteral(typeContext, typeNeeded);
+  }
+}
+
 /// Concrete shadow object representing a double literal in kernel form.
 class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
   KernelDoubleLiteral(double value) : super(value);
@@ -222,6 +233,30 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferStaticGet(typeContext, typeNeeded, target.getterType);
+  }
+}
+
+/// Concrete shadow object representing a string concatenation in kernel form.
+class KernelStringConcatenation extends StringConcatenation
+    implements KernelExpression {
+  KernelStringConcatenation(List<Expression> expressions) : super(expressions);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov) Add and use inferStringConcatenation() instead.
+    return inferrer.inferStringLiteral(typeContext, typeNeeded);
+  }
+}
+
+/// Concrete shadow object representing a string literal in kernel form.
+class KernelStringLiteral extends StringLiteral implements KernelExpression {
+  KernelStringLiteral(String value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferStringLiteral(typeContext, typeNeeded);
   }
 }
 

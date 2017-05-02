@@ -78,6 +78,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// initializer.
   E getFieldInitializer(F field);
 
+  /// Performs the core type inference algorithm for boolean literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferBoolLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.boolClass.rawType : null;
+  }
+
   /// Performs the core type inference algorithm for double literals.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -199,6 +207,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   DartType inferStaticGet(
       DartType typeContext, bool typeNeeded, DartType getterType) {
     return typeNeeded ? getterType : null;
+  }
+
+  /// Performs the core type inference algorithm for string literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferStringLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.stringClass.rawType : null;
   }
 
   /// Performs the core type inference algorithm for variable declarations.
