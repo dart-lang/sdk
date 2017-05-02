@@ -22,8 +22,7 @@ import '../parser/parser.dart' show Parser, optional;
 
 import '../scanner/token.dart' show BeginGroupToken, Token;
 
-import '../parser/dart_vm_native.dart'
-    show removeNativeClause, skipNativeClause;
+import '../parser/dart_vm_native.dart' show removeNativeClause;
 
 import '../util/link.dart' show Link;
 
@@ -483,11 +482,8 @@ class DietListener extends StackListener {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token);
-      if (recover != null) {
-        assert(isTargetingDartVm);
-        return recover;
-      }
+      Token recover = library.loader.target.skipNativeClause(token);
+      if (recover != null) return recover;
     }
     return super.handleUnrecoverableError(token, message);
   }
@@ -567,11 +563,6 @@ class DietListener extends StackListener {
       return inputError(uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
-  }
-
-  bool get isTargetingDartVm {
-    // TODO(ahe): Find a more reliable way to check if this is the Dart VM.
-    return !coreTypes.containsLibrary("dart:_js_helper");
   }
 
   @override

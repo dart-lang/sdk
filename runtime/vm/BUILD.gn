@@ -4,6 +4,7 @@
 
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
+import("../../utils/generate_patch_sdk.gni")
 import("gypi_contents.gni")
 import("../runtime_args.gni")
 
@@ -381,7 +382,7 @@ template("concatenate_patch") {
   }
 }
 
-template("generate_patched_sdk") {
+template("generate_vm_patched_sdk") {
   assert(defined(invoker.libraries), "Need libraries in $target_name")
 
   concatenation_target_names = []
@@ -400,51 +401,15 @@ template("generate_patched_sdk") {
 
   # Build the patched sdk out of the concatenated patches and the special
   # libraries.
-  action(target_name) {
+  generate_patched_sdk(target_name) {
+    mode = "vm"
     deps = concatenation_target_names
-    if (!prebuilt_dart_exe_works) {
-      deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
-    }
-
-    patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = "$root_out_dir/patched_sdk"
-
-    script = "../../tools/patch_sdk.py"
-
-    # We list the `patch_sdk.dart` tool here because the [script] (which is
-    # implicitly an input) will call it.
-    inputs = [
-      "../../tools/patch_sdk.dart",
-    ]
-    depfile = "$root_out_dir/patched_sdk.d"
-
-    outputs = [
-      # Instead of listing all outputs we list a single well-known one.
-      "${patched_sdk_dir}/platform.dill",
-    ]
-
-    args = [ "--quiet" ]
-    if (!prebuilt_dart_exe_works) {
-      dart_out_dir = get_label_info("../bin:dart_bootstrap($host_toolchain)",
-                                    "root_out_dir")
-      dart_bootstrap =
-          rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
-      args += [
-        "--dart-executable",
-        dart_bootstrap,
-      ]
-    }
-    args += [
-      "vm",
-      rebase_path("../../sdk"),
-      rebase_path(patches_dir, root_build_dir),
-      rebase_path(patched_sdk_dir, root_build_dir),
-      rebase_path("../../.packages"),
-    ]
+    input_patches_dir = "$target_gen_dir/patches"
+    patched_sdk_dir = "patched_sdk"
   }
 }
 
-generate_patched_sdk("patched_sdk") {
+generate_vm_patched_sdk("patched_sdk") {
   libraries = [
     [
       "async",
