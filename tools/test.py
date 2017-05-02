@@ -14,8 +14,8 @@ import utils
 def Main():
   args = sys.argv[1:]
   tools_dir = os.path.dirname(os.path.realpath(__file__))
-  dart_script_name = 'test.dart'
-  dart_test_script = string.join([tools_dir, dart_script_name], os.sep)
+  dart_test_script = string.join(
+      [tools_dir, 'testing', 'dart', 'main.dart'], os.sep)
   command = [utils.CheckedInSdkExecutable(),
              '--checked', dart_test_script] + args
 

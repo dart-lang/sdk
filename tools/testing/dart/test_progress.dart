@@ -4,7 +4,6 @@
 
 library test_progress;
 
-import "dart:async";
 import "dart:io";
 import "dart:io" as io;
 import "dart:convert" show JSON;
@@ -499,45 +498,6 @@ class SkippedCompilationsPrinter extends EventListener {
       print('\n$_skippedCompilations compilations were skipped because '
           'the previous output was already up to date\n');
     }
-  }
-}
-
-class LeftOverTempDirPrinter extends EventListener {
-  final MIN_NUMBER_OF_TEMP_DIRS = 50;
-
-  static RegExp _getTemporaryDirectoryRegexp() {
-    // These are the patterns of temporary directory names created by
-    // 'Directory.systemTemp.createTemp()' on linux/macos and windows.
-    if (['macos', 'linux'].contains(Platform.operatingSystem)) {
-      return new RegExp(r'^temp_dir1_......$');
-    } else {
-      return new RegExp(r'tempdir-........-....-....-....-............$');
-    }
-  }
-
-  static Stream<FileSystemEntity> getLeftOverTemporaryDirectories() {
-    var regExp = _getTemporaryDirectoryRegexp();
-    return Directory.systemTemp.list().where((FileSystemEntity fse) {
-      if (fse is Directory) {
-        if (regExp.hasMatch(new Path(fse.path).filename)) {
-          return true;
-        }
-      }
-      return false;
-    });
-  }
-
-  void allDone() {
-    getLeftOverTemporaryDirectories().length.then((int count) {
-      if (count > MIN_NUMBER_OF_TEMP_DIRS) {
-        DebugLogger.warning("There are ${count} directories "
-            "in the system tempdir "
-            "('${Directory.systemTemp.path}')! "
-            "Maybe left over directories?\n");
-      }
-    }).catchError((error) {
-      DebugLogger.warning("Could not list temp directories, got: $error");
-    });
   }
 }
 
