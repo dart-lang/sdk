@@ -7,10 +7,6 @@ import("//build/dart/dart_package.gni")
 dart_package("linter") {
   package_name = "linter"
 
-  source_dir = "lib"
-
-  disable_analysis = true
-
   deps = [
     "//dart/pkg/analyzer",
     "//third_party/dart-pkg/pub/yaml",
