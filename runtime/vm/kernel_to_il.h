@@ -869,7 +869,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment LoadContextAt(int depth);
   Fragment AdjustContextTo(int depth);
-  bool HasContextScope() const;
 
   Fragment PushContext(int size);
   Fragment PopContext();
