@@ -200,7 +200,7 @@ element of which may refer to the `Ti`.
 - A type variable `T` in `L` is a subtype match for any type schema `Q`:
   - Under constraint `T <: Q`.
 - A type schema `Q` is a subtype match for a type variable `T` in `L`:
-  - Under constraint `M <: Q`.
+  - Under constraint `Q <: T`.
 - Any two equal types `P` and `Q` are subtype matches under no constraints.
 - Any type `P` is a subtype match for `dynamic`, `Object`, or `void` under no
   constraints.
