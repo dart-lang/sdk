@@ -541,8 +541,8 @@ class JsVariableMirror extends JsMirror implements VariableMirror {
       : _symbol = symbol,
         _name = getName(symbol),
         type = reflectType(t),
-        metadata =
-            new List<InstanceMirror>.unmodifiable(annotations.map(reflect));
+        metadata = new List<InstanceMirror>.unmodifiable(
+            annotations?.map(reflect) ?? []);
 
   JsVariableMirror._fromField(Symbol symbol, fieldInfo)
       : this._(symbol, _wrap(JS('', '#.type', fieldInfo)),

@@ -2958,7 +2958,7 @@ class CodeGenerator extends Object
       args.add(new JS.ArrayInitializer(
           metadata.map(_instantiateAnnotation).toList()));
     }
-    return _callHelper(isFinal ? 'finalFieldType(#)' : 'fieldType(#)', args);
+    return _callHelper(isFinal ? 'finalFieldType(#)' : 'fieldType(#)', [args]);
   }
 
   JS.ArrayInitializer _emitTypeNames(
