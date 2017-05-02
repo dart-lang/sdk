@@ -670,4 +670,4 @@ mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loadin
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
-mirrors/invocation_fuzz_test: Crash #29439
+mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.

@@ -1140,7 +1140,7 @@ class CatchBlock {
 
 
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
-RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(const Function& function);
 
 
 }  // namespace kernel
@@ -1155,7 +1155,7 @@ namespace dart {
 namespace kernel {
 
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
-RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(const Function& function);
 
 }  // namespace kernel
 }  // namespace dart

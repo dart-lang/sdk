@@ -6778,11 +6778,12 @@ RawObject* EvaluateMetadata(const dart::Field& metadata_field) {
 }
 
 
-RawObject* BuildParameterDescriptor(TreeNode* const kernel_node) {
+RawObject* BuildParameterDescriptor(const Function& function) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    TreeNode* kernel_node =
+        reinterpret_cast<TreeNode*>(function.kernel_function());
     FunctionNode* function_node = NULL;
-
     if (kernel_node->IsProcedure()) {
       function_node = Procedure::Cast(kernel_node)->function();
     } else if (kernel_node->IsConstructor()) {
@@ -6796,10 +6797,14 @@ RawObject* BuildParameterDescriptor(TreeNode* const kernel_node) {
 
     Thread* thread = Thread::Current();
     Zone* zone_ = thread->zone();
-    TranslationHelper translation_helper(thread);
-    DartTypeTranslator type_translator(&translation_helper, NULL, true);
+    TranslationHelper helper(thread);
+    Script& script = Script::Handle(Z, function.script());
+    helper.SetStringOffsets(
+        TypedData::Handle(Z, script.kernel_string_offsets()));
+    helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
+    DartTypeTranslator type_translator(&helper, NULL, true);
     ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
-                                         &translation_helper, &type_translator);
+                                         &helper, &type_translator);
 
     const intptr_t positional_count =
         function_node->positional_parameters().length();
