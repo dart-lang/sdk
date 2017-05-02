@@ -12,6 +12,7 @@
     ],
 
     "exclude": [
+      "/pkg/front_end",
       "/third_party/pkg/",
       "/third_party/pkg_tested/"
     ]
