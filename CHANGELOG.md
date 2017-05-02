@@ -14,6 +14,9 @@
   * Added 'RawSynchronousSocket', a basic synchronous socket implementation.
 * `dart:convert`
   * Removed deprecated `ChunkedConverter` class.
+  * JSON maps are now typed as `Map<String, dynamic>` instead of
+    `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
+    anymore (but just a `Map`).
 
 ### Dart VM
 
