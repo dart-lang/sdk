@@ -1223,7 +1223,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # 
 
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Issue 28724
-LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Pass, RuntimeError # Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
