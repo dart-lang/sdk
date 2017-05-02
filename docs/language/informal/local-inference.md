@@ -234,8 +234,8 @@ to `L` under constraints `C0 + ... + Ck`:
     `C`.
 - A type `P<M0, ..., Mk>` is a subtype match for `Q<N0, ..., Nj>` with respect
 to `L` under constraints `C`:
-  - If `R<B0, ..., Bj>` is the superclass of `R<B0, ..., Bj>` and `P<M0, ...,
-Mk>` is a subtype match for `Q<N0, ..., Nj>` with respect to `L` under
+  - If `R<B0, ..., Bj>` is the superclass of `P<M0, ..., Mk>` and `R<B0, ...,
+Bj>` is a subtype match for `Q<N0, ..., Nj>` with respect to `L` under
 constraints `C`.
   - Or `R<B0, ..., Bj>` is one of the interfaces implemented by `P<M0, ..., Mk>` 
 (considered in lexical order) and `R<B0, ..., Bj>` is a subtype match for `Q<N0,
@@ -257,7 +257,7 @@ constraints `C`:
   - If `R0` is a subtype match for a type `R1` with respect to `L` under
   constraints `C`:
   - If `n <= k` and `r <= m`.
-  - And for `i` in `0...r`, `Mi` is a subtype match for `Ni` with respect to `L`
+  - And for `i` in `0...r`, `Ni` is a subtype match for `Mi` with respect to `L`
   under constraints `Ci`.
 - Function types with named parameters are treated analogously to the positional
   parameter case above.
