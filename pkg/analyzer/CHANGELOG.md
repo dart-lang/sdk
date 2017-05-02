@@ -1,3 +1,10 @@
+## 0.29.11
+
+* Driver enableAssertInitializer backport. (#29515)
+* backport token changes (#29519)
+    * update Keyword with new fasta API and consts
+    * add isKeyword accessor to replace TokenType.KEYWORD
+
 ## 0.29.10
 
 * Add getInvocation() to DartObjectImpl.
