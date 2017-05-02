@@ -1,20 +1,22 @@
 This directory contains the hashes of tar.gz files uploaded to cloud storage.
 Hooks in the DEPS files run "download_from_google_storage" to download these
-tarfiles, and unpack them.  These tar files contain a stable Dart SDK, which
+tarfiles, and unpack them. These tar files contain a stable Dart SDK, which
 is used to build the observatory and to run the test scripts.
 
 The hooks use the --auto-platform feature, so that only the SDK for the
-current platform (linux, macos, or windows) is downloaded.  This requires
+current platform (linux, macos, or windows) is downloaded. This requires
 the subdirectories to have the special names "linux", "win", and "mac", which
 the download script is hardcoded to recognize.
 
 The linux SDK has three extra dart executables added to the bin directory.
 'dart-mips', 'dart-arm', and 'dart-arm64' are executables compiled to run on
-mips, arm, and arm64 (aarch64) processors, respectively.
+mips, arm, and arm64 (aarch64) processors, respectively. We are currently
+using the 32-bit ia32 build as the default on linux, windows, and macos.
 
 To upload new versions of these tar files, use the "upload_to_google_storage"
 tool in depot_tools, and download the new stable SDKs from the dartlang.org
-web page.  The mips and arm executables must be copied from the machines that
-build them, and stripped.  There should be no need to update these tar files
-for every new stable version of Dart.
+web page. The mips and arm executables must be copied from the machines that
+build them, and stripped. Because these SDKs are used for the presubmit
+dartfmt check on changed files, they may need to be updated often when
+dartfmt is changing rapidly.
 
