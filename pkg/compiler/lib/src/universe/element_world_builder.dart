@@ -64,10 +64,15 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
               ConstructorElement target = constructor.effectiveTarget;
               ResolutionInterfaceType targetType =
                   constructor.computeEffectiveTargetType(instance.type);
-              Instantiation kind = Instantiation.DIRECTLY_INSTANTIATED;
-              if (target.enclosingClass.isAbstract) {
-                // If target is a factory constructor on an abstract class.
+              ClassElement cls = target.enclosingClass;
+              bool isNative = _nativeBasicData.isNativeClass(cls);
+              Instantiation kind;
+              if (isNative) {
+                kind = Instantiation.ABSTRACTLY_INSTANTIATED;
+              } else if (cls.isAbstract) {
                 kind = Instantiation.UNINSTANTIATED;
+              } else {
+                kind = Instantiation.DIRECTLY_INSTANTIATED;
               }
               infoFor(targetType.element)
                   .addInstantiation(target, targetType, kind);

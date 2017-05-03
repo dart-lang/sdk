@@ -56,6 +56,7 @@ import 'impact_test.dart';
 const SOURCE = const {
   'main.dart': '''
 import 'dart:html';
+import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 class ClassWithSetter {
@@ -86,6 +87,7 @@ main() {
   null is List<int>;
   method1(); // Both top level and instance method named 'method1' are live.
   #main; // Use a const symbol.
+  new Int8List(0);
 }
 '''
 };
