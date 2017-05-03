@@ -743,4 +743,14 @@ abstract class DartTypes {
   /// Returns `true` if [t] might be a subtype of [s] for some values of
   /// type variables in [s] and [t].
   bool isPotentialSubtype(DartType t, DartType s);
+
+  /// Returns [type] as an instance of [cls] or `null` if [type] is not a
+  /// subtype of [cls].
+  ///
+  /// For instance `asInstanceOf(List<String>, Iterable) = Iterable<String>`.
+  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
+
+  /// Returns the supertype of [cls], i.e. the type in the `extends` clause of
+  /// [cls].
+  InterfaceType getSupertype(ClassEntity cls);
 }

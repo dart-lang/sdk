@@ -1183,7 +1183,7 @@ abstract class ElementEnvironment {
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
 
-  /// Returns the declared superclass of [cls].
+  /// Returns the superclass of [cls].
   ///
   /// Unnamed mixin applications are included, for instance for these classes
   ///
@@ -1217,6 +1217,9 @@ abstract class ElementEnvironment {
   /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
+
+  /// Returns `true` if [cls] is generic.
+  bool isGenericClass(ClassEntity cls);
 
   /// The upper bound on the [typeVariable]. If not explicitly declared, this is
   /// `Object`.

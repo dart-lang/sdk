@@ -1093,6 +1093,16 @@ class Types implements DartTypes {
     return new Types(resolution);
   }
 
+  @override
+  InterfaceType asInstanceOf(ResolutionInterfaceType type, ClassEntity cls) {
+    return type.asInstanceOf(cls);
+  }
+
+  @override
+  ResolutionInterfaceType getSupertype(ClassElement cls) {
+    return cls.supertype;
+  }
+
   /// Flatten [type] by recursively removing enclosing `Future` annotations.
   ///
   /// Defined in the language specification as:

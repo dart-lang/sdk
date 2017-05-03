@@ -105,7 +105,8 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
       new MirrorsResolutionAnalysisImpl(backend, _compiler.resolution);
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new RuntimeTypesNeedBuilderImpl();
+    return new ResolutionRuntimeTypesNeedBuilderImpl(
+        elementEnvironment, _compiler.types);
   }
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
@@ -226,6 +227,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   ResolutionInterfaceType getRawType(ClassElement cls) {
     cls.ensureResolved(_resolution);
     return cls.rawType;
+  }
+
+  @override
+  bool isGenericClass(ClassEntity cls) {
+    return getThisType(cls).typeArguments.isNotEmpty;
   }
 
   @override

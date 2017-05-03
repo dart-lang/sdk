@@ -309,7 +309,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       ClassEntity cls = method.enclosingClass;
 
       if (method.name == Identifiers.call &&
-          _elementEnvironment.getThisType(cls).typeArguments.isNotEmpty) {
+          _elementEnvironment.isGenericClass(cls)) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }
@@ -368,7 +368,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (_elementEnvironment.getThisType(cls).typeArguments.isNotEmpty) {
+    if (_elementEnvironment.isGenericClass(cls)) {
       _typeVariableResolutionAnalysis.registerClassWithTypeVariables(cls);
     }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function

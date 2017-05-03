@@ -99,7 +99,8 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
   }
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new RuntimeTypesNeedBuilderImpl();
+    return new RuntimeTypesNeedBuilderImpl(
+        elementEnvironment, elementMap.types);
   }
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
@@ -139,27 +140,6 @@ class KernelWorkItem implements ResolutionWorkItem {
     ResolutionImpact impact = _elementMap.computeWorldImpact(element);
     return _impactTransformer.transformResolutionImpact(impact);
   }
-}
-
-/// Mock implementation of [RuntimeTypesNeedBuilder].
-class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
-  @override
-  void registerClassUsingTypeVariableExpression(ClassEntity cls) {}
-
-  @override
-  RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
-      CommonElements commonElements,
-      BackendUsage backendUsage,
-      {bool enableTypeAssertions}) {
-    throw new UnimplementedError(
-        'RuntimeTypesNeedBuilderImpl.computeRuntimeTypesNeed');
-  }
-
-  @override
-  void registerRtiDependency(ClassEntity element, ClassEntity dependency) {}
 }
 
 /// Mock implementation of [MirrorsDataImpl].

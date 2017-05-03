@@ -424,6 +424,16 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     return env.rawType;
   }
 
+  InterfaceType _asInstanceOf(InterfaceType type, KClass cls) {
+    OrderedTypeSet orderedTypeSet = _getOrderedTypeSet(type.element);
+    InterfaceType supertype =
+        orderedTypeSet.asInstanceOf(cls, _getHierarchyDepth(cls));
+    if (supertype != null) {
+      supertype = _substByContext(supertype, type);
+    }
+    return supertype;
+  }
+
   void _ensureSupertypes(KClass cls, _KClassEnv env) {
     if (env.orderedTypeSet == null) {
       _ensureThisAndRawType(cls, env);
@@ -898,6 +908,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   InterfaceType getRawType(ClassEntity cls) {
     return elementMap._getRawType(cls);
+  }
+
+  @override
+  bool isGenericClass(ClassEntity cls) {
+    return getThisType(cls).typeArguments.isNotEmpty;
   }
 
   @override
