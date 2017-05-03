@@ -474,7 +474,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         bool hasMore = formalBuilders.moveNext();
         assert(hasMore);
         VariableDeclaration realParameter = formalBuilders.current.target;
-        Expression initializer = parameter.initializer ?? new NullLiteral();
+        Expression initializer =
+            parameter.initializer ?? astFactory.nullLiteral(null);
         realParameter.initializer = initializer..parent = realParameter;
       }
     }
@@ -777,13 +778,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new Throw(new ConstructorInvocation(
         constructor,
         new Arguments(<Expression>[
-          new NullLiteral(),
+          astFactory.nullLiteral(null),
           new SymbolLiteral(name),
           new ListLiteral(arguments.positional),
           new MapLiteral(arguments.named.map((arg) {
             return new MapEntry(new SymbolLiteral(arg.name), arg.value);
           }).toList()),
-          new NullLiteral()
+          astFactory.nullLiteral(null)
         ])));
   }
 
@@ -865,7 +866,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           library.uri.path == "_builtin" &&
           member?.name == "_getMainClosure") {
         // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
-        return new NullLiteral()..fileOffset = offsetForToken(token);
+        return astFactory.nullLiteral(token);
       } else {
         return new UnresolvedAccessor(this, n, token);
       }
@@ -1118,7 +1119,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       addCompileTimeError(
           token.charOffset, "const field must have initializer.");
       // Creating a null value to prevent the Dart VM from crashing.
-      push(new NullLiteral()..fileOffset = token.charOffset);
+      push(astFactory.nullLiteral(token));
     } else {
       push(NullValue.FieldInitializer);
     }
@@ -1308,7 +1309,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(new NullLiteral()..fileOffset = token.charOffset);
+    push(astFactory.nullLiteral(token));
   }
 
   @override
