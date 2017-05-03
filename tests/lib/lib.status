@@ -602,8 +602,6 @@ mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_is_const_test/01: MissingCompileTimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
-mirrors/parameter_test/none: Crash # Issue 29425
-mirrors/immutable_collections_test: Crash # Issue 29425
 mirrors/private_class_field_test: RuntimeError
 mirrors/private_symbol_mangling_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
