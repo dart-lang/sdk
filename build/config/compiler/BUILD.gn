@@ -130,17 +130,6 @@ config("compiler") {
     cflags_objcc += extra_flags
   }
 
-  if (is_clang) {
-    # This is here so that all files get recompiled after a clang roll and
-    # when turning clang on or off. (defines are passed via the command line,
-    # and build system rebuild things when their commandline changes). Nothing
-    # should ever read this define.
-    defines +=
-        [ "CR_CLANG_REVISION=" + exec_script("//tools/clang/scripts/update.py",
-                                             [ "--print-revision" ],
-                                             "trim string") ]
-  }
-
   # Mac-specific compiler flags setup.
   # ----------------------------------
   if (is_mac) {
@@ -365,7 +354,8 @@ config("compiler") {
     defines += [ "HAVE_SYS_UIO_H" ]
 
     # Use gold for Android for most CPU architectures.
-    if (current_cpu == "x86" || current_cpu == "x64" || current_cpu == "arm") {
+    if (current_cpu == "x86" || current_cpu == "x64" || current_cpu == "arm" ||
+        current_cpu == "arm64") {
       ldflags += [ "-fuse-ld=gold" ]
       if (is_clang) {
         # Let clang find the ld.gold in the NDK.
@@ -375,10 +365,8 @@ config("compiler") {
     }
 
     ldflags += [
-      # Don't allow visible symbols from libgcc or libc++ to be
-      # re-exported.
-      "-Wl,--exclude-libs=libgcc.a",
-      "-Wl,--exclude-libs=libc++_static.a",
+      # Don't re-export visible symbols from libraries.
+      "-Wl,--exclude-libs,ALL",
     ]
     if (current_cpu == "arm") {
       ldflags += [
@@ -391,9 +379,15 @@ config("compiler") {
       if (current_cpu == "arm") {
         cflags += [ "--target=arm-linux-androideabi" ]
         ldflags += [ "--target=arm-linux-androideabi" ]
+      } else if (current_cpu == "arm64") {
+        cflags += [ "--target=aarch64-linux-android" ]
+        ldflags += [ "--target=aarch64-linux-android" ]
       } else if (current_cpu == "x86") {
-        cflags += [ "--target=x86-linux-androideabi" ]
-        ldflags += [ "--target=x86-linux-androideabi" ]
+        cflags += [ "--target=i686-linux-androideabi" ]
+        ldflags += [ "--target=i686-linux-androideabi" ]
+      } else if (current_cpu == "x64") {
+        cflags += [ "--target=x86_64-linux-androideabi" ]
+        ldflags += [ "--target=x86_64-linux-androideabi" ]
       }
     }
   }
@@ -483,25 +477,19 @@ config("runtime_library") {
     ]
 
     lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
-    libs += [ "$android_libcpp_library" ]
 
-    if (current_cpu == "mipsel") {
-      libs += [
-        # ld linker is used for mips Android, and ld does not accept library
-        # absolute path prefixed by "-l"; Since libgcc does not exist in mips
-        # sysroot the proper library will be linked.
-        # TODO(gordanac): Remove once gold linker is used for mips Android.
-        "gcc",
-      ]
-    } else {
-      libs += [
-        # Manually link the libgcc.a that the cross compiler uses. This is
-        # absolute because the linker will look inside the sysroot if it's not.
-        rebase_path(android_libgcc_file),
-      ]
+    libs += [
+      "$android_libcpp_library",
+      "c++abi",
+      "android_support",
+    ]
+
+    if (current_cpu == "arm") {
+      libs += [ "unwind" ]
     }
 
     libs += [
+      "gcc",
       "c",
       "dl",
       "m",
