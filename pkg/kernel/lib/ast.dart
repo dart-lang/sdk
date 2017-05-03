@@ -938,6 +938,7 @@ class Constructor extends Member {
       {Name name,
       bool isConst: false,
       bool isExternal: false,
+      bool isSyntheticDefault: false,
       List<Initializer> initializers,
       int transformerFlags: 0,
       Reference reference})
@@ -947,14 +948,20 @@ class Constructor extends Member {
     setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
+    this.isSyntheticDefault = isSyntheticDefault;
     this.transformerFlags = transformerFlags;
   }
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
+  static const int FlagSyntheticDefault = 1 << 2;
 
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
+
+  /// True if this is a synthetic default constructor inserted in a class that
+  /// does not otherwise declare any constructors.
+  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
@@ -962,6 +969,12 @@ class Constructor extends Member {
 
   void set isExternal(bool value) {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+  }
+
+  void set isSyntheticDefault(bool value) {
+    flags = value
+        ? (flags | FlagSyntheticDefault)
+        : (flags & ~FlagSyntheticDefault);
   }
 
   bool get isInstanceMember => false;

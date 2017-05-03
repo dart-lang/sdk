@@ -526,7 +526,8 @@ class DartLoader implements ReferenceLevelLoader {
         return new ast.Constructor(scope.buildFunctionInterface(constructor),
             name: _nameOfMember(element),
             isConst: constructor.isConst,
-            isExternal: constructor.isExternal)
+            isExternal: constructor.isExternal,
+            isSyntheticDefault: constructor.isSynthetic)
           ..fileOffset = element.nameOffset;
 
       case ElementKind.FIELD:
