@@ -2928,6 +2928,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     DartType type = node.typeExpression;
     assert(!type.isTypedef);
     assert(!type.isDynamic);
+    assert(!type.isVoid);
     if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.

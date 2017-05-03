@@ -363,6 +363,7 @@ class CodegenImpactTransformer {
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
     if (type.isDynamic) return;
+    if (type.isVoid) return;
     type = type.unaliased;
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
