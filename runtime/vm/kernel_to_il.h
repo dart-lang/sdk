@@ -282,34 +282,39 @@ class TranslationHelper {
 
   // Access to strings.
   const TypedData& string_offsets() { return string_offsets_; }
-  void SetStringOffsets(const TypedData& string_data);
+  void SetStringOffsets(const TypedData& string_offsets);
 
   const TypedData& string_data() { return string_data_; }
   void SetStringData(const TypedData& string_data);
+
+  const TypedData& canonical_names() { return canonical_names_; }
+  void SetCanonicalNames(const TypedData& canonical_names);
 
   intptr_t StringOffset(intptr_t string_index) const;
   intptr_t StringSize(intptr_t string_index) const;
   uint8_t CharacterAt(intptr_t string_index, intptr_t index);
   bool StringEquals(intptr_t string_index, const char* other);
 
-  // Predicates on CanonicalNames.
-  bool IsAdministrative(CanonicalName* name);
-  bool IsPrivate(CanonicalName* name);
-  bool IsRoot(CanonicalName* name);
-  bool IsLibrary(CanonicalName* name);
-  bool IsClass(CanonicalName* name);
-  bool IsMember(CanonicalName* name);
-  bool IsField(CanonicalName* name);
-  bool IsConstructor(CanonicalName* name);
-  bool IsProcedure(CanonicalName* name);
-  bool IsMethod(CanonicalName* name);
-  bool IsGetter(CanonicalName* name);
-  bool IsSetter(CanonicalName* name);
-  bool IsFactory(CanonicalName* name);
+  // Accessors and predicates for canonical names.
+  intptr_t CanonicalNameParent(intptr_t name);
+  intptr_t CanonicalNameString(intptr_t name);
+  bool IsAdministrative(intptr_t name);
+  bool IsPrivate(intptr_t name);
+  bool IsRoot(intptr_t name);
+  bool IsLibrary(intptr_t name);
+  bool IsClass(intptr_t name);
+  bool IsMember(intptr_t name);
+  bool IsField(intptr_t name);
+  bool IsConstructor(intptr_t name);
+  bool IsProcedure(intptr_t name);
+  bool IsMethod(intptr_t name);
+  bool IsGetter(intptr_t name);
+  bool IsSetter(intptr_t name);
+  bool IsFactory(intptr_t name);
 
   // For a member (field, constructor, or procedure) return the canonical name
   // of the enclosing class or library.
-  CanonicalName* EnclosingName(CanonicalName* name);
+  intptr_t EnclosingName(intptr_t name);
 
   RawInstance* Canonicalize(const Instance& instance);
 
@@ -334,41 +339,41 @@ class TranslationHelper {
   dart::String& DartSymbol(intptr_t string_index) const;
   dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
 
-  const dart::String& DartClassName(CanonicalName* kernel_class);
+  const dart::String& DartClassName(intptr_t kernel_class);
 
-  const dart::String& DartConstructorName(CanonicalName* constructor);
+  const dart::String& DartConstructorName(intptr_t constructor);
 
-  const dart::String& DartProcedureName(CanonicalName* procedure);
+  const dart::String& DartProcedureName(intptr_t procedure);
 
-  const dart::String& DartSetterName(CanonicalName* setter);
+  const dart::String& DartSetterName(intptr_t setter);
   const dart::String& DartSetterName(Name* setter_name);
 
-  const dart::String& DartGetterName(CanonicalName* getter);
+  const dart::String& DartGetterName(intptr_t getter);
   const dart::String& DartGetterName(Name* getter_name);
 
   const dart::String& DartFieldName(Name* kernel_name);
 
   const dart::String& DartInitializerName(Name* kernel_name);
 
-  const dart::String& DartMethodName(CanonicalName* method);
+  const dart::String& DartMethodName(intptr_t method);
   const dart::String& DartMethodName(Name* method_name);
 
-  const dart::String& DartFactoryName(CanonicalName* factory);
+  const dart::String& DartFactoryName(intptr_t factory);
 
   const Array& ArgumentNames(List<NamedExpression>* named);
 
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
-  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(intptr_t library);
+  virtual RawClass* LookupClassByKernelClass(intptr_t klass);
 
-  RawField* LookupFieldByKernelField(CanonicalName* field);
-  RawFunction* LookupStaticMethodByKernelProcedure(CanonicalName* procedure);
-  RawFunction* LookupConstructorByKernelConstructor(CanonicalName* constructor);
+  RawField* LookupFieldByKernelField(intptr_t field);
+  RawFunction* LookupStaticMethodByKernelProcedure(intptr_t procedure);
+  RawFunction* LookupConstructorByKernelConstructor(intptr_t constructor);
   dart::RawFunction* LookupConstructorByKernelConstructor(
       const dart::Class& owner,
-      CanonicalName* constructor);
+      intptr_t constructor);
 
   dart::Type& GetCanonicalType(const dart::Class& klass);
 
@@ -380,13 +385,13 @@ class TranslationHelper {
   // if asked.  The result will be available in [name_to_modify] and it is also
   // returned.  If the name is private, the canonical name [parent] will be used
   // to get the import URI of the library where the name is visible.
-  dart::String& ManglePrivateName(CanonicalName* parent,
+  dart::String& ManglePrivateName(intptr_t parent,
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
 
-  const dart::String& DartSetterName(CanonicalName* parent, intptr_t setter);
-  const dart::String& DartGetterName(CanonicalName* parent, intptr_t getter);
-  const dart::String& DartMethodName(CanonicalName* parent, intptr_t method);
+  const dart::String& DartSetterName(intptr_t parent, intptr_t setter);
+  const dart::String& DartGetterName(intptr_t parent, intptr_t getter);
+  const dart::String& DartMethodName(intptr_t parent, intptr_t method);
 
   Thread* thread_;
   Zone* zone_;
@@ -395,6 +400,7 @@ class TranslationHelper {
 
   TypedData& string_offsets_;
   TypedData& string_data_;
+  TypedData& canonical_names_;
 };
 
 // Regarding malformed types:
@@ -859,8 +865,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment TranslateInitializers(Class* kernel_class,
                                  List<Initializer>* initialiers);
-  Fragment TranslateFieldInitializer(CanonicalName* canonical_name,
-                                     Expression* init);
+  Fragment TranslateFieldInitializer(intptr_t canonical_name, Expression* init);
 
   Fragment TranslateStatement(Statement* statement);
   Fragment TranslateCondition(Expression* expression, bool* negate);
@@ -990,7 +995,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
 
-  dart::RawFunction* LookupMethodByMember(CanonicalName* target,
+  dart::RawFunction* LookupMethodByMember(intptr_t target,
                                           const dart::String& method_name);
 
   LocalVariable* MakeTemporary();

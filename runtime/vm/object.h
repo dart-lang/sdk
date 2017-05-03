@@ -3601,6 +3601,11 @@ class Script : public Object {
   }
   void set_kernel_string_data(const TypedData& data) const;
 
+  RawTypedData* kernel_canonical_names() const {
+    return raw_ptr()->kernel_canonical_names_;
+  }
+  void set_kernel_canonical_names(const TypedData& names) const;
+
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
     return raw_ptr()->tokens_;

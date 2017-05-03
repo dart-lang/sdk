@@ -60,27 +60,17 @@ class StreamingFlowGraphBuilder {
       : flow_graph_builder_(flow_graph_builder),
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
-        reader_(new kernel::Reader(buffer, buffer_length)),
+        reader_(new Reader(buffer, buffer_length)),
         constant_evaluator_(this,
                             flow_graph_builder->zone_,
                             &flow_graph_builder->translation_helper_,
-                            &flow_graph_builder->type_translator_),
-        canonical_names_(NULL),
-        canonical_names_size_(-1),
-        canonical_names_entries_read_(0),
-        canonical_names_next_offset_(-1) {}
+                            &flow_graph_builder->type_translator_) {}
 
-  virtual ~StreamingFlowGraphBuilder() {
-    delete reader_;
-    // The canonical names themselves are not (yet) deallocated.
-    delete[] canonical_names_;
-  }
+  virtual ~StreamingFlowGraphBuilder() {}
 
   Fragment BuildAt(intptr_t kernel_offset);
 
  private:
-  CanonicalName* GetCanonicalName(intptr_t index);
-
   intptr_t ReaderOffset();
   void SetOffset(intptr_t offset);
   void SkipBytes(intptr_t skip);
@@ -121,13 +111,8 @@ class StreamingFlowGraphBuilder {
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
   Zone* zone_;
-  kernel::Reader* reader_;
+  Reader* reader_;
   StreamingConstantEvaluator constant_evaluator_;
-
-  CanonicalName** canonical_names_;
-  intptr_t canonical_names_size_;
-  intptr_t canonical_names_entries_read_;
-  intptr_t canonical_names_next_offset_;
 
   friend class StreamingConstantEvaluator;
 };

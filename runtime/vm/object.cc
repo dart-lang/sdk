@@ -9108,6 +9108,11 @@ void Script::set_kernel_string_data(const TypedData& data) const {
 }
 
 
+void Script::set_kernel_canonical_names(const TypedData& names) const {
+  StorePointer(&raw_ptr()->kernel_canonical_names_, names.raw());
+}
+
+
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =

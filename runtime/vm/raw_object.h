@@ -1028,6 +1028,7 @@ class RawScript : public RawObject {
   RawArray* yield_positions_;
   RawTypedData* kernel_string_offsets_;
   RawTypedData* kernel_string_data_;
+  RawTypedData* kernel_canonical_names_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }

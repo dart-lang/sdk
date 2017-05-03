@@ -26,6 +26,13 @@ namespace dart {
 namespace kernel {
 
 
+Reader::~Reader() {
+  delete[] string_offsets_;
+  delete[] canonical_name_parents_;
+  delete[] canonical_name_strings_;
+}
+
+
 template <typename T>
 template <typename IT>
 void List<T>::ReadFrom(Reader* reader, TreeNode* parent) {
@@ -170,7 +177,7 @@ Library* Library::ReadFrom(Reader* reader) {
 
   canonical_name_ = reader->ReadCanonicalNameReference();
   name_index_ = reader->ReadUInt();
-  import_uri_index_ = canonical_name_->name();
+  import_uri_index_ = reader->CanonicalNameString(canonical_name_);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
@@ -263,48 +270,32 @@ MixinClass* MixinClass::ReadFrom(Reader* reader) {
 }
 
 
-CanonicalName* Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
+intptr_t Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
-
-  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
-  if (canonical_name == NULL && !allow_null) {
+  intptr_t canonical_name = reader->ReadCanonicalNameReference();
+  if ((canonical_name == -1) && !allow_null) {
     FATAL("Expected a valid member reference, but got `null`");
   }
-
-  if (canonical_name != NULL) {
-    canonical_name->set_referenced(true);
-  }
-
   return canonical_name;
 }
 
 
-CanonicalName* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
+intptr_t Reference::ReadClassFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
-
-  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
-  if (canonical_name == NULL && !allow_null) {
+  intptr_t canonical_name = reader->ReadCanonicalNameReference();
+  if ((canonical_name == -1) && !allow_null) {
     FATAL("Expected a valid class reference, but got `null`");
   }
-
-  if (canonical_name != NULL) {
-    canonical_name->set_referenced(true);
-  }
-
   return canonical_name;
 }
 
 
-CanonicalName* Reference::ReadTypedefFrom(Reader* reader) {
+intptr_t Reference::ReadTypedefFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-
-  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
-  if (canonical_name == NULL) {
+  intptr_t canonical_name = reader->ReadCanonicalNameReference();
+  if (canonical_name == -1) {
     FATAL("Expected a valid typedef reference, but got `null`");
   }
-
-  canonical_name->set_referenced(true);
-
   return canonical_name;
 }
 
@@ -1372,7 +1363,7 @@ Name* Name::ReadFrom(Reader* reader) {
   intptr_t name_index = reader->ReadUInt();
   if ((reader->StringLength(name_index) >= 1) &&
       (reader->CharacterAt(name_index, 0) == '_')) {
-    CanonicalName* library_reference = reader->ReadCanonicalNameReference();
+    intptr_t library_reference = reader->ReadCanonicalNameReference();
     return new Name(name_index, library_reference);
   } else {
     return new Name(name_index, NULL);
@@ -1432,7 +1423,7 @@ VoidType* VoidType::ReadFrom(Reader* reader) {
 
 InterfaceType* InterfaceType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  CanonicalName* klass_name = Reference::ReadClassFrom(reader);
+  intptr_t klass_name = Reference::ReadClassFrom(reader);
   InterfaceType* type = new InterfaceType(klass_name);
   type->type_arguments().ReadFromStatic<DartType>(reader);
   return type;
@@ -1442,7 +1433,7 @@ InterfaceType* InterfaceType::ReadFrom(Reader* reader) {
 InterfaceType* InterfaceType::ReadFrom(Reader* reader,
                                        bool _without_type_arguments_) {
   TRACE_READ_OFFSET();
-  CanonicalName* klass_name = Reference::ReadClassFrom(reader);
+  intptr_t klass_name = Reference::ReadClassFrom(reader);
   InterfaceType* type = new InterfaceType(klass_name);
   ASSERT(_without_type_arguments_);
   return type;
@@ -1451,7 +1442,7 @@ InterfaceType* InterfaceType::ReadFrom(Reader* reader,
 
 TypedefType* TypedefType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  CanonicalName* typedef_name = Reference::ReadTypedefFrom(reader);
+  intptr_t typedef_name = Reference::ReadTypedefFrom(reader);
   TypedefType* type = new TypedefType(typedef_name);
   type->type_arguments().ReadFromStatic<DartType>(reader);
   return type;
@@ -1504,41 +1495,36 @@ Program* Program::ReadFrom(Reader* reader) {
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
 
   Program* program = new Program();
-  program->canonical_name_root_ = CanonicalName::NewRoot();
   reader->helper()->set_program(program);
 
-  // Skip the table of string end offsets.
-  reader->MarkStringTableOffset();
-  intptr_t length = reader->ReadUInt();
-  reader->string_offsets_ = new intptr_t[length + 1];
+  // Deserialize the string offset table to give fast access to the string data
+  // during deserialization.
+  program->string_table_offset_ = reader->offset();
+  intptr_t string_count = reader->ReadUInt();
+  reader->string_offsets_ = new intptr_t[string_count + 1];
   intptr_t offset = 0;
-  for (intptr_t i = 0; i < length; ++i) {
+  for (intptr_t i = 0; i < string_count; ++i) {
     reader->string_offsets_[i] = offset;
     offset = reader->ReadUInt();
   }
-  reader->string_offsets_[length] = offset;
+  reader->string_offsets_[string_count] = offset;
   // Skip the UTF-8 encoded strings.
   reader->MarkStringDataOffset();
   reader->Consume(offset);
 
-  program->string_table_offset_ = reader->string_table_offset();
-  ASSERT(program->string_table_offset_ >= 0);
   program->source_table_.ReadFrom(reader);
 
-  int canonical_names = reader->ReadUInt();
-  reader->helper()->SetCanonicalNameCount(canonical_names);
-  for (int i = 0; i < canonical_names; ++i) {
-    int biased_parent_index = reader->ReadUInt();
-    CanonicalName* parent;
-    if (biased_parent_index != 0) {
-      parent = reader->helper()->GetCanonicalName(biased_parent_index - 1);
-    } else {
-      parent = program->canonical_name_root();
-    }
-    ASSERT(parent != NULL);
-    intptr_t name_index = reader->ReadUInt();
-    CanonicalName* canonical_name = parent->AddChild(name_index);
-    reader->helper()->SetCanonicalName(i, canonical_name);
+  // Deserialize the canonical name table to give fast access to canonical names
+  // during deserialization.
+  program->name_table_offset_ = reader->offset();
+  intptr_t name_count = reader->ReadUInt();
+  reader->canonical_name_parents_ = new intptr_t[name_count];
+  reader->canonical_name_strings_ = new intptr_t[name_count];
+  for (int i = 0; i < name_count; ++i) {
+    // The parent name index is biased: 0 is the root name and otherwise N+1 is
+    // the Nth name.
+    reader->canonical_name_parents_[i] = reader->ReadUInt() - 1;
+    reader->canonical_name_strings_[i] = reader->ReadUInt();
   }
 
   int libraries = reader->ReadUInt();

@@ -30,31 +30,6 @@ SourceTable::~SourceTable() {
 }
 
 
-CanonicalName::CanonicalName()
-    : parent_(NULL), name_index_(-1), is_referenced_(false) {}
-
-
-CanonicalName::~CanonicalName() {
-  for (intptr_t i = 0; i < children_.length(); ++i) {
-    delete children_[i];
-  }
-}
-
-
-CanonicalName* CanonicalName::NewRoot() {
-  return new CanonicalName();
-}
-
-
-CanonicalName* CanonicalName::AddChild(intptr_t name_index) {
-  CanonicalName* child = new CanonicalName();
-  child->parent_ = this;
-  child->name_index_ = name_index;
-  children_.Add(child);
-  return child;
-}
-
-
 Node::~Node() {}
 
 

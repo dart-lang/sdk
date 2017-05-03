@@ -23,18 +23,18 @@ class BuildingTranslationHelper : public TranslationHelper {
       : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
-  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(intptr_t library);
+  virtual RawClass* LookupClassByKernelClass(intptr_t klass);
 
  private:
   KernelReader* reader_;
 };
 
-template <typename KernelType, typename VmType>
+template <typename VmType>
 class Mapping {
  public:
-  bool Lookup(KernelType* node, VmType** handle) {
-    typename MapType::Pair* pair = map_.LookupPair(node);
+  bool Lookup(intptr_t canonical_name, VmType** handle) {
+    typename MapType::Pair* pair = map_.LookupPair(canonical_name);
     if (pair != NULL) {
       *handle = pair->value;
       return true;
@@ -42,10 +42,12 @@ class Mapping {
     return false;
   }
 
-  void Insert(KernelType* node, VmType* object) { map_.Insert(node, object); }
+  void Insert(intptr_t canonical_name, VmType* object) {
+    map_.Insert(canonical_name, object);
+  }
 
  private:
-  typedef MallocMap<KernelType, VmType*> MapType;
+  typedef IntMap<VmType*> MapType;
   MapType map_;
 };
 
@@ -101,8 +103,8 @@ class KernelReader {
   void SetupFieldAccessorFunction(const dart::Class& klass,
                                   const dart::Function& function);
 
-  dart::Library& LookupLibrary(CanonicalName* library);
-  dart::Class& LookupClass(CanonicalName* klass);
+  dart::Library& LookupLibrary(intptr_t library);
+  dart::Class& LookupClass(intptr_t klass);
 
   dart::RawFunction::Kind GetFunctionType(Procedure* kernel_procedure);
 
@@ -116,8 +118,8 @@ class KernelReader {
   BuildingTranslationHelper translation_helper_;
   DartTypeTranslator type_translator_;
 
-  Mapping<CanonicalName, dart::Library> libraries_;
-  Mapping<CanonicalName, dart::Class> classes_;
+  Mapping<dart::Library> libraries_;
+  Mapping<dart::Class> classes_;
 
   GrowableArray<const dart::Function*> functions_;
   GrowableArray<const dart::Field*> fields_;
