@@ -800,9 +800,9 @@ class _KClassEnv {
     }
   }
 
-  Iterable<ConstantExpression> getMetadata(KernelToElementMap worldBuilder) {
+  Iterable<ConstantExpression> getMetadata(KernelToElementMap elementMap) {
     if (_metadata == null) {
-      _metadata = worldBuilder.getMetadata(cls.annotations);
+      _metadata = elementMap.getMetadata(cls.annotations);
     }
     return _metadata;
   }
@@ -810,11 +810,16 @@ class _KClassEnv {
 
 class _MemberData {
   final ir.Member node;
+  Iterable<ConstantExpression> _metadata;
 
   _MemberData(this.node);
 
   ResolutionImpact getWorldImpact(KernelToElementMap elementMap) {
     return buildKernelImpact(node, elementMap);
+  }
+
+  Iterable<ConstantExpression> getMetadata(KernelToElementMap elementMap) {
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 }
 
@@ -1039,6 +1044,16 @@ class KernelElementEnvironment implements ElementEnvironment {
   bool isDeferredLoadLibraryGetter(KMember member) {
     // TODO(johnniwinther): Support these.
     return false;
+  }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(KMember member) {
+    List<ConstantValue> values = <ConstantValue>[];
+    _MemberData memberData = elementMap._memberList[member.memberIndex];
+    for (ConstantExpression constant in memberData.getMetadata(elementMap)) {
+      values.add(elementMap.constantEnvironment.getConstantValue(constant));
+    }
+    return values;
   }
 }
 

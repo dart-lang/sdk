@@ -10,8 +10,8 @@ import '../common/backend_api.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
-import '../constants/values.dart';
 import '../compiler.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
@@ -424,6 +424,22 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   ResolutionDartType getUnaliasedType(ResolutionDartType type) {
     type.computeUnaliased(_resolution);
     return type.unaliased;
+  }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(MemberElement element) {
+    List<ConstantValue> values = <ConstantValue>[];
+    _compiler.reporter.withCurrentElement(element, () {
+      for (MetadataAnnotation metadata in element.implementation.metadata) {
+        metadata.ensureResolved(_compiler.resolution);
+        assert(invariant(metadata, metadata.constant != null,
+            message: "Unevaluated metadata constant."));
+        ConstantValue value =
+            _compiler.constants.getConstantValue(metadata.constant);
+        values.add(value);
+      }
+    });
+    return values;
   }
 }
 

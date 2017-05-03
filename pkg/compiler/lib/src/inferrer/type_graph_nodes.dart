@@ -464,7 +464,7 @@ class MemberTypeInformation extends ElementTypeInformation
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (element.isField &&
         (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(element) ||
-            inferrer.annotations.assumeDynamic(element))) {
+            inferrer.assumeDynamic(element))) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
 
@@ -521,7 +521,7 @@ class MemberTypeInformation extends ElementTypeInformation
     Compiler compiler = inferrer.compiler;
     if (!compiler.options.trustTypeAnnotations &&
         !compiler.options.enableTypeAssertions &&
-        !inferrer.annotations.trustTypeAnnotations(element)) {
+        !inferrer.trustTypeAnnotations(element)) {
       return mask;
     }
     if (element.isGenerativeConstructor || element.isSetter) {
@@ -618,7 +618,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
             element.functionDeclaration) ||
-        inferrer.annotations.assumeDynamic(declaration)) {
+        inferrer.assumeDynamic(declaration)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
       giveUp(inferrer);
@@ -667,7 +667,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
     if (!compiler.options.trustTypeAnnotations &&
-        !inferrer.annotations.trustTypeAnnotations(declaration)) {
+        !inferrer.trustTypeAnnotations(declaration)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always

@@ -6,11 +6,12 @@
 library dart2js.type_system;
 
 import 'common/names.dart' show Identifiers, Uris;
-import 'js_backend/constant_system_javascript.dart';
+import 'constants/values.dart';
 import 'elements/types.dart';
 import 'elements/elements.dart' show PublicName;
 import 'elements/entities.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/constant_system_javascript.dart';
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
@@ -1247,4 +1248,7 @@ abstract class ElementEnvironment {
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.
   bool isDeferredLoadLibraryGetter(MemberEntity member);
+
+  /// Returns the metadata constants declared on [member].
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member);
 }
