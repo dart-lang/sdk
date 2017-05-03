@@ -524,6 +524,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   __ Comment("InlineInstanceof");
+  if (type.IsVoidType()) {
+    // A non-null value is returned from a void function, which will result in a
+    // type error. A null value is handled prior to executing this inline code.
+    return SubtypeTestCache::null();
+  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
     // A class equality check is only applicable with a dst type (not a
@@ -566,7 +571,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            const AbstractType& type,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
-  ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
+  ASSERT(!type.IsObjectType() && !type.IsDynamicType());
   const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
   __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
@@ -645,8 +650,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
-         (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-          !dst_type.IsVoidType()));
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
   __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
   // A null object is always assignable and is returned as result.

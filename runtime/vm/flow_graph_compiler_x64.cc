@@ -533,6 +533,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   __ Comment("InlineInstanceof");
+  if (type.IsVoidType()) {
+    // A non-null value is returned from a void function, which will result in a
+    // type error. A null value is handled prior to executing this inline code.
+    return SubtypeTestCache::null();
+  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
     // A class equality check is only applicable with a dst type (not a
@@ -575,7 +580,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            const AbstractType& type,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
-  ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
+  ASSERT(!type.IsObjectType() && !type.IsDynamicType());
 
   __ pushq(RDX);  // Store instantiator type arguments.
   __ pushq(RCX);  // Store function type arguments.
@@ -584,8 +589,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
-    // A null object is only an instance of Null, Object, void and dynamic.
-    // Object void and dynamic have already been checked above (if the type is
+    // A null object is only an instance of Null, Object, and dynamic.
+    // Object and dynamic have already been checked above (if the type is
     // instantiated). So we can return false here if the instance is null,
     // unless the type is Null (and if the type is instantiated).
     // We can only inline this null check if the type is instantiated at compile
@@ -654,8 +659,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
-         (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-          !dst_type.IsVoidType()));
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   __ pushq(RDX);  // Store instantiator type arguments.
   __ pushq(RCX);  // Store function type arguments.
   // A null object is always assignable and is returned as result.
