@@ -14,6 +14,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -635,8 +636,11 @@ class FixProcessor {
         sb.append(', ');
       }
 
-      // In the future consider better values than null for specific element types.
-      sb.append('$paramName: null');
+      List<ParameterElement> parameters = targetElement.parameters;
+      ParameterElement element =
+          parameters.firstWhere((p) => p.name == paramName, orElse: () => null);
+      String defaultValue = getDefaultStringParameterValue(element);
+      sb.append('$paramName: $defaultValue'); // TODO(pq): add trailing comma
 
       _insertBuilder(sb, null);
       _addFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, [paramName]);
