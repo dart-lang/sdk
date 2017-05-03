@@ -107,6 +107,7 @@ enum Tag {
 
   kTypedefType = 87,
   kVectorType = 88,
+  kBottomType = 89,
   kInvalidType = 90,
   kDynamicType = 91,
   kVoidType = 92,

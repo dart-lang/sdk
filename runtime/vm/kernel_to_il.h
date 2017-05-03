@@ -451,6 +451,8 @@ class DartTypeTranslator : public DartTypeVisitor {
 
   virtual void VisitVoidType(VoidType* node);
 
+  virtual void VisitBottomType(BottomType* node);
+
   // Will return `TypeArguments::null()` in case any of the arguments are
   // malformed.
   const TypeArguments& TranslateInstantiatedTypeArguments(

@@ -4843,6 +4843,12 @@ void DartTypeTranslator::VisitVoidType(VoidType* node) {
 }
 
 
+void DartTypeTranslator::VisitBottomType(BottomType* node) {
+  result_ =
+      dart::Class::Handle(Z, I->object_store()->null_class()).CanonicalType();
+}
+
+
 const TypeArguments& DartTypeTranslator::TranslateTypeArguments(
     DartType** dart_types,
     intptr_t length) {

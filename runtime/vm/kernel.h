@@ -19,6 +19,7 @@
   M(InvalidType)                                                               \
   M(DynamicType)                                                               \
   M(VoidType)                                                                  \
+  M(BottomType)                                                                \
   M(InterfaceType)                                                             \
   M(FunctionType)                                                              \
   M(TypeParameterType)                                                         \
@@ -2681,6 +2682,24 @@ class VoidType : public DartType {
 };
 
 
+class BottomType : public DartType {
+ public:
+  static BottomType* ReadFrom(Reader* reader);
+
+  virtual ~BottomType();
+
+  DEFINE_CASTING_OPERATIONS(BottomType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+ private:
+  BottomType() {}
+
+  DISALLOW_COPY_AND_ASSIGN(BottomType);
+};
+
+
 class InterfaceType : public DartType {
  public:
   static InterfaceType* ReadFrom(Reader* reader);
@@ -3133,6 +3152,7 @@ class DartTypeVisitor {
     VisitDefaultDartType(node);
   }
   virtual void VisitVoidType(VoidType* node) { VisitDefaultDartType(node); }
+  virtual void VisitBottomType(BottomType* node) { VisitDefaultDartType(node); }
   virtual void VisitInterfaceType(InterfaceType* node) {
     VisitDefaultDartType(node);
   }

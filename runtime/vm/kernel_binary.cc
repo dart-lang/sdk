@@ -1381,6 +1381,8 @@ DartType* DartType::ReadFrom(Reader* reader) {
       return DynamicType::ReadFrom(reader);
     case kVoidType:
       return VoidType::ReadFrom(reader);
+    case kBottomType:
+      return BottomType::ReadFrom(reader);
     case kInterfaceType:
       return InterfaceType::ReadFrom(reader);
     case kSimpleInterfaceType:
@@ -1418,6 +1420,12 @@ DynamicType* DynamicType::ReadFrom(Reader* reader) {
 VoidType* VoidType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   return new VoidType();
+}
+
+
+BottomType* BottomType::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+  return new BottomType();
 }
 
 

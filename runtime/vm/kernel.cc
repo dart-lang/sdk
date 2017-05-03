@@ -1168,6 +1168,17 @@ void VoidType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
 void VoidType::VisitChildren(Visitor* visitor) {}
 
 
+BottomType::~BottomType() {}
+
+
+void BottomType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
+  visitor->VisitBottomType(this);
+}
+
+
+void BottomType::VisitChildren(Visitor* visitor) {}
+
+
 InterfaceType::~InterfaceType() {}
 
 
