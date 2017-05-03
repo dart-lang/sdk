@@ -138,27 +138,32 @@ class CommonElements {
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
-  LibraryEntity get internalLibrary =>
-      _internalLibrary ??= _env.lookupLibrary(Uris.dart__internal);
+  LibraryEntity get internalLibrary => _internalLibrary ??=
+      _env.lookupLibrary(Uris.dart__internal, required: true);
 
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity _typedDataClass;
   ClassEntity get typedDataClass =>
       _typedDataClass ??= _findClass(typedDataLibrary, 'NativeTypedData');
 
-  /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
-  /// is resolved and lookup the constructor on demand.
-  ConstructorEntity _symbolConstructor;
-  ConstructorEntity get symbolConstructor =>
-      // TODO(johnniwinther): Kernel does not include redirecting factories
-      // so this cannot be found in kernel. Find a consistent way to handle
-      // this and similar cases.
-      _symbolConstructor ??= _findConstructor(symbolClass, '', required: false);
+  /// Constructor of the `Symbol` class in dart:internal. This getter will
+  /// ensure that `Symbol` is resolved and lookup the constructor on demand.
+  ConstructorEntity _symbolConstructorTarget;
+  ConstructorEntity get symbolConstructorTarget {
+    // TODO(johnniwinther): Kernel does not include redirecting factories
+    // so this cannot be found in kernel. Find a consistent way to handle
+    // this and similar cases.
+    return _symbolConstructorTarget ??=
+        _findConstructor(symbolImplementationClass, '');
+  }
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
   // TODO(johnniwinther): Change type of [e] to [MemberEntity].
-  bool isSymbolConstructor(Entity e) => e == symbolConstructor;
+  bool isSymbolConstructor(Entity e) {
+    return e == symbolConstructorTarget ||
+        e == _findConstructor(symbolClass, '', required: false);
+  }
 
   /// The `MirrorSystem` class in dart:mirrors.
   ClassEntity _mirrorSystemClass;

@@ -85,6 +85,7 @@ main() {
   new Class2().method3();
   null is List<int>;
   method1(); // Both top level and instance method named 'method1' are live.
+  #main; // Use a const symbol.
 }
 '''
 };

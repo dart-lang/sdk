@@ -360,7 +360,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     ClassElement cls = library.implementation.findLocal(name);
     if (cls == null && required) {
       throw new SpannableAssertionFailure(
-          cls,
+          library,
           "The library '${library.libraryName}' does not "
           "contain required class: '$name'.");
     }
@@ -389,7 +389,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     }
     if (library == null && required) {
       throw new SpannableAssertionFailure(
-          library, "The library '${uri}' was not found.");
+          NO_LOCATION_SPANNABLE, "The library '${uri}' was not found.");
     }
     return library;
   }

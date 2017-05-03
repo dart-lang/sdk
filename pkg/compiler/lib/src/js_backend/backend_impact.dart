@@ -202,7 +202,7 @@ class BackendImpacts {
     return _throwNoSuchMethod ??= new BackendImpact(
         instantiatedClasses: _options.useKernel
             ? [
-                _commonElements.symbolClass,
+                _commonElements.symbolImplementationClass,
               ]
             : [],
         staticUses: _options.useKernel
@@ -215,7 +215,7 @@ class BackendImpacts {
                 _commonElements.unresolvedTopLevelMethodError,
                 _commonElements.unresolvedTopLevelGetterError,
                 _commonElements.unresolvedTopLevelSetterError,
-                _commonElements.symbolConstructor,
+                _commonElements.symbolConstructorTarget,
               ]
             : [
                 _commonElements.throwNoSuchMethod,
@@ -335,8 +335,8 @@ class BackendImpacts {
 
   BackendImpact get constSymbol {
     return _constSymbol ??= new BackendImpact(
-        instantiatedClasses: [_commonElements.symbolClass],
-        staticUses: [_commonElements.symbolConstructor]);
+        instantiatedClasses: [_commonElements.symbolImplementationClass],
+        staticUses: [_commonElements.symbolConstructorTarget]);
   }
 
   /// Helper for registering that `int` is needed.
