@@ -60,11 +60,11 @@ int _intPow(int base, int exponent) {
 @patch
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
-double sin(num x) => _sin(x.toDouble());
+double sin(num radians) => _sin(radians.toDouble());
 @patch
-double cos(num x) => _cos(x.toDouble());
+double cos(num radians) => _cos(radians.toDouble());
 @patch
-double tan(num x) => _tan(x.toDouble());
+double tan(num radians) => _tan(radians.toDouble());
 @patch
 double acos(num x) => _acos(x.toDouble());
 @patch
