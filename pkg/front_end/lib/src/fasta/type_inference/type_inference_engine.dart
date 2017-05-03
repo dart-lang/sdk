@@ -176,7 +176,7 @@ abstract class TypeInferenceEngineImpl<F> extends TypeInferenceEngine<F> {
   @override
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
-    this.classHierarchy = classHierarchy;
+    this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
