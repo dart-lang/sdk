@@ -12,14 +12,14 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 
 /// Returns the given error's severity.
-ProcessedSeverity _severityIdentity(AnalysisError error) =>
-    new ProcessedSeverity(error.errorCode.errorSeverity);
+ErrorSeverity _severityIdentity(AnalysisError error) =>
+    error.errorCode.errorSeverity;
 
 String _pluralize(String word, int count) => count == 1 ? word : word + "s";
 
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
-typedef ProcessedSeverity SeverityProcessor(AnalysisError error);
+typedef ErrorSeverity SeverityProcessor(AnalysisError error);
 
 /// Analysis statistics counter.
 class AnalysisStats {
@@ -107,7 +107,7 @@ abstract class ErrorFormatter {
   /// Compute the severity for this [error] or `null` if this error should be
   /// filtered.
   ErrorSeverity _computeSeverity(AnalysisError error) =>
-      _severityProcessor(error)?.severity;
+      _severityProcessor(error);
 
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     stats.unfilteredCount += errorInfos.length;
@@ -153,24 +153,12 @@ class MachineErrorFormatter extends ErrorFormatter {
     LineInfo_Location location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
 
-    ProcessedSeverity processedSeverity = _severityProcessor(error);
-    ErrorSeverity severity = processedSeverity.severity;
-
-    if (!processedSeverity.overridden) {
-      if (severity == ErrorSeverity.WARNING && options.warningsAreFatal) {
-        severity = ErrorSeverity.ERROR;
-      }
-    }
+    ErrorSeverity severity = _severityProcessor(error);
 
     if (severity == ErrorSeverity.ERROR) {
       stats.errorCount++;
     } else if (severity == ErrorSeverity.WARNING) {
-      // Only treat a warning as an error if it's not been set by a processor.
-      if (!processedSeverity.overridden && options.warningsAreFatal) {
-        stats.errorCount++;
-      } else {
-        stats.warnCount++;
-      }
+      stats.warnCount++;
     } else if (error.errorCode.type == ErrorType.HINT) {
       stats.hintCount++;
     } else if (error.errorCode.type == ErrorType.LINT) {
@@ -233,8 +221,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     Source source = error.source;
     LineInfo_Location location = errorToLine[error].getLocation(error.offset);
 
-    ProcessedSeverity processedSeverity = _severityProcessor(error);
-    ErrorSeverity severity = processedSeverity.severity;
+    ErrorSeverity severity = _severityProcessor(error);
 
     // Get display name; translate INFOs into LINTS and HINTS.
     String errorType = severity.displayName;
@@ -380,13 +367,6 @@ class CLIError implements Comparable<CLIError> {
     // offset
     return this.offset - other.offset;
   }
-}
-
-/// A severity with awareness of whether it was overridden by a processor.
-class ProcessedSeverity {
-  final ErrorSeverity severity;
-  final bool overridden;
-  ProcessedSeverity(this.severity, [this.overridden = false]);
 }
 
 /// Given an absolute path, return a relative path if the file is contained in

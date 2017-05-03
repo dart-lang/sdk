@@ -249,10 +249,10 @@ class BuildMode {
       for (Source source in explicitSources) {
         AnalysisErrorInfo errorInfo = context.getErrors(source);
         for (AnalysisError error in errorInfo.errors) {
-          ProcessedSeverity processedSeverity = determineProcessedSeverity(
+          ErrorSeverity processedSeverity = determineProcessedSeverity(
               error, options, context.analysisOptions);
           if (processedSeverity != null) {
-            maxSeverity = maxSeverity.max(processedSeverity.severity);
+            maxSeverity = maxSeverity.max(processedSeverity);
           }
         }
       }
