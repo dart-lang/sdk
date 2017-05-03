@@ -1438,7 +1438,8 @@ R runZoned<R>(R body(),
     errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error,
         StackTrace stackTrace) {
       try {
-        if (onError is ZoneBinaryCallback<R, Object, StackTrace>) {
+        // TODO(floitsch): the return type should be 'void'.
+        if (onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
           return self.parent.runBinary(onError, error, stackTrace);
         }
         return self.parent.runUnary(onError, error);
