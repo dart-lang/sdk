@@ -534,7 +534,7 @@ class MinimalPlugin extends ServerPlugin {
 
   @override
   AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
-          Map<String, Object> parameters) =>
+          AnalysisHandleWatchEventsParams parameters) =>
     new AnalysisHandleWatchEventsResult();
 
   @override
