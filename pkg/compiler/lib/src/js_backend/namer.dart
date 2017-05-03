@@ -1892,7 +1892,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitInterceptor(InterceptorConstantValue constant, [_]) {
-    addRoot(constant.cls.name);
+    // The class name for mixin applications contain '+' signs (issue 28196).
+    addRoot(constant.cls.name.replaceAll('+', '_'));
     add('methods');
   }
 
