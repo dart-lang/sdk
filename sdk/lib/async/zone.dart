@@ -536,7 +536,7 @@ abstract class Zone {
   /**
    * Intercepts errors when added programatically to a `Future` or `Stream`.
    *
-   * When calling [Completer.completeError], [Stream.addError],
+   * When calling [Completer.completeError], [StreamController.addError],
    * or some [Future] constructors, the current zone is allowed to intercept
    * and replace the error.
    *

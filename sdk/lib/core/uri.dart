@@ -283,7 +283,7 @@ abstract class Uri {
    * that name is looked up using [Encoding.getByName],
    * and if the lookup returns an encoding, that encoding is used to convert
    * [content] to bytes.
-   * If providing both an [encoding] and a charset [parameter], they should
+   * If providing both an [encoding] and a charset in [parameters], they should
    * agree, otherwise decoding won't be able to use the charset parameter
    * to determine the encoding.
    *

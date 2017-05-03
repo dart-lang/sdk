@@ -329,7 +329,7 @@ abstract class WebSocket
    * WebSocket client can automatically perform the handshake using
    * [WebSocket.connect], while a server can do so using
    * [WebSocketTransformer.upgrade]. To manually upgrade an [HttpRequest],
-   * [HttpRequest.detachSocket] may be called.
+   * [HttpResponse.detachSocket] may be called.
    *
    * [protocol] should be the protocol negotiated by this handshake, if any.
    *

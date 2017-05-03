@@ -34,7 +34,8 @@ class JsonUnsupportedObjectError extends Error {
 /**
  * Reports that an object could not be stringified due to cyclic references.
  *
- * An object that references itself cannot be serialized by [stringify].
+ * An object that references itself cannot be serialized by
+ * [JsonCodec.encode]/[JsonEncoder.convert].
  * When the cycle is detected, a [JsonCyclicError] is thrown.
  */
 class JsonCyclicError extends JsonUnsupportedObjectError {

@@ -526,8 +526,8 @@ class Isolate {
   /**
    * Stops listening for uncaught errors from the isolate.
    *
-   * Requests for the isolate to not send uncaught errors on [responsePort].
-   * If the isolate isn't expecting to send uncaught errors on [responsePort],
+   * Requests for the isolate to not send uncaught errors on [port].
+   * If the isolate isn't expecting to send uncaught errors on [port],
    * because the port hasn't been added using [addErrorListener],
    * or because it has already been removed, the request is ignored.
    *

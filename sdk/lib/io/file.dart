@@ -160,8 +160,8 @@ enum FileLock {
  *     }
  *
  * You can also write to a file using a [Stream]. Open the file with
- * [openWrite], which returns a stream to which you can write data.
- * Be sure to close the file with the [close] method.
+ * [openWrite], which returns an [IOSink] to which you can write data.
+ * Be sure to close the sink with the [IOSink.close] method.
  *
  *     import 'dart:io';
  *
@@ -343,14 +343,14 @@ abstract class File implements FileSystemEntity {
   /**
    * Modifies the time the file was last accessed.
    *
-   * Throws a [FilsSystemException] if the time cannot be set.
+   * Throws a [FileSystemException] if the time cannot be set.
    */
   Future setLastAccessed(DateTime time);
 
   /**
    * Synchronously modifies the time the file was last accessed.
    *
-   * Throws a [FilsSystemException] if the time cannot be set.
+   * Throws a [FileSystemException] if the time cannot be set.
    */
   void setLastAccessedSync(DateTime time);
 
@@ -378,7 +378,7 @@ abstract class File implements FileSystemEntity {
   /**
    * Modifies the time the file was last modified.
    *
-   * Throws a [FilsSystemException] if the time cannot be set.
+   * Throws a [FileSystemException] if the time cannot be set.
    */
   Future setLastModified(DateTime time);
 

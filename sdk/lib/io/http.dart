@@ -275,7 +275,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * If [requestClientCertificate] is true, the server will
    * request clients to authenticate with a client certificate.
    * The server will advertise the names of trusted issuers of client
-   * certificates, getting them from [context], where they have been
+   * certificates, getting them from a [SecurityContext], where they have been
    * set using [SecurityContext.setClientAuthorities].
    *
    * The optional argument [shared] specifies whether additional HttpServer
@@ -1240,7 +1240,7 @@ abstract class HttpResponse implements IOSink {
  *
  * To add a custom trusted certificate authority, or to send a client
  * certificate to servers that request one, pass a [SecurityContext] object
- * as the optional [context] argument to the `HttpClient` constructor.
+ * as the optional `context` argument to the `HttpClient` constructor.
  * The desired security options can be set on the [SecurityContext] object.
  *
  * ## Headers
@@ -1365,7 +1365,7 @@ abstract class HttpClient {
    * [url].
    *
    * The `Host` header for the request will be set to the value
-   * [host]:[port]. This can be overridden through the
+   * [Uri.host]:[Uri.port] from [url]. This can be overridden through the
    * [HttpClientRequest] interface before the request is sent.  NOTE
    * if [host] is an IP address this will still be set in the `Host`
    * header.
@@ -1650,12 +1650,12 @@ abstract class HttpClient {
       bool callback(X509Certificate cert, String host, int port));
 
   /**
-   * Shut down the HTTP client. If [force] is [:false:] (the default)
-   * the [:HttpClient:] will be kept alive until all active
-   * connections are done. If [force] is [:true:] any active
+   * Shut down the HTTP client. If [force] is `false` (the default)
+   * the [HttpClient] will be kept alive until all active
+   * connections are done. If [force] is `true` any active
    * connections will be closed to immediately release all
-   * resources. These closed connections will receive an [:onError:]
-   * callback to indicate that the client was shut down. In both cases
+   * resources. These closed connections will receive an error
+   * event to indicate that the client was shut down. In both cases
    * trying to establish a new connection after calling [close]
    * will throw an exception.
    */
@@ -1722,8 +1722,8 @@ abstract class HttpClientRequest implements IOSink {
 
   /**
    * Set this property to the maximum number of redirects to follow
-   * when [followRedirects] is [:true:]. If this number is exceeded the
-   * [onError] callback will be called with a [RedirectException].
+   * when [followRedirects] is `true`. If this number is exceeded
+   * an error event will be added with a [RedirectException].
    *
    * The default value is 5.
    */
@@ -1871,7 +1871,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    * If [followLoops] is set to [:true:], redirect will follow the redirect,
    * even if the URL was already visited. The default value is [:false:].
    *
-   * [redirect] will ignore [maxRedirects] and will always perform the redirect.
+   * The method will ignore [HttpClientRequest.maxRedirects]
+   * and will always perform the redirect.
    */
   Future<HttpClientResponse> redirect(
       [String method, Uri url, bool followLoops]);

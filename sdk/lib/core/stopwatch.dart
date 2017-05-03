@@ -112,7 +112,7 @@ class Stopwatch {
   }
 
   /**
-   * Whether the [StopWatch] is currently running.
+   * Whether the [Stopwatch] is currently running.
    */
   bool get isRunning => _stop == null;
 
