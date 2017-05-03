@@ -494,7 +494,7 @@ class Reader {
 
   // A canonical name reference of -1 indicates none (for optional names), not
   // the root name as in the canonical name table.
-  intptr_t ReadCanonicalNameReference() { return ReadUInt() - 1; }
+  NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
   intptr_t offset() { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
@@ -508,24 +508,24 @@ class Reader {
     string_data_offset_ = offset_;
   }
 
-  intptr_t StringLength(intptr_t string_index) {
-    return string_offsets_[string_index + 1] - string_offsets_[string_index];
+  intptr_t StringLength(StringIndex index) {
+    return string_offsets_[index + 1] - string_offsets_[index];
   }
 
-  uint8_t CharacterAt(intptr_t string_index, intptr_t index) {
+  uint8_t CharacterAt(StringIndex string_index, intptr_t index) {
     ASSERT(index < StringLength(string_index));
     return buffer_[string_data_offset_ + string_offsets_[string_index] + index];
   }
 
   // The canonical name index of a canonical name's parent (-1 indicates that
   // the parent is the root name).
-  intptr_t CanonicalNameParent(intptr_t name_index) {
-    return canonical_name_parents_[name_index];
+  NameIndex CanonicalNameParent(NameIndex index) {
+    return canonical_name_parents_[index];
   }
 
   // The string index of a canonical name's name string.
-  intptr_t CanonicalNameString(intptr_t name_index) {
-    return canonical_name_strings_[name_index];
+  StringIndex CanonicalNameString(NameIndex index) {
+    return canonical_name_strings_[index];
   }
 
  private:
@@ -546,8 +546,8 @@ class Reader {
   intptr_t* string_offsets_;
 
   // The canonical names are decoded.
-  intptr_t* canonical_name_parents_;
-  intptr_t* canonical_name_strings_;
+  NameIndex* canonical_name_parents_;
+  StringIndex* canonical_name_strings_;
 
   friend class PositionScope;
   friend class Program;

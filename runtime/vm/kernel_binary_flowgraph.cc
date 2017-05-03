@@ -60,7 +60,7 @@ Instance& StreamingConstantEvaluator::EvaluateExpression() {
 
 void StreamingConstantEvaluator::EvaluateStaticGet() {
   builder_->ReadPosition();
-  intptr_t target = builder_->ReadUInt() - 1;
+  NameIndex target = builder_->ReadCanonicalNameReference();
 
   if (H.IsField(target)) {
     const dart::Field& field =
@@ -94,7 +94,7 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
-  int str_index = builder_->ReadUInt();
+  StringIndex str_index(builder_->ReadUInt());
   const dart::String& symbol_value = H.DartSymbol(str_index);
 
   const dart::Class& symbol_class =
@@ -109,7 +109,7 @@ void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
 
 
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
-  int str_index = builder_->ReadUInt();
+  StringIndex str_index(builder_->ReadUInt());
   result_ = dart::Double::New(H.DartString(str_index), Heap::kOld);
   result_ = H.Canonicalize(result_);
 }
@@ -335,6 +335,11 @@ intptr_t StreamingFlowGraphBuilder::ReadListLength() {
 }
 
 
+NameIndex StreamingFlowGraphBuilder::ReadCanonicalNameReference() {
+  return reader_->ReadCanonicalNameReference();
+}
+
+
 TokenPosition StreamingFlowGraphBuilder::ReadPosition(bool record) {
   return reader_->ReadPosition(record);
 }
@@ -419,7 +424,7 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression() {
 Fragment StreamingFlowGraphBuilder::BuildStaticGet() {
   intptr_t saved_offset = ReaderOffset() - 1;  // Include the tag.
   TokenPosition position = ReadPosition();
-  intptr_t target = ReadUInt() - 1;
+  NameIndex target = ReadCanonicalNameReference();
 
   if (H.IsField(target)) {
     const dart::Field& field =
@@ -482,13 +487,13 @@ Fragment StreamingFlowGraphBuilder::BuildRethrow() {
 
 
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral() {
-  const dart::String& value = H.DartString(ReadUInt());
+  const dart::String& value = H.DartString(StringIndex(ReadUInt()));
   return Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
 
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral() {
-  intptr_t str_index = ReadUInt();
+  StringIndex str_index(ReadUInt());
   return Constant(H.DartSymbol(str_index));
 }
 

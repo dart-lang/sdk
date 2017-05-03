@@ -23,8 +23,8 @@ class BuildingTranslationHelper : public TranslationHelper {
       : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual RawLibrary* LookupLibraryByKernelLibrary(intptr_t library);
-  virtual RawClass* LookupClassByKernelClass(intptr_t klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
+  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
 
  private:
   KernelReader* reader_;
@@ -69,11 +69,11 @@ class KernelReader {
 
   void ReadLibrary(Library* kernel_library);
 
-  const dart::String& DartSymbol(intptr_t string_index) {
-    return translation_helper_.DartSymbol(string_index);
+  const dart::String& DartSymbol(StringIndex index) {
+    return translation_helper_.DartSymbol(index);
   }
 
-  uint8_t CharacterAt(intptr_t string_index, intptr_t index);
+  uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
  private:
   friend class BuildingTranslationHelper;
@@ -94,7 +94,8 @@ class KernelReader {
   // Otherwise return klass.
   const Object& ClassForScriptAt(const dart::Class& klass,
                                  intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index, intptr_t import_uri = -1);
+  Script& ScriptAt(intptr_t source_uri_index,
+                   StringIndex import_uri = StringIndex());
 
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,
@@ -103,8 +104,8 @@ class KernelReader {
   void SetupFieldAccessorFunction(const dart::Class& klass,
                                   const dart::Function& function);
 
-  dart::Library& LookupLibrary(intptr_t library);
-  dart::Class& LookupClass(intptr_t klass);
+  dart::Library& LookupLibrary(NameIndex library);
+  dart::Class& LookupClass(NameIndex klass);
 
   dart::RawFunction::Kind GetFunctionType(Procedure* kernel_procedure);
 

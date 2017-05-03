@@ -95,12 +95,12 @@ RawArray* KernelReader::MakeFunctionsArray() {
 
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
-    intptr_t library) {
+    NameIndex library) {
   return reader_->LookupLibrary(library).raw();
 }
 
 
-RawClass* BuildingTranslationHelper::LookupClassByKernelClass(intptr_t klass) {
+RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return reader_->LookupClass(klass).raw();
 }
 
@@ -182,7 +182,7 @@ Object& KernelReader::ReadProgram() {
 
       // If there is no main method then we have compiled a partial Kernel file
       // and do not need to patch here.
-      intptr_t main = program_->main_method();
+      NameIndex main = program_->main_method();
       if (main == -1) {
         return dart::Library::Handle(Z);
       }
@@ -195,7 +195,7 @@ Object& KernelReader::ReadProgram() {
         return dart::Library::Handle(Z);
       }
 
-      intptr_t main_library = H.EnclosingName(main);
+      NameIndex main_library = H.EnclosingName(main);
       dart::Library& library = LookupLibrary(main_library);
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
@@ -216,7 +216,7 @@ Object& KernelReader::ReadProgram() {
         // TODO(kmillikin): we are leaking the function body.  Find a way to
         // deallocate it.
         procedure->function()->set_body(
-            new ReturnStatement(new StaticGet(NULL)));
+            new ReturnStatement(new StaticGet(NameIndex())));
       }
       return library;
     }
@@ -505,13 +505,13 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       if (!annotation->IsConstructorInvocation()) continue;
       ConstructorInvocation* invocation =
           ConstructorInvocation::Cast(annotation);
-      intptr_t annotation_class = H.EnclosingName(invocation->target());
+      NameIndex annotation_class = H.EnclosingName(invocation->target());
       ASSERT(H.IsClass(annotation_class));
-      intptr_t class_name_index = H.CanonicalNameString(annotation_class);
+      StringIndex class_name_index = H.CanonicalNameString(annotation_class);
       // Just compare by name, do not generate the annotation class.
       if (!H.StringEquals(class_name_index, "ExternalName")) continue;
       ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
-      intptr_t library_name_index =
+      StringIndex library_name_index =
           H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
       if (!H.StringEquals(library_name_index, "dart:_internal")) continue;
 
@@ -628,7 +628,7 @@ static RawArray* AsSortedDuplicateFreeArray(
   }
 }
 
-Script& KernelReader::ScriptAt(intptr_t index, intptr_t import_uri) {
+Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(index);
   if (script.IsNull()) {
@@ -860,7 +860,7 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
 }
 
 
-dart::Library& KernelReader::LookupLibrary(intptr_t library) {
+dart::Library& KernelReader::LookupLibrary(NameIndex library) {
   dart::Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
     const dart::String& url = H.DartSymbol(H.CanonicalNameString(library));
@@ -877,7 +877,7 @@ dart::Library& KernelReader::LookupLibrary(intptr_t library) {
 }
 
 
-dart::Class& KernelReader::LookupClass(intptr_t klass) {
+dart::Class& KernelReader::LookupClass(NameIndex klass) {
   dart::Class* handle = NULL;
   if (!classes_.Lookup(klass, &handle)) {
     dart::Library& library = LookupLibrary(H.CanonicalNameParent(klass));

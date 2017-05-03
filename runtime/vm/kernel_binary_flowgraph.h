@@ -76,6 +76,7 @@ class StreamingFlowGraphBuilder {
   void SkipBytes(intptr_t skip);
   uint32_t ReadUInt();
   intptr_t ReadListLength();
+  NameIndex ReadCanonicalNameReference();
   TokenPosition ReadPosition(bool record = true);
   Tag ReadTag(uint8_t* payload = NULL);
 

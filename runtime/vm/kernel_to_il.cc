@@ -1067,23 +1067,25 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 }
 
 
-intptr_t TranslationHelper::StringOffset(intptr_t string_index) const {
-  return string_offsets_.GetUint32(string_index << 2);
+intptr_t TranslationHelper::StringOffset(StringIndex index) const {
+  return string_offsets_.GetUint32(index << 2);
 }
 
 
-intptr_t TranslationHelper::StringSize(intptr_t string_index) const {
-  return StringOffset(string_index + 1) - StringOffset(string_index);
+intptr_t TranslationHelper::StringSize(StringIndex index) const {
+  return StringOffset(StringIndex(index + 1)) - StringOffset(index);
 }
 
 
-uint8_t TranslationHelper::CharacterAt(intptr_t string_index, intptr_t index) {
+uint8_t TranslationHelper::CharacterAt(StringIndex string_index,
+                                       intptr_t index) {
   ASSERT(index < StringSize(string_index));
   return string_data_.GetUint8(StringOffset(string_index) + index);
 }
 
 
-bool TranslationHelper::StringEquals(intptr_t string_index, const char* other) {
+bool TranslationHelper::StringEquals(StringIndex string_index,
+                                     const char* other) {
   NoSafepointScope no_safepoint;
   intptr_t length = strlen(other);
   return (length == StringSize(string_index)) &&
@@ -1092,45 +1094,46 @@ bool TranslationHelper::StringEquals(intptr_t string_index, const char* other) {
 }
 
 
-intptr_t TranslationHelper::CanonicalNameParent(intptr_t name) {
+NameIndex TranslationHelper::CanonicalNameParent(NameIndex name) {
   // Canonical names are pairs of 4-byte parent and string indexes, so the size
   // of an entry is 8 bytes.  The parent is biased: 0 represents the root name
   // and N+1 represents the name with index N.
-  return static_cast<intptr_t>(canonical_names_.GetUint32(8 * name)) - 1;
+  return NameIndex(static_cast<intptr_t>(canonical_names_.GetUint32(8 * name)) -
+                   1);
 }
 
 
-intptr_t TranslationHelper::CanonicalNameString(intptr_t name) {
-  return canonical_names_.GetUint32((8 * name) + 4);
+StringIndex TranslationHelper::CanonicalNameString(NameIndex name) {
+  return StringIndex(canonical_names_.GetUint32((8 * name) + 4));
 }
 
 
-bool TranslationHelper::IsAdministrative(intptr_t name) {
+bool TranslationHelper::IsAdministrative(NameIndex name) {
   // Administrative names start with '@'.
-  intptr_t name_string = CanonicalNameString(name);
+  StringIndex name_string = CanonicalNameString(name);
   return (StringSize(name_string) > 0) && (CharacterAt(name_string, 0) == '@');
 }
 
 
-bool TranslationHelper::IsPrivate(intptr_t name) {
+bool TranslationHelper::IsPrivate(NameIndex name) {
   // Private names start with '_'.
-  intptr_t name_string = CanonicalNameString(name);
+  StringIndex name_string = CanonicalNameString(name);
   return (StringSize(name_string) > 0) && (CharacterAt(name_string, 0) == '_');
 }
 
 
-bool TranslationHelper::IsRoot(intptr_t name) {
+bool TranslationHelper::IsRoot(NameIndex name) {
   return name == -1;
 }
 
 
-bool TranslationHelper::IsLibrary(intptr_t name) {
+bool TranslationHelper::IsLibrary(NameIndex name) {
   // Libraries are the only canonical names with the root as their parent.
   return !IsRoot(name) && IsRoot(CanonicalNameParent(name));
 }
 
 
-bool TranslationHelper::IsClass(intptr_t name) {
+bool TranslationHelper::IsClass(NameIndex name) {
   // Classes have the library as their parent and are not an administrative
   // name starting with @.
   return !IsAdministrative(name) && !IsRoot(name) &&
@@ -1138,19 +1141,19 @@ bool TranslationHelper::IsClass(intptr_t name) {
 }
 
 
-bool TranslationHelper::IsMember(intptr_t name) {
+bool TranslationHelper::IsMember(NameIndex name) {
   return IsConstructor(name) || IsField(name) || IsProcedure(name);
 }
 
 
-bool TranslationHelper::IsField(intptr_t name) {
+bool TranslationHelper::IsField(NameIndex name) {
   // Fields with private names have the import URI of the library where they are
   // visible as the parent and the string "@fields" as the parent's parent.
   // Fields with non-private names have the string "@fields' as the parent.
   if (IsRoot(name)) {
     return false;
   }
-  intptr_t kind = CanonicalNameParent(name);
+  NameIndex kind = CanonicalNameParent(name);
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
@@ -1158,7 +1161,7 @@ bool TranslationHelper::IsField(intptr_t name) {
 }
 
 
-bool TranslationHelper::IsConstructor(intptr_t name) {
+bool TranslationHelper::IsConstructor(NameIndex name) {
   // Constructors with private names have the import URI of the library where
   // they are visible as the parent and the string "@constructors" as the
   // parent's parent.  Constructors with non-private names have the string
@@ -1166,7 +1169,7 @@ bool TranslationHelper::IsConstructor(intptr_t name) {
   if (IsRoot(name)) {
     return false;
   }
-  intptr_t kind = CanonicalNameParent(name);
+  NameIndex kind = CanonicalNameParent(name);
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
@@ -1174,19 +1177,19 @@ bool TranslationHelper::IsConstructor(intptr_t name) {
 }
 
 
-bool TranslationHelper::IsProcedure(intptr_t name) {
+bool TranslationHelper::IsProcedure(NameIndex name) {
   return IsMethod(name) || IsGetter(name) || IsSetter(name) || IsFactory(name);
 }
 
 
-bool TranslationHelper::IsMethod(intptr_t name) {
+bool TranslationHelper::IsMethod(NameIndex name) {
   // Methods with private names have the import URI of the library where they
   // are visible as the parent and the string "@methods" as the parent's parent.
   // Methods with non-private names have the string "@methods" as the parent.
   if (IsRoot(name)) {
     return false;
   }
-  intptr_t kind = CanonicalNameParent(name);
+  NameIndex kind = CanonicalNameParent(name);
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
@@ -1194,14 +1197,14 @@ bool TranslationHelper::IsMethod(intptr_t name) {
 }
 
 
-bool TranslationHelper::IsGetter(intptr_t name) {
+bool TranslationHelper::IsGetter(NameIndex name) {
   // Getters with private names have the import URI of the library where they
   // are visible as the parent and the string "@getters" as the parent's parent.
   // Getters with non-private names have the string "@getters" as the parent.
   if (IsRoot(name)) {
     return false;
   }
-  intptr_t kind = CanonicalNameParent(name);
+  NameIndex kind = CanonicalNameParent(name);
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
@@ -1209,14 +1212,14 @@ bool TranslationHelper::IsGetter(intptr_t name) {
 }
 
 
-bool TranslationHelper::IsSetter(intptr_t name) {
+bool TranslationHelper::IsSetter(NameIndex name) {
   // Setters with private names have the import URI of the library where they
   // are visible as the parent and the string "@setters" as the parent's parent.
   // Setters with non-private names have the string "@setters" as the parent.
   if (IsRoot(name)) {
     return false;
   }
-  intptr_t kind = CanonicalNameParent(name);
+  NameIndex kind = CanonicalNameParent(name);
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
@@ -1224,7 +1227,7 @@ bool TranslationHelper::IsSetter(intptr_t name) {
 }
 
 
-bool TranslationHelper::IsFactory(intptr_t name) {
+bool TranslationHelper::IsFactory(NameIndex name) {
   // Factories with private names have the import URI of the library where they
   // are visible as the parent and the string "@factories" as the parent's
   // parent.  Factories with non-private names have the string "@factories" as
@@ -1232,7 +1235,7 @@ bool TranslationHelper::IsFactory(intptr_t name) {
   if (IsRoot(name)) {
     return false;
   }
-  intptr_t kind = CanonicalNameParent(name);
+  NameIndex kind = CanonicalNameParent(name);
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
@@ -1240,9 +1243,9 @@ bool TranslationHelper::IsFactory(intptr_t name) {
 }
 
 
-intptr_t TranslationHelper::EnclosingName(intptr_t name) {
+NameIndex TranslationHelper::EnclosingName(NameIndex name) {
   ASSERT(IsField(name) || IsConstructor(name) || IsProcedure(name));
-  intptr_t enclosing = CanonicalNameParent(CanonicalNameParent(name));
+  NameIndex enclosing = CanonicalNameParent(CanonicalNameParent(name));
   if (IsPrivate(name)) {
     enclosing = CanonicalNameParent(enclosing);
   }
@@ -1269,7 +1272,7 @@ const dart::String& TranslationHelper::DartString(const char* content,
 }
 
 
-dart::String& TranslationHelper::DartString(intptr_t string_index,
+dart::String& TranslationHelper::DartString(StringIndex string_index,
                                             Heap::Space space) {
   intptr_t length = StringSize(string_index);
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
@@ -1295,7 +1298,7 @@ const dart::String& TranslationHelper::DartSymbol(const char* content) const {
 }
 
 
-dart::String& TranslationHelper::DartSymbol(intptr_t string_index) const {
+dart::String& TranslationHelper::DartSymbol(StringIndex string_index) const {
   intptr_t length = StringSize(string_index);
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
   {
@@ -1312,7 +1315,7 @@ dart::String& TranslationHelper::DartSymbol(const uint8_t* utf8_array,
                                   Symbols::FromUTF8(thread_, utf8_array, len));
 }
 
-const dart::String& TranslationHelper::DartClassName(intptr_t kernel_class) {
+const dart::String& TranslationHelper::DartClassName(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   dart::String& name = DartString(CanonicalNameString(kernel_class));
   return ManglePrivateName(CanonicalNameParent(kernel_class), &name);
@@ -1320,13 +1323,13 @@ const dart::String& TranslationHelper::DartClassName(intptr_t kernel_class) {
 
 
 const dart::String& TranslationHelper::DartConstructorName(
-    intptr_t constructor) {
+    NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
   return DartFactoryName(constructor);
 }
 
 
-const dart::String& TranslationHelper::DartProcedureName(intptr_t procedure) {
+const dart::String& TranslationHelper::DartProcedureName(NameIndex procedure) {
   ASSERT(IsProcedure(procedure));
   if (IsSetter(procedure)) {
     return DartSetterName(procedure);
@@ -1340,7 +1343,7 @@ const dart::String& TranslationHelper::DartProcedureName(intptr_t procedure) {
 }
 
 
-const dart::String& TranslationHelper::DartSetterName(intptr_t setter) {
+const dart::String& TranslationHelper::DartSetterName(NameIndex setter) {
   return DartSetterName(CanonicalNameParent(setter),
                         CanonicalNameString(setter));
 }
@@ -1351,8 +1354,8 @@ const dart::String& TranslationHelper::DartSetterName(Name* setter_name) {
 }
 
 
-const dart::String& TranslationHelper::DartSetterName(intptr_t parent,
-                                                      intptr_t setter) {
+const dart::String& TranslationHelper::DartSetterName(NameIndex parent,
+                                                      StringIndex setter) {
   // The names flowing into [setter] are coming from the Kernel file:
   //   * user-defined setters: `fieldname=`
   //   * property-set expressions:  `fieldname`
@@ -1379,7 +1382,7 @@ const dart::String& TranslationHelper::DartSetterName(intptr_t parent,
 }
 
 
-const dart::String& TranslationHelper::DartGetterName(intptr_t getter) {
+const dart::String& TranslationHelper::DartGetterName(NameIndex getter) {
   return DartGetterName(CanonicalNameParent(getter),
                         CanonicalNameString(getter));
 }
@@ -1390,8 +1393,8 @@ const dart::String& TranslationHelper::DartGetterName(Name* getter_name) {
 }
 
 
-const dart::String& TranslationHelper::DartGetterName(intptr_t parent,
-                                                      intptr_t getter) {
+const dart::String& TranslationHelper::DartGetterName(NameIndex parent,
+                                                      StringIndex getter) {
   dart::String& name = DartString(getter);
   ManglePrivateName(parent, &name, false);
   name = dart::Field::GetterSymbol(name);
@@ -1414,7 +1417,7 @@ const dart::String& TranslationHelper::DartInitializerName(Name* kernel_name) {
 }
 
 
-const dart::String& TranslationHelper::DartMethodName(intptr_t method) {
+const dart::String& TranslationHelper::DartMethodName(NameIndex method) {
   return DartMethodName(CanonicalNameParent(method),
                         CanonicalNameString(method));
 }
@@ -1425,14 +1428,14 @@ const dart::String& TranslationHelper::DartMethodName(Name* method_name) {
 }
 
 
-const dart::String& TranslationHelper::DartMethodName(intptr_t parent,
-                                                      intptr_t method) {
+const dart::String& TranslationHelper::DartMethodName(NameIndex parent,
+                                                      StringIndex method) {
   dart::String& name = DartString(method);
   return ManglePrivateName(parent, &name);
 }
 
 
-const dart::String& TranslationHelper::DartFactoryName(intptr_t factory) {
+const dart::String& TranslationHelper::DartFactoryName(NameIndex factory) {
   ASSERT(IsConstructor(factory) || IsFactory(factory));
   GrowableHandlePtrArray<const dart::String> pieces(Z, 3);
   pieces.Add(DartClassName(EnclosingName(factory)));
@@ -1444,7 +1447,7 @@ const dart::String& TranslationHelper::DartFactoryName(intptr_t factory) {
 
 
 RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
-    intptr_t kernel_library) {
+    NameIndex kernel_library) {
   // We only use the string and don't rely on having any particular parent.
   // This ASSERT is just a sanity check.
   ASSERT(IsLibrary(kernel_library) ||
@@ -1458,10 +1461,10 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
 }
 
 
-RawClass* TranslationHelper::LookupClassByKernelClass(intptr_t kernel_class) {
+RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   const dart::String& class_name = DartClassName(kernel_class);
-  intptr_t kernel_library = CanonicalNameParent(kernel_class);
+  NameIndex kernel_library = CanonicalNameParent(kernel_class);
   dart::Library& library =
       dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
   RawClass* klass = library.LookupClassAllowPrivate(class_name);
@@ -1471,9 +1474,9 @@ RawClass* TranslationHelper::LookupClassByKernelClass(intptr_t kernel_class) {
 }
 
 
-RawField* TranslationHelper::LookupFieldByKernelField(intptr_t kernel_field) {
+RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
   ASSERT(IsField(kernel_field));
-  intptr_t enclosing = EnclosingName(kernel_field);
+  NameIndex enclosing = EnclosingName(kernel_field);
 
   dart::Class& klass = dart::Class::Handle(Z);
   if (IsLibrary(enclosing)) {
@@ -1492,12 +1495,12 @@ RawField* TranslationHelper::LookupFieldByKernelField(intptr_t kernel_field) {
 
 
 RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
-    intptr_t procedure) {
+    NameIndex procedure) {
   const dart::String& procedure_name = DartProcedureName(procedure);
 
   // The parent is either a library or a class (in which case the procedure is a
   // static method).
-  intptr_t enclosing = EnclosingName(procedure);
+  NameIndex enclosing = EnclosingName(procedure);
   if (IsLibrary(enclosing)) {
     dart::Library& library =
         dart::Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
@@ -1524,7 +1527,7 @@ RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
 
 
 RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
-    intptr_t constructor) {
+    NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
   dart::Class& klass = dart::Class::Handle(
       Z, LookupClassByKernelClass(EnclosingName(constructor)));
@@ -1534,7 +1537,7 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
 
 RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
     const dart::Class& owner,
-    intptr_t constructor) {
+    NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
   RawFunction* function =
       owner.LookupConstructorAllowPrivate(DartConstructorName(constructor));
@@ -1588,7 +1591,7 @@ void TranslationHelper::ReportError(const Error& prev_error,
 }
 
 
-dart::String& TranslationHelper::ManglePrivateName(intptr_t parent,
+dart::String& TranslationHelper::ManglePrivateName(NameIndex parent,
                                                    dart::String* name_to_modify,
                                                    bool symbolize) {
   if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
@@ -1961,7 +1964,7 @@ void ConstantEvaluator::VisitMethodInvocation(MethodInvocation* node) {
 
 
 void ConstantEvaluator::VisitStaticGet(StaticGet* node) {
-  intptr_t target = node->target();
+  NameIndex target = node->target();
   if (H.IsField(target)) {
     const dart::Field& field =
         dart::Field::Handle(Z, H.LookupFieldByKernelField(target));
@@ -2092,7 +2095,7 @@ void ConstantEvaluator::VisitNot(Not* node) {
 
 
 void ConstantEvaluator::VisitPropertyGet(PropertyGet* node) {
-  intptr_t string_index = node->name()->string_index();
+  StringIndex string_index = node->name()->string_index();
   if (H.StringEquals(string_index, "length")) {
     node->receiver()->AcceptExpressionVisitor(this);
     if (result_.IsString()) {
@@ -3140,9 +3143,9 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
 
 
 RawFunction* FlowGraphBuilder::LookupMethodByMember(
-    intptr_t target,
+    NameIndex target,
     const dart::String& method_name) {
-  intptr_t kernel_class = H.EnclosingName(target);
+  NameIndex kernel_class = H.EnclosingName(target);
   dart::Class& klass =
       dart::Class::Handle(Z, H.LookupClassByKernelClass(kernel_class));
 
@@ -4413,7 +4416,7 @@ JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry() {
 }
 
 
-Fragment FlowGraphBuilder::TranslateFieldInitializer(intptr_t canonical_name,
+Fragment FlowGraphBuilder::TranslateFieldInitializer(NameIndex canonical_name,
                                                      Expression* init) {
   dart::Field& field =
       dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
@@ -4995,7 +4998,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
 
 
 void FlowGraphBuilder::VisitStaticSet(StaticSet* node) {
-  intptr_t target = node->target();
+  NameIndex target = node->target();
   if (H.IsField(target)) {
     const dart::Field& field =
         dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
@@ -5057,7 +5060,7 @@ void FlowGraphBuilder::VisitPropertySet(PropertySet* node) {
 
 void FlowGraphBuilder::VisitDirectPropertyGet(DirectPropertyGet* node) {
   Function& target = Function::ZoneHandle(Z);
-  intptr_t kernel_name = node->target();
+  NameIndex kernel_name = node->target();
   if (H.IsProcedure(kernel_name)) {
     if (H.IsGetter(kernel_name)) {
       target = LookupMethodByMember(kernel_name, H.DartGetterName(kernel_name));
