@@ -14,6 +14,9 @@ This package contains the Dart part of the implementation and contains:
 - A frontend based on the analyzer
 - Serialization of kernel code
 
+_Note:_ The APIs in this package are in an early state; developers should be
+careful about depending on this package.
+
 Getting Kernel
 ------------
 
