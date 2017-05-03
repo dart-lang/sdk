@@ -146,12 +146,6 @@ intptr_t OS::PreferredCodeAlignment() {
 }
 
 
-bool OS::AllowStackFrameIteratorFromAnotherThread() {
-  UNIMPLEMENTED();
-  return false;
-}
-
-
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }

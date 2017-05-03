@@ -68,7 +68,6 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(thread() == Thread::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
 #if !defined(TARGET_ARCH_DBC)
@@ -86,7 +85,6 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(thread() == Thread::Current());
   ASSERT(visitor != NULL);
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
@@ -346,30 +344,33 @@ static void UnpoisonStack(uword fp) {
 }
 
 
-StackFrameIterator::StackFrameIterator(bool validate, Thread* thread)
-    : validate_(validate),
+StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
+                                       Thread* thread,
+                                       CrossThreadPolicy cross_thread_policy)
+    : validate_(validation_policy == kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
       current_frame_(NULL),
       thread_(thread) {
-  ASSERT((thread_ == Thread::Current()) ||
-         OS::AllowStackFrameIteratorFromAnotherThread());
+  ASSERT(cross_thread_policy == kAllowCrossThreadIteration ||
+         thread_ == Thread::Current());
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
 
 
 StackFrameIterator::StackFrameIterator(uword last_fp,
-                                       bool validate,
-                                       Thread* thread)
-    : validate_(validate),
+                                       ValidationPolicy validation_policy,
+                                       Thread* thread,
+                                       CrossThreadPolicy cross_thread_policy)
+    : validate_(validation_policy == kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
       current_frame_(NULL),
       thread_(thread) {
-  ASSERT((thread_ == Thread::Current()) ||
-         OS::AllowStackFrameIteratorFromAnotherThread());
+  ASSERT(cross_thread_policy == kAllowCrossThreadIteration ||
+         thread_ == Thread::Current());
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
@@ -380,16 +381,17 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
 StackFrameIterator::StackFrameIterator(uword fp,
                                        uword sp,
                                        uword pc,
-                                       bool validate,
-                                       Thread* thread)
-    : validate_(validate),
+                                       ValidationPolicy validation_policy,
+                                       Thread* thread,
+                                       CrossThreadPolicy cross_thread_policy)
+    : validate_(validation_policy == kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
       current_frame_(NULL),
       thread_(thread) {
-  ASSERT((thread_ == Thread::Current()) ||
-         OS::AllowStackFrameIteratorFromAnotherThread());
+  ASSERT(cross_thread_policy == kAllowCrossThreadIteration ||
+         thread_ == Thread::Current());
   frames_.fp_ = fp;
   frames_.sp_ = sp;
   frames_.pc_ = pc;
@@ -577,7 +579,9 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
 
 #if defined(DEBUG)
 void ValidateFrames() {
-  StackFrameIterator frames(StackFrameIterator::kValidateFrames);
+  StackFrameIterator frames(StackFrameIterator::kValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   while (frame != NULL) {
     frame = frames.NextFrame();

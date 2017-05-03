@@ -18,7 +18,9 @@ namespace dart {
 
 // Unit test for empty stack frame iteration.
 ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
-  StackFrameIterator iterator(StackFrameIterator::kValidateFrames);
+  StackFrameIterator iterator(StackFrameIterator::kValidateFrames,
+                              Thread::Current(),
+                              StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(!iterator.HasNextFrame());
   EXPECT(iterator.NextFrame() == NULL);
   VerifyPointersVisitor::VerifyPointers();
@@ -27,7 +29,8 @@ ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
 
 // Unit test for empty dart stack frame iteration.
 ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(iterator.NextFrame() == NULL);
   VerifyPointersVisitor::VerifyPointers();
 }
@@ -51,7 +54,9 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   int count = 0;
-  StackFrameIterator frames(StackFrameIterator::kValidateFrames);
+  StackFrameIterator frames(StackFrameIterator::kValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the frame.
   }
@@ -63,7 +68,8 @@ void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
   int count = 0;
-  DartFrameIterator frames;
+  DartFrameIterator frames(Thread::Current(),
+                           StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the dart frame.
   }
@@ -84,7 +90,8 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       String::CheckedHandle(Api::UnwrapHandle(name)).ToCString();
   int frame_index = frame_index_smi.Value();
   int count = 0;
-  DartFrameIterator frames;
+  DartFrameIterator frames(Thread::Current(),
+                           StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   while (frame != NULL) {
     if (count == frame_index) {
