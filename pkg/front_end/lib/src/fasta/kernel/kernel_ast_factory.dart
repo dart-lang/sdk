@@ -35,6 +35,13 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   }
 
   @override
+  ConditionalExpression conditionalExpression(Expression condition,
+      Expression thenExpression, Expression elseExpression) {
+    return new KernelConditionalExpression(
+        condition, thenExpression, elseExpression);
+  }
+
+  @override
   ConstructorInvocation constructorInvocation(
       Constructor target, Arguments arguments,
       {bool isConst: false}) {

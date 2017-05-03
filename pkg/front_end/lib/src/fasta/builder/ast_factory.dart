@@ -47,6 +47,10 @@ abstract class AstFactory<V> {
   /// Creates a boolean literal.
   BoolLiteral boolLiteral(bool value, Token token);
 
+  /// Creates a conditional expression.
+  ConditionalExpression conditionalExpression(Expression condition,
+      Expression thenExpression, Expression elseExpression);
+
   /// Creates a constructor invocation.
   ConstructorInvocation constructorInvocation(
       Constructor target, Arguments arguments,

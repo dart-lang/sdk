@@ -5,6 +5,7 @@
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart' show DartType, DynamicType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -96,6 +97,8 @@ abstract class TypeInferenceEngineImpl<F> extends TypeInferenceEngine<F> {
   @override
   ClassHierarchy classHierarchy;
 
+  TypeSchemaEnvironment typeSchemaEnvironment;
+
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
   /// Clears the initializer of [field].
@@ -174,6 +177,8 @@ abstract class TypeInferenceEngineImpl<F> extends TypeInferenceEngine<F> {
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
     this.classHierarchy = classHierarchy;
+    this.typeSchemaEnvironment =
+        new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
   @override

@@ -1504,8 +1504,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression elseExpression = popForValue();
     Expression thenExpression = popForValue();
     Expression condition = popForValue();
-    push(new ConditionalExpression(
-        condition, thenExpression, elseExpression, const DynamicType()));
+    push(astFactory.conditionalExpression(
+        condition, thenExpression, elseExpression));
   }
 
   @override

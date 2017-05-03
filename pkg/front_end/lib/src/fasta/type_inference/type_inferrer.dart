@@ -5,6 +5,7 @@
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, InterfaceType, Member;
 import 'package:kernel/core_types.dart';
@@ -61,6 +62,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
   final Instrumentation instrumentation;
 
+  final TypeSchemaEnvironment typeSchemaEnvironment;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   _ClosureContext _closureContext;
@@ -68,7 +71,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
-        instrumentation = engine.instrumentation;
+        instrumentation = engine.instrumentation,
+        typeSchemaEnvironment = engine.typeSchemaEnvironment;
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -84,6 +88,28 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [inferExpression].
   DartType inferBoolLiteral(DartType typeContext, bool typeNeeded) {
     return typeNeeded ? coreTypes.boolClass.rawType : null;
+  }
+
+  /// Performs the core type inference algorithm for conditional expressions.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [condition], [then], and [otherwise] are the subexpressions.  The inferred
+  /// type is reported via [setStaticType].
+  DartType inferConditionalExpression(DartType typeContext, bool typeNeeded,
+      E condition, E then, E otherwise, void setStaticType(DartType type)) {
+    inferExpression(condition, coreTypes.boolClass.rawType, false);
+    // TODO(paulberry): is it correct to pass the context down?
+    DartType thenType = inferExpression(then, typeContext, true);
+    DartType otherwiseType = inferExpression(otherwise, typeContext, true);
+    // TODO(paulberry): the spec proposal says we should only use LUB if the
+    // typeContext is `null`.  If typeContext is non-null, we should use the
+    // greatest closure of the context with respect to `?`
+    DartType type =
+        typeSchemaEnvironment.getLeastUpperBound(thenType, otherwiseType);
+    setStaticType(type);
+    return typeNeeded ? type : null;
   }
 
   /// Performs the core type inference algorithm for double literals.

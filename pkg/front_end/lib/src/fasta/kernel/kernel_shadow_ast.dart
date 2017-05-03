@@ -71,18 +71,19 @@ class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a conditional expression in kernel form.
 /// Shadow object for [ConditionalExpression].
 class KernelConditionalExpression extends ConditionalExpression
     implements KernelExpression {
-  KernelConditionalExpression(Expression condition, Expression then,
-      Expression otherwise, DartType staticType)
-      : super(condition, then, otherwise, staticType);
+  KernelConditionalExpression(
+      Expression condition, Expression then, Expression otherwise)
+      : super(condition, then, otherwise, const DynamicType());
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferConditionalExpression(typeContext, typeNeeded,
+        condition, then, otherwise, (type) => staticType = type);
   }
 }
 
