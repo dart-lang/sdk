@@ -5796,13 +5796,13 @@ class SvgSvgElement extends GraphicsElement
 
   @DomName('SVGSVGElement.getEnclosureList')
   @DocsEditable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
 
   @DomName('SVGSVGElement.getIntersectionList')
   @DocsEditable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
 
