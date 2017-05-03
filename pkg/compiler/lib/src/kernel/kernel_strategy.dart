@@ -5,6 +5,7 @@
 library dart2js.kernel.frontend_strategy;
 
 import '../closure.dart';
+import '../backend_strategy.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
@@ -24,6 +25,7 @@ import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_emitter/sorter.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
 import '../serialization/task.dart';
@@ -203,4 +205,25 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
 
   @override
   void onResolutionComplete() {}
+}
+
+/// Backend strategy that uses the kernel elements as the backend model.
+// TODO(johnniwinther): Replace this with a strategy based on the J-element
+// model.
+class KernelBackendStrategy implements BackendStrategy {
+  @override
+  ClosedWorldRefiner createClosedWorldRefiner(KernelClosedWorld closedWorld) {
+    return closedWorld;
+  }
+
+  @override
+  Sorter get sorter =>
+      throw new UnimplementedError('KernelBackendStrategy.sorter');
+
+  @override
+  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
+    // TODO(johnniwinther,efortuna): Compute closure classes for kernel based
+    // elements.
+    throw new UnimplementedError('KernelBackendStrategy.createClosureClasses');
+  }
 }

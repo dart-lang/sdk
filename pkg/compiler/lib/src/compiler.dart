@@ -7,6 +7,7 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 
 import '../compiler_new.dart' as api;
+import 'backend_strategy.dart';
 import 'closure.dart' as closureMapping show ClosureTask;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
@@ -72,7 +73,7 @@ import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'util/util.dart' show Link;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner;
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -83,6 +84,7 @@ abstract class Compiler {
   final IdGenerator idGenerator = new IdGenerator();
   DartTypes types;
   FrontEndStrategy frontEndStrategy;
+  BackendStrategy backendStrategy;
   CommonElements _commonElements;
   ElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
@@ -193,6 +195,9 @@ abstract class Compiler {
     frontEndStrategy = options.loadFromDill
         ? new KernelFrontEndStrategy(reporter)
         : new ResolutionFrontEndStrategy(this);
+    backendStrategy = options.loadFromDill
+        ? new KernelBackendStrategy()
+        : new ElementBackendStrategy(this);
     _resolution = createResolution();
     _elementEnvironment = frontEndStrategy.elementEnvironment;
     _commonElements = new CommonElements(_elementEnvironment);
@@ -628,17 +633,19 @@ abstract class Compiler {
   ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    ClosedWorldImpl world = resolutionWorldBuilder.closeWorld();
+    ClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
+    ClosedWorldRefiner closedWorldRefiner =
+        backendStrategy.createClosedWorldRefiner(closedWorld);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionClosedWorld(world, world);
+    backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    closureToClassMapper.createClosureClasses(world);
-    return world;
+    backendStrategy.convertClosures(closedWorldRefiner);
+    return closedWorldRefiner;
   }
 
   /// Compute the [WorldImpact] for accessing all elements in [library].
