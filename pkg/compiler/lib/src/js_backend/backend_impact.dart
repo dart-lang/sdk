@@ -129,7 +129,10 @@ class BackendImpacts {
 
   BackendImpact get asyncBody {
     return _asyncBody ??= new BackendImpact(staticUses: [
-      _commonElements.asyncHelper,
+      _commonElements.asyncHelperStart,
+      _commonElements.asyncHelperAwait,
+      _commonElements.asyncHelperReturn,
+      _commonElements.asyncHelperRethrow,
       _commonElements.syncCompleterConstructor,
       _commonElements.streamIteratorConstructor,
       _commonElements.wrapBody

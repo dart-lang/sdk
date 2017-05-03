@@ -1291,8 +1291,14 @@ class JavaScriptBackend {
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
         rewriter = new AsyncRewriter(reporter, element,
-            asyncHelper:
-                emitter.staticFunctionAccess(commonElements.asyncHelper),
+            asyncStart:
+                emitter.staticFunctionAccess(commonElements.asyncHelperStart),
+            asyncAwait:
+                emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
+            asyncReturn:
+                emitter.staticFunctionAccess(commonElements.asyncHelperReturn),
+            asyncRethrow:
+                emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
             completerFactory: emitter
                 .staticFunctionAccess(commonElements.syncCompleterConstructor),

@@ -1652,26 +1652,37 @@ class AsyncRewriter extends AsyncRewriterBase {
   String completerName;
   js.VariableUse get completer => new js.VariableUse(completerName);
 
-  /// The function called by an async function to simulate an await or return.
+  /// The function called by an async function to initiate asynchronous
+  /// execution of the body.  This is called with:
   ///
-  /// For an await it is called with:
+  /// - The body function [bodyName].
+  /// - the completer object [completer].
+  ///
+  /// It returns the completer's future. Passing the completer and returning its
+  /// future is a convenience to allow both the initiation and fetching the
+  /// future to be compactly encoded in a return statement's expression.
+  final js.Expression asyncStart;
+
+  /// Function called by the async function to simulate an `await`
+  /// expression. It is called with:
   ///
   /// - The value to await
   /// - The body function [bodyName]
+  final js.Expression asyncAwait;
+
+  /// Function called by the async function to simulate a return.
+  /// It is called with:
+  ///
+  /// - The value to return
   /// - The completer object [completer]
+  final js.Expression asyncReturn;
+
+  /// Function called by the async function to simulate a rethrow.
+  /// It is called with:
   ///
-  /// For a return it is called with:
-  ///
-  /// - The value to complete the completer with.
-  /// - [error_codes.SUCCESS]
+  /// - The value containing the exception and stack
   /// - The completer object [completer]
-  ///
-  /// For a throw it is called with:
-  ///
-  /// - The error to complete the completer with.
-  /// - [error_codes.ERROR]
-  /// - The completer object [completer]
-  final js.Expression asyncHelper;
+  final js.Expression asyncRethrow;
 
   /// Constructor used to initialize the [completer] variable.
   ///
@@ -1681,7 +1692,10 @@ class AsyncRewriter extends AsyncRewriterBase {
   final js.Expression wrapBody;
 
   AsyncRewriter(DiagnosticReporter reporter, Spannable spannable,
-      {this.asyncHelper,
+      {this.asyncStart,
+      this.asyncAwait,
+      this.asyncReturn,
+      this.asyncRethrow,
       this.completerFactory,
       this.wrapBody,
       String safeVariableName(String proposedName),
@@ -1696,9 +1710,8 @@ class AsyncRewriter extends AsyncRewriterBase {
   void addErrorExit() {
     beginLabel(rethrowLabel);
     addStatement(js.js.statement(
-        "return #thenHelper(#currentError, #errorCode, #completer);", {
-      "thenHelper": asyncHelper,
-      "errorCode": js.number(error_codes.ERROR),
+        "return #thenHelper(#currentError, #completer);", {
+      "thenHelper": asyncRethrow,
       "currentError": currentError,
       "completer": completer
     }));
@@ -1713,10 +1726,9 @@ class AsyncRewriter extends AsyncRewriterBase {
     } else {
       addStatement(new js.Comment("implicit return"));
     }
-    addStatement(js.js.statement(
-        "return #runtimeHelper(#returnValue, #successCode, #completer);", {
-      "runtimeHelper": asyncHelper,
-      "successCode": js.number(error_codes.SUCCESS),
+    addStatement(
+        js.js.statement("return #runtimeHelper(#returnValue, #completer);", {
+      "runtimeHelper": asyncReturn,
       "returnValue":
           analysis.hasExplicitReturns ? returnValue : new js.LiteralNull(),
       "completer": completer
@@ -1744,14 +1756,12 @@ class AsyncRewriter extends AsyncRewriterBase {
     return js.js.statement(
         """
           return #asyncHelper(#value,
-                              #bodyName,
-                              #completer);
+                              #bodyName);
           """,
         {
-          "asyncHelper": asyncHelper,
+          "asyncHelper": asyncAwait,
           "value": value,
           "bodyName": bodyName,
-          "completer": completer
         });
   }
 
@@ -1772,7 +1782,7 @@ class AsyncRewriter extends AsyncRewriterBase {
             }
             #rewrittenBody;
           });
-          return #asyncHelper(null, #bodyName, #completer);
+          return #asyncStart(#bodyName, #completer);
         }""",
         {
           "parameters": parameters,
@@ -1785,7 +1795,7 @@ class AsyncRewriter extends AsyncRewriterBase {
           "handler": handler,
           "errorCode": errorCodeName,
           "result": resultName,
-          "asyncHelper": asyncHelper,
+          "asyncStart": asyncStart,
           "completer": completer,
           "wrapBody": wrapBody,
         }).withSourceInformation(sourceInformation);

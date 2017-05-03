@@ -507,7 +507,14 @@ class CommonElements {
   FunctionEntity _findAsyncHelperFunction(String name) =>
       _findLibraryMember(asyncLibrary, name);
 
-  FunctionEntity get asyncHelper => _findAsyncHelperFunction("_asyncHelper");
+  FunctionEntity get asyncHelperStart =>
+      _findAsyncHelperFunction("_asyncStart");
+  FunctionEntity get asyncHelperAwait =>
+      _findAsyncHelperFunction("_asyncAwait");
+  FunctionEntity get asyncHelperReturn =>
+      _findAsyncHelperFunction("_asyncReturn");
+  FunctionEntity get asyncHelperRethrow =>
+      _findAsyncHelperFunction("_asyncRethrow");
 
   FunctionEntity get wrapBody =>
       _findAsyncHelperFunction("_wrapJsFunctionForAsync");
