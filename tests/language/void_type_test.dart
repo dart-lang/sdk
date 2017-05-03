@@ -41,7 +41,7 @@ void f_f() {
   return f();
 }
 
-void test(int n, void func()) {
+void test(int n, void func(), bool must_get_error) {
   // Test as closure call.
   {
     bool got_type_error = false;
@@ -50,7 +50,12 @@ void test(int n, void func()) {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    Expect.isFalse(got_type_error);
+    // Never a type error in production mode.
+    if (isCheckedMode()) {
+      Expect.isTrue(got_type_error == must_get_error);
+    } else {
+      Expect.isFalse(got_type_error);
+    }
   }
   // Test as direct call.
   {
@@ -80,15 +85,20 @@ void test(int n, void func()) {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    Expect.isFalse(got_type_error);
+    // Never a type error in production mode.
+    if (isCheckedMode()) {
+      Expect.isTrue(got_type_error == must_get_error);
+    } else {
+      Expect.isFalse(got_type_error);
+    }
   }
 }
 
 main() {
-  test(0, f);
-  test(1, f_null);
-  test(2, f_1);
-  test(3, f_dyn_null);
-  test(4, f_dyn_1);
-  test(5, f_f);
+  test(0, f, false);
+  test(1, f_null, false);
+  test(2, f_1, true);
+  test(3, f_dyn_null, false);
+  test(4, f_dyn_1, true);
+  test(5, f_f, false);
 }

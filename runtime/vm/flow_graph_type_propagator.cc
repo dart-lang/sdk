@@ -597,7 +597,7 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->IsMalformed()) {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
-      cid_ = kDynamicCid;
+      cid_ = kNullCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
     } else if (type_->HasResolvedTypeClass()) {
@@ -684,7 +684,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  if (type.IsDynamicType() || type.IsObjectType() || type.IsVoidType()) {
+  if (type.IsDynamicType() || type.IsObjectType()) {
     *is_instance = true;
     return true;
   }
@@ -695,6 +695,11 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
+
+  // The compile-type of a value should never be void. The result of a void
+  // function must always be null, which was checked to be null at the return
+  // statement inside the function.
+  ASSERT(!compile_type.IsVoidType());
 
   if (compile_type.IsMalformedOrMalbounded()) {
     return false;
@@ -708,6 +713,12 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     *is_instance = is_nullable || type.IsObjectType() || type.IsDynamicType() ||
                    type.IsNullType() || type.IsVoidType();
     return true;
+  }
+
+  // A non-null value is not an instance of void.
+  if (type.IsVoidType()) {
+    *is_instance = IsNull();
+    return HasDecidableNullability();
   }
 
   // If the value can be null then we can't eliminate the
@@ -724,6 +735,11 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
   if (IsNone()) {
     return false;
+  }
+
+  if (other.IsVoidType()) {
+    // The only value assignable to void is null.
+    return IsNull();
   }
 
   return ToAbstractType()->IsMoreSpecificThan(other, NULL, NULL, Heap::kOld);
@@ -927,6 +943,11 @@ CompileType AssertAssignableInstr::ComputeType() const {
     return *value_type;
   }
 
+  if (dst_type().IsVoidType()) {
+    // The only value assignable to void is null.
+    return CompileType::Null();
+  }
+
   return CompileType::Create(value_type->ToCid(), dst_type());
 }
 
@@ -1017,9 +1038,13 @@ CompileType StaticCallInstr::ComputeType() const {
   }
 
   if (Isolate::Current()->type_checks()) {
+    // Void functions are known to return null, which is checked at the return
+    // from the function.
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
-    return CompileType::FromAbstractType(result_type);
+    return CompileType::FromAbstractType(
+        result_type.IsVoidType() ? AbstractType::ZoneHandle(Type::NullType())
+                                 : result_type);
   }
 
   return CompileType::Dynamic();
