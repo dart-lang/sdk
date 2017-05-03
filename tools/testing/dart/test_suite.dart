@@ -1969,24 +1969,18 @@ class TestUtils {
     }
   }
 
-  static Path debugLogfile() {
-    return new Path(".debug.log");
-  }
+  static final debugLogFilePath = new Path(".debug.log");
 
-  static String flakyFileName() {
-    // If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
-    // will be written to this file. This is useful for the debugging of
-    // flaky tests.
-    // When running on a built bot, the file can be made visible in the
-    // waterfall UI.
-    return ".flaky.log";
-  }
+  /// If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
+  /// will be written to this file.
+  ///
+  /// This is useful for debugging flaky tests. When running on a buildbot, the
+  /// file can be made visible in the waterfall UI.
+  static const flakyFileName = ".flaky.log";
 
-  static String testOutcomeFileName() {
-    // If test.py was invoked with '--write-test-outcome-log it will write
-    // test outcomes to this file.
-    return ".test-outcome.log";
-  }
+  /// If test.py was invoked with '--write-test-outcome-log it will write
+  /// test outcomes to this file.
+  static const testOutcomeFileName = ".test-outcome.log";
 
   static void ensureExists(String filename, Map configuration) {
     if (!configuration['list'] && !existsCache.doesFileExist(filename)) {

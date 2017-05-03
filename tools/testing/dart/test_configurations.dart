@@ -84,8 +84,8 @@ Future testConfigurations(List<Map> configurations) async {
 
   if (!firstConf['append_logs']) {
     var files = [
-      new File(TestUtils.flakyFileName()),
-      new File(TestUtils.testOutcomeFileName())
+      new File(TestUtils.flakyFileName),
+      new File(TestUtils.testOutcomeFileName)
     ];
     for (var file in files) {
       if (file.existsSync()) {
@@ -95,7 +95,7 @@ Future testConfigurations(List<Map> configurations) async {
   }
 
   DebugLogger.init(
-      firstConf['write_debug_log'] ? TestUtils.debugLogfile() : null,
+      firstConf['write_debug_log'] ? TestUtils.debugLogFilePath : null,
       append: firstConf['append_logs']);
 
   // Print the configurations being run by this execution of
@@ -151,7 +151,7 @@ Future testConfigurations(List<Map> configurations) async {
       conf['_servers_'] = servers;
       if (verbose) {
         serverFutures.last.then((_) {
-          var commandline = servers.httpServerCommandline();
+          var commandline = servers.httpServerCommandLine();
           print('Started HttpServers: $commandline');
         });
       }
@@ -224,19 +224,19 @@ Future testConfigurations(List<Map> configurations) async {
     TestUtils.deleteTempSnapshotDirectory(configurations[0]);
   }
 
-  var eventListener = [];
+  var eventListener = <EventListener>[];
 
   // We don't print progress if we list tests.
   if (progressIndicator != 'silent' && !listTests) {
     var printFailures = true;
-    var formatter = new Formatter();
+    var formatter = Formatter.normal;
     if (progressIndicator == 'color') {
       progressIndicator = 'compact';
-      formatter = new ColorFormatter();
+      formatter = Formatter.color;
     }
     if (progressIndicator == 'diff') {
       progressIndicator = 'compact';
-      formatter = new ColorFormatter();
+      formatter = Formatter.color;
       printFailures = false;
       eventListener.add(new StatusFileUpdatePrinter());
     }
@@ -249,7 +249,7 @@ Future testConfigurations(List<Map> configurations) async {
       eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
     }
     eventListener.add(
-        progressIndicatorFromName(progressIndicator, startTime, formatter));
+        ProgressIndicator.fromName(progressIndicator, startTime, formatter));
     if (printTiming) {
       eventListener.add(new TimingPrinter(startTime));
     }
