@@ -35,11 +35,33 @@ import 'package:kernel/ast.dart';
 /// shadow-ify [DartType], since analyzer ASTs need to be able to record the
 /// exact tokens that were used to specify a type.
 abstract class AstFactory<V> {
+  /// Creates an `as` expression.
+  AsExpression asExpression(Expression operand, Token operator, DartType type);
+
+  /// Creates an `await` expression.
+  AwaitExpression awaitExpression(Token keyword, Expression operand);
+
   /// Creates a statement block.
   Block block(List<Statement> statements, Token beginToken);
 
   /// Creates a boolean literal.
   BoolLiteral boolLiteral(bool value, Token token);
+
+  /// Creates a constructor invocation.
+  ConstructorInvocation constructorInvocation(
+      Constructor target, Arguments arguments,
+      {bool isConst: false});
+
+  /// Creates a direct method invocation.
+  DirectMethodInvocation directMethodInvocation(
+      Expression receiver, Procedure target, Arguments arguments);
+
+  /// Creates a direct property get.
+  DirectPropertyGet directPropertyGet(Expression receiver, Member target);
+
+  /// Creates a direct property get.
+  DirectPropertySet directPropertySet(
+      Expression receiver, Member target, Expression value);
 
   /// Creates a double literal.
   DoubleLiteral doubleLiteral(double value, Token token);
@@ -68,8 +90,27 @@ abstract class AstFactory<V> {
   ListLiteral listLiteral(List<Expression> expressions, DartType typeArgument,
       bool isConst, Token token);
 
+  /// Creates a logical expression in for of `x && y` or `x || y`.
+  LogicalExpression logicalExpression(
+      Expression left, String operator, Expression right);
+
+  /// Creates a map literal expression.
+  ///
+  /// If the map literal did not have an explicitly declared type argument,
+  /// [keyType] and [valueType] should be `null`.
+  MapLiteral mapLiteral(
+      Token beginToken, Token constKeyword, List<MapEntry> entries,
+      {DartType keyType: const DynamicType(),
+      DartType valueType: const DynamicType()});
+
+  /// Create an expression of form `!x`.
+  Not not(Token token, Expression operand);
+
   /// Creates a null literal expression.
   NullLiteral nullLiteral(Token token);
+
+  /// Create a `rethrow` expression.
+  Rethrow rethrowExpression(Token keyword);
 
   /// Creates a return statement.
   Statement returnStatement(Expression expression, Token token);
@@ -77,12 +118,36 @@ abstract class AstFactory<V> {
   /// Creates a read of a static variable.
   StaticGet staticGet(Member readTarget, Token token);
 
+  /// Creates a static invocation.
+  StaticInvocation staticInvocation(Procedure target, Arguments arguments,
+      {bool isConst: false});
+
   /// Creates a string concatenation.
   StringConcatenation stringConcatenation(
       List<Expression> expressions, Token token);
 
   /// Creates a string literal.
   StringLiteral stringLiteral(String value, Token token);
+
+  /// Creates a super method invocation.
+  SuperMethodInvocation superMethodInvocation(
+      Token beginToken, Name name, Arguments arguments,
+      [Procedure interfaceTarget]);
+
+  /// Create an expression of form `super.field`.
+  SuperPropertyGet superPropertyGet(Name name, [Member interfaceTarget]);
+
+  /// Create an expression of form `#foo.bar`.
+  SymbolLiteral symbolLiteral(Token hashToken, String value);
+
+  /// Create an expression of form `this`.
+  ThisExpression thisExpression(Token keyword);
+
+  /// Create a `throw` expression.
+  Throw throwExpression(Token keyword, Expression expression);
+
+  /// Create a type literal expression.
+  TypeLiteral typeLiteral(DartType type);
 
   /// Creates a variable declaration statement declaring one variable.
   ///
@@ -102,6 +167,6 @@ abstract class AstFactory<V> {
       bool isConst: false});
 
   /// Creates a read of a local variable.
-  variableGet(VariableDeclaration variable, TypePromotionFact<V> fact,
-      TypePromotionScope scope, Token token);
+  VariableGet variableGet(VariableDeclaration variable,
+      TypePromotionFact<V> fact, TypePromotionScope scope, Token token);
 }

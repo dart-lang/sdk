@@ -648,7 +648,7 @@ class Listener {
 
   void beginRethrowStatement(Token token) {}
 
-  void endRethrowStatement(Token throwToken, Token endToken) {
+  void endRethrowStatement(Token rethrowToken, Token endToken) {
     logEvent("RethrowStatement");
   }
 
