@@ -345,8 +345,9 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
 /// Shadow object for [MethodInvocation].
 class KernelMethodInvocation extends MethodInvocation
     implements KernelExpression {
-  KernelMethodInvocation(Expression receiver, Name name, Arguments arguments)
-      : super(receiver, name, arguments);
+  KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : super(receiver, name, arguments, interfaceTarget);
 
   KernelMethodInvocation.byReference(Expression receiver, Name name,
       Arguments arguments, Reference interfaceTargetReference)
@@ -384,7 +385,8 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
 
 /// Shadow object for [PropertyGet].
 class KernelPropertyGet extends PropertyGet implements KernelExpression {
-  KernelPropertyGet(Expression receiver, Name name) : super(receiver, name);
+  KernelPropertyGet(Expression receiver, Name name, [Member interfaceTarget])
+      : super(receiver, name, interfaceTarget);
 
   KernelPropertyGet.byReference(
       Expression receiver, Name name, Reference interfaceTargetReference)
@@ -400,8 +402,9 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
 
 /// Shadow object for [PropertyGet].
 class KernelPropertySet extends PropertySet implements KernelExpression {
-  KernelPropertySet(Expression receiver, Name name, Expression value)
-      : super(receiver, name, value);
+  KernelPropertySet(Expression receiver, Name name, Expression value,
+      [Member interfaceTarget])
+      : super(receiver, name, value, interfaceTarget);
 
   KernelPropertySet.byReference(Expression receiver, Name name,
       Expression value, Reference interfaceTargetReference)

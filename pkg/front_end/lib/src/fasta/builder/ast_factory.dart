@@ -107,11 +107,24 @@ abstract class AstFactory<V> {
       {DartType keyType: const DynamicType(),
       DartType valueType: const DynamicType()});
 
+  /// Creates a method invocation of form `x.foo(y)`.
+  MethodInvocation methodInvocation(
+      Expression receiver, Name name, Arguments arguments,
+      [Procedure interfaceTarget]);
+
   /// Create an expression of form `!x`.
   Not not(Token token, Expression operand);
 
   /// Creates a null literal expression.
   NullLiteral nullLiteral(Token token);
+
+  /// Creates a read of a property.
+  PropertyGet propertyGet(Expression receiver, Name name,
+      [Member interfaceTarget]);
+
+  /// Creates a write of a property.
+  PropertySet propertySet(Expression receiver, Name name, Expression value,
+      [Member interfaceTarget]);
 
   /// Create a `rethrow` expression.
   Rethrow rethrowExpression(Token keyword);

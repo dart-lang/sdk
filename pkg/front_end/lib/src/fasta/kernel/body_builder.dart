@@ -621,7 +621,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return receiver.doInvocation(charOffset, arguments);
     } else {
       return buildMethodInvocation(
-          toValue(receiver), callName, arguments, charOffset);
+          astFactory, toValue(receiver), callName, arguments, charOffset);
     }
   }
 
@@ -684,8 +684,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return buildCompileTimeError(
           "Not an operator: '$operator'.", token.charOffset);
     } else {
-      Expression result =
-          makeBinary(a, new Name(operator), null, b, offset: token.charOffset);
+      Expression result = makeBinary(astFactory, a, new Name(operator), null, b,
+          offset: token.charOffset);
       if (isSuper) {
         result = toSuperMethodInvocation(result);
       }
@@ -706,8 +706,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(makeLet(
         variable,
-        new ConditionalExpression(buildIsNull(new VariableGet(variable)), b,
-            new VariableGet(variable), const DynamicType())));
+        new ConditionalExpression(
+            buildIsNull(astFactory, new VariableGet(variable)),
+            b,
+            new VariableGet(variable),
+            const DynamicType())));
   }
 
   /// Handle `a?.b(...)`.
@@ -751,7 +754,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         astFactory.directPropertyGet(new ThisExpression(), target);
     receiver = astFactory.superPropertyGet(node.name, target);
     return buildMethodInvocation(
-        receiver, callName, node.arguments, node.fileOffset);
+        astFactory, receiver, callName, node.arguments, node.fileOffset);
   }
 
   bool areArgumentsCompatible(FunctionNode function, Arguments arguments) {
@@ -1743,13 +1746,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (receiver is ThisAccessor && receiver.isSuper) {
         push(toSuperMethodInvocation(buildMethodInvocation(
+            astFactory,
             astFactory.thisExpression(receiver.token),
             new Name(operator),
             new Arguments.empty(),
             token.charOffset)));
       } else {
-        push(buildMethodInvocation(toValue(receiver), new Name(operator),
-            new Arguments.empty(), token.charOffset));
+        push(buildMethodInvocation(astFactory, toValue(receiver),
+            new Name(operator), new Arguments.empty(), token.charOffset));
       }
     }
   }

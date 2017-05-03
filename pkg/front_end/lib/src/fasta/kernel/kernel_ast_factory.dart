@@ -128,6 +128,13 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   }
 
   @override
+  MethodInvocation methodInvocation(
+      Expression receiver, Name name, Arguments arguments,
+      [Procedure interfaceTarget]) {
+    return new KernelMethodInvocation(receiver, name, arguments);
+  }
+
+  @override
   Not not(Token token, Expression operand) {
     return new KernelNot(operand)..fileOffset = offsetForToken(token);
   }
@@ -135,6 +142,18 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   @override
   KernelNullLiteral nullLiteral(Token token) {
     return new KernelNullLiteral()..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  PropertyGet propertyGet(Expression receiver, Name name,
+      [Member interfaceTarget]) {
+    return new KernelPropertyGet(receiver, name, interfaceTarget);
+  }
+
+  @override
+  PropertySet propertySet(Expression receiver, Name name, Expression value,
+      [Member interfaceTarget]) {
+    return new KernelPropertySet(receiver, name, value, interfaceTarget);
   }
 
   @override
