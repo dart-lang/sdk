@@ -15825,7 +15825,7 @@ bool Instance::IsInstanceOf(
   ASSERT(!other.IsMalformed());
   ASSERT(!other.IsMalbounded());
   if (other.IsVoidType()) {
-    return false;
+    return true;
   }
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, clazz());

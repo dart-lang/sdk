@@ -3415,11 +3415,6 @@ listSuperNativeTypeCast(value, property) {
   propertyTypeCastError(value, property);
 }
 
-voidTypeCheck(value) {
-  if (value == null) return value;
-  throw new TypeErrorImplementation(value, 'void');
-}
-
 extractFunctionTypeObjectFrom(o) {
   var interceptor = getInterceptor(o);
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
