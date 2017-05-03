@@ -165,8 +165,10 @@ def to_gn_args(args, mode, arch, target_os):
   # TODO(zra): Investigate using clang with these configurations.
   # Clang compiles tcmalloc's inline assembly for ia32 on Linux wrong, so we
   # don't use clang in that configuration. Thus, we use gcc for ia32 *unless*
-  # a clang-based sanitizer is specified.
+  # asan or tsan is specified.
   has_clang = (host_os != 'win'
+               and args.os not in ['android']
+               and not gn_args['target_cpu'].startswith('arm')
                and not gn_args['target_cpu'].startswith('mips')
                and not ((gn_args['target_os'] == 'linux')
                         and (gn_args['host_cpu'] == 'x86')
@@ -246,7 +248,7 @@ def process_options(args):
       if os_name != 'android':
         print "Unsupported target os %s" % os_name
         return False
-      if not HOST_OS in ['linux', 'macos']:
+      if not HOST_OS in ['linux']:
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
@@ -365,8 +367,7 @@ def parse_args(args):
       type=int,
       help='Number of simultaneous GN invocations',
       dest='workers',
-      # Set to multiprocessing.cpu_count() when GN can be run in parallel.
-      default=1)
+      default=multiprocessing.cpu_count())
 
   options = parser.parse_args(args)
   if not process_options(options):
