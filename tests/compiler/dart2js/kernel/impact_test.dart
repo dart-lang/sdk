@@ -99,6 +99,12 @@ main() {
   testSyncStar();
   testAsync();
   testAsyncStar();
+  testLocalSyncStar();
+  testLocalAsync();
+  testLocalAsyncStar();
+  testAnonymousSyncStar();
+  testAnonymousAsync();
+  testAnonymousAsyncStar();
   testIfThen();
   testIfThenElse();
   testForIn(null);
@@ -255,6 +261,28 @@ testSetIfNull(o) => o ??= 42;
 testSyncStar() sync* {}
 testAsync() async {}
 testAsyncStar() async* {}
+testLocalSyncStar() {
+  local() sync* {}
+  return local;
+}
+testLocalAsync() {
+  local() async {}
+  return local;
+}
+testLocalAsyncStar() {
+  local() async* {}
+  return local;
+}
+testAnonymousSyncStar() {
+  return () sync* {};
+}
+testAnonymousAsync() {
+  return () async {};
+}
+testAnonymousAsyncStar() {
+  return () async* {};
+}
+
 testIfThen() {
   if (false) return 42;
   return 1;
