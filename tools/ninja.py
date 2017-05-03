@@ -90,7 +90,7 @@ def ProcessOptions(options, args):
       if os_name != 'android':
         print "Unsupported target os %s" % os_name
         return False
-      if not HOST_OS in ['linux']:
+      if not HOST_OS in ['linux', 'macos']:
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False

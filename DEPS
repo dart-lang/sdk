@@ -23,6 +23,7 @@ vars = {
 
   # Chromium git
   "chromium_git": "https://chromium.googlesource.com",
+  "fuchsia_git": "https://fuchsia.googlesource.com",
 
   # Only use this temporarily while waiting for a mirror for a new package.
   "github_dartlang": "https://github.com/dart-lang/%s.git",
@@ -30,9 +31,12 @@ vars = {
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
 
-  # Revisions of GN related dependencies.
-  "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
-  "clang_format_rev": "@0ed791d1387a3c9146ea6c453c646f3c0fc97784",
+  # Revisions of GN related dependencies. This should match the revision
+  # pulled by Flutter.
+  "buildtools_revision": "@c8db819853bcf8ce1635a8b7a395820f39b5a9fc",
+
+  # Scripts that make 'git cl format' work.
+  "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",
 
   "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
@@ -132,11 +136,10 @@ deps = {
 
   # Stuff needed for GN build.
   Var("dart_root") + "/buildtools":
-     Var('chromium_git') + '/chromium/buildtools.git' +
-     Var('buildtools_revision'),
+     Var("fuchsia_git") + "/buildtools" + Var("buildtools_revision"),
   Var("dart_root") + "/buildtools/clang_format/script":
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
-    Var("clang_format_rev"),
+    Var("clang_format_scripts_rev"),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
@@ -346,11 +349,6 @@ deps = {
 }
 
 deps_os = {
-  "android": {
-    Var("dart_root") + "/third_party/android_tools":
-      Var("chromium_git") + "/android_tools.git" +
-      "@aaeda3d69df4b4352e3cac7c16bea7f16bd1ec12",
-  },
   "win": {
     Var("dart_root") + "/third_party/cygwin":
       Var("chromium_git") + "/chromium/deps/cygwin.git" +
@@ -361,98 +359,6 @@ deps_os = {
 # TODO(iposva): Move the necessary tools so that hooks can be run
 # without the runtime being available.
 hooks = [
-  # Pull GN binaries. This needs to be before running GYP below.
-  {
-    'name': 'gn_linux64',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--quiet',
-      '--platform=linux*',
-      '--bucket',
-      'chromium-gn',
-      '-s',
-      Var('dart_root') + '/buildtools/linux64/gn.sha1',
-    ],
-  },
-  {
-    'name': 'gn_mac',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--quiet',
-      '--platform=darwin',
-      '--bucket',
-      'chromium-gn',
-      '-s',
-      Var('dart_root') + '/buildtools/mac/gn.sha1',
-    ],
-  },
-  {
-    'name': 'gn_win',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--quiet',
-      '--platform=win*',
-      '--bucket',
-      'chromium-gn',
-      '-s',
-      Var('dart_root') + '/buildtools/win/gn.exe.sha1',
-    ],
-  },
-  # Pull clang-format binaries using checked-in hashes.
-  {
-    'name': 'clang_format_win',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--quiet',
-      '--platform=win32',
-      '--bucket',
-      'chromium-clang-format',
-      '-s',
-      Var('dart_root') + '/buildtools/win/clang-format.exe.sha1',
-    ],
-  },
-  {
-    'name': 'clang_format_linux',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--quiet',
-      '--platform=linux*',
-      '--bucket',
-      'chromium-clang-format',
-      '-s',
-      Var('dart_root') + '/buildtools/linux64/clang-format.sha1',
-    ],
-  },
-  {
-    'name': 'clang_format_mac',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--quiet',
-      '--platform=darwin',
-      '--bucket',
-      'chromium-clang-format',
-      '-s',
-      Var('dart_root') + '/buildtools/mac/clang-format.sha1',
-    ],
-  },
   {
     'name': 'd8_testing_binaries',
     'pattern': '.',
@@ -559,21 +465,6 @@ hooks = [
     ],
   },
   {
-    "name": "clang",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--platform=linux*",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/clang.tar.gz.sha1",
-    ],
-  },
-  {
     # Pull Debian wheezy sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
@@ -588,10 +479,14 @@ hooks = [
                '--running-as-hook', '--arch', 'amd64'],
   },
   {
-    # Pull clang if needed or requested via GYP_DEFINES.
-    'name': 'gn_clang',
+    'name': 'download_android_tools',
     'pattern': '.',
-    'action': ['python', 'sdk/tools/clang/scripts/update.py', '--if-needed'],
+    'action': ['python', 'sdk/tools/android/download_android_tools.py'],
+  },
+  {
+    'name': 'buildtools',
+    'pattern': '.',
+    'action': ['python', 'sdk/tools/buildtools/update.py'],
   },
   {
     # Update the Windows toolchain if necessary.
