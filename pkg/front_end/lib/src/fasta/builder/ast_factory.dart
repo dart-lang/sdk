@@ -186,4 +186,7 @@ abstract class AstFactory<V> {
   /// Creates a read of a local variable.
   VariableGet variableGet(VariableDeclaration variable,
       TypePromotionFact<V> fact, TypePromotionScope scope, Token token);
+
+  /// Creates a write of a local variable.
+  VariableSet variableSet(VariableDeclaration variable, Expression value);
 }

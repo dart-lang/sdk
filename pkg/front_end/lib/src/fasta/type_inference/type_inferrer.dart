@@ -321,6 +321,11 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
         ? (promotedType ?? declaredType ?? const DynamicType())
         : null;
   }
+
+  DartType inferVariableSet(
+      DartType typeContext, bool typeNeeded, DartType declaredType, E value) {
+    return inferExpression(value, declaredType, typeNeeded);
+  }
 }
 
 /// Keeps track of information about the innermost function or closure being

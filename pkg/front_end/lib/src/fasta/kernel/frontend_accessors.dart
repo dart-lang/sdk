@@ -173,7 +173,7 @@ abstract class VariableAccessor extends Accessor {
     helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
     return variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
-        : new VariableSet(variable, value)
+        : helper.astFactory.variableSet(variable, value)
       ..fileOffset = offsetForToken(token);
   }
 }

@@ -872,3 +872,17 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
     });
   }
 }
+
+/// Concrete shadow object representing a write to a variable in kernel form.
+class KernelVariableSet extends VariableSet implements KernelExpression {
+  KernelVariableSet(VariableDeclaration variable, Expression value)
+      : super(variable, value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var variable = this.variable as KernelVariableDeclaration;
+    return inferrer.inferVariableSet(
+        typeContext, typeNeeded, variable._declaredType, value);
+  }
+}

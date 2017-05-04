@@ -249,4 +249,9 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
     return new KernelVariableGet(variable, fact, scope)
       ..fileOffset = offsetForToken(token);
   }
+
+  @override
+  VariableSet variableSet(VariableDeclaration variable, Expression value) {
+    return new KernelVariableSet(variable, value);
+  }
 }
