@@ -15,7 +15,7 @@ dependencies:
   glob: ^1.0.3
   html: '>=0.12.0 <1.14.0'
   isolate: '>=0.2.2 <2.0.0'
-  kernel: 0.3.0-dev.1
+  kernel: 0.3.0-alpha.1
   meta: ^1.0.2
   package_config: '>=0.1.5 <2.0.0'
   path: '>=0.9.0 <2.0.0'

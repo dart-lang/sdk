@@ -1,5 +1,5 @@
 name: kernel
-version: 0.3.0-dev.1
+version: 0.3.0-alpha.1
 author: Dart Team <misc@dartlang.org>
 description: Dart IR (Intermediate Representation)
 homepage: https://github.com/dart-lang/kernel
