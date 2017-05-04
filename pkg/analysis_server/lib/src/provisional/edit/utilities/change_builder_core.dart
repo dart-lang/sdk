@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/utilities/change_builder_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -81,36 +82,37 @@ abstract class EditBuilder {
  */
 abstract class FileEditBuilder {
   /**
-   * Add a deletion of text starting at the given [offset] and continuing for
-   * the given [length].
+   * Add a deletion of text specified by the given [range]. The [range] is
+   * relative to the original source. This is fully equivalent to
+   *
+   *     addSimpleReplacement(range, '');
    */
-  void addDeletion(int offset, int length);
+  void addDeletion(SourceRange range);
 
   /**
    * Add an insertion of text at the given [offset]. The [offset] is relative to
    * the original source. The [buildEdit] function is used to write the text to
    * be inserted. This is fully equivalent to
    *
-   *     addReplacement(offset, 0, buildEdit);
+   *     addReplacement(new SourceRange(offset, 0), buildEdit);
    */
   void addInsertion(int offset, void buildEdit(EditBuilder builder));
 
   /**
-   * Add the region of text starting at the given [offset] and continuing for
-   * the given [length] to the linked edit group with the given [groupName].
-   * The [offset] is relative to the original source. This is typically used to
-   * include pre-existing regions of text in a group.
+   * Add the region of text specified by the given [range] to the linked edit
+   * group with the given [groupName]. The [range] is relative to the original
+   * source. This is typically used to include pre-existing regions of text in a
+   * group. If the region to be included is part of newly generated text, then
+   * the method [EditBuilder.addLinkedEdit] should be used instead.
    */
-  void addLinkedPosition(int offset, int length, String groupName);
+  void addLinkedPosition(SourceRange range, String groupName);
 
   /**
-   * Add a replacement of text starting at the given [offset] and continuing for
-   * the given [length]. The [offset] is relative to the original source. The
-   * [buildEdit] function is used to write the text that will replace the
-   * specified region.
+   * Add a replacement of text specified by the given [range]. The [range] is
+   * relative to the original source. The [buildEdit] function is used to write
+   * the text that will replace the specified region.
    */
-  void addReplacement(
-      int offset, int length, void buildEdit(EditBuilder builder));
+  void addReplacement(SourceRange range, void buildEdit(EditBuilder builder));
 
   /**
    * Add an insertion of the given [text] at the given [offset]. The [offset] is
@@ -123,16 +125,15 @@ abstract class FileEditBuilder {
   void addSimpleInsertion(int offset, String text);
 
   /**
-   * Add a replacement of the text starting at the given [offset] and continuing
-   * for the given [length]. The [offset] is relative to the original source.
-   * The original content will be replaced by the given [text]. This is fully
-   * equivalent to
+   * Add a replacement of the text specified by the given [range]. The [range]
+   * is relative to the original source. The original content will be replaced
+   * by the given [text]. This is fully equivalent to
    *
    *     addReplacement(offset, length, (EditBuilder builder) {
    *       builder.write(text);
    *     });
    */
-  void addSimpleReplacement(int offset, int length, String text);
+  void addSimpleReplacement(SourceRange range, String text);
 }
 
 /**

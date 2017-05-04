@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/change_builder_core.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -668,8 +669,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // wrap the existing type with Future
     String returnTypeCode =
         nodeCode == 'void' ? futureTypeCode : '$futureTypeCode<$nodeCode>';
-    addReplacement(typeAnnotation.offset, typeAnnotation.length,
-        (EditBuilder builder) {
+    addReplacement(rangeNode(typeAnnotation), (EditBuilder builder) {
       builder.write(returnTypeCode);
     });
   }
