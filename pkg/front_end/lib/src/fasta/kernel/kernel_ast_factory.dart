@@ -124,7 +124,7 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
       DartType valueType: const DynamicType()}) {
     return new KernelMapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: constKeyword != null)
-      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset;
+      ..fileOffset = constKeyword?.charOffset ?? offsetForToken(beginToken);
   }
 
   @override

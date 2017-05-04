@@ -1292,9 +1292,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Too many type arguments on List literal.", beginToken.charOffset);
       }
     }
-    push(new ListLiteral(expressions,
-        typeArgument: typeArgument, isConst: constKeyword != null)
-      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset);
+    push(astFactory.listLiteral(expressions, typeArgument, constKeyword != null,
+        constKeyword ?? beginToken));
   }
 
   @override

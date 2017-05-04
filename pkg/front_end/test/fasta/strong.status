@@ -241,7 +241,6 @@ inference/infer_type_on_var_from_field: Fail
 inference/infer_type_on_var2: Fail
 inference/infer_type_on_var_from_top_level: Fail
 inference/infer_type_regardless_of_declaration_order_or_cycles: Fail
-inference/infer_typed_list_literal: Fail
 inference/infer_typed_map_literal: Fail
 inference/infer_type_regardless_of_declaration_order_or_cycles_b: Fail
 inference/infer_types_on_generic_instantiations_3: Fail

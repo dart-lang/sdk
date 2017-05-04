@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic a = <core::int>[];
+static field dynamic b = <core::double>[1.0, 2.0, 3.0];
+static field dynamic c = <core::List<core::int>>[];
+static field dynamic d = <dynamic>[1, 2.0, false];
+static method main() → dynamic {
+  dynamic a = <core::int>[];
+  dynamic b = <core::double>[1.0, 2.0, 3.0];
+  dynamic c = <core::List<core::int>>[];
+  dynamic d = <dynamic>[1, 2.0, false];
+}

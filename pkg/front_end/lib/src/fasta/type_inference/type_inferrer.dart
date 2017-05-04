@@ -223,6 +223,20 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return typeNeeded ? coreTypes.boolClass.rawType : null;
   }
 
+  /// Performs the core type inference algorithm for list literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferListLiteral(
+      DartType typeContext, bool typeNeeded, DartType typeArgument) {
+    if (!typeNeeded) return null;
+    if (typeArgument != null) {
+      return new InterfaceType(coreTypes.listClass, [typeArgument]);
+    }
+    // TODO(scheglov) Implement LUB for list elements
+    return const DynamicType();
+  }
+
   /// Performs the core type inference algorithm for static variable getters.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in

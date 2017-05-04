@@ -299,15 +299,14 @@ class KernelIsNotExpression extends Not implements KernelExpression {
 
 /// Concrete shadow object representing a list literal in kernel form.
 class KernelListLiteral extends ListLiteral implements KernelExpression {
-  KernelListLiteral(List<KernelExpression> expressions,
+  KernelListLiteral(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
       : super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(paulberry): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferListLiteral(typeContext, typeNeeded, typeArgument);
   }
 }
 
