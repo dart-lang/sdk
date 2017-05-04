@@ -7,6 +7,17 @@
 
 #### Strong Mode
 
+* Removed ad hoc Future.then inference in favor of using FutureOr.  Prior to
+adding FutureOr to the language, the analyzer implented an ad hoc type inference
+for Future.then (and overrides) treating it as if the onValue callback was typed
+to return FutureOr for the purposes of inference.  This ad hoc inference has
+been removed now that FutureOr has been added.
+
+Packages that implement `Future` must either type the `onValue` parameter to
+`.then` as returning `FutureOr<T>`, or else must leave the type of the parameter
+entirely to allow inference to fill in the type.
+
+
 ### Core library changes
 
 * `dart:io`
