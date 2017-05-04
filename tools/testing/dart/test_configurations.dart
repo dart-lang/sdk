@@ -62,7 +62,7 @@ Future testConfigurations(List<Map> configurations) async {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];
-  var maxProcesses = firstConf['tasks'];
+  var maxProcesses = firstConf['tasks'] as int;
   var progressIndicator = firstConf['progress'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];

@@ -460,7 +460,7 @@ class TestingServers {
 }
 
 // Helper class for displaying directory listings.
-class _Entry implements Comparable {
+class _Entry implements Comparable<_Entry> {
   final String name;
   final String displayName;
 
