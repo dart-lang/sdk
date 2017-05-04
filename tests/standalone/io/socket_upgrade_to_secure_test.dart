@@ -164,7 +164,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
               SecureSocket.secure(socket, host: HOST, context: clientContext);
         }
         return future.then((secureSocket) {
-          socket.add([0]);
+          Expect.throws(() {
+            socket.add([0]);
+          });
           return secureSocket;
         });
       });
@@ -179,7 +181,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
                 SecureSocket.secure(socket, host: HOST, context: clientContext);
           }
           return future.then((secureSocket) {
-            socket.add([0]);
+            Expect.throws(() {
+              socket.add([0]);
+            });
             return secureSocket;
           });
         });
@@ -191,7 +195,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
     server.listen((client) {
       if (!handshakeBeforeSecure) {
         SecureSocket.secureServer(client, serverContext).then((secureClient) {
-          client.add([0]);
+          Expect.throws(() {
+            client.add([0]);
+          });
           runServer(secureClient).then((_) => server.close());
         });
       } else {
@@ -199,7 +205,9 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
           SecureSocket
               .secureServer(client, serverContext, bufferedData: carryOverData)
               .then((secureClient) {
-            client.add([0]);
+            Expect.throws(() {
+              client.add([0]);
+            });
             runServer(secureClient).then((_) => server.close());
           });
         });

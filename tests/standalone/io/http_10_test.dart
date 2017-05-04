@@ -29,7 +29,9 @@ void testHttp10NoKeepAlive() {
       response.write("Z");
       response.write("Z");
       response.close();
-      response.write("x");
+      Expect.throws(() {
+        response.write("x");
+      }, (e) => e is StateError);
     }, onError: (e, trace) {
       String msg = "Unexpected error $e";
       if (trace != null) msg += "\nStackTrace: $trace";
