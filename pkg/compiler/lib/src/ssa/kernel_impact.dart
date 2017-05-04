@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart' show AstElement, ResolvedAst;
@@ -279,6 +280,19 @@ class KernelImpactBuilder extends ir.Visitor {
             constructor, callStructure, type));
     if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
+    if (isConst && commonElements.isSymbolConstructor(constructor)) {
+      ConstantValue value =
+          elementAdapter.getConstantValue(node.arguments.positional.first);
+      if (!value.isString) {
+        throw new SpannableAssertionFailure(
+            CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected constant value in const Symbol(...) call: "
+            "${value.toStructuredText()}");
+      }
+      StringConstantValue stringValue = value;
+      impactBuilder
+          .registerConstSymbolName(stringValue.primitiveValue.slowToString());
     }
   }
 

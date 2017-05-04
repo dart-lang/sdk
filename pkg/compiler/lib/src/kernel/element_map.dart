@@ -77,8 +77,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this);
-    _nativeBehaviorBuilder =
-        new KernelBehaviorBuilder(_commonElements, _constantEnvironment);
+    _nativeBehaviorBuilder = new KernelBehaviorBuilder(_commonElements);
     _types = new _KernelDartTypes(this);
     _typeConverter = new DartTypeConverter(this);
   }
@@ -123,6 +122,11 @@ class KernelToElementMap extends KernelElementAdapterMixin {
 
   @override
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
+
+  @override
+  ConstantValue computeConstantValue(ConstantExpression constant) {
+    return _constantEnvironment.getConstantValue(constant);
+  }
 
   LibraryEntity lookupLibrary(Uri uri) {
     _KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
@@ -194,7 +198,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     });
   }
 
-  Iterable<ConstantExpression> _getClassMetadata(KClass cls) {
+  Iterable<ConstantValue> _getClassMetadata(KClass cls) {
     return _classEnvs[cls.classIndex].getMetadata(this);
   }
 
@@ -737,7 +741,7 @@ class _KClassEnv {
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
 
-  Iterable<ConstantExpression> _metadata;
+  Iterable<ConstantValue> _metadata;
 
   _KClassEnv(this.cls)
       // TODO(johnniwinther): Change this to use a property on [cls] when such
@@ -806,21 +810,23 @@ class _KClassEnv {
     }
   }
 
-  Iterable<ConstantExpression> getMetadata(KernelToElementMap worldBuilder) {
-    if (_metadata == null) {
-      _metadata = worldBuilder.getMetadata(cls.annotations);
-    }
-    return _metadata;
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return _metadata ??= elementMap.getMetadata(cls.annotations);
   }
 }
 
 class _MemberData {
   final ir.Member node;
+  Iterable<ConstantValue> _metadata;
 
   _MemberData(this.node);
 
   ResolutionImpact getWorldImpact(KernelToElementMap elementMap) {
     return buildKernelImpact(node, elementMap);
+  }
+
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 }
 
@@ -1126,12 +1132,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 /// [native.BehaviorBuilder] for kernel based elements.
 class KernelBehaviorBuilder extends native.BehaviorBuilder {
   final CommonElements commonElements;
-  final ConstantEnvironment constants;
 
-  KernelBehaviorBuilder(
-    this.commonElements,
-    this.constants,
-  );
+  KernelBehaviorBuilder(this.commonElements);
 
   @override
   bool get trustJSInteropTypeAnnotations {

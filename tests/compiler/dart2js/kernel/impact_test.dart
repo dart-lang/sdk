@@ -55,6 +55,7 @@ main() {
   testStringInterpolationConst();
   testStringJuxtaposition();
   testSymbol();
+  testConstSymbol();
   testTypeLiteral();
   testBoolFromEnvironment();
   testEmptyListLiteral();
@@ -215,6 +216,7 @@ testStringInterpolationConst() {
 }
 testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
+testConstSymbol() => const Symbol('main');
 testTypeLiteral() => Object;
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 testEmptyListLiteral() => [];

@@ -86,10 +86,10 @@ main() {
   new Class1().method1();
   new Class2().method2();
   new Class2().method3();
-  null is List<int>;
+  null is List<int>; // Use generic test
   method1(); // Both top level and instance method named 'method1' are live.
   #main; // Use a const symbol.
-  new Int8List(0);
+  new Int8List(0); // Use redirect factory to abstract native class
 }
 '''
 };

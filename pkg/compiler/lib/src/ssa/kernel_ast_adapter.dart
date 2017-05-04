@@ -85,6 +85,11 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     _typeConverter = new DartTypeConverter(this);
   }
 
+  @override
+  ConstantValue computeConstantValue(ConstantExpression constant) {
+    return _compiler.constants.getConstantValue(constant);
+  }
+
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
   ir.Node getInitialKernelNode(Element originTarget) {

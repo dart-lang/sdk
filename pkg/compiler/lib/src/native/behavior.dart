@@ -6,8 +6,6 @@ import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
-import '../compile_time_constants.dart' show ConstantEnvironment;
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
@@ -770,10 +768,10 @@ class NativeBehavior {
       MethodElement element, Compiler compiler,
       {bool isJsInterop}) {
     ResolutionFunctionType type = element.computeType(compiler.resolution);
-    List<ConstantExpression> metadata = <ConstantExpression>[];
+    List<ConstantValue> metadata = <ConstantValue>[];
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(compiler.resolution);
-      metadata.add(annotation.constant);
+      metadata.add(compiler.constants.getConstantValue(annotation.constant));
     }
 
     BehaviorBuilder builder =
@@ -788,10 +786,10 @@ class NativeBehavior {
       {bool isJsInterop}) {
     Resolution resolution = compiler.resolution;
     ResolutionDartType type = element.computeType(resolution);
-    List<ConstantExpression> metadata = <ConstantExpression>[];
+    List<ConstantValue> metadata = <ConstantValue>[];
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(compiler.resolution);
-      metadata.add(annotation.constant);
+      metadata.add(compiler.constants.getConstantValue(annotation.constant));
     }
 
     BehaviorBuilder builder =
@@ -851,7 +849,6 @@ class NativeBehavior {
 abstract class BehaviorBuilder {
   CommonElements get commonElements;
   DiagnosticReporter get reporter;
-  ConstantEnvironment get constants;
   NativeData get nativeData;
   bool get trustJSInteropTypeAnnotations;
 
@@ -860,7 +857,7 @@ abstract class BehaviorBuilder {
   NativeBehavior _behavior;
 
   void _overrideWithAnnotations(
-      Iterable<ConstantExpression> metadata, TypeLookup lookupType) {
+      Iterable<ConstantValue> metadata, TypeLookup lookupType) {
     if (metadata.isEmpty) return;
 
     List creates =
@@ -885,11 +882,10 @@ abstract class BehaviorBuilder {
    * [annotationClass].
    * Returns `null` if no constraints.
    */
-  List _collect(Iterable<ConstantExpression> metadata,
-      ClassEntity annotationClass, TypeLookup lookupType) {
+  List _collect(Iterable<ConstantValue> metadata, ClassEntity annotationClass,
+      TypeLookup lookupType) {
     var types = null;
-    for (ConstantExpression constant in metadata) {
-      ConstantValue value = constants.getConstantValue(constant);
+    for (ConstantValue value in metadata) {
       if (!value.isConstructedObject) continue;
       ConstructedConstantValue constructedObject = value;
       if (constructedObject.type.element != annotationClass) continue;
@@ -898,7 +894,7 @@ abstract class BehaviorBuilder {
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || !fields.single.isString) {
         reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-            'Annotations needs one string: ${constant.toStructuredText()}');
+            'Annotations needs one string: ${value.toStructuredText()}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
@@ -978,8 +974,8 @@ abstract class BehaviorBuilder {
     }
   }
 
-  NativeBehavior buildFieldLoadBehavior(DartType type,
-      Iterable<ConstantExpression> metadata, TypeLookup lookupType,
+  NativeBehavior buildFieldLoadBehavior(
+      DartType type, Iterable<ConstantValue> metadata, TypeLookup lookupType,
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
@@ -1002,7 +998,7 @@ abstract class BehaviorBuilder {
   }
 
   NativeBehavior buildMethodBehavior(FunctionType type,
-      List<ConstantExpression> metadata, TypeLookup lookupType,
+      Iterable<ConstantValue> metadata, TypeLookup lookupType,
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     DartType returnType = type.returnType;
@@ -1048,9 +1044,6 @@ class ResolverBehaviorBuilder extends BehaviorBuilder {
   @override
   bool get trustJSInteropTypeAnnotations =>
       compiler.options.trustJSInteropTypeAnnotations;
-
-  @override
-  ConstantEnvironment get constants => compiler.constants;
 
   @override
   DiagnosticReporter get reporter => compiler.reporter;

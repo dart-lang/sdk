@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -107,6 +108,9 @@ abstract class KernelElementAdapter {
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+
+  /// Computes the [ConstantValue] for the constant [expression].
+  ConstantValue getConstantValue(ir.Expression expression);
 }
 
 /// Kinds of foreign functions.
@@ -122,6 +126,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   DiagnosticReporter get reporter;
   FunctionType getFunctionType(ir.FunctionNode node);
   native.BehaviorBuilder get nativeBehaviorBuilder;
+  ConstantValue computeConstantValue(ConstantExpression constant);
 
   @override
   Name getName(ir.Name name) {
@@ -191,17 +196,21 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     return new Selector.setter(name);
   }
 
-  /// Converts [annotations] into a list of [ConstantExpression]s.
-  List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
-    if (annotations.isEmpty) return const <ConstantExpression>[];
-    List<ConstantExpression> metadata = <ConstantExpression>[];
+  ConstantValue getConstantValue(ir.Expression node) {
+    ConstantExpression constant = new Constantifier(this).visit(node);
+    if (constant == null) {
+      throw new UnsupportedError(
+          'No constant for ${DebugPrinter.prettyPrint(node)}');
+    }
+    return computeConstantValue(constant);
+  }
+
+  /// Converts [annotations] into a list of [ConstantValue]s.
+  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
+    if (annotations.isEmpty) return const <ConstantValue>[];
+    List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
-      ConstantExpression constant = new Constantifier(this).visit(node);
-      if (constant == null) {
-        throw new UnsupportedError(
-            'No constant for ${DebugPrinter.prettyPrint(node)}');
-      }
-      metadata.add(constant);
+      metadata.add(getConstantValue(node));
     });
     return metadata;
   }
@@ -408,7 +417,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
     DartType type = getDartType(field.type);
-    List<ConstantExpression> metadata = getMetadata(field.annotations);
+    List<ConstantValue> metadata = getMetadata(field.annotations);
     // TODO(johnniwinther): Provide the correct value for [isJsInterop].
     return nativeBehaviorBuilder.buildFieldLoadBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
@@ -426,7 +435,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   // TODO(johnniwinther): Cache this for later use.
   native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
     DartType type = getFunctionType(procedure.function);
-    List<ConstantExpression> metadata = getMetadata(procedure.annotations);
+    List<ConstantValue> metadata = getMetadata(procedure.annotations);
     // TODO(johnniwinther): Provide the correct value for [isJsInterop].
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),

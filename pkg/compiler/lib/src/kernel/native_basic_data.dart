@@ -19,9 +19,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
       String annotationName;
       // TODO(johnniwinther): Make [_getClassMetadata] public and at test to
       // guard against misuse.
-      for (ConstantExpression annotation in elementMap._getClassMetadata(cls)) {
-        ConstantValue value =
-            elementMap.constantEnvironment.getConstantValue(annotation);
+      for (ConstantValue value in elementMap._getClassMetadata(cls)) {
         String name = readAnnotationName(
             cls, value, commonElements.nativeAnnotationClass);
         if (annotationName == null) {
