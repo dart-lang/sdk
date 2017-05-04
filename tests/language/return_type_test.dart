@@ -21,7 +21,7 @@ void returnString2() => 's';
 main() {
   if (isCheckedMode()) {
     Expect.throws(returnString1, (e) => e is TypeError);
-    Expect.throws(returnString2, (e) => e is TypeError);
+    returnString2();
     returnNull();
   } else {
     returnString1();

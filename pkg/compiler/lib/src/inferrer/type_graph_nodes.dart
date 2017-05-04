@@ -1753,14 +1753,13 @@ TypeMask _narrowType(
     {bool isNullable: true}) {
   if (annotation.treatAsDynamic) return type;
   if (annotation.isObject) return type;
+  if (annotation.isVoid) return type;
   TypeMask otherType;
   if (annotation.isTypedef || annotation.isFunctionType) {
     otherType = closedWorld.commonMasks.functionType;
   } else if (annotation.isTypeVariable) {
     // TODO(ngeoffray): Narrow to bound.
     return type;
-  } else if (annotation.isVoid) {
-    otherType = closedWorld.commonMasks.nullType;
   } else {
     ResolutionInterfaceType interfaceType = annotation;
     otherType = new TypeMask.nonNullSubtype(interfaceType.element, closedWorld);

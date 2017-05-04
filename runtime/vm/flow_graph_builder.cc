@@ -1259,8 +1259,9 @@ bool EffectGraphVisitor::CanSkipTypeCheck(TokenPosition token_pos,
     return false;
   }
 
-  // Any type is more specific than the dynamic type and than the Object type.
-  if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
+  // Any type is more specific than the dynamic type, the Object type, or void.
+  if (dst_type.IsDynamicType() || dst_type.IsObjectType() ||
+      dst_type.IsVoidType()) {
     return true;
   }
 
