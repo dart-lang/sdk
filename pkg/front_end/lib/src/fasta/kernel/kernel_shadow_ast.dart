@@ -863,20 +863,9 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    bool mutatedInClosure;
-    DartType declaredType;
-    var variable = this.variable;
-    if (variable is KernelVariableDeclaration) {
-      mutatedInClosure = variable._mutatedInClosure;
-      declaredType = variable._declaredType;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      mutatedInClosure = true;
-      declaredType = variable.type;
-    }
+    var variable = this.variable as KernelVariableDeclaration;
+    bool mutatedInClosure = variable._mutatedInClosure;
+    DartType declaredType = variable._declaredType;
     return inferrer.inferVariableGet(typeContext, typeNeeded, mutatedInClosure,
         _fact, _scope, fileOffset, declaredType, (type) {
       promotedType = type;
