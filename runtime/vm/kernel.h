@@ -935,7 +935,12 @@ class FunctionNode : public TreeNode {
   DartType* return_type() { return return_type_; }
 
   Statement* body() { return body_; }
-  void set_body(Statement* body) { body_ = body; }
+  void ReplaceBody(Statement* body) {
+    delete body_;
+    // Use static_cast to invoke the conversion function and so avoid triggering
+    // ASSERT(pointer_ == NULL) in operator= when overwriting a non-NULL body.
+    static_cast<Statement*&>(body_) = body;
+  }
 
   TokenPosition position() { return position_; }
   TokenPosition end_position() { return end_position_; }

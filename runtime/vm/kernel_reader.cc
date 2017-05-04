@@ -213,9 +213,9 @@ Object& KernelReader::ReadProgram() {
       if (procedure != NULL) {
         // We will handle the StaticGet specially and will not use the name.
         //
-        // TODO(kmillikin): we are leaking the function body.  Find a way to
+        // TODO(kmillikin): we are leaking the new function body.  Find a way to
         // deallocate it.
-        procedure->function()->set_body(
+        procedure->function()->ReplaceBody(
             new ReturnStatement(new StaticGet(NameIndex())));
       }
       return library;
