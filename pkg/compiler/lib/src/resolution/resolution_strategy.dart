@@ -35,6 +35,7 @@ import '../universe/call_structure.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
@@ -82,7 +83,7 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
   }
 
   NoSuchMethodResolver createNoSuchMethodResolver() =>
-      new NoSuchMethodResolverImpl();
+      new ResolutionNoSuchMethodResolver();
 
   CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
       NativeBasicData nativeBasicData,

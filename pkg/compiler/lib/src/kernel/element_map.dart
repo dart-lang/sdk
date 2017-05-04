@@ -7,6 +7,7 @@ library dart2js.kernel.element_map;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
@@ -309,6 +310,11 @@ class KernelToElementMap extends KernelElementAdapterMixin {
       _memberList.add(new _FunctionData(node, node.function));
       return function;
     });
+  }
+
+  /// Returns the kernel [ir.Procedure] node for the [method].
+  ir.Procedure _lookupProcedure(KFunction method) {
+    return _memberList[method.memberIndex].node;
   }
 
   KField _getField(ir.Field node) {

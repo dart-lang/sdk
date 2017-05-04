@@ -42,6 +42,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/util/util.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -51,6 +52,7 @@ import '../serialization/model_test_helper.dart';
 import '../serialization/test_helper.dart';
 
 import 'closed_world_test.dart' hide KernelWorkItemBuilder;
+import 'compiler_helper.dart';
 import 'impact_test.dart';
 
 const SOURCE = const {
@@ -142,34 +144,15 @@ Future<ResultKind> mainInternal(List<String> args,
   BackendUsage backendUsage1 = compiler1.backend.backendUsage;
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
-  print('---- analyze-all -------------------------------------------------');
-  Compiler compiler = compilerFor(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
-  await compiler.run(entryPoint);
+  Pair<Compiler, Compiler> compilers =
+      await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
+  Compiler compiler = compilers.a;
   compiler.resolutionWorldBuilder.closeWorld();
   ElementEnvironment environment1 = compiler.elementEnvironment;
 
-  print('---- closed world from kernel ------------------------------------');
-  Compiler compiler2 = compilerFor(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeOnly,
-        Flags.enableAssertMessage,
-        Flags.loadFromDill
-      ]);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler2.resolution.retainCachesForTesting = true;
+  Compiler compiler2 = compilers.b;
   KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
   KernelToElementMap elementMap = frontEndStrategy.elementMap;
-  compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
-      elementMap,
-      compiler2.reporter,
-      compiler2.measurer,
-      compiler.backend.kernelTask.program);
-  await compiler2.run(entryPoint);
   Expect.isFalse(compiler2.compilationFailed);
 
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
@@ -300,17 +283,4 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
   });
 
   // TODO(johnniwinther): Test the remaining properties of [ElementEnvironment].
-}
-
-class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
-  final ir.Program program;
-
-  MemoryDillLibraryLoaderTask(KernelToElementMap elementMap,
-      DiagnosticReporter reporter, Measurer measurer, this.program)
-      : super(elementMap, null, null, reporter, measurer);
-
-  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
-      {bool skipFileWithPartOfTag: false}) async {
-    return createLoadedLibraries(program);
-  }
 }
