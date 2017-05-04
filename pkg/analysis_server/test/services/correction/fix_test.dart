@@ -580,7 +580,7 @@ main() {
 library libA;
 import 'package:meta/meta.dart';
 
-typedef int Callback(a,b,c);
+typedef int Callback(int a, String b,c);
 
 class A {
   A({@required Callback callback}) {}
@@ -600,7 +600,7 @@ main() {
 import 'libA.dart';
 
 main() {
-  A a = new A(callback: (a, b, c) {});
+  A a = new A(callback: (int a, String b, c) {});
 }
 ''',
         target: '/test.dart');
