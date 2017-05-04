@@ -259,6 +259,75 @@ class TypeSchemaEnvironmentTest {
     expect(env.getGreatestLowerBound(A, B), same(bottomType));
   }
 
+  void test_inferTypeFromConstraints_applyBound() {
+    // class A<T extends num> {}
+    var T = new TypeParameter('T', numType);
+    var A = _addClass(_class('A', typeParameters: [T])).thisType;
+    var env = _makeEnv();
+    {
+      // With no constraints:
+      var constraints = {T: new TypeConstraint()};
+      // Downward inference should infer A<?>
+      var typesFromDownwardsInference = <DartType>[null];
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference,
+              downwardsInferPhase: true),
+          new InterfaceType(A.classNode, [unknownType]));
+      expect(typesFromDownwardsInference[0], unknownType);
+      // Upward inference should infer A<num>
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference),
+          new InterfaceType(A.classNode, [numType]));
+    }
+    {
+      // With an upper bound of Object:
+      var constraints = {T: _makeConstraint(upper: objectType)};
+      // Downward inference should infer A<num>
+      var typesFromDownwardsInference = <DartType>[null];
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference,
+              downwardsInferPhase: true),
+          new InterfaceType(A.classNode, [numType]));
+      expect(typesFromDownwardsInference[0], numType);
+      // Upward inference should infer A<num>
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference),
+          new InterfaceType(A.classNode, [numType]));
+      // Upward inference should still infer A<num> even if there are more
+      // constraints now, because num was finalized during downward inference.
+      constraints = {T: _makeConstraint(lower: intType, upper: intType)};
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference),
+          new InterfaceType(A.classNode, [numType]));
+    }
+  }
+
+  void test_inferTypeFromConstraints_simple() {
+    var env = _makeEnv();
+    var T = listClass.typeParameters[0];
+    // With an upper bound of List<?>:
+    var constraints = {T: _makeConstraint(upper: _list(unknownType))};
+    // Downwards inference should infer List<List<?>>
+    var typesFromDownwardsInference = <DartType>[null];
+    expect(
+        env.inferTypeFromConstraints(
+            constraints, listClass.thisType, [T], typesFromDownwardsInference,
+            downwardsInferPhase: true),
+        _list(_list(unknownType)));
+    // And it should have recorded List<?> as the type inferred for T.
+    expect(typesFromDownwardsInference[0], _list(unknownType));
+    // Upwards inference should refine that to List<List<Null>>
+    expect(
+        env.inferTypeFromConstraints(
+            constraints, listClass.thisType, [T], typesFromDownwardsInference),
+        _list(_list(nullType)));
+  }
+
   void test_instantiateToBounds_noTypesKnown() {
     // class A {}
     var A = _addClass(_class('A')).rawType;
