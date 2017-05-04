@@ -254,8 +254,8 @@ spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 compile_time_error_test/01: MissingCompileTimeError
 message3_test/int32x4: Crash
 message_test: RuntimeError
-ping_pause_test: Timeout
-spawn_function_custom_class_test: Timeout
+ping_pause_test: Pass, Timeout
+spawn_function_custom_class_test: Pass, Timeout
 spawn_uri_exported_main_test: RuntimeError
 spawn_uri_nested_vm_test: Pass, Timeout
 
