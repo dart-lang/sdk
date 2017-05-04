@@ -4,8 +4,6 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
-
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
@@ -18,37 +16,22 @@ import 'package:front_end/src/fasta/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/builder/class_builder.dart'
     show ClassBuilder;
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
-    show TypeInferenceEngine;
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
 
 import 'package:kernel/ast.dart' show Expression, Field, Name;
 
 import 'kernel_builder.dart'
-    show
-        Builder,
-        FieldBuilder,
-        KernelTypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder;
+    show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  final AstFactory astFactory;
-  final TypeInferenceEngine typeInferenceEngine;
   final Field field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
   final Token initializerToken;
 
-  KernelFieldBuilder(
-      this.astFactory,
-      this.typeInferenceEngine,
-      this.metadata,
-      this.type,
-      String name,
-      int modifiers,
-      Builder compilationUnit,
-      int charOffset,
-      this.initializerToken)
+  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
+      Builder compilationUnit, int charOffset, this.initializerToken)
       : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
@@ -57,7 +40,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     field.initializer = value..parent = field;
   }
 
-  Field build(LibraryBuilder library) {
+  Field build(SourceLibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -70,7 +53,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
     if (initializerToken != null) {
-      typeInferenceEngine.recordField(field);
+      library.loader.typeInferenceEngine.recordField(field);
     }
     return field;
   }
@@ -78,13 +61,15 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   Field get target => field;
 
   @override
-  void prepareInitializerInference(TypeInferenceEngine typeInferenceEngine,
-      LibraryBuilder library, ClassBuilder currentClass) {
+  void prepareInitializerInference(
+      SourceLibraryBuilder library, ClassBuilder currentClass) {
     if (initializerToken != null) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
       // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
       // should it be the part URI?
+      var typeInferenceEngine = library.loader.typeInferenceEngine;
+      var astFactory = library.loader.astFactory;
       var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(field);
       var bodyBuilder = new BodyBuilder(
           library,

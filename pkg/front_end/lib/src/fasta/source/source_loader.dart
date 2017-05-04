@@ -391,7 +391,7 @@ class SourceLoader<L> extends Loader<L> {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        library.prepareInitializerInference(typeInferenceEngine, library, null);
+        library.prepareInitializerInference(library, null);
       }
     });
     ticker.logMs("Prepared initializer inference");
