@@ -5,15 +5,40 @@
 import 'dart:math' as math;
 
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+/// A constraint on a type parameter that we're inferring.
+class TypeConstraint {
+  /// The lower bound of the type being constrained.  This bound must be a
+  /// subtype of the type being constrained.
+  DartType lower = const UnknownType();
+
+  /// The upper bound of the type being constrained.  The type being constrained
+  /// must be a subtype of this bound.
+  DartType upper = const UnknownType();
+
+  String toString() =>
+      '${typeSchemaToString(lower)} <: <type> <: ${typeSchemaToString(upper)}';
+}
+
 class TypeSchemaEnvironment extends TypeEnvironment {
   TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : super(coreTypes, hierarchy);
+
+  /// Modify the given [constraint]'s lower bound to include [lower].
+  void addLowerBound(TypeConstraint constraint, DartType lower) {
+    constraint.lower = getLeastUpperBound(constraint.lower, lower);
+  }
+
+  /// Modify the given [constraint]'s upper bound to include [upper].
+  void addUpperBound(TypeConstraint constraint, DartType upper) {
+    constraint.upper = getGreatestLowerBound(constraint.upper, upper);
+  }
 
   /// Computes the greatest lower bound of [type1] and [type2].
   DartType getGreatestLowerBound(DartType type1, DartType type2) {
@@ -140,6 +165,35 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     } else {
       return super.isTop(t);
     }
+  }
+
+  /// Computes the constraint solution for a type variable based on a given set
+  /// of constraints.
+  ///
+  /// If [grounded] is `true`, then the returned type is guaranteed to be a
+  /// known type (i.e. it will not contain any instances of `?`).
+  DartType solveTypeConstraint(TypeConstraint constraint,
+      {bool grounded: false}) {
+    // Prefer the known bound, if any.
+    if (isKnown(constraint.lower)) return constraint.lower;
+    if (isKnown(constraint.upper)) return constraint.upper;
+
+    // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
+    if (constraint.lower is! UnknownType) {
+      return grounded
+          ? greatestClosure(coreTypes, constraint.lower)
+          : constraint.lower;
+    } else {
+      return grounded
+          ? leastClosure(coreTypes, constraint.upper)
+          : constraint.upper;
+    }
+  }
+
+  /// Determine if the given [type] satisfies the given type [constraint].
+  bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
+    return isSubtypeOf(constraint.lower, type) &&
+        isSubtypeOf(type, constraint.upper);
   }
 
   /// Compute the greatest lower bound of function types [f] and [g].

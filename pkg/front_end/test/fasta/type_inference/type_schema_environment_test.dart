@@ -51,11 +51,45 @@ class TypeSchemaEnvironmentTest {
 
   Class get mapClass => coreTypes.mapClass;
 
+  InterfaceType get nullType => coreTypes.nullClass.rawType;
+
   InterfaceType get numType => coreTypes.numClass.rawType;
 
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectType => objectClass.rawType;
+
+  void test_addLowerBound() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var C =
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    var typeConstraint = new TypeConstraint();
+    expect(typeConstraint.lower, same(unknownType));
+    env.addLowerBound(typeConstraint, B);
+    expect(typeConstraint.lower, same(B));
+    env.addLowerBound(typeConstraint, C);
+    expect(typeConstraint.lower, same(A));
+  }
+
+  void test_addUpperBound() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var C =
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    var typeConstraint = new TypeConstraint();
+    expect(typeConstraint.upper, same(unknownType));
+    env.addUpperBound(typeConstraint, A);
+    expect(typeConstraint.upper, same(A));
+    env.addUpperBound(typeConstraint, B);
+    expect(typeConstraint.upper, same(B));
+    env.addUpperBound(typeConstraint, C);
+    expect(typeConstraint.upper, same(bottomType));
+  }
 
   void test_glb_bottom() {
     var A = _addClass(_class('A')).rawType;
@@ -446,6 +480,122 @@ class TypeSchemaEnvironmentTest {
     expect(env.getGreatestLowerBound(unknownType, A), same(A));
   }
 
+  void test_solveTypeConstraint() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    // Solve(? <: T <: ?) => ?
+    expect(env.solveTypeConstraint(_makeConstraint()), same(unknownType));
+    // Solve(? <: T <: ?, grounded) => Null
+    expect(
+        env.solveTypeConstraint(_makeConstraint(), grounded: true), nullType);
+    // Solve(A <: T <: ?) => A
+    expect(env.solveTypeConstraint(_makeConstraint(lower: A)), A);
+    // Solve(A <: T <: ?, grounded) => A
+    expect(
+        env.solveTypeConstraint(_makeConstraint(lower: A), grounded: true), A);
+    // Solve(A<?> <: T <: ?) => A<?>
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: new InterfaceType(A.classNode, [unknownType]))),
+        new InterfaceType(A.classNode, [unknownType]));
+    // Solve(A<?> <: T <: ?, grounded) => A<Object>
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        new InterfaceType(A.classNode, [objectType]));
+    // Solve(? <: T <: A) => A
+    expect(env.solveTypeConstraint(_makeConstraint(upper: A)), A);
+    // Solve(? <: T <: A, grounded) => A
+    expect(
+        env.solveTypeConstraint(_makeConstraint(upper: A), grounded: true), A);
+    // Solve(? <: T <: A<?>) => A<?>
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            upper: new InterfaceType(A.classNode, [unknownType]))),
+        new InterfaceType(A.classNode, [unknownType]));
+    // Solve(? <: T <: A<?>, grounded) => A<Null>
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                upper: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        new InterfaceType(A.classNode, [nullType]));
+    // Solve(B <: T <: A) => B
+    expect(env.solveTypeConstraint(_makeConstraint(lower: B, upper: A)), B);
+    // Solve(B <: T <: A, grounded) => B
+    expect(
+        env.solveTypeConstraint(_makeConstraint(lower: B, upper: A),
+            grounded: true),
+        B);
+    // Solve(B<?> <: T <: A) => A
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: new InterfaceType(B.classNode, [unknownType]), upper: A)),
+        A);
+    // Solve(B<?> <: T <: A, grounded) => A
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(B.classNode, [unknownType]), upper: A),
+            grounded: true),
+        A);
+    // Solve(B <: T <: A<?>) => B
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: B, upper: new InterfaceType(A.classNode, [unknownType]))),
+        B);
+    // Solve(B <: T <: A<?>, grounded) => B
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: B, upper: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        B);
+    // Solve(B<?> <: T <: A<?>) => B<?>
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: new InterfaceType(B.classNode, [unknownType]),
+            upper: new InterfaceType(A.classNode, [unknownType]))),
+        new InterfaceType(B.classNode, [unknownType]));
+    // Solve(B<?> <: T <: A<?>) => B<Object>
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(B.classNode, [unknownType]),
+                upper: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        new InterfaceType(B.classNode, [objectType]));
+  }
+
+  void test_typeConstraint_default() {
+    var typeConstraint = new TypeConstraint();
+    expect(typeConstraint.lower, same(unknownType));
+    expect(typeConstraint.upper, same(unknownType));
+  }
+
+  void test_typeSatisfiesConstraint() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var C =
+        _addClass(_class('C', supertype: B.classNode.asThisSupertype)).rawType;
+    var D =
+        _addClass(_class('D', supertype: C.classNode.asThisSupertype)).rawType;
+    var E =
+        _addClass(_class('E', supertype: D.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    var typeConstraint = _makeConstraint(upper: B, lower: D);
+    expect(env.typeSatisfiesConstraint(A, typeConstraint), isFalse);
+    expect(env.typeSatisfiesConstraint(B, typeConstraint), isTrue);
+    expect(env.typeSatisfiesConstraint(C, typeConstraint), isTrue);
+    expect(env.typeSatisfiesConstraint(D, typeConstraint), isTrue);
+    expect(env.typeSatisfiesConstraint(E, typeConstraint), isFalse);
+  }
+
   void test_unknown_at_bottom() {
     var A = _addClass(_class('A')).rawType;
     var env = _makeEnv();
@@ -479,6 +629,14 @@ class TypeSchemaEnvironmentTest {
 
   DartType _list(DartType elementType) =>
       new InterfaceType(listClass, [elementType]);
+
+  TypeConstraint _makeConstraint(
+      {DartType lower: const UnknownType(),
+      DartType upper: const UnknownType()}) {
+    return new TypeConstraint()
+      ..lower = lower
+      ..upper = upper;
+  }
 
   TypeSchemaEnvironment _makeEnv() {
     return new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(program));

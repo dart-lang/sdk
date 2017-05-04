@@ -26,6 +26,32 @@ class UnknownTypeTest {
     expect(unknownType, isNot(equals(const DynamicType())));
   }
 
+  void test_isKnown() {
+    expect(isKnown(unknownType), isFalse);
+    expect(isKnown(const DynamicType()), isTrue);
+    var classA = new Class(name: 'A');
+    var A = new InterfaceType(classA);
+    var typedefF = new Typedef('F', A);
+    expect(isKnown(A), isTrue);
+    expect(isKnown(new InterfaceType(classA, [A])), isTrue);
+    expect(isKnown(new InterfaceType(classA, [unknownType])), isFalse);
+    expect(isKnown(new FunctionType([], const VoidType())), isTrue);
+    expect(isKnown(new FunctionType([], unknownType)), isFalse);
+    expect(isKnown(new FunctionType([A], const VoidType())), isTrue);
+    expect(isKnown(new FunctionType([unknownType], const VoidType())), isFalse);
+    expect(
+        isKnown(new FunctionType([], const VoidType(),
+            namedParameters: [new NamedType('x', A)])),
+        isTrue);
+    expect(
+        isKnown(new FunctionType([], const VoidType(),
+            namedParameters: [new NamedType('x', unknownType)])),
+        isFalse);
+    expect(isKnown(new TypedefType(typedefF)), isTrue);
+    expect(isKnown(new TypedefType(typedefF, [A])), isTrue);
+    expect(isKnown(new TypedefType(typedefF, [unknownType])), isFalse);
+  }
+
   void test_ordinary_visitor_noOverrides() {
     expect(unknownType.accept(new _OrdinaryVisitor()), isNull);
   }

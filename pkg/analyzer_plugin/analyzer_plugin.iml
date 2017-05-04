@@ -12,6 +12,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/src/channel/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/utilities/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/utilities/subscriptions/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/spec/packages" />
     </content>
