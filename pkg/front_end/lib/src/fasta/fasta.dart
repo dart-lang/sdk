@@ -173,8 +173,6 @@ Future<CompilationResult> parseScript(
           formatUnexpected(patchedSdk, -1, "Patched sdk directory not found."));
     }
 
-    Target target = getTarget("vm", new TargetFlags(strongMode: false));
-
     Program program;
     try {
       TranslateUri uriTranslator = await TranslateUri.parse(null, packages);
@@ -201,6 +199,7 @@ Future<CompilationResult> parseScript(
     }
 
     // Perform target-specific transformations.
+    Target target = getTarget("vm", new TargetFlags(strongMode: false));
     target.performModularTransformations(program);
     target.performGlobalTransformations(program);
 

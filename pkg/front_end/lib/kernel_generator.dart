@@ -5,18 +5,16 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator;
 
-import 'compilation_error.dart';
 import 'compiler_options.dart';
+import 'dart:async' show Future;
 import 'dart:async';
-
-import 'package:analyzer/src/generated/source.dart' show SourceKind;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummarySource;
-// TODO(sigmund): move loader logic under front_end/lib/src/kernel/
-import 'package:analyzer/src/kernel/loader.dart';
-import 'package:kernel/kernel.dart';
-import 'package:source_span/source_span.dart' show SourceSpan;
+import 'src/fasta/dill/dill_target.dart' show DillTarget;
+import 'src/fasta/errors.dart' show InputError;
+import 'src/fasta/kernel/kernel_target.dart' show KernelTarget;
+import 'package:kernel/kernel.dart' show Program;
+import 'src/fasta/ticker.dart' show Ticker;
+import 'src/fasta/translate_uri.dart' show TranslateUri;
+import 'src/simple_error.dart';
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].
@@ -37,18 +35,54 @@ import 'package:source_span/source_span.dart' show SourceSpan;
 /// take the place of Dart source code (since the Dart source code is still
 /// needed to access the contents of method bodies).
 Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
-  var loader = await _createLoader(options, entry: source);
+  var fs = options.fileSystem;
 
-  if (options.compileSdk) {
-    options.additionalLibraries.forEach(loader.loadLibrary);
+  report(String msg) {
+    options.onError(new SimpleError(msg));
+    return null;
   }
 
-  // TODO(sigmund): merge what we have in loadEverything and the logic below in
-  // kernelForBuildUnit so there is a single place where we crawl for
-  // dependencies.
-  loader.loadProgram(source, compileSdk: options.compileSdk);
-  _reportErrors(loader.errors, options.onError);
-  return loader.program;
+  if (!await fs.entityForUri(source).exists()) {
+    return report("Entry-point file not found: $source");
+  }
+
+  if (!await validateOptions(options)) return null;
+
+  try {
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(null, options.packagesFileUri);
+
+    var dillTarget =
+        new DillTarget(new Ticker(isVerbose: false), uriTranslator);
+    var summary = options.sdkSummary;
+    if (summary != null) dillTarget.read(summary);
+
+    var kernelTarget =
+        new KernelTarget(dillTarget, uriTranslator, options.strongMode);
+    kernelTarget.read(source);
+
+    await dillTarget.writeOutline(null);
+    await kernelTarget.writeOutline(null);
+    Program program = await kernelTarget.writeProgram(null);
+
+    if (kernelTarget.errors.isNotEmpty) {
+      kernelTarget.errors.forEach((e) => report('$e'));
+      return null;
+    }
+
+    if (program.mainMethod == null) {
+      return report("No 'main' method found.");
+    }
+
+    if (!options.compileSdk) {
+      // TODO(sigmund): ensure that the result is not including
+      // sources for the sdk, only external references.
+    }
+    return program;
+  } on InputError catch (e) {
+    options.onError(new SimpleError(e.format()));
+    return null;
+  }
 }
 
 /// Generates a kernel representation for a build unit.
@@ -86,103 +120,5 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
 /// obtained from?
 Future<Program> kernelForBuildUnit(
     List<Uri> sources, CompilerOptions options) async {
-  var program = new Program();
-  var loader = await _createLoader(options, program: program);
-  var context = loader.context;
-
-  // Process every library in the build unit.
-  for (var uri in sources) {
-    var source = context.sourceFactory.forUri2(uri);
-    //  We ignore part files, those are handled by their enclosing library.
-    if (context.computeKindOf(source) == SourceKind.PART) {
-      // TODO(sigmund): record it and ensure that this part is within a provided
-      // library.
-      continue;
-    }
-    loader.loadLibrary(uri);
-  }
-
-  // Check whether all dependencies were included in [sources].
-  // TODO(sigmund): we should look for dependencies using import, export, and
-  // part directives intead of relying on the dartk-loader.  In particular, if a
-  // library is imported but not used, the logic below will not detect it.
-  for (int i = 0; i < program.libraries.length; ++i) {
-    // Note: we don't use a for-in loop because program.libraries grows as
-    // the loader processes libraries.
-    var lib = program.libraries[i];
-    var source = context.sourceFactory.forUri2(lib.importUri);
-    if (source is InSummarySource) continue;
-    if (options.chaseDependencies) {
-      loader.ensureLibraryIsLoaded(lib);
-    } else if (lib.isExternal) {
-      // Default behavior: the build should be hermetic and all dependencies
-      // should be listed.
-      options.onError(new _DartkError('hermetic build error: '
-          'no source or summary was given for ${lib.importUri}'));
-    }
-  }
-
-  _reportErrors(loader.errors, options.onError);
-  return program;
-}
-
-/// Create a [DartLoader] using the provided [options].
-///
-/// If [options] contain no configuration to resolve `.packages`, the [entry]
-/// file will be used to search for a `.packages` file.
-Future<DartLoader> _createLoader(CompilerOptions options,
-    {Program program, Uri entry}) async {
-  var kernelOptions = _convertOptions(options);
-  var packages = await createPackages(_uriToPath(options.packagesFileUri),
-      discoveryPath: entry?.path);
-  var loader =
-      new DartLoader(program ?? new Program(), kernelOptions, packages);
-  var patchPaths = <String, List<String>>{};
-
-  // TODO(sigmund,paulberry): use ProcessedOptions so that we can resolve the
-  // URIs correctly even if sdkRoot is inferred and not specified explicitly.
-  String resolve(Uri patch) => _uriToPath(options.sdkRoot.resolveUri(patch));
-
-  options.targetPatches.forEach((uri, patches) {
-    patchPaths['$uri'] = patches.map(resolve).toList();
-  });
-  AnalysisOptionsImpl analysisOptions = loader.context.analysisOptions;
-  analysisOptions.patchPaths = patchPaths;
-  return loader;
-}
-
-DartOptions _convertOptions(CompilerOptions options) {
-  return new DartOptions(
-      strongMode: options.strongMode,
-      sdk: _uriToPath(options.sdkRoot),
-      // TODO(sigmund): make it possible to use summaries and still compile the
-      // sdk sources.
-      sdkSummary: options.compileSdk ? null : _uriToPath(options.sdkSummary),
-      packagePath: _uriToPath(options.packagesFileUri),
-      customUriMappings: options.uriOverride,
-      declaredVariables: options.declaredVariables);
-}
-
-void _reportErrors(List errors, ErrorHandler onError) {
-  if (onError == null) return;
-  for (var error in errors) {
-    onError(new _DartkError(error));
-  }
-}
-
-String _uriToPath(Uri uri) {
-  if (uri == null) return null;
-  if (uri.scheme != 'file') {
-    throw new StateError('Only file URIs are supported: $uri');
-  }
-  return uri.toFilePath();
-}
-
-// TODO(sigmund): delete this class. Dartk should not format errors itself, we
-// should just pass them along.
-class _DartkError implements CompilationError {
-  String get correction => null;
-  SourceSpan get span => null;
-  final String message;
-  _DartkError(this.message);
+  throw new UnimplementedError("kernel for build-unit is not implemented");
 }
