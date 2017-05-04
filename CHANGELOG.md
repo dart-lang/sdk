@@ -17,8 +17,6 @@
   * JSON maps are now typed as `Map<String, dynamic>` instead of
     `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
     anymore (but just a `Map`).
-* `dart:async`, `dart:io`, `dart:core`
-    * Adding to a closed sink, including `IOSink`, now throws.
 
 ### Dart VM
 

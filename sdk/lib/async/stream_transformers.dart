@@ -209,19 +209,12 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   final _TransformDoneHandler<T> _handleDone;
 
   /// The output sink where the handlers should send their data into.
-  EventSink<T> _sink;
+  final EventSink<T> _sink;
 
   _HandlerEventSink(
-      this._handleData, this._handleError, this._handleDone, this._sink) {
-    if (_sink == null) {
-      throw new ArgumentError("The provided sink must not be null.");
-    }
-  }
-
-  bool get _isClosed => _sink == null;
+      this._handleData, this._handleError, this._handleDone, this._sink);
 
   void add(S data) {
-    if (_isClosed) throw new StateError("Sink is closed");
     if (_handleData != null) {
       _handleData(data, _sink);
     } else {
@@ -230,7 +223,6 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    if (_isClosed) throw new StateError("Sink is closed");
     if (_handleError != null) {
       _handleError(error, stackTrace, _sink);
     } else {
@@ -239,13 +231,10 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void close() {
-    if (_isClosed) return;
-    var sink = _sink;
-    _sink = null;
     if (_handleDone != null) {
-      _handleDone(sink);
+      _handleDone(_sink);
     } else {
-      sink.close();
+      _sink.close();
     }
   }
 }

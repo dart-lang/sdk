@@ -15,7 +15,8 @@ part of dart.io;
  * While a stream is being added using [addStream], any further attempts
  * to add or write to the [IOSink] will fail until the [addStream] completes.
  *
- * It is an error to add data to the [IOSink] after the sink is closed.
+ * If data is added to the [IOSink] after the sink is closed, the data will be
+ * ignored. Use the [done] future to be notified when the [IOSink] is closed.
  */
 abstract class IOSink implements StreamSink<List<int>>, StringSink {
   /**
@@ -147,12 +148,11 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
   _StreamSinkImpl(this._target);
 
   void add(T data) {
-    if (_isClosed) throw new StateError("StreamSink is closed");
+    if (_isClosed) return;
     _controller.add(data);
   }
 
   void addError(error, [StackTrace stackTrace]) {
-    if (_isClosed) throw new StateError("StreamSink is closed");
     _controller.addError(error, stackTrace);
   }
 

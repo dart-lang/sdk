@@ -90,8 +90,6 @@ class SocketExceptionTest {
         }
         Expect.isFalse(exceptionCaught);
         Expect.isFalse(wrongExceptionCaught);
-
-        // From here exceptions are expected.
         try {
           List<int> buffer = new List<int>(10);
           client.add(buffer);
@@ -100,8 +98,10 @@ class SocketExceptionTest {
         } catch (ex) {
           wrongExceptionCaught = true;
         }
-        Expect.isTrue(exceptionCaught);
+        Expect.isFalse(exceptionCaught);
         Expect.isFalse(wrongExceptionCaught);
+
+        // From here exceptions are expected.
         exceptionCaught = false;
         try {
           client.port;
