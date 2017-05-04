@@ -23,7 +23,7 @@ main() {
   // so we make sure to handle these specifically in the compiler.
   Expect.equals("int", a.m1().toString());
   Expect.equals("int", a.m2().toString());
-  a = new A<String>();
-  Expect.equals("String", a.m1().toString());
-  Expect.equals("String", a.m2().toString());
+  var a2 = new A<String>();
+  Expect.equals("String", a2.m1().toString());
+  Expect.equals("String", a2.m2().toString());
 }

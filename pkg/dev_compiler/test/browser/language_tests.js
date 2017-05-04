@@ -194,6 +194,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mixin_forwarding_constructor3_test': fail,
       'mixin_implements_test': fail,
       'mixin_regress_13688_test': fail,
+      'mixin_super_constructor_test': fail, // https://github.com/dart-lang/sdk/issues/28059
+      'mixin_super_constructor2_test': fail, // Issue 28059
+      'mixin_super_constructor_named_test_none_multi': fail, // Issue 28059
+      'mixin_super_constructor_positionals_test_none_multi': fail, // Issue 28059
       'modulo_test': fail,
       'named_parameter_clash_test': fail,
       'named_parameters_passing_falsy_test': is.firefox('<=50') ? fail : pass,

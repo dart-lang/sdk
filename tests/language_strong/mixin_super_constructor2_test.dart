@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class Base {
-  int i, j;
+  var i, j;
   Base.ctor1(int i, this.j) : this.i = i + 7;
   Base.ctor2(int i, this.j) : this.i = i + 8;
 }
