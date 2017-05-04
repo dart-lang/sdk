@@ -213,7 +213,6 @@ inference/infer_statics_transitively_2_a: Fail
 inference/infer_statics_transitively_b: Fail
 inference/infer_statics_with_method_invocations: Fail
 inference/infer_throw: Fail
-inference/infer_type_cast: Fail
 inference/infer_statics_with_method_invocations_a: Fail
 inference/infer_type_on_overridden_fields2: Fail
 inference/infer_type_on_overridden_fields4: Fail

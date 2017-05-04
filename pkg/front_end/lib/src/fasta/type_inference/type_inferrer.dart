@@ -82,6 +82,16 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// initializer.
   E getFieldInitializer(F field);
 
+  /// Performs the core type inference algorithm for type cast expressions.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferAsExpression(
+      DartType typeContext, bool typeNeeded, E operand, DartType type) {
+    inferExpression(operand, null, false);
+    return typeNeeded ? type : null;
+  }
+
   /// Performs the core type inference algorithm for boolean literals.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -249,14 +259,6 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return typeNeeded ? getterType : null;
   }
 
-  /// Performs the core type inference algorithm for string literals.
-  ///
-  /// [typeContext], [typeNeeded], and the return value behave as described in
-  /// [inferExpression].
-  DartType inferStringLiteral(DartType typeContext, bool typeNeeded) {
-    return typeNeeded ? coreTypes.stringClass.rawType : null;
-  }
-
   /// Performs the core type inference algorithm for string concatenations.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -266,6 +268,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     for (E expression in expressions) {
       inferExpression(expression, null, false);
     }
+    return typeNeeded ? coreTypes.stringClass.rawType : null;
+  }
+
+  /// Performs the core type inference algorithm for string literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferStringLiteral(DartType typeContext, bool typeNeeded) {
     return typeNeeded ? coreTypes.stringClass.rawType : null;
   }
 

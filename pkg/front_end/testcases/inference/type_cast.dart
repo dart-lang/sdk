@@ -13,6 +13,8 @@ class B<T> extends A<T> {
 
 A<num> a = new B<int>();
 var /*@topType=B<int>*/ b = (a as B<int>);
+
 main() {
-  b.foo();
+  A<num> a = new B<int>();
+  var /*@type=B<int>*/ b = (/*@promotedType=none*/ a as B<int>);
 }

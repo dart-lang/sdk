@@ -30,8 +30,7 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferAsExpression(typeContext, typeNeeded, operand, type);
   }
 }
 
