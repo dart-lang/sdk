@@ -50,9 +50,6 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync;
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     show MixinFullResolution;
 
-import 'package:kernel/transformations/setup_builtin_library.dart'
-    as setup_builtin_library;
-
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -679,15 +676,11 @@ class KernelTarget extends TargetImplementation {
   /// first time.
   void runBuildTransformations() {
     transformMixinApplications();
-    // TODO(ahe): Don't call this from two different places.
-    setup_builtin_library.transformProgram(program);
     otherTransformations();
   }
 
   /// Run all transformations that are needed when linking a program.
-  void runLinkTransformations(Program program) {
-    setup_builtin_library.transformProgram(program);
-  }
+  void runLinkTransformations(Program program) {}
 
   void transformMixinApplications() {
     new MixinFullResolution().transform(program);
