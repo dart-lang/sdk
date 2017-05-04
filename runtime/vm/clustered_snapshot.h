@@ -336,11 +336,11 @@ class Deserializer : public StackResource {
   }
 
   RawInstructions* GetInstructionsAt(int32_t offset) {
-    return instructions_reader_->GetInstructionsAt(offset);
+    return image_reader_->GetInstructionsAt(offset);
   }
 
   RawObject* GetObjectAt(int32_t offset) {
-    return instructions_reader_->GetObjectAt(offset);
+    return image_reader_->GetObjectAt(offset);
   }
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
@@ -359,7 +359,7 @@ class Deserializer : public StackResource {
   Zone* zone_;
   Snapshot::Kind kind_;
   ReadStream stream_;
-  InstructionsReader* instructions_reader_;
+  ImageReader* image_reader_;
   intptr_t num_base_objects_;
   intptr_t num_objects_;
   intptr_t num_clusters_;

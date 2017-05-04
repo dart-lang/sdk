@@ -4952,7 +4952,7 @@ Deserializer::Deserializer(Thread* thread,
       zone_(thread->zone()),
       kind_(kind),
       stream_(buffer, size),
-      instructions_reader_(NULL),
+      image_reader_(NULL),
       refs_(NULL),
       next_ref_index_(1),
       clusters_(NULL) {
@@ -4960,8 +4960,7 @@ Deserializer::Deserializer(Thread* thread,
     ASSERT(instructions_buffer != NULL);
   }
   if (instructions_buffer != NULL) {
-    instructions_reader_ =
-        new (zone_) InstructionsReader(instructions_buffer, data_buffer);
+    image_reader_ = new (zone_) ImageReader(instructions_buffer, data_buffer);
   }
 }
 
