@@ -124,6 +124,10 @@ class _Visitor extends SimpleAstVisitor {
       }
     }
 
+    node.parameters.parameterElements
+        .where((p) => p.isInitializingFormal)
+        .forEach(processElement);
+
     _getAssignmentExpressionsInConstructorBody(node)
         .where(isAssignmentExpressionToLint)
         .map((e) => _getRightElement(e))
