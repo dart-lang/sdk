@@ -149,6 +149,48 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     return const DynamicType();
   }
 
+  /// Given a [DartType] [type], if [type] is an uninstantiated
+  /// parameterized type then instantiate the parameters to their
+  /// bounds. See the issue for the algorithm description.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+  ///
+  /// TODO(paulberry) Compute lazily and cache.
+  DartType instantiateToBounds(DartType type,
+      {Map<TypeParameter, DartType> knownTypes}) {
+    List<TypeParameter> typeFormals = _typeFormalsAsParameters(type);
+    int count = typeFormals.length;
+    if (count == 0) {
+      return type;
+    }
+    var substitution = <TypeParameter, DartType>{};
+    for (TypeParameter parameter in typeFormals) {
+      // Note: we treat class<T extends Object> as equivalent to class<T>; in
+      // both cases they instantiate to class<dynamic>.  See dartbug.com/29561
+      if (_isObjectOrDynamic(parameter.bound)) {
+        substitution[parameter] = const DynamicType();
+      } else {
+        substitution[parameter] = parameter.bound;
+      }
+    }
+    if (knownTypes != null) {
+      type = substitute(type, knownTypes);
+    }
+    var result = substituteDeep(type, substitution);
+    if (result != null) return result;
+
+    // Instantiation failed due to a circularity.
+    // TODO(paulberry): report the error.
+    // Substitute `dynamic` for all parameters to try to allow compilation to
+    // continue.  Note that [substituteDeep] is destructive of the
+    // [substitution] so we create a fresh one.
+    substitution = <TypeParameter, DartType>{};
+    for (TypeParameter parameter in typeFormals) {
+      substitution[parameter] = const DynamicType();
+    }
+    return substitute(type, substitution);
+  }
+
   @override
   bool isBottom(DartType t) {
     if (t is UnknownType) {
@@ -395,6 +437,23 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       return new InterfaceType(type1.classNode, tArgs);
     }
     return hierarchy.getClassicLeastUpperBound(type1, type2);
+  }
+
+  bool _isObjectOrDynamic(DartType type) =>
+      type is DynamicType ||
+      (type is InterfaceType &&
+          identical(type.classNode, coreTypes.objectClass));
+
+  /// Given a [type], returns the [TypeParameter]s corresponding to its formal
+  /// type parameters (if any).
+  List<TypeParameter> _typeFormalsAsParameters(DartType type) {
+    if (type is TypedefType) {
+      return type.typedefNode.typeParameters;
+    } else if (type is InterfaceType) {
+      return type.classNode.typeParameters;
+    } else {
+      return const [];
+    }
   }
 
   DartType _typeParameterLeastUpperBound(DartType type1, DartType type2) {
