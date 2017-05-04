@@ -1026,7 +1026,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    push(new StringConcatenation(expressions ?? parts));
+    push(astFactory.stringConcatenation(expressions ?? parts, null));
   }
 
   @override

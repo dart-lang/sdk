@@ -11,6 +11,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/data/bazel/proj/lib/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/data/bazel/proj/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/data/embedder_client/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/data/error_upgrade_fails_cli/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/data/errors_reported_once/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/data/flutter_analysis_options/lib/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/data/flutter_analysis_options/packages" />

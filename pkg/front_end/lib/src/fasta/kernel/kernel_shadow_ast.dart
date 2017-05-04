@@ -500,8 +500,8 @@ class KernelStringConcatenation extends StringConcatenation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov) Add and use inferStringConcatenation() instead.
-    return inferrer.inferStringLiteral(typeContext, typeNeeded);
+    return inferrer.inferStringConcatenation(
+        typeContext, typeNeeded, expressions);
   }
 }
 

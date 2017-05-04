@@ -243,6 +243,18 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return typeNeeded ? coreTypes.stringClass.rawType : null;
   }
 
+  /// Performs the core type inference algorithm for string concatenations.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferStringConcatenation(
+      DartType typeContext, bool typeNeeded, Iterable<E> expressions) {
+    for (E expression in expressions) {
+      inferExpression(expression, null, false);
+    }
+    return typeNeeded ? coreTypes.stringClass.rawType : null;
+  }
+
   /// Performs the core type inference algorithm for variable declarations.
   ///
   /// [declaredType] is the declared type of the variable, or `null` if the type
