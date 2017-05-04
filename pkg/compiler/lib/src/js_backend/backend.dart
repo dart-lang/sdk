@@ -310,7 +310,7 @@ class JavaScriptBackend {
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
-  final OptimizerHintsForTests optimizerHints;
+  final OptimizerHintsForTests annotations;
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
@@ -478,8 +478,7 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : _rti = new _RuntimeTypes(compiler),
-        optimizerHints = new OptimizerHintsForTests(
-            compiler.elementEnvironment, compiler.commonElements),
+        annotations = new OptimizerHintsForTests(compiler),
         this.sourceInformationStrategy = createSourceInformationStrategy(
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
@@ -1180,38 +1179,36 @@ class JavaScriptBackend {
   }
 
   /// Process backend specific annotations.
-  // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
-  // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
   void processAnnotations(
-      MemberEntity element, ClosedWorldRefiner closedWorldRefiner) {
-    if (element is MemberElement && element.isMalformed) {
+      MemberElement element, ClosedWorldRefiner closedWorldRefiner) {
+    if (element.isMalformed) {
       // Elements that are marked as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
       return;
     }
 
     if (element.isFunction || element.isConstructor) {
-      if (optimizerHints.noInline(element)) {
-        inlineCache.markAsNonInlinable(element);
+      MethodElement method = element.implementation;
+      if (annotations.noInline(method)) {
+        inlineCache.markAsNonInlinable(method);
       }
     }
     if (element.isField) return;
-    FunctionEntity method = element;
+    MethodElement method = element;
 
-    LibraryEntity library = method.library;
-    if (library.canonicalUri.scheme != 'dart' &&
-        !canLibraryUseNative(library)) {
-      return;
-    }
+    LibraryElement library = method.library;
+    if (!library.isPlatformLibrary && !canLibraryUseNative(library)) return;
     bool hasNoInline = false;
     bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-    for (ConstantValue constantValue
-        in compiler.elementEnvironment.getMemberMetadata(method)) {
+    for (MetadataAnnotation metadata in method.implementation.metadata) {
+      metadata.ensureResolved(resolution);
+      ConstantValue constantValue =
+          compiler.constants.getConstantValue(metadata.constant);
       if (!constantValue.isConstructedObject) continue;
       ObjectConstantValue value = constantValue;
-      ClassEntity cls = value.type.element;
+      ClassElement cls = value.type.element;
       if (cls == commonElements.forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
@@ -1228,15 +1225,8 @@ class JavaScriptBackend {
         inlineCache.markAsNonInlinable(method);
       } else if (cls == commonElements.noThrowsClass) {
         hasNoThrows = true;
-        bool isValid = true;
-        if (method.isTopLevel) {
-          isValid = true;
-        } else if (method.isStatic) {
-          isValid = true;
-        } else if (method is ConstructorEntity && method.isFactoryConstructor) {
-          isValid = true;
-        }
-        if (!isValid) {
+        if (!Elements.isStaticOrTopLevelFunction(method) &&
+            !method.isFactoryConstructor) {
           reporter.internalError(
               method,
               "@NoThrows() is currently limited to top-level"
