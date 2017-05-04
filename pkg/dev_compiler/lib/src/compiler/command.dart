@@ -221,7 +221,8 @@ String _moduleForLibrary(
     if (path.isWithin(moduleRoot, summaryPath) && summaryPath.endsWith(ext)) {
       var buildUnitPath =
           summaryPath.substring(0, summaryPath.length - ext.length);
-      return path.relative(buildUnitPath, from: moduleRoot);
+      return path.url
+          .joinAll(path.split(path.relative(buildUnitPath, from: moduleRoot)));
     }
 
     _usageException('Imported file ${source.uri} is not within the module root '
