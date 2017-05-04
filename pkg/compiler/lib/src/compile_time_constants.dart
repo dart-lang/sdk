@@ -586,13 +586,14 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   AstConstant visitLiteralSymbol(LiteralSymbol node) {
-    ResolutionInterfaceType type = commonElements.symbolType;
+    ResolutionInterfaceType type = commonElements.symbolImplementationType;
     String text = node.slowNameString;
     List<AstConstant> arguments = <AstConstant>[
       new AstConstant(context, node, new StringConstantExpression(text),
           constantSystem.createString(new LiteralDartString(text)))
     ];
-    ConstructorElement constructor = compiler.commonElements.symbolConstructor;
+    ConstructorElement constructor =
+        compiler.commonElements.symbolConstructorTarget;
     AstConstant constant = createConstructorInvocation(
         node, type, constructor, CallStructure.ONE_ARG,
         normalizedArguments: arguments);

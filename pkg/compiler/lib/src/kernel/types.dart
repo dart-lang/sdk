@@ -6,14 +6,14 @@ part of dart2js.kernel.element_map;
 
 /// Support for subtype checks of kernel based [DartType]s.
 class _KernelDartTypes implements DartTypes {
-  final KernelToElementMap worldBuilder;
+  final KernelToElementMap elementMap;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
-  _KernelDartTypes(this.worldBuilder)
-      : this.subtypeVisitor = new _KernelSubtypeVisitor(worldBuilder),
+  _KernelDartTypes(this.elementMap)
+      : this.subtypeVisitor = new _KernelSubtypeVisitor(elementMap),
         this.potentialSubtypeVisitor =
-            new _KernelPotentialSubtypeVisitor(worldBuilder);
+            new _KernelPotentialSubtypeVisitor(elementMap);
 
   @override
   bool isPotentialSubtype(DartType t, DartType s) {
@@ -31,7 +31,17 @@ class _KernelDartTypes implements DartTypes {
   }
 
   @override
-  CommonElements get commonElements => worldBuilder.commonElements;
+  InterfaceType getSupertype(ClassEntity cls) {
+    return elementMap._getSuperType(cls);
+  }
+
+  @override
+  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
+    return elementMap._asInstanceOf(type, cls);
+  }
+
+  @override
+  CommonElements get commonElements => elementMap.commonElements;
 }
 
 class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
@@ -79,13 +89,7 @@ abstract class _AbstractTypeRelationMixin implements AbstractTypeRelation {
 
   @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
-    OrderedTypeSet orderedTypeSet = elementMap._getOrderedTypeSet(type.element);
-    InterfaceType supertype =
-        orderedTypeSet.asInstanceOf(cls, elementMap._getHierarchyDepth(cls));
-    if (supertype != null) {
-      supertype = elementMap._substByContext(supertype, type);
-    }
-    return supertype;
+    return elementMap._asInstanceOf(type, cls);
   }
 }
 

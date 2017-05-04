@@ -178,18 +178,22 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
 }
 
 String getDefaultStringParameterValue(ParameterElement param) {
-  DartType type = param.type;
-  if (type is InterfaceType && isDartList(type)) {
-    List<DartType> typeArguments = type.typeArguments;
-    StringBuffer sb = new StringBuffer();
-    if (typeArguments.length == 1) {
-      DartType typeArg = typeArguments.first;
-      if (!typeArg.isDynamic) {
-        sb.write('<${typeArg.name}>');
+  if (param != null) {
+    DartType type = param.type;
+    if (type is InterfaceType && isDartList(type)) {
+      List<DartType> typeArguments = type.typeArguments;
+      if (typeArguments.length == 1) {
+        DartType typeArg = typeArguments.first;
+        String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
+        return '$typeInfo[]';
       }
-      sb.write('[]');
-      return sb.toString();
     }
+    if (type is FunctionType) {
+      String params = type.parameters.map((p) => p.name).join(', ');
+      //TODO(pq): consider adding a `TODO:` message in generated stub
+      return '($params) {}';
+    }
+    //TODO(pq): support map literals
   }
   return null;
 }

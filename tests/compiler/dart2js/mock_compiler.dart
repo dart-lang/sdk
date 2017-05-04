@@ -110,6 +110,8 @@ class MockCompiler extends Compiler {
     registerSource(
         Uris.dart_core, buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
+    registerSource(
+        Uris.dart__internal, buildLibrarySource(DEFAULT_INTERNAL_LIBRARY));
 
     registerSource(
         Uris.dart__js_helper, buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));

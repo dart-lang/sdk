@@ -712,7 +712,7 @@ abstract class ResolutionWorldBuilderBase
       }
       if (member.isFunction &&
           member.name == Identifiers.call &&
-          _elementEnvironment.getThisType(cls).typeArguments.isNotEmpty) {
+          _elementEnvironment.isGenericClass(cls)) {
         closurizedMembersWithFreeTypeVariables.add(member);
       }
 

@@ -276,7 +276,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
 
 
 bool CheckClassInstr::IsDenseMask(intptr_t mask) {
-  // Returns true if the mask is a continuos sequence of ones in its binary
+  // Returns true if the mask is a continuous sequence of ones in its binary
   // representation (i.e. no holes)
   return mask == -1 || Utils::IsPowerOfTwo(mask + 1);
 }
@@ -2314,8 +2314,8 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       value()->definition()->AsUnboxedIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
     if (box_defn->from() == to()) {
-      // Do not erase truncating convertions from 64-bit value to 32-bit values
-      // because such convertions erase upper 32 bits.
+      // Do not erase truncating conversions from 64-bit value to 32-bit values
+      // because such conversions erase upper 32 bits.
       if ((box_defn->from() == kUnboxedMint) && box_defn->is_truncating()) {
         return this;
       }

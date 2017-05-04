@@ -1239,7 +1239,7 @@ class SsaBuilder extends ast.Visitor
     if (!isNativeUpgradeFactory) {
       // Create the runtime type information, if needed.
       bool hasRtiInput = false;
-      if (rtiNeed.classNeedsRtiField(classElement)) {
+      if (rtiNeed.classNeedsRtiField(classElement.declaration)) {
         // Read the values of the type arguments and create a
         // HTypeInfoExpression to set on the newly create object.
         hasRtiInput = true;
@@ -1378,7 +1378,7 @@ class SsaBuilder extends ast.Visitor
     // may contain references to type variables.
     var enclosing = element.enclosingElement;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
-        rtiNeed.classNeedsRti(enclosing)) {
+        rtiNeed.classNeedsRti(enclosing.declaration)) {
       enclosing.typeVariables
           .forEach((ResolutionTypeVariableType typeVariable) {
         HParameterValue param =
@@ -3873,12 +3873,12 @@ class SsaBuilder extends ast.Visitor
   @override
   void bulkHandleNew(ast.NewExpression node, [_]) {
     Element element = elements[node.send];
-    final bool isSymbolConstructor =
-        element == commonElements.symbolConstructor;
     if (!Elements.isMalformed(element)) {
       ConstructorElement function = element;
       element = function.effectiveTarget;
     }
+    final bool isSymbolConstructor =
+        element == commonElements.symbolConstructorTarget;
     if (Elements.isError(element)) {
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR ||
@@ -3992,7 +3992,7 @@ class SsaBuilder extends ast.Visitor
     nativeEmitter.nativeMethods.add(element);
 
     if (element.isFactoryConstructor &&
-        jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass)) {
+        nativeData.isAnonymousJsInteropClass(element.contextClass)) {
       // Factory constructor that is syntactic sugar for creating a JavaScript
       // object literal.
       ConstructorElement constructor = element;

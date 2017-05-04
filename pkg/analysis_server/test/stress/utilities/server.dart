@@ -111,7 +111,7 @@ class RequestData {
   RequestData(this.id, this.method, this.params, this.requestTime);
 
   /**
-   * Return the number of milliseconds that elapsed betwee the request and the
+   * Return the number of milliseconds that elapsed between the request and the
    * response. This getter assumes that the response was received.
    */
   int get elapsedTime => responseTime - requestTime;

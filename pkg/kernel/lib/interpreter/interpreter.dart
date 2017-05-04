@@ -6,6 +6,9 @@ library kernel.interpreter;
 import '../ast.dart';
 import '../ast.dart' as ast show Class;
 
+import '../log.dart';
+export '../log.dart';
+
 class NotImplemented {
   String message;
 
@@ -23,6 +26,9 @@ class Interpreter {
   void run() {
     assert(program.libraries.isEmpty);
     Procedure mainMethod = program.mainMethod;
+
+    if (mainMethod == null) return;
+
     Statement statementBlock = mainMethod.function.body;
     StatementConfiguration configuration =
         new StatementConfiguration(statementBlock, new State.initial());
@@ -131,6 +137,7 @@ class Evaluator
       return new ExpressionConfiguration(
           node.arguments.positional.first, config.environment, cont);
     } else {
+      log.info('static-invocation-${node.target.name.toString()}\n');
       var cont = new ActualArgumentsContinuation(node.arguments,
           node.target.function, config.environment, config.continuation);
       return cont.createCurrentConfiguration();
@@ -363,6 +370,7 @@ class PrintContinuation extends ExpressionContinuation {
   PrintContinuation(this.continuation);
 
   Configuration call(Value v) {
+    log.info('print(${v.value.runtimeType}: ${v.value})\n');
     print(v.value);
     return new ContinuationConfiguration(continuation, Value.nullInstance);
   }
@@ -732,8 +740,10 @@ class IfConditionContinuation extends ExpressionContinuation {
 
   StatementConfiguration call(Value v) {
     if (identical(v, Value.trueInstance)) {
+      log.info("if-then\n");
       return new StatementConfiguration(then, state);
     } else if (otherwise != null) {
+      log.info("if-otherwise\n");
       return new StatementConfiguration(otherwise, state);
     }
     return state.statementConfiguration;
@@ -846,6 +856,7 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
 
   Configuration visitReturnStatement(ReturnStatement node, State state) {
     assert(state.returnContinuation != null);
+    log.info('return\n');
     if (node.expression == null) {
       return new ContinuationConfiguration(
           state.returnContinuation, Value.nullInstance);
@@ -984,9 +995,10 @@ abstract class Value {
   }
 
   BoolValue equals(Value other) =>
-      value == other.value ? Value.trueInstance : Value.falseInstance;
+      value == other?.value ? Value.trueInstance : Value.falseInstance;
 
   Value invokeMethod(Name name, [Value arg]) {
+    if (name.toString() == "==") return equals(arg);
     throw notImplemented(obj: name);
   }
 }

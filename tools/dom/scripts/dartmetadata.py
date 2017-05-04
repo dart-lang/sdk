@@ -92,6 +92,20 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('NodeList|HtmlCollection')",
     ],
 
+    # querysSelectorAll never returns `null`.
+    'Document.querySelectorAll': [
+      "@Creates('NodeList')",
+      "@Returns('NodeList')",
+    ],
+    'DocumentFragment.querySelectorAll': [
+      "@Creates('NodeList')",
+      "@Returns('NodeList')",
+    ],
+    'Element.querySelectorAll': [
+      "@Creates('NodeList')",
+      "@Returns('NodeList')",
+    ],
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'Window': [

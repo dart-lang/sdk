@@ -41,7 +41,7 @@ main() {
     expect(x, 'not bar');
   });
 
-  // Use dom.window direclty in case the compiler does type inference.
+  // Use dom.window directly in case the compiler does type inference.
   test('windowNonMethod2', () {
     final message = foo("Hello World");
     try {

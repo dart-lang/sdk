@@ -199,7 +199,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   }
   if (!is_instance_of && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();
@@ -230,7 +231,8 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
                             Object::null_type_arguments(), &bound_error);
   if (!is_instance_of && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();
@@ -276,7 +278,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
     }
   }
   if (!is_instance_of) {
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();

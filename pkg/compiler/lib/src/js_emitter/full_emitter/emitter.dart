@@ -1342,7 +1342,7 @@ class Emitter implements js_emitter.Emitter {
       statements.add(buildDeferredHeader());
     }
 
-    // Collect the AST for the decriptors
+    // Collect the AST for the descriptors.
     Map<Element, ClassBuilder> descriptors = elementDescriptors[mainFragment];
     if (descriptors == null) descriptors = const {};
 

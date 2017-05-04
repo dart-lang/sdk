@@ -142,7 +142,7 @@ class _BuildJsonListener extends _JsonListener {
 
   void beginObject() {
     pushContainer();
-    currentContainer = {};
+    currentContainer = <String, dynamic>{};
   }
 
   void propertyName() {

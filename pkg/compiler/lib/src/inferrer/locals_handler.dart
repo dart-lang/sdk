@@ -430,7 +430,7 @@ class LocalsHandler {
    * If [keepOwnLocals] is true, the types of locals in this
    * [LocalsHandler] are being used in the merge. [keepOwnLocals]
    * should be true if this [LocalsHandler], the dominator of
-   * all [handlers], also direclty flows into the join point,
+   * all [handlers], also directly flows into the join point,
    * that is the code after all [handlers]. For example, consider:
    *
    * [: switch (...) {

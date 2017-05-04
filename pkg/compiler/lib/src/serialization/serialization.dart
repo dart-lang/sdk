@@ -262,7 +262,7 @@ abstract class AbstractEncoder<K> {
 
 /// [ObjectDecoder] reads serialized values from a [Map] encoded from an
 /// [ObjectValue] where properties are stored using [Key] values as keys.
-class ObjectDecoder extends AbstractDecoder<Key> {
+class ObjectDecoder extends AbstractDecoder<dynamic, Key> {
   /// Creates an [ObjectDecoder] that decodes [map] into deserialized values
   /// using [deserializer] to create canonicalized values.
   ObjectDecoder(Deserializer deserializer, Map map) : super(deserializer, map);
@@ -273,14 +273,14 @@ class ObjectDecoder extends AbstractDecoder<Key> {
 
 /// [MapDecoder] reads serialized values from a [Map] encoded from an
 /// [MapValue] where entries are stored using [String] values as keys.
-class MapDecoder extends AbstractDecoder<String> {
+class MapDecoder extends AbstractDecoder<String, String> {
   /// Creates an [MapDecoder] that decodes [map] into deserialized values
   /// using [deserializer] to create canonicalized values.
   MapDecoder(Deserializer deserializer, Map<String, dynamic> map)
       : super(deserializer, map);
 
   @override
-  _getKeyValue(String key) => key;
+  String _getKeyValue(String key) => key;
 
   /// Applies [f] to every key in the decoded [Map].
   void forEachKey(f(String key)) {
@@ -313,9 +313,9 @@ class ListDecoder {
 }
 
 /// Abstract base implementation for [ObjectDecoder] and [MapDecoder].
-abstract class AbstractDecoder<K> {
+abstract class AbstractDecoder<M, K> {
   final Deserializer _deserializer;
-  final Map<K, dynamic> _map;
+  final Map<M, dynamic> _map;
 
   AbstractDecoder(this._deserializer, this._map) {
     assert(_deserializer != null);
@@ -324,7 +324,7 @@ abstract class AbstractDecoder<K> {
 
   /// Returns the value for [key] defined by the [SerializationDecoder] in used
   /// [_deserializer].
-  _getKeyValue(K key);
+  M _getKeyValue(K key);
 
   /// Returns `true` if [key] has an associated value in the decoded object.
   bool containsKey(K key) => _map.containsKey(_getKeyValue(key));

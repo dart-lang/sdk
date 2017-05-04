@@ -137,10 +137,8 @@ class KernelImpactBuilder extends ir.Visitor {
     return impactBuilder;
   }
 
-  ResolutionImpact buildProcedure(ir.Procedure procedure) {
-    handleSignature(procedure.function);
-    visitNode(procedure.function.body);
-    switch (procedure.function.asyncMarker) {
+  void handleAsyncMarker(ir.AsyncMarker asyncMarker) {
+    switch (asyncMarker) {
       case ir.AsyncMarker.Sync:
         break;
       case ir.AsyncMarker.SyncStar:
@@ -154,8 +152,14 @@ class KernelImpactBuilder extends ir.Visitor {
         break;
       case ir.AsyncMarker.SyncYielding:
         throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected async marker: ${procedure.function.asyncMarker}");
+            "Unexpected async marker: ${asyncMarker}");
     }
+  }
+
+  ResolutionImpact buildProcedure(ir.Procedure procedure) {
+    handleSignature(procedure.function);
+    visitNode(procedure.function.body);
+    handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
       impactBuilder.registerNativeData(
@@ -472,6 +476,7 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerStaticUse(
         new StaticUse.closure(elementAdapter.getLocalFunction(node)));
     handleSignature(node.function);
+    handleAsyncMarker(node.function.asyncMarker);
     visitNode(node.function.body);
   }
 
@@ -480,6 +485,7 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerStaticUse(
         new StaticUse.closure(elementAdapter.getLocalFunction(node)));
     handleSignature(node.function);
+    handleAsyncMarker(node.function.asyncMarker);
     visitNode(node.function.body);
   }
 

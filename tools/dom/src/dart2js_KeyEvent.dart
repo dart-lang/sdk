@@ -106,7 +106,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // we set it with our specified values. Because we are doing custom setting
     // of certain values (charCode/keyCode, etc) only in this class (as opposed
     // to KeyboardEvent) and the way we set these custom values depends on the
-    // type of underlying JS object, we do all the contruction for the
+    // type of underlying JS object, we do all the construction for the
     // underlying KeyboardEvent here.
     if (canUseDispatchEvent) {
       // Currently works in everything but Internet Explorer.

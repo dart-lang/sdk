@@ -232,9 +232,9 @@ namespace dart {
   V(_Random, _nextState, Random_nextState, Dynamic, 0x268dec36)                \
 
 #define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, Double, 0x3f3a010c)                                      \
-  V(::, cos, MathCos, Double, 0x195a1d7e)                                      \
-  V(::, tan, MathTan, Double, 0x0f8b9eaa)                                      \
+  V(::, sin, MathSin, Double, 0x6b7bd98c)                                      \
+  V(::, cos, MathCos, Double, 0x459bf5fe)                                      \
+  V(::, tan, MathTan, Double, 0x3bcd772a)                                      \
   V(::, asin, MathAsin, Double, 0x2ecc2fcd)                                    \
   V(::, acos, MathAcos, Double, 0x08cf2212)                                    \
   V(::, atan, MathAtan, Double, 0x1e2731d5)                                    \
@@ -446,10 +446,10 @@ namespace dart {
   V(::, acos, MathAcos, 0x08cf2212)                                            \
   V(::, atan, MathAtan, 0x1e2731d5)                                            \
   V(::, atan2, MathAtan2, 0x39f1fa41)                                          \
-  V(::, cos, MathCos, 0x195a1d7e)                                              \
-  V(::, sin, MathSin, 0x3f3a010c)                                              \
+  V(::, cos, MathCos, 0x459bf5fe)                                              \
+  V(::, sin, MathSin, 0x6b7bd98c)                                              \
   V(::, sqrt, MathSqrt, 0x70482cf3)                                            \
-  V(::, tan, MathTan, 0x0f8b9eaa)                                              \
+  V(::, tan, MathTan, 0x3bcd772a)                                              \
   V(_Bigint, _lsh, Bigint_lsh, 0x40d9f1cc)                                     \
   V(_Bigint, _rsh, Bigint_rsh, 0x703f1a40)                                     \
   V(_Bigint, _absAdd, Bigint_absAdd, 0x50fb1e47)                               \

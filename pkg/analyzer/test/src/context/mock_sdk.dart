@@ -383,9 +383,9 @@ const double LN10 =  2.302585092994046;
 T min<T extends num>(T a, T b) => null;
 T max<T extends num>(T a, T b) => null;
 
-external double cos(num x);
-external double sin(num x);
-external double sqrt(num x);
+external double cos(num radians);
+external double sin(num radians);
+external double sqrt(num radians);
 class Random {
   bool nextBool() => true;
   double nextDouble() => 2.0;

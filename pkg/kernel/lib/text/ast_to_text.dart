@@ -733,6 +733,7 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
+    writeModifier(node.isSyntheticDefault, 'default');
     writeWord('constructor');
     writeFunction(node.function,
         name: node.name, initializers: node.initializers);

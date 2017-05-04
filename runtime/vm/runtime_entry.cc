@@ -220,7 +220,8 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
 
 // Helper returning the token position of the Dart caller.
 static TokenPosition GetCallerLocation() {
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   return caller_frame->GetTokenPos();
@@ -382,7 +383,8 @@ static void PrintTypeCheck(const char* message,
                            const TypeArguments& instantiator_type_arguments,
                            const TypeArguments& function_type_arguments,
                            const Bool& result) {
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
 
@@ -756,7 +758,8 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 // Patches static call in optimized code with the target's entry point.
 // Compiles target if necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
@@ -800,7 +803,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
     UNREACHABLE();
     return;
   }
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& orig_stub = Code::Handle(
@@ -971,7 +975,8 @@ static RawFunction* InlineCacheMissHandler(
     ic_data.AddCheck(class_ids, target_function);
   }
   if (FLAG_trace_ic_miss_in_optimized || FLAG_trace_ic) {
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(Thread::Current(),
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     if (FLAG_trace_ic_miss_in_optimized) {
@@ -1044,7 +1049,8 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   ASSERT(!target.IsNull() && target.HasCode());
   ic_data.AddReceiverCheck(arg.GetClassId(), target, 1);
   if (FLAG_trace_ic) {
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     OS::PrintErr("StaticCallMissHandler at %#" Px " target %s (%" Pd ")\n",
@@ -1072,7 +1078,8 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   cids.Add(arg1.GetClassId());
   ic_data.AddCheck(cids, target);
   if (FLAG_trace_ic) {
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     OS::PrintErr("StaticCallMissHandler at %#" Px " target %s (%" Pd ", %" Pd
@@ -1119,7 +1126,8 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
 #else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
 
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame->IsDartFrame());
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
@@ -1205,7 +1213,8 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   const UnlinkedCall& unlinked =
       UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(1));
 
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame->IsDartFrame());
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
@@ -1271,7 +1280,8 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
 #else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
 
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame->IsDartFrame());
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
@@ -1411,7 +1421,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       const Code& target_code =
           Code::Handle(zone, target_function.EnsureHasCode());
 
-      DartFrameIterator iterator;
+      DartFrameIterator iterator(thread,
+                                 StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* miss_function_frame = iterator.NextFrame();
       ASSERT(miss_function_frame->IsDartFrame());
       StackFrame* caller_frame = iterator.NextFrame();
@@ -1429,7 +1440,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
         // Switch to megamorphic call.
         const MegamorphicCache& cache = MegamorphicCache::Handle(
             zone, MegamorphicCacheTable::Lookup(isolate, name, descriptor));
-        DartFrameIterator iterator;
+        DartFrameIterator iterator(thread,
+                                   StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* miss_function_frame = iterator.NextFrame();
         ASSERT(miss_function_frame->IsDartFrame());
         StackFrame* caller_frame = iterator.NextFrame();
@@ -1669,7 +1681,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
   if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
       FLAG_reload_every_optimized) {
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
     const Code& code = Code::Handle(frame->LookupDartCode());
@@ -1752,7 +1765,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 
   if ((stack_overflow_flags & Thread::kOsrRequest) != 0) {
     ASSERT(isolate->use_osr());
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
     const Code& code = Code::ZoneHandle(frame->LookupDartCode());
@@ -1811,7 +1825,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(0));
   const Function& function = Function::CheckedHandle(arguments.ArgAt(1));
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
   OS::PrintErr("IC call @%#" Px ": ICData: %p cnt:%" Pd " nchecks: %" Pd
@@ -1891,7 +1906,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
+  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
   while (frame->IsStubFrame() || frame->IsExitFrame()) {
@@ -1929,7 +1945,8 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 // stub.
 DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
+  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
   while (frame->IsStubFrame() || frame->IsExitFrame()) {
@@ -2057,7 +2074,8 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   Code& optimized_code = Code::Handle();
   while (frame != NULL) {
@@ -2128,7 +2146,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                         ((kFirstLocalSlotFromFp + 1) * kWordSize);
 
   // Get optimized code and frame that need to be deoptimized.
-  DartFrameIterator iterator(last_fp);
+  DartFrameIterator iterator(last_fp, thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
 
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -2198,7 +2217,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   HANDLESCOPE(thread);
 
   DeoptContext* deopt_context = isolate->deopt_context();
-  DartFrameIterator iterator(last_fp);
+  DartFrameIterator iterator(last_fp, thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
 

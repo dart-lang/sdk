@@ -1044,7 +1044,7 @@ class Namer {
   /// This is the name used for deriving property names of accessors (getters
   /// and setters) and as property name for storing methods and method stubs.
   ///
-  /// [suffixes] denote an extension of [originalName] to distiguish it from
+  /// [suffixes] denote an extension of [originalName] to distinguish it from
   /// other members with that name. These are used to encode the arity and
   /// named parameters to a method. Disambiguating the same [originalName] with
   /// different [suffixes] will yield different disambiguated names.
@@ -1892,7 +1892,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitInterceptor(InterceptorConstantValue constant, [_]) {
-    addRoot(constant.cls.name);
+    // The class name for mixin applications contain '+' signs (issue 28196).
+    addRoot(constant.cls.name.replaceAll('+', '_'));
     add('methods');
   }
 

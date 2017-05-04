@@ -34,7 +34,7 @@ class A {
   external A(var foo);
 }
 
-@JS()
+@JS('BClass')
 class B {
   get foo;
 
@@ -115,6 +115,27 @@ $mainSource
     Expect.equals(D.superclass, JavaScriptObject);
     Expect.equals(E.superclass, Object_);
     Expect.equals(F.superclass, Object_);
+
+    Expect.isFalse(backend.nativeData.isJsInteropClass(Object_));
+    Expect.isTrue(backend.nativeData.isJsInteropClass(A));
+    Expect.isTrue(backend.nativeData.isJsInteropClass(B));
+    Expect.isTrue(backend.nativeData.isJsInteropClass(C));
+    Expect.isTrue(backend.nativeData.isJsInteropClass(D));
+    Expect.isFalse(backend.nativeData.isJsInteropClass(E));
+    Expect.isFalse(backend.nativeData.isJsInteropClass(F));
+
+    Expect.isFalse(backend.nativeData.isAnonymousJsInteropClass(Object_));
+    Expect.isFalse(backend.nativeData.isAnonymousJsInteropClass(A));
+    Expect.isFalse(backend.nativeData.isAnonymousJsInteropClass(B));
+    Expect.isTrue(backend.nativeData.isAnonymousJsInteropClass(C));
+    Expect.isTrue(backend.nativeData.isAnonymousJsInteropClass(D));
+    Expect.isFalse(backend.nativeData.isAnonymousJsInteropClass(E));
+    Expect.isFalse(backend.nativeData.isAnonymousJsInteropClass(F));
+
+    Expect.equals('', backend.nativeData.getJsInteropClassName(A));
+    Expect.equals('BClass', backend.nativeData.getJsInteropClassName(B));
+    Expect.equals('', backend.nativeData.getJsInteropClassName(C));
+    Expect.equals('', backend.nativeData.getJsInteropClassName(D));
 
     for (String name in classEnvironment.keys) {
       ClassElement cls = classEnvironment[name];

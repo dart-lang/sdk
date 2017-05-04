@@ -288,7 +288,7 @@ Future testData(TestData data) async {
       Expect.equals(
           expectedText,
           valueText,
-          "Unexpected value '${valueText}' for contant "
+          "Unexpected value '${valueText}' for constant "
           "`${constant.toDartText()}`, expected '${expectedText}'.");
     });
   });

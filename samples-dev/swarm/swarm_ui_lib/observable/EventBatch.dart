@@ -31,7 +31,7 @@ class EventBatch {
   EventBatch._internal() : summaries = new Map<int, EventSummary>();
 
   /**
-   * Ensure there is an event batch where [userFunction] can accumuluate events.
+   * Ensure there is an event batch where [userFunction] can accumulate events.
    * When the batch is complete, fire all events at once.
    */
   static Function wrap(userFunction(var a)) {

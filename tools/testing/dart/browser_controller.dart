@@ -1903,9 +1903,9 @@ Future captureInternetExplorerScreenshot(String message) async {
 
   // The "capture_screen.ps1" script is next to "test.dart" in "tools/"
   final powerShellScript =
-      Platform.script.resolve('capture_screenshot.ps1').toFilePath();
+      Platform.script.resolve('../../capture_screenshot.ps1').toFilePath();
   final screenshotFile =
-      Platform.script.resolve('../$screenshotName').toFilePath();
+      Platform.script.resolve('../../../$screenshotName').toFilePath();
 
   final args = [
     '-ExecutionPolicy',

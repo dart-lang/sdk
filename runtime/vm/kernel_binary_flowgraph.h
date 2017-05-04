@@ -60,46 +60,29 @@ class StreamingFlowGraphBuilder {
       : flow_graph_builder_(flow_graph_builder),
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
-        reader_(new kernel::Reader(buffer, buffer_length)),
+        reader_(new Reader(buffer, buffer_length)),
         constant_evaluator_(this,
                             flow_graph_builder->zone_,
                             &flow_graph_builder->translation_helper_,
-                            &flow_graph_builder->type_translator_),
-        string_offset_count_(0),
-        string_offsets_(NULL),
-        canonical_names_(NULL),
-        canonical_names_size_(-1),
-        canonical_names_entries_read_(0),
-        canonical_names_next_offset_(-1) {}
+                            &flow_graph_builder->type_translator_) {}
 
-  virtual ~StreamingFlowGraphBuilder() {
-    delete reader_;
-    delete[] string_offsets_;
-    // The canonical names themselves are not (yet) deallocated.
-    delete[] canonical_names_;
-  }
+  virtual ~StreamingFlowGraphBuilder() {}
 
   Fragment BuildAt(intptr_t kernel_offset);
 
  private:
-  intptr_t GetStringOffset(intptr_t index);
-  CanonicalName* GetCanonicalName(intptr_t index);
-
   intptr_t ReaderOffset();
   void SetOffset(intptr_t offset);
   void SkipBytes(intptr_t skip);
   uint32_t ReadUInt();
   intptr_t ReadListLength();
+  NameIndex ReadCanonicalNameReference();
   TokenPosition ReadPosition(bool record = true);
   Tag ReadTag(uint8_t* payload = NULL);
 
   CatchBlock* catch_block();
   ScopeBuildingResult* scopes();
   ParsedFunction* parsed_function();
-
-  dart::String& DartSymbol(intptr_t str_index);
-  dart::String& DartString(intptr_t str_index);
-  String* KernelString(intptr_t str_index);
 
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
@@ -129,26 +112,8 @@ class StreamingFlowGraphBuilder {
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
   Zone* zone_;
-  kernel::Reader* reader_;
+  Reader* reader_;
   StreamingConstantEvaluator constant_evaluator_;
-
-  // We build a table that gives us the start and end offsets of all the strings
-  // in the binary.
-  //
-  // The number of string offsets.  Note that this is one more than the number
-  // of strings in the binary.
-  intptr_t string_offset_count_;
-
-  // An array of offsets of size string_table_size_ + 1, in order to include the
-  // end offset of the last string.  The string with index N consists of the
-  // UTF-8 encoded bytes stretching from string_table_offsets_[N] (enclusive) to
-  // string_table_offsets_[N+1] (exclusive).
-  intptr_t* string_offsets_;
-
-  CanonicalName** canonical_names_;
-  intptr_t canonical_names_size_;
-  intptr_t canonical_names_entries_read_;
-  intptr_t canonical_names_next_offset_;
 
   friend class StreamingConstantEvaluator;
 };

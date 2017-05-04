@@ -53,7 +53,6 @@ void test(bool revive) {
   testToString();
   testConcurrentModifications();
   testType();
-  testNonStringKeys();
   testClear();
 
   testListEntry();
@@ -300,23 +299,8 @@ void testConcurrentModifications() {
 
 void testType() {
   Expect.isTrue(jsonify({}) is Map);
-  Expect.isTrue(jsonify({}) is HashMap);
-  Expect.isTrue(jsonify({}) is LinkedHashMap);
-
   Expect.isTrue(jsonify({}) is Map<String, dynamic>);
-  Expect.isTrue(jsonify({}) is HashMap<String, dynamic>);
-  Expect.isTrue(jsonify({}) is LinkedHashMap<String, dynamic>);
-
-  Expect.isTrue(jsonify({}) is Map<int, dynamic>);
-  Expect.isTrue(jsonify({}) is HashMap<int, dynamic>);
-  Expect.isTrue(jsonify({}) is LinkedHashMap<int, dynamic>);
-}
-
-void testNonStringKeys() {
-  Map map = jsonify({});
-  map[1] = 2;
-  Expect.equals(1, map.length);
-  Expect.equals(2, map[1]);
+  Expect.isFalse(jsonify({}) is Map<int, dynamic>);
 }
 
 void testClear() {

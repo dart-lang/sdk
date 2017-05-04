@@ -33,6 +33,8 @@ class DartStatementCompletion {
       'SIMPLE_ENTER', "Insert a newline at the end of the current line");
   static const SIMPLE_SEMICOLON = const StatementCompletionKind(
       'SIMPLE_SEMICOLON', "Add a semicolon and newline");
+  static const COMPLETE_CLASS_DECLARATION = const StatementCompletionKind(
+      'COMPLETE_CLASS_DECLARATION', "Complete class declaration");
   static const COMPLETE_CONTROL_FLOW_BLOCK = const StatementCompletionKind(
       'COMPLETE_CONTROL_FLOW_BLOCK', "Complete control flow block");
   static const COMPLETE_DO_STMT = const StatementCompletionKind(
@@ -43,10 +45,14 @@ class DartStatementCompletion {
       'COMPLETE_FOR_STMT', "Complete for-statement");
   static const COMPLETE_FOR_EACH_STMT = const StatementCompletionKind(
       'COMPLETE_FOR_EACH_STMT', "Complete for-each-statement");
+  static const COMPLETE_FUNCTION_DECLARATION = const StatementCompletionKind(
+      'COMPLETE_FUNCTION_DECLARATION', "Complete function declaration");
   static const COMPLETE_SWITCH_STMT = const StatementCompletionKind(
       'COMPLETE_SWITCH_STMT', "Complete switch-statement");
   static const COMPLETE_TRY_STMT = const StatementCompletionKind(
       'COMPLETE_TRY_STMT', "Complete try-statement");
+  static const COMPLETE_VARIABLE_DECLARATION = const StatementCompletionKind(
+      'COMPLETE_VARIABLE_DECLARATION', "Complete variable declaration");
   static const COMPLETE_WHILE_STMT = const StatementCompletionKind(
       'COMPLETE_WHILE_STMT', "Complete while-statement");
 }
@@ -168,21 +174,20 @@ class StatementCompletionProcessor {
     if (analysisContext.getModificationStamp(source) != fileStamp) {
       return NO_COMPLETION;
     }
-    node = new NodeLocator(selectionOffset).searchWithin(unit);
+    node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;
     }
-    // TODO(messick): This needs to work for declarations.
-    AstNode newNode = node.getAncestor((n) => n is Statement);
-    if (newNode is Block) {
-      Block blockNode = newNode;
+    node = node
+        .getAncestor((n) => n is Statement || _isNonStatementDeclaration(n));
+    if (node == null) {
+      return _complete_simpleEnter() ? completion : NO_COMPLETION;
+    }
+    if (node is Block) {
+      Block blockNode = node;
       if (blockNode.statements.isNotEmpty) {
         node = blockNode.statements.last;
-      } else {
-        node = newNode;
       }
-    } else {
-      node = newNode;
     }
     if (_isEmptyStatement(node)) {
       node = node.parent;
@@ -196,23 +201,41 @@ class StatementCompletionProcessor {
       }
     }
 
-    if (errors.isEmpty) {
-      if (_complete_controlFlowBlock() || _complete_simpleEnter()) {
-        return completion;
+    if (node is Statement) {
+      if (errors.isEmpty) {
+        if (_complete_ifStatement() ||
+            _complete_forStatement() ||
+            _complete_forEachStatement() ||
+            _complete_whileStatement() ||
+            _complete_controlFlowBlock()) {
+          return completion;
+        }
+      } else {
+        if (_complete_ifStatement() ||
+            _complete_doStatement() ||
+            _complete_forStatement() ||
+            _complete_forEachStatement() ||
+            _complete_functionDeclarationStatement() ||
+            _complete_switchStatement() ||
+            _complete_tryStatement() ||
+            _complete_whileStatement() ||
+            _complete_controlFlowBlock() ||
+            _complete_simpleSemicolon() ||
+            _complete_methodCall()) {
+          return completion;
+        }
       }
-    } else {
-      if (_complete_ifStatement() ||
-          _complete_doStatement() ||
-          _complete_forStatement() ||
-          _complete_forEachStatement() ||
-          _complete_switchStatement() ||
-          _complete_tryStatement() ||
-          _complete_whileStatement() ||
-          _complete_controlFlowBlock() ||
-          _complete_simpleSemicolon() ||
-          _complete_simpleEnter()) {
-        return completion;
+    } else if (node is Declaration) {
+      if (errors.isNotEmpty) {
+        if (_complete_classDeclaration() ||
+            _complete_functionDeclaration() ||
+            _complete_variableDeclaration()) {
+          return completion;
+        }
       }
+    }
+    if (_complete_simpleEnter()) {
+      return completion;
     }
     return NO_COMPLETION;
   }
@@ -260,6 +283,23 @@ class StatementCompletionProcessor {
       text = text.substring(0, text.length - eol.length);
     }
     return text;
+  }
+
+  bool _complete_classDeclaration() {
+    if (node is! ClassDeclaration) {
+      return false;
+    }
+    ClassDeclaration decl = node;
+    if (decl.leftBracket.isSynthetic && errors.length == 1) {
+      // The space before the left brace is assumed to exist, even if it does not.
+      SourceBuilder sb = new SourceBuilder(file, decl.end - 1);
+      sb.append(' ');
+      _appendEmptyBraces(sb, true);
+      _insertBuilder(sb);
+      _setCompletion(DartStatementCompletion.COMPLETE_CLASS_DECLARATION);
+      return true;
+    }
+    return false;
   }
 
   bool _complete_controlFlowBlock() {
@@ -322,7 +362,7 @@ class StatementCompletionProcessor {
     SourceBuilder sb = _sourceBuilderAfterKeyword(statement.doKeyword);
     bool hasWhileKeyword = statement.whileKeyword.lexeme == "while";
     int exitDelta = 0;
-    if (statement.body is EmptyStatement) {
+    if (!_statementHasValidBody(statement.doKeyword, statement.body)) {
       String text = utils.getNodeText(statement.body);
       int delta = 0;
       if (text.startsWith(';')) {
@@ -430,7 +470,7 @@ class StatementCompletionProcessor {
             ' ');
       }
     }
-    if (_isEmptyStatement(forNode.body)) {
+    if (!_statementHasValidBody(forNode.forKeyword, forNode.body)) {
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
     }
@@ -506,8 +546,8 @@ class StatementCompletionProcessor {
         }
       }
     }
-    if (forNode.body is EmptyStatement) {
-      // keywordOnly
+    if (!_statementHasValidBody(forNode.forKeyword, forNode.body)) {
+      // keywordOnly, noError
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
     }
@@ -520,16 +560,68 @@ class StatementCompletionProcessor {
     return true;
   }
 
+  bool _complete_functionDeclaration() {
+    if (node is! MethodDeclaration && node is! FunctionDeclaration) {
+      return false;
+    }
+    SourceBuilder sb = new SourceBuilder(file, node.end - 1);
+    sb.append(' ');
+    _appendEmptyBraces(sb, true);
+    _insertBuilder(sb);
+    _setCompletion(DartStatementCompletion.COMPLETE_FUNCTION_DECLARATION);
+    return true;
+  }
+
+  bool _complete_functionDeclarationStatement() {
+    if (node is! FunctionDeclarationStatement) {
+      return false;
+    }
+    var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+    if (error != null) {
+      FunctionDeclarationStatement stmt = node;
+      String src = utils.getNodeText(stmt);
+      int insertOffset = stmt.functionDeclaration.end - 1;
+      if (stmt.functionDeclaration.functionExpression.body
+          is ExpressionFunctionBody) {
+        ExpressionFunctionBody fnb =
+            stmt.functionDeclaration.functionExpression.body;
+        int fnbOffset = fnb.functionDefinition.offset;
+        String fnSrc = src.substring(fnbOffset - stmt.offset);
+        if (!fnSrc.startsWith('=>')) {
+          return false;
+        }
+        int delta = 0;
+        if (fnb.expression.isSynthetic) {
+          if (!fnSrc.startsWith('=> ')) {
+            _addInsertEdit(insertOffset, ' ');
+            delta = 1;
+          }
+          _addInsertEdit(insertOffset, ';');
+          _appendNewlinePlusIndentAt(insertOffset);
+        } else {
+          delta = 1;
+          _addInsertEdit(insertOffset, ';');
+          insertOffset = _appendNewlinePlusIndent();
+        }
+        _setCompletionAt(
+            DartStatementCompletion.SIMPLE_SEMICOLON, insertOffset + delta);
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool _complete_ifOrWhileStatement(
       _KeywordConditionBlockStructure statement, StatementCompletionKind kind) {
+    if (_statementHasValidBody(statement.keyword, statement.block)) {
+      return false;
+    }
     SourceBuilder sb = _complete_keywordCondition(statement);
     if (sb == null) {
       return false;
     }
-    if (statement.block is EmptyStatement) {
-      sb.append(' ');
-      _appendEmptyBraces(sb, exitPosition == null);
-    }
+    sb.append(' ');
+    _appendEmptyBraces(sb, exitPosition == null);
     _insertBuilder(sb);
     _setCompletion(kind);
     return true;
@@ -540,20 +632,17 @@ class StatementCompletionProcessor {
       return false;
     }
     IfStatement ifNode = node;
-    if (ifNode != null) {
-      if (ifNode.elseKeyword != null) {
-        return false;
-      }
-      var stmt = new _KeywordConditionBlockStructure(
-          ifNode.ifKeyword,
-          ifNode.leftParenthesis,
-          ifNode.condition,
-          ifNode.rightParenthesis,
-          ifNode.thenStatement);
-      return _complete_ifOrWhileStatement(
-          stmt, DartStatementCompletion.COMPLETE_IF_STMT);
+    if (ifNode.elseKeyword != null) {
+      return false;
     }
-    return false;
+    var stmt = new _KeywordConditionBlockStructure(
+        ifNode.ifKeyword,
+        ifNode.leftParenthesis,
+        ifNode.condition,
+        ifNode.rightParenthesis,
+        ifNode.thenStatement);
+    return _complete_ifOrWhileStatement(
+        stmt, DartStatementCompletion.COMPLETE_IF_STMT);
   }
 
   SourceBuilder _complete_keywordCondition(
@@ -577,6 +666,38 @@ class StatementCompletionProcessor {
       }
     }
     return sb;
+  }
+
+  bool _complete_methodCall() {
+    var parenError =
+        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+    if (parenError == null) {
+      return false;
+    }
+    AstNode argList = _selectedNode(at: parenError.offset - 1)
+        .getAncestor((n) => n is ArgumentList);
+    if (argList?.getAncestor((n) => n == node) == null) {
+      return false;
+    }
+    int loc = argList.end - 1;
+    int delta = 1;
+    var semicolonError =
+        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+    if (semicolonError == null) {
+      loc += 1;
+      delta = 0;
+    }
+    _addInsertEdit(loc, ')');
+    if (semicolonError != null) {
+      _addInsertEdit(loc, ';');
+    }
+    String indent = utils.getLinePrefix(selectionOffset);
+    int exit = utils.getLineNext(selectionOffset);
+    _addInsertEdit(exit, indent + eol);
+    exit += indent.length + eol.length;
+
+    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit + delta);
+    return true;
   }
 
   bool _complete_simpleEnter() {
@@ -748,6 +869,16 @@ class StatementCompletionProcessor {
     return true;
   }
 
+  bool _complete_variableDeclaration() {
+    if (node is! VariableDeclaration) {
+      return false;
+    }
+    _addInsertEdit(node.end, ';');
+    exitPosition = new Position(file, _appendNewlinePlusIndentAt(node.end) + 1);
+    _setCompletion(DartStatementCompletion.COMPLETE_VARIABLE_DECLARATION);
+    return true;
+  }
+
   bool _complete_whileStatement() {
     if (node is! WhileStatement) {
       return false;
@@ -767,22 +898,16 @@ class StatementCompletionProcessor {
   }
 
   engine.AnalysisError _findError(ErrorCode code, {partialMatch: null}) {
-    var error =
-        errors.firstWhere((err) => err.errorCode == code, orElse: () => null);
-    if (error != null) {
-      if (partialMatch != null) {
-        return error.message.contains(partialMatch) ? error : null;
-      }
-      return error;
-    }
-    return null;
+    return errors.firstWhere(
+        (err) =>
+            err.errorCode == code &&
+            (partialMatch == null ? true : err.message.contains(partialMatch)),
+        orElse: () => null);
   }
 
   T _findInvalidElement<T extends AstNode>(NodeList<T> list) {
     return list.firstWhere(
-        (catchClause) =>
-            selectionOffset >= catchClause.offset &&
-            selectionOffset <= catchClause.end,
+        (item) => selectionOffset >= item.offset && selectionOffset <= item.end,
         orElse: () => null);
   }
 
@@ -828,6 +953,17 @@ class StatementCompletionProcessor {
     return stmt is EmptyStatement || _isEmptyBlock(stmt);
   }
 
+  bool _isNonStatementDeclaration(AstNode n) {
+    if (n is! Declaration) {
+      return false;
+    }
+    if (n is! VariableDeclaration && n is! FunctionDeclaration) {
+      return true;
+    }
+    AstNode p = n.parent;
+    return p is! Statement && p?.parent is! Statement;
+  }
+
   bool _isSyntheticExpression(Expression expr) {
     return expr is SimpleIdentifier && expr.isSynthetic;
   }
@@ -835,6 +971,9 @@ class StatementCompletionProcessor {
   Position _newPosition(int offset) {
     return new Position(file, offset);
   }
+
+  AstNode _selectedNode({int at: null}) =>
+      new NodeLocator(at == null ? selectionOffset : at).searchWithin(unit);
 
   void _setCompletion(StatementCompletionKind kind, [List args]) {
     assert(exitPosition != null);
@@ -863,6 +1002,20 @@ class StatementCompletionProcessor {
       sb = new SourceBuilder(file, keyword.offset + len + 1);
     }
     return sb;
+  }
+
+  bool _statementHasValidBody(Token keyword, Statement body) {
+    // A "valid" body is either a non-synthetic block or a single statement
+    // on the same line as the parent statement, similar to dart_style.
+    if (body.isSynthetic) {
+      return false;
+    }
+    if (body is Block) {
+      Block block = body;
+      return (!(block.leftBracket.isSynthetic));
+    }
+    return (lineInfo.getLocation(keyword.offset) ==
+        lineInfo.getLocation(body.offset));
   }
 }
 

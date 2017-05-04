@@ -35,7 +35,7 @@ library dart._foreign_helper;
  * accurately.  In addition to the union type already described:
  *
  *  + `=Object` is a plain JavaScript object.  Some DOM methods return instances
- *     that have no corresponing Dart type (e.g. cross-frame documents),
+ *     that have no corresponding Dart type (e.g. cross-frame documents),
  *     `=Object` can be used to describe these untyped' values.
  *
  *  + `var` (or empty string).  If the entire [typeDescription] is `var` (or

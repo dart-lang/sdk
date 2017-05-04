@@ -144,6 +144,8 @@ class CommandLineOptions {
   /// Whether implicit dynamic is enabled (mainly for strong mode users)
   final bool implicitDynamic;
 
+  // TODO(devoncarew): Do we need this flag? Shouldn't we go by the severity of
+  // the lint?
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 

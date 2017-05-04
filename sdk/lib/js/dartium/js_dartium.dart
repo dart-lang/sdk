@@ -76,7 +76,7 @@
  * [JsObject.jsify] constructor, which converts Dart [Map]s and [Iterable]s
  * into JavaScript Objects and Arrays.
  *
- * The following expression creats a new JavaScript object with the properties
+ * The following expression creates a new JavaScript object with the properties
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
@@ -1683,8 +1683,8 @@ Expando<JSFunction> _interopCaptureThisExpando = new Expando<JSFunction>();
 /// binding and calls [f] with the value of this passed as the first argument.
 /// When called from Dart, [null] will be passed as the first argument.
 ///
-/// See the documention for [allowInterop]. This method should only be used with
-/// package:js Dart-JavaScript interop.
+/// See the documentation for [allowInterop]. This method should only be used
+/// with package:js Dart-JavaScript interop.
 JSFunction allowInteropCaptureThis(Function f) {
   if (f is JSFunction) {
     // Behavior when the function is already a JS function is unspecified.

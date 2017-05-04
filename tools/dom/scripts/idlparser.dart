@@ -21,7 +21,7 @@ class IDLFile extends IDLNode {
 }
 
 /**
- * IDLModule has an id, and may contain interfaces, type defs andimplements
+ * IDLModule has an id, and may contain interfaces, type defs and implements
  * statements.
  */
 class IDLModule extends IDLNode {

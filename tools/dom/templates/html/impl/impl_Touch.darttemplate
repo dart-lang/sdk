@@ -9,7 +9,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 $!MEMBERS
 
 // As of Chrome 37, these all changed from long to double.  This code
-// preserves backwards compatability for the time being.
+// preserves backwards compatibility for the time being.
 $if DART2JS
   int get __clientX => JS('num', '#.clientX', this).round();
   int get __clientY => JS('num', '#.clientY', this).round();

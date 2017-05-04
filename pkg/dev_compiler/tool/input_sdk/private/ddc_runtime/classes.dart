@@ -197,11 +197,8 @@ getStaticSetterSig(value) => JS('', '#[#]', value, _staticSetterSig);
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
 /// Get the type of a method from an object using the stored signature
-getType(obj) => JS(
-    '',
-    '''(() => {
-  return $obj == null ? $Object : $obj.__proto__.constructor;
-})()''');
+getType(obj) =>
+    JS('', '# == null ? # : #.__proto__.constructor', obj, Object, obj);
 
 bool isJsInterop(obj) {
   if (JS('bool', 'typeof # === "function"', obj)) {
@@ -219,31 +216,37 @@ bool isJsInterop(obj) {
 }
 
 /// Get the type of a method from a type using the stored signature
-getMethodType(type, name) => JS(
-    '',
-    '''(() => {
-  let sigObj = $type[$_methodSig];
-  if (sigObj === void 0) return void 0;
-  return sigObj[$name];
-})()''');
+getMethodType(type, name) {
+  var m = JS('', '#[#]', type, _methodSig);
+  return m != null ? JS('', '#[#]', m, name) : null;
+}
 
-getFieldType(type, name) => JS(
-    '',
-    '''(() => {
-  let sigObj = $type[$_fieldSig];
-  if (sigObj === void 0) return void 0;
-  let fieldType = sigObj[$name];
-  // workaround to handle metadata.
-  return (fieldType instanceof Array) ? fieldType[0] : fieldType;
-})()''');
+/// Gets the type of the corresponding setter (this includes writable fields).
+getSetterType(type, name) {
+  var signature = JS('', '#[#]', type, _setterSig);
+  if (signature != null) {
+    var type = JS('', '#[#]', signature, name);
+    if (type != null) {
+      // TODO(jmesserly): it would be nice not to encode setters with a full
+      // function type.
+      return JS('', '#.args[0]', type);
+    }
+  }
+  signature = JS('', '#[#]', type, _fieldSig);
+  if (signature != null) {
+    var fieldInfo = JS('', '#[#]', signature, name);
+    if (fieldInfo != null && JS('bool', '!#.isFinal', fieldInfo)) {
+      return JS('', '#.type', fieldInfo);
+    }
+  }
+  return null;
+}
 
-getSetterType(type, name) => JS(
-    '',
-    '''(() => {
-  let sigObj = $type[$_setterSig];
-  if (sigObj === void 0) return void 0;
-  return sigObj[$name];
-})()''');
+finalFieldType(type, metadata) =>
+    JS('', '{ type: #, isFinal: true, metadata: # }', type, metadata);
+
+fieldType(type, metadata) =>
+    JS('', '{ type: #, isFinal: false, metadata: # }', type, metadata);
 
 /// Get the type of a constructor from a class using the stored signature
 /// If name is undefined, returns the type of the default constructor
@@ -278,7 +281,7 @@ bind(obj, name, f) => JS(
   // JS interop case: do not bind this for compatibility with the dart2js
   // implementation where we cannot bind this reliably here until we trust
   // types more.
-  if (sig === void 0) return $f;
+  if (sig == null) return $f;
 
   $f = $f.bind($obj);
   $tag($f, sig);
@@ -297,17 +300,22 @@ gbind(f, @rest typeArgs) {
 }
 
 // Set up the method signature field on the constructor
-_setInstanceSignature(f, sigF, kind) => JS(
-    '',
-    '''(() => {
-  $defineMemoizedGetter($f, $kind, () => {
-    let sigObj = $sigF();
-    let proto = $f.__proto__;
-    // We need to set the root proto to null not undefined.
-    sigObj.__proto__ = ($kind in proto) ? proto[$kind] : null;
-    return sigObj;
-  });
-})()''');
+_setInstanceSignature(f, sigF, kind) => defineMemoizedGetter(
+    f,
+    kind,
+    JS(
+        '',
+        '''() => {
+          let sigObj = #();
+          let proto = #.__proto__;
+          // We need to set the root proto to null not undefined.
+          sigObj.__proto__ = (# in proto) ? proto[#] : null;
+          return sigObj;
+        }''',
+        sigF,
+        f,
+        kind,
+        kind));
 
 _setMethodSignature(f, sigF) => _setInstanceSignature(f, sigF, _methodSig);
 _setFieldSignature(f, sigF) => _setInstanceSignature(f, sigF, _fieldSig);

@@ -8,10 +8,8 @@ import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../io/source_information.dart';
-import '../js/js.dart' as js;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
-import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -126,11 +124,7 @@ class LocalsHandler {
   }
 
   HInstruction createBox() {
-    // TODO(floitsch): Clean up this hack. Should we create a box-object by
-    // just creating an empty object literal?
-    HInstruction box = new HForeignCode(
-        js.js.parseForeignJS('{}'), commonMasks.nonNullType, <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
+    HInstruction box = new HCreateBox(commonMasks.nonNullType);
     builder.add(box);
     return box;
   }

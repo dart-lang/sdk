@@ -85,7 +85,7 @@ void defineLazy(to, from) => JS(
   }
 })()''');
 
-defineMemoizedGetter(obj, String name, getter) {
+defineMemoizedGetter(obj, name, getter) {
   return defineLazyProperty(obj, name, JS('', '{get: #}', getter));
 }
 

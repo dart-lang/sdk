@@ -320,9 +320,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   FileSystemState get fsState => _fsState;
 
-  /**
-   * Return `true` if the driver has a file to analyze.
-   */
+  @override
   bool get hasFilesToAnalyze {
     return _fileTracker.hasChangedFiles ||
         _requestedFiles.isNotEmpty ||
@@ -353,15 +351,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
 
-  /**
-   * Set the list of files that the driver should try to analyze sooner.
-   *
-   * Every path in the list must be absolute and normalized.
-   *
-   * The driver will produce the results through the [results] stream. The
-   * exact order in which results are produced is not defined, neither
-   * between priority files, nor between priority and non-priority files.
-   */
+  @override
   void set priorityFiles(List<String> priorityPaths) {
     _priorityResults.keys
         .toSet()
@@ -410,9 +400,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   @visibleForTesting
   AnalysisDriverTestView get test => _testView;
 
-  /**
-   * Return the priority of work that the driver needs to perform.
-   */
+  @override
   AnalysisDriverPriority get workPriority {
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
@@ -521,11 +509,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _fileTracker.addFiles(addedFiles);
   }
 
-  /**
-   * Notify the driver that the client is going to stop using it.
-   */
+  @override
   void dispose() {
-    _scheduler._remove(this);
+    _scheduler.remove(this);
   }
 
   /**
@@ -753,9 +739,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         unit.lineInfo, unit, listener.errors);
   }
 
-  /**
-   * Perform a single chunk of work and produce [results].
-   */
+  @override
   Future<Null> performWork() async {
     if (_fileTracker.verifyChangedFilesIfNeeded()) {
       return;
@@ -1348,9 +1332,25 @@ abstract class AnalysisDriverGeneric {
   bool get hasFilesToAnalyze;
 
   /**
+   * Set the list of files that the driver should try to analyze sooner.
+   *
+   * Every path in the list must be absolute and normalized.
+   *
+   * The driver will produce the results through the [results] stream. The
+   * exact order in which results are produced is not defined, neither
+   * between priority files, nor between priority and non-priority files.
+   */
+  void set priorityFiles(List<String> priorityPaths);
+
+  /**
    * Return the priority of work that the driver needs to perform.
    */
   AnalysisDriverPriority get workPriority;
+
+  /**
+   * Notify the driver that the client is going to stop using it.
+   */
+  void dispose();
 
   /**
    * Perform a single chunk of work and produce [results].
@@ -1458,6 +1458,18 @@ class AnalysisDriverScheduler {
   }
 
   /**
+   * Remove the given [driver] from the scheduler, so that it will not be
+   * asked to perform any new work.
+   */
+  void remove(AnalysisDriverGeneric driver) {
+    if (driver is AnalysisDriver) {
+      driverWatcher?.removedDriver(driver);
+    }
+    _drivers.remove(driver);
+    _hasWork.notify();
+  }
+
+  /**
    * Start the scheduler, so that any [AnalysisDriver] created before or
    * after will be asked to perform work.
    */
@@ -1476,19 +1488,6 @@ class AnalysisDriverScheduler {
    * immediately.
    */
   Future<Null> waitForIdle() => _statusSupport.waitForIdle();
-
-  /**
-   * Remove the given [driver] from the scheduler, so that it will not be
-   * asked to perform any new work.
-   */
-  void _remove(AnalysisDriverGeneric driver) {
-    if (driver is AnalysisDriver) {
-      driverWatcher?.removedDriver(driver);
-    }
-
-    _drivers.remove(driver);
-    _hasWork.notify();
-  }
 
   /**
    * Run infinitely analysis cycle, selecting the drivers with the highest

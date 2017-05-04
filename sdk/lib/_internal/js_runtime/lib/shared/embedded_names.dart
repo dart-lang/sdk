@@ -365,7 +365,7 @@ enum JsBuiltin {
   /// Returns the JavaScript constructor function for Dart's Object class.
   /// This can be used for type tests, as in
   ///
-  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectContructor);
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartObjectConstructor);
   ///     if (JS('bool', '# instanceof #', obj, constructor))
   ///       ...
   dartObjectConstructor,

@@ -396,7 +396,7 @@ $endif
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
+   * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')

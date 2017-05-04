@@ -11,7 +11,7 @@ class ImplicitScopeTest extends core::Object {
     return 1.+(1).==(2);
   }
   static method testMain() → dynamic {
-    dynamic a = "foo";
+    core::String a = "foo";
     dynamic b;
     if(self::ImplicitScopeTest::alwaysTrue()) {
       dynamic a = "bar";

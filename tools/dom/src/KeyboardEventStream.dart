@@ -128,7 +128,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   }
 
   /**
-   * Given the charater code returned from a keyDown [event], try to ascertain
+   * Given the character code returned from a keyDown [event], try to ascertain
    * and return the corresponding charCode for the character that was pressed.
    * This information is not shown to the user, but used to help polyfill
    * keypress events.

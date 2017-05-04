@@ -65,15 +65,14 @@ class AnalyzerImpl {
       this.librarySource, this.options, this.stats, this.startTime);
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
-  ErrorSeverity get maxErrorSeverity {
+  ErrorSeverity computeMaxErrorSeverity() {
     ErrorSeverity status = ErrorSeverity.NONE;
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
         if (_defaultSeverityProcessor(error) == null) {
           continue;
         }
-        ErrorSeverity severity = computeSeverity(error, options);
-        status = status.max(severity);
+        status = status.max(computeSeverity(error, options, analysisOptions));
       }
     }
     return status;
@@ -185,12 +184,8 @@ class AnalyzerImpl {
       _printColdPerf();
     }
 
-    // Compute max severity and set exitCode.
-    ErrorSeverity status = maxErrorSeverity;
-    if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
-      status = ErrorSeverity.ERROR;
-    }
-    return status;
+    // Compute and return max severity.
+    return computeMaxErrorSeverity();
   }
 
   /// Returns true if we want to report diagnostics for this library.
@@ -242,7 +237,7 @@ class AnalyzerImpl {
     outSink.writeln("total-cold:$totalTime");
   }
 
-  ProcessedSeverity _defaultSeverityProcessor(AnalysisError error) =>
+  ErrorSeverity _defaultSeverityProcessor(AnalysisError error) =>
       determineProcessedSeverity(error, options, analysisOptions);
 
   Future<LibraryElement> _resolveLibrary() async {

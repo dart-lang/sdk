@@ -101,7 +101,7 @@ abstract class _StringBase {
    * Create the most efficient string representation for specified
    * [charCodes].
    *
-   * Only uses the character codes betwen index [start] and index [end] of
+   * Only uses the character codes between index [start] and index [end] of
    * `charCodes`. They must satisfy `0 <= start <= end <= charCodes.length`.
    *
    * The [limit] is an upper limit on the character codes in the iterable.

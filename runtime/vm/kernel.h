@@ -19,6 +19,7 @@
   M(InvalidType)                                                               \
   M(DynamicType)                                                               \
   M(VoidType)                                                                  \
+  M(BottomType)                                                                \
   M(InterfaceType)                                                             \
   M(FunctionType)                                                              \
   M(TypeParameterType)                                                         \
@@ -243,66 +244,6 @@ class TypeParameterList : public List<TypeParameter> {
 };
 
 
-template <typename A, typename B>
-class Tuple {
- public:
-  static Tuple<A, B>* ReadFrom(Reader* reader);
-
-  Tuple(A* a, B* b) : first_(a), second_(b) {}
-
-  A* first() { return first_; }
-  B* second() { return second_; }
-
- private:
-  Tuple() {}
-
-  Ref<A> first_;
-  Child<B> second_;
-
-  DISALLOW_COPY_AND_ASSIGN(Tuple);
-};
-
-
-class String {
- public:
-  // Read a string reference, which is an index into the string table.
-  static String* ReadFrom(Reader* reader);
-
-  // Read a string implementation given its size.
-  static String* ReadRaw(Reader* reader, intptr_t size);
-
-  String(intptr_t offset, int size) : offset_(offset), size_(size) {}
-
-  intptr_t offset() { return offset_; }
-  int size() { return size_; }
-
-  bool is_empty() { return size_ == 0; }
-
- private:
-  intptr_t offset_;
-  int size_;
-
-  DISALLOW_COPY_AND_ASSIGN(String);
-};
-
-
-class StringTable {
- public:
-  void ReadFrom(Reader* reader);
-
-  List<String>& strings() { return strings_; }
-
- private:
-  StringTable() {}
-
-  friend class Program;
-
-  List<String> strings_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringTable);
-};
-
-
 class Source {
  public:
   ~Source();
@@ -352,6 +293,31 @@ class SourceTable {
   DISALLOW_COPY_AND_ASSIGN(SourceTable);
 };
 
+
+class StringIndex {
+ public:
+  StringIndex() : value_(-1) {}
+  explicit StringIndex(int value) : value_(value) {}
+
+  operator int() const { return value_; }
+
+ private:
+  int value_;
+};
+
+
+class NameIndex {
+ public:
+  NameIndex() : value_(-1) {}
+  explicit NameIndex(int value) : value_(value) {}
+
+  operator int() const { return value_; }
+
+ private:
+  int value_;
+};
+
+
 // Forward declare all classes.
 #define DO(name) class name;
 KERNEL_ALL_NODES_DO(DO)
@@ -385,31 +351,6 @@ class Library;
 class LinkedNode;
 class Member;
 class Procedure;
-
-class CanonicalName {
- public:
-  ~CanonicalName();
-
-  String* name() { return name_; }
-  CanonicalName* parent() { return parent_; }
-  bool is_referenced() { return is_referenced_; }
-  void set_referenced(bool referenced) { is_referenced_ = referenced; }
-
-  CanonicalName* AddChild(String* string);
-
-  static CanonicalName* NewRoot();
-
- private:
-  CanonicalName();
-
-  CanonicalName* parent_;
-  String* name_;
-  MallocGrowableArray<CanonicalName*> children_;
-  bool is_referenced_;
-
-  DISALLOW_COPY_AND_ASSIGN(CanonicalName);
-};
-
 
 class Node {
  public:
@@ -463,16 +404,14 @@ class LinkedNode : public TreeNode {
  public:
   virtual ~LinkedNode();
 
-  CanonicalName* canonical_name() { return canonical_name_; }
+  NameIndex canonical_name() { return canonical_name_; }
 
  protected:
   LinkedNode() {}
 
-  Ref<CanonicalName> canonical_name_;
+  NameIndex canonical_name_;
 
  private:
-  friend class CanonicalName;
-
   DISALLOW_COPY_AND_ASSIGN(LinkedNode);
 };
 
@@ -488,9 +427,9 @@ class Library : public LinkedNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* import_uri() { return import_uri_; }
+  StringIndex import_uri() { return import_uri_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   List<Typedef>& typedefs() { return typedefs_; }
   List<Class>& classes() { return classes_; }
   List<Field>& fields() { return fields_; }
@@ -500,13 +439,13 @@ class Library : public LinkedNode {
   intptr_t kernel_data_size() { return kernel_data_size_; }
 
  private:
-  Library() : name_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
+  Library() : kernel_data_(NULL), kernel_data_size_(-1) {}
 
   template <typename T>
   friend class List;
 
-  Ref<String> name_;
-  Ref<String> import_uri_;
+  StringIndex name_index_;
+  StringIndex import_uri_index_;
   intptr_t source_uri_index_;
   List<Typedef> typedefs_;
   List<Class> classes_;
@@ -531,7 +470,7 @@ class Typedef : public LinkedNode {
   virtual void VisitChildren(Visitor* visitor);
 
   Library* parent() { return parent_; }
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   TokenPosition position() { return position_; }
   TypeParameterList& type_parameters() { return type_parameters_; }
@@ -544,8 +483,8 @@ class Typedef : public LinkedNode {
   template <typename T>
   friend class List;
 
+  StringIndex name_index_;
   Ref<Library> parent_;
-  Ref<String> name_;
   intptr_t source_uri_index_;
   TokenPosition position_;
   TypeParameterList type_parameters_;
@@ -565,7 +504,7 @@ class Class : public LinkedNode {
   virtual void AcceptClassVisitor(ClassVisitor* visitor) = 0;
 
   Library* parent() { return parent_; }
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   bool is_abstract() { return is_abstract_; }
   List<Expression>& annotations() { return annotations_; }
@@ -584,8 +523,8 @@ class Class : public LinkedNode {
   template <typename T>
   friend class List;
 
+  StringIndex name_index_;
   Ref<Library> parent_;
-  Ref<String> name_;
   intptr_t source_uri_index_;
   bool is_abstract_;
   List<Expression> annotations_;
@@ -883,13 +822,13 @@ class FieldInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* field() { return field_reference_; }
+  NameIndex field() { return field_reference_; }
   Expression* value() { return value_; }
 
  private:
   FieldInitializer() {}
 
-  Ref<CanonicalName> field_reference_;  // Field.
+  NameIndex field_reference_;  // Field canonical name.
   Child<Expression> value_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldInitializer);
@@ -907,13 +846,13 @@ class SuperInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   SuperInitializer() {}
 
-  Ref<CanonicalName> target_reference_;  // Constructor.
+  NameIndex target_reference_;  // Constructor canonical name.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(SuperInitializer);
@@ -931,13 +870,13 @@ class RedirectingInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   RedirectingInitializer() {}
 
-  Ref<CanonicalName> target_reference_;  // Constructor.
+  NameIndex target_reference_;  // Constructor canonical name.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(RedirectingInitializer);
@@ -1126,9 +1065,9 @@ class PropertyGet : public Expression {
  private:
   PropertyGet() {}
 
+  NameIndex interface_target_reference_;
   Child<Expression> receiver_;
   Child<Name> name_;
-  Ref<CanonicalName> interface_target_reference_;
 
   DISALLOW_COPY_AND_ASSIGN(PropertyGet);
 };
@@ -1152,10 +1091,10 @@ class PropertySet : public Expression {
  private:
   PropertySet() {}
 
+  NameIndex interface_target_reference_;
   Child<Expression> receiver_;
   Child<Name> name_;
   Child<Expression> value_;
-  Ref<CanonicalName> interface_target_reference_;
 
   DISALLOW_COPY_AND_ASSIGN(PropertySet);
 };
@@ -1173,13 +1112,13 @@ class DirectPropertyGet : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
 
  private:
   DirectPropertyGet() {}
 
+  NameIndex target_reference_;  // Member canonical name.
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;  // Member.
 
   DISALLOW_COPY_AND_ASSIGN(DirectPropertyGet);
 };
@@ -1196,15 +1135,15 @@ class DirectPropertySet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
+  NameIndex target() { return target_reference_; }
   Expression* receiver() { return receiver_; }
-  CanonicalName* target() { return target_reference_; }
   Expression* value() { return value_; }
 
  private:
   DirectPropertySet() {}
 
+  NameIndex target_reference_;  // Member canonical name.
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;  // Member.
   Child<Expression> value_;
 
   DISALLOW_COPY_AND_ASSIGN(DirectPropertySet);
@@ -1213,7 +1152,7 @@ class DirectPropertySet : public Expression {
 
 class StaticGet : public Expression {
  public:
-  explicit StaticGet(CanonicalName* target) : target_reference_(target) {}
+  explicit StaticGet(NameIndex target) : target_reference_(target) {}
 
   static StaticGet* ReadFrom(Reader* reader);
 
@@ -1224,12 +1163,12 @@ class StaticGet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
 
  private:
   StaticGet() {}
 
-  Ref<CanonicalName> target_reference_;  // Member.
+  NameIndex target_reference_;  // Member canonical name.
 
   DISALLOW_COPY_AND_ASSIGN(StaticGet);
 };
@@ -1246,13 +1185,13 @@ class StaticSet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Expression* expression() { return expression_; }
 
  private:
   StaticSet() {}
 
-  Ref<CanonicalName> target_reference_;  // Member.
+  NameIndex target_reference_;  // Member canonical name.
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticSet);
@@ -1291,8 +1230,8 @@ class NamedExpression : public TreeNode {
  public:
   static NamedExpression* ReadFrom(Reader* reader);
 
-  NamedExpression(String* name, Expression* expr)
-      : name_(name), expression_(expr) {}
+  NamedExpression(StringIndex name_index, Expression* expr)
+      : name_index_(name_index), expression_(expr) {}
   virtual ~NamedExpression();
 
   DEFINE_CASTING_OPERATIONS(NamedExpression);
@@ -1300,13 +1239,13 @@ class NamedExpression : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   Expression* expression() { return expression_; }
 
  private:
   NamedExpression() {}
 
-  Ref<String> name_;
+  StringIndex name_index_;
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(NamedExpression);
@@ -1331,10 +1270,10 @@ class MethodInvocation : public Expression {
  private:
   MethodInvocation() {}
 
+  NameIndex interface_target_reference_;
   Child<Expression> receiver_;
   Child<Name> name_;
   Child<Arguments> arguments_;
-  Ref<CanonicalName> interface_target_reference_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodInvocation);
 };
@@ -1352,14 +1291,14 @@ class DirectMethodInvocation : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   DirectMethodInvocation() {}
 
+  NameIndex target_reference_;  // Procedure canonical name.
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;  // Procedure.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(DirectMethodInvocation);
@@ -1376,16 +1315,16 @@ class StaticInvocation : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* procedure() { return procedure_reference_; }
+  NameIndex procedure() { return procedure_reference_; }
   Arguments* arguments() { return arguments_; }
   bool is_const() { return is_const_; }
 
  private:
   StaticInvocation() {}
 
-  Ref<CanonicalName> procedure_reference_;  // Procedure.
-  Child<Arguments> arguments_;
+  NameIndex procedure_reference_;  // Procedure canonical name.
   bool is_const_;
+  Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticInvocation);
 };
@@ -1403,14 +1342,14 @@ class ConstructorInvocation : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   bool is_const() { return is_const_; }
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   ConstructorInvocation() {}
 
   bool is_const_;
-  Ref<CanonicalName> target_reference_;  // Constructor.
+  NameIndex target_reference_;  // Constructor canonical name.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructorInvocation);
@@ -1579,17 +1518,18 @@ class StringLiteral : public BasicLiteral {
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
-  explicit StringLiteral(String* string) : value_(string) {}
+  explicit StringLiteral(StringIndex string_index)
+      : value_index_(string_index) {}
   virtual ~StringLiteral();
 
   DEFINE_CASTING_OPERATIONS(StringLiteral);
 
-  String* value() { return value_; }
+  StringIndex value() { return value_index_; }
 
  protected:
   StringLiteral() {}
 
-  Ref<String> value_;
+  StringIndex value_index_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StringLiteral);
@@ -1602,7 +1542,8 @@ class BigintLiteral : public StringLiteral {
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
-  explicit BigintLiteral(String* string) : StringLiteral(string) {}
+  explicit BigintLiteral(StringIndex string_index)
+      : StringLiteral(string_index) {}
   virtual ~BigintLiteral();
 
   DEFINE_CASTING_OPERATIONS(BigintLiteral);
@@ -1646,12 +1587,12 @@ class DoubleLiteral : public BasicLiteral {
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
-  String* value() { return value_; }
+  StringIndex value() { return value_index_; }
 
  private:
   DoubleLiteral() {}
 
-  Ref<String> value_;
+  StringIndex value_index_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleLiteral);
 };
@@ -1706,12 +1647,12 @@ class SymbolLiteral : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* value() { return value_; }
+  StringIndex value() { return value_index_; }
 
  private:
   SymbolLiteral() {}
 
-  Ref<String> value_;
+  StringIndex value_index_;
 
   DISALLOW_COPY_AND_ASSIGN(SymbolLiteral);
 };
@@ -2057,14 +1998,14 @@ class ClosureCreation : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* top_level_function() { return top_level_function_reference_; }
+  NameIndex top_level_function() { return top_level_function_reference_; }
   Expression* context_vector() { return context_vector_; }
   FunctionType* function_type() { return function_type_; }
 
  private:
   ClosureCreation() {}
 
-  Ref<CanonicalName> top_level_function_reference_;  // Procedure.
+  NameIndex top_level_function_reference_;  // Procedure canonical name.
   Child<Expression> context_vector_;
   Child<FunctionType> function_type_;
 
@@ -2619,7 +2560,7 @@ class VariableDeclaration : public Statement {
   bool IsConst() { return (flags_ & kFlagConst) == kFlagConst; }
   bool IsFinal() { return (flags_ & kFlagFinal) == kFlagFinal; }
 
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   DartType* type() { return type_; }
   Expression* initializer() { return initializer_; }
   TokenPosition equals_position() { return equals_position_; }
@@ -2634,8 +2575,8 @@ class VariableDeclaration : public Statement {
   template <typename T>
   friend class List;
 
+  StringIndex name_index_;
   word flags_;
-  Ref<String> name_;
   Child<DartType> type_;
   Child<Expression> initializer_;
   TokenPosition equals_position_;
@@ -2680,15 +2621,16 @@ class Name : public Node {
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* string() { return string_; }
-  CanonicalName* library() { return library_reference_; }
+  StringIndex string_index() { return string_index_; }
+  NameIndex library() { return library_reference_; }
 
  private:
-  Name(String* string, CanonicalName* library_reference)
-      : string_(string), library_reference_(library_reference) {}  // NOLINT
+  Name(intptr_t string_index, intptr_t library_reference)
+      : string_index_(string_index),
+        library_reference_(library_reference) {}  // NOLINT
 
-  Ref<String> string_;
-  Ref<CanonicalName> library_reference_;  // Library.
+  StringIndex string_index_;
+  NameIndex library_reference_;  // Library canonical name.
 
   DISALLOW_COPY_AND_ASSIGN(Name);
 };
@@ -2767,12 +2709,30 @@ class VoidType : public DartType {
 };
 
 
+class BottomType : public DartType {
+ public:
+  static BottomType* ReadFrom(Reader* reader);
+
+  virtual ~BottomType();
+
+  DEFINE_CASTING_OPERATIONS(BottomType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+ private:
+  BottomType() {}
+
+  DISALLOW_COPY_AND_ASSIGN(BottomType);
+};
+
+
 class InterfaceType : public DartType {
  public:
   static InterfaceType* ReadFrom(Reader* reader);
   static InterfaceType* ReadFrom(Reader* reader, bool _without_type_arguments_);
 
-  explicit InterfaceType(CanonicalName* class_reference)
+  explicit InterfaceType(NameIndex class_reference)
       : class_reference_(class_reference) {}
   virtual ~InterfaceType();
 
@@ -2781,13 +2741,13 @@ class InterfaceType : public DartType {
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* klass() { return class_reference_; }
+  NameIndex klass() { return class_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
 
  private:
   InterfaceType() {}
 
-  Ref<CanonicalName> class_reference_;  // Class.
+  NameIndex class_reference_;  // Class canonical name.
   List<DartType> type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceType);
@@ -2798,7 +2758,7 @@ class TypedefType : public DartType {
  public:
   static TypedefType* ReadFrom(Reader* reader);
 
-  explicit TypedefType(CanonicalName* class_reference)
+  explicit TypedefType(NameIndex class_reference)
       : typedef_reference_(class_reference) {}
   virtual ~TypedefType();
 
@@ -2807,16 +2767,36 @@ class TypedefType : public DartType {
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* typedef_reference() { return typedef_reference_; }
+  NameIndex typedef_reference() { return typedef_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
 
  private:
   TypedefType() {}
 
-  Ref<CanonicalName> typedef_reference_;  // Typedef.
+  NameIndex typedef_reference_;  // Typedef canonical name.
   List<DartType> type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(TypedefType);
+};
+
+
+class NamedParameter {
+ public:
+  static NamedParameter* ReadFrom(Reader* reader);
+
+  NamedParameter(StringIndex name_index, DartType* type)
+      : name_index_(name_index), type_(type) {}
+
+  StringIndex name() { return name_index_; }
+  DartType* type() { return type_; }
+
+ private:
+  NamedParameter() {}
+
+  StringIndex name_index_;
+  Child<DartType> type_;
+
+  DISALLOW_COPY_AND_ASSIGN(NamedParameter);
 };
 
 
@@ -2835,9 +2815,7 @@ class FunctionType : public DartType {
   TypeParameterList& type_parameters() { return type_parameters_; }
   int required_parameter_count() { return required_parameter_count_; }
   List<DartType>& positional_parameters() { return positional_parameters_; }
-  List<Tuple<String, DartType> >& named_parameters() {
-    return named_parameters_;
-  }
+  List<NamedParameter>& named_parameters() { return named_parameters_; }
   DartType* return_type() { return return_type_; }
 
  private:
@@ -2846,7 +2824,7 @@ class FunctionType : public DartType {
   TypeParameterList type_parameters_;
   int required_parameter_count_;
   List<DartType> positional_parameters_;
-  List<Tuple<String, DartType> > named_parameters_;
+  List<NamedParameter> named_parameters_;
   Child<DartType> return_type_;
 
   DISALLOW_COPY_AND_ASSIGN(FunctionType);
@@ -2904,7 +2882,7 @@ class TypeParameter : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   DartType* bound() { return bound_; }
 
  private:
@@ -2914,7 +2892,7 @@ class TypeParameter : public TreeNode {
   friend class List;
   friend class TypeParameterList;
 
-  Ref<String> name_;
+  StringIndex name_index_;
   Child<DartType> bound_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeParameter);
@@ -2932,27 +2910,26 @@ class Program : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  StringTable& string_table() { return string_table_; }
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
-  CanonicalName* main_method() { return main_method_reference_; }
-  CanonicalName* canonical_name_root() { return canonical_name_root_; }
+  NameIndex main_method() { return main_method_reference_; }
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> valid_token_positions;
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> yield_token_positions;
-  intptr_t string_data_offset() { return string_data_offset_; }
+  intptr_t string_table_offset() { return string_table_offset_; }
+  intptr_t name_table_offset() { return name_table_offset_; }
 
  private:
   Program() {}
 
-  Child<CanonicalName> canonical_name_root_;
+  NameIndex main_method_reference_;  // Procedure.
   List<Library> libraries_;
-  Ref<CanonicalName> main_method_reference_;  // Procedure.
-  StringTable string_table_;
   SourceTable source_table_;
 
-  // The offset from the start of the binary to the start of the UTF-8 encoded
-  // string data.
-  intptr_t string_data_offset_;
+  // The offset from the start of the binary to the start of the string table.
+  intptr_t string_table_offset_;
+
+  // The offset from the start of the binary to the canonical name table.
+  intptr_t name_table_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
@@ -2960,13 +2937,10 @@ class Program : public TreeNode {
 
 class Reference : public AllStatic {
  public:
-  static CanonicalName* ReadMemberFrom(Reader* reader, bool allow_null = false);
-
-  static CanonicalName* ReadClassFrom(Reader* reader, bool allow_null = false);
-
-  static CanonicalName* ReadTypedefFrom(Reader* reader);
-
-  static String* ReadStringFrom(Reader* reader);
+  // Read canonical name references.
+  static NameIndex ReadMemberFrom(Reader* reader, bool allow_null = false);
+  static NameIndex ReadClassFrom(Reader* reader, bool allow_null = false);
+  static NameIndex ReadTypedefFrom(Reader* reader);
 };
 
 
@@ -3205,6 +3179,7 @@ class DartTypeVisitor {
     VisitDefaultDartType(node);
   }
   virtual void VisitVoidType(VoidType* node) { VisitDefaultDartType(node); }
+  virtual void VisitBottomType(BottomType* node) { VisitDefaultDartType(node); }
   virtual void VisitInterfaceType(InterfaceType* node) {
     VisitDefaultDartType(node);
   }

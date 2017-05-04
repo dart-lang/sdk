@@ -18,8 +18,8 @@ main() {
 
   var intCompare = (int a, int b) => a.compareTo(b);
 
-  // Pivot-canditate indices: 7, 15, 22, 29, 37
-  // Test dutch flag partitioning (canditates 2 and 4 are the same).
+  // Pivot-candidate indices: 7, 15, 22, 29, 37
+  // Test Dutch flag partitioning (candidates 2 and 4 are the same).
   var list = [
     0,
     0,

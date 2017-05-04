@@ -254,7 +254,6 @@ Future testConfigurations(List<Map> configurations) async {
       eventListener.add(new TimingPrinter(startTime));
     }
     eventListener.add(new SkippedCompilationsPrinter());
-    eventListener.add(new LeftOverTempDirPrinter());
   }
   if (firstConf['write_test_outcome_log']) {
     eventListener.add(new TestOutcomeLogWriter());

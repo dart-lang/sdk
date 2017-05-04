@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Regression test for dart2js's type inferrer, that used to not
-// correclty infer optional named parameters.
+// correctly infer optional named parameters.
 
 import "package:expect/expect.dart";
 import "compiler_annotations.dart";

@@ -56,6 +56,7 @@ import 'impact_test.dart';
 const SOURCE = const {
   'main.dart': '''
 import 'dart:html';
+import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 class ClassWithSetter {
@@ -72,6 +73,7 @@ class Class2 extends Object with Mixin {
   method3() {}
 }
  
+method1() {} // Deliberately the same name as the instance member in Mixin.
 
 @NoInline()
 main() {
@@ -82,6 +84,10 @@ main() {
   new Class1().method1();
   new Class2().method2();
   new Class2().method3();
+  null is List<int>;
+  method1(); // Both top level and instance method named 'method1' are live.
+  #main; // Use a const symbol.
+  new Int8List(0);
 }
 '''
 };
@@ -92,7 +98,9 @@ main(List<String> args) {
   });
 }
 
-Future mainInternal(List<String> args,
+enum ResultKind { crashes, errors, warnings, success, failure }
+
+Future<ResultKind> mainInternal(List<String> args,
     {bool skipWarnings: false, bool skipErrors: false}) async {
   Arguments arguments = new Arguments.from(args);
   Uri entryPoint;
@@ -117,13 +125,17 @@ Future mainInternal(List<String> args,
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
+  if (collector.crashes.isNotEmpty) {
+    print('Skipping due to crashes.');
+    return ResultKind.crashes;
+  }
   if (collector.errors.isNotEmpty && skipErrors) {
     print('Skipping due to errors.');
-    return;
+    return ResultKind.errors;
   }
   if (collector.warnings.isNotEmpty && skipWarnings) {
     print('Skipping due to warnings.');
-    return;
+    return ResultKind.warnings;
   }
   Expect.isFalse(compiler1.compilationFailed);
   ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
@@ -178,72 +190,8 @@ Future mainInternal(List<String> args,
 
   checkClosedWorlds(closedWorld1, closedWorld2, equivalence.entityEquivalence,
       verbose: arguments.verbose);
-}
 
-List createKernelResolutionEnqueuerListener(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    DeferredLoadTask deferredLoadTask,
-    KernelToElementMap elementMap,
-    NativeBasicData nativeBasicData) {
-  ElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-  CommonElements commonElements = elementMap.commonElements;
-  BackendImpacts impacts = new BackendImpacts(options, commonElements);
-
-  // TODO(johnniwinther): Create Kernel based implementations for these:
-  RuntimeTypesNeedBuilder rtiNeedBuilder = new RuntimeTypesNeedBuilderImpl();
-  MirrorsDataBuilder mirrorsDataBuilder = new MirrorsDataBuilderImpl();
-  CustomElementsResolutionAnalysis customElementsResolutionAnalysis =
-      new CustomElementsResolutionAnalysisImpl();
-  MirrorsResolutionAnalysis mirrorsResolutionAnalysis =
-      new MirrorsResolutionAnalysisImpl();
-
-  LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
-      new LookupMapResolutionAnalysis(reporter, elementEnvironment);
-  InterceptorDataBuilder interceptorDataBuilder =
-      new InterceptorDataBuilderImpl(
-          nativeBasicData, elementEnvironment, commonElements);
-  BackendUsageBuilder backendUsageBuilder =
-      new BackendUsageBuilderImpl(commonElements);
-  NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
-      commonElements, new KernelNoSuchMethodResolver(elementMap));
-  NativeClassFinder nativeClassFinder = new BaseNativeClassFinder(
-      elementEnvironment, commonElements, nativeBasicData);
-  NativeResolutionEnqueuer nativeResolutionEnqueuer =
-      new NativeResolutionEnqueuer(options, elementEnvironment, commonElements,
-          backendUsageBuilder, nativeClassFinder);
-
-  ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
-      options,
-      elementEnvironment,
-      commonElements,
-      impacts,
-      nativeBasicData,
-      interceptorDataBuilder,
-      backendUsageBuilder,
-      rtiNeedBuilder,
-      mirrorsDataBuilder,
-      noSuchMethodRegistry,
-      customElementsResolutionAnalysis,
-      lookupMapResolutionAnalysis,
-      mirrorsResolutionAnalysis,
-      new TypeVariableResolutionAnalysis(
-          elementEnvironment, impacts, backendUsageBuilder),
-      nativeResolutionEnqueuer,
-      deferredLoadTask);
-
-  ImpactTransformer transformer = new JavaScriptImpactTransformer(
-      options,
-      elementEnvironment,
-      commonElements,
-      impacts,
-      nativeBasicData,
-      nativeResolutionEnqueuer,
-      backendUsageBuilder,
-      mirrorsDataBuilder,
-      customElementsResolutionAnalysis,
-      rtiNeedBuilder);
-  return [listener, backendUsageBuilder, transformer];
+  return ResultKind.success;
 }
 
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,

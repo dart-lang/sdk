@@ -446,7 +446,7 @@ class TreeShaker {
       Class class_ = root.getClass(table);
 
       // This is a class which will be instantiated by non-Dart code (whether it
-      // has a valid generative construtor or not).
+      // has a valid generative constructor or not).
       _addInstantiatedClass(class_);
 
       // We keep all the constructors of externally instantiated classes.

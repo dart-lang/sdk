@@ -204,7 +204,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 
   /**
    * Process the expected response by completing the given completer
-   * with the result if it has alredy been received,
+   * with the result if it has already been received,
    * or caching the completer to be completed when the server
    * returns the associated result.
    * Return a future that completes when the response is received

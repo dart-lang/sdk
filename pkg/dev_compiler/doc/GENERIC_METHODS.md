@@ -110,7 +110,7 @@ almost anywhere you would expect in a generic method.
     ```
 
     Note that generic methods are not yet supported *at runtime* on the VM and
-    dartjs. On those platforms, uses of generic method type arguments are
+    dart2js. On those platforms, uses of generic method type arguments are
     treated like `dynamic` today. So in this example, `pair`'s reified type at
     runtime will be `List<dynamic>` and `set` will be `Set<dynamic>`.
 

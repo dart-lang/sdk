@@ -47,7 +47,7 @@ void main() {
   shouldBe(regexp01d, ["123 5"]);
   var regexp01e = new RegExp(r"[1-35\s5]+").firstMatch("-123 54");
   shouldBe(regexp01e, ["123 5"]);
-  // hyphens are normal charaters if a range is not fully specified.
+  // hyphens are normal characters if a range is not fully specified.
   var regexp01f = new RegExp(r"[-3]+").firstMatch("2-34");
   shouldBe(regexp01f, ["-3"]);
   var regexp01g = new RegExp(r"[2-]+").firstMatch("12-3");

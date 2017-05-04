@@ -210,7 +210,7 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
   int computeTimeoutMultiplier(
       {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     return 4 // Allow additional time for browser testing to run.
-        // TODO(ahe): We might need to distinquish between DRT for running
+        // TODO(ahe): We might need to distinguish between DRT for running
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         *

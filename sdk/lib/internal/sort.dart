@@ -157,7 +157,7 @@ class Sort {
     bool pivots_are_equal = (compare(pivot1, pivot2) == 0);
     if (pivots_are_equal) {
       var pivot = pivot1;
-      // Degenerated case where the partitioning becomes a dutch national flag
+      // Degenerated case where the partitioning becomes a Dutch national flag
       // problem.
       //
       // [ |  < pivot  | == pivot | unpartitioned | > pivot  | ]

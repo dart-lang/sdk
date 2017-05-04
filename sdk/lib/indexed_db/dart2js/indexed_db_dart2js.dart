@@ -449,7 +449,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> objectStoreNames;
 
@@ -1036,7 +1036,7 @@ class ObjectStore extends Interceptor {
 
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> indexNames;
 
@@ -1424,7 +1424,7 @@ class Transaction extends EventTarget {
   @DomName('IDBTransaction.objectStoreNames')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> objectStoreNames;
 

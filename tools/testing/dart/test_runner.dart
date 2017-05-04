@@ -1459,7 +1459,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 
   void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
-    // Parse a line delimited by the | character using \ as an escape charager
+    // Parse a line delimited by the | character using \ as an escape character
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
       StringBuffer field = new StringBuffer();
@@ -3096,7 +3096,7 @@ class ProcessQueue {
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
       Timer _debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period
-      // something is definitly wrong, so we dump the debugging information.
+      // something is definitely wrong, so we dump the debugging information.
       final debugTimerDuration = const Duration(minutes: 10);
 
       void cancelDebugTimer() {

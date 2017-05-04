@@ -108,7 +108,7 @@ class ProcessInfo {
    * The current resident set size of memory for the process.
    *
    * Note that the meaning of this field is platform dependent. For example,
-   * some memory acounted for here may be shared with other processes, or if
+   * some memory accounted for here may be shared with other processes, or if
    * the same page is mapped into a process's address space, it may be counted
    * twice.
    */
@@ -119,7 +119,7 @@ class ProcessInfo {
    * process.
    *
    * Note that the meaning of this field is platform dependent. For example,
-   * some memory acounted for here may be shared with other processes, or if
+   * some memory accounted for here may be shared with other processes, or if
    * the same page is mapped into a process's address space, it may be counted
    * twice.
    */

@@ -80,26 +80,10 @@ dputMirror(obj, field, value) {
   var f = _canonicalMember(obj, field);
   _trackCall(obj);
   if (f != null) {
-    var objType = getType(obj);
-    var setterType = getSetterType(objType, f);
-    if (JS('bool', '# != void 0', setterType)) {
-      return JS(
-          '',
-          '#[#] = #',
-          obj,
-          f,
-          check(
-              value, _stripGenericArguments(JS('', '#.args[0]', setterType))));
-    } else {
-      var fieldType = getFieldType(objType, f);
-      // TODO(jacobr): add metadata tracking which fields are final and throw
-      // if a setter is called on a final field.
-      if (JS('bool', '# != void 0', fieldType)) {
-        return JS('', '#[#] = #', obj, f,
-            check(value, _stripGenericArguments(fieldType)));
-      }
-
-      // Do not support calls on JS interop objects to match Dart2JS behavior.
+    var setterType = getSetterType(getType(obj), f);
+    if (setterType != null) {
+      setterType = _stripGenericArguments(setterType);
+      return JS('', '#[#] = #', obj, f, check(value, setterType));
     }
   }
   return noSuchMethod(
@@ -110,22 +94,13 @@ dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   _trackCall(obj);
   if (f != null) {
-    var objType = getType(obj);
-    var setterType = getSetterType(objType, f);
-    if (JS('bool', '# != void 0', setterType)) {
-      return JS('', '#[#] = #', obj, f,
-          check(value, JS('', '#.args[0]', setterType)));
-    } else {
-      var fieldType = getFieldType(objType, f);
-      // TODO(jacobr): add metadata tracking which fields are final and throw
-      // if a setter is called on a final field.
-      if (JS('bool', '# != void 0', fieldType)) {
-        return JS('', '#[#] = #', obj, f, check(value, fieldType));
-      }
-      // Always allow for JS interop objects.
-      if (isJsInterop(obj)) {
-        return JS('', '#[#] = #', obj, f, value);
-      }
+    var setterType = getSetterType(getType(obj), f);
+    if (setterType != null) {
+      return JS('', '#[#] = #', obj, f, check(value, setterType));
+    }
+    // Always allow for JS interop objects.
+    if (isJsInterop(obj)) {
+      return JS('', '#[#] = #', obj, f, value);
     }
   }
   return noSuchMethod(
@@ -252,11 +227,11 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
   // If f is a function, but not a method (no method type)
   // then it should have been a function valued field, so
   // get the type from the function.
-  if ($ftype === void 0) {
+  if ($ftype == null) {
     $ftype = $_getRuntimeType($f);
   }
 
-  if (!$ftype) {
+  if ($ftype == null) {
     // TODO(leafp): Allow JS objects to go through?
     if ($typeArgs != null) {
       // TODO(jmesserly): is there a sensible way to handle these?
@@ -614,7 +589,7 @@ notNull(x) {
 ///
 // TODO(jmesserly): this could be faster
 // TODO(jmesserly): we can use default values `= dynamic` once #417 is fixed.
-// TODO(jmesserly): move this to classes for consistentcy with list literals?
+// TODO(jmesserly): move this to classes for consistency with list literals?
 map(values, [K, V]) => JS(
     '',
     '''(() => {

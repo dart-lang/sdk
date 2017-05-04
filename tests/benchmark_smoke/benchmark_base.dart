@@ -47,7 +47,7 @@ class BenchmarkBase {
   /** Not measured setup code executed prior to the benchmark runs. */
   void setup() {}
 
-  /** Not measures teardown code executed after the benchark runs. */
+  /** Not measures teardown code executed after the benchmark runs. */
   void teardown() {}
 
   /**

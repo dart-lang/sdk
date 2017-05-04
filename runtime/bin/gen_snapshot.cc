@@ -898,7 +898,7 @@ static void PrintUsage() {
 " program. The format of this manifest is as follows. Each line in the       \n"
 " manifest is a comma separated list of three elements. The first entry is   \n"
 " the library URI, the second entry is the class name and the final entry    \n"
-" the function name. The file must be terminated with a newline charater.    \n"
+" the function name. The file must be terminated with a newline character.   \n"
 "                                                                            \n"
 "   Example:                                                                 \n"
 "     dart:something,SomeClass,doSomething                                   \n"

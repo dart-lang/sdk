@@ -206,16 +206,24 @@ class EntryFrame : public StackFrame {
 // concurrently.
 class StackFrameIterator : public ValueObject {
  public:
-  static const bool kValidateFrames = true;
-  static const bool kDontValidateFrames = false;
+  enum ValidationPolicy {
+    kValidateFrames = 0,
+    kDontValidateFrames = 1,
+  };
+  enum CrossThreadPolicy {
+    kNoCrossThreadIteration = 0,
+    kAllowCrossThreadIteration = 1,
+  };
 
   // Iterators for iterating over all frames from the last ExitFrame to the
   // first EntryFrame.
-  explicit StackFrameIterator(bool validate,
-                              Thread* thread = Thread::Current());
+  explicit StackFrameIterator(ValidationPolicy validation_policy,
+                              Thread* thread,
+                              CrossThreadPolicy cross_thread_policy);
   StackFrameIterator(uword last_fp,
-                     bool validate,
-                     Thread* thread = Thread::Current());
+                     ValidationPolicy validation_policy,
+                     Thread* thread,
+                     CrossThreadPolicy cross_thread_policy);
 
 #if !defined(TARGET_ARCH_DBC)
   // Iterator for iterating over all frames from the current frame (given by its
@@ -223,8 +231,9 @@ class StackFrameIterator : public ValueObject {
   StackFrameIterator(uword fp,
                      uword sp,
                      uword pc,
-                     bool validate,
-                     Thread* thread = Thread::Current());
+                     ValidationPolicy validation_policy,
+                     Thread* thread,
+                     CrossThreadPolicy cross_thread_policy);
 #endif
 
   // Checks if a next frame exists.
@@ -302,17 +311,33 @@ class StackFrameIterator : public ValueObject {
 // isolate given is not running concurrently on another thread.
 class DartFrameIterator : public ValueObject {
  public:
-  explicit DartFrameIterator(Thread* thread = Thread::Current())
-      : frames_(StackFrameIterator::kDontValidateFrames, thread) {}
-  explicit DartFrameIterator(uword last_fp, Thread* thread = Thread::Current())
-      : frames_(last_fp, StackFrameIterator::kDontValidateFrames, thread) {}
+  explicit DartFrameIterator(
+      Thread* thread,
+      StackFrameIterator::CrossThreadPolicy cross_thread_policy)
+      : frames_(StackFrameIterator::kDontValidateFrames,
+                thread,
+                cross_thread_policy) {}
+  explicit DartFrameIterator(
+      uword last_fp,
+      Thread* thread,
+      StackFrameIterator::CrossThreadPolicy cross_thread_policy)
+      : frames_(last_fp,
+                StackFrameIterator::kDontValidateFrames,
+                thread,
+                cross_thread_policy) {}
 
 #if !defined(TARGET_ARCH_DBC)
   DartFrameIterator(uword fp,
                     uword sp,
                     uword pc,
-                    Thread* thread = Thread::Current())
-      : frames_(fp, sp, pc, StackFrameIterator::kDontValidateFrames, thread) {}
+                    Thread* thread,
+                    StackFrameIterator::CrossThreadPolicy cross_thread_policy)
+      : frames_(fp,
+                sp,
+                pc,
+                StackFrameIterator::kDontValidateFrames,
+                thread,
+                cross_thread_policy) {}
 #endif
 
   // Get next dart frame.

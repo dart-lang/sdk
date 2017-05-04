@@ -694,7 +694,7 @@ class Offset {
   final int subexpressionOffset;
 
   /// The `left-to-right` offset of the step. This is like [subexpressionOffset]
-  /// bute restricted so that the offset of each subexpression in execution
+  /// but restricted so that the offset of each subexpression in execution
   /// order is monotonically increasing.
   ///
   /// For instance:

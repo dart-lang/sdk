@@ -301,7 +301,7 @@ class SyntheticSymbolToken extends SymbolToken {
 /**
  * A [BeginGroupToken] represents a symbol that may be the beginning of
  * a pair of brackets, i.e., ( { [ < or ${
- * The [endGroup] token points to the matching closing bracked in case
+ * The [endGroup] token points to the matching closing bracket in case
  * it can be identified during scanning.
  */
 class BeginGroupToken extends SymbolToken

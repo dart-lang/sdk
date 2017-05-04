@@ -158,7 +158,7 @@ void testServerListenAfterConnect() {
 //
 // listenSecure
 // When this argument is true a secure server is used. When this is false
-// a non-secure server is used and the connections are secured after beeing
+// a non-secure server is used and the connections are secured after being
 // connected.
 //
 // connectSecure

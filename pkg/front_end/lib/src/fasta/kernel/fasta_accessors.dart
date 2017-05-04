@@ -128,8 +128,8 @@ abstract class FastaAccessor implements Accessor {
   /* Expression | FastaAccessor */ buildPropertyAccess(
       IncompleteSend send, bool isNullAware) {
     if (send is SendAccessor) {
-      return buildMethodInvocation(buildSimpleRead(), send.name, send.arguments,
-          offsetForToken(send.token),
+      return buildMethodInvocation(helper.astFactory, buildSimpleRead(),
+          send.name, send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware);
     } else {
       return PropertyAccessor.make(helper, send.token, buildSimpleRead(),
@@ -315,8 +315,12 @@ class ThisAccessor extends FastaAccessor {
     if (send is SendAccessor) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
-      MethodInvocation result = buildMethodInvocation(new ThisExpression(),
-          send.name, send.arguments, offsetForToken(token));
+      MethodInvocation result = buildMethodInvocation(
+          helper.astFactory,
+          new ThisExpression(),
+          send.name,
+          send.arguments,
+          offsetForToken(token));
       return isSuper ? helper.toSuperMethodInvocation(result) : result;
     } else {
       if (isSuper) {
@@ -336,7 +340,7 @@ class ThisAccessor extends FastaAccessor {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else {
       return buildMethodInvocation(
-          new ThisExpression(), callName, arguments, offset);
+          helper.astFactory, new ThisExpression(), callName, arguments, offset);
     }
   }
 
@@ -492,6 +496,7 @@ class SendAccessor extends IncompleteSend {
         if (target != null) {
           if (target is Field) {
             result = buildMethodInvocation(
+                helper.astFactory,
                 new StaticGet(target),
                 callName,
                 arguments,
@@ -507,7 +512,7 @@ class SendAccessor extends IncompleteSend {
         }
       }
     } else {
-      result = buildMethodInvocation(
+      result = buildMethodInvocation(helper.astFactory,
           helper.toValue(receiver), name, arguments, offsetForToken(token),
           isNullAware: isNullAware);
     }
@@ -630,7 +635,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   IndexAccessor.internal(this.helper, Token token, Expression receiver,
       Expression index, Procedure getter, Procedure setter)
-      : super.internal(receiver, index, getter, setter, token);
+      : super.internal(helper, receiver, index, getter, setter, token);
 
   String get plainNameForRead => "[]";
 
@@ -638,7 +643,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset);
+        helper.astFactory, buildSimpleRead(), callName, arguments, offset);
   }
 
   toString() => "IndexAccessor()";
@@ -664,14 +669,15 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 
   PropertyAccessor.internal(this.helper, Token token, Expression receiver,
       Name name, Member getter, Member setter)
-      : super.internal(receiver, name, getter, setter, token);
+      : super.internal(helper, receiver, name, getter, setter, token);
 
   String get plainNameForRead => name.name;
 
   bool get isThisPropertyAccessor => receiver is ThisExpression;
 
   Expression doInvocation(int offset, Arguments arguments) {
-    return buildMethodInvocation(receiver, name, arguments, offset);
+    return buildMethodInvocation(
+        helper.astFactory, receiver, name, arguments, offset);
   }
 
   toString() => "PropertyAccessor()";
@@ -728,8 +734,8 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return buildMethodInvocation(buildSimpleRead(), callName, arguments,
-          offset + (readTarget?.name?.name?.length ?? 0));
+      return buildMethodInvocation(helper.astFactory, buildSimpleRead(),
+          callName, arguments, offset + (readTarget?.name?.name?.length ?? 0));
     } else {
       return helper.buildStaticInvocation(readTarget, arguments)
         ..fileOffset = offset;
@@ -741,18 +747,16 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
 class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
     with FastaAccessor {
-  final BuilderHelper helper;
-
-  SuperPropertyAccessor(
-      this.helper, Token token, Name name, Member getter, Member setter)
-      : super(name, getter, setter, token);
+  SuperPropertyAccessor(BuilderHelper helper, Token token, Name name,
+      Member getter, Member setter)
+      : super(helper, name, getter, setter, token);
 
   String get plainNameForRead => name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
     if (getter == null || isFieldOrGetter(getter)) {
       return buildMethodInvocation(
-          buildSimpleRead(), callName, arguments, offset);
+          helper.astFactory, buildSimpleRead(), callName, arguments, offset);
     } else {
       return new DirectMethodInvocation(new ThisExpression(), getter, arguments)
         ..fileOffset = offset;
@@ -763,11 +767,9 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
 }
 
 class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
-  final BuilderHelper helper;
-
-  ThisIndexAccessor(this.helper, Token token, Expression index,
+  ThisIndexAccessor(BuilderHelper helper, Token token, Expression index,
       Procedure getter, Procedure setter)
-      : super(index, getter, setter, token);
+      : super(helper, index, getter, setter, token);
 
   String get plainNameForRead => "[]";
 
@@ -775,18 +777,16 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset);
+        helper.astFactory, buildSimpleRead(), callName, arguments, offset);
   }
 
   toString() => "ThisIndexAccessor()";
 }
 
 class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
-  final BuilderHelper helper;
-
-  SuperIndexAccessor(
-      this.helper, Token token, Expression index, Member getter, Member setter)
-      : super(index, getter, setter, token);
+  SuperIndexAccessor(BuilderHelper helper, Token token, Expression index,
+      Member getter, Member setter)
+      : super(helper, index, getter, setter, token);
 
   String get plainNameForRead => "[]";
 
@@ -794,7 +794,7 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset);
+        helper.astFactory, buildSimpleRead(), callName, arguments, offset);
   }
 
   toString() => "SuperIndexAccessor()";
@@ -806,7 +806,7 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
 
   ThisPropertyAccessor(
       this.helper, Token token, Name name, Member getter, Member setter)
-      : super(name, getter, setter, token);
+      : super(helper, name, getter, setter, token);
 
   String get plainNameForRead => name.name;
 
@@ -819,7 +819,8 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
       // `this.name.call(arguments)`.
       interfaceTarget = null;
     }
-    return buildMethodInvocation(new ThisExpression(), name, arguments, offset);
+    return buildMethodInvocation(
+        helper.astFactory, new ThisExpression(), name, arguments, offset);
   }
 
   toString() => "ThisPropertyAccessor()";
@@ -831,7 +832,7 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
 
   NullAwarePropertyAccessor(this.helper, Token token, Expression receiver,
       Name name, Member getter, Member setter, DartType type)
-      : super(receiver, name, getter, setter, type, token);
+      : super(helper, receiver, name, getter, setter, type, token);
 
   String get plainNameForRead => name.name;
 
@@ -843,37 +844,33 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
 }
 
 class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
-  @override
-  final BuilderHelper helper;
-
-  VariableAccessor(this.helper, Token token, VariableDeclaration variable,
+  VariableAccessor(
+      BuilderHelper helper, Token token, VariableDeclaration variable,
       [DartType promotedType])
-      : super(variable, promotedType, token);
+      : super(helper, variable, promotedType, token);
 
   String get plainNameForRead => variable.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
     // Normally the offset is at the start of the token, but in this case,
     // because we insert a '.call', we want it at the end instead.
-    return buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        offset + (variable.name?.length ?? 0));
+    return buildMethodInvocation(helper.astFactory, buildSimpleRead(), callName,
+        arguments, offset + (variable.name?.length ?? 0));
   }
 
   toString() => "VariableAccessor()";
 }
 
 class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
-  final BuilderHelper helper;
-
   final String plainNameForRead;
 
-  ReadOnlyAccessor(
-      this.helper, Expression expression, this.plainNameForRead, Token token)
-      : super(expression, token);
+  ReadOnlyAccessor(BuilderHelper helper, Expression expression,
+      this.plainNameForRead, Token token)
+      : super(helper, expression, token);
 
   Expression doInvocation(int offset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset);
+        helper.astFactory, buildSimpleRead(), callName, arguments, offset);
   }
 }
 
@@ -917,20 +914,22 @@ bool isFieldOrGetter(Member member) {
   return member is Field || (member is Procedure && member.isGetter);
 }
 
-Expression buildMethodInvocation(
-    Expression receiver, Name name, Arguments arguments, int offset,
+Expression buildMethodInvocation(AstFactory astFactory, Expression receiver,
+    Name name, Arguments arguments, int offset,
     {bool isNullAware: false}) {
   if (isNullAware) {
     VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
     return makeLet(
         variable,
         new ConditionalExpression(
-            buildIsNull(new VariableGet(variable)),
+            buildIsNull(astFactory, new VariableGet(variable)),
             new NullLiteral(),
-            new MethodInvocation(new VariableGet(variable), name, arguments)
+            astFactory.methodInvocation(
+                new VariableGet(variable), name, arguments)
               ..fileOffset = offset,
             const DynamicType()));
   } else {
-    return new MethodInvocation(receiver, name, arguments)..fileOffset = offset;
+    return astFactory.methodInvocation(receiver, name, arguments)
+      ..fileOffset = offset;
   }
 }

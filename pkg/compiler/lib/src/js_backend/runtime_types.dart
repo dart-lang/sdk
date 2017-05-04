@@ -91,7 +91,7 @@ abstract class RuntimeTypesSubstitutions {
 
   Substitution getSubstitution(ClassElement cls, ClassElement other);
 
-  /// Compute the required type checkes and substitutions for the given
+  /// Compute the required type checks and substitutions for the given
   /// instantitated and checked classes.
   TypeChecks computeChecks(
       Set<ClassElement> instantiated, Set<ClassElement> checked);
@@ -138,10 +138,14 @@ abstract class RuntimeTypesEncoder {
 
 /// Common functionality for [_RuntimeTypesNeedBuilder] and [_RuntimeTypes].
 abstract class _RuntimeTypesBase {
+  final DartTypes _types;
+
   // TODO(21969): remove this and analyze instantiated types and factory calls
   // instead to find out which types are instantiated, if finitely many, or if
   // we have to use the more imprecise generic algorithm.
   bool get cannotDetermineInstantiatedTypesPrecisely => true;
+
+  _RuntimeTypesBase(this._types);
 
   /**
    * Compute type arguments of classes that use one of their type variables in
@@ -153,18 +157,21 @@ abstract class _RuntimeTypesBase {
    * immutable datastructure.
    */
   void registerImplicitChecks(
-      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks) {
+      WorldBuilder worldBuilder, Iterable<ClassEntity> classesUsingChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
     Set<InterfaceType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
-      for (ResolutionInterfaceType type in instantiatedTypes) {
+      for (InterfaceType type in instantiatedTypes) {
         do {
-          for (ResolutionDartType argument in type.typeArguments) {
+          for (DartType argument in type.typeArguments) {
             worldBuilder.registerIsCheck(argument);
           }
-          type = type.element.supertype;
+          // TODO(johnniwinther): This seems wrong; the type arguments of [type]
+          // are not substituted - `List<int>` yields `Iterable<E>` and not
+          // `Iterable<int>`.
+          type = _types.getSupertype(type.element);
         } while (type != null && !instantiatedTypes.contains(type));
       }
     } else {
@@ -173,18 +180,21 @@ abstract class _RuntimeTypesBase {
       // set of is-checks.
       // TODO(karlklose): replace this with code that uses a subtype lookup
       // datastructure in the world.
-      for (ResolutionInterfaceType type in instantiatedTypes) {
-        for (ClassElement cls in classesUsingChecks) {
+      for (InterfaceType type in instantiatedTypes) {
+        for (ClassEntity cls in classesUsingChecks) {
           do {
             // We need the type as instance of its superclass anyway, so we just
             // try to compute the substitution; if the result is [:null:], the
             // classes are not related.
-            ResolutionInterfaceType instance = type.asInstanceOf(cls);
+            InterfaceType instance = _types.asInstanceOf(type, cls);
             if (instance == null) break;
-            for (ResolutionDartType argument in instance.typeArguments) {
+            for (DartType argument in instance.typeArguments) {
               worldBuilder.registerIsCheck(argument);
             }
-            type = type.element.supertype;
+            // TODO(johnniwinther): This seems wrong; the type arguments of
+            // [type] are not substituted - `List<int>` yields `Iterable<E>` and
+            // not `Iterable<int>`.
+            type = _types.getSupertype(type.element);
           } while (type != null && !instantiatedTypes.contains(type));
         }
       }
@@ -193,31 +203,37 @@ abstract class _RuntimeTypesBase {
 }
 
 class _RuntimeTypesNeed implements RuntimeTypesNeed {
+  final ElementEnvironment _elementEnvironment;
   final BackendUsage _backendUsage;
-  final Set<ClassElement> classesNeedingRti;
-  final Set<Element> methodsNeedingRti;
-  final Set<Element> localFunctionsNeedingRti;
+  final Set<ClassEntity> classesNeedingRti;
+  final Set<FunctionEntity> methodsNeedingRti;
+  final Set<Local> localFunctionsNeedingRti;
 
   /// The set of classes that use one of their type variables as expressions
   /// to get the runtime type.
-  final Set<ClassElement> classesUsingTypeVariableExpression;
+  final Set<ClassEntity> classesUsingTypeVariableExpression;
 
   _RuntimeTypesNeed(
+      this._elementEnvironment,
       this._backendUsage,
       this.classesNeedingRti,
       this.methodsNeedingRti,
       this.localFunctionsNeedingRti,
       this.classesUsingTypeVariableExpression);
 
-  bool classNeedsRti(ClassElement cls) {
+  bool checkClass(ClassEntity cls) => true;
+
+  bool classNeedsRti(ClassEntity cls) {
+    assert(checkClass(cls));
     if (_backendUsage.isRuntimeTypeUsed) return true;
-    return classesNeedingRti.contains(cls.declaration);
+    return classesNeedingRti.contains(cls);
   }
 
-  bool classNeedsRtiField(ClassElement cls) {
-    if (cls.rawType.typeArguments.isEmpty) return false;
+  bool classNeedsRtiField(ClassEntity cls) {
+    assert(checkClass(cls));
+    if (!_elementEnvironment.isGenericClass(cls)) return false;
     if (_backendUsage.isRuntimeTypeUsed) return true;
-    return classesNeedingRti.contains(cls.declaration);
+    return classesNeedingRti.contains(cls);
   }
 
   bool methodNeedsRti(MethodElement function) {
@@ -231,30 +247,56 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   }
 
   @override
-  bool classUsesTypeVariableExpression(ClassElement cls) {
+  bool classUsesTypeVariableExpression(ClassEntity cls) {
     return classesUsingTypeVariableExpression.contains(cls);
   }
 }
 
+class _ResolutionRuntimeTypesNeed extends _RuntimeTypesNeed {
+  _ResolutionRuntimeTypesNeed(
+      ElementEnvironment elementEnvironment,
+      BackendUsage backendUsage,
+      Set<ClassEntity> classesNeedingRti,
+      Set<FunctionEntity> methodsNeedingRti,
+      Set<Local> localFunctionsNeedingRti,
+      Set<ClassEntity> classesUsingTypeVariableExpression)
+      : super(
+            elementEnvironment,
+            backendUsage,
+            classesNeedingRti,
+            methodsNeedingRti,
+            localFunctionsNeedingRti,
+            classesUsingTypeVariableExpression);
+
+  bool checkClass(ClassElement cls) => cls.isDeclaration;
+}
+
 class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
-  final Map<ClassElement, Set<ClassElement>> rtiDependencies =
-      <ClassElement, Set<ClassElement>>{};
+  final ElementEnvironment _elementEnvironment;
 
-  final Set<ClassElement> classesUsingTypeVariableExpression =
-      new Set<ClassElement>();
+  final Map<ClassEntity, Set<ClassEntity>> rtiDependencies =
+      <ClassEntity, Set<ClassEntity>>{};
+
+  final Set<ClassEntity> classesUsingTypeVariableExpression =
+      new Set<ClassEntity>();
+
+  RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
+      : super(types);
+
+  bool checkClass(ClassEntity cls) => true;
 
   @override
-  void registerClassUsingTypeVariableExpression(ClassElement cls) {
+  void registerClassUsingTypeVariableExpression(ClassEntity cls) {
     classesUsingTypeVariableExpression.add(cls);
   }
 
   @override
-  void registerRtiDependency(ClassElement element, ClassElement dependency) {
+  void registerRtiDependency(ClassEntity element, ClassEntity dependency) {
     // We're not dealing with typedef for now.
     assert(element != null);
-    Set<ClassElement> classes =
-        rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
+    Set<ClassEntity> classes =
+        rtiDependencies.putIfAbsent(element, () => new Set<ClassEntity>());
     classes.add(dependency);
   }
 
@@ -266,43 +308,43 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       CommonElements commonElements,
       BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
-    Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
-    Set<MethodElement> methodsNeedingRti = new Set<MethodElement>();
-    Set<LocalFunctionElement> localFunctionsNeedingRti =
-        new Set<LocalFunctionElement>();
+    Set<ClassEntity> classesNeedingRti = new Set<ClassEntity>();
+    Set<FunctionEntity> methodsNeedingRti = new Set<FunctionEntity>();
+    Set<Local> localFunctionsNeedingRti = new Set<Local>();
 
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
     // (2) dependencies of classes in (1),
     // (3) subclasses of (2) and (3).
-    void potentiallyAddForRti(ClassElement cls) {
-      assert(invariant(cls, cls.isDeclaration));
-      if (cls.typeVariables.isEmpty) return;
+    void potentiallyAddForRti(ClassEntity cls) {
+      assert(checkClass(cls));
+      if (!_elementEnvironment.isGenericClass(cls)) return;
       if (classesNeedingRti.contains(cls)) return;
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
+      closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity sub) {
         potentiallyAddForRti(sub);
       });
 
-      Set<ClassElement> dependencies = rtiDependencies[cls];
+      Set<ClassEntity> dependencies = rtiDependencies[cls];
       if (dependencies != null) {
-        dependencies.forEach((ClassElement other) {
+        dependencies.forEach((ClassEntity other) {
           potentiallyAddForRti(other);
         });
       }
     }
 
-    Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
-    resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
+    Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
+    resolutionWorldBuilder.isChecks.forEach((DartType type) {
       if (type.isTypeVariable) {
-        TypeVariableElement variable = type.element;
+        TypeVariableType typeVariableType = type;
+        TypeVariableEntity variable = typeVariableType.element;
         // GENERIC_METHODS: When generic method support is complete enough to
         // include a runtime value for method type variables, this may need to
         // be updated: It simply ignores method type arguments.
-        if (variable.typeDeclaration is ClassElement) {
+        if (variable.typeDeclaration is ClassEntity) {
           classesUsingTypeVariableTests.add(variable.typeDeclaration);
         }
       }
@@ -317,21 +359,33 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
     if (commonElements.jsArrayClass != null) {
-      ClassElement listClass = commonElements.listClass;
+      ClassEntity listClass = commonElements.listClass;
       registerRtiDependency(commonElements.jsArrayClass, listClass);
     }
 
     // Check local functions and closurized members.
-    void checkClosures(bool analyzeFunction(FunctionElement function)) {
-      for (LocalFunctionElement function
+    void checkClosures({DartType potentialSubtypeOf}) {
+      bool checkFunctionType(FunctionType functionType) {
+        ClassEntity contextClass = Types.getClassContext(functionType);
+        if (contextClass != null &&
+            (potentialSubtypeOf == null ||
+                types.isPotentialSubtype(functionType, potentialSubtypeOf))) {
+          potentiallyAddForRti(contextClass);
+          return true;
+        }
+        return false;
+      }
+
+      for (Local function
           in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
-        if (analyzeFunction(function)) {
+        if (checkFunctionType(
+            _elementEnvironment.getLocalFunctionType(function))) {
           localFunctionsNeedingRti.add(function);
         }
       }
-      for (MethodElement function
+      for (FunctionEntity function
           in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
-        if (analyzeFunction(function)) {
+        if (checkFunctionType(_elementEnvironment.getFunctionType(function))) {
           methodsNeedingRti.add(function);
         }
       }
@@ -339,14 +393,14 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
     // Compute the set of all classes and methods that need runtime type
     // information.
-    resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
+    resolutionWorldBuilder.isChecks.forEach((DartType type) {
       if (type.isInterfaceType) {
         ResolutionInterfaceType itf = type;
         if (!itf.treatAsRaw) {
           potentiallyAddForRti(itf.element);
         }
       } else {
-        ClassElement contextClass = Types.getClassContext(type);
+        ClassEntity contextClass = Types.getClassContext(type);
         if (contextClass != null) {
           // [type] contains type variables (declared in [contextClass]) if
           // [contextClass] is non-null. This handles checks against type
@@ -354,40 +408,61 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           potentiallyAddForRti(contextClass);
         }
         if (type.isFunctionType) {
-          bool analyzeMethod(FunctionElement method) {
-            ResolutionDartType memberType = method.type;
-            ClassElement contextClass = Types.getClassContext(memberType);
-            if (contextClass != null &&
-                types.isPotentialSubtype(memberType, type)) {
-              potentiallyAddForRti(contextClass);
-              return true;
-            }
-            return false;
-          }
-
-          checkClosures(analyzeMethod);
+          checkClosures(potentialSubtypeOf: type);
         }
       }
     });
     if (enableTypeAssertions) {
-      bool analyzeMethod(FunctionElement method) {
-        ResolutionDartType memberType = method.type;
-        ClassElement contextClass = Types.getClassContext(memberType);
-        if (contextClass != null) {
-          potentiallyAddForRti(contextClass);
-          return true;
-        }
-        return false;
-      }
-
-      checkClosures(analyzeMethod);
+      checkClosures();
     }
 
     // Add the classes that need RTI because they use a type variable as
     // expression.
     classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
 
+    return _createRuntimeTypesNeed(
+        _elementEnvironment,
+        backendUsage,
+        classesNeedingRti,
+        methodsNeedingRti,
+        localFunctionsNeedingRti,
+        classesUsingTypeVariableExpression);
+  }
+
+  RuntimeTypesNeed _createRuntimeTypesNeed(
+      ElementEnvironment elementEnvironment,
+      BackendUsage backendUsage,
+      Set<ClassEntity> classesNeedingRti,
+      Set<FunctionEntity> methodsNeedingRti,
+      Set<Local> localFunctionsNeedingRti,
+      Set<ClassEntity> classesUsingTypeVariableExpression) {
     return new _RuntimeTypesNeed(
+        _elementEnvironment,
+        backendUsage,
+        classesNeedingRti,
+        methodsNeedingRti,
+        localFunctionsNeedingRti,
+        classesUsingTypeVariableExpression);
+  }
+}
+
+class ResolutionRuntimeTypesNeedBuilderImpl
+    extends RuntimeTypesNeedBuilderImpl {
+  ResolutionRuntimeTypesNeedBuilderImpl(
+      ElementEnvironment elementEnvironment, DartTypes types)
+      : super(elementEnvironment, types);
+
+  bool checkClass(ClassElement cls) => cls.isDeclaration;
+
+  RuntimeTypesNeed _createRuntimeTypesNeed(
+      ElementEnvironment elementEnvironment,
+      BackendUsage backendUsage,
+      Set<ClassEntity> classesNeedingRti,
+      Set<FunctionEntity> methodsNeedingRti,
+      Set<Local> localFunctionsNeedingRti,
+      Set<ClassEntity> classesUsingTypeVariableExpression) {
+    return new _ResolutionRuntimeTypesNeed(
+        _elementEnvironment,
         backendUsage,
         classesNeedingRti,
         methodsNeedingRti,
@@ -440,7 +515,8 @@ class _RuntimeTypes extends _RuntimeTypesBase
   _RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
         checkedTypeArguments = new Set<ResolutionDartType>(),
-        checkedBounds = new Set<ResolutionDartType>();
+        checkedBounds = new Set<ResolutionDartType>(),
+        super(compiler.types);
 
   Set<ClassElement> directlyInstantiatedArguments;
   Set<ClassElement> allInstantiatedArguments;

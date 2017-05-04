@@ -805,7 +805,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   void _onDone() {
-    // onDone cancles the subscription.
+    // onDone cancels the subscription.
     _socketSubscription = null;
     if (_state == _State.CLOSED || _state == _State.FAILURE) return;
 

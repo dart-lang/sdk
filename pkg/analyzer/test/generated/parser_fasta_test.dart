@@ -53,20 +53,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
   @override
   @failingTest
-  void test_parseClassMember_method_generic_comment_returnType() {
-    // TODO(paulberry): Fasta doesn't support generic comment syntax
-    super.test_parseClassMember_method_generic_comment_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_generic_comment_returnType_bound() {
-    // TODO(paulberry): Fasta doesn't support generic comment syntax
-    super.test_parseClassMember_method_generic_comment_returnType_bound();
-  }
-
-  @override
-  @failingTest
   void test_parseConstructor_assert() {
     // TODO(paulberry): Fasta doesn't support asserts in initializers
     super.test_parseConstructor_assert();

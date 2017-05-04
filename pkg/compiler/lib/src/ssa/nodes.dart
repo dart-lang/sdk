@@ -38,6 +38,7 @@ abstract class HVisitor<R> {
   R visitConstant(HConstant node);
   R visitContinue(HContinue node);
   R visitCreate(HCreate node);
+  R visitCreateBox(HCreateBox node);
   R visitDivide(HDivide node);
   R visitExit(HExit node);
   R visitExitTry(HExitTry node);
@@ -395,6 +396,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitCheck(HCheck node) => visitInstruction(node);
   visitConstant(HConstant node) => visitInstruction(node);
   visitCreate(HCreate node) => visitInstruction(node);
+  visitCreateBox(HCreateBox node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitExitTry(HExitTry node) => visitControlFlow(node);
@@ -1647,6 +1649,17 @@ class HCreate extends HInstruction {
   accept(HVisitor visitor) => visitor.visitCreate(this);
 
   String toString() => 'HCreate($element, ${instantiatedTypes})';
+}
+
+// Allocates a box to hold mutated captured variables.
+class HCreateBox extends HInstruction {
+  HCreateBox(TypeMask type) : super(<HInstruction>[], type);
+
+  bool get isAllocation => true;
+
+  accept(HVisitor visitor) => visitor.visitCreateBox(this);
+
+  String toString() => 'HCreateBox()';
 }
 
 abstract class HInvoke extends HInstruction {

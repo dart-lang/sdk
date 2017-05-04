@@ -11,3 +11,6 @@ analyze their Dart code.
 
 Integrators that want to write tools that analyze Dart code should use the
 [analyzer] package.
+
+_Note:_ The APIs in this package are in an early state; developers should be
+careful about depending on this package.

@@ -4,7 +4,7 @@
 
 import("../build/compiled_action.gni")
 
-_dart_root = rebase_path("..")
+_dart_root = get_path_info("..", "abspath")
 
 template("application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
@@ -24,7 +24,7 @@ template("application_snapshot") {
     extra_inputs += invoker.inputs
   }
   compiled_action(target_name) {
-    tool = get_path_info("$_dart_root/runtime/bin:dart", "abspath")
+    tool = "$_dart_root/runtime/bin:dart"
     deps = extra_deps + [ "$_dart_root/pkg:pkg_files_stamp" ]
 
     inputs = extra_inputs + [
