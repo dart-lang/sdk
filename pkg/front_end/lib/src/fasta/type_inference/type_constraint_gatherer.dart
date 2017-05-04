@@ -7,9 +7,10 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 
 /// Attempts to find a set of constraints for the given [typeParameters] under
-/// which [subtype] is a subtype of [supertype].  If such a set can be found, it
-/// is returned (as a map from type parameter to constraint).  If it can't,
-/// `null` is returned.
+/// which [subtype] is a subtype of [supertype].
+///
+/// If such a set can be found, it is returned (as a map from type parameter to
+/// constraint).  If it can't, `null` is returned.
 Map<TypeParameter, TypeConstraint> subtypeMatch(
     TypeSchemaEnvironment environment,
     Iterable<TypeParameter> typeParameters,
@@ -24,6 +25,11 @@ Map<TypeParameter, TypeConstraint> subtypeMatch(
   }
 }
 
+/// Tracks a single constraint on a single type variable.
+///
+/// This is called "_ProtoConstraint" to distinglish from [Constraint], which
+/// tracks the upper and lower bounds that are together implied by a set of
+/// [_ProtoConstraint]s.
 class _ProtoConstraint {
   final TypeParameter parameter;
 
@@ -104,6 +110,7 @@ class _TypeConstraintGatherer {
     // no constraints.
     if (_isTop(supertype)) return true;
     // `Null` is a subtype match for any type `Q` under no constraints.
+    // Note that nullable types will change this.
     if (_isNull(subtype)) return true;
     // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to `L`
     // under constraints `C`:
@@ -226,9 +233,14 @@ class _TypeConstraintGatherer {
     return true;
   }
 
-  bool _isNull(DartType type) =>
-      type is InterfaceType &&
-      identical(type.classNode, environment.coreTypes.nullClass);
+  bool _isNull(DartType type) {
+    // TODO(paulberry): would it be better to call this "_isBottom", and to have
+    // it return `true` for both Null and bottom types?  Revisit this once
+    // enough functionality is implemented that we can compare the behavior with
+    // the old analyzer-based implementation.
+    return type is InterfaceType &&
+        identical(type.classNode, environment.coreTypes.nullClass);
+  }
 
   bool _isTop(DartType type) =>
       type is DynamicType ||
