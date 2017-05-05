@@ -30,14 +30,6 @@ abstract class DartChangeBuilder extends ChangeBuilder {
  */
 abstract class DartEditBuilder extends EditBuilder {
   /**
-   * The edits in this builder will be inside the class with the given
-   * [element].
-   *
-   * TODO(brianwilkerson) Remove this method.
-   */
-  void set targetClassElement(ClassElement element);
-
-  /**
    * Write the code for a declaration of a class with the given [name]. If a
    * list of [interfaces] is provided, then the class will implement those
    * interfaces. If [isAbstract] is `true`, then the class will be abstract. If

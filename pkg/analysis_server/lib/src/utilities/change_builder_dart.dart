@@ -17,6 +17,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -49,24 +51,13 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
  */
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /**
-   * A utility class used to help build the source code.
-   */
-  final CorrectionUtils utils;
-
-  /**
    * Initialize a newly created builder to build a source edit.
    */
   DartEditBuilderImpl(
       DartFileEditBuilderImpl sourceFileEditBuilder, int offset, int length)
-      : utils = sourceFileEditBuilder.utils,
-        super(sourceFileEditBuilder, offset, length);
+      : super(sourceFileEditBuilder, offset, length);
 
   DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
-
-  @override
-  void set targetClassElement(ClassElement element) {
-    utils.targetClassElement = element;
-  }
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
@@ -77,13 +68,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    * Returns the indentation with the given [level].
    */
   String getIndent(int level) => '  ' * level;
-
-//  /**
-//   * Arrange to have imports added for each of the given [libraries].
-//   */
-//  void importLibraries(Iterable<Source> libraries) {
-//    dartFileEditBuilder.importLibraries(libraries);
-//  }
 
   /**
    * Arrange to have an import added for the given [library].
@@ -474,8 +458,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameterSource(DartType type, String name) {
-    String parameterSource = utils.getParameterSource(
-        type, name, dartFileEditBuilder.librariesToImport);
+    _EnclosingElementFinder finder = new _EnclosingElementFinder();
+    finder.find(dartFileEditBuilder.unit, offset);
+    String parameterSource = _getParameterSource(
+        type, name, finder.enclosingClass, finder.enclosingExecutable);
     write(parameterSource);
   }
 
@@ -485,8 +471,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String groupName,
       bool required: false}) {
     if (type != null && !type.isDynamic) {
-      String typeSource =
-          utils.getTypeSource(type, dartFileEditBuilder.librariesToImport);
+      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      finder.find(dartFileEditBuilder.unit, offset);
+      String typeSource = _getTypeSource(
+          type, finder.enclosingClass, finder.enclosingExecutable);
       if (typeSource != 'dynamic') {
         if (groupName != null) {
           addLinkedEdit(groupName, (LinkedEditBuilder builder) {
@@ -571,6 +559,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
+   * Return the import element used to import the given [element] into the given
+   * [library], or `null` if the element was not imported, such as when the
+   * element is declared in the same library.
+   */
+  ImportElement _getImportElement(Element element, LibraryElement library) {
+    for (ImportElement imp in library.imports) {
+      Map<String, Element> definedNames = getImportNamespace(imp);
+      if (definedNames.containsValue(element)) {
+        return imp;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return a list containing the suggested names for a parameter with the given
    * [type] whose value in one location is computed by the given [expression].
    * The list will not contain any names in the set of [excluded] names. The
@@ -587,6 +590,171 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // TODO(brianwilkerson) Verify that the name below is not in the set of used names.
     return <String>['param$index'];
   }
+
+  /**
+   * Return the source for the parameter with the given [type] and [name].
+   */
+  String _getParameterSource(DartType type, String name,
+      ClassElement enclosingClass, ExecutableElement enclosingExecutable) {
+    // no type
+    if (type == null || type.isDynamic) {
+      return name;
+    }
+    // function type
+    if (type is FunctionType && type.element.isSynthetic) {
+      FunctionType functionType = type;
+      StringBuffer sb = new StringBuffer();
+      // return type
+      DartType returnType = functionType.returnType;
+      if (returnType != null && !returnType.isDynamic) {
+        String returnTypeSource =
+            _getTypeSource(returnType, enclosingClass, enclosingExecutable);
+        sb.write(returnTypeSource);
+        sb.write(' ');
+      }
+      // parameter name
+      sb.write(name);
+      // parameters
+      sb.write('(');
+      List<ParameterElement> fParameters = functionType.parameters;
+      for (int i = 0; i < fParameters.length; i++) {
+        ParameterElement fParameter = fParameters[i];
+        if (i != 0) {
+          sb.write(", ");
+        }
+        sb.write(_getParameterSource(fParameter.type, fParameter.name,
+            enclosingClass, enclosingExecutable));
+      }
+      sb.write(')');
+      // done
+      return sb.toString();
+    }
+    // simple type
+    String typeSource =
+        _getTypeSource(type, enclosingClass, enclosingExecutable);
+    return '$typeSource $name';
+  }
+
+  /**
+   * Returns the source to reference [type] in this [CompilationUnit].
+   *
+   * Fills [librariesToImport] with [LibraryElement]s whose elements are
+   * used by the generated source, but not imported.
+   */
+  String _getTypeSource(DartType type, ClassElement enclosingClass,
+      ExecutableElement enclosingExecutable,
+      {StringBuffer parametersBuffer}) {
+    StringBuffer sb = new StringBuffer();
+    // type parameter
+    if (!_isTypeVisible(type, enclosingClass, enclosingExecutable)) {
+      return 'dynamic';
+    }
+    // just a Function, not FunctionTypeAliasElement
+    if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
+      if (parametersBuffer == null) {
+        return "Function";
+      }
+      parametersBuffer.write('(');
+      for (ParameterElement parameter in type.parameters) {
+        String parameterType =
+            _getTypeSource(parameter.type, enclosingClass, enclosingExecutable);
+        if (parametersBuffer.length != 1) {
+          parametersBuffer.write(', ');
+        }
+        parametersBuffer.write(parameterType);
+        parametersBuffer.write(' ');
+        parametersBuffer.write(parameter.name);
+      }
+      parametersBuffer.write(')');
+      return _getTypeSource(
+          type.returnType, enclosingClass, enclosingExecutable);
+    }
+    // <Bottom>, Null
+    if (type.isBottom || type.isDartCoreNull) {
+      return 'dynamic';
+    }
+    // prepare element
+    Element element = type.element;
+    if (element == null) {
+      String source = type.toString();
+      source = source.replaceAll('<dynamic>', '');
+      source = source.replaceAll('<dynamic, dynamic>', '');
+      return source;
+    }
+    // check if imported
+    LibraryElement definingLibrary = element.library;
+    LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
+    if (definingLibrary != null && definingLibrary != importingLibrary) {
+      // no source, if private
+      if (element.isPrivate) {
+        return null;
+      }
+      // ensure import
+      ImportElement importElement =
+          _getImportElement(element, importingLibrary);
+      if (importElement != null) {
+        if (importElement.prefix != null) {
+          sb.write(importElement.prefix.displayName);
+          sb.write(".");
+        }
+      } else {
+        importLibrary(definingLibrary.source);
+      }
+    }
+    // append simple name
+    String name = element.displayName;
+    sb.write(name);
+    // may be type arguments
+    if (type is ParameterizedType) {
+      List<DartType> arguments = type.typeArguments;
+      // check if has arguments
+      bool hasArguments = false;
+      bool allArgumentsVisible = true;
+      for (DartType argument in arguments) {
+        hasArguments = hasArguments || !argument.isDynamic;
+        allArgumentsVisible = allArgumentsVisible &&
+            _isTypeVisible(argument, enclosingClass, enclosingExecutable);
+      }
+      // append type arguments
+      if (hasArguments && allArgumentsVisible) {
+        sb.write("<");
+        for (int i = 0; i < arguments.length; i++) {
+          DartType argument = arguments[i];
+          if (i != 0) {
+            sb.write(", ");
+          }
+          String argumentSrc =
+              _getTypeSource(argument, enclosingClass, enclosingExecutable);
+          if (argumentSrc != null) {
+            sb.write(argumentSrc);
+          } else {
+            return null;
+          }
+        }
+        sb.write(">");
+      }
+    }
+    // done
+    return sb.toString();
+  }
+
+  /**
+   * Checks if [type] is visible in either the [enclosingExecutable] or
+   * [enclosingClass].
+   */
+  bool _isTypeVisible(DartType type, ClassElement enclosingClass,
+      ExecutableElement enclosingExecutable) {
+    if (type is TypeParameterType) {
+      TypeParameterElement parameterElement = type.element;
+      Element parameterParent = parameterElement.enclosingElement;
+      // TODO(brianwilkerson) This needs to compare the parameterParent with
+      // each of the parents of the enclosingElement. (That means that we only
+      // need the most closely enclosing element.)
+      return identical(parameterParent, enclosingExecutable) ||
+          identical(parameterParent, enclosingClass);
+    }
+    return true;
+  }
 }
 
 /**
@@ -600,15 +768,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   CompilationUnit unit;
 
   /**
-   * A utility class used to help build the source code.
-   */
-  CorrectionUtils utils;
-
-  /**
    * A set containing the sources of the libraries that need to be imported in
    * order to make visible the names used in generated code.
    */
   Set<Source> librariesToImport = new Set<Source>();
+
+  /**
+   * The content of the file being edited.
+   */
+  String _content;
 
   /**
    * Initialize a newly created builder to build a source file edit within the
@@ -617,9 +785,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    */
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
       int timeStamp, this.unit)
-      : super(changeBuilder, path, timeStamp) {
-    utils = new CorrectionUtils(unit);
-  }
+      : super(changeBuilder, path, timeStamp);
 
   @override
   void convertFunctionFromSyncToAsync(
@@ -645,6 +811,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         changeBuilder.sourceChange, unit.element.library, librariesToImport);
   }
 
+  /**
+   * Return the content of the file being edited.
+   */
+  String getContent() {
+    if (_content == null) {
+      CompilationUnitElement unitElement = unit.element;
+      AnalysisContext context = unitElement.context;
+      if (context == null) {
+        throw new CancelCorrectionException();
+      }
+      _content = context.getContents(unitElement.source).data;
+    }
+    return _content;
+  }
+
   @override
   void importLibraries(Iterable<Source> libraries) {
     librariesToImport.addAll(libraries);
@@ -663,15 +844,27 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         type is InterfaceType && type.element == futureType.element) {
       return;
     }
+    futureType = futureType.instantiate(<DartType>[type]);
     // prepare code for the types
-    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
-    String nodeCode = utils.getNodeText(typeAnnotation);
-    // wrap the existing type with Future
-    String returnTypeCode =
-        nodeCode == 'void' ? futureTypeCode : '$futureTypeCode<$nodeCode>';
     addReplacement(rangeNode(typeAnnotation), (EditBuilder builder) {
-      builder.write(returnTypeCode);
+      if (!(builder as DartEditBuilder).writeType(futureType)) {
+        builder.write('void');
+      }
     });
+  }
+
+  /**
+   * Returns the text of the given [AstNode] in the unit.
+   */
+  String _getNodeText(AstNode node) {
+    return _getText(node.offset, node.length);
+  }
+
+  /**
+   * Returns the text of the given range in the unit.
+   */
+  String _getText(int offset, int length) {
+    return getContent().substring(offset, offset + length);
   }
 
   /**
@@ -722,6 +915,29 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
       for (InterfaceType interfaceType in type.interfaces) {
         _addSuperTypesAsSuggestions(interfaceType, alreadyAdded);
       }
+    }
+  }
+}
+
+class _EnclosingElementFinder {
+  ClassElement enclosingClass;
+  ExecutableElement enclosingExecutable;
+
+  _EnclosingElementFinder();
+
+  void find(AstNode target, int offset) {
+    AstNode node = new NodeLocator2(offset).searchWithin(target);
+    while (node != null) {
+      if (node is ClassDeclaration) {
+        enclosingClass = node.element;
+      } else if (node is ConstructorDeclaration) {
+        enclosingExecutable = node.element;
+      } else if (node is MethodDeclaration) {
+        enclosingExecutable = node.element;
+      } else if (node is FunctionDeclaration) {
+        enclosingExecutable = node.element;
+      }
+      node = node.parent;
     }
   }
 }
