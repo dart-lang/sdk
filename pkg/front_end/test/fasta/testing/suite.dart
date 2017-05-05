@@ -87,11 +87,17 @@ class FastaContext extends ChainContext {
 
   Future<Program> platform;
 
-  FastaContext(this.vm, bool strongMode, bool updateExpectations,
-      this.uriTranslator, bool fullCompile, AstKind astKind)
+  FastaContext(
+      this.vm,
+      bool strongMode,
+      bool updateExpectations,
+      bool updateComments,
+      this.uriTranslator,
+      bool fullCompile,
+      AstKind astKind)
       : steps = <Step>[
           new Outline(fullCompile, astKind, strongMode,
-              updateExpectations: updateExpectations),
+              updateComments: updateComments),
           const Print(),
           new Verify(fullCompile),
           new MatchExpectation(
@@ -121,11 +127,12 @@ class FastaContext extends ChainContext {
     TranslateUri uriTranslator = await TranslateUri.parse(packages);
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
+    bool updateComments = environment["updateComments"] == "true";
     String astKindString = environment[AST_KIND_INDEX];
     AstKind astKind =
         astKindString == null ? null : AstKind.values[int.parse(astKindString)];
-    return new FastaContext(vm, strongMode, updateExpectations, uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE), astKind);
+    return new FastaContext(vm, strongMode, updateExpectations, updateComments,
+        uriTranslator, environment.containsKey(ENABLE_FULL_COMPILE), astKind);
   }
 }
 
@@ -160,9 +167,9 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
   final bool strongMode;
 
   const Outline(this.fullCompile, this.astKind, this.strongMode,
-      {this.updateExpectations: false});
+      {this.updateComments: false});
 
-  final bool updateExpectations;
+  final bool updateComments;
 
   String get name {
     return fullCompile ? "${astKind} compile" : "outline";
@@ -197,7 +204,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         p = await sourceTarget.writeProgram(null);
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
-          if (updateExpectations) {
+          if (updateComments) {
             await instrumentation.fixSource(description.uri);
           } else {
             return fail(null, instrumentation.problemsAsString);
