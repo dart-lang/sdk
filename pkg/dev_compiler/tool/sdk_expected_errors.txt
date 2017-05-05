@@ -8,8 +8,6 @@
 [error] The getter 'packagesBase' isn't defined for the class 'IsolateNatives'. (dart:isolate, line 719, col 61)
 [error] Invalid override. The type of 'JsArray.[]=' ('(Object, E) → void') isn't a subtype of 'JsObject.[]=' ('(Object, dynamic) → dynamic'). (dart:js, line 370, col 3)
 [error] The argument type 'List' can't be assigned to the parameter type 'Iterable<Null>'. (dart:js_util, line 112, col 29)
-[error] The return type 'double' isn't a 'T', as defined by the method 'min'. (dart:math, line 98, col 16)
-[error] The return type 'double' isn't a 'T', as defined by the method 'max'. (dart:math, line 133, col 16)
 [warning] The final variable 'origin' must be initialized. (dart:html, line 187, col 3)
 [warning] The final variable 'origin' must be initialized. (dart:html, line 853, col 3)
 [warning] The final variables 'form', 'labels' and '3' more must be initialized. (dart:html, line 1775, col 3)

@@ -8,6 +8,14 @@ import 'dart:_js_helper' show patch, checkNum;
 import 'dart:typed_data' show ByteData;
 
 @patch
+T min<T extends num>(T a, T b) =>
+    JS('num', r'Math.min(#, #)', checkNum(a), checkNum(b)) as T;
+
+@patch
+T max<T extends num>(T a, T b) =>
+    JS('num', r'Math.max(#, #)', checkNum(a), checkNum(b)) as T;
+
+@patch
 double sqrt(num x) => JS('num', r'Math.sqrt(#)', checkNum(x));
 
 @patch
