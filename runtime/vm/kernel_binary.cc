@@ -1486,6 +1486,8 @@ TypeParameterType* TypeParameterType::ReadFrom(Reader* reader) {
   TypeParameterType* type = new TypeParameterType();
   type->parameter_ =
       reader->helper()->type_parameters().Lookup(reader->ReadUInt());
+  // There is an optional promoted bound, currently ignored.
+  delete reader->ReadOptional<DartType>();
   return type;
 }
 
