@@ -26,7 +26,7 @@ ply_dir = os.path.join(third_party_dir, 'ply')
 # is dart-git/dart/third_party
 if not os.path.exists(ply_dir):
   # For Dartium (ply directory is dartium-git/src/third_party/ply) third_party
-  # location is dartium-git/src/third_party 
+  # location is dartium-git/src/third_party
   third_party_dir = os.path.join(dart_dir, '..', 'third_party')
   assert(os.path.exists(third_party_dir))
 else:
@@ -227,6 +227,10 @@ def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   command = ' '.join(['cd', library_dir, ';',
                       copy_dart_script, output_dir, library_filename])
   subprocess.call([command], shell=True)
+  prebuilt_dartfmt = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dartfmt')
+  sdk_file = os.path.join(library_dir, output_dir, library_filename)
+  formatCommand = ' '.join([prebuilt_dartfmt, '-w', sdk_file])
+  subprocess.call([formatCommand], shell=True)
 
 def UpdateCssProperties():
   """Regenerate the CssStyleDeclaration template file with the current CSS
