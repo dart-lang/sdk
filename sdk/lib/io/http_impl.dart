@@ -881,7 +881,7 @@ class _HttpGZipSink extends ByteConversionSink {
 
 // The _HttpOutgoing handles all of the following:
 //  - Buffering
-//  - GZip compressionm
+//  - GZip compression
 //  - Content-Length validation.
 //  - Errors.
 //
@@ -1855,7 +1855,7 @@ class _HttpClient implements HttpClient {
     _connectionsChanged();
   }
 
-  // Remove a closed connnection from the active set.
+  // Remove a closed connection from the active set.
   void _connectionClosed(_HttpClientConnection connection) {
     connection.stopTimer();
     var connectionTarget = _connectionTargets[connection.key];

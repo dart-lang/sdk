@@ -130,8 +130,8 @@ class Driver implements CommandLineStarter {
     // Do analysis.
     if (options.buildMode) {
       ErrorSeverity severity = _buildModeAnalyze(options);
-      // In case of error propagate exit code.
-      if (severity == ErrorSeverity.ERROR) {
+      // Propagate issues to the exit code.
+      if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
     } else if (options.shouldBatch) {
@@ -142,8 +142,8 @@ class Driver implements CommandLineStarter {
       });
     } else {
       ErrorSeverity severity = await _analyzeAll(options);
-      // In case of error propagate exit code.
-      if (severity == ErrorSeverity.ERROR) {
+      // Propagate issues to the exit code.
+      if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
     }
@@ -713,19 +713,12 @@ class Driver implements CommandLineStarter {
   }
 
   /// Analyze a single source.
-  Future<ErrorSeverity> _runAnalyzer(Source source, CommandLineOptions options,
-      ErrorFormatter formatter) async {
+  Future<ErrorSeverity> _runAnalyzer(
+      Source source, CommandLineOptions options, ErrorFormatter formatter) {
     int startTime = currentTimeMillis;
     AnalyzerImpl analyzer = new AnalyzerImpl(_context.analysisOptions, _context,
         analysisDriver, source, options, stats, startTime);
-    ErrorSeverity errorSeverity = await analyzer.analyze(formatter);
-    if (errorSeverity == ErrorSeverity.ERROR) {
-      io.exitCode = errorSeverity.ordinal;
-    }
-    if (options.warningsAreFatal && errorSeverity == ErrorSeverity.WARNING) {
-      io.exitCode = errorSeverity.ordinal;
-    }
-    return errorSeverity;
+    return analyzer.analyze(formatter);
   }
 
   void _setupSdk(CommandLineOptions options, bool useSummaries,
@@ -851,6 +844,19 @@ class Driver implements CommandLineStarter {
   /// Convert [sourcePath] into an absolute path.
   static String _normalizeSourcePath(String sourcePath) =>
       path.normalize(new io.File(sourcePath).absolute.path);
+
+  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
+    if (severity == ErrorSeverity.ERROR) {
+      return true;
+    } else if (severity == ErrorSeverity.WARNING &&
+        (options.warningsAreFatal || options.hintsAreFatal)) {
+      return true;
+    } else if (severity == ErrorSeverity.INFO && options.hintsAreFatal) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 
 class _DriverError implements Exception {

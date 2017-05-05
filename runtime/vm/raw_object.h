@@ -621,7 +621,7 @@ class RawObject {
   friend class InstanceAccumulator;        // GetClassId
   friend class RetainingPathVisitor;       // GetClassId
   friend class SkippedCodeFunctions;       // StorePointer
-  friend class InstructionsReader;         // tags_ check
+  friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
@@ -1026,7 +1026,9 @@ class RawScript : public RawObject {
   RawArray* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
-  RawTypedData* kernel_strings_;
+  RawTypedData* kernel_string_offsets_;
+  RawTypedData* kernel_string_data_;
+  RawTypedData* kernel_canonical_names_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
@@ -1227,7 +1229,7 @@ class RawInstructions : public RawObject {
   friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class Function;
-  friend class InstructionsReader;
+  friend class ImageReader;
   friend class ImageWriter;
 };
 

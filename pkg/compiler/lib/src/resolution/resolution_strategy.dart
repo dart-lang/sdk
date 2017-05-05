@@ -11,6 +11,7 @@ import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../compiler.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
@@ -34,6 +35,7 @@ import '../universe/call_structure.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
@@ -81,7 +83,7 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
   }
 
   NoSuchMethodResolver createNoSuchMethodResolver() =>
-      new NoSuchMethodResolverImpl();
+      new ResolutionNoSuchMethodResolver();
 
   CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
       NativeBasicData nativeBasicData,
@@ -104,7 +106,8 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
       new MirrorsResolutionAnalysisImpl(backend, _compiler.resolution);
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new RuntimeTypesNeedBuilderImpl();
+    return new ResolutionRuntimeTypesNeedBuilderImpl(
+        elementEnvironment, _compiler.types);
   }
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
@@ -228,6 +231,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isGenericClass(ClassEntity cls) {
+    return getThisType(cls).typeArguments.isNotEmpty;
+  }
+
+  @override
   ResolutionDartType getTypeVariableBound(TypeVariableElement typeVariable) {
     return typeVariable.bound;
   }
@@ -298,9 +306,16 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls) {
+  ClassEntity getSuperClass(ClassElement cls,
+      {bool skipUnnamedMixinApplications: false}) {
     cls.ensureResolved(_resolution);
-    return cls.superclass;
+    ClassElement superclass = cls.superclass;
+    if (skipUnnamedMixinApplications) {
+      while (superclass != null && superclass.isUnnamedMixinApplication) {
+        superclass = superclass.superclass;
+      }
+    }
+    return superclass;
   }
 
   @override
@@ -353,7 +368,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     ClassElement cls = library.implementation.findLocal(name);
     if (cls == null && required) {
       throw new SpannableAssertionFailure(
-          cls,
+          library,
           "The library '${library.libraryName}' does not "
           "contain required class: '$name'.");
     }
@@ -382,7 +397,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     }
     if (library == null && required) {
       throw new SpannableAssertionFailure(
-          library, "The library '${uri}' was not found.");
+          NO_LOCATION_SPANNABLE, "The library '${uri}' was not found.");
     }
     return library;
   }
@@ -418,6 +433,22 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     type.computeUnaliased(_resolution);
     return type.unaliased;
   }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(MemberElement element) {
+    List<ConstantValue> values = <ConstantValue>[];
+    _compiler.reporter.withCurrentElement(element, () {
+      for (MetadataAnnotation metadata in element.implementation.metadata) {
+        metadata.ensureResolved(_compiler.resolution);
+        assert(invariant(metadata, metadata.constant != null,
+            message: "Unevaluated metadata constant."));
+        ConstantValue value =
+            _compiler.constants.getConstantValue(metadata.constant);
+        values.add(value);
+      }
+    });
+    return values;
+  }
 }
 
 /// AST-based logic for processing annotations. These annotations are processed
@@ -430,6 +461,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
   Compiler _compiler;
 
   _ElementAnnotationProcessor(this._compiler);
+
+  CommonElements get _commonElements => _compiler.commonElements;
 
   /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
   /// native name from the annotation.
@@ -461,5 +494,151 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
         }
       }
     });
+  }
+
+  void processJsInteropAnnotations(
+      NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder) {
+    if (_commonElements.jsAnnotationClass == null) return;
+
+    ClassElement cls = _commonElements.jsAnnotationClass;
+    FieldElement nameField = cls.lookupMember('name');
+
+    /// Resolves the metadata of [element] and returns the name of the `JS(...)`
+    /// annotation for js interop, if found.
+    String processJsInteropAnnotation(Element element) {
+      for (MetadataAnnotation annotation in element.implementation.metadata) {
+        // TODO(johnniwinther): Avoid processing unresolved elements.
+        if (annotation.constant == null) continue;
+        ConstantValue constant =
+            _compiler.constants.getConstantValue(annotation.constant);
+        if (constant == null || constant is! ConstructedConstantValue) continue;
+        ConstructedConstantValue constructedConstant = constant;
+        if (constructedConstant.type.element ==
+            _commonElements.jsAnnotationClass) {
+          ConstantValue value = constructedConstant.fields[nameField];
+          String name;
+          if (value.isString) {
+            StringConstantValue stringValue = value;
+            name = stringValue.primitiveValue.slowToString();
+          } else {
+            // TODO(jacobr): report a warning if the value is not a String.
+            name = '';
+          }
+          return name;
+        }
+      }
+      return null;
+    }
+
+    void checkFunctionParameters(MethodElement fn) {
+      if (fn.hasFunctionSignature &&
+          fn.functionSignature.optionalParametersAreNamed) {
+        _compiler.reporter.reportErrorMessage(
+            fn,
+            MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+            {'method': fn.name});
+      }
+    }
+
+    bool hasAnonymousAnnotation(Element element) {
+      if (_commonElements.jsAnonymousClass == null) return false;
+      return element.metadata.any((MetadataAnnotation annotation) {
+        ConstantValue constant =
+            _compiler.constants.getConstantValue(annotation.constant);
+        if (constant == null || constant is! ConstructedConstantValue)
+          return false;
+        ConstructedConstantValue constructedConstant = constant;
+        return constructedConstant.type.element ==
+            _commonElements.jsAnonymousClass;
+      });
+    }
+
+    void processJsInteropAnnotationsInLibrary(LibraryElement library) {
+      String libraryName = processJsInteropAnnotation(library);
+      if (libraryName != null) {
+        nativeDataBuilder.setJsInteropLibraryName(library, libraryName);
+      }
+      library.implementation.forEachLocalMember((Element element) {
+        if (element is MemberElement) {
+          String memberName = processJsInteropAnnotation(element);
+          if (memberName != null) {
+            nativeDataBuilder.setJsInteropMemberName(element, memberName);
+            if (element is MethodElement) {
+              checkFunctionParameters(element);
+            }
+          }
+        }
+
+        if (!element.isClass) return;
+
+        ClassElement classElement = element;
+        String className = processJsInteropAnnotation(classElement);
+        if (className != null) {
+          nativeDataBuilder.setJsInteropClassName(classElement, className);
+        }
+        if (!nativeBasicData.isJsInteropClass(classElement)) return;
+
+        bool isAnonymous = hasAnonymousAnnotation(classElement);
+        if (isAnonymous) {
+          nativeDataBuilder.markJsInteropClassAsAnonymous(classElement);
+        }
+
+        // Skip classes that are completely unreachable. This should only happen
+        // when all of jsinterop types are unreachable from main.
+        if (!_compiler.resolutionWorldBuilder.isImplemented(classElement)) {
+          return;
+        }
+
+        if (!classElement
+            .implementsInterface(_commonElements.jsJavaScriptObjectClass)) {
+          _compiler.reporter.reportErrorMessage(classElement,
+              MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS, {
+            'cls': classElement.name,
+            'superclass': classElement.superclass.name
+          });
+        }
+
+        classElement
+            .forEachMember((ClassElement classElement, MemberElement member) {
+          String memberName = processJsInteropAnnotation(member);
+          if (memberName != null) {
+            nativeDataBuilder.setJsInteropMemberName(member, memberName);
+          }
+
+          if (!member.isSynthesized &&
+              nativeBasicData.isJsInteropClass(classElement) &&
+              member is MethodElement) {
+            MethodElement fn = member;
+            if (!fn.isExternal &&
+                !fn.isAbstract &&
+                !fn.isConstructor &&
+                !fn.isStatic) {
+              _compiler.reporter.reportErrorMessage(
+                  fn,
+                  MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+                  {'cls': classElement.name, 'member': member.name});
+            }
+
+            if (fn.isFactoryConstructor && isAnonymous) {
+              fn.functionSignature
+                  .orderedForEachParameter((ParameterElement parameter) {
+                if (!parameter.isNamed) {
+                  _compiler.reporter.reportErrorMessage(
+                      parameter,
+                      MessageKind
+                          .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+                      {'parameter': parameter.name, 'cls': classElement.name});
+                }
+              });
+            } else {
+              checkFunctionParameters(fn);
+            }
+          }
+        });
+      });
+    }
+
+    _compiler.libraryLoader.libraries
+        .forEach(processJsInteropAnnotationsInLibrary);
   }
 }

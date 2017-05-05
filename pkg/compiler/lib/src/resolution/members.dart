@@ -3840,6 +3840,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitNewExpression(NewExpression node) {
     ConstructorResult result = resolveConstructor(node);
     ConstructorElement constructor = result.element;
+    if (resolution.commonElements.isSymbolConstructor(constructor)) {
+      registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
+    }
     ArgumentsResult argumentsResult;
     if (node.isConst) {
       argumentsResult =

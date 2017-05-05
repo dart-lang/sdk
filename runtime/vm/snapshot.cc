@@ -1066,7 +1066,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 }
 
 
-RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset) {
+RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
 
   RawInstructions* result = reinterpret_cast<RawInstructions*>(
@@ -1078,7 +1078,7 @@ RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset) {
 }
 
 
-RawObject* InstructionsReader::GetObjectAt(int32_t offset) {
+RawObject* ImageReader::GetObjectAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, kWordSize));
 
   RawObject* result = reinterpret_cast<RawObject*>(

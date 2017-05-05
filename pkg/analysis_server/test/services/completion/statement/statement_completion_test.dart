@@ -14,6 +14,7 @@ import '../../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(_DeclarationCompletionTest);
     defineReflectiveTests(_ControlFlowCompletionTest);
     defineReflectiveTests(_DoCompletionTest);
     defineReflectiveTests(_ForCompletionTest);
@@ -48,6 +49,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
           expect(change.selection.offset, offset);
         }
       } else {
+        expect(testCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
           int offset = cmp(testCode);
           expect(change.selection.offset, offset);
@@ -191,6 +193,26 @@ ex(e) {
         (s) => _afterLast(s, '  '));
   }
 
+  test_ifNoBlock() async {
+    await _prepareCompletion(
+        'return',
+        '''
+ex(e) {
+  if (true) return 0
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+ex(e) {
+  if (true) return 0;
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
   test_ifThrow() async {
     await _prepareCompletion(
         'throw e;',
@@ -265,6 +287,80 @@ ex(e) {
 }
 
 @reflectiveTest
+class _DeclarationCompletionTest extends StatementCompletionTest {
+  test_classNameNoBody() async {
+    await _prepareCompletion(
+        'Sample',
+        '''
+class Sample
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete class declaration',
+        '''
+class Sample {
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_functionDeclNoBody() async {
+    await _prepareCompletion(
+        'source()',
+        '''
+String source()
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete function declaration',
+        '''
+String source() {
+  ////
+}
+''',
+        (s) => _after(s, '  '));
+  }
+
+  test_methodDeclNoBody() async {
+    await _prepareCompletion(
+        'source()',
+        '''
+class Sample {
+  String source()
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete function declaration',
+        '''
+class Sample {
+  String source() {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_variableDeclNoBody() async {
+    await _prepareCompletion(
+        'source',
+        '''
+String source
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete variable declaration',
+        '''
+String source;
+////
+''',
+        (s) => _after(s, ';\n'));
+  }
+}
+
+@reflectiveTest
 class _DoCompletionTest extends StatementCompletionTest {
   test_emptyCondition() async {
     await _prepareCompletion(
@@ -303,6 +399,29 @@ main() {
   do {
     ////
   } while ();
+}
+''',
+        (s) => _after(s, 'while ('));
+  }
+
+  test_keywordStatement() async {
+    await _prepareCompletion(
+        'do',
+        '''
+main() {
+  do ////
+  return;
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete do-statement',
+        '''
+main() {
+  do {
+    ////
+  } while ();
+  return;
 }
 ''',
         (s) => _after(s, 'while ('));
@@ -397,6 +516,7 @@ main() {
   }
 
   test_emptyInitializers() async {
+    // TODO(messick) This should insert a newline and move the cursor there.
     await _prepareCompletion(
         '}',
         '''
@@ -521,6 +641,29 @@ main() {
 ''',
         (s) => _after(s, '0; '));
   }
+
+  test_noError() async {
+    await _prepareCompletion(
+        ';)',
+        '''
+main() {
+  for (;;)
+  return;
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-statement',
+        '''
+main() {
+  for (;;) {
+    ////
+  }
+  return;
+}
+''',
+        (s) => _after(s, '    '));
+  }
 }
 
 @reflectiveTest
@@ -586,6 +729,29 @@ main() {
 }
 ''',
         (s) => _after(s, 'in '));
+  }
+
+  test_noError() async {
+    await _prepareCompletion(
+        '])',
+        '''
+main() {
+  for (var x in [1,2])
+  return;
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-each-statement',
+        '''
+main() {
+  for (var x in [1,2]) {
+    ////
+  }
+  return;
+}
+''',
+        (s) => _after(s, '    '));
   }
 }
 
@@ -655,6 +821,29 @@ main() {
         (s) => _after(s, 'if ('));
   }
 
+  test_noError() async {
+    await _prepareCompletion(
+        'if (true)',
+        '''
+main() {
+  if (true)
+  return;
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete if-statement',
+        '''
+main() {
+  if (true) {
+    ////
+  }
+  return;
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
   test_withCondition() async {
     await _prepareCompletion(
         'if (tr', // Trigger completion from within expression.
@@ -693,7 +882,6 @@ main() {
 main() {
   if ()
   else
-  }
 }
 ''',
         (s) => _after(s, 'if ()'));
@@ -742,7 +930,154 @@ main() {
 ''');
   }
 
-  test_semicolon() async {
+  test_noCloseParen() async {
+    await _prepareCompletion(
+        'ing(3',
+        '''
+main() {
+  var s = 'sample'.substring(3
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  var s = 'sample'.substring(3);
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_noCloseParenWithSemicolon() async {
+    String before = '''
+main() {
+  var s = 'sample'.substring(3;
+}
+''';
+    String after = '''
+main() {
+  var s = 'sample'.substring(3);
+  ////
+}
+''';
+    // Check completion both before and after the semicolon.
+    await _prepareCompletion('ing(3', before, atEnd: true);
+    _assertHasChange('Insert a newline at the end of the current line', after,
+        (s) => _afterLast(s, '  '));
+    await _prepareCompletion('ing(3;', before, atEnd: true);
+    _assertHasChange('Insert a newline at the end of the current line', after,
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_semicolonFn() async {
+    await _prepareCompletion(
+        '=> 3',
+        '''
+main() {
+  int f() => 3
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  int f() => 3;
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_semicolonFnBody() async {
+    // It would be reasonable to add braces in this case. Unfortunately,
+    // the incomplete line parses as two statements ['int;', 'f();'], not one.
+    await _prepareCompletion(
+        'f()',
+        '''
+main() {
+  int f()
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  int f()
+}
+''',
+        (s) => _afterLast(s, '()'));
+  }
+
+  test_semicolonFnBodyWithDef() async {
+    // This ought to be the same as test_semicolonFnBody() but the definition
+    // of f() removes an error and it appears to be a different case.
+    // Suggestions for unifying the two are welcome.
+    await _prepareCompletion(
+        'f()',
+        '''
+main() {
+  int f()
+}
+f() {}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  int f();
+  ////
+}
+f() {}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_semicolonFnExpr() async {
+    await _prepareCompletion(
+        '=>',
+        '''
+main() {
+  int f() =>
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  int f() => ;
+  ////
+}
+''',
+        (s) => _afterLast(s, '=> '));
+  }
+
+  test_semicolonFnSpaceExpr() async {
+    await _prepareCompletion(
+        '=>',
+        '''
+main() {
+  int f() => ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  int f() => ;
+  ////
+}
+''',
+        (s) => _afterLast(s, '=> '));
+  }
+
+  test_semicolonVar() async {
     await _prepareCompletion(
         'v = 1',
         '''

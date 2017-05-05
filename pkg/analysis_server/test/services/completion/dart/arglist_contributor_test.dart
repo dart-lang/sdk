@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:test/test.dart';
@@ -860,35 +859,8 @@ main() { f("16", radix: ^);}''');
 
 @reflectiveTest
 class ArgListContributorTest_Driver extends ArgListContributorTest {
-  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
-    ..generateFlutterWidgetChildrenBoilerPlate = true;
-
   @override
   bool get enableNewAnalysisDriver => true;
-
-  test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Row(
-    key: null,
-    ^
-  );
-''');
-
-    // Don't generate children boilerplate.
-    await computeSuggestions();
-
-    assertSuggest('children: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: null, // No default values.
-        selectionOffset: 10);
-  }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
     configureFlutterPkg({
@@ -905,7 +877,6 @@ import 'package:flutter/src/widgets/framework.dart';
   );
 ''');
 
-    // Don't generate children boilerplate.
     await computeSuggestions();
 
     assertSuggest('color: ,',
@@ -913,6 +884,29 @@ import 'package:flutter/src/widgets/framework.dart';
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null, // No default values.
         selectionOffset: 7);
+  }
+
+  test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Row(
+    ^
+  );
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('children: <Widget>[],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 19,
+        defaultArgumentListTextRanges: null);
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
@@ -929,14 +923,14 @@ build() => new Row(
   );
 ''');
 
-    await computeSuggestions(options: generateChildrenBoilerPlate);
+    await computeSuggestions();
 
-    assertSuggest('children: ,',
+    assertSuggest('children: <Widget>[],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: 'children: <Widget>[],',
-        selectionOffset: 10,
-        defaultArgumentListTextRanges: [10, 10]);
+        defaultArgListString: null,
+        selectionOffset: 19,
+        defaultArgumentListTextRanges: null);
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
@@ -953,37 +947,14 @@ build() => new Row(
   );
 ''');
 
-    await computeSuggestions(options: generateChildrenBoilerPlate);
+    await computeSuggestions();
 
-    assertSuggest('children: ,',
+    assertSuggest('children: <Widget>[],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: 'children: <Widget>[],',
-        selectionOffset: 10,
-        defaultArgumentListTextRanges: [10, 10]);
-  }
-
-  test_ArgumentList_Flutter_InstanceCreationExpression_children() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Container(
-    child: new Row(^);
-  );
-''');
-
-    await computeSuggestions(options: generateChildrenBoilerPlate);
-
-    assertSuggest('children: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: 'children: <Widget>[],',
-        selectionOffset: 10,
-        defaultArgumentListTextRanges: [10, 10]);
+        defaultArgListString: null,
+        selectionOffset: 19,
+        defaultArgumentListTextRanges: null);
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
@@ -1002,13 +973,14 @@ build() => new Container(
   );
 ''');
 
-    await computeSuggestions(options: generateChildrenBoilerPlate);
+    await computeSuggestions();
 
-    assertSuggest('children: ,',
+    assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        selectionOffset: 10,
-        defaultArgListString: 'children: [],');
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
@@ -1026,7 +998,7 @@ build() => new Container(
   );
 ''');
 
-    await computeSuggestions(options: generateChildrenBoilerPlate);
+    await computeSuggestions();
 
     assertSuggest('children: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
@@ -1049,7 +1021,7 @@ main() {
 foo(^);
 ''');
 
-    await computeSuggestions(options: generateChildrenBoilerPlate);
+    await computeSuggestions();
 
     assertSuggest('children: ',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,

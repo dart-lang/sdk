@@ -86,7 +86,7 @@ class Command {
     builder.addJson(displayName);
   }
 
-  bool _equal(Command other) =>
+  bool _equal(covariant Command other) =>
       hashCode == other.hashCode && displayName == other.displayName;
 
   String toString() => reproductionCommand;
@@ -265,13 +265,14 @@ class ContentShellCommand extends ProcessCommand {
   // Cache the modified environments in a map from the old environment and
   // the string of Dart flags to the new environment.  Avoid creating new
   // environment object for each command object.
-  static Map<AddFlagsKey, Map> environments = new Map<AddFlagsKey, Map>();
+  static Map<AddFlagsKey, Map> environments = <AddFlagsKey, Map>{};
 
-  static Map _getEnvironment(Map env, List<String> dartFlags) {
+  static Map<String, String> _getEnvironment(
+      Map<String, String> env, List<String> dartFlags) {
     var needDartFlags = dartFlags != null && dartFlags.length > 0;
     if (needDartFlags) {
       if (env == null) {
-        env = const {};
+        env = const <String, String>{};
       }
       var flags = dartFlags.join(' ');
       return environments.putIfAbsent(
@@ -283,7 +284,7 @@ class ContentShellCommand extends ProcessCommand {
   }
 
   static List<String> _getArguments(List<String> options, String htmlFile) {
-    var arguments = new List.from(options);
+    var arguments = options.toList();
     arguments.add(htmlFile);
     return arguments;
   }
@@ -299,8 +300,8 @@ class BrowserTestCommand extends Command {
 
   BrowserTestCommand._(
       String _browser, this.url, this.configuration, this.retry)
-      : super._(_browser),
-        browser = _browser;
+      : browser = _browser,
+        super._(_browser);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -443,13 +444,13 @@ class PubCommand extends ProcessCommand {
 
   PubCommand._(String pubCommand, String pubExecutable,
       String pubspecYamlDirectory, String pubCacheDirectory, List<String> args)
-      : super._(
+      : command = pubCommand,
+        super._(
             'pub_$pubCommand',
             new io.File(pubExecutable).absolute.path,
             [pubCommand]..addAll(args),
             {'PUB_CACHE': pubCacheDirectory},
-            pubspecYamlDirectory),
-        command = pubCommand;
+            pubspecYamlDirectory);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -918,7 +919,7 @@ abstract class CommandOutput {
 
   bool get hasTimedOut;
 
-  bool didFail(testcase);
+  bool didFail(TestCase testCase);
 
   bool hasFailed(TestCase testCase);
 
@@ -1072,9 +1073,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   BrowserCommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0),
-        _infraFailure = _failedBecauseOfFlakyInfrastructure(stderr);
+      : _infraFailure = _failedBecauseOfFlakyInfrastructure(stderr),
+        super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped, 0);
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
@@ -1459,7 +1460,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 
   void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
-    // Parse a line delimited by the | character using \ as an escape charager
+    // Parse a line delimited by the | character using \ as an escape character
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
       StringBuffer field = new StringBuffer();
@@ -2245,9 +2246,8 @@ class BatchRunnerProcess {
   _startProcess(callback) {
     assert(_command is ProcessCommand);
     var executable = _command.executable;
-    var arguments = []
-      ..addAll(_command.batchArguments)
-      ..add('--batch');
+    var arguments = _command.batchArguments.toList();
+    arguments.add('--batch');
     var environment = new Map.from(io.Platform.environment);
     if (_processEnvironmentOverrides != null) {
       for (var key in _processEnvironmentOverrides.keys) {
@@ -2356,14 +2356,14 @@ class TestCaseEnqueuer {
     void newTest(TestCase testCase) {
       remainingTestCases.add(testCase);
 
-      var lastNode;
+      dgraph.Node lastNode;
       for (var command in testCase.commands) {
         // Make exactly *one* node in the dependency graph for every command.
         // This ensures that we never have two commands c1 and c2 in the graph
         // with "c1 == c2".
         var node = command2node[command];
         if (node == null) {
-          var requiredNodes = (lastNode != null) ? [lastNode] : [];
+          var requiredNodes = (lastNode != null) ? [lastNode] : <dgraph.Node>[];
           node = graph.newNode(command, requiredNodes);
           command2node[command] = node;
           command2testCases[command] = <TestCase>[];
@@ -2417,12 +2417,14 @@ class CommandEnqueuer {
   CommandEnqueuer(this._graph) {
     var eventCondition = _graph.events.where;
 
-    eventCondition((e) => e is dgraph.NodeAddedEvent).listen((event) {
+    eventCondition((e) => e is dgraph.NodeAddedEvent).listen((e) {
+      var event = e as dgraph.NodeAddedEvent;
       dgraph.Node node = event.node;
       _changeNodeStateIfNecessary(node);
     });
 
-    eventCondition((e) => e is dgraph.StateChangedEvent).listen((event) {
+    eventCondition((e) => e is dgraph.StateChangedEvent).listen((e) {
+      var event = e as dgraph.StateChangedEvent;
       if ([dgraph.NodeState.Waiting, dgraph.NodeState.Processing]
           .contains(event.from)) {
         if (FINISHED_STATES.contains(event.to)) {
@@ -2481,7 +2483,7 @@ class CommandQueue {
 
   final Queue<Command> _runQueue = new Queue<Command>();
   final _commandOutputStream = new StreamController<CommandOutput>(sync: true);
-  final _completer = new Completer();
+  final _completer = new Completer<Null>();
 
   int _numProcesses = 0;
   int _maxProcesses;
@@ -2493,8 +2495,8 @@ class CommandQueue {
   CommandQueue(this.graph, this.enqueuer, this.executor, this._maxProcesses,
       this._maxBrowserProcesses, this._verbose) {
     var eventCondition = graph.events.where;
-    eventCondition((event) => event is dgraph.StateChangedEvent)
-        .listen((event) {
+    eventCondition((e) => e is dgraph.StateChangedEvent).listen((e) {
+      var event = e as dgraph.StateChangedEvent;
       if (event.to == dgraph.NodeState.Enqueuing) {
         assert(event.from == dgraph.NodeState.Initialized ||
             event.from == dgraph.NodeState.Waiting);
@@ -2622,7 +2624,7 @@ abstract class CommandExecutor {
   Future cleanup();
   // TODO(kustermann): The [timeout] parameter should be a property of Command
   Future<CommandOutput> runCommand(
-      dgraph.Node node, Command command, int timeout);
+      dgraph.Node node, covariant Command command, int timeout);
 }
 
 class CommandExecutorImpl implements CommandExecutor {
@@ -2648,7 +2650,7 @@ class CommandExecutorImpl implements CommandExecutor {
     _finishing = true;
 
     Future _terminateBatchRunners() {
-      var futures = [];
+      var futures = <Future>[];
       for (var runners in _batchProcesses.values) {
         futures.addAll(runners.map((runner) => runner.terminate()));
       }
@@ -2993,8 +2995,8 @@ class TestCaseCompleter {
 
     // Listen for NodeState.Processing -> NodeState.{Successful,Failed}
     // changes.
-    eventCondition((event) => event is dgraph.StateChangedEvent)
-        .listen((dgraph.StateChangedEvent event) {
+    eventCondition((event) => event is dgraph.StateChangedEvent).listen((e) {
+      var event = e as dgraph.StateChangedEvent;
       if (event.from == dgraph.NodeState.Processing &&
           !finishedRemainingTestCases) {
         var command = event.node.userData;
@@ -3009,8 +3011,7 @@ class TestCaseCompleter {
 
     // Listen also for GraphSealedEvent's. If there is not a single node in the
     // graph, we still want to finish after the graph was sealed.
-    eventCondition((event) => event is dgraph.GraphSealedEvent)
-        .listen((dgraph.GraphSealedEvent event) {
+    eventCondition((event) => event is dgraph.GraphSealedEvent).listen((_) {
       if (!_closed && enqueuer.remainingTestCases.isEmpty) {
         _controller.close();
         _closed = true;
@@ -3074,7 +3075,7 @@ class ProcessQueue {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
       _graph.events
           .where((event) => event is dgraph.GraphSealedEvent)
-          .listen((dgraph.GraphSealedEvent event) {
+          .listen((_) {
         var testCases = new List.from(testCaseEnqueuer.remainingTestCases);
         testCases.sort((a, b) => a.displayName.compareTo(b.displayName));
 
@@ -3096,7 +3097,7 @@ class ProcessQueue {
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
       Timer _debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period
-      // something is definitly wrong, so we dump the debugging information.
+      // something is definitely wrong, so we dump the debugging information.
       final debugTimerDuration = const Duration(minutes: 10);
 
       void cancelDebugTimer() {

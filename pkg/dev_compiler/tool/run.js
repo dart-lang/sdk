@@ -53,8 +53,14 @@ function finish(e) {
   }
 }
 
-var async_helper = requirejs('async_helper').async_helper;
+sdk.dart.ignoreWhitelistedErrors(false);
+sdk.dart.failForWeakModeIsChecks(false);
 sdk._isolate_helper.startRootIsolate(() => {}, []);
+// Make it easier to debug test failures and required for formatter test that
+// assumes custom formatters are enabled.
+sdk._debugger.registerDevtoolsFormatter();
+
+var async_helper = requirejs('async_helper').async_helper;
 async_helper.asyncTestInitialize(finish);
 
 var module = requirejs(test);

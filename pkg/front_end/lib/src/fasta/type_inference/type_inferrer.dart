@@ -5,6 +5,7 @@
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, InterfaceType, Member;
 import 'package:kernel/core_types.dart';
@@ -61,6 +62,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
   final Instrumentation instrumentation;
 
+  final TypeSchemaEnvironment typeSchemaEnvironment;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   _ClosureContext _closureContext;
@@ -68,7 +71,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
-        instrumentation = engine.instrumentation;
+        instrumentation = engine.instrumentation,
+        typeSchemaEnvironment = engine.typeSchemaEnvironment;
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -77,6 +81,54 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
   E getFieldInitializer(F field);
+
+  /// Performs the core type inference algorithm for type cast expressions.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferAsExpression(
+      DartType typeContext, bool typeNeeded, E operand, DartType type) {
+    inferExpression(operand, null, false);
+    return typeNeeded ? type : null;
+  }
+
+  /// Performs the core type inference algorithm for boolean literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferBoolLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.boolClass.rawType : null;
+  }
+
+  /// Performs the core type inference algorithm for conditional expressions.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [condition], [then], and [otherwise] are the subexpressions.  The inferred
+  /// type is reported via [setStaticType].
+  DartType inferConditionalExpression(DartType typeContext, bool typeNeeded,
+      E condition, E then, E otherwise, void setStaticType(DartType type)) {
+    inferExpression(condition, coreTypes.boolClass.rawType, false);
+    // TODO(paulberry): is it correct to pass the context down?
+    DartType thenType = inferExpression(then, typeContext, true);
+    DartType otherwiseType = inferExpression(otherwise, typeContext, true);
+    // TODO(paulberry): the spec proposal says we should only use LUB if the
+    // typeContext is `null`.  If typeContext is non-null, we should use the
+    // greatest closure of the context with respect to `?`
+    DartType type =
+        typeSchemaEnvironment.getLeastUpperBound(thenType, otherwiseType);
+    setStaticType(type);
+    return typeNeeded ? type : null;
+  }
+
+  /// Performs the core type inference algorithm for double literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferDoubleLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.doubleClass.rawType : null;
+  }
 
   /// Performs type inference on the given [expression].
   ///
@@ -181,6 +233,66 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return typeNeeded ? coreTypes.boolClass.rawType : null;
   }
 
+  /// Performs the core type inference algorithm for list literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferListLiteral(
+      DartType typeContext,
+      bool typeNeeded,
+      int offset,
+      DartType declaredTypeArgument,
+      Iterable<E> expressions,
+      void setTypeArgument(DartType typeArgument)) {
+    var listClass = coreTypes.listClass;
+    var listType = listClass.thisType;
+    List<DartType> typesFromDownwardsInference;
+    InterfaceType inferredListType;
+    DartType inferredTypeArgument;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    bool inferenceNeeded = declaredTypeArgument == null && strongMode;
+    if (inferenceNeeded) {
+      typesFromDownwardsInference = [null];
+      inferredListType = typeSchemaEnvironment.inferGenericFunctionOrType(
+          listClass.typeParameters,
+          listType,
+          [],
+          [],
+          typeContext,
+          typesFromDownwardsInference,
+          downwards: true);
+      inferredTypeArgument = typesFromDownwardsInference[0];
+      formalTypes = [];
+      actualTypes = [];
+    } else {
+      inferredTypeArgument = declaredTypeArgument ?? const DynamicType();
+      inferredListType = new InterfaceType(listClass, [inferredTypeArgument]);
+    }
+    for (var expression in expressions) {
+      var expressionType =
+          inferExpression(expression, inferredTypeArgument, inferenceNeeded);
+      if (inferenceNeeded) {
+        formalTypes.add(listType.typeArguments[0]);
+        actualTypes.add(expressionType);
+      }
+    }
+    if (inferenceNeeded) {
+      inferredListType = typeSchemaEnvironment.inferGenericFunctionOrType(
+          listClass.typeParameters,
+          listType,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          typesFromDownwardsInference);
+      inferredTypeArgument = inferredListType.typeArguments[0];
+      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
+          new InstrumentationValueForTypeArgs([inferredTypeArgument]));
+      setTypeArgument(inferredTypeArgument);
+    }
+    return typeNeeded ? inferredListType : null;
+  }
+
   /// Performs the core type inference algorithm for static variable getters.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -191,6 +303,26 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   DartType inferStaticGet(
       DartType typeContext, bool typeNeeded, DartType getterType) {
     return typeNeeded ? getterType : null;
+  }
+
+  /// Performs the core type inference algorithm for string concatenations.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferStringConcatenation(
+      DartType typeContext, bool typeNeeded, Iterable<E> expressions) {
+    for (E expression in expressions) {
+      inferExpression(expression, null, false);
+    }
+    return typeNeeded ? coreTypes.stringClass.rawType : null;
+  }
+
+  /// Performs the core type inference algorithm for string literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferStringLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.stringClass.rawType : null;
   }
 
   /// Performs the core type inference algorithm for variable declarations.
@@ -234,6 +366,11 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return typeNeeded
         ? (promotedType ?? declaredType ?? const DynamicType())
         : null;
+  }
+
+  DartType inferVariableSet(
+      DartType typeContext, bool typeNeeded, DartType declaredType, E value) {
+    return inferExpression(value, declaredType, typeNeeded);
   }
 }
 

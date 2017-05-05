@@ -466,6 +466,179 @@ main() {
         target: '/test.dart');
   }
 
+  test_addMissingRequiredArg_cons_single_closure() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef void VoidCallback();
+
+class A {
+  A({@required VoidCallback onPressed}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(onPressed: () {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure_2() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef void Callback(e);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(callback: (e) {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure_3() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef void Callback(a,b,c);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(callback: (a, b, c) {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure_4() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef int Callback(int a, String b,c);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(callback: (int a, String b, c) {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_list() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+class A {
+  A({@required List<String> names}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(names: <String>[]);
+}
+''',
+        target: '/test.dart');
+  }
+
   test_addMissingRequiredArg_multiple() async {
     _addMetaPackageSource();
 

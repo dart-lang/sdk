@@ -330,7 +330,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitDynamicPropertyInvoke(
       Send node, Node receiver, NodeList arguments, Selector selector, A arg);
 
-  /// Conditinal invocation of the property defined by [selector] on [receiver]
+  /// Conditional invocation of the property defined by [selector] on [receiver]
   /// with [arguments], if [receiver] is not null.
   ///
   /// For instance:
@@ -2201,7 +2201,7 @@ abstract class SemanticSendVisitor<R, A> {
   R errorInvalidSetIfNull(Send node, ErroneousElement error, Node rhs, A arg);
 
   /// If-null assignment expression of [rhs] to the class type literal
-  /// [contant]. That is, [rhs] is only evaluated and assigned, if the value
+  /// [constant]. That is, [rhs] is only evaluated and assigned, if the value
   /// is of the [constant] is `null`. The behavior is thus equivalent to a type
   /// literal access.
   ///

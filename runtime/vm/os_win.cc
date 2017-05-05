@@ -216,11 +216,6 @@ intptr_t OS::PreferredCodeAlignment() {
 }
 
 
-bool OS::AllowStackFrameIteratorFromAnotherThread() {
-  return true;
-}
-
-
 int OS::NumberOfAvailableProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);

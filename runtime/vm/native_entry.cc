@@ -264,7 +264,8 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     StackZone stack_zone(arguments->thread());
     Zone* zone = stack_zone.GetZone();
 
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(arguments->thread(),
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
 
     const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());

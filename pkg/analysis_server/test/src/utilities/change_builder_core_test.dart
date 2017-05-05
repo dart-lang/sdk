@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/utilities/change_builder_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -155,7 +156,8 @@ class EditBuilderImplTest {
     int offset = 52;
     int length = 12;
     await builder.addFileEdit(path, timeStamp, (FileEditBuilder builder) {
-      builder.addReplacement(offset, length, (EditBuilder builder) {
+      builder.addReplacement(new SourceRange(offset, length),
+          (EditBuilder builder) {
         builder.writeln();
       });
     });
@@ -186,7 +188,8 @@ class EditBuilderImplTest {
     int length = 12;
     String text = 'writeln';
     await builder.addFileEdit(path, timeStamp, (FileEditBuilder builder) {
-      builder.addReplacement(offset, length, (EditBuilder builder) {
+      builder.addReplacement(new SourceRange(offset, length),
+          (EditBuilder builder) {
         builder.writeln(text);
       });
     });
@@ -221,7 +224,7 @@ class FileEditBuilderImplTest {
     int length = 7;
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
-      builder.addDeletion(offset, length);
+      builder.addDeletion(new SourceRange(offset, length));
     });
     List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(1));
@@ -243,7 +246,7 @@ class FileEditBuilderImplTest {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     String groupName = 'a';
     await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
-      builder.addLinkedPosition(3, 6, groupName);
+      builder.addLinkedPosition(new SourceRange(3, 6), groupName);
     });
 
     LinkedEditGroup group = builder.getLinkedEditGroup(groupName);
@@ -258,7 +261,7 @@ class FileEditBuilderImplTest {
   test_addReplacement() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
-      builder.addReplacement(4, 5, (EditBuilder builder) {
+      builder.addReplacement(new SourceRange(4, 5), (EditBuilder builder) {
         expect(builder, isNotNull);
       });
     });
@@ -284,7 +287,7 @@ class FileEditBuilderImplTest {
     String text = 'xyz';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
-      builder.addSimpleReplacement(offset, length, text);
+      builder.addSimpleReplacement(new SourceRange(offset, length), text);
     });
     List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(1));

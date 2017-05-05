@@ -281,29 +281,40 @@ class TranslationHelper {
   Heap::Space allocation_space() { return allocation_space_; }
 
   // Access to strings.
+  const TypedData& string_offsets() { return string_offsets_; }
+  void SetStringOffsets(const TypedData& string_offsets);
+
   const TypedData& string_data() { return string_data_; }
   void SetStringData(const TypedData& string_data);
-  uint8_t CharacterAt(String* str, intptr_t index);
-  bool StringEquals(String* str, const char* other);
 
-  // Predicates on CanonicalNames.
-  bool IsAdministrative(CanonicalName* name);
-  bool IsPrivate(CanonicalName* name);
-  bool IsRoot(CanonicalName* name);
-  bool IsLibrary(CanonicalName* name);
-  bool IsClass(CanonicalName* name);
-  bool IsMember(CanonicalName* name);
-  bool IsField(CanonicalName* name);
-  bool IsConstructor(CanonicalName* name);
-  bool IsProcedure(CanonicalName* name);
-  bool IsMethod(CanonicalName* name);
-  bool IsGetter(CanonicalName* name);
-  bool IsSetter(CanonicalName* name);
-  bool IsFactory(CanonicalName* name);
+  const TypedData& canonical_names() { return canonical_names_; }
+  void SetCanonicalNames(const TypedData& canonical_names);
+
+  intptr_t StringOffset(StringIndex index) const;
+  intptr_t StringSize(StringIndex index) const;
+  uint8_t CharacterAt(StringIndex string_index, intptr_t index);
+  bool StringEquals(StringIndex string_index, const char* other);
+
+  // Accessors and predicates for canonical names.
+  NameIndex CanonicalNameParent(NameIndex name);
+  StringIndex CanonicalNameString(NameIndex name);
+  bool IsAdministrative(NameIndex name);
+  bool IsPrivate(NameIndex name);
+  bool IsRoot(NameIndex name);
+  bool IsLibrary(NameIndex name);
+  bool IsClass(NameIndex name);
+  bool IsMember(NameIndex name);
+  bool IsField(NameIndex name);
+  bool IsConstructor(NameIndex name);
+  bool IsProcedure(NameIndex name);
+  bool IsMethod(NameIndex name);
+  bool IsGetter(NameIndex name);
+  bool IsSetter(NameIndex name);
+  bool IsFactory(NameIndex name);
 
   // For a member (field, constructor, or procedure) return the canonical name
   // of the enclosing class or library.
-  CanonicalName* EnclosingName(CanonicalName* name);
+  NameIndex EnclosingName(NameIndex name);
 
   RawInstance* Canonicalize(const Instance& instance);
 
@@ -312,10 +323,10 @@ class TranslationHelper {
   }
   const dart::String& DartString(const char* content, Heap::Space space);
 
-  dart::String& DartString(String* content) {
-    return DartString(content, allocation_space_);
+  dart::String& DartString(StringIndex index) {
+    return DartString(index, allocation_space_);
   }
-  dart::String& DartString(String* content, Heap::Space space);
+  dart::String& DartString(StringIndex string_index, Heap::Space space);
 
   dart::String& DartString(const uint8_t* utf8_array, intptr_t len) {
     return DartString(utf8_array, len, allocation_space_);
@@ -325,44 +336,44 @@ class TranslationHelper {
                            Heap::Space space);
 
   const dart::String& DartSymbol(const char* content) const;
-  dart::String& DartSymbol(String* content) const;
+  dart::String& DartSymbol(StringIndex string_index) const;
   dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
 
-  const dart::String& DartClassName(CanonicalName* kernel_class);
+  const dart::String& DartClassName(NameIndex kernel_class);
 
-  const dart::String& DartConstructorName(CanonicalName* constructor);
+  const dart::String& DartConstructorName(NameIndex constructor);
 
-  const dart::String& DartProcedureName(CanonicalName* procedure);
+  const dart::String& DartProcedureName(NameIndex procedure);
 
-  const dart::String& DartSetterName(CanonicalName* setter);
+  const dart::String& DartSetterName(NameIndex setter);
   const dart::String& DartSetterName(Name* setter_name);
 
-  const dart::String& DartGetterName(CanonicalName* getter);
+  const dart::String& DartGetterName(NameIndex getter);
   const dart::String& DartGetterName(Name* getter_name);
 
   const dart::String& DartFieldName(Name* kernel_name);
 
   const dart::String& DartInitializerName(Name* kernel_name);
 
-  const dart::String& DartMethodName(CanonicalName* method);
+  const dart::String& DartMethodName(NameIndex method);
   const dart::String& DartMethodName(Name* method_name);
 
-  const dart::String& DartFactoryName(CanonicalName* factory);
+  const dart::String& DartFactoryName(NameIndex factory);
 
   const Array& ArgumentNames(List<NamedExpression>* named);
 
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
-  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
+  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
 
-  RawField* LookupFieldByKernelField(CanonicalName* field);
-  RawFunction* LookupStaticMethodByKernelProcedure(CanonicalName* procedure);
-  RawFunction* LookupConstructorByKernelConstructor(CanonicalName* constructor);
+  RawField* LookupFieldByKernelField(NameIndex field);
+  RawFunction* LookupStaticMethodByKernelProcedure(NameIndex procedure);
+  RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
   dart::RawFunction* LookupConstructorByKernelConstructor(
       const dart::Class& owner,
-      CanonicalName* constructor);
+      NameIndex constructor);
 
   dart::Type& GetCanonicalType(const dart::Class& klass);
 
@@ -374,20 +385,22 @@ class TranslationHelper {
   // if asked.  The result will be available in [name_to_modify] and it is also
   // returned.  If the name is private, the canonical name [parent] will be used
   // to get the import URI of the library where the name is visible.
-  dart::String& ManglePrivateName(CanonicalName* parent,
+  dart::String& ManglePrivateName(NameIndex parent,
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
 
-  const dart::String& DartSetterName(CanonicalName* parent, String* setter);
-  const dart::String& DartGetterName(CanonicalName* parent, String* getter);
-  const dart::String& DartMethodName(CanonicalName* parent, String* method);
+  const dart::String& DartSetterName(NameIndex parent, StringIndex setter);
+  const dart::String& DartGetterName(NameIndex parent, StringIndex getter);
+  const dart::String& DartMethodName(NameIndex parent, StringIndex method);
 
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
   Heap::Space allocation_space_;
 
+  TypedData& string_offsets_;
   TypedData& string_data_;
+  TypedData& canonical_names_;
 };
 
 // Regarding malformed types:
@@ -437,6 +450,8 @@ class DartTypeTranslator : public DartTypeVisitor {
   virtual void VisitDynamicType(DynamicType* node);
 
   virtual void VisitVoidType(VoidType* node);
+
+  virtual void VisitBottomType(BottomType* node);
 
   // Will return `TypeArguments::null()` in case any of the arguments are
   // malformed.
@@ -852,7 +867,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment TranslateInitializers(Class* kernel_class,
                                  List<Initializer>* initialiers);
-  Fragment TranslateFieldInitializer(CanonicalName* canonical_name,
+  Fragment TranslateFieldInitializer(NameIndex canonical_name,
                                      Expression* init);
 
   Fragment TranslateStatement(Statement* statement);
@@ -869,7 +884,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment LoadContextAt(int depth);
   Fragment AdjustContextTo(int depth);
-  bool HasContextScope() const;
 
   Fragment PushContext(int size);
   Fragment PopContext();
@@ -984,7 +998,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
 
-  dart::RawFunction* LookupMethodByMember(CanonicalName* target,
+  dart::RawFunction* LookupMethodByMember(NameIndex target,
                                           const dart::String& method_name);
 
   LocalVariable* MakeTemporary();
@@ -1134,7 +1148,7 @@ class CatchBlock {
 
 
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
-RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(const Function& function);
 
 
 }  // namespace kernel
@@ -1149,7 +1163,7 @@ namespace dart {
 namespace kernel {
 
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
-RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(const Function& function);
 
 }  // namespace kernel
 }  // namespace dart

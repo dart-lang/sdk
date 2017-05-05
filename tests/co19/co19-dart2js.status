@@ -381,7 +381,6 @@ LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/inline/empty-inline-before-collapsed-space_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/trivial_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure
@@ -977,7 +976,6 @@ LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nonascii_t01: RuntimeError # Please triage this failure
@@ -1004,7 +1002,6 @@ LayoutTests/fast/css/transform-origin-parsing_t01: Pass, RuntimeError # Please t
 LayoutTests/fast/css/unicode-bidi-computed-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/url-with-multi-byte-unicode-escape_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/webkit-keyframes-errors_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/word-break-user-modify-allowed-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
@@ -1717,8 +1714,6 @@ LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # Pleas
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/css-table-width_t01: RuntimeError # Please triage this failure
@@ -1741,7 +1736,6 @@ WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeEr
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
@@ -2040,7 +2034,6 @@ LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # Please triag
 LayoutTests/fast/css/id-or-class-before-stylesheet_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-object-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-target-indirect-sibling-001_t01: Skip # Times out.
@@ -2052,7 +2045,6 @@ LayoutTests/fast/css/style-scoped/style-scoped-with-dom-operation_t01: RuntimeEr
 LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/word-break-user-modify-allowed-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
@@ -2608,8 +2600,6 @@ LayoutTests/fast/multicol/fixed-column-percent-logical-height-orthogonal-writing
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/css-table-max-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # Please triage this failure
@@ -2628,7 +2618,6 @@ WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeEr
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == drt && $checked == false ]
@@ -4232,7 +4221,6 @@ LayoutTests/fast/css/link-alternate-stylesheet-4_t01: RuntimeError # Please tria
 LayoutTests/fast/css/link-alternate-stylesheet-5_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/media-rule-no-whitespace_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parse-color-int-or-percent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nth-child_t01: RuntimeError # Please triage this failure
@@ -4264,7 +4252,6 @@ LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: Runtim
 LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/transform-origin-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/webkit-keyframes-errors_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/word-break-user-modify-allowed-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-color_t01: RuntimeError # Please triage this failure

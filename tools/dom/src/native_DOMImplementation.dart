@@ -610,7 +610,7 @@ class _Utils {
   }
 
   /**
-   * Adds all candidate String completitions from [declarations] to [output]
+   * Adds all candidate String completions from [declarations] to [output]
    * filtering based on [staticContext] and [includePrivate].
    */
   static void _getCompletionsHelper(ClassMirror classMirror, bool staticContext,
@@ -688,7 +688,7 @@ class _Utils {
   }
 
   /**
-   * Get valid code completitions from within a library and all libraries
+   * Get valid code completions from within a library and all libraries
    * imported by that library.
    */
   static List<String> getLibraryCompletionsIncludingImports(String url) {

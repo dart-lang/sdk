@@ -83,7 +83,7 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   const name$ = Symbol("BenchmarkBase.name");
   dart.setSignature(BenchmarkBase$.BenchmarkBase, {
-    fields: () => ({name: core.String}),
+    fields: () => ({name: dart.finalFieldType(core.String)}),
     methods: () => ({
       run: dart.definiteFunctionType(dart.void, []),
       warmup: dart.definiteFunctionType(dart.void, []),

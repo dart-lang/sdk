@@ -451,8 +451,16 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         stack_lower_(stack_lower),
         has_exit_frame_(exited_dart_code) {
     if (exited_dart_code) {
+// On windows the profiler does not run on the thread being profiled.
+#if defined(_WIN32)
+      const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+          StackFrameIterator::kAllowCrossThreadIteration;
+#else
+      const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+          StackFrameIterator::kNoCrossThreadIteration;
+#endif
       StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
-                                  thread);
+                                  thread, cross_thread_policy);
       pc_ = NULL;
       fp_ = NULL;
       sp_ = NULL;

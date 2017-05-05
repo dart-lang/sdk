@@ -9098,8 +9098,18 @@ void Script::set_compile_time_constants(const Array& value) const {
 }
 
 
-void Script::set_kernel_strings(const TypedData& strings) const {
-  StorePointer(&raw_ptr()->kernel_strings_, strings.raw());
+void Script::set_kernel_string_offsets(const TypedData& offsets) const {
+  StorePointer(&raw_ptr()->kernel_string_offsets_, offsets.raw());
+}
+
+
+void Script::set_kernel_string_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->kernel_string_data_, data.raw());
+}
+
+
+void Script::set_kernel_canonical_names(const TypedData& names) const {
+  StorePointer(&raw_ptr()->kernel_canonical_names_, names.raw());
 }
 
 
@@ -19730,7 +19740,7 @@ static double Uint64ToDouble(uint64_t x) {
   //
   // which results in a different rounding.
   //
-  // For consistency between platforms fallback to GCC style converstion
+  // For consistency between platforms fallback to GCC style conversion
   // on Win64.
   //
   const int64_t y = static_cast<int64_t>(x);

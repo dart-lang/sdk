@@ -1242,7 +1242,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
       if native_type != return_type:
         anns = anns + [
-          "@Returns('%s')" % native_type,
+          "@Returns('%s|Null')" % native_type,
           "@Creates('%s')" % native_type,
         ]
     if dart_type == 'dynamic' or dart_type == 'Object':

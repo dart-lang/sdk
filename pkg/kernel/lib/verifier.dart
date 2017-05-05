@@ -218,10 +218,10 @@ class VerifyingVisitor extends RecursiveVisitor {
     var oldParent = enterParent(node);
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
+    node.type.accept(this);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
     exitParent(oldParent);
-    node.type.accept(this);
     currentMember = null;
   }
 

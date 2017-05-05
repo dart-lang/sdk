@@ -766,7 +766,7 @@ class Returns {
  * This example declares a Dart field + getter + setter called `$dom_title` that
  * corresponds to the JavaScript property `title`.
  *
- *     class Docmument native "*Foo" {
+ *     class Document native "*Foo" {
  *       @JSName('title')
  *       String $dom_title;
  *     }

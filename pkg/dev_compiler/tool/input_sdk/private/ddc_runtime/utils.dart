@@ -40,7 +40,7 @@ getOwnNamesAndSymbols(obj) {
   return JS('', '#.concat(#)', names, symbols);
 }
 
-safeGetOwnProperty(obj, String name) {
+safeGetOwnProperty(obj, name) {
   var desc = getOwnPropertyDescriptor(obj, name);
   if (desc != null) return JS('', '#.value', desc);
 }
@@ -85,7 +85,7 @@ void defineLazy(to, from) => JS(
   }
 })()''');
 
-defineMemoizedGetter(obj, String name, getter) {
+defineMemoizedGetter(obj, name, getter) {
   return defineLazyProperty(obj, name, JS('', '{get: #}', getter));
 }
 

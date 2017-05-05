@@ -13,7 +13,7 @@ import 'constructors.dart';
 import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
-abstract class Environment {
+abstract class EvaluationEnvironment {
   CommonElements get commonElements;
 
   /// Read environments string passed in using the '-Dname=value' option.

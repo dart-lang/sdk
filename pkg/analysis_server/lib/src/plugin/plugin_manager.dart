@@ -111,14 +111,17 @@ class PluginInfo {
 
   /**
    * Start a new isolate that is running the plugin. Return the state object
-   * used to interact with the plugin.
+   * used to interact with the plugin, or `null` if the plugin could not be run.
    */
   Future<PluginSession> start(String byteStorePath) async {
     if (currentSession != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
     currentSession = new PluginSession(this);
-    await currentSession.start(byteStorePath);
+    bool isRunning = await currentSession.start(byteStorePath);
+    if (!isRunning) {
+      currentSession = null;
+    }
     return currentSession;
   }
 
@@ -226,7 +229,7 @@ class PluginManager {
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
         PluginSession session = await plugin.start(byteStorePath);
-        session.onDone.then((_) {
+        session?.onDone?.then((_) {
           _pluginMap.remove(path);
         });
       }
@@ -644,6 +647,11 @@ class PluginSession {
         info.instrumentationService);
     await channel.listen(handleResponse, handleNotification,
         onDone: handleOnDone, onError: handleOnError);
+    if (channel == null) {
+      // If there is an error when starting the isolate, the channel will invoke
+      // handleOnDone, which will cause `channel` to be set to `null`.
+      return false;
+    }
     Response response = await sendRequest(
         new PluginVersionCheckParams(byteStorePath ?? '', '1.0.0-alpha.0'));
     PluginVersionCheckResult result =

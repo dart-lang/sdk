@@ -374,4 +374,5 @@ js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue
 custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
 custom/js_custom_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
+custom/mirrors_2_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported

@@ -648,7 +648,7 @@ class Listener {
 
   void beginRethrowStatement(Token token) {}
 
-  void endRethrowStatement(Token throwToken, Token endToken) {
+  void endRethrowStatement(Token rethrowToken, Token endToken) {
     logEvent("RethrowStatement");
   }
 
@@ -1050,6 +1050,11 @@ class Listener {
       Token tokenToStartReplacing, Token tokenWithComment) {
     return tokenToStartReplacing;
   }
+
+  /// A type has been just parsed, and the parser noticed that the next token
+  /// has a type substitution comment /*=T*. So, the type that has been just
+  /// parsed should be discarded, and a new type should be parsed instead.
+  void discardTypeReplacedWithCommentTypeAssign() {}
 
   /// Creates a new synthetic token whose `next` pointer points to [next].
   ///

@@ -6,11 +6,12 @@
 library dart2js.type_system;
 
 import 'common/names.dart' show Identifiers, Uris;
-import 'js_backend/constant_system_javascript.dart';
+import 'constants/values.dart';
 import 'elements/types.dart';
 import 'elements/elements.dart' show PublicName;
 import 'elements/entities.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/constant_system_javascript.dart';
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
@@ -137,27 +138,32 @@ class CommonElements {
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
-  LibraryEntity get internalLibrary =>
-      _internalLibrary ??= _env.lookupLibrary(Uris.dart__internal);
+  LibraryEntity get internalLibrary => _internalLibrary ??=
+      _env.lookupLibrary(Uris.dart__internal, required: true);
 
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity _typedDataClass;
   ClassEntity get typedDataClass =>
       _typedDataClass ??= _findClass(typedDataLibrary, 'NativeTypedData');
 
-  /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
-  /// is resolved and lookup the constructor on demand.
-  ConstructorEntity _symbolConstructor;
-  ConstructorEntity get symbolConstructor =>
-      // TODO(johnniwinther): Kernel does not include redirecting factories
-      // so this cannot be found in kernel. Find a consistent way to handle
-      // this and similar cases.
-      _symbolConstructor ??= _findConstructor(symbolClass, '', required: false);
+  /// Constructor of the `Symbol` class in dart:internal. This getter will
+  /// ensure that `Symbol` is resolved and lookup the constructor on demand.
+  ConstructorEntity _symbolConstructorTarget;
+  ConstructorEntity get symbolConstructorTarget {
+    // TODO(johnniwinther): Kernel does not include redirecting factories
+    // so this cannot be found in kernel. Find a consistent way to handle
+    // this and similar cases.
+    return _symbolConstructorTarget ??=
+        _findConstructor(symbolImplementationClass, '');
+  }
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
   // TODO(johnniwinther): Change type of [e] to [MemberEntity].
-  bool isSymbolConstructor(Entity e) => e == symbolConstructor;
+  bool isSymbolConstructor(Entity e) {
+    return e == symbolConstructorTarget ||
+        e == _findConstructor(symbolClass, '', required: false);
+  }
 
   /// The `MirrorSystem` class in dart:mirrors.
   ClassEntity _mirrorSystemClass;
@@ -501,7 +507,14 @@ class CommonElements {
   FunctionEntity _findAsyncHelperFunction(String name) =>
       _findLibraryMember(asyncLibrary, name);
 
-  FunctionEntity get asyncHelper => _findAsyncHelperFunction("_asyncHelper");
+  FunctionEntity get asyncHelperStart =>
+      _findAsyncHelperFunction("_asyncStart");
+  FunctionEntity get asyncHelperAwait =>
+      _findAsyncHelperFunction("_asyncAwait");
+  FunctionEntity get asyncHelperReturn =>
+      _findAsyncHelperFunction("_asyncReturn");
+  FunctionEntity get asyncHelperRethrow =>
+      _findAsyncHelperFunction("_asyncRethrow");
 
   FunctionEntity get wrapBody =>
       _findAsyncHelperFunction("_wrapJsFunctionForAsync");
@@ -1183,17 +1196,21 @@ abstract class ElementEnvironment {
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
 
-  /// Returns the declared superclass of [cls].
+  /// Returns the superclass of [cls].
   ///
-  /// Unnamed mixin applications are included, for instance for these classes
+  /// If [skipUnnamedMixinApplications] is `true`, unnamed mixin applications
+  /// are excluded, for instance for these classes
   ///
   ///     class S {}
   ///     class M {}
   ///     class C extends S with M {}
   ///
   /// the result of `getSuperClass(C)` is the unnamed mixin application
-  /// typically named `S+M` and `getSuperClass(S+M)` is `S`.
-  ClassEntity getSuperClass(ClassEntity cls);
+  /// typically named `S+M` and `getSuperClass(S+M)` is `S`, whereas
+  /// the result of `getSuperClass(C, skipUnnamedMixinApplications: false)` is
+  /// `S`.
+  ClassEntity getSuperClass(ClassEntity cls,
+      {bool skipUnnamedMixinApplications: false});
 
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
@@ -1217,6 +1234,9 @@ abstract class ElementEnvironment {
   /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
+
+  /// Returns `true` if [cls] is generic.
+  bool isGenericClass(ClassEntity cls);
 
   /// The upper bound on the [typeVariable]. If not explicitly declared, this is
   /// `Object`.
@@ -1244,4 +1264,7 @@ abstract class ElementEnvironment {
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.
   bool isDeferredLoadLibraryGetter(MemberEntity member);
+
+  /// Returns the metadata constants declared on [member].
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member);
 }

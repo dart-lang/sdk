@@ -148,7 +148,7 @@ void HostCPUFeatures::InitOnce() {
   // When the VM is targetted to ARMv7, pretend that the CPU is ARMv7 even if
   // the CPU is actually AArch64.
   arm_version_ = ARMv7;
-  // Always assume we have floating point unit since we dont support ARMv6 in
+  // Always assume we have floating point unit since we don't support ARMv6 in
   // this path.
   vfp_supported_ = FLAG_use_vfp;
   integer_division_supported_ = FLAG_use_integer_division;

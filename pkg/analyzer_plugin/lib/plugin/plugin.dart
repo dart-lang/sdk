@@ -5,7 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriverScheduler, PerformanceLog;
+    show AnalysisDriverGeneric, AnalysisDriverScheduler, PerformanceLog;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -16,6 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
 import 'package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart';
+import 'package:path/src/context.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /**
@@ -53,6 +54,13 @@ abstract class ServerPlugin {
   AnalysisDriverScheduler analysisDriverScheduler;
 
   /**
+   * A table mapping the current context roots to the analysis driver created
+   * for that root.
+   */
+  final Map<ContextRoot, AnalysisDriverGeneric> driverMap =
+      <ContextRoot, AnalysisDriverGeneric>{};
+
+  /**
    * The performance log used by any analysis drivers that are created.
    */
   final PerformanceLog performanceLog =
@@ -77,7 +85,15 @@ abstract class ServerPlugin {
    */
   ServerPlugin(this.resourceProvider) {
     analysisDriverScheduler = new AnalysisDriverScheduler(performanceLog);
+    analysisDriverScheduler.start();
   }
+
+  /**
+   * Return the byte store used by any analysis drivers that are created, or
+   * `null` if the cache location isn't known because the 'plugin.version'
+   * request has not yet been received.
+   */
+  ByteStore get byteStore => _byteStore;
 
   /**
    * Return the communication channel being used to communicate with the
@@ -115,42 +131,116 @@ abstract class ServerPlugin {
   }
 
   /**
+   * Return the context root containing the file at the given [filePath].
+   */
+  ContextRoot contextRootContaining(String filePath) {
+    Context pathContext = resourceProvider.pathContext;
+
+    /**
+     * Return `true` if the given [child] is either the same as or within the
+     * given [parent].
+     */
+    bool isOrWithin(String parent, String child) {
+      return parent == child || pathContext.isWithin(parent, child);
+    }
+
+    /**
+     * Return `true` if the given context [root] contains the target [file].
+     */
+    bool ownsFile(ContextRoot root) {
+      if (isOrWithin(root.root, filePath)) {
+        List<String> excludedPaths = root.exclude;
+        for (String excludedPath in excludedPaths) {
+          if (isOrWithin(excludedPath, filePath)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+
+    for (ContextRoot root in driverMap.keys) {
+      if (ownsFile(root)) {
+        return root;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Create an analysis driver that can analyze the files within the given
+   * [contextRoot].
+   */
+  AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
+
+  /**
    * Handle an 'analysis.handleWatchEvents' request.
    */
   AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
-          Map<String, Object> parameters) =>
+          AnalysisHandleWatchEventsParams parameters) =>
       null;
 
   /**
    * Handle an 'analysis.reanalyze' request.
    */
   AnalysisReanalyzeResult handleAnalysisReanalyze(
-          Map<String, Object> parameters) =>
+          AnalysisReanalyzeParams parameters) =>
       null;
 
   /**
    * Handle an 'analysis.setContextBuilderOptions' request.
    */
   AnalysisSetContextBuilderOptionsResult handleAnalysisSetContextBuilderOptions(
-          Map<String, Object> parameters) =>
+          AnalysisSetContextBuilderOptionsParams parameters) =>
       null;
 
   /**
    * Handle an 'analysis.setContextRoots' request.
    */
   AnalysisSetContextRootsResult handleAnalysisSetContextRoots(
-      Map<String, Object> parameters) {
-    // TODO(brianwilkerson) Implement this so that implementors don't have to
-    // figure out how to manage contexts.
-    return null;
+      AnalysisSetContextRootsParams parameters) {
+    List<ContextRoot> contextRoots = parameters.roots;
+    List<ContextRoot> oldRoots = driverMap.keys.toList();
+    for (ContextRoot contextRoot in contextRoots) {
+      if (!oldRoots.remove(contextRoot)) {
+        // The context is new, so we create a driver for it. Creating the driver
+        // has the side-effect of adding it to the analysis driver scheduler.
+        AnalysisDriverGeneric driver = createAnalysisDriver(contextRoot);
+        driverMap[contextRoot] = driver;
+      }
+    }
+    for (ContextRoot contextRoot in oldRoots) {
+      // The context has been removed, so we remove its driver.
+      AnalysisDriverGeneric driver = driverMap.remove(contextRoot);
+      // The `dispose` method has the side-effect of removing the driver from
+      // the analysis driver scheduler.
+      driver.dispose();
+    }
+    return new AnalysisSetContextRootsResult();
   }
 
   /**
    * Handle an 'analysis.setPriorityFiles' request.
    */
   AnalysisSetPriorityFilesResult handleAnalysisSetPriorityFiles(
-          Map<String, Object> parameters) =>
-      new AnalysisSetPriorityFilesResult();
+      AnalysisSetPriorityFilesParams parameters) {
+    List<String> files = parameters.files;
+    Map<AnalysisDriverGeneric, List<String>> filesByDriver =
+        <AnalysisDriverGeneric, List<String>>{};
+    for (String file in files) {
+      ContextRoot contextRoot = contextRootContaining(file);
+      if (contextRoot != null) {
+        // TODO(brianwilkerson) Which driver should we use if there is no context root?
+        AnalysisDriverGeneric driver = driverMap[contextRoot];
+        filesByDriver.putIfAbsent(driver, () => <String>[]).add(file);
+      }
+    }
+    filesByDriver.forEach((AnalysisDriverGeneric driver, List<String> files) {
+      driver.priorityFiles = files;
+    });
+    return new AnalysisSetPriorityFilesResult();
+  }
 
   /**
    * Handle an 'analysis.setSubscriptions' request. Most subclasses should not
@@ -158,11 +248,8 @@ abstract class ServerPlugin {
    * access the list of subscriptions for any given file.
    */
   AnalysisSetSubscriptionsResult handleAnalysisSetSubscriptions(
-      Map<String, Object> parameters) {
-    Map<AnalysisService, List<String>> subscriptions = validateParameter(
-        parameters,
-        ANALYSIS_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS,
-        'analysis.setSubscriptions');
+      AnalysisSetSubscriptionsParams parameters) {
+    Map<AnalysisService, List<String>> subscriptions = parameters.subscriptions;
     subscriptionManager.setSubscriptions(subscriptions);
     // TODO(brianwilkerson) Cause any newly subscribed for notifications to be sent.
     return new AnalysisSetSubscriptionsResult();
@@ -174,9 +261,8 @@ abstract class ServerPlugin {
    * the current content of overlaid files.
    */
   AnalysisUpdateContentResult handleAnalysisUpdateContent(
-      Map<String, Object> parameters) {
-    Map<String, Object> files = validateParameter(parameters,
-        ANALYSIS_REQUEST_UPDATE_CONTENT_FILES, 'analysis.updateContent');
+      AnalysisUpdateContentParams parameters) {
+    Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
       // We don't need to get the correct URI because only the full path is
       // used by the contentCache.
@@ -214,14 +300,14 @@ abstract class ServerPlugin {
    * Handle a 'completion.getSuggestions' request.
    */
   CompletionGetSuggestionsResult handleCompletionGetSuggestions(
-          Map<String, Object> parameters) =>
+          CompletionGetSuggestionsParams parameters) =>
       new CompletionGetSuggestionsResult(
           -1, -1, const <CompletionSuggestion>[]);
 
   /**
    * Handle an 'edit.getAssists' request.
    */
-  EditGetAssistsResult handleEditGetAssists(Map<String, Object> parameters) =>
+  EditGetAssistsResult handleEditGetAssists(EditGetAssistsParams parameters) =>
       new EditGetAssistsResult(const <PrioritizedSourceChange>[]);
 
   /**
@@ -230,20 +316,20 @@ abstract class ServerPlugin {
    * method [handleEditGetRefactoring].
    */
   EditGetAvailableRefactoringsResult handleEditGetAvailableRefactorings(
-          Map<String, Object> parameters) =>
+          EditGetAvailableRefactoringsParams parameters) =>
       new EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
 
   /**
    * Handle an 'edit.getFixes' request.
    */
-  EditGetFixesResult handleEditGetFixes(Map<String, Object> parameters) =>
+  EditGetFixesResult handleEditGetFixes(EditGetFixesParams parameters) =>
       new EditGetFixesResult(const <AnalysisErrorFixes>[]);
 
   /**
    * Handle an 'edit.getRefactoring' request.
    */
   EditGetRefactoringResult handleEditGetRefactoring(
-          Map<String, Object> parameters) =>
+          EditGetRefactoringParams parameters) =>
       null;
 
   /**
@@ -251,18 +337,16 @@ abstract class ServerPlugin {
    * perform any required clean-up, but cannot prevent the plugin from shutting
    * down.
    */
-  PluginShutdownResult handlePluginShutdown(Map<String, Object> parameters) =>
+  PluginShutdownResult handlePluginShutdown(PluginShutdownParams parameters) =>
       new PluginShutdownResult();
 
   /**
    * Handle a 'plugin.versionCheck' request.
    */
   PluginVersionCheckResult handlePluginVersionCheck(
-      Map<String, Object> parameters) {
-    String byteStorePath = validateParameter(parameters,
-        PLUGIN_REQUEST_VERSION_CHECK_BYTESTOREPATH, 'plugin.versionCheck');
-    String versionString = validateParameter(parameters,
-        PLUGIN_REQUEST_VERSION_CHECK_VERSION, 'plugin.versionCheck');
+      PluginVersionCheckParams parameters) {
+    String byteStorePath = parameters.byteStorePath;
+    String versionString = parameters.version;
     Version serverVersion = new Version.parse(versionString);
     _byteStore =
         new MemoryCachingByteStore(new FileByteStore(byteStorePath), 64 * M);
@@ -296,30 +380,8 @@ abstract class ServerPlugin {
    * Start this plugin by listening to the given communication [channel].
    */
   void start(PluginCommunicationChannel channel) {
-    this._channel = channel;
+    _channel = channel;
     _channel.listen(_onRequest, onError: onError, onDone: onDone);
-  }
-
-  /**
-   * Validate that the value in the map of [parameters] at the given [key] is of
-   * the type [T]. If it is, return it. Otherwise throw a [RequestFailure] that
-   * will cause an error to be returned to the server.
-   */
-  Object/*=T*/ validateParameter/*<T>*/(
-      Map<String, Object> parameters, String key, String requestName) {
-    Object value = parameters[key];
-    // ignore: type_annotation_generic_function_parameter
-    if (value is Object/*=T*/) {
-      return value;
-    }
-    String message;
-    if (value == null) {
-      message = 'Missing parameter $key in $requestName';
-    } else {
-      message = 'Invalid value for $key in $requestName (${value.runtimeType})';
-    }
-    throw new RequestFailure(
-        new RequestError(RequestErrorCode.INVALID_PARAMETER, message));
   }
 
   /**
@@ -330,48 +392,64 @@ abstract class ServerPlugin {
     ResponseResult result = null;
     switch (request.method) {
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
-        result = handleAnalysisHandleWatchEvents(request.params);
+        var params = new AnalysisHandleWatchEventsParams.fromRequest(request);
+        result = handleAnalysisHandleWatchEvents(params);
         break;
       case ANALYSIS_REQUEST_REANALYZE:
-        result = handleAnalysisReanalyze(request.params);
+        var params = new AnalysisReanalyzeParams.fromRequest(request);
+        result = handleAnalysisReanalyze(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_BUILDER_OPTIONS:
-        result = handleAnalysisSetContextBuilderOptions(request.params);
+        var params =
+            new AnalysisSetContextBuilderOptionsParams.fromRequest(request);
+        result = handleAnalysisSetContextBuilderOptions(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
-        result = handleAnalysisSetContextRoots(request.params);
+        var params = new AnalysisSetContextRootsParams.fromRequest(request);
+        result = handleAnalysisSetContextRoots(params);
         break;
       case ANALYSIS_REQUEST_SET_PRIORITY_FILES:
-        result = handleAnalysisSetPriorityFiles(request.params);
+        var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+        result = handleAnalysisSetPriorityFiles(params);
         break;
       case ANALYSIS_REQUEST_SET_SUBSCRIPTIONS:
-        result = handleAnalysisSetSubscriptions(request.params);
+        var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
+        result = handleAnalysisSetSubscriptions(params);
         break;
       case ANALYSIS_REQUEST_UPDATE_CONTENT:
-        result = handleAnalysisUpdateContent(request.params);
+        var params = new AnalysisUpdateContentParams.fromRequest(request);
+        result = handleAnalysisUpdateContent(params);
         break;
       case COMPLETION_REQUEST_GET_SUGGESTIONS:
-        result = handleCompletionGetSuggestions(request.params);
+        var params = new CompletionGetSuggestionsParams.fromRequest(request);
+        result = handleCompletionGetSuggestions(params);
         break;
       case EDIT_REQUEST_GET_ASSISTS:
-        result = handleEditGetAssists(request.params);
+        var params = new EditGetAssistsParams.fromRequest(request);
+        result = handleEditGetAssists(params);
         break;
       case EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
-        result = handleEditGetAvailableRefactorings(request.params);
+        var params =
+            new EditGetAvailableRefactoringsParams.fromRequest(request);
+        result = handleEditGetAvailableRefactorings(params);
         break;
       case EDIT_REQUEST_GET_FIXES:
-        result = handleEditGetFixes(request.params);
+        var params = new EditGetFixesParams.fromRequest(request);
+        result = handleEditGetFixes(params);
         break;
       case EDIT_REQUEST_GET_REFACTORING:
-        result = handleEditGetRefactoring(request.params);
+        var params = new EditGetRefactoringParams.fromRequest(request);
+        result = handleEditGetRefactoring(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
-        result = handlePluginShutdown(request.params);
+        var params = new PluginShutdownParams();
+        result = handlePluginShutdown(params);
         _channel.sendResponse(result.toResponse(request.id));
         _channel.close();
         return null;
       case PLUGIN_REQUEST_VERSION_CHECK:
-        result = handlePluginVersionCheck(request.params);
+        var params = new PluginVersionCheckParams.fromRequest(request);
+        result = handlePluginVersionCheck(params);
         break;
     }
     if (result == null) {

@@ -2109,6 +2109,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  visitCreateBox(HCreateBox node) {
+    push(new js.ObjectInitializer(<js.Property>[]));
+  }
+
   js.Expression newLiteralBool(
       bool value, SourceInformation sourceInformation) {
     if (_options.enableMinification) {

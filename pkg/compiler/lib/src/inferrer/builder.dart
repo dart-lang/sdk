@@ -242,7 +242,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(closedWorld.commonElements.symbolClass);
+    return types
+        .nonNullSubtype(closedWorld.commonElements.symbolImplementationClass);
   }
 
   @override

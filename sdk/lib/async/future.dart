@@ -485,8 +485,10 @@ abstract class Future<T> {
     var nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
+    // This avoids, e.g., deeply nested stack traces from the stack trace
+    // package.
     nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
-      if (keepGoing) {
+      while (keepGoing) {
         FutureOr<bool> result;
         try {
           result = f();
@@ -500,10 +502,9 @@ abstract class Future<T> {
           result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
-        nextIteration(result);
-      } else {
-        doneSignal._complete(null);
+        keepGoing = result;
       }
+      doneSignal._complete(null);
     }, runGuarded: true);
     nextIteration(true);
     return doneSignal;

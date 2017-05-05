@@ -14,7 +14,7 @@ part of layout;
  */
 // TODO(jmesserly): the DOM integration still needs work:
 //  - The grid assumes it is absolutely positioned in its container.
-//    Becasue of that, the grid doesn't work right unless it has at least one
+//    Because of that, the grid doesn't work right unless it has at least one
 //    fractional size in each dimension. In other words, only "top down" grids
 //    work at the moment, because the grid can't determine its own size.
 //    The core algorithm supports computing min breadth; the issue is about how

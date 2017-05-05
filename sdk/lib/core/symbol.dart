@@ -31,8 +31,8 @@ abstract class Symbol {
    * The following text is non-normative:
    *
    * Creating non-const Symbol instances may result in larger output.  If
-   * possible, use [MirrorsUsed] in "dart:mirrors" to specify which names might
-   * be passed to this constructor.
+   * possible, use `MirrorsUsed` from "dart:mirrors" to specify which names
+   * might be passed to this constructor.
    */
   const factory Symbol(String name) = internal.Symbol;
 

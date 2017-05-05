@@ -23,9 +23,13 @@ main() async {
 /// re-export stuff in lib/src.
 /// TODO(paulberry): remove dependencies on analyzer.
 final subpackageRules = {
-  'lib': new SubpackageRules(
-      mayImportAnalyzer: true,
-      allowedDependencies: ['lib/src', 'lib/src/base']),
+  'lib': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+    'lib/src',
+    'lib/src/base',
+    'lib/src/fasta',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel'
+  ]),
   'lib/src': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
     'lib',
     'lib/src/base',

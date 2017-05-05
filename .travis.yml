@@ -87,6 +87,7 @@ env:
 matrix:
   allow_failures:
     - env: ANALYZER=master CXX=clang++
+    - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
 notifications:
   email:
     recipients:

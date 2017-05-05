@@ -20,6 +20,8 @@ String libProvider(Uri uri) {
     return buildLibrarySource(DEFAULT_CORE_LIBRARY);
   } else if (uri.path.endsWith('core_patch.dart')) {
     return DEFAULT_PATCH_CORE_SOURCE;
+  } else if (uri.path.endsWith('internal.dart')) {
+    return buildLibrarySource(DEFAULT_INTERNAL_LIBRARY);
   } else if (uri.path.endsWith('interceptors.dart')) {
     return buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY);
   } else if (uri.path.endsWith('js_helper.dart')) {

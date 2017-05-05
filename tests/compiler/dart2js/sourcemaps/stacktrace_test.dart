@@ -549,8 +549,11 @@ const List<LineException> afterExceptions = const [
       '_wrapJsFunctionForAsync.<anonymous function>', 'async_patch.dart'),
   const LineException(
       '_awaitOnObject.<anonymous function>', 'async_patch.dart'),
+  const LineException('_asyncAwait.<anonymous function>', 'async_patch.dart'),
+  const LineException('_asyncStart.<anonymous function>', 'async_patch.dart'),
   const LineException('_RootZone.runUnary', 'zone.dart'),
   const LineException('_FutureListener.handleValue', 'future_impl.dart'),
+  const LineException('_Future._completeWithValue', 'future_impl.dart'),
   const LineException(
       '_Future._propagateToListeners.handleValueCallback', 'future_impl.dart'),
   const LineException('_Future._propagateToListeners', 'future_impl.dart'),

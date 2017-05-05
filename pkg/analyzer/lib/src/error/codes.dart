@@ -2995,7 +2995,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_METHOD_WITH_CONSTRUCTOR',
           "The method '{0}' isn't defined for the class '{1}', but a constructor with that name is defined.",
-          "Try adding 'new' or 'const' to invoke the constuctor, or "
+          "Try adding 'new' or 'const' to invoke the constructor, or "
           "correcting the name to the name of an existing method.");
 
   /**
@@ -3617,7 +3617,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
       const StaticWarningCode(
           'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
-          "The parameter type '{0}' is incompatable with the field type '{1}'.",
+          "The parameter type '{0}' is incompatible with the field type '{1}'.",
           "Try changing or removing the parameter's type, or "
           "changing the field's type.");
 

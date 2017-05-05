@@ -66,7 +66,7 @@ main() {
     group('exit codes', () {
       test('fatal hints', () async {
         await drive('data/file_with_hint.dart', args: ['--fatal-hints']);
-        expect(exitCode, 3);
+        expect(exitCode, 1);
       });
 
       test('not fatal hints', () async {
@@ -86,7 +86,7 @@ main() {
 
       test('fatal warnings', () async {
         await drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
-        expect(exitCode, 3);
+        expect(exitCode, 2);
       });
 
       test('not parse enableAssertInitializer', () async {
@@ -358,7 +358,7 @@ linter:
             '--packages',
             path.join(testDir, '_packages'),
           ],
-          options: path.join(testDir, '.analysis_options'),
+          options: path.join(testDir, 'analysis_options.yaml'),
         );
         expect(exitCode, 3);
         expect(outSink.toString(),

@@ -93,10 +93,10 @@ closure.Foo$ = dart.generic(T => {
   const v$ = Symbol("Foo.v");
   dart.setSignature(Foo, {
     fields: () => ({
-      i: core.int,
-      b: core.bool,
-      s: core.String,
-      v: T
+      i: dart.finalFieldType(core.int),
+      b: dart.fieldType(core.bool),
+      s: dart.fieldType(core.String),
+      v: dart.fieldType(T)
     }),
     getters: () => ({prop: dart.definiteFunctionType(core.String, [])}),
     setters: () => ({prop: dart.definiteFunctionType(dart.void, [core.String])}),

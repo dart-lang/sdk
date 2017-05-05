@@ -7,6 +7,7 @@ library dart2js.kernel.element_map;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
@@ -18,6 +19,7 @@ import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/native_data.dart';
@@ -39,6 +41,7 @@ part 'types.dart';
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
 class KernelToElementMap extends KernelElementAdapterMixin {
+  final Environment _environment;
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
   final DiagnosticReporter reporter;
@@ -72,12 +75,11 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
       <ir.TreeNode, KLocalFunction>{};
 
-  KernelToElementMap(this.reporter) {
+  KernelToElementMap(this.reporter, this._environment) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this);
-    _nativeBehaviorBuilder =
-        new KernelBehaviorBuilder(_commonElements, _constantEnvironment);
+    _nativeBehaviorBuilder = new KernelBehaviorBuilder(_commonElements);
     _types = new _KernelDartTypes(this);
     _typeConverter = new DartTypeConverter(this);
   }
@@ -122,6 +124,11 @@ class KernelToElementMap extends KernelElementAdapterMixin {
 
   @override
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
+
+  @override
+  ConstantValue computeConstantValue(ConstantExpression constant) {
+    return _constantEnvironment.getConstantValue(constant);
+  }
 
   LibraryEntity lookupLibrary(Uri uri) {
     _KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
@@ -193,7 +200,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     });
   }
 
-  Iterable<ConstantExpression> _getClassMetadata(KClass cls) {
+  Iterable<ConstantValue> _getClassMetadata(KClass cls) {
     return _classEnvs[cls.classIndex].getMetadata(this);
   }
 
@@ -311,6 +318,11 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     });
   }
 
+  /// Returns the kernel [ir.Procedure] node for the [method].
+  ir.Procedure _lookupProcedure(KFunction method) {
+    return _memberList[method.memberIndex].node;
+  }
+
   KField _getField(ir.Field node) {
     return _fieldMap.putIfAbsent(node, () {
       int memberIndex = _memberList.length;
@@ -424,6 +436,16 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     return env.rawType;
   }
 
+  InterfaceType _asInstanceOf(InterfaceType type, KClass cls) {
+    OrderedTypeSet orderedTypeSet = _getOrderedTypeSet(type.element);
+    InterfaceType supertype =
+        orderedTypeSet.asInstanceOf(cls, _getHierarchyDepth(cls));
+    if (supertype != null) {
+      supertype = _substByContext(supertype, type);
+    }
+    return supertype;
+  }
+
   void _ensureSupertypes(KClass cls, _KClassEnv env) {
     if (env.orderedTypeSet == null) {
       _ensureThisAndRawType(cls, env);
@@ -481,6 +503,12 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.supertype;
+  }
+
+  bool _isUnnamedMixinApplication(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.isUnnamedMixinApplication;
   }
 
   void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
@@ -721,7 +749,7 @@ class _KClassEnv {
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
 
-  Iterable<ConstantExpression> _metadata;
+  Iterable<ConstantValue> _metadata;
 
   _KClassEnv(this.cls)
       // TODO(johnniwinther): Change this to use a property on [cls] when such
@@ -790,21 +818,23 @@ class _KClassEnv {
     }
   }
 
-  Iterable<ConstantExpression> getMetadata(KernelToElementMap worldBuilder) {
-    if (_metadata == null) {
-      _metadata = worldBuilder.getMetadata(cls.annotations);
-    }
-    return _metadata;
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return _metadata ??= elementMap.getMetadata(cls.annotations);
   }
 }
 
 class _MemberData {
   final ir.Member node;
+  Iterable<ConstantValue> _metadata;
 
   _MemberData(this.node);
 
   ResolutionImpact getWorldImpact(KernelToElementMap elementMap) {
     return buildKernelImpact(node, elementMap);
+  }
+
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 }
 
@@ -901,6 +931,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isGenericClass(ClassEntity cls) {
+    return getThisType(cls).typeArguments.isNotEmpty;
+  }
+
+  @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     throw new UnimplementedError(
         'KernelElementEnvironment.getTypeVariableBound');
@@ -956,8 +991,16 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap._getSuperType(cls)?.element;
+  ClassEntity getSuperClass(ClassEntity cls,
+      {bool skipUnnamedMixinApplications: false}) {
+    ClassEntity superclass = elementMap._getSuperType(cls)?.element;
+    if (skipUnnamedMixinApplications) {
+      while (superclass != null &&
+          elementMap._isUnnamedMixinApplication(superclass)) {
+        superclass = elementMap._getSuperType(superclass)?.element;
+      }
+    }
+    return superclass;
   }
 
   @override
@@ -1024,6 +1067,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   bool isDeferredLoadLibraryGetter(KMember member) {
     // TODO(johnniwinther): Support these.
     return false;
+  }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(KMember member) {
+    _MemberData memberData = elementMap._memberList[member.memberIndex];
+    return memberData.getMetadata(elementMap);
   }
 }
 
@@ -1105,12 +1154,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 /// [native.BehaviorBuilder] for kernel based elements.
 class KernelBehaviorBuilder extends native.BehaviorBuilder {
   final CommonElements commonElements;
-  final ConstantEnvironment constants;
 
-  KernelBehaviorBuilder(
-    this.commonElements,
-    this.constants,
-  );
+  KernelBehaviorBuilder(this.commonElements);
 
   @override
   bool get trustJSInteropTypeAnnotations {
@@ -1163,32 +1208,27 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 
 /// Evaluation environment used for computing [ConstantValue]s for
 /// kernel based [ConstantExpression]s.
-class _EvaluationEnvironment implements Environment {
-  final KernelToElementMap _worldBuilder;
+class _EvaluationEnvironment implements EvaluationEnvironment {
+  final KernelToElementMap _elementMap;
 
-  _EvaluationEnvironment(this._worldBuilder);
+  _EvaluationEnvironment(this._elementMap);
 
   @override
-  CommonElements get commonElements {
-    throw new UnimplementedError("_EvaluationEnvironment.commonElements");
-  }
+  CommonElements get commonElements => _elementMap.commonElements;
 
   @override
   InterfaceType substByContext(InterfaceType base, InterfaceType target) {
-    if (base.typeArguments.isNotEmpty) {
-      throw new UnimplementedError("_EvaluationEnvironment.substByContext");
-    }
-    return base;
+    return _elementMap._substByContext(base, target);
   }
 
   @override
   ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
-    return _worldBuilder._getConstructorConstant(constructor);
+    return _elementMap._getConstructorConstant(constructor);
   }
 
   @override
   ConstantExpression getFieldConstant(FieldEntity field) {
-    return _worldBuilder._getFieldConstant(field);
+    return _elementMap._getFieldConstant(field);
   }
 
   @override
@@ -1198,7 +1238,7 @@ class _EvaluationEnvironment implements Environment {
 
   @override
   String readFromEnvironment(String name) {
-    throw new UnimplementedError("_EvaluationEnvironment.readFromEnvironment");
+    return _elementMap._environment.valueOf(name);
   }
 }
 
@@ -1246,46 +1286,26 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
 // Interface for testing equivalence of Kernel-based entities.
 class WorldDeconstructionForTesting {
-  final KernelToElementMap builder;
+  final KernelToElementMap elementMap;
 
-  WorldDeconstructionForTesting(this.builder);
-
-  KLibrary _getLibrary<E>(E member, Map<ir.Member, E> map) {
-    ir.Library library;
-    map.forEach((ir.Member node, E other) {
-      if (library == null && member == other) {
-        library = node.enclosingLibrary;
-      }
-    });
-    if (library == null) {
-      throw new ArgumentError("No library found for $member");
-    }
-    return builder._getLibrary(library);
-  }
-
-  KLibrary getLibraryForFunction(KFunction function) =>
-      _getLibrary(function, builder._methodMap);
-
-  KLibrary getLibraryForField(KField field) =>
-      _getLibrary(field, builder._fieldMap);
+  WorldDeconstructionForTesting(this.elementMap);
 
   KClass getSuperclassForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = elementMap._classEnvs[cls.classIndex];
     ir.Supertype supertype = env.cls.supertype;
     if (supertype == null) return null;
-    return builder.getClass(supertype.classNode);
+    return elementMap.getClass(supertype.classNode);
   }
 
   bool isUnnamedMixinApplication(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
-    return env.isUnnamedMixinApplication;
+    return elementMap._isUnnamedMixinApplication(cls);
   }
 
   InterfaceType getMixinTypeForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = elementMap._classEnvs[cls.classIndex];
     ir.Supertype mixedInType = env.cls.mixedInType;
     if (mixedInType == null) return null;
-    return builder.createInterfaceType(
+    return elementMap.createInterfaceType(
         mixedInType.classNode, mixedInType.typeArguments);
   }
 }

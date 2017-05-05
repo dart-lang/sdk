@@ -25,10 +25,10 @@ class F extends E {
 }
 
 main() {
-  var c = new C();
-  var d = new D();
-  var e = new E();
-  var f = new F();
+  dynamic c = new C();
+  dynamic d = new D();
+  dynamic e = new E();
+  dynamic f = new F();
 
   Expect.equals("S-foo", c.foo);
   Expect.equals("S-foo", d.foo);

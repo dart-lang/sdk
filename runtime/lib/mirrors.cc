@@ -145,11 +145,8 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // * Whether a parameters has been declared as final.
     // * Any metadata associated with the parameter.
     Object& result = Object::Handle();
-
-    kernel::TreeNode* kernel_node =
-        reinterpret_cast<kernel::TreeNode*>(func.kernel_function());
-    if (kernel_node != NULL) {
-      result = kernel::BuildParameterDescriptor(kernel_node);
+    if (func.kernel_function() != NULL) {
+      result = kernel::BuildParameterDescriptor(func);
     } else {
       result = Parser::ParseFunctionParameters(func);
     }

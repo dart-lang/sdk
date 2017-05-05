@@ -107,6 +107,7 @@ enum Tag {
 
   kTypedefType = 87,
   kVectorType = 88,
+  kBottomType = 89,
   kInvalidType = 90,
   kDynamicType = 91,
   kVoidType = 92,
@@ -312,15 +313,8 @@ class ReaderHelper {
   BlockStack<LabeledStatement>* labels() { return labels_; }
   void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
 
-  CanonicalName* GetCanonicalName(int index) { return canonical_names_[index]; }
-  void SetCanonicalName(int index, CanonicalName* name) {
-    canonical_names_[index] = name;
-  }
-  void SetCanonicalNameCount(int count) { canonical_names_.SetLength(count); }
-
  private:
   Program* program_;
-  MallocGrowableArray<CanonicalName*> canonical_names_;
   BlockStack<VariableDeclaration> scope_;
   BlockStack<TypeParameter> type_parameters_;
   BlockStack<SwitchCase> switch_cases_;
@@ -331,7 +325,15 @@ class ReaderHelper {
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : buffer_(buffer), size_(size), offset_(0), string_data_offset_(-1) {}
+      : buffer_(buffer),
+        size_(size),
+        offset_(0),
+        string_data_offset_(-1),
+        string_offsets_(NULL),
+        canonical_name_parents_(NULL),
+        canonical_name_strings_(NULL) {}
+
+  ~Reader();
 
   uint32_t ReadUInt32() {
     ASSERT(offset_ + 4 <= size_);
@@ -490,13 +492,9 @@ class Reader {
 
   ReaderHelper* helper() { return &builder_; }
 
-  CanonicalName* ReadCanonicalNameReference() {
-    int index = ReadUInt();
-    if (index == 0) return NULL;
-    CanonicalName* name = builder_.GetCanonicalName(index - 1);
-    ASSERT(name != NULL);
-    return name;
-  }
+  // A canonical name reference of -1 indicates none (for optional names), not
+  // the root name as in the canonical name table.
+  NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
   intptr_t offset() { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
@@ -510,9 +508,24 @@ class Reader {
     string_data_offset_ = offset_;
   }
 
-  uint8_t CharacterAt(String* str, intptr_t index) {
-    ASSERT(index < str->size());
-    return buffer_[string_data_offset_ + str->offset() + index];
+  intptr_t StringLength(StringIndex index) {
+    return string_offsets_[index + 1] - string_offsets_[index];
+  }
+
+  uint8_t CharacterAt(StringIndex string_index, intptr_t index) {
+    ASSERT(index < StringLength(string_index));
+    return buffer_[string_data_offset_ + string_offsets_[string_index] + index];
+  }
+
+  // The canonical name index of a canonical name's parent (-1 indicates that
+  // the parent is the root name).
+  NameIndex CanonicalNameParent(NameIndex index) {
+    return canonical_name_parents_[index];
+  }
+
+  // The string index of a canonical name's name string.
+  StringIndex CanonicalNameString(NameIndex index) {
+    return canonical_name_strings_[index];
   }
 
  private:
@@ -524,9 +537,20 @@ class Reader {
   TokenPosition min_position_;
   intptr_t current_script_id_;
 
+  // The offset of the start of the string data is recorded to allow access to
+  // the strings during deserialization.
   intptr_t string_data_offset_;
 
+  // The string offsets are decoded to support efficient access to string UTF-8
+  // encodings.
+  intptr_t* string_offsets_;
+
+  // The canonical names are decoded.
+  NameIndex* canonical_name_parents_;
+  StringIndex* canonical_name_strings_;
+
   friend class PositionScope;
+  friend class Program;
 };
 
 

@@ -199,6 +199,10 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
       this._nativeClassFinder)
       : super(options, elementEnvironment, commonElements);
 
+  Iterable<ClassEntity> get nativeClassesForTesting => _nativeClasses;
+
+  Iterable<ClassEntity> get registeredClassesForTesting => _registeredClasses;
+
   void _registerBackendUse(FunctionEntity element) {
     _backendUsageBuilder.registerBackendFunctionUse(element);
     _backendUsageBuilder.registerGlobalFunctionDependency(element);

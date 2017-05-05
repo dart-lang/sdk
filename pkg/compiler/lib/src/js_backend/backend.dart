@@ -15,7 +15,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
@@ -112,14 +112,24 @@ class FunctionInlineCache {
   final Map<FunctionEntity, int> _cachedDecisions =
       new Map<FunctionEntity, int>();
 
+  /// Checks that [method] is the canonical representative for this method.
+  ///
+  /// For a [MethodElement] this means it must be the declaration element.
+  bool checkFunction(FunctionEntity method) {
+    if (method is MethodElement) return method.isDeclaration;
+    return true;
+  }
+
   /// Returns the current cache decision. This should only be used for testing.
-  int getCurrentCacheDecisionForTesting(Element element) {
+  int getCurrentCacheDecisionForTesting(FunctionEntity element) {
+    assert(checkFunction(element));
     return _cachedDecisions[element];
   }
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
   bool canInline(FunctionEntity element, {bool insideLoop}) {
+    assert(checkFunction(element));
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -175,6 +185,7 @@ class FunctionInlineCache {
   }
 
   void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
+    assert(checkFunction(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -230,6 +241,7 @@ class FunctionInlineCache {
   }
 
   void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
+    assert(checkFunction(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -288,6 +300,7 @@ class FunctionInlineCache {
   }
 
   void markAsMustInline(FunctionEntity element) {
+    assert(checkFunction(element));
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -310,7 +323,7 @@ class JavaScriptBackend {
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
-  final OptimizerHintsForTests annotations;
+  final OptimizerHintsForTests optimizerHints;
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
@@ -478,7 +491,8 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : _rti = new _RuntimeTypes(compiler),
-        annotations = new OptimizerHintsForTests(compiler),
+        optimizerHints = new OptimizerHintsForTests(
+            compiler.elementEnvironment, compiler.commonElements),
         this.sourceInformationStrategy = createSourceInformationStrategy(
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
@@ -761,6 +775,8 @@ class JavaScriptBackend {
 
   /// Called when the resolution queue has been closed.
   void onResolutionEnd() {
+    compiler.frontEndStrategy.annotationProcesser
+        .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
     _backendUsage = backendUsageBuilder.close();
     _interceptorData = interceptorDataBuilder.onResolutionComplete();
   }
@@ -992,9 +1008,7 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  // TODO(johnniwinther): Remove this. It is now only used for testing.
-  @deprecated
-  native.NativeEnqueuer get nativeResolutionEnqueuer =>
+  native.NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
       _nativeResolutionEnqueuer;
 
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
@@ -1113,12 +1127,6 @@ class JavaScriptBackend {
     }
   }
 
-  /// Called after the queue is closed. [onQueueEmpty] may be called multiple
-  /// times, but [onQueueClosed] is only called once.
-  void onQueueClosed() {
-    jsInteropAnalysis.onQueueClosed();
-  }
-
   // TODO(johnniwinther): Create a CodegenPhase object for the backend to hold
   // data only available during code generation.
   ClosedWorld _closedWorldCache;
@@ -1183,36 +1191,38 @@ class JavaScriptBackend {
   }
 
   /// Process backend specific annotations.
+  // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
+  // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
   void processAnnotations(
-      MemberElement element, ClosedWorldRefiner closedWorldRefiner) {
-    if (element.isMalformed) {
+      MemberEntity element, ClosedWorldRefiner closedWorldRefiner) {
+    if (element is MemberElement && element.isMalformed) {
       // Elements that are marked as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
       return;
     }
 
     if (element.isFunction || element.isConstructor) {
-      MethodElement method = element.implementation;
-      if (annotations.noInline(method)) {
-        inlineCache.markAsNonInlinable(method);
+      if (optimizerHints.noInline(element)) {
+        inlineCache.markAsNonInlinable(element);
       }
     }
     if (element.isField) return;
-    MethodElement method = element;
+    FunctionEntity method = element;
 
-    LibraryElement library = method.library;
-    if (!library.isPlatformLibrary && !canLibraryUseNative(library)) return;
+    LibraryEntity library = method.library;
+    if (library.canonicalUri.scheme != 'dart' &&
+        !canLibraryUseNative(library)) {
+      return;
+    }
     bool hasNoInline = false;
     bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-    for (MetadataAnnotation metadata in method.implementation.metadata) {
-      metadata.ensureResolved(resolution);
-      ConstantValue constantValue =
-          compiler.constants.getConstantValue(metadata.constant);
+    for (ConstantValue constantValue
+        in compiler.elementEnvironment.getMemberMetadata(method)) {
       if (!constantValue.isConstructedObject) continue;
       ObjectConstantValue value = constantValue;
-      ClassElement cls = value.type.element;
+      ClassEntity cls = value.type.element;
       if (cls == commonElements.forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
@@ -1229,8 +1239,15 @@ class JavaScriptBackend {
         inlineCache.markAsNonInlinable(method);
       } else if (cls == commonElements.noThrowsClass) {
         hasNoThrows = true;
-        if (!Elements.isStaticOrTopLevelFunction(method) &&
-            !method.isFactoryConstructor) {
+        bool isValid = true;
+        if (method.isTopLevel) {
+          isValid = true;
+        } else if (method.isStatic) {
+          isValid = true;
+        } else if (method is ConstructorEntity && method.isFactoryConstructor) {
+          isValid = true;
+        }
+        if (!isValid) {
           reporter.internalError(
               method,
               "@NoThrows() is currently limited to top-level"
@@ -1285,10 +1302,16 @@ class JavaScriptBackend {
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
         rewriter = new AsyncRewriter(reporter, element,
-            asyncHelper:
-                emitter.staticFunctionAccess(commonElements.asyncHelper),
+            asyncStart:
+                emitter.staticFunctionAccess(commonElements.asyncHelperStart),
+            asyncAwait:
+                emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
+            asyncReturn:
+                emitter.staticFunctionAccess(commonElements.asyncHelperReturn),
+            asyncRethrow:
+                emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-            newCompleter: emitter
+            completerFactory: emitter
                 .staticFunctionAccess(commonElements.syncCompleterConstructor),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
@@ -1297,7 +1320,7 @@ class JavaScriptBackend {
         rewriter = new SyncStarRewriter(reporter, element,
             endOfIteration:
                 emitter.staticFunctionAccess(commonElements.endOfIteration),
-            newIterable: emitter.staticFunctionAccess(
+            iterableFactory: emitter.staticFunctionAccess(
                 commonElements.syncStarIterableConstructor),
             yieldStarExpression:
                 emitter.staticFunctionAccess(commonElements.yieldStar),

@@ -96,4 +96,7 @@ abstract class AnnotationProcessor {
 
   void extractJsInteropAnnotations(
       LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
+
+  void processJsInteropAnnotations(
+      NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder);
 }

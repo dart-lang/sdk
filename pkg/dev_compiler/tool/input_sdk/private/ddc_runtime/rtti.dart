@@ -72,7 +72,6 @@ lazyFn(closure, computeType) {
 
 // TODO(vsm): How should we encode the runtime type?
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
-final isNamedConstructor = JS('', 'Symbol("isNamedConstructor")');
 
 final _moduleName = JS('', 'Symbol("_moduleName")');
 
@@ -188,7 +187,6 @@ lazyAnonymousJSType(name) {
 unwrapType(WrappedType obj) => obj._wrappedType;
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
-getIsNamedConstructor(value) => JS('', '#[#]', value, isNamedConstructor);
 
 /// Return the module name for a raw library object.
 getModuleName(value) => JS('', '#[#]', value, _moduleName);

@@ -84,17 +84,17 @@ main() {
         TypeMask expectedReturnType: null,
         bool expectAssumeDynamic: false}) {
       LibraryElement mainApp = compiler.mainApp;
-      Element method = mainApp.find(name);
+      MethodElement method = mainApp.find(name);
       Expect.isNotNull(method);
-      Expect.equals(expectNoInline, backend.annotations.noInline(method),
+      Expect.equals(expectNoInline, backend.optimizerHints.noInline(method),
           "Unexpected annotation of @NoInline on '$method'.");
       Expect.equals(
           expectTrustTypeAnnotations,
-          backend.annotations.trustTypeAnnotations(method),
+          backend.optimizerHints.trustTypeAnnotations(method),
           "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
       Expect.equals(
           expectAssumeDynamic,
-          backend.annotations.assumeDynamic(method),
+          backend.optimizerHints.assumeDynamic(method),
           "Unexpected annotation of @AssumeDynamic on '$method'.");
       TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
       if (expectTrustTypeAnnotations && expectedParameterType != null) {

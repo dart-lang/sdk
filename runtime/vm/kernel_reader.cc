@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "vm/dart_api_impl.h"
+#include "vm/kernel_binary.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -94,13 +95,12 @@ RawArray* KernelReader::MakeFunctionsArray() {
 
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
-    CanonicalName* library) {
+    NameIndex library) {
   return reader_->LookupLibrary(library).raw();
 }
 
 
-RawClass* BuildingTranslationHelper::LookupClassByKernelClass(
-    CanonicalName* klass) {
+RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return reader_->LookupClass(klass).raw();
 }
 
@@ -118,25 +118,45 @@ KernelReader::KernelReader(Program* program)
   intptr_t source_file_count = program->source_table().size();
   scripts_ = Array::New(source_file_count, Heap::kOld);
 
-  // Copy the Kernel strings out of the binary and into the VM's heap.  The size
-  // of the string data can be computed from the offset and size of the last
-  // string.  This relies on the strings occurring in order in the program's
-  // string table.
-  List<String>& strings = program->string_table().strings();
-  String* last_string = strings[strings.length() - 1];
-  intptr_t size = last_string->offset() + last_string->size();
-  TypedData& data = TypedData::Handle(
-      Z, TypedData::New(kTypedDataUint8ArrayCid, size, Heap::kOld));
-  ASSERT(program->string_data_offset() >= 0);
   // We need at least one library to get access to the binary.
   ASSERT(program->libraries().length() > 0);
+  Library* library = program->libraries()[0];
+  Reader reader(library->kernel_data(), library->kernel_data_size());
+
+  // Copy the Kernel string offsets out of the binary and into the VM's heap.
+  ASSERT(program->string_table_offset() >= 0);
+  reader.set_offset(program->string_table_offset());
+  intptr_t count = reader.ReadUInt() + 1;
+  TypedData& offsets = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
+  offsets.SetUint32(0, 0);
+  intptr_t end_offset = 0;
+  for (intptr_t i = 1; i < count; ++i) {
+    end_offset = reader.ReadUInt();
+    offsets.SetUint32(i << 2, end_offset);
+  }
+
+  // Copy the string data out of the binary and into the VM's heap.
+  TypedData& data = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint8ArrayCid, end_offset, Heap::kOld));
   {
     NoSafepointScope no_safepoint;
-    memmove(data.DataAddr(0), program->libraries()[0]->kernel_data() +
-                                  program->string_data_offset(),
-            size);
+    memmove(data.DataAddr(0), reader.buffer() + reader.offset(), end_offset);
   }
+
+  // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
+  // the parent indexes are adjusted when extracted.
+  reader.set_offset(program->name_table_offset());
+  count = reader.ReadUInt() * 2;
+  TypedData& names = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
+  for (intptr_t i = 0; i < count; ++i) {
+    names.SetUint32(i << 2, reader.ReadUInt());
+  }
+
+  H.SetStringOffsets(offsets);
   H.SetStringData(data);
+  H.SetCanonicalNames(names);
 }
 
 
@@ -162,8 +182,8 @@ Object& KernelReader::ReadProgram() {
 
       // If there is no main method then we have compiled a partial Kernel file
       // and do not need to patch here.
-      CanonicalName* main = program_->main_method();
-      if (main == NULL) {
+      NameIndex main = program_->main_method();
+      if (main == -1) {
         return dart::Library::Handle(Z);
       }
 
@@ -175,7 +195,7 @@ Object& KernelReader::ReadProgram() {
         return dart::Library::Handle(Z);
       }
 
-      CanonicalName* main_library = H.EnclosingName(main);
+      NameIndex main_library = H.EnclosingName(main);
       dart::Library& library = LookupLibrary(main_library);
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
@@ -188,15 +208,15 @@ Object& KernelReader::ReadProgram() {
 
       Procedure* procedure =
           reinterpret_cast<Procedure*>(to_patch.kernel_function());
-      // If dart:_builtin was not compiled from Kernel at all or if it was
-      // linked with a script, it does not need to be patched.
-      if ((procedure != NULL) && (procedure->function()->body() == NULL)) {
+      // If dart:_builtin was not compiled from Kernel at all it does not need
+      // to be patched.
+      if (procedure != NULL) {
         // We will handle the StaticGet specially and will not use the name.
         //
-        // TODO(kmillikin): we are leaking the function body.  Find a way to
+        // TODO(kmillikin): we are leaking the new function body.  Find a way to
         // deallocate it.
-        procedure->function()->set_body(
-            new ReturnStatement(new StaticGet(NULL)));
+        procedure->function()->ReplaceBody(
+            new ReturnStatement(new StaticGet(NameIndex())));
       }
       return library;
     }
@@ -485,14 +505,15 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       if (!annotation->IsConstructorInvocation()) continue;
       ConstructorInvocation* invocation =
           ConstructorInvocation::Cast(annotation);
-      CanonicalName* annotation_class = H.EnclosingName(invocation->target());
+      NameIndex annotation_class = H.EnclosingName(invocation->target());
       ASSERT(H.IsClass(annotation_class));
-      String* class_name = annotation_class->name();
+      StringIndex class_name_index = H.CanonicalNameString(annotation_class);
       // Just compare by name, do not generate the annotation class.
-      if (!H.StringEquals(class_name, "ExternalName")) continue;
-      ASSERT(H.IsLibrary(annotation_class->parent()));
-      String* library_name = annotation_class->parent()->name();
-      if (!H.StringEquals(library_name, "dart:_internal")) continue;
+      if (!H.StringEquals(class_name_index, "ExternalName")) continue;
+      ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
+      StringIndex library_name_index =
+          H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
+      if (!H.StringEquals(library_name_index, "dart:_internal")) continue;
 
       is_external = false;
       ASSERT(invocation->arguments()->positional().length() == 1 &&
@@ -607,7 +628,7 @@ static RawArray* AsSortedDuplicateFreeArray(
   }
 }
 
-Script& KernelReader::ScriptAt(intptr_t index, String* import_uri) {
+Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(index);
   if (script.IsNull()) {
@@ -616,14 +637,16 @@ Script& KernelReader::ScriptAt(intptr_t index, String* import_uri) {
     intptr_t uri_size = program_->source_table().UriSizeFor(index);
     dart::String& uri_string = H.DartString(uri_buffer, uri_size, Heap::kOld);
     dart::String& import_uri_string =
-        import_uri == NULL ? uri_string : H.DartString(import_uri, Heap::kOld);
+        import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
     uint8_t* source_buffer = program_->source_table().SourceCodeFor(index);
     intptr_t source_size = program_->source_table().SourceCodeSizeFor(index);
     dart::String& source_code =
         H.DartString(source_buffer, source_size, Heap::kOld);
     script = Script::New(import_uri_string, uri_string, source_code,
                          RawScript::kKernelTag);
-    script.set_kernel_strings(H.string_data());
+    script.set_kernel_string_offsets(H.string_offsets());
+    script.set_kernel_string_data(H.string_data());
+    script.set_kernel_canonical_names(H.canonical_names());
     scripts_.SetAt(index, script);
 
     // Create line_starts array for the script.
@@ -837,10 +860,10 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
 }
 
 
-dart::Library& KernelReader::LookupLibrary(CanonicalName* library) {
+dart::Library& KernelReader::LookupLibrary(NameIndex library) {
   dart::Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const dart::String& url = H.DartSymbol(library->name());
+    const dart::String& url = H.DartSymbol(H.CanonicalNameString(library));
     handle =
         &dart::Library::Handle(Z, dart::Library::LookupLibrary(thread_, url));
     if (handle->IsNull()) {
@@ -854,10 +877,10 @@ dart::Library& KernelReader::LookupLibrary(CanonicalName* library) {
 }
 
 
-dart::Class& KernelReader::LookupClass(CanonicalName* klass) {
+dart::Class& KernelReader::LookupClass(NameIndex klass) {
   dart::Class* handle = NULL;
   if (!classes_.Lookup(klass, &handle)) {
-    dart::Library& library = LookupLibrary(klass->parent());
+    dart::Library& library = LookupLibrary(H.CanonicalNameParent(klass));
     const dart::String& name = H.DartClassName(klass);
     handle = &dart::Class::Handle(Z, library.LookupClass(name));
     if (handle->IsNull()) {

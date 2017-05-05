@@ -150,6 +150,8 @@ abstract class Folder implements Resource {
   /**
    * Return a list of existing direct children [Resource]s (folders and files)
    * in this folder, in no particular order.
+   *
+   * On I/O errors, this will throw [FileSystemException].
    */
   List<Resource> getChildren();
 }

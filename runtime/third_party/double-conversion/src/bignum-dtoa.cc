@@ -548,7 +548,7 @@ static void InitialScaledStartValuesNegativeExponentNegativePower(
 //
 // Let ep == estimated_power, then the returned values will satisfy:
 //  v / 10^ep = numerator / denominator.
-//  v's boundarys m- and m+:
+//  v's boundaries m- and m+:
 //    m- / 10^ep == v / 10^ep - delta_minus / denominator
 //    m+ / 10^ep == v / 10^ep + delta_plus / denominator
 //  Or in other words:

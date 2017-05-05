@@ -367,7 +367,8 @@ def parse_args(args):
       type=int,
       help='Number of simultaneous GN invocations',
       dest='workers',
-      default=multiprocessing.cpu_count())
+      # Set to multiprocessing.cpu_count() when GN can be run in parallel.
+      default=1)
 
   options = parser.parse_args(args)
   if not process_options(options):

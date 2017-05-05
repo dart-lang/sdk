@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A builder used to build a [SourceChange].
@@ -201,8 +202,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
       : fileEdit = new SourceFileEdit(path, timeStamp);
 
   @override
-  void addDeletion(int offset, int length) {
-    EditBuilderImpl builder = createEditBuilder(offset, length);
+  void addDeletion(SourceRange range) {
+    EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
     fileEdit.add(builder.sourceEdit);
   }
 
@@ -218,17 +219,16 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addLinkedPosition(int offset, int length, String groupName) {
+  void addLinkedPosition(SourceRange range, String groupName) {
     LinkedEditGroup group = changeBuilder.getLinkedEditGroup(groupName);
-    Position position =
-        new Position(fileEdit.file, offset + _deltaToOffset(offset));
-    group.addPosition(position, length);
+    Position position = new Position(
+        fileEdit.file, range.offset + _deltaToOffset(range.offset));
+    group.addPosition(position, range.length);
   }
 
   @override
-  void addReplacement(
-      int offset, int length, void buildEdit(EditBuilder builder)) {
-    EditBuilderImpl builder = createEditBuilder(offset, length);
+  void addReplacement(SourceRange range, void buildEdit(EditBuilder builder)) {
+    EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
     try {
       buildEdit(builder);
     } finally {
@@ -249,8 +249,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addSimpleReplacement(int offset, int length, String text) {
-    EditBuilderImpl builder = createEditBuilder(offset, length);
+  void addSimpleReplacement(SourceRange range, String text) {
+    EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
     try {
       builder.write(text);
     } finally {

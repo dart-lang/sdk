@@ -2596,7 +2596,7 @@ static bool DependsOnSymbol(const RangeBoundary& a, Definition* symbol) {
 
 
 // Given the range and definition update the range so that
-// it covers both original range and defintions range.
+// it covers both original range and definitions range.
 //
 // The following should also hold:
 //

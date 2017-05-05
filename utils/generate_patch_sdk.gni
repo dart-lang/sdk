@@ -1,0 +1,71 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../build/prebuilt_dart_sdk.gni")
+
+_dart_root = get_path_info("..", "abspath")
+
+# Template to generate a patched_sdk folder. This invokes the tools/patch_sdk.py
+# script and sets up the right dependencies.
+#
+# This template expects four arguments:
+#   - mode: vm or dart2js (whether to build an sdk for the vm or for dart2js)
+#   - input_patches_dir: directory containing the input library files.
+#   - patched_sdk_dir: the output location
+#   - deps: extra dependencies that must be built ahead of time.
+template("generate_patched_sdk") {
+  assert(defined(invoker.input_patches_dir),
+      "Need input_patches_dir in $target_name")
+  assert(defined(invoker.patched_sdk_dir),
+      "Need patched_sdk_dir in $target_name")
+  assert(defined(invoker.mode), "Need mode in $target_name")
+  action(target_name) {
+
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    } else {
+      deps = []
+    }
+
+    if (!prebuilt_dart_exe_works) {
+      deps += ["$_dart_root/runtime/bin:dart_bootstrap($host_toolchain)"]
+    }
+
+    script = "$_dart_root/tools/patch_sdk.py"
+
+    # We list the `patch_sdk.dart` tool here because the [script] (which is
+    # implicitly an input) will call it.
+    inputs = [
+      "$_dart_root/tools/patch_sdk.dart",
+    ]
+
+    depfile = "$root_out_dir/${target_name}.d"
+
+    outputs = [
+      # Instead of listing all outputs we list a single well-known one.
+      "$root_out_dir/${invoker.patched_sdk_dir}/platform.dill",
+    ]
+
+    args = [ "--quiet" ]
+    if (!prebuilt_dart_exe_works) {
+      dart_out_dir = get_label_info(
+          "$_dart_root/runtime/bin:dart_bootstrap($host_toolchain)",
+          "root_out_dir")
+      dart_bootstrap =
+          rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
+      args += [
+        "--dart-executable",
+        dart_bootstrap,
+      ]
+    }
+    args += [
+      invoker.mode,
+      rebase_path("$_dart_root/sdk"),
+      rebase_path(invoker.input_patches_dir),
+      rebase_path("$root_out_dir/${invoker.patched_sdk_dir}", root_build_dir),
+      rebase_path("$_dart_root/.packages"),
+    ]
+  }
+}
+

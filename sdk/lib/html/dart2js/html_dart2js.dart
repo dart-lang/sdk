@@ -1822,7 +1822,7 @@ class ButtonElement extends HtmlElement {
   @DomName('HTMLButtonElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -3654,7 +3654,7 @@ class ContentElement extends HtmlElement {
 
   @DomName('HTMLContentElement.getDistributedNodes')
   @DocsEditable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   List<Node> getDistributedNodes() native;
 }
@@ -4002,7 +4002,7 @@ class CssGroupingRule extends CssRule {
   @DomName('CSSGroupingRule.cssRules')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('_CssRuleList')
+  @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
@@ -4082,7 +4082,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('_CssRuleList')
+  @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
@@ -8731,7 +8731,7 @@ class CssStyleSheet extends StyleSheet {
 
   @DomName('CSSStyleSheet.cssRules')
   @DocsEditable()
-  @Returns('_CssRuleList')
+  @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
@@ -8742,7 +8742,7 @@ class CssStyleSheet extends StyleSheet {
   @DomName('CSSStyleSheet.rules')
   @DocsEditable()
   @Experimental() // non-standard
-  @Returns('_CssRuleList')
+  @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
   final List<CssRule> rules;
 
@@ -8783,7 +8783,7 @@ class CssSupportsRule extends CssRule {
 
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable()
-  @Returns('_CssRuleList')
+  @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
@@ -8947,7 +8947,7 @@ class DataListElement extends HtmlElement {
 
   @DomName('HTMLDataListElement.options')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> options;
 }
@@ -8978,7 +8978,7 @@ class DataTransfer extends Interceptor {
   @DomName('DataTransfer.files')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('FileList')
+  @Returns('FileList|Null')
   @Creates('FileList')
   final List<File> files;
 
@@ -9994,7 +9994,7 @@ class Document extends Node {
   @JSName('styleSheets')
   @DomName('Document.styleSheets')
   @DocsEditable()
-  @Returns('_StyleSheetList')
+  @Returns('_StyleSheetList|Null')
   @Creates('_StyleSheetList')
   final List<StyleSheet> _styleSheets;
 
@@ -10231,7 +10231,7 @@ class Document extends Node {
   @JSName('children')
   @DomName('Document.children')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> _children;
 
@@ -10269,8 +10269,8 @@ class Document extends Node {
   @JSName('querySelectorAll')
   @DomName('Document.querySelectorAll')
   @DocsEditable()
-  @Returns('NodeList')
   @Creates('NodeList')
+  @Returns('NodeList')
   List<Node> _querySelectorAll(String selectors) native;
 
   /// Stream of `abort` events handled by this [Document].
@@ -10926,8 +10926,8 @@ class DocumentFragment extends Node
   @JSName('querySelectorAll')
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
-  @Returns('NodeList')
   @Creates('NodeList')
+  @Returns('NodeList')
   List<Node> _querySelectorAll(String selectors) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12029,7 +12029,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * Setting the height or width properties will set the height or width
    * property for all elements in the list. This returns a rectangle with the
-   * dimenions actually available for content
+   * dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Getting the height or width returns the height or width of the
    * first Element in this list.
@@ -12044,7 +12044,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Access dimensions and position of the first Element's content + padding box
    * in this list.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -12059,7 +12059,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Access dimensions and position of the first Element's content + padding +
    * border box in this list.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -12072,7 +12072,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Access dimensions and position of the first Element's content + padding +
    * border + margin box in this list.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -13953,7 +13953,7 @@ class Element extends Node
   /**
    * Access this element's content position.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
@@ -13969,7 +13969,7 @@ class Element extends Node
   /**
    * Access the dimensions and position of this element's content + padding box.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -13990,7 +13990,7 @@ class Element extends Node
    * Access the dimensions and position of this element's content + padding +
    * border box.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -14009,7 +14009,7 @@ class Element extends Node
    * Access the dimensions and position of this element's content + padding +
    * border + margin box.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -15328,7 +15328,7 @@ class Element extends Node
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
-  @Returns('_ClientRectList')
+  @Returns('_ClientRectList|Null')
   @Creates('_ClientRectList')
   List<Rectangle> getClientRects() native;
 
@@ -15345,7 +15345,7 @@ class Element extends Node
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   List<Node> getDestinationInsertionPoints() native;
 
@@ -15561,7 +15561,7 @@ class Element extends Node
   @JSName('children')
   @DomName('Element.children')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> _children;
 
@@ -15598,8 +15598,8 @@ class Element extends Node
   @JSName('querySelectorAll')
   @DomName('Element.querySelectorAll')
   @DocsEditable()
-  @Returns('NodeList')
   @Creates('NodeList')
+  @Returns('NodeList')
   List<Node> _querySelectorAll(String selectors) native;
 
   /// Stream of `abort` events handled by this [Element].
@@ -20127,7 +20127,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
+   * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
   @DomName('XMLHttpRequest.open')
@@ -20414,7 +20414,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `send` method is intended only for more complext HTTP requests where
+   * `send` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    *
    * ## Other resources
@@ -20427,7 +20427,7 @@ class HttpRequest extends HttpRequestEventTarget {
   void send([body_OR_data]) native;
 
   /**
-   * Sets the value of an HTTP request header.
+   * Sets the value of an HTTP requst header.
    *
    * This method should be called after the request is opened, but before
    * the request is sent.
@@ -20992,7 +20992,7 @@ class InputElement extends HtmlElement
 
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  @Returns('FileList')
+  @Returns('FileList|Null')
   @Creates('FileList')
   List<File> files;
 
@@ -21041,7 +21041,7 @@ class InputElement extends HtmlElement
 
   @DomName('HTMLInputElement.labels')
   @DocsEditable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -22039,7 +22039,7 @@ class KeygenElement extends HtmlElement {
   @DomName('HTMLKeygenElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -22270,7 +22270,7 @@ class Location extends Interceptor implements LocationBase {
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
   @Experimental() // nonstandard
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> ancestorOrigins;
 
@@ -22356,7 +22356,7 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> areas;
 
@@ -24204,7 +24204,7 @@ class MeterElement extends HtmlElement {
   @DomName('HTMLMeterElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -25030,7 +25030,7 @@ class MutationRecord extends Interceptor {
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> addedNodes;
 
@@ -25056,7 +25056,7 @@ class MutationRecord extends Interceptor {
 
   @DomName('MutationRecord.removedNodes')
   @DocsEditable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> removedNodes;
 
@@ -25267,7 +25267,7 @@ class Navigator extends Interceptor
   @DomName('Navigator.getGamepads')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('_GamepadList')
+  @Returns('_GamepadList|Null')
   @Creates('_GamepadList')
   List<Gamepad> getGamepads() native;
 
@@ -26035,7 +26035,7 @@ class Node extends EventTarget {
 
   @JSName('textContent')
   /**
-   * All text within this node and its decendents.
+   * All text within this node and its descendents.
    *
    * ## Other resources
    *
@@ -26064,7 +26064,7 @@ class Node extends EventTarget {
   /**
    * Returns a copy of this node.
    *
-   * If [deep] is `true`, then all of this node's children and decendents are
+   * If [deep] is `true`, then all of this node's children and descendents are
    * copied as well. If [deep] is `false`, then only this node is copied.
    *
    * ## Other resources
@@ -26847,7 +26847,7 @@ class OutputElement extends HtmlElement {
   @DomName('HTMLOutputElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -28318,7 +28318,7 @@ class ProgressElement extends HtmlElement {
   @DomName('HTMLProgressElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -28743,7 +28743,7 @@ class Range extends Interceptor {
 
   @DomName('Range.getClientRects')
   @DocsEditable()
-  @Returns('_ClientRectList')
+  @Returns('_ClientRectList|Null')
   @Creates('_ClientRectList')
   List<Rectangle> getClientRects() native;
 
@@ -30239,7 +30239,7 @@ class SelectElement extends HtmlElement {
   @DomName('HTMLSelectElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -30971,7 +30971,7 @@ class ShadowElement extends HtmlElement {
   @DomName('HTMLShadowElement.getDistributedNodes')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   List<Node> getDistributedNodes() native;
 }
@@ -31019,7 +31019,7 @@ class ShadowRoot extends DocumentFragment {
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('_StyleSheetList')
+  @Returns('_StyleSheetList|Null')
   @Creates('_StyleSheetList')
   final List<StyleSheet> styleSheets;
 
@@ -31906,7 +31906,7 @@ class SpeechRecognitionEvent extends Event {
 
   @DomName('SpeechRecognitionEvent.results')
   @DocsEditable()
-  @Returns('_SpeechRecognitionResultList')
+  @Returns('_SpeechRecognitionResultList|Null')
   @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> results;
 }
@@ -32961,14 +32961,14 @@ class TableElement extends HtmlElement {
   @JSName('rows')
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> _rows;
 
   @JSName('tBodies')
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> _tBodies;
 
@@ -33074,7 +33074,7 @@ class TableRowElement extends HtmlElement {
   @JSName('cells')
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> _cells;
 
@@ -33143,7 +33143,7 @@ class TableSectionElement extends HtmlElement {
   @JSName('rows')
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  @Returns('HtmlCollection')
+  @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
   final List<Node> _rows;
 
@@ -33233,7 +33233,7 @@ class Text extends CharacterData {
   @DomName('Text.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   List<Node> getDestinationInsertionPoints() native;
 
@@ -33307,7 +33307,7 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable()
   @Unstable()
-  @Returns('NodeList')
+  @Returns('NodeList|Null')
   @Creates('NodeList')
   final List<Node> labels;
 
@@ -33982,7 +33982,7 @@ class Touch extends Interceptor {
   final dynamic _get_target;
 
 // As of Chrome 37, these all changed from long to double.  This code
-// preserves backwards compatability for the time being.
+// preserves backwards compatibility for the time being.
   int get __clientX => JS('num', '#.clientX', this).round();
   int get __clientY => JS('num', '#.clientY', this).round();
   int get __screenX => JS('num', '#.screenX', this).round();
@@ -35552,7 +35552,7 @@ class WebSocket extends EventTarget {
    *
    * This method accepts data of type [Blob], [ByteBuffer], [String], or
    * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
+   * or [sendTypedData], in contrast, only accept data of the specified type.
    */
   @DomName('WebSocket.send')
   @DocsEditable()
@@ -35564,7 +35564,7 @@ class WebSocket extends EventTarget {
    *
    * This method accepts data of type [Blob], [ByteBuffer], [String], or
    * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
+   * or [sendTypedData], in contrast, only accept data of the specified type.
    */
   @DomName('WebSocket.send')
   @DocsEditable()
@@ -35576,7 +35576,7 @@ class WebSocket extends EventTarget {
    *
    * This method accepts data of type [Blob], [ByteBuffer], [String], or
    * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
+   * or [sendTypedData], in contrast, only accept data of the specified type.
    */
   @DomName('WebSocket.send')
   @DocsEditable()
@@ -35588,7 +35588,7 @@ class WebSocket extends EventTarget {
    *
    * This method accepts data of type [Blob], [ByteBuffer], [String], or
    * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
+   * or [sendTypedData], in contrast, only accept data of the specified type.
    */
   @DomName('WebSocket.send')
   @DocsEditable()
@@ -35600,7 +35600,7 @@ class WebSocket extends EventTarget {
    *
    * This method accepts data of type [Blob], [ByteBuffer], [String], or
    * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
+   * or [sendTypedData], in contrast, only accept data of the specified type.
    */
   @DomName('WebSocket.send')
   @DocsEditable()
@@ -36879,7 +36879,7 @@ class Window extends EventTarget
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
   @Experimental() // non-standard
-  @Returns('_CssRuleList')
+  @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement)
       native;
@@ -43303,7 +43303,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   }
 
   /**
-   * Given the charater code returned from a keyDown [event], try to ascertain
+   * Given the character code returned from a keyDown [event], try to ascertain
    * and return the corresponding charCode for the character that was pressed.
    * This information is not shown to the user, but used to help polyfill
    * keypress events.
@@ -44707,7 +44707,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // we set it with our specified values. Because we are doing custom setting
     // of certain values (charCode/keyCode, etc) only in this class (as opposed
     // to KeyboardEvent) and the way we set these custom values depends on the
-    // type of underlying JS object, we do all the contruction for the
+    // type of underlying JS object, we do all the construction for the
     // underlying KeyboardEvent here.
     if (canUseDispatchEvent) {
       // Currently works in everything but Internet Explorer.

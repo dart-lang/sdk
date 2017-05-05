@@ -30,31 +30,6 @@ SourceTable::~SourceTable() {
 }
 
 
-CanonicalName::CanonicalName()
-    : parent_(NULL), name_(NULL), is_referenced_(false) {}
-
-
-CanonicalName::~CanonicalName() {
-  for (intptr_t i = 0; i < children_.length(); ++i) {
-    delete children_[i];
-  }
-}
-
-
-CanonicalName* CanonicalName::NewRoot() {
-  return new CanonicalName();
-}
-
-
-CanonicalName* CanonicalName::AddChild(String* name) {
-  CanonicalName* child = new CanonicalName();
-  child->parent_ = this;
-  child->name_ = name;
-  children_.Add(child);
-  return child;
-}
-
-
 Node::~Node() {}
 
 
@@ -266,6 +241,14 @@ void LocalInitializer::VisitChildren(Visitor* visitor) {
 
 
 FunctionNode::~FunctionNode() {}
+
+
+void FunctionNode::ReplaceBody(Statement* body) {
+  delete body_;
+  // Use static_cast to invoke the conversion function and so avoid triggering
+  // ASSERT(pointer_ == NULL) in operator= when overwriting a non-NULL body.
+  static_cast<Statement*&>(body_) = body;
+}
 
 
 void FunctionNode::AcceptTreeVisitor(TreeVisitor* visitor) {
@@ -1193,6 +1176,17 @@ void VoidType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
 void VoidType::VisitChildren(Visitor* visitor) {}
 
 
+BottomType::~BottomType() {}
+
+
+void BottomType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
+  visitor->VisitBottomType(this);
+}
+
+
+void BottomType::VisitChildren(Visitor* visitor) {}
+
+
 InterfaceType::~InterfaceType() {}
 
 
@@ -1231,7 +1225,7 @@ void FunctionType::VisitChildren(Visitor* visitor) {
   VisitList(&type_parameters(), visitor);
   VisitList(&positional_parameters(), visitor);
   for (int i = 0; i < named_parameters().length(); ++i) {
-    named_parameters()[i]->second()->AcceptDartTypeVisitor(visitor);
+    named_parameters()[i]->type()->AcceptDartTypeVisitor(visitor);
   }
   return_type()->AcceptDartTypeVisitor(visitor);
 }

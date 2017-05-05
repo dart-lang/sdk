@@ -39,7 +39,7 @@ class Timer : public ValueObject {
     running_ = false;
   }
 
-  // Get total cummulative elapsed time in micros.
+  // Get total cumulative elapsed time in micros.
   int64_t TotalElapsedTime() const {
     int64_t result = total_;
     if (running_) {

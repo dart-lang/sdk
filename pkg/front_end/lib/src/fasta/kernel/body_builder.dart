@@ -39,8 +39,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
-import '../parser/dart_vm_native.dart' show skipNativeClause;
-
 import '../scanner/token.dart'
     show BeginGroupToken, Token, isBinaryOperator, isMinusOperator;
 
@@ -476,7 +474,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         bool hasMore = formalBuilders.moveNext();
         assert(hasMore);
         VariableDeclaration realParameter = formalBuilders.current.target;
-        Expression initializer = parameter.initializer ?? new NullLiteral();
+        Expression initializer =
+            parameter.initializer ?? astFactory.nullLiteral(null);
         realParameter.initializer = initializer..parent = realParameter;
       }
     }
@@ -622,7 +621,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return receiver.doInvocation(charOffset, arguments);
     } else {
       return buildMethodInvocation(
-          toValue(receiver), callName, arguments, charOffset);
+          astFactory, toValue(receiver), callName, arguments, charOffset);
     }
   }
 
@@ -666,8 +665,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     var receiver = pop();
     bool isSuper = false;
     if (receiver is ThisAccessor && receiver.isSuper) {
+      ThisAccessor thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = new ThisExpression();
+      receiver = astFactory.thisExpression(thisAccessorReceiver.token);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
@@ -684,19 +684,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return buildCompileTimeError(
           "Not an operator: '$operator'.", token.charOffset);
     } else {
-      Expression result =
-          makeBinary(a, new Name(operator), null, b, offset: token.charOffset);
+      Expression result = makeBinary(astFactory, a, new Name(operator), null, b,
+          offset: token.charOffset);
       if (isSuper) {
         result = toSuperMethodInvocation(result);
       }
-      return negate ? new Not(result) : result;
+      return negate ? astFactory.not(null, result) : result;
     }
   }
 
   void doLogicalExpression(Token token) {
     Expression argument = popForValue();
     Expression receiver = popForValue();
-    push(new LogicalExpression(receiver, token.stringValue, argument));
+    push(astFactory.logicalExpression(receiver, token.stringValue, argument));
   }
 
   /// Handle `a ?? b`.
@@ -706,8 +706,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(makeLet(
         variable,
-        new ConditionalExpression(buildIsNull(new VariableGet(variable)), b,
-            new VariableGet(variable), const DynamicType())));
+        new ConditionalExpression(
+            buildIsNull(astFactory, new VariableGet(variable)),
+            b,
+            new VariableGet(variable),
+            const DynamicType())));
   }
 
   /// Handle `a?.b(...)`.
@@ -731,9 +734,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (!target.isAccessor) {
         if (areArgumentsCompatible(target.function, node.arguments)) {
           // TODO(ahe): Use [DirectMethodInvocation] when possible.
-          Expression result = new DirectMethodInvocation(
+          Expression result = astFactory.directMethodInvocation(
               new ThisExpression(), target, node.arguments);
-          result = new SuperMethodInvocation(node.name, node.arguments, null);
+          result = astFactory.superMethodInvocation(
+              null, node.name, node.arguments, null);
           return result;
         } else {
           isNoSuchMethod = true;
@@ -746,10 +750,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    Expression receiver = new DirectPropertyGet(new ThisExpression(), target);
-    receiver = new SuperPropertyGet(node.name, target);
+    Expression receiver =
+        astFactory.directPropertyGet(new ThisExpression(), target);
+    receiver = astFactory.superPropertyGet(node.name, target);
     return buildMethodInvocation(
-        receiver, callName, node.arguments, node.fileOffset);
+        astFactory, receiver, callName, node.arguments, node.fileOffset);
   }
 
   bool areArgumentsCompatible(FunctionNode function, Arguments arguments) {
@@ -779,13 +784,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new Throw(new ConstructorInvocation(
         constructor,
         new Arguments(<Expression>[
-          new NullLiteral(),
+          astFactory.nullLiteral(null),
           new SymbolLiteral(name),
           new ListLiteral(arguments.positional),
           new MapLiteral(arguments.named.map((arg) {
             return new MapEntry(new SymbolLiteral(arg.name), arg.value);
           }).toList()),
-          new NullLiteral()
+          astFactory.nullLiteral(null)
         ])));
   }
 
@@ -867,7 +872,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           library.uri.path == "_builtin" &&
           member?.name == "_getMainClosure") {
         // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
-        return new NullLiteral()..fileOffset = offsetForToken(token);
+        return astFactory.nullLiteral(token);
       } else {
         return new UnresolvedAccessor(this, n, token);
       }
@@ -964,8 +969,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(new StringLiteral(unescapeString(token.lexeme))
-        ..fileOffset = token.charOffset);
+      String value = unescapeString(token.lexeme);
+      push(astFactory.stringLiteral(value, token));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
@@ -974,14 +979,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       List<Expression> expressions = <Expression>[];
       // Contains more than just \' or \".
       if (first.lexeme.length > 1) {
-        expressions.add(
-            new StringLiteral(unescapeFirstStringPart(first.lexeme, quote)));
+        String value = unescapeFirstStringPart(first.lexeme, quote);
+        expressions.add(astFactory.stringLiteral(value, first));
       }
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
-            expressions.add(new StringLiteral(unescape(part.lexeme, quote)));
+            String value = unescape(part.lexeme, quote);
+            expressions.add(astFactory.stringLiteral(value, part));
           }
         } else {
           expressions.add(toValue(part));
@@ -989,11 +995,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       // Contains more than just \' or \".
       if (last.lexeme.length > 1) {
-        expressions
-            .add(new StringLiteral(unescapeLastStringPart(last.lexeme, quote)));
+        String value = unescapeLastStringPart(last.lexeme, quote);
+        expressions.add(astFactory.stringLiteral(value, last));
       }
-      push(new StringConcatenation(expressions)
-        ..fileOffset = endToken.charOffset);
+      push(astFactory.stringConcatenation(expressions, endToken));
     }
   }
 
@@ -1021,7 +1026,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    push(new StringConcatenation(expressions ?? parts));
+    push(astFactory.stringConcatenation(expressions ?? parts, null));
   }
 
   @override
@@ -1120,7 +1125,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       addCompileTimeError(
           token.charOffset, "const field must have initializer.");
       // Creating a null value to prevent the Dart VM from crashing.
-      push(new NullLiteral()..fileOffset = token.charOffset);
+      push(astFactory.nullLiteral(token));
     } else {
       push(NullValue.FieldInitializer);
     }
@@ -1179,8 +1184,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression value = popForValue();
     var accessor = pop();
     if (accessor is TypeDeclarationBuilder) {
-      push(wrapInvalid(new TypeLiteral(
-          accessor.buildTypesWithBuiltArguments(library, null))));
+      push(wrapInvalid(astFactory
+          .typeLiteral(accessor.buildTypesWithBuiltArguments(library, null))));
     } else if (accessor is! FastaAccessor) {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
@@ -1261,10 +1266,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endAwaitExpression(Token beginToken, Token endToken) {
+  void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(
-        new AwaitExpression(popForValue())..fileOffset = beginToken.charOffset);
+    push(astFactory.awaitExpression(keyword, popForValue()));
   }
 
   @override
@@ -1279,18 +1283,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
     List<DartType> typeArguments = pop();
-    DartType typeArgument = const DynamicType();
+    DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = typeArguments.first;
       if (typeArguments.length > 1) {
-        typeArgument = const DynamicType();
+        typeArgument = null;
         warningNotError(
             "Too many type arguments on List literal.", beginToken.charOffset);
       }
     }
-    push(new ListLiteral(expressions,
-        typeArgument: typeArgument, isConst: constKeyword != null)
-      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset);
+    push(astFactory.listLiteral(expressions, typeArgument, constKeyword != null,
+        constKeyword ?? beginToken));
   }
 
   @override
@@ -1298,20 +1301,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralBool");
     bool value = optional("true", token);
     assert(value || optional("false", token));
-    push(new BoolLiteral(value)..fileOffset = token.charOffset);
+    push(astFactory.boolLiteral(value, token));
   }
 
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new DoubleLiteral(double.parse(token.lexeme))
-      ..fileOffset = token.charOffset);
+    push(astFactory.doubleLiteral(double.parse(token.lexeme), token));
   }
 
   @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(new NullLiteral()..fileOffset = token.charOffset);
+    push(astFactory.nullLiteral(token));
   }
 
   @override
@@ -1333,9 +1335,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         valueType = typeArguments[1];
       }
     }
-    push(new MapLiteral(entries,
-        keyType: keyType, valueType: valueType, isConst: constKeyword != null)
-      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset);
+    push(astFactory.mapLiteral(beginToken, constKeyword, entries,
+        keyType: keyType, valueType: valueType));
   }
 
   @override
@@ -1369,7 +1370,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         value += ".${symbolPartToString(parts[i])}";
       }
     }
-    push(new SymbolLiteral(value));
+    push(astFactory.symbolLiteral(hashToken, value));
   }
 
   DartType kernelTypeFromString(
@@ -1481,7 +1482,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("AsOperator");
     DartType type = pop();
     Expression expression = popForValue();
-    push(new AsExpression(expression, type)..fileOffset = operator.charOffset);
+    push(astFactory.asExpression(expression, operator, type));
   }
 
   @override
@@ -1505,8 +1506,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression elseExpression = popForValue();
     Expression thenExpression = popForValue();
     Expression condition = popForValue();
-    push(new ConditionalExpression(
-        condition, thenExpression, elseExpression, const DynamicType()));
+    push(astFactory.conditionalExpression(
+        condition, thenExpression, elseExpression));
   }
 
   @override
@@ -1517,7 +1518,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(buildCompileTimeError(
           "Not a constant expression.", throwToken.charOffset));
     } else {
-      push(new Throw(expression)..fileOffset = throwToken.charOffset);
+      push(astFactory.throwExpression(throwToken, expression));
     }
   }
 
@@ -1736,7 +1737,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("UnaryPrefixExpression");
     var receiver = pop();
     if (optional("!", token)) {
-      push(new Not(toValue(receiver)));
+      push(astFactory.not(token, toValue(receiver)));
     } else {
       String operator = token.stringValue;
       if (optional("-", token)) {
@@ -1744,13 +1745,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (receiver is ThisAccessor && receiver.isSuper) {
         push(toSuperMethodInvocation(buildMethodInvocation(
-            new ThisExpression()..fileOffset = offsetForToken(receiver.token),
+            astFactory,
+            astFactory.thisExpression(receiver.token),
             new Name(operator),
             new Arguments.empty(),
             token.charOffset)));
       } else {
-        push(buildMethodInvocation(toValue(receiver), new Name(operator),
-            new Arguments.empty(), token.charOffset));
+        push(buildMethodInvocation(astFactory, toValue(receiver),
+            new Name(operator), new Arguments.empty(), token.charOffset));
       }
     }
   }
@@ -1852,12 +1854,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return throwNoSuchMethodError(target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
-      return new ConstructorInvocation(target, arguments)
-        ..isConst = isConst
+      return astFactory.constructorInvocation(target, arguments,
+          isConst: isConst)
         ..fileOffset = charOffset;
     } else {
-      return new StaticInvocation(target, arguments)
-        ..isConst = isConst
+      return astFactory.staticInvocation(target, arguments, isConst: isConst)
         ..fileOffset = charOffset;
     }
   }
@@ -2245,15 +2246,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endRethrowStatement(Token throwToken, Token endToken) {
+  void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
     if (inCatchBlock) {
-      push(astFactory.expressionStatement(
-          new Rethrow()..fileOffset = throwToken.charOffset));
+      push(astFactory
+          .expressionStatement(astFactory.rethrowExpression(rethrowToken)));
     } else {
       push(buildCompileTimeErrorStatement(
           "'rethrow' can only be used in catch clauses.",
-          throwToken.charOffset));
+          rethrowToken.charOffset));
     }
   }
 
@@ -2525,7 +2526,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (isDartLibrary && message.code == codeExpectedFunctionBody) {
-      Token recover = skipNativeClause(token);
+      Token recover = library.loader.target.skipNativeClause(token);
       if (recover != null) return recover;
     } else if (message.code == codeExpectedButGot) {
       String expected = message.arguments["string"];

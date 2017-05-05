@@ -1938,6 +1938,11 @@ class AstBuilder extends ScopeListener {
     return tokenToStartReplacing;
   }
 
+  @override
+  void discardTypeReplacedWithCommentTypeAssign() {
+    pop();
+  }
+
   /// Check if the given [token] has a comment token with the given [info],
   /// which should be either [TokenType.GENERIC_METHOD_TYPE_ASSIGN] or
   /// [TokenType.GENERIC_METHOD_TYPE_LIST].  If found, parse the comment

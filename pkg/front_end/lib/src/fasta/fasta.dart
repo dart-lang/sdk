@@ -110,6 +110,10 @@ class CompileTask {
 
   CompileTask(this.c, this.ticker);
 
+  DillTarget createDillTarget(TranslateUri uriTranslator) {
+    return new DillTarget(ticker, uriTranslator);
+  }
+
   KernelTarget createKernelTarget(
       DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode) {
     return new KernelTarget(
@@ -120,7 +124,7 @@ class CompileTask {
     TranslateUri uriTranslator =
         await TranslateUri.parse(c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+    DillTarget dillTarget = createDillTarget(uriTranslator);
     KernelTarget kernelTarget =
         createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
     if (c.options.strongMode) {
@@ -169,8 +173,6 @@ Future<CompilationResult> parseScript(
           formatUnexpected(patchedSdk, -1, "Patched sdk directory not found."));
     }
 
-    Target target = getTarget("vm", new TargetFlags(strongMode: false));
-
     Program program;
     try {
       TranslateUri uriTranslator = await TranslateUri.parse(null, packages);
@@ -197,6 +199,7 @@ Future<CompilationResult> parseScript(
     }
 
     // Perform target-specific transformations.
+    Target target = getTarget("vm", new TargetFlags(strongMode: false));
     target.performModularTransformations(program);
     target.performGlobalTransformations(program);
 

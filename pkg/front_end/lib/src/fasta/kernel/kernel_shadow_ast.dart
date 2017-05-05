@@ -23,6 +23,30 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
+/// Shadow object for [AsExpression].
+class KernelAsExpression extends AsExpression implements KernelExpression {
+  KernelAsExpression(Expression operand, DartType type) : super(operand, type);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferAsExpression(typeContext, typeNeeded, operand, type);
+  }
+}
+
+/// Shadow object for [AwaitExpression].
+class KernelAwaitExpression extends AwaitExpression
+    implements KernelExpression {
+  KernelAwaitExpression(Expression operand) : super(operand);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
 /// Concrete shadow object representing a statement block in kernel form.
 class KernelBlock extends Block implements KernelStatement {
   KernelBlock(List<Statement> statements) : super(statements);
@@ -32,6 +56,118 @@ class KernelBlock extends Block implements KernelStatement {
     for (var statement in statements) {
       inferrer.inferStatement(statement);
     }
+  }
+}
+
+/// Concrete shadow object representing a boolean literal in kernel form.
+class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
+  KernelBoolLiteral(bool value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferBoolLiteral(typeContext, typeNeeded);
+  }
+}
+
+/// Concrete shadow object representing a conditional expression in kernel form.
+/// Shadow object for [ConditionalExpression].
+class KernelConditionalExpression extends ConditionalExpression
+    implements KernelExpression {
+  KernelConditionalExpression(
+      Expression condition, Expression then, Expression otherwise)
+      : super(condition, then, otherwise, const DynamicType());
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferConditionalExpression(typeContext, typeNeeded,
+        condition, then, otherwise, (type) => staticType = type);
+  }
+}
+
+/// Shadow object for [ConstructorInvocation].
+class KernelConstructorInvocation extends ConstructorInvocation
+    implements KernelExpression {
+  KernelConstructorInvocation(Constructor target, Arguments arguments,
+      {bool isConst: false})
+      : super(target, arguments, isConst: isConst);
+
+  KernelConstructorInvocation.byReference(
+      Reference targetReference, Arguments arguments)
+      : super.byReference(targetReference, arguments);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [DirectMethodInvocation].
+class KernelDirectMethodInvocation extends DirectMethodInvocation
+    implements KernelExpression {
+  KernelDirectMethodInvocation(
+      Expression receiver, Procedure target, Arguments arguments)
+      : super(receiver, target, arguments);
+
+  KernelDirectMethodInvocation.byReference(
+      Expression receiver, Reference targetReference, Arguments arguments)
+      : super.byReference(receiver, targetReference, arguments);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [DirectPropertyGet].
+class KernelDirectPropertyGet extends DirectPropertyGet
+    implements KernelExpression {
+  KernelDirectPropertyGet(Expression receiver, Member target)
+      : super(receiver, target);
+
+  KernelDirectPropertyGet.byReference(
+      Expression receiver, Reference targetReference)
+      : super.byReference(receiver, targetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [DirectPropertySet].
+class KernelDirectPropertySet extends DirectPropertySet
+    implements KernelExpression {
+  KernelDirectPropertySet(Expression receiver, Member target, Expression value)
+      : super(receiver, target, value);
+
+  KernelDirectPropertySet.byReference(
+      Expression receiver, Reference targetReference, Expression value)
+      : super.byReference(receiver, targetReference, value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Concrete shadow object representing a double literal in kernel form.
+class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
+  KernelDoubleLiteral(double value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferDoubleLiteral(typeContext, typeNeeded);
   }
 }
 
@@ -162,14 +298,84 @@ class KernelIsNotExpression extends Not implements KernelExpression {
 
 /// Concrete shadow object representing a list literal in kernel form.
 class KernelListLiteral extends ListLiteral implements KernelExpression {
-  KernelListLiteral(List<KernelExpression> expressions,
+  final DartType _declaredTypeArgument;
+
+  KernelListLiteral(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
-      : super(expressions, typeArgument: typeArgument, isConst: isConst);
+      : _declaredTypeArgument = typeArgument,
+        super(expressions,
+            typeArgument: typeArgument ?? const DynamicType(),
+            isConst: isConst);
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(paulberry): implement.
+    return inferrer.inferListLiteral(
+        typeContext, typeNeeded, fileOffset, _declaredTypeArgument, expressions,
+        (type) {
+      typeArgument = type;
+    });
+  }
+}
+
+/// Shadow object for [LogicalExpression].
+class KernelLogicalExpression extends LogicalExpression
+    implements KernelExpression {
+  KernelLogicalExpression(Expression left, String operator, Expression right)
+      : super(left, operator, right);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [MapLiteral].
+class KernelMapLiteral extends MapLiteral implements KernelExpression {
+  KernelMapLiteral(List<MapEntry> entries,
+      {DartType keyType: const DynamicType(),
+      DartType valueType: const DynamicType(),
+      bool isConst: false})
+      : super(entries,
+            keyType: keyType, valueType: valueType, isConst: isConst);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [MethodInvocation].
+class KernelMethodInvocation extends MethodInvocation
+    implements KernelExpression {
+  KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : super(receiver, name, arguments, interfaceTarget);
+
+  KernelMethodInvocation.byReference(Expression receiver, Name name,
+      Arguments arguments, Reference interfaceTargetReference)
+      : super.byReference(receiver, name, arguments, interfaceTargetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [Not].
+class KernelNot extends Not implements KernelExpression {
+  KernelNot(Expression operand) : super(operand);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
     return typeNeeded ? const DynamicType() : null;
   }
 }
@@ -180,6 +386,51 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(paulberry): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [PropertyGet].
+class KernelPropertyGet extends PropertyGet implements KernelExpression {
+  KernelPropertyGet(Expression receiver, Name name, [Member interfaceTarget])
+      : super(receiver, name, interfaceTarget);
+
+  KernelPropertyGet.byReference(
+      Expression receiver, Name name, Reference interfaceTargetReference)
+      : super.byReference(receiver, name, interfaceTargetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [PropertyGet].
+class KernelPropertySet extends PropertySet implements KernelExpression {
+  KernelPropertySet(Expression receiver, Name name, Expression value,
+      [Member interfaceTarget])
+      : super(receiver, name, value, interfaceTarget);
+
+  KernelPropertySet.byReference(Expression receiver, Name name,
+      Expression value, Reference interfaceTargetReference)
+      : super.byReference(receiver, name, value, interfaceTargetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [Rethrow].
+class KernelRethrow extends Rethrow implements KernelExpression {
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
     return typeNeeded ? const DynamicType() : null;
   }
 }
@@ -211,6 +462,153 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferStaticGet(typeContext, typeNeeded, target.getterType);
+  }
+}
+
+/// Shadow object for [StaticInvocation].
+class KernelStaticInvocation extends StaticInvocation
+    implements KernelExpression {
+  KernelStaticInvocation(Procedure target, Arguments arguments,
+      {bool isConst: false})
+      : super(target, arguments, isConst: isConst);
+
+  KernelStaticInvocation.byReference(
+      Reference targetReference, Arguments arguments)
+      : super.byReference(targetReference, arguments);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [StaticSet].
+class KernelStaticSet extends StaticSet implements KernelExpression {
+  KernelStaticSet(Member target, Expression value) : super(target, value);
+
+  KernelStaticSet.byReference(Reference targetReference, Expression value)
+      : super.byReference(targetReference, value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Concrete shadow object representing a string concatenation in kernel form.
+class KernelStringConcatenation extends StringConcatenation
+    implements KernelExpression {
+  KernelStringConcatenation(List<Expression> expressions) : super(expressions);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferStringConcatenation(
+        typeContext, typeNeeded, expressions);
+  }
+}
+
+/// Concrete shadow object representing a string literal in kernel form.
+class KernelStringLiteral extends StringLiteral implements KernelExpression {
+  KernelStringLiteral(String value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferStringLiteral(typeContext, typeNeeded);
+  }
+}
+
+/// Shadow object for [SuperMethodInvocation].
+class KernelSuperMethodInvocation extends SuperMethodInvocation
+    implements KernelExpression {
+  KernelSuperMethodInvocation(Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : super(name, arguments, interfaceTarget);
+
+  KernelSuperMethodInvocation.byReference(
+      Name name, Arguments arguments, Reference interfaceTargetReference)
+      : super.byReference(name, arguments, interfaceTargetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [SuperPropertyGet].
+class KernelSuperPropertyGet extends SuperPropertyGet
+    implements KernelExpression {
+  KernelSuperPropertyGet(Name name, [Member interfaceTarget])
+      : super(name, interfaceTarget);
+
+  KernelSuperPropertyGet.byReference(
+      Name name, Reference interfaceTargetReference)
+      : super.byReference(name, interfaceTargetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [SuperPropertySet].
+class KernelSuperPropertySet extends SuperPropertySet
+    implements KernelExpression {
+  KernelSuperPropertySet(Name name, Expression value, Member interfaceTarget)
+      : super(name, value, interfaceTarget);
+
+  KernelSuperPropertySet.byReference(
+      Name name, Expression value, Reference interfaceTargetReference)
+      : super.byReference(name, value, interfaceTargetReference);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [SymbolLiteral].
+class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
+  KernelSymbolLiteral(String value) : super(value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [ThisExpression].
+class KernelThisExpression extends ThisExpression implements KernelExpression {
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for [Throw].
+class KernelThrow extends Throw implements KernelExpression {
+  KernelThrow(Expression expression) : super(expression);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
   }
 }
 
@@ -351,6 +749,18 @@ class KernelTypeInferrer extends TypeInferrerImpl<Statement, Expression,
   }
 }
 
+/// Shadow object for [TypeLiteral].
+class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
+  KernelTypeLiteral(DartType type) : super(type);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    // TODO(scheglov): implement.
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
 ///
@@ -462,23 +872,26 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    bool mutatedInClosure;
-    DartType declaredType;
-    var variable = this.variable;
-    if (variable is KernelVariableDeclaration) {
-      mutatedInClosure = variable._mutatedInClosure;
-      declaredType = variable._declaredType;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      mutatedInClosure = true;
-      declaredType = variable.type;
-    }
+    var variable = this.variable as KernelVariableDeclaration;
+    bool mutatedInClosure = variable._mutatedInClosure;
+    DartType declaredType = variable._declaredType;
     return inferrer.inferVariableGet(typeContext, typeNeeded, mutatedInClosure,
         _fact, _scope, fileOffset, declaredType, (type) {
       promotedType = type;
     });
+  }
+}
+
+/// Concrete shadow object representing a write to a variable in kernel form.
+class KernelVariableSet extends VariableSet implements KernelExpression {
+  KernelVariableSet(VariableDeclaration variable, Expression value)
+      : super(variable, value);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var variable = this.variable as KernelVariableDeclaration;
+    return inferrer.inferVariableSet(
+        typeContext, typeNeeded, variable._declaredType, value);
   }
 }

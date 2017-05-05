@@ -584,7 +584,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
  * getInterceptor always returns JSArray.  We should consider pushing the
  * 'isGrowable' and 'isMutable' checks into the getInterceptor implementation so
  * these classes can have specialized implementations. Doing so will challenge
- * many assuptions in the JS backend.
+ * many assumptions in the JS backend.
  */
 class JSMutableArray<E> extends JSArray<E> {}
 

@@ -1035,12 +1035,14 @@ class BinaryPrinter extends Visitor {
   }
 }
 
+typedef bool LibraryFilter(Library _);
+
 /// A [LibraryFilteringBinaryPrinter] can write a subset of libraries.
 ///
 /// This printer writes a Kernel binary but includes only libraries that match a
 /// predicate.
 class LibraryFilteringBinaryPrinter extends BinaryPrinter {
-  final Function predicate;
+  final LibraryFilter predicate;
 
   LibraryFilteringBinaryPrinter(
       Sink<List<int>> sink, bool predicate(Library library))

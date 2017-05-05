@@ -69,8 +69,7 @@ class AsciiCodec extends Encoding {
 
 // Superclass for [AsciiEncoder] and [Latin1Encoder].
 // Generalizes common operations that only differ by a mask;
-class _UnicodeSubsetEncoder extends Converter<String, List<int>>
-    implements ChunkedConverter<String, List<int>, String, List<int>> {
+class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
   final int _subsetMask;
 
   const _UnicodeSubsetEncoder(this._subsetMask);
@@ -155,8 +154,7 @@ class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
  * This class converts Latin-1 bytes (lists of unsigned 8-bit integers)
  * to a string.
  */
-abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String>
-    implements ChunkedConverter<List<int>, String, List<int>, String> {
+abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   final bool _allowInvalid;
   final int _subsetMask;
 

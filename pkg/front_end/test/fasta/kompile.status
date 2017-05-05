@@ -57,6 +57,7 @@ unused_methods: Crash
 void-methods: Crash
 
 inference/*: Crash, Fail
+inference/conditional_lub: Pass
 inference/int_upwards_local: Pass
 inference/local_reference_upwards_local: Pass
 inference/type_promotion_simple: Pass

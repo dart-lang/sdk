@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
 /**
  * The object that allows a [ServerPlugin] to receive [Request]s and to return
@@ -164,26 +165,36 @@ class ServerIsolateChannel implements ServerCommunicationChannel {
         onDone();
       });
     }
-    _isolate = await Isolate.spawnUri(
-        pluginUri, <String>[], _receivePort.sendPort,
-        onError: _errorPort?.sendPort,
-        onExit: _exitPort?.sendPort,
-        packageConfig: packagesUri);
+    try {
+      _isolate = await Isolate.spawnUri(
+          pluginUri, <String>[], _receivePort.sendPort,
+          onError: _errorPort?.sendPort,
+          onExit: _exitPort?.sendPort,
+          packageConfig: packagesUri);
+    } catch (exception, stackTrace) {
+      instrumentationService.logPluginError(
+          new PluginData(pluginUri.toString(), null, null),
+          RequestErrorCode.PLUGIN_ERROR.toString(),
+          exception.toString(),
+          stackTrace.toString());
+      if (onDone != null) {
+        onDone();
+      }
+      close();
+      return null;
+    }
     Completer<Null> channelReady = new Completer<Null>();
     _receivePort.listen((dynamic input) {
       if (input is SendPort) {
-//        print('[server] Received send port');
         _sendPort = input;
         channelReady.complete(null);
       } else if (input is Map) {
-        if (input.containsKey('id') != null) {
+        if (input.containsKey('id')) {
           String encodedInput = JSON.encode(input);
-//          print('[server] Received response: $encodedInput');
           instrumentationService.logPluginResponse(pluginUri, encodedInput);
           onResponse(new Response.fromJson(input));
         } else if (input.containsKey('event')) {
           String encodedInput = JSON.encode(input);
-//          print('[server] Received notification: $encodedInput');
           instrumentationService.logPluginNotification(pluginUri, encodedInput);
           onNotification(new Notification.fromJson(input));
         }

@@ -640,11 +640,91 @@ Function(int, String) v;
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
     expect((method.returnType as TypeName).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_static_generic_comment_returnType() {
+    enableGenericMethodComments = true;
+    createParser('static /*=T*/ m/*<T>*/() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect((method.returnType as TypeName).name.name, 'T');
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_comment_returnType_complex() {
+    enableGenericMethodComments = true;
+    createParser('dynamic /*=Map<int, T>*/ m/*<T>*/() => null;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+
+    {
+      var returnType = method.returnType as TypeName;
+      expect(returnType, isNotNull);
+      expect(returnType.name.name, 'Map');
+
+      List<TypeAnnotation> typeArguments = returnType.typeArguments.arguments;
+      expect(typeArguments, hasLength(2));
+      expect((typeArguments[0] as TypeName).name.name, 'int');
+      expect((typeArguments[1] as TypeName).name.name, 'T');
+    }
+
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_comment_parameterType() {
+    enableGenericMethodComments = true;
+    createParser('m/*<T>*/(dynamic /*=T*/ p) => null;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+
+    FormalParameterList parameters = method.parameters;
+    expect(parameters, isNotNull);
+    expect(parameters.parameters, hasLength(1));
+    var parameter = parameters.parameters[0] as SimpleFormalParameter;
+    var parameterType = parameter.type as TypeName;
+    expect(parameterType.name.name, 'T');
+
     expect(method.body, isNotNull);
   }
 
@@ -14485,6 +14565,24 @@ enum E {
     expect(expression.typeParameters, isNull);
     expect(expression.parameters, isNotNull);
     expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
+    enableGenericMethodComments = true;
+    createParser('/*=T*/ f/*<S, T>*/(/*=S*/ s) => null;');
+    var member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    var functionDeclaration = member as FunctionDeclaration;
+    var functionExpression = functionDeclaration.functionExpression;
+    expect(functionDeclaration.documentationComment, isNull);
+    expect(functionDeclaration.externalKeyword, isNull);
+    expect(functionDeclaration.propertyKeyword, isNull);
+    expect((functionDeclaration.returnType as TypeName).name.name, 'T');
+    expect(functionDeclaration.name, isNotNull);
+    expect(functionExpression.typeParameters, isNotNull);
+    expect(functionExpression.parameters, isNotNull);
+    expect(functionExpression.body, isNotNull);
   }
 
   @failingTest

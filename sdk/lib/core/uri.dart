@@ -283,7 +283,7 @@ abstract class Uri {
    * that name is looked up using [Encoding.getByName],
    * and if the lookup returns an encoding, that encoding is used to convert
    * [content] to bytes.
-   * If providing both an [encoding] and a charset [parameter], they should
+   * If providing both an [encoding] and a charset in [parameters], they should
    * agree, otherwise decoding won't be able to use the charset parameter
    * to determine the encoding.
    *
@@ -4374,7 +4374,7 @@ class _SimpleUri implements Uri {
   }
 
   // Merge two simple URIs. This should always result in a prefix of
-  // one concatentated with a suffix of the other, possibly with a `/` in
+  // one concatenated with a suffix of the other, possibly with a `/` in
   // the middle of two merged paths, which is again simple.
   // In a few cases, there might be a need for extra normalization, when
   // resolving on top of a known scheme.

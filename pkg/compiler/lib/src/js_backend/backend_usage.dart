@@ -166,7 +166,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
             element == _commonElements.syncCompleterConstructor)) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
-    } else if (element == _commonElements.symbolClass ||
+    } else if (element == _commonElements.symbolImplementationClass ||
         element == _commonElements.objectNoSuchMethod) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;

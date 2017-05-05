@@ -10,7 +10,7 @@ import 'utils.dart';
 /*
  * [Graph] represents a datastructure for representing an DAG (directed acyclic
  * graph). Each node in the graph is in a given [NodeState] and can have data
- * attachted to it with [Node.userData].
+ * attached to it with [Node.userData].
  *
  * It's interface consists basically of these methods:
  *   - newNode: Adds a new node to the graph with the given dependencies and

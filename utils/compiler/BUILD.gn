@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/compiled_action.gni")
+import("../../build/prebuilt_dart_sdk.gni")
+import("../../utils/generate_patch_sdk.gni")
 import("../create_timestamp.gni")
 import("../application_snapshot.gni")
 
@@ -74,4 +76,11 @@ application_snapshot("utils_wrapper") {
   ]
   main_dart = "$target_gen_dir/utils_wrapper.dart"
   training_args = [ "--help" ]
+}
+
+generate_patched_sdk("patched_dart2js_sdk") {
+  mode = "dart2js"
+  deps = ["../../runtime/vm:patched_sdk"]
+  input_patches_dir = "../../sdk/lib/_internal/js_runtime/lib"
+  patched_sdk_dir = "patched_dart2js_sdk"
 }

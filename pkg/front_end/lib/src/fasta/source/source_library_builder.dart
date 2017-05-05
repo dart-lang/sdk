@@ -6,9 +6,6 @@ library fasta.source_library_builder;
 
 import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken, Token;
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
-    show TypeInferenceEngine;
-
 import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
 import '../combinator.dart' show Combinator;
@@ -485,11 +482,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
 
   @override
-  void prepareInitializerInference(TypeInferenceEngine typeInferenceEngine,
-      LibraryBuilder library, ClassBuilder currentClass) {
+  void prepareInitializerInference(
+      SourceLibraryBuilder library, ClassBuilder currentClass) {
     forEach((String name, Builder member) {
-      member.prepareInitializerInference(
-          typeInferenceEngine, library, currentClass);
+      member.prepareInitializerInference(library, currentClass);
     });
   }
 }

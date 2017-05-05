@@ -76,7 +76,7 @@
  * [JsObject.jsify] constructor, which converts Dart [Map]s and [Iterable]s
  * into JavaScript Objects and Arrays.
  *
- * The following expression creats a new JavaScript object with the properties
+ * The following expression creates a new JavaScript object with the properties
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
