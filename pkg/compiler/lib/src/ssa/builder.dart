@@ -406,13 +406,14 @@ class SsaBuilder extends ast.Visitor
     if (compiler.elementHasCompileTimeError(element)) return false;
 
     MethodElement function = element;
+    MethodElement declaration = function.declaration;
     ResolvedAst functionResolvedAst = function.resolvedAst;
     bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
     // inline (no need to check the hard constraints).
     bool cachedCanBeInlined =
-        inlineCache.canInline(function, insideLoop: insideLoop);
+        inlineCache.canInline(declaration, insideLoop: insideLoop);
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
@@ -534,9 +535,9 @@ class SsaBuilder extends ast.Visitor
           functionResolvedAst, maxInliningNodes,
           enableUserAssertions: options.enableUserAssertions);
       if (canInline) {
-        inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+        inlineCache.markAsInlinable(declaration, insideLoop: insideLoop);
       } else {
-        inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+        inlineCache.markAsNonInlinable(declaration, insideLoop: insideLoop);
       }
       return canInline;
     }

@@ -4,22 +4,19 @@
 
 library js_backend.backend.annotations;
 
-import '../common.dart';
-import '../common_elements.dart' show CommonElements;
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 
 /// Handling of special annotations for tests.
 class OptimizerHintsForTests {
-  final Compiler _compiler;
+  final ElementEnvironment _elementEnvironment;
+  final CommonElements _commonElements;
 
-  OptimizerHintsForTests(this._compiler);
-
-  CommonElements get _commonElements => _compiler.commonElements;
+  OptimizerHintsForTests(this._elementEnvironment, this._commonElements);
 
   /// Returns `true` if inlining is disabled for [element].
-  bool noInline(Element element) {
+  bool noInline(MemberEntity element) {
     if (_hasAnnotation(element, _commonElements.expectNoInlineClass)) {
       // TODO(floitsch): restrict to elements from the test directory.
       return true;
@@ -29,33 +26,28 @@ class OptimizerHintsForTests {
 
   /// Returns `true` if parameter and returns types should be trusted for
   /// [element].
-  bool trustTypeAnnotations(Element element) {
+  bool trustTypeAnnotations(MemberEntity element) {
     return _hasAnnotation(
         element, _commonElements.expectTrustTypeAnnotationsClass);
   }
 
   /// Returns `true` if inference of parameter types is disabled for [element].
-  bool assumeDynamic(Element element) {
+  bool assumeDynamic(MemberEntity element) {
     return _hasAnnotation(element, _commonElements.expectAssumeDynamicClass);
   }
 
   /// Returns `true` if [element] is annotated with [annotationClass].
-  bool _hasAnnotation(Element element, ClassElement annotationClass) {
+  bool _hasAnnotation(MemberEntity element, ClassEntity annotationClass) {
     if (annotationClass == null) return false;
-    return _compiler.reporter.withCurrentElement(element, () {
-      for (MetadataAnnotation metadata in element.metadata) {
-        assert(invariant(metadata, metadata.constant != null,
-            message: "Unevaluated metadata constant."));
-        ConstantValue value =
-            _compiler.constants.getConstantValue(metadata.constant);
-        if (value.isConstructedObject) {
-          ConstructedConstantValue constructedConstant = value;
-          if (constructedConstant.type.element == annotationClass) {
-            return true;
-          }
+    for (ConstantValue value
+        in _elementEnvironment.getMemberMetadata(element)) {
+      if (value.isConstructedObject) {
+        ConstructedConstantValue constructedConstant = value;
+        if (constructedConstant.type.element == annotationClass) {
+          return true;
         }
       }
-      return false;
-    });
+    }
+    return false;
   }
 }

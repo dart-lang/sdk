@@ -303,10 +303,12 @@ void checkElements(
   }
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;
-  Expect.equals(
-      backend1.inlineCache.getCurrentCacheDecisionForTesting(element1),
-      backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
-      "Inline cache decision mismatch for $element1 vs $element2");
+  if (element1 is MethodElement && element2 is MethodElement) {
+    Expect.equals(
+        backend1.inlineCache.getCurrentCacheDecisionForTesting(element1),
+        backend2.inlineCache.getCurrentCacheDecisionForTesting(element2),
+        "Inline cache decision mismatch for $element1 vs $element2");
+  }
 
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }

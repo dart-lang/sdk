@@ -1052,6 +1052,12 @@ class KernelElementEnvironment implements ElementEnvironment {
     // TODO(johnniwinther): Support these.
     return false;
   }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(KMember member) {
+    _MemberData memberData = elementMap._memberList[member.memberIndex];
+    return memberData.getMetadata(elementMap);
+  }
 }
 
 /// Visitor that converts kernel dart types into [DartType].
