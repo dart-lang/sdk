@@ -1308,11 +1308,14 @@ LayoutTests/fast/lists/list-style-position-inside_t01: RuntimeError # co19-roll 
 LayoutTests/fast/lists/marker-preferred-margins_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/fixed-column-percent-logical-height-orthogonal-writing-mode_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/table/css-table-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -1339,5 +1342,6 @@ WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeErro
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
