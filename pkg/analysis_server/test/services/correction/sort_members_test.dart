@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,8 +20,11 @@ main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
-  void test_classMembers_accessor() {
-    _parseTestUnit(r'''
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_classMembers_accessor() async {
+    await _parseTestUnit(r'''
 class A {
   set c(x) {}
   set a(x) {}
@@ -41,8 +47,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_accessor_static() {
-    _parseTestUnit(r'''
+  test_classMembers_accessor_static() async {
+    await _parseTestUnit(r'''
 class A {
   get a => null;
   set a(x) {}
@@ -61,8 +67,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_constructor() {
-    _parseTestUnit(r'''
+  test_classMembers_constructor() async {
+    await _parseTestUnit(r'''
 class A {
   A.c() {   }
   A.a() { }
@@ -81,8 +87,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_external_constructorMethod() {
-    _parseTestUnit(r'''
+  test_classMembers_external_constructorMethod() async {
+    await _parseTestUnit(r'''
 class Chart {
   external Pie();
   external Chart();
@@ -97,8 +103,8 @@ class Chart {
 ''');
   }
 
-  void test_classMembers_field() {
-    _parseTestUnit(r'''
+  test_classMembers_field() async {
+    await _parseTestUnit(r'''
 class A {
   String c;
   int a;
@@ -117,8 +123,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_field_static() {
-    _parseTestUnit(r'''
+  test_classMembers_field_static() async {
+    await _parseTestUnit(r'''
 class A {
   int b;
   int a;
@@ -137,8 +143,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_method() {
-    _parseTestUnit(r'''
+  test_classMembers_method() async {
+    await _parseTestUnit(r'''
 class A {
   c() {}
   a() {}
@@ -155,8 +161,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_method_emptyLine() {
-    _parseTestUnit(r'''
+  test_classMembers_method_emptyLine() async {
+    await _parseTestUnit(r'''
 class A {
   b() {}
 
@@ -173,8 +179,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_method_ignoreCase() {
-    _parseTestUnit(r'''
+  test_classMembers_method_ignoreCase() async {
+    await _parseTestUnit(r'''
 class A {
   m_C() {}
   m_a() {}
@@ -191,8 +197,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_method_static() {
-    _parseTestUnit(r'''
+  test_classMembers_method_static() async {
+    await _parseTestUnit(r'''
 class A {
   static a() {}
   b() {}
@@ -207,8 +213,8 @@ class A {
 ''');
   }
 
-  void test_classMembers_mix() {
-    _parseTestUnit(r'''
+  test_classMembers_mix() async {
+    await _parseTestUnit(r'''
 class A {
   /// static field public
   static int nnn;
@@ -307,8 +313,8 @@ class A {
 ''');
   }
 
-  void test_directives() {
-    _parseTestUnit(r'''
+  test_directives() async {
+    await _parseTestUnit(r'''
 library lib;
 
 export 'dart:bbb';
@@ -369,8 +375,8 @@ main() {
 ''');
   }
 
-  void test_directives_docComment_hasLibrary_lines() {
-    _parseTestUnit(r'''
+  test_directives_docComment_hasLibrary_lines() async {
+    await _parseTestUnit(r'''
 /// Library documentation comment A.
 /// Library documentation comment B.
 library foo.bar;
@@ -399,8 +405,8 @@ import 'b.dart';
 ''');
   }
 
-  void test_directives_docComment_hasLibrary_stars() {
-    _parseTestUnit(r'''
+  test_directives_docComment_hasLibrary_stars() async {
+    await _parseTestUnit(r'''
 /**
  * Library documentation comment A.
  * Library documentation comment B.
@@ -437,8 +443,8 @@ import 'b.dart';
 ''');
   }
 
-  void test_directives_docComment_noLibrary_lines() {
-    _parseTestUnit(r'''
+  test_directives_docComment_noLibrary_lines() async {
+    await _parseTestUnit(r'''
 /// Library documentation comment A
 /// Library documentation comment B
 import 'b.dart';
@@ -457,8 +463,8 @@ import 'b.dart';
 ''');
   }
 
-  void test_directives_docComment_noLibrary_stars() {
-    _parseTestUnit(r'''
+  test_directives_docComment_noLibrary_stars() async {
+    await _parseTestUnit(r'''
 /**
  * Library documentation comment A.
  * Library documentation comment B.
@@ -485,8 +491,8 @@ import 'b.dart';
 ''');
   }
 
-  void test_directives_imports_packageAndPath() {
-    _parseTestUnit(r'''
+  test_directives_imports_packageAndPath() async {
+    await _parseTestUnit(r'''
 library lib;
 
 import 'package:product.ui.api.bbb/manager1.dart';
@@ -509,8 +515,8 @@ import 'package:product2.client/entity.dart';
 ''');
   }
 
-  void test_unitMembers_class() {
-    _parseTestUnit(r'''
+  test_unitMembers_class() async {
+    await _parseTestUnit(r'''
 class C {}
 class A {}
 class B {}
@@ -523,8 +529,8 @@ class C {}
 ''');
   }
 
-  void test_unitMembers_class_ignoreCase() {
-    _parseTestUnit(r'''
+  test_unitMembers_class_ignoreCase() async {
+    await _parseTestUnit(r'''
 class C {}
 class a {}
 class B {}
@@ -537,8 +543,8 @@ class C {}
 ''');
   }
 
-  void test_unitMembers_classTypeAlias() {
-    _parseTestUnit(r'''
+  test_unitMembers_classTypeAlias() async {
+    await _parseTestUnit(r'''
 class M {}
 class C = Object with M;
 class A = Object with M;
@@ -553,8 +559,8 @@ class M {}
 ''');
   }
 
-  void test_unitMembers_directive_hasDirective() {
-    _parseTestUnit(r'''
+  test_unitMembers_directive_hasDirective() async {
+    await _parseTestUnit(r'''
 library lib;
 class C {}
 class A {}
@@ -569,8 +575,8 @@ class C {}
 ''');
   }
 
-  void test_unitMembers_directive_noDirective_hasComment_line() {
-    _parseTestUnit(r'''
+  test_unitMembers_directive_noDirective_hasComment_line() async {
+    await _parseTestUnit(r'''
 // Some comment
 
 class B {}
@@ -587,8 +593,8 @@ class B {}
 ''');
   }
 
-  void test_unitMembers_directive_noDirective_noComment() {
-    _parseTestUnit(r'''
+  test_unitMembers_directive_noDirective_noComment() async {
+    await _parseTestUnit(r'''
 
 class B {}
 
@@ -603,8 +609,8 @@ class B {}
 ''');
   }
 
-  void test_unitMembers_enum() {
-    _parseTestUnit(r'''
+  test_unitMembers_enum() async {
+    await _parseTestUnit(r'''
 enum C {x, y}
 enum A {x, y}
 enum B {x, y}
@@ -617,8 +623,8 @@ enum C {x, y}
 ''');
   }
 
-  void test_unitMembers_enumClass() {
-    _parseTestUnit(r'''
+  test_unitMembers_enumClass() async {
+    await _parseTestUnit(r'''
 enum C {x, y}
 class A {}
 class D {}
@@ -633,8 +639,8 @@ class D {}
 ''');
   }
 
-  void test_unitMembers_function() {
-    _parseTestUnit(r'''
+  test_unitMembers_function() async {
+    await _parseTestUnit(r'''
 fc() {}
 fa() {}
 fb() {}
@@ -647,8 +653,8 @@ fc() {}
 ''');
   }
 
-  void test_unitMembers_functionTypeAlias() {
-    _parseTestUnit(r'''
+  test_unitMembers_functionTypeAlias() async {
+    await _parseTestUnit(r'''
 typedef FC();
 typedef FA();
 typedef FB();
@@ -661,8 +667,8 @@ typedef FC();
 ''');
   }
 
-  void test_unitMembers_importsAndDeclarations() {
-    _parseTestUnit(r'''
+  test_unitMembers_importsAndDeclarations() async {
+    await _parseTestUnit(r'''
 import 'dart:a';
 import 'package:b';
 
@@ -684,8 +690,8 @@ foo() {
 ''');
   }
 
-  void test_unitMembers_mainFirst() {
-    _parseTestUnit(r'''
+  test_unitMembers_mainFirst() async {
+    await _parseTestUnit(r'''
 class C {}
 aaa() {}
 get bbb() {}
@@ -704,8 +710,8 @@ class C {}
 ''');
   }
 
-  void test_unitMembers_mix() {
-    _parseTestUnit(r'''
+  test_unitMembers_mix() async {
+    await _parseTestUnit(r'''
 _mmm() {}
 typedef nnn();
 _nnn() {}
@@ -760,8 +766,8 @@ class _nnn {}
 ''');
   }
 
-  void test_unitMembers_topLevelVariable() {
-    _parseTestUnit(r'''
+  test_unitMembers_topLevelVariable() async {
+    await _parseTestUnit(r'''
 int c;
 int a;
 int b;
@@ -774,8 +780,8 @@ int c;
 ''');
   }
 
-  void test_unitMembers_topLevelVariable_withConst() {
-    _parseTestUnit(r'''
+  test_unitMembers_topLevelVariable_withConst() async {
+    await _parseTestUnit(r'''
 int c;
 int a;
 const B = 2;
@@ -799,8 +805,9 @@ int c;
     expect(result, expectedCode);
   }
 
-  void _parseTestUnit(String code) {
+  Future<Null> _parseTestUnit(String code) async {
     addTestSource(code);
-    testUnit = context.parseCompilationUnit(testSource);
+    ParseResult result = await driver.parseFile(testSource.fullName);
+    testUnit = result.unit;
   }
 }

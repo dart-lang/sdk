@@ -43,7 +43,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     Element element = findElement('MyClass');
     SourceRange range = rangeElementName(element);
     SearchMatch match = new SearchMatchImpl(
-        context,
+        element.context,
         element.library.source.uri.toString(),
         element.source.uri.toString(),
         null,
