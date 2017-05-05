@@ -14,12 +14,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
-    defineReflectiveTests(NamedConstructorContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class NamedConstructorContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   CompletionSuggestion assertSuggestNamedConstructor(
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT,
@@ -182,11 +184,4 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
-}
-
-@reflectiveTest
-class NamedConstructorContributorTest_Driver
-    extends NamedConstructorContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

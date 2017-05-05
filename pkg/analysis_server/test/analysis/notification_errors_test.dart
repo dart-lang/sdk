@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification_errors;
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -23,12 +21,11 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotificationErrorsTest);
-    defineReflectiveTests(NotificationErrorsTest_Driver);
   });
 }
 
 @reflectiveTest
-class AbstractNotificationErrorsTest extends AbstractAnalysisTest {
+class NotificationErrorsTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   void processNotification(Notification notification) {
@@ -40,6 +37,8 @@ class AbstractNotificationErrorsTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
     registerLintRules();
     super.setUp();
     server.handlers = [
@@ -151,18 +150,5 @@ main() {
     AnalysisError error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
-  }
-}
-
-@reflectiveTest
-class NotificationErrorsTest extends AbstractNotificationErrorsTest {}
-
-@reflectiveTest
-class NotificationErrorsTest_Driver extends AbstractNotificationErrorsTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    generateSummaryFiles = true;
-    super.setUp();
   }
 }

@@ -12,7 +12,6 @@ import 'analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDomainTest);
-    defineReflectiveTests(DiagnosticDomainTest_Driver);
   });
 }
 
@@ -20,6 +19,8 @@ main() {
 class DiagnosticDomainTest extends AbstractAnalysisTest {
   @override
   void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
     super.setUp();
     handler = new DiagnosticDomainHandler(server);
     server.handlers = [handler];
@@ -54,15 +55,5 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     var response = handler.handleRequest(request);
     var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
-  }
-}
-
-@reflectiveTest
-class DiagnosticDomainTest_Driver extends DiagnosticDomainTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    generateSummaryFiles = true;
-    super.setUp();
   }
 }

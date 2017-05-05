@@ -14,12 +14,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
-    defineReflectiveTests(LocalLibraryContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class LocalLibraryContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   DartCompletionContributor createContributor() {
     return new LocalLibraryContributor();
@@ -306,10 +308,4 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
-}
-
-@reflectiveTest
-class LocalLibraryContributorTest_Driver extends LocalLibraryContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

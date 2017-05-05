@@ -31,7 +31,6 @@ import 'flutter_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
-    defineReflectiveTests(AssistProcessorTest_Driver);
   });
 }
 
@@ -45,6 +44,9 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   SourceChange change;
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
@@ -4716,12 +4718,6 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
-}
-
-@reflectiveTest
-class AssistProcessorTest_Driver extends AssistProcessorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class _DartAssistContextForValues implements DartAssistContext {

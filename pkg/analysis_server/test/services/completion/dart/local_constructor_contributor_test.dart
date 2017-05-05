@@ -14,12 +14,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalConstructorContributorTest);
-    defineReflectiveTests(LocalConstructorContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class LocalConstructorContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
@@ -55,6 +57,23 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
     return new LocalConstructorContributor();
+  }
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_cons_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  A(int bar, {bool boo, @required int baz});
+  baz() {
+    new A^
+  }
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
   }
 
   test_ArgumentList() async {
@@ -4140,29 +4159,5 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class LocalConstructorContributorTest_Driver
-    extends LocalConstructorContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  /// Sanity check.  Permutations tested in local_ref_contributor.
-  test_ArgDefaults_cons_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-class A {
-  A(int bar, {bool boo, @required int baz});
-  baz() {
-    new A^
-  }
-}''');
-    await computeSuggestions();
-
-    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
   }
 }

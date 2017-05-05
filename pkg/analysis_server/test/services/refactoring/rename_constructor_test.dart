@@ -15,12 +15,14 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameConstructorTest);
-    defineReflectiveTests(RenameConstructorTest_Driver);
   });
 }
 
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
@@ -249,10 +251,4 @@ main() {
         search, (node) => node is InstanceCreationExpression);
     createRenameRefactoringForElement(element);
   }
-}
-
-@reflectiveTest
-class RenameConstructorTest_Driver extends RenameConstructorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

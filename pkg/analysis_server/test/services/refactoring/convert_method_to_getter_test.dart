@@ -16,13 +16,15 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertMethodToGetterTest);
-    defineReflectiveTests(ConvertMethodToGetterTest_Driver);
   });
 }
 
 @reflectiveTest
 class ConvertMethodToGetterTest extends RefactoringTest {
   ConvertMethodToGetterRefactoring refactoring;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_change_function() async {
     await indexTestUnit('''
@@ -213,10 +215,4 @@ void test() {}
     ExecutableElement element = findNodeElementAtString(search);
     _createRefactoringForElement(element);
   }
-}
-
-@reflectiveTest
-class ConvertMethodToGetterTest_Driver extends ConvertMethodToGetterTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

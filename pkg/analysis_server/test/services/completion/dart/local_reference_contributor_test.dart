@@ -14,12 +14,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
-    defineReflectiveTests(LocalReferenceContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class LocalReferenceContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {
@@ -55,6 +57,79 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
     return new LocalReferenceContributor();
+  }
+
+  test_ArgDefaults_function() async {
+    addTestSource('''
+bool hasLength(int a, bool b) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'a, b',
+        defaultArgumentListTextRanges: [0, 1, 3, 1]);
+  }
+
+  test_ArgDefaults_function_none() async {
+    addTestSource('''
+bool hasLength() => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: null,
+        defaultArgumentListTextRanges: null);
+  }
+
+  test_ArgDefaults_function_with_optional_positional() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, [bool boo, int baz]) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar',
+        defaultArgumentListTextRanges: [0, 3]);
+  }
+
+  test_ArgDefaults_function_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+  }
+
+  test_ArgDefaults_method_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, {bool boo, @required int baz}) => false;
+  baz() {
+    f^
+  }
+}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_METHOD,
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
   }
 
   test_ArgumentList() async {
@@ -4584,85 +4659,5 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertSuggestLocalVariable('f', null);
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class LocalReferenceContributorTest_Driver
-    extends LocalReferenceContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_ArgDefaults_function() async {
-    addTestSource('''
-bool hasLength(int a, bool b) => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('hasLength', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'a, b',
-        defaultArgumentListTextRanges: [0, 1, 3, 1]);
-  }
-
-  test_ArgDefaults_function_none() async {
-    addTestSource('''
-bool hasLength() => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('hasLength', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: null,
-        defaultArgumentListTextRanges: null);
-  }
-
-  test_ArgDefaults_function_with_optional_positional() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-bool foo(int bar, [bool boo, int baz]) => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('foo', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'bar',
-        defaultArgumentListTextRanges: [0, 3]);
-  }
-
-  test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-bool foo(int bar, {bool boo, @required int baz}) => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('foo', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
-  }
-
-  test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-class A {
-  bool foo(int bar, {bool boo, @required int baz}) => false;
-  baz() {
-    f^
-  }
-}''');
-    await computeSuggestions();
-
-    assertSuggestMethod('foo', 'A', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_METHOD,
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
   }
 }

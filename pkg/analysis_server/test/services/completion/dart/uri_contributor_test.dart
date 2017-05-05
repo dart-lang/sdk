@@ -16,13 +16,14 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriContributorTest);
     defineReflectiveTests(UriContributorWindowsTest);
-    defineReflectiveTests(UriContributorTest_Driver);
-    defineReflectiveTests(UriContributorWindowsTest_Driver);
   });
 }
 
 @reflectiveTest
 class UriContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   DartCompletionContributor createContributor() {
     return new UriContributor();
@@ -463,13 +464,10 @@ class UriContributorTest extends DartCompletionContributorTest {
 }
 
 @reflectiveTest
-class UriContributorTest_Driver extends UriContributorTest {
+class UriContributorWindowsTest extends DartCompletionContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-}
 
-@reflectiveTest
-class UriContributorWindowsTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
     return new UriContributor();
@@ -632,12 +630,6 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
     assertNotSuggested('foo/bar.dart');
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
-}
-
-@reflectiveTest
-class UriContributorWindowsTest_Driver extends UriContributorWindowsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class _TestWinResourceProvider extends MemoryResourceProvider {

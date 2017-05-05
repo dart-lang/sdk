@@ -15,18 +15,44 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritedContributorTest);
-    defineReflectiveTests(InheritedContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class InheritedContributorTest extends DartCompletionContributorTest {
   @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
   @override
   DartCompletionContributor createContributor() {
     return new InheritedReferenceContributor();
+  }
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_inherited_method_with_required_named() async {
+    addMetaPackageSource();
+    resolveSource(
+        '/testB.dart',
+        '''
+import 'package:meta/meta.dart';
+
+lib libB;
+class A {
+   bool foo(int bar, {bool boo, @required int baz}) => false;
+}''');
+    addTestSource('''
+import "/testB.dart";
+class B extends A {
+  b() => f^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        defaultArgListString: 'bar, baz: null');
   }
 
   test_AwaitExpression_inherited() async {
@@ -616,35 +642,5 @@ class B extends A1 with A2 {
     assertNotSuggested('y1');
     assertNotSuggested('x2');
     assertNotSuggested('y2');
-  }
-}
-
-@reflectiveTest
-class InheritedContributorTest_Driver extends InheritedContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  /// Sanity check.  Permutations tested in local_ref_contributor.
-  test_ArgDefaults_inherited_method_with_required_named() async {
-    addMetaPackageSource();
-    resolveSource(
-        '/testB.dart',
-        '''
-import 'package:meta/meta.dart';
-
-lib libB;
-class A {
-   bool foo(int bar, {bool boo, @required int baz}) => false;
-}''');
-    addTestSource('''
-import "/testB.dart";
-class B extends A {
-  b() => f^
-}
-''');
-    await computeSuggestions();
-
-    assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
   }
 }

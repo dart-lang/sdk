@@ -15,12 +15,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixContributorTest);
-    defineReflectiveTests(LibraryPrefixContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class LibraryPrefixContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   void assertSuggestLibraryPrefixes(List<String> expectedPrefixes) {
     for (String prefix in expectedPrefixes) {
       CompletionSuggestion cs = assertSuggest(prefix,
@@ -375,10 +377,4 @@ main() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
-}
-
-@reflectiveTest
-class LibraryPrefixContributorTest_Driver extends LibraryPrefixContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

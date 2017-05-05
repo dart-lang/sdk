@@ -16,13 +16,15 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodTest);
-    defineReflectiveTests(ExtractMethodTest_Driver);
   });
 }
 
 @reflectiveTest
 class ExtractMethodTest extends RefactoringTest {
   ExtractMethodRefactoringImpl refactoring;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_bad_assignmentLeftHandSide() async {
     await indexTestUnit('''
@@ -2840,10 +2842,4 @@ Future<int> newFuture() => null;
       return new RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
     }).toList();
   }
-}
-
-@reflectiveTest
-class ExtractMethodTest_Driver extends ExtractMethodTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -31,8 +31,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
     defineReflectiveTests(LintFixTest);
-    defineReflectiveTests(FixProcessorTest_Driver);
-    defineReflectiveTests(LintFixTest_Driver);
   });
 }
 
@@ -230,6 +228,9 @@ bool test() {
 
 @reflectiveTest
 class FixProcessorTest extends BaseFixProcessorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_addFieldFormalParameters_hasRequiredParameter() async {
     await resolveTestUnit('''
 class Test {
@@ -5886,14 +5887,11 @@ class Required {
 }
 
 @reflectiveTest
-class FixProcessorTest_Driver extends FixProcessorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}
-
-@reflectiveTest
 class LintFixTest extends BaseFixProcessorTest {
   AnalysisError error;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   Future applyFix(FixKind kind) async {
     fix = await _assertHasFix(kind, error);
@@ -6866,12 +6864,6 @@ Function finalVar() {
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
-}
-
-@reflectiveTest
-class LintFixTest_Driver extends LintFixTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class _DartFixContextImpl implements DartFixContext {

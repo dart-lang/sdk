@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification.analyzedDirectories;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -18,7 +16,6 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest);
-    defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest_Driver);
   });
 }
 
@@ -47,6 +44,8 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   }
 
   void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
     super.setUp();
     createProject();
   }
@@ -112,16 +111,5 @@ class A {}
 
   void unsubscribeAnalyzedFiles() {
     removeGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
-  }
-}
-
-@reflectiveTest
-class AnalysisNotificationAnalyzedFilesTest_Driver
-    extends AnalysisNotificationAnalyzedFilesTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    generateSummaryFiles = true;
-    super.setUp();
   }
 }

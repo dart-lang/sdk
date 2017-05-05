@@ -12,12 +12,14 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
-    defineReflectiveTests(RenameUnitMemberTest_Driver);
   });
 }
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}
@@ -621,10 +623,4 @@ main() {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class RenameUnitMemberTest_Driver extends RenameUnitMemberTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

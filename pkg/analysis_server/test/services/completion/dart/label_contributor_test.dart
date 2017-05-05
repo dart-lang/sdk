@@ -14,12 +14,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LabelContributorTest);
-    defineReflectiveTests(LabelContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class LabelContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   CompletionSuggestion assertSuggestLabel(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER}) {
@@ -319,10 +321,4 @@ void main() {
     await computeSuggestions();
     assertSuggestLabel('foo');
   }
-}
-
-@reflectiveTest
-class LabelContributorTest_Driver extends LabelContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

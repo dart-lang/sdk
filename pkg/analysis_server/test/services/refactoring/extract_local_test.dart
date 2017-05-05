@@ -17,13 +17,15 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
-    defineReflectiveTests(ExtractLocalTest_Driver);
   });
 }
 
 @reflectiveTest
 class ExtractLocalTest extends RefactoringTest {
   ExtractLocalRefactoringImpl refactoring;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
@@ -1344,10 +1346,4 @@ main() {
     }
     return subExpressions;
   }
-}
-
-@reflectiveTest
-class ExtractLocalTest_Driver extends ExtractLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

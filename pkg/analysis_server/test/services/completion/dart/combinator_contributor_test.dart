@@ -13,12 +13,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
-    defineReflectiveTests(CombinatorContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class CombinatorContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   DartCompletionContributor createContributor() {
     return new CombinatorContributor();
@@ -153,10 +155,4 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestTopLevelVar('PI', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
-}
-
-@reflectiveTest
-class CombinatorContributorTest_Driver extends CombinatorContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

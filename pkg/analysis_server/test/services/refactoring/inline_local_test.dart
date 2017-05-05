@@ -14,13 +14,15 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineLocalTest);
-    defineReflectiveTests(InlineLocalTest_Driver);
   });
 }
 
 @reflectiveTest
 class InlineLocalTest extends RefactoringTest {
   InlineLocalRefactoringImpl refactoring;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_access() async {
     await indexTestUnit('''
@@ -637,10 +639,4 @@ main() {
     refactoring =
         new InlineLocalRefactoring(searchEngine, astProvider, testUnit, offset);
   }
-}
-
-@reflectiveTest
-class InlineLocalTest_Driver extends InlineLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

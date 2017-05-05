@@ -12,12 +12,14 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLibraryTest);
-    defineReflectiveTests(RenameLibraryTest_Driver);
   });
 }
 
 @reflectiveTest
 class RenameLibraryTest extends RenameRefactoringTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_checkNewName() async {
     await indexTestUnit('''
 library my.app;
@@ -104,10 +106,4 @@ part of the.new.name;
   void _createRenameRefactoring() {
     createRenameRefactoringForElement(testUnitElement.library);
   }
-}
-
-@reflectiveTest
-class RenameLibraryTest_Driver extends RenameLibraryTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

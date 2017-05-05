@@ -12,12 +12,14 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLocalTest);
-    defineReflectiveTests(RenameLocalTest_Driver);
   });
 }
 
 @reflectiveTest
 class RenameLocalTest extends RenameRefactoringTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_checkFinalConditions_hasLocalFunction_after() async {
     await indexTestUnit('''
 main() {
@@ -551,10 +553,4 @@ main() {
     // old name
     expect(refactoring.oldName, 'test');
   }
-}
-
-@reflectiveTest
-class RenameLocalTest_Driver extends RenameLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

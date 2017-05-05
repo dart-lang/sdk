@@ -14,12 +14,14 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldFormalContributorTest);
-    defineReflectiveTests(FieldFormalContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class FieldFormalContributorTest extends DartCompletionContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   DartCompletionContributor createContributor() {
     return new FieldFormalContributor();
@@ -197,10 +199,4 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertSuggestField('y', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('x');
   }
-}
-
-@reflectiveTest
-class FieldFormalContributorTest_Driver extends FieldFormalContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

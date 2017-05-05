@@ -17,7 +17,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineMethodTest);
-    defineReflectiveTests(InlineMethodTest_Driver);
   });
 }
 
@@ -26,6 +25,9 @@ class InlineMethodTest extends RefactoringTest {
   InlineMethodRefactoringImpl refactoring;
   bool deleteSource;
   bool inlineAll;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_access_FunctionElement() async {
     await indexTestUnit(r'''
@@ -1714,10 +1716,4 @@ main(bool p, bool p2, bool p3) {
     refactoring = new InlineMethodRefactoring(
         searchEngine, astProvider, testUnit, offset);
   }
-}
-
-@reflectiveTest
-class InlineMethodTest_Driver extends InlineMethodTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

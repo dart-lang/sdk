@@ -12,12 +12,14 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameImportTest);
-    defineReflectiveTests(RenameImportTest_Driver);
   });
 }
 
 @reflectiveTest
 class RenameImportTest extends RenameRefactoringTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_checkNewName() async {
     await indexTestUnit("import 'dart:async' as test;");
     _createRefactoring("import 'dart:");
@@ -228,10 +230,4 @@ main() {
         findNodeAtString(search, (node) => node is ImportDirective);
     createRenameRefactoringForElement(directive.element);
   }
-}
-
-@reflectiveTest
-class RenameImportTest_Driver extends RenameImportTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
