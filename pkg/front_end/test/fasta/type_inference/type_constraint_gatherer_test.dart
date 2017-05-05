@@ -128,8 +128,11 @@ class TypeConstraintGathererTest {
       DartType a, DartType b, List<String> expectedConstraints) {
     var typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(program));
-    var constraints =
-        subtypeMatch(typeSchemaEnvironment, [T1.parameter, T2.parameter], a, b);
+    var typeConstraintGatherer = new TypeConstraintGatherer(
+        typeSchemaEnvironment, [T1.parameter, T2.parameter]);
+    var constraints = typeConstraintGatherer.trySubtypeMatch(a, b)
+        ? typeConstraintGatherer.computeConstraints()
+        : null;
     if (expectedConstraints == null) {
       expect(constraints, isNull);
       return;

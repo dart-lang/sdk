@@ -6,45 +6,9 @@ import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
 
-/// Attempts to find a set of constraints for the given [typeParameters] under
-/// which [subtype] is a subtype of [supertype].
-///
-/// If such a set can be found, it is returned (as a map from type parameter to
-/// constraint).  If it can't, `null` is returned.
-Map<TypeParameter, TypeConstraint> subtypeMatch(
-    TypeSchemaEnvironment environment,
-    Iterable<TypeParameter> typeParameters,
-    DartType subtype,
-    DartType supertype) {
-  var typeConstraintGatherer =
-      new _TypeConstraintGatherer(environment, typeParameters);
-  if (typeConstraintGatherer.isSubtypeMatch(subtype, supertype)) {
-    return typeConstraintGatherer.computeConstraints();
-  } else {
-    return null;
-  }
-}
-
-/// Tracks a single constraint on a single type variable.
-///
-/// This is called "_ProtoConstraint" to distinglish from [Constraint], which
-/// tracks the upper and lower bounds that are together implied by a set of
-/// [_ProtoConstraint]s.
-class _ProtoConstraint {
-  final TypeParameter parameter;
-
-  final DartType bound;
-
-  final bool isUpper;
-
-  _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
-
-  _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
-}
-
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
-class _TypeConstraintGatherer {
+class TypeConstraintGatherer {
   final TypeSchemaEnvironment environment;
 
   final _protoConstraints = <_ProtoConstraint>[];
@@ -53,7 +17,7 @@ class _TypeConstraintGatherer {
 
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
-  _TypeConstraintGatherer(
+  TypeConstraintGatherer(
       this.environment, Iterable<TypeParameter> typeParameters)
       : _parametersToConstrain = typeParameters.toList();
 
@@ -75,12 +39,30 @@ class _TypeConstraintGatherer {
     return result;
   }
 
+  /// Tries to match [subtype] against [supertype].
+  ///
+  /// If the match suceeds, the resulting type constraints are recorded for
+  /// later use by [computeConstraints].  If the match fails, the set of type
+  /// constraints is unchanged.
+  bool trySubtypeMatch(DartType subtype, DartType supertype) {
+    int oldProtoConstraintsLength = _protoConstraints.length;
+    bool isMatch = _isSubtypeMatch(subtype, supertype);
+    if (!isMatch) {
+      _protoConstraints.length = oldProtoConstraintsLength;
+    }
+    return isMatch;
+  }
+
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
-  /// constraints discovered in the process.  If a set of constraints was found,
-  /// `true` is returned and the caller may proceed to call
-  /// [computeConstraints].  Otherwise, `false` is returned and the set of
-  /// gathered constraints is undefined.
-  bool isSubtypeMatch(DartType subtype, DartType supertype) {
+  /// constraints discovered in the process.
+  ///
+  /// If a set of constraints was found, `true` is returned and the caller
+  /// may proceed to call [computeConstraints].  Otherwise, `false` is returned.
+  ///
+  /// In the case where `false` is returned, some bogus constraints may have
+  /// been added to [_protoConstraints].  It is the caller's responsibility to
+  /// discard them if necessary.
+  bool _isSubtypeMatch(DartType subtype, DartType supertype) {
     // The unknown type `?` is a subtype match for any type `Q` with no
     // constraints.
     if (subtype is UnknownType) return true;
@@ -152,7 +134,7 @@ class _TypeConstraintGatherer {
       // type `Q` with respect to `L` under constraints `C`:
       // - If `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C`.
-      return isSubtypeMatch(subtype.parameter.bound, supertype);
+      return _isSubtypeMatch(subtype.parameter.bound, supertype);
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
       return _isInterfaceSubtypeMatch(subtype, supertype);
@@ -225,7 +207,7 @@ class _TypeConstraintGatherer {
         environment.hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtype == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
-      if (!isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
+      if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
           supertype.typeArguments[i])) {
         return false;
       }
@@ -247,4 +229,21 @@ class _TypeConstraintGatherer {
       type is VoidType ||
       (type is InterfaceType &&
           identical(type.classNode, environment.coreTypes.objectClass));
+}
+
+/// Tracks a single constraint on a single type variable.
+///
+/// This is called "_ProtoConstraint" to distinguish from [TypeConstraint],
+/// which tracks the upper and lower bounds that are together implied by a set
+/// of [_ProtoConstraint]s.
+class _ProtoConstraint {
+  final TypeParameter parameter;
+
+  final DartType bound;
+
+  final bool isUpper;
+
+  _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
+
+  _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
 }

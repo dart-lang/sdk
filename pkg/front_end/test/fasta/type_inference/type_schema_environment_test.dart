@@ -259,6 +259,47 @@ class TypeSchemaEnvironmentTest {
     expect(env.getGreatestLowerBound(A, B), same(bottomType));
   }
 
+  void test_inferGenericFunctionOrType() {
+    var env = _makeEnv();
+    {
+      // Test an instantiation of [1, 2.0] with no context.  This should infer
+      // as List<?> during downwards inference.
+      var typesFromDownwardsInference = <DartType>[null];
+      TypeParameterType T = listClass.thisType.typeArguments[0];
+      expect(
+          env.inferGenericFunctionOrType([T.parameter], listClass.thisType, [],
+              [], null, typesFromDownwardsInference,
+              downwards: true),
+          _list(unknownType));
+      // And upwards inference should refine it to List<num>.
+      expect(
+          env.inferGenericFunctionOrType([T.parameter], listClass.thisType,
+              [T, T], [intType, doubleType], null, typesFromDownwardsInference),
+          _list(numType));
+    }
+    {
+      // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
+      // should infer as List<Object> during downwards inference.
+      var typesFromDownwardsInference = <DartType>[null];
+      TypeParameterType T = listClass.thisType.typeArguments[0];
+      expect(
+          env.inferGenericFunctionOrType([T.parameter], listClass.thisType, [],
+              [], _list(objectType), typesFromDownwardsInference,
+              downwards: true),
+          _list(objectType));
+      // And upwards inference should preserve the type.
+      expect(
+          env.inferGenericFunctionOrType(
+              [T.parameter],
+              listClass.thisType,
+              [T, T],
+              [intType, doubleType],
+              _list(objectType),
+              typesFromDownwardsInference),
+          _list(objectType));
+    }
+  }
+
   void test_inferTypeFromConstraints_applyBound() {
     // class A<T extends num> {}
     var T = new TypeParameter('T', numType);

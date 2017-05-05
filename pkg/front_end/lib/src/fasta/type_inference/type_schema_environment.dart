@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:kernel/ast.dart';
@@ -155,6 +156,68 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // Should never happen. As a defensive measure, return the dynamic type.
     assert(false);
     return const DynamicType();
+  }
+
+  /// Infers a generic type, function, method, or list/map literal
+  /// instantiation, using the downward context type as well as the argument
+  /// types if available.
+  ///
+  /// For example, given a function type with generic type parameters, this
+  /// infers the type parameters from the actual argument types, and returns the
+  /// instantiated function type.
+  ///
+  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
+  /// result type R, and generic type parameters T0, T1, ... Tm, use the
+  /// argument types A0, A1, ... An to solve for the type parameters.
+  ///
+  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
+  /// running the subtype algorithm, and when we reach a type parameter Tj,
+  /// recording the lower or upper bound it must satisfy. At the end, all
+  /// constraints can be combined to determine the type.
+  ///
+  /// All constraints on each type parameter Tj are tracked, as well as where
+  /// they originated, so we can issue an error message tracing back to the
+  /// argument values, type parameter "extends" clause, or the return type
+  /// context.
+  ///
+  /// TODO(paulberry): I think [formalTypes] and [actualTypes] might only be
+  /// used for upwards inference.  If this is the case, consider having the
+  /// caller to pass `null` for these to signal downwards inference, rather than
+  /// use an optional boolean parameter that might easily be missed.
+  DartType inferGenericFunctionOrType(
+      List<TypeParameter> typeParametersToInfer,
+      DartType genericType,
+      List<DartType> formalTypes,
+      List<DartType> actualTypes,
+      DartType returnContextType,
+      List<DartType> typesFromDownwardsInference,
+      {bool downwards: false}) {
+    if (typeParametersToInfer.isEmpty) {
+      return genericType;
+    }
+
+    // Create a TypeConstraintGatherer that will allow certain type parameters
+    // to be inferred. It will optimistically assume these type parameters can
+    // be subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
+
+    DartType declaredReturnType =
+        genericType is FunctionType ? genericType.returnType : genericType;
+
+    if (returnContextType != null) {
+      gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
+    }
+
+    for (int i = 0; i < actualTypes.length; i++) {
+      // Try to pass each argument to each parameter, recording any type
+      // parameter bounds that were implied by this assignment.
+      gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+    }
+
+    return inferTypeFromConstraints(gatherer.computeConstraints(), genericType,
+        typeParametersToInfer, typesFromDownwardsInference,
+        downwardsInferPhase: downwards);
   }
 
   /// Use the given [constraints] to substitute for type variables in
