@@ -7,7 +7,7 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, InterfaceType, Member;
+    show BottomType, DartType, DynamicType, InterfaceType, Member;
 import 'package:kernel/core_types.dart';
 
 /// Keeps track of the local state for the type inference that occurs during
@@ -120,6 +120,21 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
         typeSchemaEnvironment.getLeastUpperBound(thenType, otherwiseType);
     setStaticType(type);
     return typeNeeded ? type : null;
+  }
+
+  /// Maps the type of a variable's initializer expression to the correct
+  /// inferred type for the variable.
+  DartType inferDeclarationType(DartType initializerType) {
+    if (initializerType is BottomType ||
+        (initializerType is InterfaceType &&
+            initializerType.classNode == coreTypes.nullClass)) {
+      // If the initializer type is Null or bottom, the inferred type is
+      // dynamic.
+      // TODO(paulberry): this rule is inherited from analyzer behavior but is
+      // not spec'ed anywhere.
+      return const DynamicType();
+    }
+    return initializerType;
   }
 
   /// Performs the core type inference algorithm for double literals.
@@ -293,6 +308,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return typeNeeded ? inferredListType : null;
   }
 
+  /// Performs the core type inference algorithm for null literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferNullLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.nullClass.rawType : null;
+  }
+
   /// Performs the core type inference algorithm for static variable getters.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -335,8 +358,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   void inferVariableDeclaration(DartType declaredType, E initializer,
       int offset, void setType(DartType type)) {
     if (initializer == null) return;
-    var inferredType =
-        inferExpression(initializer, declaredType, declaredType == null);
+    var inferredType = inferDeclarationType(
+        inferExpression(initializer, declaredType, declaredType == null));
     if (strongMode && declaredType == null) {
       instrumentation?.record(Uri.parse(uri), offset, 'type',
           new InstrumentationValueForType(inferredType));

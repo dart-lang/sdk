@@ -364,6 +364,7 @@ class KernelMethodInvocation extends MethodInvocation
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
+    inferrer.inferExpression(receiver, null, false);
     return typeNeeded ? const DynamicType() : null;
   }
 }
@@ -385,8 +386,7 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(paulberry): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferNullLiteral(typeContext, typeNeeded);
   }
 }
 

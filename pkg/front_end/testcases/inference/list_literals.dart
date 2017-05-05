@@ -19,3 +19,8 @@ test2() {
   /*@promotedType=none*/ x.add(4.0);
   List<int> y = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ x;
 }
+
+main() {
+  test1();
+  test2();
+}
