@@ -175,6 +175,7 @@ class EditDomainHandler extends AbstractRequestHandler {
             offset,
             length,
             compilationUnitElement.context,
+            server.getAstProvider(file),
             unit);
         try {
           AssistProcessor processor = new AssistProcessor(dartAssistContext);
@@ -599,10 +600,13 @@ class _DartAssistContextForValues implements DartAssistContext {
   final engine.AnalysisContext analysisContext;
 
   @override
+  final AstProvider astProvider;
+
+  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisContext, this.unit);
+      this.selectionLength, this.analysisContext, this.astProvider, this.unit);
 }
 
 /**
