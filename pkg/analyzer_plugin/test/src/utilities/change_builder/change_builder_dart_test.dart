@@ -59,7 +59,7 @@ abstract class BuilderTestMixin {
 @reflectiveTest
 class DartChangeBuilderImplTest extends AbstractContextTest {
   test_createFileEditBuilder() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'library test;');
     int timeStamp = 54;
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
