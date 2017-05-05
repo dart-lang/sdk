@@ -76,7 +76,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
   test_writeClassDeclaration_interfaces() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
@@ -93,7 +93,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeClassDeclaration_isAbstract() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, '');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
@@ -108,7 +108,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeClassDeclaration_memberWriter() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, '');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
@@ -125,7 +125,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeClassDeclaration_mixins_noSuperclass() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
 
@@ -142,7 +142,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeClassDeclaration_mixins_superclass() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'class A {} class B {}');
     DartType typeA = await _getType(path, 'A');
     DartType typeB = await _getType(path, 'B');
@@ -160,7 +160,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeClassDeclaration_nameGroupName() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, '');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
@@ -182,7 +182,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeClassDeclaration_superclass() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'class B {}');
     DartType typeB = await _getType(path, 'B');
 
@@ -205,7 +205,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_initializerWriter() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -223,7 +223,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_isConst() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -238,7 +238,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_isConst_isFinal() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -254,7 +254,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_isFinal() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -269,7 +269,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_isStatic() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -284,7 +284,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_nameGroupName() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -309,7 +309,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFieldDeclaration_type_typeGroupName() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -335,7 +335,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFunctionDeclaration_noReturnType_noParams_body() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '';
     addSource(path, content);
 
@@ -353,7 +353,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '';
     addSource(path, content);
 
@@ -376,7 +376,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFunctionDeclaration_noReturnType_params_noBody() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '';
     addSource(path, content);
 
@@ -394,7 +394,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeFunctionDeclaration_returnType_noParams_noBody() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -419,7 +419,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeGetterDeclaration_bodyWriter() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -437,7 +437,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeGetterDeclaration_isStatic() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -453,7 +453,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeGetterDeclaration_nameGroupName() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -478,7 +478,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeGetterDeclaration_returnType() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -504,7 +504,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
   }
 
   test_writeLocalVariableDeclaration_noType_initializer() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -526,7 +526,7 @@ void f() {
   }
 
   test_writeLocalVariableDeclaration_noType_noInitializer() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -553,7 +553,7 @@ void f() {
   }
 
   test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -573,7 +573,7 @@ void f() {
   }
 
   test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -593,7 +593,7 @@ void f() {
   }
 
   test_writeLocalVariableDeclaration_type_initializer() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -618,7 +618,7 @@ class MyClass {}''';
   }
 
   test_writeLocalVariableDeclaration_type_noInitializer() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -648,7 +648,7 @@ class MyClass {}''';
   }
 
   test_writeLocalVariableDeclaration_type_noInitializer_final() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 void f() {
 
@@ -678,7 +678,7 @@ class MyClass {}''';
   }
 
   test_writeOverrideOfInheritedMember() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 class A {
   A add(A a) => null;
@@ -705,7 +705,7 @@ A add(A a) {
   }
 
   test_writeParameterMatchingArgument() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = r'''
 f() {}
 g() {
@@ -733,7 +733,7 @@ class A {}
   }
 
   test_writeParameters_named() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'f(int i, {String s}) {}';
     addSource(path, content);
 
@@ -754,7 +754,7 @@ class A {}
   }
 
   test_writeParameters_positional() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'f(int i, [String s]) {}';
     addSource(path, content);
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -774,7 +774,7 @@ class A {}
   }
 
   test_writeParameters_required() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'f(int i, String s) {}';
     addSource(path, content);
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -794,7 +794,7 @@ class A {}
   }
 
   test_writeParametersMatchingArguments_named() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 f(int i, String s) {
   g(s, index: i);
@@ -818,7 +818,7 @@ f(int i, String s) {
   }
 
   test_writeParametersMatchingArguments_required() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = '''
 f(int i, String s) {
   g(s, i);
@@ -842,7 +842,7 @@ f(int i, String s) {
   }
 
   test_writeParameterSource() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -858,7 +858,7 @@ f(int i, String s) {
   }
 
   test_writeType_dynamic() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -878,7 +878,7 @@ f(int i, String s) {
   }
 
   test_writeType_genericType() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B<E> {}';
     addSource(path, content);
     InterfaceType typeA = await _getType(path, 'A');
@@ -895,7 +895,7 @@ f(int i, String s) {
   }
 
   test_writeType_groupName() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
     DartType typeC = await _getType(path, 'C');
@@ -917,7 +917,7 @@ f(int i, String s) {
   }
 
   test_writeType_groupName_addSupertypeProposals() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
     DartType typeC = await _getType(path, 'C');
@@ -950,7 +950,7 @@ f(int i, String s) {
   }
 
   test_writeType_null() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -965,7 +965,7 @@ f(int i, String s) {
   }
 
   test_writeType_required_dynamic() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -987,7 +987,7 @@ f(int i, String s) {
   }
 
   test_writeType_required_notNull() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -1003,7 +1003,7 @@ f(int i, String s) {
   }
 
   test_writeType_required_null() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -1018,7 +1018,7 @@ f(int i, String s) {
   }
 
   test_writeType_simpleType() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -1034,7 +1034,7 @@ f(int i, String s) {
   }
 
   test_writeTypes_empty() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -1049,7 +1049,7 @@ f(int i, String s) {
   }
 
   test_writeTypes_noPrefix() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -1066,7 +1066,7 @@ f(int i, String s) {
   }
 
   test_writeTypes_null() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
     addSource(path, content);
 
@@ -1081,7 +1081,7 @@ f(int i, String s) {
   }
 
   test_writeTypes_prefix() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
     DartType typeA = await _getType(path, 'A');
@@ -1119,7 +1119,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
   }
 
   test_convertFunctionFromSyncToAsync() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'String f() {}');
 
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -1140,7 +1140,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
   }
 
   test_createEditBuilder() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'library test;');
     int timeStamp = 65;
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
@@ -1158,7 +1158,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
   }
 
   test_replaceTypeWithFuture() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(path, 'String f() {}');
 
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -1181,7 +1181,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
   test_addSuperTypesAsSuggestions() async {
-    String path = '/test.dart';
+    String path = provider.convertPath('/test.dart');
     addSource(
         path,
         '''
