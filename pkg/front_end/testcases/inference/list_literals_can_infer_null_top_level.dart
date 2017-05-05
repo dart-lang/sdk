@@ -6,3 +6,7 @@
 library test;
 
 var /*@topType=List<dynamic>*/ x = /*@typeArgs=dynamic*/ [null];
+
+main() {
+  x;
+}

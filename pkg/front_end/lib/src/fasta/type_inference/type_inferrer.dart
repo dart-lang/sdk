@@ -238,13 +238,59 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [typeContext], [typeNeeded], and the return value behave as described in
   /// [inferExpression].
   DartType inferListLiteral(
-      DartType typeContext, bool typeNeeded, DartType typeArgument) {
-    if (!typeNeeded) return null;
-    if (typeArgument != null) {
-      return new InterfaceType(coreTypes.listClass, [typeArgument]);
+      DartType typeContext,
+      bool typeNeeded,
+      int offset,
+      DartType declaredTypeArgument,
+      Iterable<E> expressions,
+      void setTypeArgument(DartType typeArgument)) {
+    var listClass = coreTypes.listClass;
+    var listType = listClass.thisType;
+    List<DartType> typesFromDownwardsInference;
+    InterfaceType inferredListType;
+    DartType inferredTypeArgument;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    bool inferenceNeeded = declaredTypeArgument == null && strongMode;
+    if (inferenceNeeded) {
+      typesFromDownwardsInference = [null];
+      inferredListType = typeSchemaEnvironment.inferGenericFunctionOrType(
+          listClass.typeParameters,
+          listType,
+          [],
+          [],
+          typeContext,
+          typesFromDownwardsInference,
+          downwards: true);
+      inferredTypeArgument = typesFromDownwardsInference[0];
+      formalTypes = [];
+      actualTypes = [];
+    } else {
+      inferredTypeArgument = declaredTypeArgument ?? const DynamicType();
+      inferredListType = new InterfaceType(listClass, [inferredTypeArgument]);
     }
-    // TODO(scheglov) Implement LUB for list elements
-    return const DynamicType();
+    for (var expression in expressions) {
+      var expressionType =
+          inferExpression(expression, inferredTypeArgument, inferenceNeeded);
+      if (inferenceNeeded) {
+        formalTypes.add(listType.typeArguments[0]);
+        actualTypes.add(expressionType);
+      }
+    }
+    if (inferenceNeeded) {
+      inferredListType = typeSchemaEnvironment.inferGenericFunctionOrType(
+          listClass.typeParameters,
+          listType,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          typesFromDownwardsInference);
+      inferredTypeArgument = inferredListType.typeArguments[0];
+      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
+          new InstrumentationValueForTypeArgs([inferredTypeArgument]));
+      setTypeArgument(inferredTypeArgument);
+    }
+    return typeNeeded ? inferredListType : null;
   }
 
   /// Performs the core type inference algorithm for static variable getters.

@@ -1283,11 +1283,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
     List<DartType> typeArguments = pop();
-    DartType typeArgument = const DynamicType();
+    DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = typeArguments.first;
       if (typeArguments.length > 1) {
-        typeArgument = const DynamicType();
+        typeArgument = null;
         warningNotError(
             "Too many type arguments on List literal.", beginToken.charOffset);
       }
