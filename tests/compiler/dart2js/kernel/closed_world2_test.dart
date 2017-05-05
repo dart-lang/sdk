@@ -89,6 +89,7 @@ main() {
   null is List<int>; // Use generic test
   method1(); // Both top level and instance method named 'method1' are live.
   #main; // Use a const symbol.
+  const Symbol('foo'); // Use the const Symbol constructor directly
   new Int8List(0); // Use redirect factory to abstract native class
 }
 '''

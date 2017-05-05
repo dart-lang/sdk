@@ -270,6 +270,9 @@ class KernelImpactBuilder extends ir.Visitor {
       {bool isConst: false}) {
     _visitArguments(node.arguments);
     ConstructorEntity constructor = elementAdapter.getConstructor(target);
+    if (commonElements.isSymbolConstructor(constructor)) {
+      impactBuilder.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
+    }
     InterfaceType type = elementAdapter.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     CallStructure callStructure =
