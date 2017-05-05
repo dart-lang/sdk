@@ -10,3 +10,7 @@ class A {}
 class B<T extends A> {}
 
 B v = null;
+
+main() {
+  v;
+}

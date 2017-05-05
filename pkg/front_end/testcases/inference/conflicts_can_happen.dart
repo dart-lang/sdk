@@ -29,3 +29,5 @@ class C1 implements A, B {
 class C2 implements B, A {
   /*error:INVALID_METHOD_OVERRIDE*/ get a => null;
 }
+
+main() {}

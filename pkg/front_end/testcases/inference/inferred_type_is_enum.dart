@@ -7,3 +7,7 @@ library test;
 
 enum E { v1 }
 final /*@topType=E*/ x = E.v1;
+
+main() {
+  x;
+}

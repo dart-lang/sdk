@@ -12,3 +12,5 @@ class C extends D {
 class D {
   set foo(int x) {}
 }
+
+main() {}

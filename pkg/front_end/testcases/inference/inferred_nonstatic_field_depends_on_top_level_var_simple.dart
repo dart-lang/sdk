@@ -10,3 +10,7 @@ var /*@topType=String*/ x = 'x';
 class C {
   var /*@topType=String*/ y = x;
 }
+
+main() {
+  x;
+}

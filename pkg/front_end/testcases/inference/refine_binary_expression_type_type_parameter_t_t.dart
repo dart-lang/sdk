@@ -20,3 +20,5 @@ class C<T extends num> {
     a *= b;
   }
 }
+
+main() {}

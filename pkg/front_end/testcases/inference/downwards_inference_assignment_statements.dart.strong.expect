@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::int> l;
+  l = <core::int>["hello"];
+  l = l = <core::int>[1];
+}

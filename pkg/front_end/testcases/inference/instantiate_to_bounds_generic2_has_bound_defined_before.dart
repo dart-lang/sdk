@@ -10,3 +10,7 @@ class A<T extends int> {}
 class B<T extends /*error:NOT_INSTANTIATED_BOUND*/ A> {}
 
 B v = null;
+
+main() {
+  v;
+}

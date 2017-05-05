@@ -14,3 +14,5 @@ abstract class D<T> {
 }
 
 typedef List<V> G<V>();
+
+main() {}

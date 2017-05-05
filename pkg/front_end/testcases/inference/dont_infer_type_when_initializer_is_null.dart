@@ -10,3 +10,7 @@ test() {
   x = "hi";
   x = 3;
 }
+
+main() {
+  test();
+}

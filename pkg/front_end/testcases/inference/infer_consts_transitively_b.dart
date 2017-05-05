@@ -3,3 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const b1 = 2;
+
+main() {
+  b1;
+}

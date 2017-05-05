@@ -97,11 +97,28 @@ class KernelConstructorInvocation extends ConstructorInvocation
       Reference targetReference, Arguments arguments)
       : super.byReference(targetReference, arguments);
 
+  void _forEachArgument(void callback(String name, Expression expression)) {
+    for (var expression in arguments.positional) {
+      callback(null, expression);
+    }
+    for (var namedExpression in arguments.named) {
+      callback(namedExpression.name, namedExpression.value);
+    }
+  }
+
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferConstructorInvocation(
+        typeContext,
+        typeNeeded,
+        fileOffset,
+        target,
+        arguments.types.isEmpty ? null : arguments.types,
+        _forEachArgument, (type) {
+      arguments = new Arguments(arguments.positional,
+          named: arguments.named, types: type.typeArguments);
+    });
   }
 }
 

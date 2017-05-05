@@ -19,3 +19,7 @@ foo() {
   int y = new C().x;
   String z = /*error:INVALID_ASSIGNMENT*/ new C().x;
 }
+
+main() {
+  foo();
+}

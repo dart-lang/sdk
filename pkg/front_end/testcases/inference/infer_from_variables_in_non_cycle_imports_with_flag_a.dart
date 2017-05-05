@@ -4,3 +4,7 @@
 
 /*@testedFeatures=inference*/
 var /*@topType=int*/ x = 2;
+
+main() {
+  x;
+}

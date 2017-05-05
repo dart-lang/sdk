@@ -25,3 +25,5 @@ var /*@topType=dynamic*/ v_postfix_pp =
     (new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f++);
 var /*@topType=dynamic*/ v_postfix_mm =
     (new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f--);
+
+main() {}

@@ -6,3 +6,5 @@
 class A {
   static var /*@topType=int*/ x = 2;
 }
+
+main() {}

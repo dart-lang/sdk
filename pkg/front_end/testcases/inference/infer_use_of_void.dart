@@ -14,3 +14,7 @@ class C extends B {
 }
 
 var /*@topType=dynamic*/ x = new C(). /*info:USE_OF_VOID_RESULT*/ f();
+
+main() {
+  x;
+}

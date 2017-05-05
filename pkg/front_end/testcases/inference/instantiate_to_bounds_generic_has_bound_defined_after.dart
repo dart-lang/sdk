@@ -8,3 +8,7 @@ library test;
 A v = null;
 
 class A<T extends int> {}
+
+main() {
+  v;
+}

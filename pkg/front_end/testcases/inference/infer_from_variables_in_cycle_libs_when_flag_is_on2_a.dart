@@ -8,3 +8,5 @@ import 'infer_from_variables_in_cycle_libs_when_flag_is_on2.dart';
 class A {
   static var /*@topType=int*/ x = 2;
 }
+
+main() {}

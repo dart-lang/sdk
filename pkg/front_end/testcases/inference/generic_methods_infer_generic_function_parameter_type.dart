@@ -14,3 +14,5 @@ class D<T> {
 }
 
 typedef void F<V>(V v);
+
+main() {}

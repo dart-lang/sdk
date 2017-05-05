@@ -15,3 +15,8 @@ class A {
   var /*@topType=dynamic*/ x2 = null;
   var /*@topType=int*/ y2 = 3;
 }
+
+main() {
+  x;
+  y;
+}
