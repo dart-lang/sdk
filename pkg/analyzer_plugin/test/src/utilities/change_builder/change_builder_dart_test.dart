@@ -1,13 +1,10 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
-import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
-import 'package:analysis_server/src/utilities/change_builder_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,10 +15,13 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_context.dart';
+import '../../../support/abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -58,9 +58,6 @@ abstract class BuilderTestMixin {
 
 @reflectiveTest
 class DartChangeBuilderImplTest extends AbstractContextTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_createFileEditBuilder() async {
     String path = '/test.dart';
     addSource(path, 'library test;');
@@ -78,9 +75,6 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 @reflectiveTest
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_writeClassDeclaration_interfaces() async {
     String path = '/test.dart';
     addSource(path, 'class A {}');
@@ -1118,9 +1112,6 @@ f(int i, String s) {
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   TypeProvider get typeProvider {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = new SourceFactoryImpl([new DartUriResolver(sdk)]);
@@ -1189,9 +1180,6 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
 
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_addSuperTypesAsSuggestions() async {
     String path = '/test.dart';
     addSource(

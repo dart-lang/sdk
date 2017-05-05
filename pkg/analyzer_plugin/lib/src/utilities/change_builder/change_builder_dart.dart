@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,22 +6,21 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide Element, ElementKind;
-import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
-import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/change_builder_core.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -773,10 +772,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    */
   Set<Source> librariesToImport = new Set<Source>();
 
-  /**
-   * The content of the file being edited.
-   */
-  String _content;
+//  /**
+//   * The content of the file being edited.
+//   */
+//  String _content;
 
   /**
    * Initialize a newly created builder to build a source file edit within the
@@ -811,20 +810,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         changeBuilder.sourceChange, unit.element.library, librariesToImport);
   }
 
-  /**
-   * Return the content of the file being edited.
-   */
-  String getContent() {
-    if (_content == null) {
-      CompilationUnitElement unitElement = unit.element;
-      AnalysisContext context = unitElement.context;
-      if (context == null) {
-        throw new CancelCorrectionException();
-      }
-      _content = context.getContents(unitElement.source).data;
-    }
-    return _content;
-  }
+//  /**
+//   * Return the content of the file being edited.
+//   */
+//  String getContent() {
+//    if (_content == null) {
+//      CompilationUnitElement unitElement = unit.element;
+//      AnalysisContext context = unitElement.context;
+//      if (context == null) {
+//        throw new CancelCorrectionException();
+//      }
+//      _content = context.getContents(unitElement.source).data;
+//    }
+//    return _content;
+//  }
 
   @override
   void importLibraries(Iterable<Source> libraries) {
@@ -853,19 +852,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     });
   }
 
-  /**
-   * Returns the text of the given [AstNode] in the unit.
-   */
-  String _getNodeText(AstNode node) {
-    return _getText(node.offset, node.length);
-  }
-
-  /**
-   * Returns the text of the given range in the unit.
-   */
-  String _getText(int offset, int length) {
-    return getContent().substring(offset, offset + length);
-  }
+//  /**
+//   * Returns the text of the given [AstNode] in the unit.
+//   */
+//  String _getNodeText(AstNode node) {
+//    return _getText(node.offset, node.length);
+//  }
+//
+//  /**
+//   * Returns the text of the given range in the unit.
+//   */
+//  String _getText(int offset, int length) {
+//    return getContent().substring(offset, offset + length);
+//  }
 
   /**
    * Create an edit to replace the return type of the innermost function
