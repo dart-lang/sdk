@@ -1442,7 +1442,7 @@ class ErroneousAstConstant extends AstConstant {
             new NullConstantValue());
 }
 
-class _CompilerEnvironment implements Environment {
+class _CompilerEnvironment implements EvaluationEnvironment {
   final Compiler _compiler;
 
   _CompilerEnvironment(this._compiler);

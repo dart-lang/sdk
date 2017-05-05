@@ -43,8 +43,9 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
 
   KernelAnnotationProcessor _annotationProcesser;
 
-  KernelFrontEndStrategy(DiagnosticReporter reporter)
-      : elementMap = new KernelToElementMap(reporter);
+  KernelFrontEndStrategy(
+      DiagnosticReporter reporter, env.Environment environment)
+      : elementMap = new KernelToElementMap(reporter, environment);
 
   @override
   LibraryLoaderTask createLibraryLoader(

@@ -56,6 +56,7 @@ main() {
   testStringJuxtaposition();
   testSymbol();
   testConstSymbol();
+  testComplexConstSymbol();
   testTypeLiteral();
   testBoolFromEnvironment();
   testEmptyListLiteral();
@@ -217,6 +218,22 @@ testStringInterpolationConst() {
 testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
 testConstSymbol() => const Symbol('main');
+
+const complexSymbolField1 = "true".length == 4;
+const complexSymbolField2 = "true" "false" "${4}${null}";
+const complexSymbolField3 = const { 
+  0.1: const bool.fromEnvironment('a', defaultValue: true),
+  false: const int.fromEnvironment('b', defaultValue: 42),
+  const <int>[]: const String.fromEnvironment('c'),
+  testComplexConstSymbol: #testComplexConstSymbol,
+  1 + 2: identical(0, -0), 
+  true || false: false && true,
+  override: const GenericClass<int, String>.generative(),
+}; 
+const complexSymbolField = 
+    complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
+testComplexConstSymbol() => const Symbol(complexSymbolField);
+
 testTypeLiteral() => Object;
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 testEmptyListLiteral() => [];
@@ -724,7 +741,7 @@ main(List<String> args) {
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
     KernelToElementMap kernelElementMap =
-        new KernelToElementMap(compiler.reporter);
+        new KernelToElementMap(compiler.reporter, compiler.environment);
     kernelElementMap.addProgram(backend.kernelTask.program);
 
     checkLibrary(compiler, kernelElementMap, compiler.mainApp,

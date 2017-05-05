@@ -19,6 +19,7 @@ import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/native_data.dart';
@@ -40,6 +41,7 @@ part 'types.dart';
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
 class KernelToElementMap extends KernelElementAdapterMixin {
+  final Environment _environment;
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
   final DiagnosticReporter reporter;
@@ -73,7 +75,7 @@ class KernelToElementMap extends KernelElementAdapterMixin {
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
       <ir.TreeNode, KLocalFunction>{};
 
-  KernelToElementMap(this.reporter) {
+  KernelToElementMap(this.reporter, this._environment) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this);
@@ -1192,32 +1194,27 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 
 /// Evaluation environment used for computing [ConstantValue]s for
 /// kernel based [ConstantExpression]s.
-class _EvaluationEnvironment implements Environment {
-  final KernelToElementMap _worldBuilder;
+class _EvaluationEnvironment implements EvaluationEnvironment {
+  final KernelToElementMap _elementMap;
 
-  _EvaluationEnvironment(this._worldBuilder);
+  _EvaluationEnvironment(this._elementMap);
 
   @override
-  CommonElements get commonElements {
-    throw new UnimplementedError("_EvaluationEnvironment.commonElements");
-  }
+  CommonElements get commonElements => _elementMap.commonElements;
 
   @override
   InterfaceType substByContext(InterfaceType base, InterfaceType target) {
-    if (base.typeArguments.isNotEmpty) {
-      throw new UnimplementedError("_EvaluationEnvironment.substByContext");
-    }
-    return base;
+    return _elementMap._substByContext(base, target);
   }
 
   @override
   ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
-    return _worldBuilder._getConstructorConstant(constructor);
+    return _elementMap._getConstructorConstant(constructor);
   }
 
   @override
   ConstantExpression getFieldConstant(FieldEntity field) {
-    return _worldBuilder._getFieldConstant(field);
+    return _elementMap._getFieldConstant(field);
   }
 
   @override
@@ -1227,7 +1224,7 @@ class _EvaluationEnvironment implements Environment {
 
   @override
   String readFromEnvironment(String name) {
-    throw new UnimplementedError("_EvaluationEnvironment.readFromEnvironment");
+    return _elementMap._environment.valueOf(name);
   }
 }
 

@@ -96,7 +96,7 @@ void useConstant(
     constants.ConstantExpression expression,
     constants.ConstructedConstantExpression constructedConstant,
     constants.ConstantSystem cs,
-    constants.Environment env]) {
+    constants.EvaluationEnvironment env]) {
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType(null);
