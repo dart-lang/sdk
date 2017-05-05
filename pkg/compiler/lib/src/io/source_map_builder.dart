@@ -277,11 +277,13 @@ class SourceMapEntry {
 /// Map from line/column pairs to lists of [T] elements.
 class LineColumnMap<T> {
   Map<int, Map<int, List<T>>> _map = <int, Map<int, List<T>>>{};
+  var _makeLineMap = () => <int, List<T>>{};
+  var _makeList = () => <T>[];
 
   /// Returns the list of elements associated with ([line],[column]).
   List<T> _getList(int line, int column) {
-    Map<int, List<T>> lineMap = _map.putIfAbsent(line, () => <int, List<T>>{});
-    return lineMap.putIfAbsent(column, () => <T>[]);
+    Map<int, List<T>> lineMap = _map.putIfAbsent(line, _makeLineMap);
+    return lineMap.putIfAbsent(column, _makeList);
   }
 
   /// Adds [element] to the end of the list of elements associated with

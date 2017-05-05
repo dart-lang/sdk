@@ -325,9 +325,8 @@ class TypeSystem {
 
   ElementTypeInformation getInferredTypeOf(Element element) {
     element = element.implementation;
-    return typeInformations.putIfAbsent(element, () {
-      return new ElementTypeInformation(element, this);
-    });
+    return typeInformations[element] ??=
+        new ElementTypeInformation(element, this);
   }
 
   /**

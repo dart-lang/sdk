@@ -39,8 +39,7 @@ class LocationCollector extends CodeOutputListener implements LocationProvider {
 
   @override
   Location getLocation(int offset) {
-    RangeError.checkValueInInterval(offset, 0, length, "offset",
-        "The value of 'offset' ($offset) must be between 0 and $length.");
+    RangeError.checkValueInInterval(offset, 0, length, 'offset');
     return new Source(lineStarts, null).getLocation(null, offset);
   }
 

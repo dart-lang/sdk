@@ -1038,10 +1038,10 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   SideEffects getSideEffectsOfElement(Entity element) {
     assert(_checkEntity(element));
-    return _sideEffects.putIfAbsent(element, () {
-      return new SideEffects();
-    });
+    return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
+
+  static _makeSideEffects() => new SideEffects();
 
   @override
   SideEffects getCurrentlyKnownSideEffects(Entity element) {
