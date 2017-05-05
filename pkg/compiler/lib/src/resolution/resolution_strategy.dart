@@ -306,9 +306,16 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls) {
+  ClassEntity getSuperClass(ClassElement cls,
+      {bool skipUnnamedMixinApplications: false}) {
     cls.ensureResolved(_resolution);
-    return cls.superclass;
+    ClassElement superclass = cls.superclass;
+    if (skipUnnamedMixinApplications) {
+      while (superclass != null && superclass.isUnnamedMixinApplication) {
+        superclass = superclass.superclass;
+      }
+    }
+    return superclass;
   }
 
   @override

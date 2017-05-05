@@ -505,6 +505,12 @@ class KernelToElementMap extends KernelElementAdapterMixin {
     return env.supertype;
   }
 
+  bool _isUnnamedMixinApplication(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.isUnnamedMixinApplication;
+  }
+
   void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
@@ -985,8 +991,16 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap._getSuperType(cls)?.element;
+  ClassEntity getSuperClass(ClassEntity cls,
+      {bool skipUnnamedMixinApplications: false}) {
+    ClassEntity superclass = elementMap._getSuperType(cls)?.element;
+    if (skipUnnamedMixinApplications) {
+      while (superclass != null &&
+          elementMap._isUnnamedMixinApplication(superclass)) {
+        superclass = elementMap._getSuperType(superclass)?.element;
+      }
+    }
+    return superclass;
   }
 
   @override
@@ -1272,27 +1286,26 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
 // Interface for testing equivalence of Kernel-based entities.
 class WorldDeconstructionForTesting {
-  final KernelToElementMap builder;
+  final KernelToElementMap elementMap;
 
-  WorldDeconstructionForTesting(this.builder);
+  WorldDeconstructionForTesting(this.elementMap);
 
   KClass getSuperclassForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = elementMap._classEnvs[cls.classIndex];
     ir.Supertype supertype = env.cls.supertype;
     if (supertype == null) return null;
-    return builder.getClass(supertype.classNode);
+    return elementMap.getClass(supertype.classNode);
   }
 
   bool isUnnamedMixinApplication(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
-    return env.isUnnamedMixinApplication;
+    return elementMap._isUnnamedMixinApplication(cls);
   }
 
   InterfaceType getMixinTypeForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
+    _KClassEnv env = elementMap._classEnvs[cls.classIndex];
     ir.Supertype mixedInType = env.cls.mixedInType;
     if (mixedInType == null) return null;
-    return builder.createInterfaceType(
+    return elementMap.createInterfaceType(
         mixedInType.classNode, mixedInType.typeArguments);
   }
 }

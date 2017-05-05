@@ -164,6 +164,9 @@ Future<ResultKind> mainInternal(List<String> args,
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
   BackendUsage backendUsage2 = compiler2.backend.backendUsage;
   ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+
+  checkNativeClasses(compiler1, compiler2, equivalence);
+
   checkBackendUsage(backendUsage1, backendUsage2, equivalence);
 
   checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
@@ -176,6 +179,25 @@ Future<ResultKind> mainInternal(List<String> args,
       verbose: arguments.verbose);
 
   return ResultKind.success;
+}
+
+void checkNativeClasses(
+    Compiler compiler1, Compiler compiler2, KernelEquivalence equivalence) {
+  Iterable<ClassEntity> nativeClasses1 = compiler1
+      .backend.nativeResolutionEnqueuerForTesting.nativeClassesForTesting;
+  Iterable<ClassEntity> nativeClasses2 = compiler2
+      .backend.nativeResolutionEnqueuerForTesting.nativeClassesForTesting;
+
+  checkSetEquivalence(compiler1, compiler2, 'nativeClasses', nativeClasses1,
+      nativeClasses2, equivalence.entityEquivalence);
+
+  Iterable<ClassEntity> registeredClasses1 = compiler1
+      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
+  Iterable<ClassEntity> registeredClasses2 = compiler2
+      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
+
+  checkSetEquivalence(compiler1, compiler2, 'registeredClasses',
+      registeredClasses1, registeredClasses2, equivalence.entityEquivalence);
 }
 
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,

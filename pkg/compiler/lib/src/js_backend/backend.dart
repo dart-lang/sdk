@@ -1008,9 +1008,7 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  // TODO(johnniwinther): Remove this. It is now only used for testing.
-  @deprecated
-  native.NativeEnqueuer get nativeResolutionEnqueuer =>
+  native.NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
       _nativeResolutionEnqueuer;
 
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
