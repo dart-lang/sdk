@@ -117,6 +117,7 @@ class CheckedModeHelpers {
   /// All the checked mode helpers.
   static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
     const MalformedCheckedModeHelper('checkMalformedType'),
+    const CheckedModeHelper('voidTypeCheck'),
     const CheckedModeHelper('stringTypeCast'),
     const CheckedModeHelper('stringTypeCheck'),
     const CheckedModeHelper('doubleTypeCast'),
@@ -200,6 +201,12 @@ class CheckedModeHelpers {
       // The same error is thrown for type test and type cast of a malformed
       // type so we only need one check method.
       return 'checkMalformedType';
+    }
+
+    if (type.isVoid) {
+      assert(!typeCast); // Cannot cast to void.
+      if (nativeCheckOnly) return null;
+      return 'voidTypeCheck';
     }
 
     if (type.isTypeVariable) {
