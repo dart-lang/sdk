@@ -20319,7 +20319,8 @@ class HttpRequest extends HttpRequestEventTarget {
   final String statusText;
 
   /**
-   * Length of time before a request is automatically terminated.
+   * Length of time in milliseconds before a request is automatically
+   * terminated.
    *
    * When the time has passed, a [TimeoutEvent] is dispatched.
    *

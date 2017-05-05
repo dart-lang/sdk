@@ -22569,7 +22569,8 @@ class HttpRequest extends HttpRequestEventTarget {
       _blink.BlinkXMLHttpRequest.instance.statusText_Getter_(this);
 
   /**
-   * Length of time before a request is automatically terminated.
+   * Length of time in milliseconds before a request is automatically
+   * terminated.
    *
    * When the time has passed, a [TimeoutEvent] is dispatched.
    *
@@ -22588,7 +22589,8 @@ class HttpRequest extends HttpRequestEventTarget {
   int get timeout => _blink.BlinkXMLHttpRequest.instance.timeout_Getter_(this);
 
   /**
-   * Length of time before a request is automatically terminated.
+   * Length of time in milliseconds before a request is automatically
+   * terminated.
    *
    * When the time has passed, a [TimeoutEvent] is dispatched.
    *
