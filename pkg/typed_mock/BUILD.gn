@@ -7,5 +7,5 @@ import("//build/dart/dart_package.gni")
 dart_package("typed_mock") {
   package_name = "typed_mock"
 
-  source_dir = "lib"
+  disable_analysis = true
 }
