@@ -8,6 +8,7 @@ library front_end.kernel_generator;
 import 'compiler_options.dart';
 import 'dart:async' show Future;
 import 'dart:async';
+import 'package:front_end/physical_file_system.dart';
 import 'src/fasta/dill/dill_target.dart' show DillTarget;
 import 'src/fasta/errors.dart' show InputError;
 import 'src/fasta/kernel/kernel_target.dart' show KernelTarget;
@@ -49,16 +50,16 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   if (!await validateOptions(options)) return null;
 
   try {
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(null, options.packagesFileUri);
+    TranslateUri uriTranslator = await TranslateUri.parse(
+        PhysicalFileSystem.instance, null, options.packagesFileUri);
 
     var dillTarget =
         new DillTarget(new Ticker(isVerbose: false), uriTranslator);
     var summary = options.sdkSummary;
     if (summary != null) dillTarget.read(summary);
 
-    var kernelTarget =
-        new KernelTarget(dillTarget, uriTranslator, options.strongMode);
+    var kernelTarget = new KernelTarget(
+        options.fileSystem, dillTarget, uriTranslator, options.strongMode);
     kernelTarget.read(source);
 
     await dillTarget.writeOutline(null);

@@ -6,11 +6,10 @@ library fasta.translate_uri;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/file_system.dart';
 import 'package:package_config/packages_file.dart' as packages_file show parse;
 
 import 'errors.dart' show inputError;
-
-import 'io.dart' show readBytesFromFile;
 
 class TranslateUri {
   final Map<String, Uri> packages;
@@ -36,7 +35,8 @@ class TranslateUri {
     return root.resolve(path);
   }
 
-  static Future<TranslateUri> parse(Uri sdk, [Uri uri]) async {
+  static Future<TranslateUri> parse(FileSystem fileSystem, Uri sdk,
+      [Uri uri]) async {
     // This list below is generated with [bin/generate_dart_libraries.dart] and
     // additional entries for _builtin, _vmservice, profiler, and vmservice_io.
     //
@@ -97,8 +97,7 @@ class TranslateUri {
       };
     }
     uri ??= Uri.base.resolve(".packages");
-    List<int> bytes =
-        await readBytesFromFile(uri, ensureZeroTermination: false);
+    List<int> bytes = await fileSystem.entityForUri(uri).readAsBytes();
     Map<String, Uri> packages = const <String, Uri>{};
     try {
       packages = packages_file.parse(bytes, uri);
