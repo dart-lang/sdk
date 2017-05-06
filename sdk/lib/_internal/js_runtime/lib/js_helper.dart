@@ -1739,6 +1739,7 @@ checkNull(object) {
   return object;
 }
 
+@NoInline()
 checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
