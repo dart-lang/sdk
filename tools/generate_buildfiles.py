@@ -9,6 +9,7 @@ import subprocess
 import sys
 import utils
 
+HOST_OS = utils.GuessOS()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 DART_USE_GYP = "DART_USE_GYP"
@@ -29,7 +30,23 @@ def execute(args):
   return process.returncode
 
 
-def run_gn(options):
+def run_android_gn(options):
+  if not HOST_OS in ['linux', 'macos']:
+    return 0
+  gn_command = [
+    'python',
+    os.path.join(DART_ROOT, 'tools', 'gn.py'),
+    '-m', 'all',
+    '-a', 'arm,arm64',
+    '--os', 'android',
+  ]
+  if options.verbose:
+    gn_command.append('-v')
+    print ' '.join(gn_command)
+  return execute(gn_command)
+
+
+def run_host_gn(options):
   gn_command = [
     'python',
     os.path.join(DART_ROOT, 'tools', 'gn.py'),
@@ -40,6 +57,13 @@ def run_gn(options):
     gn_command.append('-v')
     print ' '.join(gn_command)
   return execute(gn_command)
+
+
+def run_gn(options):
+  status = run_host_gn(options)
+  if status != 0:
+    return status
+  return run_android_gn(options)
 
 
 def run_gyp(options):
