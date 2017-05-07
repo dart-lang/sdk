@@ -6,6 +6,7 @@
 import argparse
 import multiprocessing
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -15,6 +16,7 @@ HOST_OS = utils.GuessOS()
 HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
+GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
 DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
@@ -24,39 +26,39 @@ DART_USE_WHEEZY = "DART_USE_WHEEZY"  # Use instread of --wheezy
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 
-def use_asan():
+def UseASAN():
   return DART_USE_ASAN in os.environ
 
 
-def use_msan():
+def UseMSAN():
   return DART_USE_MSAN in os.environ
 
 
-def use_tsan():
+def UseTSAN():
   return DART_USE_TSAN in os.environ
 
 
-def use_wheezy():
+def UseWheezy():
   return DART_USE_WHEEZY in os.environ
 
 
-def toolchain_prefix(args):
+def ToolchainPrefix(args):
   if args.toolchain_prefix:
     return args.toolchain_prefix
   return os.environ.get(DART_USE_TOOLCHAIN)
 
 
-def target_sysroot(args):
+def TargetSysroot(args):
   if args.target_sysroot:
     return args.target_sysroot
   return os.environ.get(DART_USE_SYSROOT)
 
 
-def get_out_dir(mode, arch, target_os):
+def GetOutDir(mode, arch, target_os):
   return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
 
 
-def to_command_line(gn_args):
+def ToCommandLine(gn_args):
   def merge(key, value):
     if type(value) is bool:
       return '%s=%s' % (key, 'true' if value else 'false')
@@ -64,7 +66,7 @@ def to_command_line(gn_args):
   return [merge(x, y) for x, y in gn_args.iteritems()]
 
 
-def host_cpu_for_arch(arch):
+def HostCpuForArch(arch):
   if arch in ['ia32', 'arm', 'armv6', 'armv5te', 'mips',
               'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc',
               'armsimdbc']:
@@ -73,7 +75,7 @@ def host_cpu_for_arch(arch):
     return 'x64'
 
 
-def target_cpu_for_arch(arch, target_os):
+def TargetCpuForArch(arch, target_os):
   if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te', 'simmips']:
     return 'x86'
   if arch in ['simarm64']:
@@ -91,7 +93,7 @@ def target_cpu_for_arch(arch, target_os):
   return arch
 
 
-def host_os_for_gn(host_os):
+def HostOsForGn(host_os):
   if host_os.startswith('macos'):
     return 'mac'
   if host_os.startswith('win'):
@@ -101,7 +103,7 @@ def host_os_for_gn(host_os):
 
 # Where string_map is formatted as X1=Y1,X2=Y2 etc.
 # If key is X1, returns Y1.
-def parse_string_map(key, string_map):
+def ParseStringMap(key, string_map):
   for m in string_map.split(','):
     l = m.split('=')
     if l[0] == key:
@@ -109,18 +111,18 @@ def parse_string_map(key, string_map):
   return None
 
 
-def to_gn_args(args, mode, arch, target_os):
+def ToGnArgs(args, mode, arch, target_os):
   gn_args = {}
 
-  host_os = host_os_for_gn(HOST_OS)
+  host_os = HostOsForGn(HOST_OS)
   if target_os == 'host':
     gn_args['target_os'] = host_os
   else:
     gn_args['target_os'] = target_os
 
   gn_args['dart_target_arch'] = arch
-  gn_args['target_cpu'] = target_cpu_for_arch(arch, target_os)
-  gn_args['host_cpu'] = host_cpu_for_arch(arch)
+  gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
+  gn_args['host_cpu'] = HostCpuForArch(arch)
 
   # See: runtime/observatory/BUILD.gn.
   # This allows the standalone build of the observatory to fall back on
@@ -165,10 +167,8 @@ def to_gn_args(args, mode, arch, target_os):
   # TODO(zra): Investigate using clang with these configurations.
   # Clang compiles tcmalloc's inline assembly for ia32 on Linux wrong, so we
   # don't use clang in that configuration. Thus, we use gcc for ia32 *unless*
-  # asan or tsan is specified.
+  # a clang-based sanitizer is specified.
   has_clang = (host_os != 'win'
-               and args.os not in ['android']
-               and not gn_args['target_cpu'].startswith('arm')
                and not gn_args['target_cpu'].startswith('mips')
                and not ((gn_args['target_os'] == 'linux')
                         and (gn_args['host_cpu'] == 'x86')
@@ -185,13 +185,13 @@ def to_gn_args(args, mode, arch, target_os):
   if gn_args['target_os'] == 'linux' and args.wheezy:
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
-    sysroot = target_sysroot(args)
+    sysroot = TargetSysroot(args)
     if sysroot:
-      gn_args['target_sysroot'] = parse_string_map(arch, sysroot)
+      gn_args['target_sysroot'] = ParseStringMap(arch, sysroot)
 
-    toolchain = toolchain_prefix(args)
+    toolchain = ToolchainPrefix(args)
     if toolchain:
-      gn_args['toolchain_prefix'] = parse_string_map(arch, toolchain)
+      gn_args['toolchain_prefix'] = ParseStringMap(arch, toolchain)
 
   goma_dir = os.environ.get('GOMA_DIR')
   goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
@@ -212,13 +212,13 @@ def to_gn_args(args, mode, arch, target_os):
   return gn_args
 
 
-def process_os_option(os_name):
+def ProcessOsOption(os_name):
   if os_name == 'host':
     return HOST_OS
   return os_name
 
 
-def process_options(args):
+def ProcessOptions(args):
   if args.arch == 'all':
     args.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
   if args.mode == 'all':
@@ -239,7 +239,7 @@ def process_options(args):
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
-  oses = [process_os_option(os_name) for os_name in args.os]
+  oses = [ProcessOsOption(os_name) for os_name in args.os]
   for os_name in oses:
     if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
       print "Unknown os %s" % os_name
@@ -248,7 +248,7 @@ def process_options(args):
       if os_name != 'android':
         print "Unsupported target os %s" % os_name
         return False
-      if not HOST_OS in ['linux']:
+      if not HOST_OS in ['linux', 'macos']:
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
@@ -303,7 +303,7 @@ def parse_args(args):
 
   other_group.add_argument('--asan',
       help='Build with ASAN',
-      default=use_asan(),
+      default=UseASAN(),
       action='store_true')
   other_group.add_argument('--no-asan',
       help='Disable ASAN',
@@ -335,7 +335,7 @@ def parse_args(args):
       action='store_true')
   other_group.add_argument('--msan',
       help='Build with MSAN',
-      default=use_msan(),
+      default=UseMSAN(),
       action='store_true')
   other_group.add_argument('--no-msan',
       help='Disable MSAN',
@@ -349,7 +349,7 @@ def parse_args(args):
       help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
   other_group.add_argument('--tsan',
       help='Build with TSAN',
-      default=use_tsan(),
+      default=UseTSAN(),
       action='store_true')
   other_group.add_argument('--no-tsan',
       help='Disable TSAN',
@@ -357,7 +357,7 @@ def parse_args(args):
       action='store_false')
   other_group.add_argument('--wheezy',
       help='Use the Debian wheezy sysroot on Linux',
-      default=use_wheezy(),
+      default=UseWheezy(),
       action='store_true')
   other_group.add_argument('--no-wheezy',
       help='Disable the Debian wheezy sysroot on Linux',
@@ -367,17 +367,18 @@ def parse_args(args):
       type=int,
       help='Number of simultaneous GN invocations',
       dest='workers',
-      # Set to multiprocessing.cpu_count() when GN can be run in parallel.
-      default=1)
+      default=multiprocessing.cpu_count())
 
   options = parser.parse_args(args)
-  if not process_options(options):
+  if not ProcessOptions(options):
     parser.print_help()
     return None
   return options
 
 
-def run_command(command):
+# Run the command, if it succeeds returns 0, if it fails, returns the commands
+# output as a string.
+def RunCommand(command):
   try:
     subprocess.check_output(
         command, cwd=DART_ROOT, stderr=subprocess.STDOUT)
@@ -387,7 +388,7 @@ def run_command(command):
             "output: " + e.output)
 
 
-def main(argv):
+def Main(argv):
   starttime = time.time()
   args = parse_args(argv)
 
@@ -396,32 +397,28 @@ def main(argv):
   elif sys.platform == 'darwin':
     subdir = 'mac'
   elif sys.platform.startswith('linux'):
-     subdir = 'linux64'
+    subdir = 'linux64'
   else:
     print 'Unknown platform: ' + sys.platform
     return 1
+  gn = os.path.join(DART_ROOT, 'buildtools', subdir, 'gn')
 
   commands = []
   for target_os in args.os:
     for mode in args.mode:
       for arch in args.arch:
-        command = [
-          '%s/buildtools/%s/gn' % (DART_ROOT, subdir),
-          'gen',
-          '--check'
-        ]
-        gn_args = to_command_line(to_gn_args(args, mode, arch, target_os))
-        out_dir = get_out_dir(mode, arch, target_os)
+        out_dir = GetOutDir(mode, arch, target_os)
+        command = [gn, 'gen', out_dir, '--check']
+        gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
         if args.verbose:
           print "gn gen --check in %s" % out_dir
         if args.ide:
           command.append(ide_switch(HOST_OS))
-        command.append(out_dir)
         command.append('--args=%s' % ' '.join(gn_args))
         commands.append(command)
 
   pool = multiprocessing.Pool(args.workers)
-  results = pool.map(run_command, commands, chunksize=1)
+  results = pool.map(RunCommand, commands, chunksize=1)
   for r in results:
     if r != 0:
       print r.strip()
@@ -434,4 +431,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+  sys.exit(Main(sys.argv))
