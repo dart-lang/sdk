@@ -5,6 +5,7 @@
 library fasta.translate_uri;
 
 import 'dart:async' show Future;
+import 'dart:io' show FileSystemException;
 
 import 'package:front_end/file_system.dart';
 import 'package:package_config/packages_file.dart' as packages_file show parse;
@@ -97,7 +98,20 @@ class TranslateUri {
       };
     }
     uri ??= Uri.base.resolve(".packages");
-    List<int> bytes = await fileSystem.entityForUri(uri).readAsBytes();
+
+    List<int> bytes;
+    try {
+      FileSystemException;
+      bytes = await fileSystem.entityForUri(uri).readAsBytes();
+    } on FileSystemException catch (e) {
+      String message = e.message;
+      String osMessage = e.osError?.message;
+      if (osMessage != null && osMessage.isNotEmpty) {
+        message = osMessage;
+      }
+      inputError(uri, -1, message);
+    }
+
     Map<String, Uri> packages = const <String, Uri>{};
     try {
       packages = packages_file.parse(bytes, uri);
