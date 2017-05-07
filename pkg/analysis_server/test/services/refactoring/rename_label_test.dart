@@ -16,9 +16,6 @@ main() {
 
 @reflectiveTest
 class RenameLabelTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkNewName_LocalVariableElement() async {
     await indexTestUnit('''
 main() {

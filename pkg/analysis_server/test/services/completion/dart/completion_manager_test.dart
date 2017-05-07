@@ -28,9 +28,6 @@ main() {
 @reflectiveTest
 class CompletionManagerTest extends DartCompletionContributorTest {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   DartCompletionContributor createContributor() {
     return new ImportedReferenceContributor();
   }

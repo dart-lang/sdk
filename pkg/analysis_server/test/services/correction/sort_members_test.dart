@@ -20,9 +20,6 @@ main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_classMembers_accessor() async {
     await _parseTestUnit(r'''
 class A {

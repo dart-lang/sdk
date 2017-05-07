@@ -23,9 +23,6 @@ main() {
 class ExtractMethodTest extends RefactoringTest {
   ExtractMethodRefactoringImpl refactoring;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_bad_assignmentLeftHandSide() async {
     await indexTestUnit('''
 main() {

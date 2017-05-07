@@ -26,6 +26,9 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');

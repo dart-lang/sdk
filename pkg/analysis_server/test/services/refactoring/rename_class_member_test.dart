@@ -18,9 +18,6 @@ main() {
 
 @reflectiveTest
 class RenameClassMemberTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkFinalConditions_classNameConflict_sameClass() async {
     await indexTestUnit('''
 class NewName {

@@ -21,9 +21,6 @@ main() {
 class InlineLocalTest extends RefactoringTest {
   InlineLocalRefactoringImpl refactoring;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_access() async {
     await indexTestUnit('''
 main() {

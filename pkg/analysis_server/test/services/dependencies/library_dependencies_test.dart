@@ -18,6 +18,9 @@ main() {
 
 @reflectiveTest
 class LibraryDependenciesTest extends AbstractContextTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_LibraryDependencies() {
     addSource('/lib1.dart', 'import "lib2.dart";');
     addSource('/lib2.dart', 'import "lib1.dart";');

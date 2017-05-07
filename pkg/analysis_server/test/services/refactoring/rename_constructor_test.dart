@@ -20,9 +20,6 @@ main() {
 
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {

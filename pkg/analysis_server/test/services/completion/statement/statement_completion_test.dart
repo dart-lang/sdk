@@ -30,8 +30,6 @@ main() {
 class StatementCompletionTest extends AbstractSingleUnitTest {
   SourceChange change;
 
-  bool get enableNewAnalysisDriver => true;
-
   int _after(String source, String match) =>
       source.indexOf(match) + match.length;
 

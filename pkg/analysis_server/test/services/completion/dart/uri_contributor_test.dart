@@ -22,9 +22,6 @@ main() {
 @reflectiveTest
 class UriContributorTest extends DartCompletionContributorTest {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   DartCompletionContributor createContributor() {
     return new UriContributor();
   }
@@ -465,9 +462,6 @@ class UriContributorTest extends DartCompletionContributorTest {
 
 @reflectiveTest
 class UriContributorWindowsTest extends DartCompletionContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   DartCompletionContributor createContributor() {
     return new UriContributor();

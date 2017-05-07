@@ -19,9 +19,6 @@ main() {
 
 @reflectiveTest
 class LocalReferenceContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_LOCAL_VARIABLE}) {

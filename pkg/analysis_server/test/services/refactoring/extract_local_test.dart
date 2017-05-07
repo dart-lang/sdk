@@ -24,9 +24,6 @@ main() {
 class ExtractLocalTest extends RefactoringTest {
   ExtractLocalRefactoringImpl refactoring;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
 main() {

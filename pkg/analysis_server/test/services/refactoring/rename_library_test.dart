@@ -17,9 +17,6 @@ main() {
 
 @reflectiveTest
 class RenameLibraryTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkNewName() async {
     await indexTestUnit('''
 library my.app;

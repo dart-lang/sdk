@@ -17,9 +17,6 @@ main() {
 
 @reflectiveTest
 class RenameLocalTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkFinalConditions_hasLocalFunction_after() async {
     await indexTestUnit('''
 main() {

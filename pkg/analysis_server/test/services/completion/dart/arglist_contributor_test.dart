@@ -19,9 +19,6 @@ main() {
 
 @reflectiveTest
 class ArgListContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void assertNoOtherSuggestions(Iterable<CompletionSuggestion> expected) {
     for (CompletionSuggestion suggestion in suggestions) {
       if (!expected.contains(suggestion)) {

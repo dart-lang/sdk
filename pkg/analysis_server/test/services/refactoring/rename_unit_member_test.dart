@@ -17,9 +17,6 @@ main() {
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}

@@ -53,6 +53,7 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
   String flutterPkgLibPath = '/packages/flutter/lib';
 
   Fix fix;
+
   SourceChange change;
   String resultCode;
 
@@ -228,9 +229,6 @@ bool test() {
 
 @reflectiveTest
 class FixProcessorTest extends BaseFixProcessorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_addFieldFormalParameters_hasRequiredParameter() async {
     await resolveTestUnit('''
 class Test {
@@ -5889,9 +5887,6 @@ class Required {
 @reflectiveTest
 class LintFixTest extends BaseFixProcessorTest {
   AnalysisError error;
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 
   Future applyFix(FixKind kind) async {
     fix = await _assertHasFix(kind, error);

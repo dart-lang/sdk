@@ -19,9 +19,6 @@ main() {
 
 @reflectiveTest
 class LabelContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   CompletionSuggestion assertSuggestLabel(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER}) {

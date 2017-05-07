@@ -20,9 +20,6 @@ main() {
 @reflectiveTest
 class LocalLibraryContributorTest extends DartCompletionContributorTest {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   DartCompletionContributor createContributor() {
     return new LocalLibraryContributor();
   }

@@ -20,9 +20,6 @@ main() {
 @reflectiveTest
 class StaticMemberContributorTest extends DartCompletionContributorTest {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   DartCompletionContributor createContributor() {
     return new StaticMemberContributor();
   }

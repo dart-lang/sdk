@@ -20,9 +20,6 @@ main() {
 
 @reflectiveTest
 class LibraryPrefixContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void assertSuggestLibraryPrefixes(List<String> expectedPrefixes) {
     for (String prefix in expectedPrefixes) {
       CompletionSuggestion cs = assertSuggest(prefix,

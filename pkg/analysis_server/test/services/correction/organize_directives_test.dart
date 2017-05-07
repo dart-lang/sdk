@@ -24,9 +24,6 @@ main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_keep_duplicateImports_withDifferentPrefix() async {
     await _computeUnitAndErrors(r'''
 import 'dart:async' as async1;

@@ -73,8 +73,10 @@ class AbstractContextTest {
 
   /**
    * Return `true` if the new analysis driver should be used by these tests.
+   *
+   * Remove this after there are no subclasses that override it.
    */
-  bool get enableNewAnalysisDriver => false;
+  bool get enableNewAnalysisDriver => true;
 
   Source addMetaPackageSource() => addPackageSource(
       'meta',

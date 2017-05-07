@@ -26,9 +26,6 @@ class InlineMethodTest extends RefactoringTest {
   bool deleteSource;
   bool inlineAll;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_access_FunctionElement() async {
     await indexTestUnit(r'''
 test(a, b) {

@@ -23,9 +23,6 @@ main() {
 class ConvertGetterToMethodTest extends RefactoringTest {
   ConvertGetterToMethodRefactoring refactoring;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_change_function() async {
     await indexTestUnit('''
 int get test => 42;

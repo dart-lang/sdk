@@ -17,9 +17,6 @@ main() {
 
 @reflectiveTest
 class RenameImportTest extends RenameRefactoringTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_checkNewName() async {
     await indexTestUnit("import 'dart:async' as test;");
     _createRefactoring("import 'dart:");

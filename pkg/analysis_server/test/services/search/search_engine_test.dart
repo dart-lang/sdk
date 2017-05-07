@@ -69,6 +69,9 @@ class SearchEngineImplTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   void setUp() {
     super.setUp();
     index = createMemoryIndex();

@@ -27,9 +27,6 @@ class CompletionTargetTest extends AbstractContextTest {
   int completionOffset;
   CompletionTarget target;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   Future<Null> addTestSource(String content) async {
     expect(completionOffset, isNull, reason: 'Call addTestSource exactly once');
     completionOffset = content.indexOf('^');

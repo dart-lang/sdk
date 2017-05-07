@@ -45,9 +45,6 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
    * produces the [expected] code when applied to [testCode].

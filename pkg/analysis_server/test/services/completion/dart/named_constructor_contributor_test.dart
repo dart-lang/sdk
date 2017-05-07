@@ -19,9 +19,6 @@ main() {
 
 @reflectiveTest
 class NamedConstructorContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   CompletionSuggestion assertSuggestNamedConstructor(
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT,

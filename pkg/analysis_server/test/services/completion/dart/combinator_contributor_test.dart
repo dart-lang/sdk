@@ -19,9 +19,6 @@ main() {
 @reflectiveTest
 class CombinatorContributorTest extends DartCompletionContributorTest {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   DartCompletionContributor createContributor() {
     return new CombinatorContributor();
   }

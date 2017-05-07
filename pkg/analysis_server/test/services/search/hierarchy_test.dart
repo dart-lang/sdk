@@ -24,9 +24,6 @@ main() {
 class HierarchyTest extends AbstractSingleUnitTest {
   SearchEngineImpl2 searchEngine;
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void setUp() {
     super.setUp();
     searchEngine = new SearchEngineImpl2([driver]);

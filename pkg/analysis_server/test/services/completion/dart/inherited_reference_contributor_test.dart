@@ -21,9 +21,6 @@ main() {
 @reflectiveTest
 class InheritedContributorTest extends DartCompletionContributorTest {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
   @override

@@ -29,9 +29,6 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
     ..generateFlutterWidgetChildrenBoilerPlate = true;
 
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
   @override

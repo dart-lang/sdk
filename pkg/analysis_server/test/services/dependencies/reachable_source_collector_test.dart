@@ -19,6 +19,9 @@ main() {
 
 @reflectiveTest
 class ReachableSourceCollectorTest extends AbstractContextTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Map<String, List<String>> importsFor(Source source) =>
       new ReachableSourceCollector(source, context).collectSources();
 

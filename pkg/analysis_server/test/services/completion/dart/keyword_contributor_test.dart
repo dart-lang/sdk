@@ -211,9 +211,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.TRUE,
   ];
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords: NO_PSEUDO_KEYWORDS,
       int relevance: DART_RELEVANCE_KEYWORD}) {
