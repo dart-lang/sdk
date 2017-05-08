@@ -271,112 +271,34 @@ class Request {
  * Clients may not extend, implement or mix-in this class.
  */
 class RequestErrorFactory {
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * GET_ERRORS_INVALID_FILE error condition.
-//   */
-//  Response.getErrorsInvalidFile(Request request)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
-//          'Error during `analysis.getErrors`: invalid file.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * GET_NAVIGATION_INVALID_FILE error condition.
-//   */
-//  Response.getNavigationInvalidFile(Request request)
-//      : this(request.id,
-//      error: new RequestError(
-//          RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
-//          'Error during `analysis.getNavigation`: invalid file.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * GET_REACHABLE_SOURCES_INVALID_FILE error condition.
-//   */
-//  Response.getReachableSourcesInvalidFile(Request request)
-//      : this(request.id,
-//      error: new RequestError(
-//          RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
-//          'Error during `analysis.getReachableSources`: invalid file.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by an analysis.reanalyze [request] that specifies an analysis root that is
-//   * not in the current list of analysis roots.
-//   */
-//  Response.invalidAnalysisRoot(Request request, String rootPath)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
-//          "Invalid analysis root: $rootPath"));
-//
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by a [request] that specifies an execution context whose context root does
-//   * not exist.
-//   */
-//  Response.invalidExecutionContext(Request request, String contextId)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
-//          "Invalid execution context: $contextId"));
-//
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * INVALID_FILE_PATH_FORMAT error condition.
-//   */
-//  Response.invalidFilePathFormat(Request request, path)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-//          'Invalid file path format: $path'));
+  /**
+   * Return a request error representing an error condition caused by a
+   * [request] that had an invalid edit object.
+   */
+  static RequestError invalidOverlayChangeInvalidEdit() => new RequestError(
+      RequestErrorCode.INVALID_OVERLAY_CHANGE,
+      'Invalid overlay change: invalid edit');
 
   /**
    * Return a request error representing an error condition caused by a
-   * [request] that had invalid parameter.  [path] is the path to the
+   * [request] that attempted to change an existing overlay when no overlay
+   * existed.
+   */
+  static RequestError invalidOverlayChangeNoContent() => new RequestError(
+      RequestErrorCode.INVALID_OVERLAY_CHANGE,
+      'Invalid overlay change: no content to change');
+
+  /**
+   * Return a request error representing an error condition caused by a
+   * [request] that had an invalid parameter. The [path] is the path to the
    * invalid parameter, in Javascript notation (e.g. "foo.bar" means that the
-   * parameter "foo" contained a key "bar" whose value was the wrong type).
+   * parameter "foo" contained a key "bar" whose value was the wrong type). The
    * [expectation] is a description of the type of data that was expected.
    */
   static RequestError invalidParameter(
           Request request, String path, String expectation) =>
       new RequestError(RequestErrorCode.INVALID_PARAMETER,
           "Invalid parameter '$path'. $expectation.");
-
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by a malformed request.
-//   */
-//  Response.invalidRequestFormat()
-//      : this('',
-//      error: new RequestError(
-//          RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
-//
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by a request that requires an index, but indexing is disabled.
-//   */
-//  Response.noIndexGenerated(Request request)
-//      : this(request.id,
-//      error: new RequestError(
-//          RequestErrorCode.NO_INDEX_GENERATED, 'Indexing is disabled'));
-//
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * ORGANIZE_DIRECTIVES_ERROR error condition.
-//   */
-//  Response.organizeDirectivesError(Request request, String message)
-//      : this(request.id,
-//      error: new RequestError(
-//          RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR, message));
-//
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * REFACTORING_REQUEST_CANCELLED error condition.
-//   */
-//  Response.refactoringRequestCancelled(Request request)
-//      : this(request.id,
-//      error: new RequestError(
-//          RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
-//          'The `edit.getRefactoring` request was cancelled.'));
 
   /**
    * Return a request error representing an error that occurred in the plugin.
@@ -385,58 +307,12 @@ class RequestErrorFactory {
       new RequestError(RequestErrorCode.PLUGIN_ERROR, exception.toString(),
           stackTrace: stackTrace);
 
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * SORT_MEMBERS_INVALID_FILE error condition.
-//   */
-//  Response.sortMembersInvalidFile(Request request)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
-//          'Error during `edit.sortMembers`: invalid file.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent the
-//   * SORT_MEMBERS_PARSE_ERRORS error condition.
-//   */
-//  Response.sortMembersParseErrors(Request request, int numErrors)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
-//          'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by a `analysis.setPriorityFiles` [request] that includes one or more files
-//   * that are not being analyzed.
-//   */
-//  Response.unanalyzedPriorityFiles(String requestId, String fileNames)
-//      : this(requestId,
-//      error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES,
-//          "Unanalyzed files cannot be a priority: '$fileNames'"));
-
   /**
    * Return a request error representing an error condition caused by a
    * [request] that cannot be handled by any known handlers.
    */
   static RequestError unknownRequest(Request request) =>
       new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request');
-
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by a [request] referencing a source that does not exist.
-//   */
-//  Response.unknownSource(Request request)
-//      : this(request.id,
-//      error: new RequestError(
-//          RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
-//
-//  /**
-//   * Initialize a newly created instance to represent an error condition caused
-//   * by a [request] for a service that is not supported.
-//   */
-//  Response.unsupportedFeature(String requestId, String message)
-//      : this(requestId,
-//      error: new RequestError(
-//          RequestErrorCode.UNSUPPORTED_FEATURE, message));
 }
 
 /**

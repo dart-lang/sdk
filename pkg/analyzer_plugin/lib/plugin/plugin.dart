@@ -178,15 +178,58 @@ abstract class ServerPlugin {
    * Handle an 'analysis.handleWatchEvents' request.
    */
   AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
-          AnalysisHandleWatchEventsParams parameters) =>
-      null;
+      AnalysisHandleWatchEventsParams parameters) {
+    for (WatchEvent event in parameters.events) {
+      switch (event.type) {
+        case WatchEventType.ADD:
+          // TODO(brianwilkerson) Handle the event.
+          break;
+        case WatchEventType.MODIFY:
+          contentChanged(event.path);
+          break;
+        case WatchEventType.REMOVE:
+          // TODO(brianwilkerson) Handle the event.
+          break;
+        default:
+          // Ignore unhandled watch event types.
+          break;
+      }
+    }
+    return new AnalysisHandleWatchEventsResult();
+  }
 
   /**
    * Handle an 'analysis.reanalyze' request.
    */
   AnalysisReanalyzeResult handleAnalysisReanalyze(
-          AnalysisReanalyzeParams parameters) =>
-      null;
+      AnalysisReanalyzeParams parameters) {
+    var rootPaths = parameters.roots;
+    if (rootPaths == null) {
+      //
+      // Reanalyze everything.
+      //
+      List<ContextRoot> roots = driverMap.keys.toList();
+      for (ContextRoot contextRoot in roots) {
+        AnalysisDriverGeneric driver = driverMap[contextRoot];
+        driver.dispose();
+        driver = createAnalysisDriver(contextRoot);
+        driverMap[contextRoot] = driver;
+      }
+      return new AnalysisReanalyzeResult();
+    } else {
+      //
+      // Reanalyze a specific set of files.
+      //
+      // TODO(brianwilkerson) There is no API for telling a driver that we need
+      // to have some files reanalyzed.
+//      for (String rootPath in rootPaths) {
+//        ContextRoot contextRoot = contextRootContaining(rootPath);
+//        AnalysisDriverGeneric driver = driverMap[contextRoot];
+//        driver.reanalyze(rootPath);
+//      }
+      return null;
+    }
+  }
 
   /**
    * Handle an 'analysis.setContextBuilderOptions' request.
@@ -250,8 +293,9 @@ abstract class ServerPlugin {
   AnalysisSetSubscriptionsResult handleAnalysisSetSubscriptions(
       AnalysisSetSubscriptionsParams parameters) {
     Map<AnalysisService, List<String>> subscriptions = parameters.subscriptions;
-    subscriptionManager.setSubscriptions(subscriptions);
-    // TODO(brianwilkerson) Cause any newly subscribed for notifications to be sent.
+    Map<String, List<AnalysisService>> newSubscriptions =
+        subscriptionManager.setSubscriptions(subscriptions);
+    sendNotificationsForSubscriptions(newSubscriptions);
     return new AnalysisSetSubscriptionsResult();
   }
 
@@ -276,16 +320,14 @@ abstract class ServerPlugin {
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
-          throw new RequestFailure(new RequestError(
-              RequestErrorCode.INVALID_OVERLAY_CHANGE,
-              'Invalid overlay change: no content to change'));
+          throw new RequestFailure(
+              RequestErrorFactory.invalidOverlayChangeNoContent());
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, overlay.edits);
         } on RangeError {
-          throw new RequestFailure(new RequestError(
-              RequestErrorCode.INVALID_OVERLAY_CHANGE,
-              'Invalid overlay change: invalid edit'));
+          throw new RequestFailure(
+              RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
         fileContentOverlay[fileName] = newContents;
       } else if (overlay is RemoveContentOverlay) {
@@ -375,6 +417,15 @@ abstract class ServerPlugin {
    * server. This method will not be invoked under normal conditions.
    */
   void onError(Object exception, StackTrace stackTrace) {}
+
+  /**
+   * Send notifications corresponding to the given description of subscriptions.
+   * The map is keyed by the path of each file for which notifications should be
+   * send and has values representing the list of services associated with the
+   * notifications to send.
+   */
+  void sendNotificationsForSubscriptions(
+      Map<String, List<AnalysisService>> subscriptions);
 
   /**
    * Start this plugin by listening to the given communication [channel].

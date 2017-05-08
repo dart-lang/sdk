@@ -38,9 +38,41 @@ class SubscriptionManager {
 
   /**
    * Set the current set of subscriptions to those described by the given map of
-   * [subscriptions].
+   * [subscriptions]. Return a map representing the subset of the subscriptions
+   * that are new. These are the subscriptions for which a notification should
+   * be sent. The returned map is keyed by the path of each file for which
+   * notifications should be send and has values representing the list of
+   * services that were added for that file.
    */
-  void setSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+  Map<String, List<AnalysisService>> setSubscriptions(
+      Map<AnalysisService, List<String>> subscriptions) {
+    Map<String, List<AnalysisService>> newSubscriptions =
+        <String, List<AnalysisService>>{};
+    if (_subscriptions == null) {
+      // This is the first time subscriptions have been set, so all of the
+      // subscriptions are new.
+      subscriptions.forEach((AnalysisService service, List<String> paths) {
+        for (String path in paths) {
+          newSubscriptions
+              .putIfAbsent(path, () => <AnalysisService>[])
+              .add(service);
+        }
+      });
+    } else {
+      // The subscriptions have been changed, to we need to compute the
+      // difference.
+      subscriptions.forEach((AnalysisService service, List<String> paths) {
+        List<String> oldPaths = _subscriptions[service];
+        for (String path in paths) {
+          if (!oldPaths.contains(path)) {
+            newSubscriptions
+                .putIfAbsent(path, () => <AnalysisService>[])
+                .add(service);
+          }
+        }
+      });
+    }
     _subscriptions = subscriptions;
+    return newSubscriptions;
   }
 }
