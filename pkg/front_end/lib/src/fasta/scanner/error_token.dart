@@ -73,8 +73,6 @@ abstract class ErrorToken extends Token {
 
   String get lexeme => throw assertionMessage;
 
-  String get stringValue => null;
-
   bool get isIdentifier => false;
 
   String get assertionMessage;

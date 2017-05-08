@@ -539,7 +539,19 @@ class SimpleToken implements Token {
   SimpleToken(this.type, this.offset);
 
   @override
+  int get charCount => length;
+
+  @override
+  int get charOffset => offset;
+
+  @override
+  int get charEnd => end;
+
+  @override
   int get end => offset + length;
+
+  @override
+  bool get isEof => type == TokenType.EOF;
 
   @override
   bool get isOperator => type.isOperator;
@@ -554,6 +566,9 @@ class SimpleToken implements Token {
   Keyword get keyword => null;
 
   @override
+  int get kind => type.kind;
+
+  @override
   int get length => lexeme.length;
 
   @override
@@ -564,6 +579,9 @@ class SimpleToken implements Token {
 
   @override
   CommentToken get precedingComments => null;
+
+  @override
+  String get stringValue => type.stringValue;
 
   @override
   void applyDelta(int delta) {
@@ -743,8 +761,28 @@ abstract class Token implements SyntacticEntity {
    */
   factory Token(TokenType type, int offset) = SimpleToken;
 
+  /**
+   * The number of characters parsed by this token.
+   */
+  int get charCount;
+
+  /**
+   * The character offset of the start of this token within the source text.
+   */
+  int get charOffset;
+
+  /**
+   * The character offset of the end of this token within the source text.
+   */
+  int get charEnd;
+
   @override
   int get end;
+
+  /**
+   * Return `true` if this token represents an end of file.
+   */
+  bool get isEof;
 
   /**
    * Return `true` if this token represents an operator.
@@ -768,6 +806,11 @@ abstract class Token implements SyntacticEntity {
    * Return the keyword, if a keyword token, or `null` otherwise.
    */
   Keyword get keyword;
+
+  /**
+   * The kind enum of this token as determined by its [type].
+   */
+  int get kind;
 
   @override
   int get length;
@@ -812,6 +855,26 @@ abstract class Token implements SyntacticEntity {
    * Set the previous token in the token stream to the given [token].
    */
   void set previous(Token token);
+
+  /**
+   * For symbol and keyword tokens, returns the string value represented by this
+   * token. For [StringToken]s this method returns [:null:].
+   *
+   * For [SymbolToken]s and [KeywordToken]s, the string value is a compile-time
+   * constant originating in the [TokenType] or in the [Keyword] instance.
+   * This allows testing for keywords and symbols using [:identical:], e.g.,
+   * [:identical('class', token.value):].
+   *
+   * Note that returning [:null:] for string tokens is important to identify
+   * symbols and keywords, we cannot use [lexeme] instead. The string literal
+   *   "$a($b"
+   * produces ..., SymbolToken($), StringToken(a), StringToken((), ...
+   *
+   * After parsing the identifier 'a', the parser tests for a function
+   * declaration using [:identical(next.stringValue, '('):], which (rightfully)
+   * returns false because stringValue returns [:null:].
+   */
+  String get stringValue;
 
   /**
    * Return the type of the token.
@@ -1022,29 +1085,36 @@ class TokenType {
   static const TokenType EOF =
       const TokenType('', 'EOF', NO_PRECEDENCE, EOF_TOKEN);
 
-  static const TokenType DOUBLE =
-      const TokenType('double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN);
+  static const TokenType DOUBLE = const TokenType(
+      'double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN,
+      stringValue: null);
 
   static const TokenType HEXADECIMAL = const TokenType(
-      'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN);
+      'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN,
+      stringValue: null);
 
   static const TokenType IDENTIFIER = const TokenType(
-      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN);
+      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN,
+      stringValue: null);
 
-  static const TokenType INT =
-      const TokenType('int', 'INT', NO_PRECEDENCE, INT_TOKEN);
+  static const TokenType INT = const TokenType(
+      'int', 'INT', NO_PRECEDENCE, INT_TOKEN,
+      stringValue: null);
 
   static const TokenType MULTI_LINE_COMMENT = const TokenType(
-      'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
+      'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
+      stringValue: null);
 
   static const TokenType SCRIPT_TAG =
       const TokenType('script', 'SCRIPT_TAG', NO_PRECEDENCE, SCRIPT_TOKEN);
 
   static const TokenType SINGLE_LINE_COMMENT = const TokenType(
-      'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
+      'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
+      stringValue: null);
 
-  static const TokenType STRING =
-      const TokenType('string', 'STRING', NO_PRECEDENCE, STRING_TOKEN);
+  static const TokenType STRING = const TokenType(
+      'string', 'STRING', NO_PRECEDENCE, STRING_TOKEN,
+      stringValue: null);
 
   static const TokenType AMPERSAND = const TokenType(
       '&', 'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
@@ -1292,13 +1362,15 @@ class TokenType {
       'generic_comment_list',
       'GENERIC_METHOD_TYPE_LIST',
       NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_LIST_TOKEN);
+      GENERIC_METHOD_TYPE_LIST_TOKEN,
+      stringValue: null);
 
   static const TokenType GENERIC_METHOD_TYPE_ASSIGN = const TokenType(
       'generic_comment_assign',
       'GENERIC_METHOD_TYPE_ASSIGN',
       NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_ASSIGN_TOKEN);
+      GENERIC_METHOD_TYPE_ASSIGN_TOKEN,
+      stringValue: null);
 
   static const TokenType AS = Keyword.AS;
 
@@ -1308,14 +1380,16 @@ class TokenType {
    * Token type used by error tokens.
    */
   static const TokenType BAD_INPUT = const TokenType(
-      'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN);
+      'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN,
+      stringValue: null);
 
   /**
    * Token type used by synthetic tokens that are created during parser
    * recovery (non-analyzer use case).
    */
-  static const TokenType RECOVERY =
-      const TokenType('recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN);
+  static const TokenType RECOVERY = const TokenType(
+      'recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN,
+      stringValue: null);
 
   // TODO(danrubel): "all" is misleading
   // because this list does not include all TokenType instances.
@@ -1439,8 +1513,16 @@ class TokenType {
    */
   final int precedence;
 
+  /**
+   * See [Token.stringValue] for an explanation.
+   */
+  final String stringValue;
+
   const TokenType(this.lexeme, this.name, this.precedence, this.kind,
-      {this.isOperator: false, this.isUserDefinableOperator: false});
+      {this.isOperator: false,
+      this.isUserDefinableOperator: false,
+      String stringValue: 'unspecified'})
+      : this.stringValue = stringValue == 'unspecified' ? lexeme : stringValue;
 
   /**
    * Return `true` if this type of token represents an additive operator.

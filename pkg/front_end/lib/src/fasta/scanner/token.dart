@@ -15,9 +15,7 @@ import 'string_canonicalizer.dart';
  * A token that doubles as a linked list.
  */
 abstract class Token implements analyzer.TokenWithComment {
-  /**
-   * The character offset of the start of this token within the source text.
-   */
+  @override
   int charOffset;
 
   Token(this.charOffset);
@@ -59,25 +57,8 @@ abstract class Token implements analyzer.TokenWithComment {
    */
   String get lexeme;
 
-  /**
-   * For symbol and keyword tokens, returns the string value represented by this
-   * token. For [StringToken]s this method returns [:null:].
-   *
-   * For [SymbolToken]s and [KeywordToken]s, the string value is a compile-time
-   * constant originating in the [TokenType] or in the [Keyword] instance.
-   * This allows testing for keywords and symbols using [:identical:], e.g.,
-   * [:identical('class', token.value):].
-   *
-   * Note that returning [:null:] for string tokens is important to identify
-   * symbols and keywords, we cannot use [lexeme] instead. The string literal
-   *   "$a($b"
-   * produces ..., SymbolToken($), StringToken(a), StringToken((), ...
-   *
-   * After parsing the identifier 'a', the parser tests for a function
-   * declaration using [:identical(next.stringValue, '('):], which (rightfully)
-   * returns false because stringValue returns [:null:].
-   */
-  String get stringValue;
+  @override
+  String get stringValue => type.stringValue;
 
   /**
    * The kind enum of this token as determined by its [type].
@@ -107,9 +88,7 @@ abstract class Token implements analyzer.TokenWithComment {
    */
   String toString();
 
-  /**
-   * The number of characters parsed by this token.
-   */
+  @override
   int get charCount {
     if (type == analyzer.TokenType.BAD_INPUT) {
       // This is a token that wraps around an error message. Return 1
@@ -120,10 +99,11 @@ abstract class Token implements analyzer.TokenWithComment {
     }
   }
 
-  /// The character offset of the end of this token within the source text.
+  @override
   int get charEnd => charOffset + charCount;
 
-  bool get isEof => false;
+  @override
+  bool get isEof => type == analyzer.TokenType.EOF;
 
   bool get isBuiltInIdentifier => false;
 
@@ -243,16 +223,10 @@ class SymbolToken extends Token {
   String get lexeme => type.value;
 
   @override
-  String get stringValue => type.value;
-
-  @override
   bool get isIdentifier => false;
 
   @override
   String toString() => "SymbolToken(${isEof ? '-eof-' : lexeme})";
-
-  @override
-  bool get isEof => type == analyzer.TokenType.EOF;
 
   @override
   Token copyWithoutComments() => isEof
@@ -317,8 +291,6 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
   TokenType get info => keyword;
 
   String get lexeme => keyword.lexeme;
-
-  String get stringValue => keyword.lexeme;
 
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
@@ -444,9 +416,6 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
       return valueOrLazySubstring;
     }
   }
-
-  /// See [Token.stringValue] for an explanation.
-  String get stringValue => null;
 
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
