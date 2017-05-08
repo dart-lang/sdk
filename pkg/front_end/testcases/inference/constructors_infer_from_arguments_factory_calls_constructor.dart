@@ -6,8 +6,8 @@
 library test;
 
 class A<T> {
-  A<T> f = /*@typeArgs=T*/ new A();
+  A<T> f = new /*@typeArgs=T*/ A();
   A();
-  factory A.factory() => /*@typeArgs=T*/ new A();
-  A<T> m() => /*@typeArgs=T*/ new A();
+  factory A.factory() => new /*@typeArgs=T*/ A();
+  A<T> m() => new /*@typeArgs=T*/ A();
 }

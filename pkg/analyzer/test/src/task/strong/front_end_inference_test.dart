@@ -33,6 +33,9 @@ main() {
   }, timeout: new Timeout(const Duration(seconds: 60)));
 }
 
+/// Set this to `true` to cause expectation comments to be updated.
+const bool fixProblems = false;
+
 @reflectiveTest
 class RunFrontEndInferenceTest {
   test_run() async {
@@ -100,7 +103,12 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
     validation.finish();
 
     if (validation.hasProblems) {
-      return validation.problemsAsString;
+      if (fixProblems) {
+        validation.fixSource(uri);
+        return null;
+      } else {
+        return validation.problemsAsString;
+      }
     } else {
       return null;
     }
@@ -240,7 +248,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     if (type is InterfaceType) {
       if (type.typeParameters.isNotEmpty &&
           node.constructorName.type.typeArguments == null) {
-        _recordTypeArguments(node.offset, type.typeArguments);
+        _recordTypeArguments(node.constructorName.offset, type.typeArguments);
       }
     }
   }

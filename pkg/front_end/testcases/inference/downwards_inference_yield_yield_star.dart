@@ -13,14 +13,14 @@ abstract class MyStream<T> extends Stream<T> {
 
 Stream<List<int>> foo() async* {
   yield /*@typeArgs=int*/ [];
-  yield /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ new MyStream();
+  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@typeArgs=dynamic*/ MyStream();
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-  yield* /*@typeArgs=List<int>*/ new MyStream();
+  yield* new /*@typeArgs=List<int>*/ MyStream();
 }
 
 Iterable<Map<int, int>> bar() sync* {
   yield /*@typeArgs=int, int*/ {};
-  yield /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ new List();
+  yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@typeArgs=dynamic*/ List();
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic, dynamic*/ {};
-  yield* /*@typeArgs=Map<int, int>*/ new List();
+  yield* new /*@typeArgs=Map<int, int>*/ List();
 }

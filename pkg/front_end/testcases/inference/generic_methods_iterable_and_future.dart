@@ -8,7 +8,7 @@ library test;
 import 'dart:async';
 
 Future<int> make(int x) =>
-    (/*@typeArgs=int*/ new Future(/*@returnType=int*/ () => x));
+    (new /*@typeArgs=int*/ Future(/*@returnType=int*/ () => x));
 
 main() {
   Iterable<Future<int>> list = <int>[1, 2, 3].map(make);

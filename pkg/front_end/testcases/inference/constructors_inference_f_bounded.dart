@@ -12,10 +12,11 @@ class Pair<T extends Clonable<T>, U extends Clonable<U>> {
   U u;
   Pair(this.t, this.u);
   Pair._();
-  Pair<U, T> get reversed => /*@typeArgs=U, T*/ new Pair(u, t);
+  Pair<U, T> get reversed => new /*@typeArgs=U, T*/ Pair(u, t);
 }
 
 main() {
-  final /*@type=Pair<Clonable<dynamic>, Clonable<dynamic>>*/ x = /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ Pair
-      ._();
+  final /*@type=Pair<Clonable<dynamic>, Clonable<dynamic>>*/ x =
+      new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
+          ._();
 }

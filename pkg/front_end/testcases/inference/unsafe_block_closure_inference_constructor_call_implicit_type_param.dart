@@ -10,7 +10,7 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ v = /*@typeArgs=int*/ new C(
+  var /*@type=C<int>*/ v = new /*@typeArgs=int*/ C(
       /*@returnType=int*/ () {
     return 1;
   });

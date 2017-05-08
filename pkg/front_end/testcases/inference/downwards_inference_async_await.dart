@@ -11,6 +11,6 @@ Future test() async {
   dynamic d;
   List<int> l0 =
       await /*@typeArgs=int*/ [/*info:DYNAMIC_CAST*/ /*@promotedType=none*/ d];
-  List<int> l1 = await /*@typeArgs=List<int>*/ new Future.value(
+  List<int> l1 = await new /*@typeArgs=List<int>*/ Future.value(
       /*@typeArgs=dynamic*/ [/*@promotedType=none*/ d]);
 }

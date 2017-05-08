@@ -15,7 +15,7 @@ class D<T extends num> {
 }
 
 void f() {
-  const /*@type=C<int>*/ c = /*@typeArgs=int*/ const C(0);
+  const /*@type=C<int>*/ c = const /*@typeArgs=int*/ C(0);
   C<int> c2 = /*@promotedType=none*/ c;
-  const D<int> d = /*@typeArgs=int*/ const D();
+  const D<int> d = const /*@typeArgs=int*/ D();
 }

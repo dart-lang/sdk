@@ -18,6 +18,6 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ x = /*@typeArgs=int*/ new C(42);
+  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
   /*@promotedType=none*/ x.t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }

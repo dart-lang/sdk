@@ -14,6 +14,6 @@ class F4<T> {
 }
 
 void main() {
-  /*@typeArgs=dynamic*/ new F3(/*@typeArgs=Iterable<dynamic>*/ []);
-  /*@typeArgs=dynamic*/ new F4(a: /*@typeArgs=Iterable<dynamic>*/ []);
+  new /*@typeArgs=dynamic*/ F3(/*@typeArgs=Iterable<dynamic>*/ []);
+  new /*@typeArgs=dynamic*/ F4(a: /*@typeArgs=Iterable<dynamic>*/ []);
 }

@@ -78,26 +78,28 @@ void main() {
     /*@typeArgs=int*/ [3]
   ]);
 
-  /*@typeArgs=dynamic*/ new F3(/*@typeArgs=Iterable<dynamic>*/ []);
-  var /*@type=F3<int>*/ f31 = /*@typeArgs=int*/ new F3(/*@typeArgs=List<int>*/ [
+  new /*@typeArgs=dynamic*/ F3(/*@typeArgs=Iterable<dynamic>*/ []);
+  var /*@type=F3<int>*/ f31 = new /*@typeArgs=int*/ F3(/*@typeArgs=List<int>*/ [
     /*@typeArgs=int*/ [3]
   ]);
-  var /*@type=F3<String>*/ f32 = /*@typeArgs=String*/ new F3(/*@typeArgs=List<String>*/ [
+  var /*@type=F3<String>*/ f32 =
+      new /*@typeArgs=String*/ F3(/*@typeArgs=List<String>*/ [
     /*@typeArgs=String*/ ["hello"]
   ]);
-  var /*@type=F3<Object>*/ f33 = /*@typeArgs=Object*/ new F3(/*@typeArgs=List<Object>*/ [
+  var /*@type=F3<Object>*/ f33 =
+      new /*@typeArgs=Object*/ F3(/*@typeArgs=List<Object>*/ [
     /*@typeArgs=String*/ ["hello"],
     /*@typeArgs=int*/ [3]
   ]);
 
-  /*@typeArgs=dynamic*/ new F4(a: /*@typeArgs=Iterable<dynamic>*/ []);
-  /*@typeArgs=int*/ new F4(a: /*@typeArgs=List<int>*/ [
+  new /*@typeArgs=dynamic*/ F4(a: /*@typeArgs=Iterable<dynamic>*/ []);
+  new /*@typeArgs=int*/ F4(a: /*@typeArgs=List<int>*/ [
     /*@typeArgs=int*/ [3]
   ]);
-  /*@typeArgs=String*/ new F4(a: /*@typeArgs=List<String>*/ [
+  new /*@typeArgs=String*/ F4(a: /*@typeArgs=List<String>*/ [
     /*@typeArgs=String*/ ["hello"]
   ]);
-  /*@typeArgs=Object*/ new F4(a: /*@typeArgs=List<Object>*/ [
+  new /*@typeArgs=Object*/ F4(a: /*@typeArgs=List<Object>*/ [
     /*@typeArgs=String*/ ["hello"],
     /*@typeArgs=int*/ [3]
   ]);

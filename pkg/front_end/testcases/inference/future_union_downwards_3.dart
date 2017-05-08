@@ -17,7 +17,7 @@ class MyFuture<T> implements Future<T> {
 Future f;
 // Instantiates Future<int>
 Future<int> t1 = f.then(/*@returnType=Future<int>*/ (/*@type=dynamic*/ _) =>
-    /*@typeArgs=int*/ new Future.value('hi'));
+    new /*@typeArgs=int*/ Future.value('hi'));
 
 // Instantiates List<int>
 Future<List<int>> t2 = f.then(
@@ -27,6 +27,6 @@ Future<List<int>> g2() async {
 }
 
 Future<List<int>> g3() async {
-  return /*@typeArgs=List<int>*/ new Future.value(
+  return new /*@typeArgs=List<int>*/ Future.value(
       /*@typeArgs=int*/ [3]);
 }
