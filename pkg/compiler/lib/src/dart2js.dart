@@ -104,6 +104,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 FormattingDiagnosticHandler diagnosticHandler;
 
 Future<api.CompilationResult> compile(List<String> argv) {
+  Stopwatch wallclock = new Stopwatch()..start();
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
@@ -531,11 +532,21 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }
     writeString(
         Uri.parse('$out.deps'), getDepsOutput(inputProvider.sourceFiles));
-    diagnosticHandler
-        .info('Compiled ${inputProvider.dartCharactersRead} characters Dart '
-            '-> ${outputProvider.totalCharactersWritten} characters '
-            'JavaScript in '
-            '${relativize(currentDirectory, out, Platform.isWindows)}');
+    int dartCharactersRead = inputProvider.dartCharactersRead;
+    int jsCharactersWritten = outputProvider.totalCharactersWrittenJavaScript;
+    int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
+
+    print('Compiled '
+        '${_formatCharacterCount(dartCharactersRead)} characters Dart'
+        ' to '
+        '${_formatCharacterCount(jsCharactersWritten)} characters JavaScript'
+        ' in '
+        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+
+    diagnosticHandler.info(
+        '${_formatCharacterCount(jsCharactersPrimary)} characters JavaScript'
+        ' in '
+        '${relativize(currentDirectory, out, Platform.isWindows)}');
     if (diagnosticHandler.verbose) {
       String input = uriPathToNative(arguments[0]);
       print('Dart file ($input) compiled to JavaScript.');
@@ -565,6 +576,28 @@ Future<api.CompilationResult> compile(List<String> argv) {
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
       .then(compilationDone);
+}
+
+/// Returns the non-negative integer formatted with a thousands separator.
+String _formatCharacterCount(int value, [String separator = ',']) {
+  String text = '$value';
+  // 'Insert' separators right-to-left. Inefficient, but used just a few times.
+  for (int position = text.length - 3; position > 0; position -= 3) {
+    text = text.substring(0, position) + separator + text.substring(position);
+  }
+  return text;
+}
+
+/// Formats [duration] in seconds in fixed-point format, preferring to keep the
+/// result at to below [width] characters.
+String _formatDurationAsSeconds(Duration duration, [int width = 4]) {
+  num seconds = duration.inMilliseconds / 1000.0;
+  String text;
+  for (int digits = 3; digits >= 0; digits--) {
+    text = seconds.toStringAsFixed(digits);
+    if (text.length <= width) return text;
+  }
+  return text;
 }
 
 class AbortLeg {

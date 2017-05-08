@@ -238,7 +238,10 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   final MessageCallback onFailure;
 
   int totalCharactersWritten = 0;
-  List<String> allOutputFiles = new List<String>();
+  int totalCharactersWrittenPrimary = 0;
+  int totalCharactersWrittenJavaScript = 0;
+
+  List<String> allOutputFiles = <String>[];
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
       {this.onInfo, this.onFailure, this.resolutionOutput});
@@ -335,8 +338,12 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     onDone() {
       output.closeSync();
+      totalCharactersWritten += charactersWritten;
       if (isPrimaryOutput) {
-        totalCharactersWritten += charactersWritten;
+        totalCharactersWrittenPrimary += charactersWritten;
+      }
+      if (type == OutputType.js || type == OutputType.jsPart) {
+        totalCharactersWrittenJavaScript += charactersWritten;
       }
     }
 
