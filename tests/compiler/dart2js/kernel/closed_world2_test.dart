@@ -37,7 +37,7 @@ import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/native/enqueue.dart';
 import 'package:compiler/src/native/resolver.dart';
-import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/options.dart';
@@ -153,7 +153,7 @@ Future<ResultKind> mainInternal(List<String> args,
 
   Compiler compiler2 = compilers.b;
   KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMap elementMap = frontEndStrategy.elementMap;
+  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
   Expect.isFalse(compiler2.compilationFailed);
 
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);

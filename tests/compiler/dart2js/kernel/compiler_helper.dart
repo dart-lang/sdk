@@ -14,7 +14,7 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -67,7 +67,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
       KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-      KernelToElementMap elementMap = frontEndStrategy.elementMap;
+      KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
       ir.Program program = new ir.Program(
           compiler.backend.kernelTask.kernel.libraryDependencies(uri));
       LibraryElement library = compiler.libraryLoader.lookupLibrary(uri);
@@ -112,7 +112,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
   KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMap elementMap = frontEndStrategy.elementMap;
+  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
   compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
       elementMap,
       compiler2.reporter,
@@ -125,7 +125,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
 class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
   final ir.Program program;
 
-  MemoryDillLibraryLoaderTask(KernelToElementMap elementMap,
+  MemoryDillLibraryLoaderTask(KernelToElementMapImpl elementMap,
       DiagnosticReporter reporter, Measurer measurer, this.program)
       : super(elementMap, null, null, reporter, measurer);
 

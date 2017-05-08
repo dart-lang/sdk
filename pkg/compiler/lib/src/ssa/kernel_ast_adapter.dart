@@ -17,7 +17,7 @@ import '../elements/entities.dart';
 import '../elements/modelx.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../kernel/element_adapter.dart';
+import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -35,7 +35,7 @@ import 'types.dart';
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter extends KernelElementAdapterMixin {
+class KernelAstAdapter extends KernelToElementMapMixin {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;

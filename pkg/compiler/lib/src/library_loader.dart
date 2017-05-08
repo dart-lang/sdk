@@ -30,7 +30,7 @@ import 'elements/modelx.dart'
         SyntheticImportElement;
 import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
-import 'kernel/element_map.dart' show KernelToElementMap;
+import 'kernel/element_map_impl.dart' show KernelToElementMapImpl;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
@@ -820,7 +820,7 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   /// Holds the mapping of Kernel IR to KElements that is constructed as a
   /// result of loading a program.
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapImpl _elementMap;
 
   List<LibraryEntity> _allLoadedLibraries;
 
@@ -864,7 +864,7 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         rootLibrary, _allLoadedLibraries, _elementMap);
   }
 
-  KernelToElementMap get elementMap => _elementMap;
+  KernelToElementMapImpl get elementMap => _elementMap;
 
   void reset({bool reuseLibrary(LibraryElement library)}) {
     throw new UnimplementedError('DillLibraryLoaderTask.reset');
@@ -1592,7 +1592,7 @@ class _LoadedLibraries implements LoadedLibraries {
 class _LoadedLibrariesAdapter implements LoadedLibraries {
   final LibraryEntity rootLibrary;
   final List<LibraryEntity> _newLibraries;
-  final KernelToElementMap worldBuilder;
+  final KernelToElementMapImpl worldBuilder;
 
   _LoadedLibrariesAdapter(
       this.rootLibrary, this._newLibraries, this.worldBuilder) {

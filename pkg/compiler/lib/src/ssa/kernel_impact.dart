@@ -14,7 +14,7 @@ import '../elements/types.dart';
 import '../elements/elements.dart' show AstElement, ResolvedAst;
 import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../kernel/element_adapter.dart';
+import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -63,7 +63,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 }
 
 ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelElementAdapter elementAdapter) {
+    ir.Member member, KernelToElementMap elementAdapter) {
   KernelImpactBuilder builder =
       new KernelImpactBuilder('${member.name}', elementAdapter);
   if (member is ir.Procedure) {
@@ -78,7 +78,7 @@ ResolutionImpact buildKernelImpact(
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
-  final KernelElementAdapter elementAdapter;
+  final KernelToElementMap elementAdapter;
 
   KernelImpactBuilder(String name, this.elementAdapter)
       : this.impactBuilder = new ResolutionWorldImpactBuilder(name);
