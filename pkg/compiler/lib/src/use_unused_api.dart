@@ -22,6 +22,7 @@ import 'deferred_load.dart' as deferred_load;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
+import 'elements/operators.dart' as operators;
 import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
@@ -31,7 +32,6 @@ import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'parser/partial_elements.dart'
     show PartialClassElement, PartialFunctionElement;
-import 'resolution/operators.dart' as operators;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;

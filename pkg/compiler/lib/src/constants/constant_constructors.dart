@@ -7,9 +7,9 @@
 library dart2js.constants.constant_constructors;
 
 import '../common.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../resolution/operators.dart';
+import '../elements/operators.dart';
+import '../elements/resolution_types.dart';
 import '../resolution/semantic_visitor.dart';
 import '../resolution/send_resolver.dart' show DeclarationResolverMixin;
 import '../resolution/send_structure.dart';

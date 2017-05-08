@@ -4,6 +4,8 @@
 
 library dart2js.resolution.members;
 
+import 'package:front_end/src/fasta/scanner.dart' show isUserDefinableOperator;
+
 import '../common.dart';
 import '../common/names.dart' show Selectors;
 import '../common/resolution.dart' show Resolution;
@@ -13,7 +15,6 @@ import '../constants/constructors.dart'
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show
@@ -26,8 +27,9 @@ import '../elements/modelx.dart'
         ParameterElementX,
         VariableElementX,
         VariableList;
+import '../elements/operators.dart';
+import '../elements/resolution_types.dart';
 import '../options.dart';
-import 'package:front_end/src/fasta/scanner.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart' show Feature;
@@ -39,7 +41,6 @@ import 'class_members.dart' show MembersCreator;
 import 'constructors.dart'
     show ConstructorResolver, ConstructorResult, ConstructorResultKind;
 import 'label_scope.dart' show StatementScope;
-import 'operators.dart';
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution.dart' show ResolverTask;
 import 'resolution_common.dart' show MappingVisitor;
