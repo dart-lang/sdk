@@ -823,7 +823,7 @@ class _IntervalListBuilder {
     }
   }
 
-  List<int> buildIntervalList() {
+  Uint32List buildIntervalList() {
     // Sort the event points and sweep left to right while tracking how many
     // intervals we are currently inside.  Record an interval end point when the
     // number of intervals drop to zero or increase from zero to one.
