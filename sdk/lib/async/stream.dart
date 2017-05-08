@@ -1532,37 +1532,16 @@ abstract class StreamSubscription<T> {
 }
 
 /**
- * A [Sink] that supports adding errors.
- *
- * This makes it suitable for capturing the results of asynchronous
- * computations, which can complete with a value or an error.
- *
- * The [EventSink] has been designed to handle asynchronous events from
- * [Stream]s. See, for example, [Stream.eventTransformed] which uses
- * `EventSink`s to transform events.
+ * An interface that abstracts creation or handling of [Stream] events.
  */
 abstract class EventSink<T> implements Sink<T> {
-  /**
-   * Adds a data [event] to the sink.
-   *
-   * Must not be called on a closed sink.
-   */
+  /** Send a data event to a stream. */
   void add(T event);
 
-  /**
-   * Adds an [error] to the sink.
-   *
-   * Must not be called on a closed sink.
-   */
-  void addError(Object error, [StackTrace stackTrace]);
+  /** Send an async error to a stream. */
+  void addError(Object errorEvent, [StackTrace stackTrace]);
 
-  /**
-   * Closes the sink.
-   *
-   * Calling this method more than once is allowed, but does nothing.
-   *
-   * Neither [add] nor [addError] must be called after this method.
-   */
+  /** Close the sink. No further events can be added after closing. */
   void close();
 }
 
@@ -1594,6 +1573,10 @@ class StreamView<T> extends Stream<T> {
  * A consumer can accept a number of consecutive streams using [addStream],
  * and when no further data need to be added, the [close] method tells the
  * consumer to complete its work and shut down.
+ *
+ * This class is not just a [Sink<Stream>] because it is also combined with
+ * other [Sink] classes, like it's combined with [EventSink] in the
+ * [StreamSink] class.
  *
  * The [Stream.pipe] accepts a `StreamConsumer` and will pass the stream
  * to the consumer's [addStream] method. When that completes, it will
@@ -1636,7 +1619,8 @@ abstract class StreamConsumer<S> {
 /**
  * A object that accepts stream events both synchronously and asynchronously.
  *
- * A [StreamSink] combines the methods from [StreamConsumer] and [EventSink].
+ * A [StreamSink] unifies the asynchronous methods from [StreamConsumer] and
+ * the synchronous methods from [EventSink].
  *
  * The [EventSink] methods can't be used while the [addStream] is called.
  * As soon as the [addStream]'s [Future] completes with a value, the
