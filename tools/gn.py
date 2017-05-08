@@ -170,6 +170,8 @@ def ToGnArgs(args, mode, arch, target_os):
   # a clang-based sanitizer is specified.
   has_clang = (host_os != 'win'
                and not gn_args['target_cpu'].startswith('mips')
+               and not ((gn_args['target_os'] == 'linux') and
+                        (gn_args['target_cpu'] == 'arm64'))
                and not ((gn_args['target_os'] == 'linux')
                         and (gn_args['host_cpu'] == 'x86')
                         and not args.asan
