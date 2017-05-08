@@ -362,11 +362,11 @@ class TypeSchemaEnvironmentTest {
         _list(_list(unknownType)));
     // And it should have recorded List<?> as the type inferred for T.
     expect(typesFromDownwardsInference[0], _list(unknownType));
-    // Upwards inference should refine that to List<List<Null>>
+    // Upwards inference should refine that to List<List<dynamic>>
     expect(
         env.inferTypeFromConstraints(
             constraints, listClass.thisType, [T], typesFromDownwardsInference),
-        _list(_list(nullType)));
+        _list(_list(dynamicType)));
   }
 
   void test_instantiateToBounds_noTypesKnown() {
@@ -678,9 +678,9 @@ class TypeSchemaEnvironmentTest {
     var env = _makeEnv();
     // Solve(? <: T <: ?) => ?
     expect(env.solveTypeConstraint(_makeConstraint()), same(unknownType));
-    // Solve(? <: T <: ?, grounded) => Null
-    expect(
-        env.solveTypeConstraint(_makeConstraint(), grounded: true), nullType);
+    // Solve(? <: T <: ?, grounded) => dynamic
+    expect(env.solveTypeConstraint(_makeConstraint(), grounded: true),
+        dynamicType);
     // Solve(A <: T <: ?) => A
     expect(env.solveTypeConstraint(_makeConstraint(lower: A)), A);
     // Solve(A <: T <: ?, grounded) => A
@@ -691,13 +691,13 @@ class TypeSchemaEnvironmentTest {
         env.solveTypeConstraint(_makeConstraint(
             lower: new InterfaceType(A.classNode, [unknownType]))),
         new InterfaceType(A.classNode, [unknownType]));
-    // Solve(A<?> <: T <: ?, grounded) => A<Object>
+    // Solve(A<?> <: T <: ?, grounded) => A<Null>
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
                 lower: new InterfaceType(A.classNode, [unknownType])),
             grounded: true),
-        new InterfaceType(A.classNode, [objectType]));
+        new InterfaceType(A.classNode, [nullType]));
     // Solve(? <: T <: A) => A
     expect(env.solveTypeConstraint(_makeConstraint(upper: A)), A);
     // Solve(? <: T <: A, grounded) => A
@@ -708,13 +708,13 @@ class TypeSchemaEnvironmentTest {
         env.solveTypeConstraint(_makeConstraint(
             upper: new InterfaceType(A.classNode, [unknownType]))),
         new InterfaceType(A.classNode, [unknownType]));
-    // Solve(? <: T <: A<?>, grounded) => A<Null>
+    // Solve(? <: T <: A<?>, grounded) => A<dynamic>
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
                 upper: new InterfaceType(A.classNode, [unknownType])),
             grounded: true),
-        new InterfaceType(A.classNode, [nullType]));
+        new InterfaceType(A.classNode, [dynamicType]));
     // Solve(B <: T <: A) => B
     expect(env.solveTypeConstraint(_makeConstraint(lower: B, upper: A)), B);
     // Solve(B <: T <: A, grounded) => B
@@ -752,14 +752,14 @@ class TypeSchemaEnvironmentTest {
             lower: new InterfaceType(B.classNode, [unknownType]),
             upper: new InterfaceType(A.classNode, [unknownType]))),
         new InterfaceType(B.classNode, [unknownType]));
-    // Solve(B<?> <: T <: A<?>) => B<Object>
+    // Solve(B<?> <: T <: A<?>) => B<Null>
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
                 lower: new InterfaceType(B.classNode, [unknownType]),
                 upper: new InterfaceType(A.classNode, [unknownType])),
             grounded: true),
-        new InterfaceType(B.classNode, [objectType]));
+        new InterfaceType(B.classNode, [nullType]));
   }
 
   void test_typeConstraint_default() {

@@ -392,11 +392,11 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
     if (constraint.lower is! UnknownType) {
       return grounded
-          ? greatestClosure(coreTypes, constraint.lower)
+          ? leastClosure(coreTypes, constraint.lower)
           : constraint.lower;
     } else {
       return grounded
-          ? leastClosure(coreTypes, constraint.upper)
+          ? greatestClosure(coreTypes, constraint.upper)
           : constraint.upper;
     }
   }
