@@ -46,11 +46,11 @@ bool _hasGetter(MethodDeclaration node) =>
 bool _hasInheritedSetter(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedConcreteSetter(node) != null;
 
-class DoNotCreateSetterWithoutGetter extends LintRule {
+class AvoidSettersWithoutGetters extends LintRule {
   _Visitor _visitor;
-  DoNotCreateSetterWithoutGetter()
+  AvoidSettersWithoutGetters()
       : super(
-            name: 'do_not_create_setter_without_getter',
+            name: 'avoid_setters_without_getters',
             description: _desc,
             details: _details,
             group: Group.style) {

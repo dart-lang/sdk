@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.use_string_buffer;
+library linter.src.rules.use_string_buffers;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -55,11 +55,11 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffer extends LintRule {
+class UseStringBuffers extends LintRule {
   _Visitor _visitor;
-  UseStringBuffer()
+  UseStringBuffers()
       : super(
-            name: 'use_string_buffer',
+            name: 'use_string_buffers',
             description: _desc,
             details: _details,
             group: Group.style) {

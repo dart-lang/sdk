@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.prefer_constructors_instead_of_static_methods;
+library linter.src.rules.prefer_constructors_over_static_methods;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -56,7 +56,7 @@ class PreferConstructorsInsteadOfStaticMethods extends LintRule {
   _Visitor _visitor;
   PreferConstructorsInsteadOfStaticMethods()
       : super(
-            name: 'prefer_constructors_instead_of_static_methods',
+            name: 'prefer_constructors_over_static_methods',
             description: _desc,
             details: _details,
             group: Group.style) {

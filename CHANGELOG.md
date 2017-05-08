@@ -1,3 +1,33 @@
+# 0.1.31
+
+* New `prefer_foreach` lint.
+* New `use_string_buffers` rule.
+* New `unnecessary_overrides` rule.
+* New `join_return_with_assignment_when_possible` rule.
+* New `use_to_and_as_if_applicable` rule.
+* New `avoid_setters_without_getters` rule.
+* New `always_put_control_body_on_new_line` rule.
+* New `avoid_positional_boolean_parameters` rule.
+* New `always_require_non_null_named_parameters` rule.
+* New `prefer_conditional_assignment` rule.
+* New `prefer_conditional_assignment` rule.
+* New `avoid_types_on_closure_parameters` rule.
+* New `always_put_control_body_on_new_line` rule.
+* New `use_setters_to_change_properties` rule.
+* New `avoid_returning_this` rule.
+* New `avoid_annotating_with_dynamic_when_not_required` rule.
+* New `prefer_constructors_over_static_methods` rule.
+* New `avoid_returning_null` rule.
+* New `avoid_classes_with_only_static_members` rule.
+* New `do_not_check_for_null_in_equality_operators` rule.
+* New `avoid_catches_without_on_clauses` rule.
+* New `do_not_catch_errors` rule.
+* New `use_rethrow_when_possible` rule.
+* Many lint fixes (notably `prefer_final_fields`, `unnecessary_lambdas`, `await_only_futures`, `cascade_invocations`, `avoid_types_on_closure_parameters`, and `overridden_fields`).
+* Significant performance improvements for `prefer_interpolation_to_compose_strings`.
+* New `unnecessary_this` rule.
+* New `prefer_initiliazling_formals` rule.
+
 # 0.1.30
 
 * New `avoid_function_literals_in_foreach_calls` lint.

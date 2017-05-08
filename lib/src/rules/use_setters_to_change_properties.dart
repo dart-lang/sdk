@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.use_setters_to_change_a_property;
+library linter.src.rules.use_setters_to_change_properties;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -38,7 +38,7 @@ class UseSettersToChangeAProperty extends LintRule {
   _Visitor _visitor;
   UseSettersToChangeAProperty()
       : super(
-            name: 'use_setters_to_change_a_property',
+            name: 'use_setters_to_change_properties',
             description: _desc,
             details: _details,
             group: Group.style) {

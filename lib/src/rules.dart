@@ -21,6 +21,7 @@ import 'package:linter/src/rules/avoid_positional_boolean_parameters.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/avoid_returning_null.dart';
 import 'package:linter/src/rules/avoid_returning_this.dart';
+import 'package:linter/src/rules/avoid_setters_without_getters.dart';
 import 'package:linter/src/rules/avoid_slow_async_io.dart';
 import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
@@ -34,7 +35,6 @@ import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:linter/src/rules/do_not_catch_errors.dart';
 import 'package:linter/src/rules/do_not_check_for_null_in_equality_operators.dart';
-import 'package:linter/src/rules/do_not_create_setter_without_getter.dart';
 import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
@@ -61,7 +61,7 @@ import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
 import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_conditional_assignment.dart';
 import 'package:linter/src/rules/prefer_const_constructors.dart';
-import 'package:linter/src/rules/prefer_constructors_instead_of_static_methods.dart';
+import 'package:linter/src/rules/prefer_constructors_over_static_methods.dart';
 import 'package:linter/src/rules/prefer_contains.dart';
 import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
@@ -89,12 +89,12 @@ import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unnecessary_lambdas.dart';
 import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
 import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
-import 'package:linter/src/rules/unnecessary_override.dart';
+import 'package:linter/src/rules/unnecessary_overrides.dart';
 import 'package:linter/src/rules/unnecessary_this.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/use_rethrow_when_possible.dart';
-import 'package:linter/src/rules/use_setters_to_change_a_property.dart';
-import 'package:linter/src/rules/use_string_buffer.dart';
+import 'package:linter/src/rules/use_setters_to_change_properties.dart';
+import 'package:linter/src/rules/use_string_buffers.dart';
 import 'package:linter/src/rules/use_to_and_as_if_applicable.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
@@ -129,7 +129,7 @@ void registerLintRules() {
     ..register(new DirectivesOrdering())
     ..register(new DoNotCatchErrors())
     ..register(new DoNotCheckForNullInEqualityOperators())
-    ..register(new DoNotCreateSetterWithoutGetter())
+    ..register(new AvoidSettersWithoutGetters())
     ..register(new EmptyCatches())
     ..registerDefault(new EmptyConstructorBodies())
     ..register(new EmptyStatements())
@@ -186,12 +186,12 @@ void registerLintRules() {
     //..register(new UnnecessaryGetters())
     ..register(new UnnecessaryGettersSetters())
     ..register(new UnnecessaryLambdas())
-    ..register(new UnnecessaryOverride())
+    ..register(new UnnecessaryOverrides())
     ..register(new UnnecessaryThis())
     ..register(new UnrelatedTypeEqualityChecks())
     ..register(new UseRethrowWhenPossible())
     ..register(new UseSettersToChangeAProperty())
-    ..register(new UseStringBuffer())
+    ..register(new UseStringBuffers())
     ..register(new UseToAndAsIfApplicable())
     ..register(new ValidRegExps());
 }

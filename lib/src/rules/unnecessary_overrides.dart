@@ -39,11 +39,11 @@ class A extends B{
 
 ''';
 
-class UnnecessaryOverride extends LintRule {
+class UnnecessaryOverrides extends LintRule {
   _Visitor _visitor;
-  UnnecessaryOverride()
+  UnnecessaryOverrides()
       : super(
-            name: 'unnecessary_override',
+            name: 'unnecessary_overrides',
             description: _desc,
             details: _details,
             group: Group.style) {
