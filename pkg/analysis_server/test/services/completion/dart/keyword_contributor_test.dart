@@ -1573,6 +1573,34 @@ class A {
     expect(suggestions, isEmpty);
   }
 
+  test_method_param_named_init() async {
+    addTestSource('class A { foo({bool bar: ^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_named_init2() async {
+    addTestSource('class A { foo({bool bar: f^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_positional_init() async {
+    addTestSource('class A { foo([bool bar = ^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_positional_init2() async {
+    addTestSource('class A { foo([bool bar = f^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
   test_named_constructor_invocation() async {
     addTestSource('void main() {new Future.^}');
     await computeSuggestions();

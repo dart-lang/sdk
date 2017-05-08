@@ -209,6 +209,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (entity == node.defaultValue) {
+      _addExpressionKeywords(node);
+    }
+  }
+
+  @override
   visitExpression(Expression node) {
     _addExpressionKeywords(node);
   }
