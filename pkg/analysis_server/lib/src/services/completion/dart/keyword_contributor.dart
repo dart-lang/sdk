@@ -202,6 +202,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.initializers.isNotEmpty && node.initializers.last == entity) {
+      _addSuggestion(Keyword.SUPER);
+    }
+  }
+
+  @override
   visitExpression(Expression node) {
     _addExpressionKeywords(node);
   }

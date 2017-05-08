@@ -35,17 +35,21 @@ class LocalReferenceContributor extends DartCompletionContributor {
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
     OpType optype = (request as DartCompletionRequestImpl).opType;
+    AstNode node = request.target.containingNode;
+
+    // Suggest local fields for constructor initializers
+    bool suggestLocalFields = node is ConstructorDeclaration &&
+        node.initializers.contains(request.target.entity);
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.
     if (!optype.isPrefixed) {
       if (optype.includeReturnValueSuggestions ||
           optype.includeTypeNameSuggestions ||
-          optype.includeVoidReturnSuggestions) {
+          optype.includeVoidReturnSuggestions ||
+          suggestLocalFields) {
         // If the target is in an expression
         // then resolve the outermost/entire expression
-        AstNode node = request.target.containingNode;
-
         if (node is Expression) {
           await request.resolveContainingExpression(node);
 
@@ -65,8 +69,9 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent;
         }
 
-        _LocalVisitor visitor =
-            new _LocalVisitor(request, request.offset, optype);
+        _LocalVisitor visitor = new _LocalVisitor(
+            request, request.offset, optype,
+            suggestLocalFields: suggestLocalFields);
         visitor.visit(node);
         return visitor.suggestions;
       }
@@ -82,12 +87,15 @@ class LocalReferenceContributor extends DartCompletionContributor {
 class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
+  final bool suggestLocalFields;
   final Map<String, CompletionSuggestion> suggestionMap =
       <String, CompletionSuggestion>{};
   int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
   bool targetIsFunctionalArgument;
 
-  _LocalVisitor(this.request, int offset, this.optype) : super(offset) {
+  _LocalVisitor(this.request, int offset, this.optype,
+      {this.suggestLocalFields})
+      : super(offset) {
     // Suggestions for inherited members provided by InheritedReferenceContributor
     targetIsFunctionalArgument = request.target.isFunctionalArgument();
 
@@ -163,8 +171,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (optype.includeReturnValueSuggestions &&
-        (!optype.inStaticMethodBody || fieldDecl.isStatic)) {
+    if ((optype.includeReturnValueSuggestions &&
+            (!optype.inStaticMethodBody || fieldDecl.isStatic)) ||
+        suggestLocalFields) {
       bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
       TypeAnnotation typeName = fieldDecl.fields.type;
       _addLocalSuggestion_includeReturnValueSuggestions(
