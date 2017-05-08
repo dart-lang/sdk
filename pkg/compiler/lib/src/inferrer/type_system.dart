@@ -282,7 +282,7 @@ class TypeSystem {
       TypeInformation type, ResolutionDartType annotation,
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
-    if (annotation.isVoid) return nullType;
+    if (annotation.isVoid) return type;
     if (annotation.element == closedWorld.commonElements.objectClass &&
         isNullable) {
       return type;

@@ -1342,8 +1342,9 @@ abstract class HInstruction implements Spannable {
     assert(!type.isTypeVariable);
     assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
+    if (type.isVoid) return this;
     if (type == closedWorld.commonElements.objectType) return this;
-    if (type.isVoid || type.isFunctionType || type.isMalformed) {
+    if (type.isFunctionType || type.isMalformed) {
       return new HTypeConversion(
           type, kind, closedWorld.commonMasks.dynamicType, this);
     }

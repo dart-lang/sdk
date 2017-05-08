@@ -1,6 +1,9 @@
 ## 1.24.0
 
 ### Language
+* During a dynamic type check, `void` is not required to be `null` anymore.
+  In practice, this makes overriding `void` functions with non-`void` functions
+  safer.
 
 #### Strong Mode
 
