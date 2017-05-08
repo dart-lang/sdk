@@ -16,11 +16,20 @@ import 'compiler_options.dart';
 class DeltaProgram {
   /// The new state of the program.
   ///
-  /// Libraries whose kernel representation is known to be unchanged since the
-  /// last [DeltaProgram] are not included.
-  final Map<Uri, Program> newState;
+  /// It includes full kernels for changed libraries and for libraries that
+  /// are affected by the transitive change of API in the changed libraries.
+  ///
+  /// For VM reload purposes we need to provide also full kernels for the
+  /// libraries that are transitively imported by the library with `main()`
+  /// and transitively import a changed library.
+  /// TODO(scheglov) With `main()` or entry point URI?
+  ///
+  /// Also includes outlines for the transitive closure of libraries that are
+  /// referenced by previously specified changed, affected or VM-required
+  /// libraries.
+  final Program newProgram;
 
-  DeltaProgram(this.newState);
+  DeltaProgram(this.newProgram);
 
   /// TODO(paulberry): add information about libraries that were removed.
 }

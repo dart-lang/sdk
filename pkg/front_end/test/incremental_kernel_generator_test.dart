@@ -28,11 +28,8 @@ class IncrementalKernelGeneratorTest {
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
 
-  /// TODO(scheglov) Why do we return a Map?
-  /// From the discussion yesterday it seems to me that we always have
-  /// just one program - with all libraries with code, or with some libraries
-  /// with code and some with only outlines.
-  Future<Map<Uri, Program>> getInitialState(Uri entryPoint) async {
+  /// Compute the initial [Program] for the given [entryPoint].
+  Future<Program> getInitialState(Uri entryPoint) async {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
 
@@ -46,7 +43,7 @@ class IncrementalKernelGeneratorTest {
           ..chaseDependencies = true
           ..dartLibraries = dartLibraries
           ..packagesFileUri = Uri.parse('file:///test/.packages'));
-    return (await incrementalKernelGenerator.computeDelta()).newState;
+    return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
   test_updateEntryPoint() async {
@@ -62,10 +59,8 @@ main() {
 
     // Compute the initial state
     {
-      Map<Uri, Program> initialState = await getInitialState(uri);
-      expect(initialState.keys, unorderedEquals([uri]));
-
-      Library library = _getLibrary(initialState[uri], uri);
+      Program program = await getInitialState(uri);
+      Library library = _getLibrary(program, uri);
       expect(
           _getLibraryText(library),
           r'''
@@ -91,9 +86,8 @@ main() {
     // The delta has the updated entry point library.
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
-      expect(delta.newState.keys, unorderedEquals([uri]));
-
-      Library library = _getLibrary(delta.newState[uri], uri);
+      Program program = delta.newProgram;
+      Library library = _getLibrary(program, uri);
       expect(
           _getLibraryText(library),
           r'''

@@ -62,7 +62,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
     // TODO(scheglov) Replace with a better API.
     Program program = await kernelTarget.writeProgram(null);
-    return new DeltaProgram({_entryPoint: program});
+    return new DeltaProgram(program);
   }
 
   @override
