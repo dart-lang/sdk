@@ -13,7 +13,7 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/native_data.dart' show NativeData;
+import '../js_backend/native_data.dart' show NativeBasicData;
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -775,7 +775,7 @@ class NativeBehavior {
     }
 
     BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeData);
+        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
     return builder.buildMethodBehavior(
         type, metadata, lookupFromElement(compiler.resolution, element),
         isJsInterop: isJsInterop);
@@ -793,7 +793,7 @@ class NativeBehavior {
     }
 
     BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeData);
+        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
     return builder.buildFieldLoadBehavior(
         type, metadata, lookupFromElement(resolution, element),
         isJsInterop: isJsInterop);
@@ -802,7 +802,7 @@ class NativeBehavior {
   static NativeBehavior ofFieldElementStore(
       MemberElement field, Compiler compiler) {
     BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeData);
+        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
     ResolutionDartType type = field.computeType(compiler.resolution);
     return builder.buildFieldStoreBehavior(type);
   }
@@ -849,7 +849,7 @@ class NativeBehavior {
 abstract class BehaviorBuilder {
   CommonElements get commonElements;
   DiagnosticReporter get reporter;
-  NativeData get nativeData;
+  NativeBasicData get nativeBasicData;
   bool get trustJSInteropTypeAnnotations;
 
   Resolution get resolution => null;
@@ -946,7 +946,8 @@ abstract class BehaviorBuilder {
       if (!isInterop) {
         _behavior.typesInstantiated.add(type);
       } else {
-        if (type is InterfaceType && nativeData.isNativeClass(type.element)) {
+        if (type is InterfaceType &&
+            nativeBasicData.isNativeClass(type.element)) {
           // Any declared native or interop type (isNative implies isJsInterop)
           // is assumed to be allocated.
           _behavior.typesInstantiated.add(type);
@@ -1034,9 +1035,9 @@ abstract class BehaviorBuilder {
 
 class ResolverBehaviorBuilder extends BehaviorBuilder {
   final Compiler compiler;
-  final NativeData nativeData;
+  final NativeBasicData nativeBasicData;
 
-  ResolverBehaviorBuilder(this.compiler, this.nativeData);
+  ResolverBehaviorBuilder(this.compiler, this.nativeBasicData);
 
   @override
   CommonElements get commonElements => compiler.commonElements;

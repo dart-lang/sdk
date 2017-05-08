@@ -479,8 +479,8 @@ class MemberTypeInformation extends ElementTypeInformation
       if (element.isField) {
         FieldElement field = element;
         return inferrer
-            .typeOfNativeBehavior(
-                inferrer.backend.nativeData.getNativeFieldLoadBehavior(field))
+            .typeOfNativeBehavior(inferrer.closedWorld.nativeData
+                .getNativeFieldLoadBehavior(field))
             .type;
       } else {
         assert(element.isFunction ||
@@ -493,7 +493,7 @@ class MemberTypeInformation extends ElementTypeInformation
           return safeType(inferrer);
         } else {
           return inferrer
-              .typeOfNativeBehavior(inferrer.backend.nativeData
+              .typeOfNativeBehavior(inferrer.closedWorld.nativeData
                   .getNativeMethodBehavior(methodElement))
               .type;
         }

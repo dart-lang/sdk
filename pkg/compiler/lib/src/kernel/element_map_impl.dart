@@ -1169,16 +1169,16 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
     throw new UnimplementedError("KernelNativeBehaviorComputer.reporter");
   }
 
-  @override
-  NativeData get nativeData {
-    throw new UnimplementedError("KernelNativeBehaviorComputer.nativeData");
+  NativeBasicData get nativeBasicData {
+    throw new UnimplementedError(
+        "KernelNativeBehaviorComputer.nativeBasicData");
   }
 }
 
 /// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
 /// [_EvaluationEnvironment] for the evaluation.
 class KernelConstantEnvironment implements ConstantEnvironment {
-  KernelToElementMapImpl _worldBuilder;
+  KernelToElementMap _worldBuilder;
   Map<ConstantExpression, ConstantValue> _valueMap =
       <ConstantExpression, ConstantValue>{};
 

@@ -221,7 +221,7 @@ class InferrerEngine {
 
   bool isNativeMember(Element element) {
     return element is MemberElement &&
-        compiler.backend.nativeData.isNativeMember(element);
+        closedWorld.nativeData.isNativeMember(element);
   }
 
   bool checkIfExposesThis(Element element) {

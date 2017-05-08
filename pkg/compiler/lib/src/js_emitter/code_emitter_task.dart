@@ -36,7 +36,7 @@ const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
  */
 class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
-  NativeEmitter nativeEmitter;
+  NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
   EmitterFactory _emitterFactory;
   Emitter _emitter;
@@ -55,7 +55,6 @@ class CodeEmitterTask extends CompilerTask {
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
         super(compiler.measurer) {
-    nativeEmitter = new NativeEmitter(this);
     if (USE_LAZY_EMITTER) {
       _emitterFactory = new lazy_js_emitter.EmitterFactory();
     } else if (useStartupEmitter) {
@@ -65,6 +64,12 @@ class CodeEmitterTask extends CompilerTask {
       _emitterFactory = new full_js_emitter.EmitterFactory(
           generateSourceMap: generateSourceMap);
     }
+  }
+
+  NativeEmitter get nativeEmitter {
+    assert(invariant(NO_LOCATION_SPANNABLE, _nativeEmitter != null,
+        message: "NativeEmitter has not been created yet."));
+    return _nativeEmitter;
   }
 
   Emitter get emitter {
@@ -163,6 +168,7 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(Namer namer, ClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder) {
     measure(() {
+      _nativeEmitter = new NativeEmitter(this, closedWorld.nativeData);
       _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
       metadataCollector = new MetadataCollector(
           compiler.options,
@@ -191,7 +197,7 @@ class CodeEmitterTask extends CompilerTask {
           backend.nativeCodegenEnqueuer,
           backend.backendUsage,
           backend.constants,
-          backend.nativeData,
+          closedWorld.nativeData,
           backend.rtiNeed,
           backend.mirrorsData,
           backend.interceptorData,

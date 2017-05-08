@@ -20,6 +20,7 @@ import 'model.dart';
 
 class NativeEmitter {
   final CodeEmitterTask emitterTask;
+  final NativeData nativeData;
 
   // Whether the application contains native classes.
   bool hasNativeClasses = false;
@@ -35,15 +36,13 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
 
-  NativeEmitter(CodeEmitterTask emitterTask) : this.emitterTask = emitterTask;
+  NativeEmitter(this.emitterTask, this.nativeData);
 
   Compiler get compiler => emitterTask.compiler;
 
   JavaScriptBackend get backend => compiler.backend;
 
   CodegenWorldBuilder get worldBuilder => compiler.codegenWorldBuilder;
-
-  NativeData get nativeData => backend.nativeData;
 
   InterceptorData get interceptorData => backend.interceptorData;
 

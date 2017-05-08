@@ -163,7 +163,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     return _closedWorldCache = new ClosedWorldImpl(
         commonElements: _commonElements,
         constantSystem: _backend.constantSystem,
-        nativeData: _backend.nativeData,
+        nativeData: _backend.nativeDataBuilder.close(),
         interceptorData: _backend.interceptorData,
         backendUsage: _backend.backendUsage,
         resolutionWorldBuilder: this,

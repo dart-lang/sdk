@@ -216,7 +216,7 @@ class SsaBuilder extends ast.Visitor
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     localsHandler = new LocalsHandler(
-        this, target, null, backend.nativeData, backend.interceptorData);
+        this, target, null, closedWorld.nativeData, backend.interceptorData);
     loopHandler = new SsaLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
   }

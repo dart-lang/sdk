@@ -71,7 +71,7 @@ abstract class GraphBuilder {
 
   ClosureTask get closureToClassMapper => compiler.closureToClassMapper;
 
-  NativeData get nativeData => backend.nativeData;
+  NativeData get nativeData => closedWorld.nativeData;
 
   InterceptorData get interceptorData => backend.interceptorData;
 

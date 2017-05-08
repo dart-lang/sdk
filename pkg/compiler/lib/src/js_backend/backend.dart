@@ -435,12 +435,12 @@ class JavaScriptBackend {
   /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
 
-  NativeDataImpl _nativeData;
+  NativeDataBuilderImpl _nativeDataBuilder;
   final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
       new NativeBasicDataBuilderImpl();
   NativeBasicDataImpl _nativeBasicData;
-  NativeData get nativeData => _nativeData;
-  NativeDataBuilder get nativeDataBuilder => _nativeData;
+  //NativeData get nativeData => _nativeData;
+  NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
@@ -696,10 +696,9 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(
-                nativeData, closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(nativeData, closedWorld, codegenWorldBuilder)
-        : new Namer(nativeData, closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(closedWorld, codegenWorldBuilder)
+        : new Namer(closedWorld, codegenWorldBuilder);
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -849,7 +848,7 @@ class JavaScriptBackend {
         commonElements,
         backendUsageBuilder,
         compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
-    _nativeData = new NativeDataImpl(nativeBasicData);
+    _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = compiler.frontEndStrategy
         .createCustomElementsResolutionAnalysis(
             nativeBasicData, backendUsageBuilder);
@@ -918,7 +917,7 @@ class JavaScriptBackend {
         commonElements,
         emitter,
         _nativeResolutionEnqueuer,
-        nativeData);
+        closedWorld.nativeData);
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -1157,7 +1156,7 @@ class JavaScriptBackend {
         commonElements,
         impacts,
         checkedModeHelpers,
-        nativeData,
+        closedWorld.nativeData,
         backendUsage,
         rtiNeed,
         nativeCodegenEnqueuer,
