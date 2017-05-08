@@ -719,6 +719,34 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         'Unexpected constant expression $node (${node.runtimeType})');
   }
 
+  @override
+  ConstantExpression visitLet(ir.Let node) {
+    if (node.body is ir.ConditionalExpression) {
+      ir.ConditionalExpression conditional = node.body;
+      if (conditional.condition is ir.MethodInvocation) {
+        ir.MethodInvocation methodInvocation = conditional.condition;
+        if (methodInvocation.name.name == BinaryOperator.EQ.name &&
+            methodInvocation.receiver is ir.VariableGet &&
+            methodInvocation.arguments.positional.single is ir.NullLiteral &&
+            conditional.otherwise is ir.VariableGet) {
+          ir.VariableGet variableGet1 = methodInvocation.receiver;
+          ir.VariableGet variableGet2 = conditional.otherwise;
+          if (variableGet1.variable == node.variable &&
+              variableGet2.variable == node.variable) {
+            // We have <left> ?? <right> encoded as:
+            //    let #1 = <left> in #1 == null ? <right> : #1
+            ConstantExpression left = visit(node.variable.initializer);
+            ConstantExpression right = visit(conditional.then);
+            return new BinaryConstantExpression(
+                left, BinaryOperator.IF_NULL, right);
+          }
+        }
+      }
+    }
+    throw new UnimplementedError(
+        'Unexpected constant expression $node (${node.runtimeType})');
+  }
+
   /// Compute the [ConstantConstructor] corresponding to the const constructor
   /// [node].
   ConstantConstructor computeConstantConstructor(ir.Constructor node) {

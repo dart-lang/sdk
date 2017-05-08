@@ -57,6 +57,7 @@ main() {
   testSymbol();
   testConstSymbol();
   testComplexConstSymbol();
+  testIfNullConstSymbol();
   testTypeLiteral();
   testBoolFromEnvironment();
   testEmptyListLiteral();
@@ -233,6 +234,8 @@ const complexSymbolField3 = const {
 const complexSymbolField = 
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 testComplexConstSymbol() => const Symbol(complexSymbolField);
+
+testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
 testTypeLiteral() => Object;
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
