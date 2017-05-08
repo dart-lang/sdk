@@ -933,7 +933,7 @@ abstract class KernelResolutionWorldBuilderBase
         interceptorData: null,
         backendUsage: null,
         resolutionWorldBuilder: this,
-        functionSetBuilder: _allFunctions,
+        functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,

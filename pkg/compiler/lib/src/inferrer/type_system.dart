@@ -254,7 +254,7 @@ class TypeSystem {
   TypeInformation refineReceiver(Selector selector, TypeMask mask,
       TypeInformation receiver, bool isConditional) {
     if (receiver.type.isExact) return receiver;
-    TypeMask otherType = closedWorld.allFunctions.receiverType(selector, mask);
+    TypeMask otherType = closedWorld.computeReceiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
     if (isConditional) {

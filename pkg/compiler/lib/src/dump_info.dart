@@ -262,6 +262,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         isExternal: element.isPatched);
     String code = compiler.dumpInfoTask.codeOf(element);
 
+    String returnType = null;
     List<ParameterInfo> parameters = <ParameterInfo>[];
     if (element.hasFunctionSignature) {
       FunctionSignature signature = element.functionSignature;
@@ -269,15 +270,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         parameters.add(new ParameterInfo(parameter.name,
             '${_resultOfParameter(parameter).type}', '${parameter.node.type}'));
       });
-    }
-
-    String returnType = null;
-    // TODO(sigmund): why all these checks?
-    if (element.isInstanceMember &&
-        !element.isAbstract &&
-        closedWorld.allFunctions.contains(element as MemberElement)) {
       returnType = '${element.type.returnType}';
     }
+
     String inferredReturnType = '${_resultOfElement(element).returnType}';
     String sideEffects = '${closedWorld.getSideEffectsOfElement(element)}';
 
@@ -461,8 +456,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         element,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          selections.addAll(closedWorld.allFunctions
-              .filter(dynamicUse.selector, dynamicUse.mask)
+          selections.addAll(closedWorld
+              .locateMembers(dynamicUse.selector, dynamicUse.mask)
               .map((MemberElement e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));

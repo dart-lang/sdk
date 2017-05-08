@@ -931,7 +931,7 @@ class EqualsSpecializer extends RelationalSpecializer {
       return newBuiltinVariant(instruction, closedWorld);
     }
     Iterable<MemberEntity> matches =
-        closedWorld.allFunctions.filter(instruction.selector, instructionType);
+        closedWorld.locateMembers(instruction.selector, instructionType);
     // This test relies the on `Object.==` and `Interceptor.==` always being
     // implemented because if the selector matches by subtype, it still will be
     // a regular object or an interceptor.

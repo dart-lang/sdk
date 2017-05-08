@@ -823,7 +823,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   void addToGraph(InferrerEngine inferrer) {
     assert(receiver != null);
     TypeMask typeMask = computeTypedSelector(inferrer);
-    targets = inferrer.closedWorld.allFunctions.filter(selector, typeMask);
+    targets = inferrer.closedWorld.locateMembers(selector, typeMask);
     receiver.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -987,9 +987,9 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     // the untyped selector (through noSuchMethod's `Invocation`
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
-    targets = inferrer.closedWorld.allFunctions.filter(selector, maskToUse);
+    targets = inferrer.closedWorld.locateMembers(selector, maskToUse);
     Iterable<MemberEntity> typedTargets = canReachAll
-        ? inferrer.closedWorld.allFunctions.filter(selector, typeMask)
+        ? inferrer.closedWorld.locateMembers(selector, typeMask)
         : targets;
 
     // Update the call graph if the targets could have changed.
@@ -1085,7 +1085,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!abandonInferencing) {
       inferrer.updateSelectorInTree(caller, call, selector, mask);
       Iterable<MemberEntity> oldTargets = targets;
-      targets = inferrer.closedWorld.allFunctions.filter(selector, mask);
+      targets = inferrer.closedWorld.locateMembers(selector, mask);
       for (MemberElement element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =

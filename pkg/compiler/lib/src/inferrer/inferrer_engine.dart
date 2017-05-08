@@ -103,8 +103,7 @@ class InferrerEngine {
    */
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
-    Iterable<MemberEntity> elements =
-        closedWorld.allFunctions.filter(selector, mask);
+    Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
     for (MemberElement e in elements) {
       if (!f(e.implementation)) return;
     }
@@ -899,9 +898,7 @@ class InferrerEngine {
           arguments, sideEffects, inLoop);
     }
 
-    closedWorld.allFunctions
-        .filter(selector, mask)
-        .forEach((MemberElement callee) {
+    closedWorld.locateMembers(selector, mask).forEach((MemberElement callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 

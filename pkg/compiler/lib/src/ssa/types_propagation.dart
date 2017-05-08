@@ -278,8 +278,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
-      Iterable<MemberEntity> targets = closedWorld.allFunctions
-          .filter(instruction.selector, instruction.mask);
+      Iterable<MemberEntity> targets =
+          closedWorld.locateMembers(instruction.selector, instruction.mask);
       if (targets.length == 1) {
         MemberEntity target = targets.first;
         ClassEntity cls = target.enclosingClass;
@@ -380,8 +380,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (!instruction.selector.isClosureCall) {
       TypeMask newType;
       TypeMask computeNewType() {
-        newType = closedWorld.allFunctions
-            .receiverType(instruction.selector, instruction.mask);
+        newType = closedWorld.computeReceiverType(
+            instruction.selector, instruction.mask);
         newType = newType.intersection(receiverType, closedWorld);
         return newType;
       }

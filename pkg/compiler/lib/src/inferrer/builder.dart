@@ -1990,7 +1990,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<MemberEntity> targets = closedWorld.allFunctions.filter(
+        Iterable<MemberEntity> targets = closedWorld.locateMembers(
             setterSelector, types.newTypedSelector(thisType, setterMask));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update
