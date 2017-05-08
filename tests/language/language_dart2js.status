@@ -156,6 +156,12 @@ multiline_newline_test/04: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
+multiline_newline_test/01r: CompileTimeError # Issue 23888
+multiline_newline_test/02r: CompileTimeError # Issue 23888
+multiline_newline_test/03r: CompileTimeError # Issue 23888
+multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
+multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
+multiline_newline_test/06r: MissingCompileTimeError # Issue 23888
 
 [ $compiler == dart2js && $checked ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
