@@ -93,6 +93,7 @@ class FastaContext extends ChainContext {
       bool strongMode,
       bool updateExpectations,
       bool updateComments,
+      bool skipVm,
       this.uriTranslator,
       bool fullCompile,
       AstKind astKind)
@@ -107,7 +108,7 @@ class FastaContext extends ChainContext {
                   : ".outline.expect",
               updateExpectations: updateExpectations)
         ] {
-    if (fullCompile) {
+    if (fullCompile && !skipVm) {
       steps.add(const WriteDill());
       steps.add(const Run());
     }
@@ -130,11 +131,19 @@ class FastaContext extends ChainContext {
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
+    bool skipVm = environment["skipVm"] == "true";
     String astKindString = environment[AST_KIND_INDEX];
     AstKind astKind =
         astKindString == null ? null : AstKind.values[int.parse(astKindString)];
-    return new FastaContext(vm, strongMode, updateExpectations, updateComments,
-        uriTranslator, environment.containsKey(ENABLE_FULL_COMPILE), astKind);
+    return new FastaContext(
+        vm,
+        strongMode,
+        updateExpectations,
+        updateComments,
+        skipVm,
+        uriTranslator,
+        environment.containsKey(ENABLE_FULL_COMPILE),
+        astKind);
   }
 }
 
