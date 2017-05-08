@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analyzer_converter_test.dart' as analyzer_converter_test;
 import 'subscriptions/test_all.dart' as subscriptions;
 
 main() {
   defineReflectiveSuite(() {
+    analyzer_converter_test.main();
     subscriptions.main();
   }, name: 'utilities');
 }
