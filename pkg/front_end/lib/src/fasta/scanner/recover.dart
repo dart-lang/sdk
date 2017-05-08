@@ -84,13 +84,13 @@ Token defaultRecoveryStrategy(
     // [errorTail] ends. This is the case for "b" above.
     bool append = false;
     if (goodTail != null) {
-      if (goodTail.info == TokenType.IDENTIFIER &&
+      if (goodTail.type == TokenType.IDENTIFIER &&
           goodTail.charEnd == first.charOffset) {
         prepend = true;
       }
     }
     Token next = errorTail.next;
-    if (next.info == TokenType.IDENTIFIER &&
+    if (next.type == TokenType.IDENTIFIER &&
         errorTail.charOffset + 1 == next.charOffset) {
       append = true;
     }
@@ -228,8 +228,8 @@ Token defaultRecoveryStrategy(
   return error;
 }
 
-Token synthesizeToken(int charOffset, String value, TokenType info) {
-  return new StringToken.fromString(info, value, charOffset);
+Token synthesizeToken(int charOffset, String value, TokenType type) {
+  return new StringToken.fromString(type, value, charOffset);
 }
 
 Token skipToEof(Token token) {

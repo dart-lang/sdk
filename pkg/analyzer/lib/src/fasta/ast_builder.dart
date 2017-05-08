@@ -1943,15 +1943,15 @@ class AstBuilder extends ScopeListener {
     pop();
   }
 
-  /// Check if the given [token] has a comment token with the given [info],
+  /// Check if the given [token] has a comment token with the given [type],
   /// which should be either [TokenType.GENERIC_METHOD_TYPE_ASSIGN] or
   /// [TokenType.GENERIC_METHOD_TYPE_LIST].  If found, parse the comment
   /// into tokens and inject into the token stream before the [token].
-  Token _injectGenericComment(Token token, TokenType info, int prefixLen) {
+  Token _injectGenericComment(Token token, TokenType type, int prefixLen) {
     if (parseGenericMethodComments) {
       CommentToken t = token.precedingCommentTokens;
       for (; t != null; t = t.next) {
-        if (t.info == info) {
+        if (t.type == type) {
           String code = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
           Token tokens = _scanGenericMethodComment(code, t.offset + prefixLen);
           if (tokens != null) {
@@ -1970,7 +1970,7 @@ class AstBuilder extends ScopeListener {
   void _injectTokenList(Token beforeToken, Token firstToken) {
     // Scanner creates a cyclic EOF token.
     Token lastToken = firstToken;
-    while (lastToken.next.info != TokenType.EOF) {
+    while (lastToken.next.type != TokenType.EOF) {
       lastToken = lastToken.next;
     }
     // Inject these new tokens into the stream.

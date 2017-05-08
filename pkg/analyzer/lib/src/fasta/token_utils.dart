@@ -88,7 +88,7 @@ class ToAnalyzerTokenStreamConverter {
     _endTokenStack = <Token>[null];
 
     while (true) {
-      if (token.info.kind == BAD_INPUT_TOKEN) {
+      if (token.type.kind == BAD_INPUT_TOKEN) {
         ErrorToken errorToken = token;
         translateErrorToken(errorToken, reportError);
       } else {
@@ -208,13 +208,13 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
       beginTokenStack.last.endGroup = translatedToken;
       beginTokenStack.removeLast();
       endTokenStack.removeLast();
-    } else if (translatedToken.info.kind == LT_TOKEN) {
+    } else if (translatedToken.type.kind == LT_TOKEN) {
       BeginGroupToken beginGroupToken = translatedToken;
       angleBracketStack.add(beginGroupToken);
-    } else if (translatedToken.info.kind == GT_TOKEN &&
+    } else if (translatedToken.type.kind == GT_TOKEN &&
         angleBracketStack.isNotEmpty) {
       angleBracketStack.removeLast().endGroup = translatedToken;
-    } else if (translatedToken.info.kind == GT_GT_TOKEN &&
+    } else if (translatedToken.type.kind == GT_GT_TOKEN &&
         angleBracketStack.isNotEmpty) {
       angleBracketStack.removeLast();
       if (angleBracketStack.isNotEmpty) {
@@ -275,10 +275,10 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
 
 /// Converts a single analyzer token into a Fasta token.
 Token fromAnalyzerToken(analyzer.Token token) {
-  Token beginGroup(TokenType info) => new BeginGroupToken(info, token.offset);
-  Token string(TokenType info) =>
-      new StringToken.fromString(info, token.lexeme, token.offset);
-  Token symbol(TokenType info) => new SymbolToken(info, token.offset);
+  Token beginGroup(TokenType type) => new BeginGroupToken(type, token.offset);
+  Token string(TokenType type) =>
+      new StringToken.fromString(type, token.lexeme, token.offset);
+  Token symbol(TokenType type) => new SymbolToken(type, token.offset);
   if (token.type.isKeyword) {
     var keyword = Keyword.keywords[token.lexeme];
     if (keyword != null) {

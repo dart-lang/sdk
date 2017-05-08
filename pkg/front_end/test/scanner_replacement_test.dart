@@ -312,7 +312,7 @@ class ScannerTest_Replacement extends ScannerTest {
     var token = firstToken;
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
-    while (token.info == analyzer.TokenType.BAD_INPUT) {
+    while (token.type == analyzer.TokenType.BAD_INPUT) {
       translateErrorToken(token,
           (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
         listener.errors.add(new TestError(offset, errorCode, arguments));

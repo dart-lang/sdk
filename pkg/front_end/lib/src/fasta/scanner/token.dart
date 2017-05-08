@@ -53,14 +53,6 @@ abstract class Token implements analyzer.TokenWithComment {
   }
 
   /**
-   * The precedence info for this token. [info] determines the kind and the
-   * precedence level of this token.
-   *
-   * Defined as getter to save a field in the [KeywordToken] subclass.
-   */
-  TokenType get info;
-
-  /**
    * The string represented by this token, a substring of the source code.
    *
    * For [StringToken]s the [lexeme] includes the quotes, explicit escapes, etc.
@@ -88,14 +80,14 @@ abstract class Token implements analyzer.TokenWithComment {
   String get stringValue;
 
   /**
-   * The kind enum of this token as determined by its [info].
+   * The kind enum of this token as determined by its [type].
    */
-  int get kind => info.kind;
+  int get kind => type.kind;
 
   /**
    * The precedence level for this token.
    */
-  int get precedence => info.precedence;
+  int get precedence => type.precedence;
 
   /**
    * True if this token is an identifier. Some keywords allowed as identifiers,
@@ -119,7 +111,7 @@ abstract class Token implements analyzer.TokenWithComment {
    * The number of characters parsed by this token.
    */
   int get charCount {
-    if (info == analyzer.TokenType.BAD_INPUT) {
+    if (type == analyzer.TokenType.BAD_INPUT) {
       // This is a token that wraps around an error message. Return 1
       // instead of the size of the length of the error message.
       return 1;
@@ -136,13 +128,10 @@ abstract class Token implements analyzer.TokenWithComment {
   bool get isBuiltInIdentifier => false;
 
   @override
-  bool get isOperator => info.isOperator;
+  bool get isOperator => type.isOperator;
 
   @override
-  bool get isUserDefinableOperator => info.isUserDefinableOperator;
-
-  @override
-  analyzer.TokenType get type => info;
+  bool get isUserDefinableOperator => type.isUserDefinableOperator;
 
   @override
   int get offset => charOffset;
@@ -238,9 +227,9 @@ abstract class Token implements analyzer.TokenWithComment {
  * Also used for end of file with EOF_INFO.
  */
 class SymbolToken extends Token {
-  final TokenType info;
+  final TokenType type;
 
-  SymbolToken(this.info, int charOffset) : super(charOffset);
+  SymbolToken(this.type, int charOffset) : super(charOffset);
 
   factory SymbolToken.eof(int charOffset) {
     var eof = new SyntheticSymbolToken(analyzer.TokenType.EOF, charOffset);
@@ -251,10 +240,10 @@ class SymbolToken extends Token {
   }
 
   @override
-  String get lexeme => info.value;
+  String get lexeme => type.value;
 
   @override
-  String get stringValue => info.value;
+  String get stringValue => type.value;
 
   @override
   bool get isIdentifier => false;
@@ -263,12 +252,12 @@ class SymbolToken extends Token {
   String toString() => "SymbolToken(${isEof ? '-eof-' : lexeme})";
 
   @override
-  bool get isEof => info == analyzer.TokenType.EOF;
+  bool get isEof => type == analyzer.TokenType.EOF;
 
   @override
   Token copyWithoutComments() => isEof
       ? new SymbolToken.eof(charOffset)
-      : new SymbolToken(info, charOffset);
+      : new SymbolToken(type, charOffset);
 }
 
 /**
@@ -278,8 +267,8 @@ class SymbolToken extends Token {
  * then it will insert an synthetic ')'.
  */
 class SyntheticSymbolToken extends SymbolToken {
-  SyntheticSymbolToken(TokenType info, int charOffset)
-      : super(info, charOffset);
+  SyntheticSymbolToken(TokenType type, int charOffset)
+      : super(type, charOffset);
 
   @override
   int get charCount => 0;
@@ -290,7 +279,7 @@ class SyntheticSymbolToken extends SymbolToken {
   @override
   Token copyWithoutComments() => isEof
       ? new SymbolToken.eof(charOffset)
-      : new SyntheticSymbolToken(info, charOffset);
+      : new SyntheticSymbolToken(type, charOffset);
 }
 
 /**
@@ -303,7 +292,7 @@ class BeginGroupToken extends SymbolToken
     implements analyzer.BeginTokenWithComment {
   Token endGroup;
 
-  BeginGroupToken(TokenType info, int charOffset) : super(info, charOffset);
+  BeginGroupToken(TokenType type, int charOffset) : super(type, charOffset);
 
   @override
   analyzer.Token get endToken => endGroup;
@@ -314,7 +303,7 @@ class BeginGroupToken extends SymbolToken
   }
 
   @override
-  Token copyWithoutComments() => new BeginGroupToken(info, charOffset);
+  Token copyWithoutComments() => new BeginGroupToken(type, charOffset);
 }
 
 /**
@@ -389,13 +378,13 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
 
   var /* String | LazySubtring */ valueOrLazySubstring;
 
-  final TokenType info;
+  final TokenType type;
 
   /**
    * Creates a non-lazy string token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  StringToken.fromString(this.info, String value, int charOffset,
+  StringToken.fromString(this.type, String value, int charOffset,
       {bool canonicalize: false})
       : valueOrLazySubstring =
             canonicalizedString(value, 0, value.length, canonicalize),
@@ -406,7 +395,7 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
    * is canonicalized before the token is created.
    */
   StringToken.fromSubstring(
-      this.info, String data, int start, int end, int charOffset,
+      this.type, String data, int start, int end, int charOffset,
       {bool canonicalize: false})
       : super(charOffset) {
     int length = end - start;
@@ -423,7 +412,7 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  StringToken.fromUtf8Bytes(this.info, List<int> data, int start, int end,
+  StringToken.fromUtf8Bytes(this.type, List<int> data, int start, int end,
       bool asciiOnly, int charOffset)
       : super(charOffset) {
     int length = end - start;
@@ -434,7 +423,7 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
     }
   }
 
-  StringToken._(this.info, this.valueOrLazySubstring, int charOffset)
+  StringToken._(this.type, this.valueOrLazySubstring, int charOffset)
       : super(charOffset);
 
   String get lexeme {
@@ -477,7 +466,7 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
 
   @override
   Token copyWithoutComments() =>
-      new StringToken._(info, valueOrLazySubstring, charOffset);
+      new StringToken._(type, valueOrLazySubstring, charOffset);
 
   @override
   String value() => lexeme;
@@ -488,8 +477,8 @@ class StringToken extends Token implements analyzer.StringTokenWithComment {
  */
 class SyntheticStringToken extends StringToken
     implements analyzer.SyntheticStringToken {
-  SyntheticStringToken(TokenType info, String value, int offset)
-      : super._(info, value, offset);
+  SyntheticStringToken(TokenType type, String value, int offset)
+      : super._(type, value, offset);
 
   @override
   bool get isSynthetic => true;
@@ -499,7 +488,7 @@ class SyntheticStringToken extends StringToken
 
   @override
   Token copyWithoutComments() =>
-      new SyntheticStringToken(info, valueOrLazySubstring, offset);
+      new SyntheticStringToken(type, valueOrLazySubstring, offset);
 }
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
@@ -511,31 +500,31 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
    * is canonicalized before the token is created.
    */
   CommentToken.fromSubstring(
-      TokenType info, String data, int start, int end, int charOffset,
+      TokenType type, String data, int start, int end, int charOffset,
       {bool canonicalize: false})
-      : super.fromSubstring(info, data, start, end, charOffset,
+      : super.fromSubstring(type, data, start, end, charOffset,
             canonicalize: canonicalize);
 
   /**
    * Creates a non-lazy comment token.
    */
-  CommentToken.fromString(TokenType info, String lexeme, int charOffset)
-      : super.fromString(info, lexeme, charOffset);
+  CommentToken.fromString(TokenType type, String lexeme, int charOffset)
+      : super.fromString(type, lexeme, charOffset);
 
   /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  CommentToken.fromUtf8Bytes(TokenType info, List<int> data, int start, int end,
+  CommentToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
       bool asciiOnly, int charOffset)
-      : super.fromUtf8Bytes(info, data, start, end, asciiOnly, charOffset);
+      : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
 
-  CommentToken._(TokenType info, valueOrLazySubstring, int charOffset)
-      : super._(info, valueOrLazySubstring, charOffset);
+  CommentToken._(TokenType type, valueOrLazySubstring, int charOffset)
+      : super._(type, valueOrLazySubstring, charOffset);
 
   @override
   CommentToken copy() =>
-      new CommentToken._(info, valueOrLazySubstring, charOffset);
+      new CommentToken._(type, valueOrLazySubstring, charOffset);
 
   @override
   void remove() {
@@ -563,26 +552,26 @@ class DartDocToken extends CommentToken
    * is canonicalized before the token is created.
    */
   DartDocToken.fromSubstring(
-      TokenType info, String data, int start, int end, int charOffset,
+      TokenType type, String data, int start, int end, int charOffset,
       {bool canonicalize: false})
-      : super.fromSubstring(info, data, start, end, charOffset,
+      : super.fromSubstring(type, data, start, end, charOffset,
             canonicalize: canonicalize);
 
   /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  DartDocToken.fromUtf8Bytes(TokenType info, List<int> data, int start, int end,
+  DartDocToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
       bool asciiOnly, int charOffset)
-      : super.fromUtf8Bytes(info, data, start, end, asciiOnly, charOffset);
+      : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
 
-  DartDocToken._(TokenType info, valueOrLazySubstring, int charOffset)
-      : super._(info, valueOrLazySubstring, charOffset);
+  DartDocToken._(TokenType type, valueOrLazySubstring, int charOffset)
+      : super._(type, valueOrLazySubstring, charOffset);
 
   @override
   DartDocToken copy() {
     DartDocToken copy =
-        new DartDocToken._(info, valueOrLazySubstring, charOffset);
+        new DartDocToken._(type, valueOrLazySubstring, charOffset);
     references.forEach((ref) => copy.references.add(ref.copy()));
     return copy;
   }

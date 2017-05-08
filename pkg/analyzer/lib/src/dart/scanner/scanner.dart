@@ -155,7 +155,7 @@ class _Scanner2 implements Scanner {
     fasta.Token token = result.tokens;
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
-    while (token.info == TokenType.BAD_INPUT) {
+    while (token.type == TokenType.BAD_INPUT) {
       translateErrorToken(token, reportError);
       token = token.next;
     }

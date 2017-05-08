@@ -293,7 +293,7 @@ class Parser {
   }
 
   Token _parseTopLevelDeclaration(Token token) {
-    if (identical(token.info, TokenType.SCRIPT_TAG)) {
+    if (identical(token.type, TokenType.SCRIPT_TAG)) {
       return parseScript(token);
     }
     token = parseMetadataStar(token);
@@ -2738,8 +2738,8 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    TokenType info = token.info;
-    int tokenLevel = info.precedence;
+    TokenType type = token.type;
+    int tokenLevel = type.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (identical(tokenLevel, level)) {
         Token operator = token;
@@ -2755,8 +2755,8 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
-          if (identical(info, TokenType.PERIOD) ||
-              identical(info, TokenType.QUESTION_PERIOD)) {
+          if (identical(type, TokenType.PERIOD) ||
+              identical(type, TokenType.QUESTION_PERIOD)) {
             // Left associative, so we recurse at the next higher precedence
             // level. However, POSTFIX_PRECEDENCE is the highest level, so we
             // should just call [parseUnaryExpression] directly. However, a
@@ -2765,21 +2765,21 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.handleBinaryExpression(operator);
-          } else if ((identical(info, TokenType.OPEN_PAREN)) ||
-              (identical(info, TokenType.OPEN_SQUARE_BRACKET))) {
+          } else if ((identical(type, TokenType.OPEN_PAREN)) ||
+              (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
             token = parseArgumentOrIndexStar(token);
-          } else if ((identical(info, TokenType.PLUS_PLUS)) ||
-              (identical(info, TokenType.MINUS_MINUS))) {
+          } else if ((identical(type, TokenType.PLUS_PLUS)) ||
+              (identical(type, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
             token = reportUnexpectedToken(token).next;
           }
-        } else if (identical(info, TokenType.IS)) {
+        } else if (identical(type, TokenType.IS)) {
           token = parseIsOperatorRest(token);
-        } else if (identical(info, TokenType.AS)) {
+        } else if (identical(type, TokenType.AS)) {
           token = parseAsOperatorRest(token);
-        } else if (identical(info, TokenType.QUESTION)) {
+        } else if (identical(type, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token);
         } else {
           // Left associative, so we recurse at the next higher
@@ -2789,8 +2789,8 @@ class Parser {
               parsePrecedenceExpression(token.next, level + 1, allowCascades);
           listener.handleBinaryExpression(operator);
         }
-        info = token.info;
-        tokenLevel = info.precedence;
+        type = token.type;
+        tokenLevel = type.precedence;
         if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
           // We don't allow (a == b == c) or (a < b < c).
           // Continue the outer loop if we have matched one equality or
@@ -2826,7 +2826,7 @@ class Parser {
       token = parseArgumentOrIndexStar(token);
     } while (!identical(mark, token));
 
-    if (identical(token.info.precedence, ASSIGNMENT_PRECEDENCE)) {
+    if (identical(token.type.precedence, ASSIGNMENT_PRECEDENCE)) {
       Token assignment = token;
       token = parseExpressionWithoutCascade(token.next);
       listener.handleAssignmentExpression(assignment);

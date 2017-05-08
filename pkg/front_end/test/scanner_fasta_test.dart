@@ -82,7 +82,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
       ++tokenCount;
       // Assert no comments
       expect(token.precedingComments, isNull);
-      expect(token.info.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.type.kind, isNot(fasta.COMMENT_TOKEN));
       token = token.next;
     }
     expect(token.precedingComments, isNull);
@@ -99,12 +99,12 @@ class ScannerTest_Fasta extends ScannerTestBase {
       fasta.CommentToken comment = token.precedingComments;
       while (comment != null) {
         ++commentTokenCount;
-        expect(comment.info.kind, fasta.COMMENT_TOKEN);
+        expect(comment.type.kind, fasta.COMMENT_TOKEN);
         expect(comment.charOffset, greaterThanOrEqualTo(previousEnd));
         previousEnd = comment.charOffset + comment.charCount;
         comment = comment.next;
       }
-      expect(token.info.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.type.kind, isNot(fasta.COMMENT_TOKEN));
       expect(token.charOffset, greaterThanOrEqualTo(previousEnd));
       previousEnd = token.charOffset + token.charCount;
 
@@ -151,7 +151,7 @@ main() {}
     void prepareTokens() {
       token = new fasta.StringScanner(code, includeComments: true).tokenize();
 
-      expect(token.info.kind, fasta.IDENTIFIER_TOKEN);
+      expect(token.type.kind, fasta.IDENTIFIER_TOKEN);
 
       c1 = token.precedingCommentTokens;
       c2 = c1.next;

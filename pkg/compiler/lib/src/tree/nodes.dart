@@ -1527,7 +1527,7 @@ class Return extends Statement {
   bool get hasExpression => expression != null;
 
   /// `true` if this return is of the form `=> e;`.
-  bool get isArrowBody => beginToken.info == TokenType.FUNCTION;
+  bool get isArrowBody => beginToken.type == TokenType.FUNCTION;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 

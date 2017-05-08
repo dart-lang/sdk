@@ -160,11 +160,11 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  void appendSubstringToken(TokenType info, int start, bool asciiOnly,
+  void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendPrecedenceToken(TokenType info);
+  void appendPrecedenceToken(TokenType type);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   int select(int choice, TokenType yes, TokenType no);
@@ -182,16 +182,16 @@ abstract class AbstractScanner implements Scanner {
   void lineFeedInMultiline();
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendBeginGroup(TokenType info);
+  void appendBeginGroup(TokenType type);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  int appendEndGroup(TokenType info, int openKind);
+  int appendEndGroup(TokenType type, int openKind);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendGt(TokenType info);
+  void appendGt(TokenType type);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendGtGt(TokenType info);
+  void appendGtGt(TokenType type);
 
   /// Append [token] to the token stream.
   void appendErrorToken(ErrorToken token);
@@ -205,7 +205,7 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  CommentToken createCommentToken(TokenType info, int start, bool asciiOnly,
+  CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
   /**
@@ -217,7 +217,7 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  DartDocToken createDartDocToken(TokenType info, int start, bool asciiOnly,
+  DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
@@ -830,9 +830,9 @@ abstract class AbstractScanner implements Scanner {
     return next;
   }
 
-  void appendComment(int start, TokenType info, bool asciiOnly) {
+  void appendComment(int start, TokenType type, bool asciiOnly) {
     if (!includeComments) return;
-    CommentToken newComment = createCommentToken(info, start, asciiOnly);
+    CommentToken newComment = createCommentToken(type, start, asciiOnly);
     if (scanGenericMethodComments) {
       String value = newComment.lexeme;
       int length = value.length;
@@ -856,9 +856,9 @@ abstract class AbstractScanner implements Scanner {
     _appendToCommentStream(newComment);
   }
 
-  void appendDartDoc(int start, TokenType info, bool asciiOnly) {
+  void appendDartDoc(int start, TokenType type, bool asciiOnly) {
     if (!includeComments) return;
-    Token newComment = createDartDocToken(info, start, asciiOnly);
+    Token newComment = createDartDocToken(type, start, asciiOnly);
     _appendToCommentStream(newComment);
   }
 

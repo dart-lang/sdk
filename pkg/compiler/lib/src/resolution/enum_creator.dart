@@ -48,8 +48,8 @@ class AstBuilder {
     return new StringToken.fromString(TokenType.IDENTIFIER, text, charOffset);
   }
 
-  Token symbolToken(TokenType info) {
-    return new SymbolToken(info, charOffset);
+  Token symbolToken(TokenType type) {
+    return new SymbolToken(type, charOffset);
   }
 
   Identifier identifier(String text) {

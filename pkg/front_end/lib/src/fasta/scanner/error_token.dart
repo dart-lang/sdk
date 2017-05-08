@@ -69,7 +69,7 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 abstract class ErrorToken extends Token {
   ErrorToken(int charOffset) : super(charOffset);
 
-  TokenType get info => TokenType.BAD_INPUT;
+  TokenType get type => TokenType.BAD_INPUT;
 
   String get lexeme => throw assertionMessage;
 

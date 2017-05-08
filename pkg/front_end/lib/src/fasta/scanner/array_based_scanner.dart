@@ -46,14 +46,14 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
 
   /**
-   * Appends a fixed token whose kind and content is determined by [info].
-   * Appends an *operator* token from [info].
+   * Appends a fixed token whose kind and content is determined by [type].
+   * Appends an *operator* token from [type].
    *
    * An operator token represent operators like ':', '.', ';', '&&', '==', '--',
    * '=>', etc.
    */
-  void appendPrecedenceToken(TokenType info) {
-    appendToken(new SymbolToken(info, tokenStart));
+  void appendPrecedenceToken(TokenType type) {
+    appendToken(new SymbolToken(type, tokenStart));
   }
 
   /**
@@ -119,30 +119,30 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * Appends a token that begins a new group, represented by [info].
+   * Appends a token that begins a new group, represented by [type].
    * Group begin tokens are '{', '(', '[' and '${'.
    */
-  void appendBeginGroup(TokenType info) {
-    Token token = new BeginGroupToken(info, tokenStart);
+  void appendBeginGroup(TokenType type) {
+    Token token = new BeginGroupToken(type, tokenStart);
     appendToken(token);
 
     // { [ ${ cannot appear inside a type parameters / arguments.
-    if (!identical(info.kind, LT_TOKEN) &&
-        !identical(info.kind, OPEN_PAREN_TOKEN)) {
+    if (!identical(type.kind, LT_TOKEN) &&
+        !identical(type.kind, OPEN_PAREN_TOKEN)) {
       discardOpenLt();
     }
     groupingStack = groupingStack.prepend(token);
   }
 
   /**
-   * Appends a token that begins an end group, represented by [info].
+   * Appends a token that begins an end group, represented by [type].
    * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
    * '>>' are handled separately bo [appendGt] and [appendGtGt].
    */
-  int appendEndGroup(TokenType info, int openKind) {
+  int appendEndGroup(TokenType type, int openKind) {
     assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
     discardBeginGroupUntil(openKind);
-    appendPrecedenceToken(info);
+    appendPrecedenceToken(type);
     Token close = tail;
     if (groupingStack.isEmpty) {
       return advance();
@@ -186,8 +186,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * This method does not issue unmatched errors, because > is also the
    * greater-than operator. It does not necessarily have to close a group.
    */
-  void appendGt(TokenType info) {
-    appendPrecedenceToken(info);
+  void appendGt(TokenType type) {
+    appendPrecedenceToken(type);
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
@@ -200,8 +200,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * This method does not issue unmatched errors, because >> is also the
    * shift operator. It does not necessarily have to close a group.
    */
-  void appendGtGt(TokenType info) {
-    appendPrecedenceToken(info);
+  void appendGtGt(TokenType type) {
+    appendPrecedenceToken(type);
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
@@ -220,9 +220,9 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendToken(token);
   }
 
-  void appendSubstringToken(TokenType info, int start, bool asciiOnly,
+  void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    appendToken(createSubstringToken(info, start, asciiOnly, extraOffset));
+    appendToken(createSubstringToken(type, start, asciiOnly, extraOffset));
   }
 
   /**
@@ -234,7 +234,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  StringToken createSubstringToken(TokenType info, int start, bool asciiOnly,
+  StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
   /**
@@ -300,8 +300,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     //     next
     //      v
     //     EOF
-    TokenType info = closeBraceInfoFor(begin);
-    appendToken(new SyntheticSymbolToken(info, tokenStart));
+    TokenType type = closeBraceInfoFor(begin);
+    appendToken(new SyntheticSymbolToken(type, tokenStart));
     begin.endGroup = tail;
     appendErrorToken(new UnmatchedToken(begin));
   }
