@@ -147,6 +147,13 @@ def ToGnArgs(args, mode, arch, target_os):
   # dart_bootstrap if the prebuilt SDK doesn't work.
   gn_args['dart_host_pub_exe'] = ""
 
+  if arch != HostCpuForArch(arch):
+    # Training an app-jit snapshot under a simulator is slow. Use script
+    # snapshots instead.
+    gn_args['dart_snapshot_kind'] = 'script'
+  else:
+    gn_args['dart_snapshot_kind'] = 'app-jit'
+
   # We only want the fallback root certs in the standalone VM on
   # Linux and Windows.
   if gn_args['target_os'] in ['linux', 'win']:
