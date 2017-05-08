@@ -37,8 +37,7 @@ Rules can be selectively enabled in the analyzer using
 or through an
 [analysis options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file). 
 
-* **[An auto-generated list enabling all options is provided
-here.](options/options.html)** 
+* **An auto-generated list enabling all options is provided [here](options/options.html).** 
 
 As some lints may contradict each other, only a subset of these will be
 enabled in practice, but this list should provide a
@@ -344,7 +343,7 @@ linter:
             <p>
                Auto-generated options enabling all lints.
                Add these to your
-               [.analysis-options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file)
+               <a href="https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file">analysis_options.yaml file</a>
                and tailor to fit!
             </p>
 

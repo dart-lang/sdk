@@ -6,7 +6,6 @@ library linter.test.integration;
 
 import 'dart:io';
 
-import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:mockito/mockito.dart';
@@ -109,31 +108,6 @@ defineTests() {
               .main(['test/_data/p5', '--packages', 'test/_data/p5/_packages']);
           // Should have 0 issues.
           expect(exitCode, 0);
-        });
-      });
-    });
-
-    group('p8', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
-      setUp(() {
-        exitCode = 0;
-        outSink = collectingOut;
-      });
-      tearDown(() {
-        collectingOut.buffer.clear();
-        outSink = currentOut;
-        exitCode = 0;
-      });
-      group('config', () {
-        test('filtered', () {
-          dartlint
-              .main(['test/_data/p8', '-c', 'test/_data/p8/lintconfig.yaml']);
-          expect(exitCode, 0);
-          expect(
-              collectingOut.trim(),
-              stringContainsInOrder(
-                  ['2 files analyzed, 0 issues found (1 filtered), in']));
         });
       });
     });
@@ -446,20 +420,16 @@ defineTests() {
       });
     });
 
-    group('examples', () {
-      test('lintconfig.yaml', () {
-        var src = readFile('example/lintconfig.yaml');
-        var config = new LintConfig.parse(src);
-        expect(config.fileIncludes, unorderedEquals(['foo/**']));
-        expect(
-            config.fileExcludes, unorderedEquals(['**/_data.dart', 'test/**']));
-        expect(config.ruleConfigs, hasLength(1));
-        var ruleConfig = config.ruleConfigs[0];
-        expect(ruleConfig.group, 'style_guide');
-        expect(ruleConfig.name, 'unnecessary_getters');
-        expect(ruleConfig.args, {'enabled': false});
-      });
-    });
+//    group('examples', () {
+//      test('all.yaml', () {
+//TODO(pq): update LintConfig to read analysis options format
+//        var src = readFile('example/all.yaml');
+//        var config = new LintConfig.parse(src);
+//        List<String> configuredRules = config.ruleConfigs.map((c) => c.name).toList();
+//        expect(configuredRules, unorderedEquals(Registry.ruleRegistry.map((r)=>r.name)));
+//      });
+//    });
+
   });
 }
 
