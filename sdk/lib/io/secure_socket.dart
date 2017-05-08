@@ -58,6 +58,8 @@ abstract class SecureSocket implements Socket {
    * `pause` on this subscription before starting TLS handshake is
    * the right thing to do.
    *
+   * The given [socket] is closed and may not be used anymore.
+   *
    * If the [host] argument is passed it will be used as the host name
    * for the TLS handshake. If [host] is not passed the host name from
    * the [socket] will be used. The [host] can be either a [String] or
