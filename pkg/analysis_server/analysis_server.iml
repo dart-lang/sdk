@@ -39,7 +39,6 @@
       <excludeFolder url="file://$MODULE_DIR$/test/source/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/plugin/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/test/src/utilities/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/stress/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/stress/replay/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/stress/utilities/packages" />

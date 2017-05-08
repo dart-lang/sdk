@@ -169,9 +169,12 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
           [],
           [],
           typeContext,
-          typesFromDownwardsInference);
+          typesFromDownwardsInference,
+          downwards: true);
       substitution = Substitution.fromPairs(
           targetTypeParameters, typesFromDownwardsInference);
+      formalTypes = [];
+      actualTypes = [];
     } else {
       inferredClassType = targetClass.rawType;
     }

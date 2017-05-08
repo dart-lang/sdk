@@ -13,6 +13,12 @@ import 'kernel_shadow_ast.dart';
 /// Concrete implementation of [builder.AstFactory] for building a kernel AST.
 class KernelAstFactory implements AstFactory<VariableDeclaration> {
   @override
+  Arguments arguments(List<Expression> positional,
+      {List<DartType> types, List<NamedExpression> named}) {
+    return new KernelArguments(positional, types: types, named: named);
+  }
+
+  @override
   AsExpression asExpression(Expression operand, Token operator, DartType type) {
     return new KernelAsExpression(operand, type)
       ..fileOffset = offsetForToken(operator);
@@ -165,6 +171,11 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   KernelReturnStatement returnStatement(Expression expression, Token token) {
     return new KernelReturnStatement(expression)
       ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  void setExplicitArgumentTypes(Arguments arguments, List<DartType> types) {
+    KernelArguments.setExplicitArgumentTypes(arguments, types);
   }
 
   @override

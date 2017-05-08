@@ -321,14 +321,14 @@ class IndexAccessor extends Accessor {
       this.getter, this.setter, Token token)
       : super(helper, token);
 
-  Expression _makeSimpleRead() => helper.astFactory.methodInvocation(
-      receiver, indexGetName, new Arguments(<Expression>[index]), getter)
+  Expression _makeSimpleRead() => helper.astFactory.methodInvocation(receiver,
+      indexGetName, helper.astFactory.arguments(<Expression>[index]), getter)
     ..fileOffset = offsetForToken(token);
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return helper.astFactory.methodInvocation(receiver, indexSetName,
-        new Arguments(<Expression>[index, value]), setter)
+        helper.astFactory.arguments(<Expression>[index, value]), setter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -346,15 +346,18 @@ class IndexAccessor extends Accessor {
   }
 
   Expression _makeRead() {
-    return builtGetter = helper.astFactory.methodInvocation(receiverAccess(),
-        indexGetName, new Arguments(<Expression>[indexAccess()]), getter)
+    return builtGetter = helper.astFactory.methodInvocation(
+        receiverAccess(),
+        indexGetName,
+        helper.astFactory.arguments(<Expression>[indexAccess()]),
+        getter)
       ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return helper.astFactory.methodInvocation(receiverAccess(), indexSetName,
-        new Arguments(<Expression>[indexAccess(), value]), setter)
+        helper.astFactory.arguments(<Expression>[indexAccess(), value]), setter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -368,7 +371,7 @@ class IndexAccessor extends Accessor {
         .methodInvocation(
             receiverAccess(),
             indexSetName,
-            new Arguments(
+            helper.astFactory.arguments(
                 <Expression>[indexAccess(), new VariableGet(valueVariable)]),
             setter)
           ..fileOffset = offsetForToken(token));
@@ -394,13 +397,16 @@ class ThisIndexAccessor extends Accessor {
 
   Expression _makeSimpleRead() {
     return helper.astFactory.methodInvocation(new ThisExpression(),
-        indexGetName, new Arguments(<Expression>[index]), getter);
+        indexGetName, helper.astFactory.arguments(<Expression>[index]), getter);
   }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return helper.astFactory.methodInvocation(new ThisExpression(),
-        indexSetName, new Arguments(<Expression>[index, value]), setter);
+    return helper.astFactory.methodInvocation(
+        new ThisExpression(),
+        indexSetName,
+        helper.astFactory.arguments(<Expression>[index, value]),
+        setter);
   }
 
   indexAccess() {
@@ -411,7 +417,7 @@ class ThisIndexAccessor extends Accessor {
   Expression _makeRead() => builtGetter = helper.astFactory.methodInvocation(
       new ThisExpression(),
       indexGetName,
-      new Arguments(<Expression>[indexAccess()]),
+      helper.astFactory.arguments(<Expression>[indexAccess()]),
       getter);
 
   Expression _makeWrite(Expression value, bool voidContext) {
@@ -419,7 +425,7 @@ class ThisIndexAccessor extends Accessor {
     return helper.astFactory.methodInvocation(
         new ThisExpression(),
         indexSetName,
-        new Arguments(<Expression>[indexAccess(), value]),
+        helper.astFactory.arguments(<Expression>[indexAccess(), value]),
         setter);
   }
 
@@ -429,7 +435,7 @@ class ThisIndexAccessor extends Accessor {
         .methodInvocation(
             new ThisExpression(),
             indexSetName,
-            new Arguments(
+            helper.astFactory.arguments(
                 <Expression>[indexAccess(), new VariableGet(valueVariable)]),
             setter));
     return makeLet(
@@ -454,30 +460,32 @@ class SuperIndexAccessor extends Accessor {
   }
 
   Expression _makeSimpleRead() => new SuperMethodInvocation(
-      indexGetName, new Arguments(<Expression>[index]), getter);
+      indexGetName, helper.astFactory.arguments(<Expression>[index]), getter);
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new SuperMethodInvocation(
-        indexSetName, new Arguments(<Expression>[index, value]), setter);
+    return new SuperMethodInvocation(indexSetName,
+        helper.astFactory.arguments(<Expression>[index, value]), setter);
   }
 
   Expression _makeRead() {
-    return builtGetter = new SuperMethodInvocation(
-        indexGetName, new Arguments(<Expression>[indexAccess()]), getter);
+    return builtGetter = new SuperMethodInvocation(indexGetName,
+        helper.astFactory.arguments(<Expression>[indexAccess()]), getter);
   }
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new SuperMethodInvocation(indexSetName,
-        new Arguments(<Expression>[indexAccess(), value]), setter);
+    return new SuperMethodInvocation(
+        indexSetName,
+        helper.astFactory.arguments(<Expression>[indexAccess(), value]),
+        setter);
   }
 
   _makeWriteAndReturn(Expression value) {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new SuperMethodInvocation(
         indexSetName,
-        new Arguments(
+        helper.astFactory.arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter));
     return makeLet(
@@ -537,8 +545,8 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
 Expression makeBinary(AstFactory astFactory, Expression left, Name operator,
     Procedure interfaceTarget, Expression right,
     {int offset: TreeNode.noOffset}) {
-  return astFactory.methodInvocation(
-      left, operator, new Arguments(<Expression>[right]), interfaceTarget)
+  return astFactory.methodInvocation(left, operator,
+      astFactory.arguments(<Expression>[right]), interfaceTarget)
     ..fileOffset = offset;
 }
 

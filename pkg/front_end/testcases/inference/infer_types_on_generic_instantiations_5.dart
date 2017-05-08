@@ -30,3 +30,5 @@ foo() {
       .m(null, null);
   String z = new /*@typeArgs=dynamic*/ B().m(null, null);
 }
+
+main() {}

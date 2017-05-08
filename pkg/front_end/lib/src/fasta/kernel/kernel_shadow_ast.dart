@@ -23,6 +23,23 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
+/// Concrete shadow object representing a set of invocation arguments.
+class KernelArguments extends Arguments {
+  bool _hasExplicitTypeArguments;
+
+  KernelArguments(List<Expression> positional,
+      {List<DartType> types, List<NamedExpression> named})
+      : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
+        super(positional, types: types, named: named);
+
+  static void setExplicitArgumentTypes(
+      KernelArguments arguments, List<DartType> types) {
+    arguments.types.clear();
+    arguments.types.addAll(types);
+    arguments._hasExplicitTypeArguments = true;
+  }
+}
+
 /// Shadow object for [AsExpression].
 class KernelAsExpression extends AsExpression implements KernelExpression {
   KernelAsExpression(Expression operand, DartType type) : super(operand, type);
@@ -109,15 +126,16 @@ class KernelConstructorInvocation extends ConstructorInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    KernelArguments arguments = this.arguments;
     return inferrer.inferConstructorInvocation(
         typeContext,
         typeNeeded,
         fileOffset,
         target,
-        arguments.types.isEmpty ? null : arguments.types,
+        arguments._hasExplicitTypeArguments ? arguments.types : null,
         _forEachArgument, (type) {
-      arguments = new Arguments(arguments.positional,
-          named: arguments.named, types: type.typeArguments);
+      arguments.types.clear();
+      arguments.types.addAll(type.typeArguments);
     });
   }
 }
