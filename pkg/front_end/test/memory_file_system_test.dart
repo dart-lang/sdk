@@ -8,6 +8,7 @@ library front_end.test.memory_file_system_test;
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:front_end/file_system.dart' show FileSystemException;
 import 'package:front_end/memory_file_system.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
@@ -21,6 +22,9 @@ main() {
     defineReflectiveTests(FileTest);
   });
 }
+
+const Matcher _throwsFileSystemException =
+    const Throws(const isInstanceOf<FileSystemException>());
 
 @reflectiveTest
 class FileTest extends _BaseTestNative {
@@ -41,8 +45,34 @@ class FileTest extends _BaseTestNative {
     expect(file == entityForPath(join(tempPath, 'file.txt')), isTrue);
   }
 
+  test_exists_doesNotExist() async {
+    expect(await file.exists(), false);
+  }
+
+  test_exists_exists() async {
+    file.writeAsStringSync('x');
+    expect(await file.exists(), true);
+  }
+
   test_hashCode_samePath() {
     expect(file.hashCode, entityForPath(join(tempPath, 'file.txt')).hashCode);
+  }
+
+  test_lastModified_doesNotExist() async {
+    expect(file.lastModified(), _throwsFileSystemException);
+  }
+
+  test_lastModified_increasesOnEachChange() async {
+    file.writeAsStringSync('x');
+    var mod1 = await file.lastModified();
+    file.writeAsStringSync('y');
+    var mod2 = await file.lastModified();
+    expect(mod2.isAfter(mod1), isTrue);
+
+    var file2 = entityForPath(join(tempPath, 'file2.txt'));
+    file2.writeAsStringSync('z');
+    var mod3 = await file2.lastModified();
+    expect(mod3.isAfter(mod2), isTrue);
   }
 
   test_path() {
@@ -57,7 +87,7 @@ class FileTest extends _BaseTestNative {
   }
 
   test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), throwsException);
+    expect(file.readAsBytes(), _throwsFileSystemException);
   }
 
   test_readAsBytes_exists() async {
@@ -68,11 +98,11 @@ class FileTest extends _BaseTestNative {
 
   test_readAsString_badUtf8() {
     file.writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), throwsException);
+    expect(file.readAsString(), _throwsFileSystemException);
   }
 
   test_readAsString_doesNotExist() {
-    expect(file.readAsString(), throwsException);
+    expect(file.readAsString(), _throwsFileSystemException);
   }
 
   test_readAsString_exists() async {
@@ -84,32 +114,6 @@ class FileTest extends _BaseTestNative {
   test_readAsString_utf8() async {
     file.writeAsBytesSync([0xe2, 0x82, 0xac]); // Unicode € symbol, in UTF-8
     expect(await file.readAsString(), '\u20ac');
-  }
-
-  test_exists_doesNotExist() async {
-    expect(await file.exists(), false);
-  }
-
-  test_exists_exists() async {
-    file.writeAsStringSync('x');
-    expect(await file.exists(), true);
-  }
-
-  test_lastModified_doesNotExist() async {
-    expect(file.lastModified(), throwsException);
-  }
-
-  test_lastModified_increasesOnEachChange() async {
-    file.writeAsStringSync('x');
-    var mod1 = await file.lastModified();
-    file.writeAsStringSync('y');
-    var mod2 = await file.lastModified();
-    expect(mod2.isAfter(mod1), isTrue);
-
-    var file2 = entityForPath(join(tempPath, 'file2.txt'));
-    file2.writeAsStringSync('z');
-    var mod3 = await file2.lastModified();
-    expect(mod3.isAfter(mod2), isTrue);
   }
 
   test_writeAsBytesSync_modifyAfterRead() async {

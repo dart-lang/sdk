@@ -43,12 +43,6 @@ class _PhysicalFileSystemEntity implements FileSystemEntity {
       other is _PhysicalFileSystemEntity && other.uri == uri;
 
   @override
-  Future<List<int>> readAsBytes() => new io.File.fromUri(uri).readAsBytes();
-
-  @override
-  Future<String> readAsString() => new io.File.fromUri(uri).readAsString();
-
-  @override
   Future<bool> exists() async {
     if (await io.FileSystemEntity.isFile(uri.toFilePath())) {
       return new io.File.fromUri(uri).exists();
@@ -58,5 +52,41 @@ class _PhysicalFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<DateTime> lastModified() => new io.File.fromUri(uri).lastModified();
+  Future<DateTime> lastModified() async {
+    try {
+      return await new io.File.fromUri(uri).lastModified();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  @override
+  Future<List<int>> readAsBytes() async {
+    try {
+      return await new io.File.fromUri(uri).readAsBytes();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  @override
+  Future<String> readAsString() async {
+    try {
+      return await new io.File.fromUri(uri).readAsString();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  /**
+   * Return the [FileSystemException] for the given I/O exception.
+   */
+  FileSystemException _toFileSystemException(io.FileSystemException exception) {
+    String message = exception.message;
+    String osMessage = exception.osError?.message;
+    if (osMessage != null && osMessage.isNotEmpty) {
+      message = osMessage;
+    }
+    return new FileSystemException(uri, message);
+  }
 }

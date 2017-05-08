@@ -6,7 +6,6 @@ library fasta.source_loader;
 
 import 'dart:async' show Future;
 
-import 'dart:io';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/file_system.dart';
@@ -92,13 +91,7 @@ class SourceLoader<L> extends Loader<L> {
         bytes = zeroTerminatedBytes;
         sourceBytes[uri] = bytes;
       } on FileSystemException catch (e) {
-        // TODO(scheglov) Throw and catch abstract file-system exceptions.
-        String message = e.message;
-        String osMessage = e.osError?.message;
-        if (osMessage != null && osMessage.isNotEmpty) {
-          message = osMessage;
-        }
-        return inputError(uri, -1, message);
+        return inputError(uri, -1, e.message);
       }
     }
 
