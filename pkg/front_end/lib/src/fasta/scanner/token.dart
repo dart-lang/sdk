@@ -142,12 +142,7 @@ abstract class Token implements analyzer.TokenWithComment {
   bool get isUserDefinableOperator => info.isUserDefinableOperator;
 
   @override
-  analyzer.TokenType get type {
-    // Analyzer has a different concept of what is a Keyword type.
-    return info == TokenType.AS || info == TokenType.IS
-        ? TokenType.KEYWORD
-        : info;
-  }
+  analyzer.TokenType get type => info;
 
   @override
   int get offset => charOffset;
@@ -330,7 +325,7 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
 
   KeywordToken(this.keyword, int charOffset) : super(charOffset);
 
-  TokenType get info => keyword.info;
+  TokenType get info => keyword;
 
   String get lexeme => keyword.lexeme;
 
@@ -351,7 +346,7 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
   analyzer.Keyword value() => keyword;
 
   @override
-  analyzer.TokenType get type => TokenType.KEYWORD;
+  analyzer.TokenType get type => keyword;
 }
 
 /**

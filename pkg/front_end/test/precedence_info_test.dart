@@ -389,8 +389,9 @@ class PrecedenceInfoTest {
     assertLexeme('1.0', TokenType.DOUBLE);
     assertLexeme('0xA', TokenType.HEXADECIMAL);
     assertLexeme('1', TokenType.INT);
-    assertLexeme('var', TokenType.KEYWORD);
+    assertLexeme('var', Keyword.VAR);
     assertLexeme('#!/', TokenType.SCRIPT_TAG);
+    assertLexeme('foo', TokenType.IDENTIFIER);
     assertLexeme('"foo"', TokenType.STRING);
   }
 }
