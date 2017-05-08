@@ -89,6 +89,8 @@ abstract class IncrementalKernelGenerator {
   /// Remove any source file(s) associated with the given file path from the set
   /// of valid sources.  This guarantees that those files will be re-read on the
   /// next call to [computeDelta]).
+  ///
+  /// TODO(scheglov) Update to use URI.
   void invalidate(String path);
 
   /// Remove all source files from the set of valid sources.  This guarantees

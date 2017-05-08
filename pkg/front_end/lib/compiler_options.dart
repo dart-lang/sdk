@@ -28,6 +28,10 @@ class CompilerOptions {
   /// This option is mutually exclusive with [sdkSummary].
   Uri sdkRoot;
 
+  /// Map of `dart.xyz` libraries to URIs in the [fileSystem].
+  /// E.g. {'core': 'file:///sdk/lib/core/core.dart'} (no `dart:` prefix).
+  Map<String, Uri> dartLibraries = {};
+
   /// Callback to which compilation errors should be delivered.
   ///
   /// By default, the first error will be reported by throwing an exception of

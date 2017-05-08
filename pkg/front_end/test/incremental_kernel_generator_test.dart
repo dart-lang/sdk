@@ -4,14 +4,15 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'src/incremental/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,118 +20,126 @@ main() {
   });
 }
 
-final _sdkSummary = _readSdkSummary();
-
-List<int> _readSdkSummary() {
-  var resourceProvider = PhysicalResourceProvider.INSTANCE;
-  var sdk = new FolderBasedDartSdk(resourceProvider,
-      FolderBasedDartSdk.defaultSdkDirectory(resourceProvider))
-    ..useSummary = true;
-  var path = resourceProvider.pathContext
-      .join(sdk.directory.path, 'lib', '_internal', 'strong.sum');
-  return resourceProvider.getFile(path).readAsBytesSync();
-}
-
 @reflectiveTest
 class IncrementalKernelGeneratorTest {
-  static final sdkSummaryUri = Uri.parse('special:sdk_summary');
-
   /// Virtual filesystem for testing.
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
 
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
 
-  Future<Map<Uri, Program>> getInitialState(Uri startingUri) async {
-    fileSystem.entityForUri(sdkSummaryUri).writeAsBytesSync(_sdkSummary);
+  /// TODO(scheglov) Why do we return a Map?
+  /// From the discussion yesterday it seems to me that we always have
+  /// just one program - with all libraries with code, or with some libraries
+  /// with code and some with only outlines.
+  Future<Map<Uri, Program>> getInitialState(Uri entryPoint) async {
+    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
+    // TODO(scheglov) Builder the SDK kernel and set it into the options.
+
+    // TODO(scheglov) Make `.packages` file optional.
+
     incrementalKernelGenerator = new IncrementalKernelGenerator(
-        startingUri,
+        entryPoint,
         new CompilerOptions()
           ..fileSystem = fileSystem
+          ..strongMode = true
           ..chaseDependencies = true
-          ..sdkSummary = sdkSummaryUri
-          ..packagesFileUri = new Uri());
+          ..dartLibraries = dartLibraries
+          ..packagesFileUri = Uri.parse('file:///test/.packages'));
     return (await incrementalKernelGenerator.computeDelta()).newState;
   }
 
-  test_incrementalUpdate_referenceToCore() async {
-    writeFiles({'/foo.dart': 'main() { print(1); }'});
-    var fooUri = Uri.parse('file:///foo.dart');
-    var coreUri = Uri.parse('dart:core');
-    var initialState = await getInitialState(fooUri);
-    expect(initialState.keys, unorderedEquals([fooUri]));
+  test_updateEntryPoint() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(
+        path,
+        r'''
+main() {
+  var v = 1;
+}
+''');
 
-    void _checkMain(Program program, int expectedArgument) {
-      expect(_getLibraryUris(program), unorderedEquals([fooUri, coreUri]));
-      var mainStatements = _getProcedureStatements(
-          _getProcedure(_getLibrary(program, fooUri), 'main'));
-      expect(mainStatements, hasLength(1));
-      _checkPrintLiteralInt(mainStatements[0], expectedArgument);
-      var coreLibrary = _getLibrary(program, coreUri);
-      expect(coreLibrary.procedures, hasLength(1));
-      expect(coreLibrary.procedures[0].name.name, 'print');
-      expect(coreLibrary.procedures[0].function.body, isNull);
+    // Compute the initial state
+    {
+      Map<Uri, Program> initialState = await getInitialState(uri);
+      expect(initialState.keys, unorderedEquals([uri]));
+
+      Library library = _getLibrary(initialState[uri], uri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int v = 1;
+}
+''');
     }
 
-    _checkMain(initialState[fooUri], 1);
-    writeFiles({'/foo.dart': 'main() { print(2); }'});
-    incrementalKernelGenerator.invalidateAll();
-    var deltaProgram = await incrementalKernelGenerator.computeDelta();
-    expect(deltaProgram.newState.keys, unorderedEquals([fooUri]));
-    _checkMain(deltaProgram.newState[fooUri], 2);
+    // Update the entry point library.
+    writeFile(
+        path,
+        r'''
+main() {
+  var v = 2.3;
+}
+''');
+
+    // The delta has the updated entry point library.
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      expect(delta.newState.keys, unorderedEquals([uri]));
+
+      Library library = _getLibrary(delta.newState[uri], uri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::double v = 2.3;
+}
+''');
+    }
   }
 
-  test_part() async {
-    writeFiles({
-      '/foo.dart': 'library foo; part "bar.dart"; main() { print(1); f(); }',
-      '/bar.dart': 'part of foo; f() { print(2); }'
-    });
-    var fooUri = Uri.parse('file:///foo.dart');
-    var initialState = await getInitialState(fooUri);
-    expect(initialState.keys, unorderedEquals([fooUri]));
-    var library = _getLibrary(initialState[fooUri], fooUri);
-    var mainStatements =
-        _getProcedureStatements(_getProcedure(library, 'main'));
-    var fProcedure = _getProcedure(library, 'f');
-    var fStatements = _getProcedureStatements(fProcedure);
-    expect(mainStatements, hasLength(2));
-    _checkPrintLiteralInt(mainStatements[0], 1);
-    _checkFunctionCall(mainStatements[1], fProcedure);
-    expect(fStatements, hasLength(1));
-    _checkPrintLiteralInt(fStatements[0], 2);
-    // TODO(paulberry): now test incremental updates
+  /// Write the given [text] of the file with the given [path] into the
+  /// virtual filesystem.  Return the URI of the file.
+  Uri writeFile(String path, String text) {
+    Uri uri = Uri.parse('file://$path');
+    fileSystem.entityForUri(uri).writeAsStringSync(text);
+    return uri;
   }
+
+//  test_part() async {
+//    writeFiles({
+//      '/foo.dart': 'library foo; part "bar.dart"; main() { print(1); f(); }',
+//      '/bar.dart': 'part of foo; f() { print(2); }'
+//    });
+//    var fooUri = Uri.parse('file:///foo.dart');
+//    var initialState = await getInitialState(fooUri);
+//    expect(initialState.keys, unorderedEquals([fooUri]));
+//    var library = _getLibrary(initialState[fooUri], fooUri);
+//    var mainStatements =
+//        _getProcedureStatements(_getProcedure(library, 'main'));
+//    var fProcedure = _getProcedure(library, 'f');
+//    var fStatements = _getProcedureStatements(fProcedure);
+//    expect(mainStatements, hasLength(2));
+//    _checkPrintLiteralInt(mainStatements[0], 1);
+//    _checkFunctionCall(mainStatements[1], fProcedure);
+//    expect(fStatements, hasLength(1));
+//    _checkPrintLiteralInt(fStatements[0], 2);
+//     TODO(paulberry): now test incremental updates
+//  }
 
   /// Write the given file contents to the virtual filesystem.
   void writeFiles(Map<String, String> contents) {
-    contents.forEach((path, text) {
-      fileSystem
-          .entityForUri(Uri.parse('file://$path'))
-          .writeAsStringSync(text);
-    });
-  }
-
-  void _checkFunctionCall(Statement statement, Procedure expectedTarget) {
-    expect(statement, new isInstanceOf<ExpressionStatement>());
-    var expressionStatement = statement as ExpressionStatement;
-    expect(
-        expressionStatement.expression, new isInstanceOf<StaticInvocation>());
-    var staticInvocation = expressionStatement.expression as StaticInvocation;
-    expect(staticInvocation.target, same(expectedTarget));
-  }
-
-  void _checkPrintLiteralInt(Statement statement, int expectedArgument) {
-    expect(statement, new isInstanceOf<ExpressionStatement>());
-    var expressionStatement = statement as ExpressionStatement;
-    expect(
-        expressionStatement.expression, new isInstanceOf<StaticInvocation>());
-    var staticInvocation = expressionStatement.expression as StaticInvocation;
-    expect(staticInvocation.target.name.name, 'print');
-    expect(staticInvocation.arguments.positional, hasLength(1));
-    expect(staticInvocation.arguments.positional[0],
-        new isInstanceOf<IntLiteral>());
-    var intLiteral = staticInvocation.arguments.positional[0] as IntLiteral;
-    expect(intLiteral.value, expectedArgument);
+    contents.forEach(writeFile);
   }
 
   Library _getLibrary(Program program, Uri uri) {
@@ -140,19 +149,10 @@ class IncrementalKernelGeneratorTest {
     throw fail('No library found with URI "$uri"');
   }
 
-  List<Uri> _getLibraryUris(Program program) =>
-      program.libraries.map((library) => library.importUri).toList();
-
-  Procedure _getProcedure(Library library, String name) {
-    for (var procedure in library.procedures) {
-      if (procedure.name.name == name) return procedure;
-    }
-    throw fail('No function declaration found with name "$name"');
-  }
-
-  List<Statement> _getProcedureStatements(Procedure procedure) {
-    var body = procedure.function.body;
-    expect(body, new isInstanceOf<Block>());
-    return (body as Block).statements;
+  String _getLibraryText(Library library) {
+    StringBuffer buffer = new StringBuffer();
+    new Printer(buffer, syntheticNames: new NameSystem())
+        .writeLibraryFile(library);
+    return buffer.toString();
   }
 }
