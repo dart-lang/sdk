@@ -11,6 +11,7 @@ import '../common_elements.dart' show CommonElements;
 import '../util/util.dart' show Link;
 import 'entities.dart';
 import 'elements.dart';
+import 'names.dart';
 import 'types.dart';
 import 'resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType, ResolutionFunctionType;

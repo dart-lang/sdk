@@ -14,6 +14,7 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/operators.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/resolution/semantic_visitor.dart';

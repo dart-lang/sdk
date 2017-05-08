@@ -6,9 +6,9 @@ library dart2js.selector;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
-import '../elements/elements.dart'
-    show Element, Elements, FunctionSignature, Name, PublicName;
+import '../elements/elements.dart' show Element, Elements, FunctionSignature;
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 

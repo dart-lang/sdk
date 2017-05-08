@@ -5,8 +5,8 @@
 import '../common_elements.dart' show CommonElements;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart' show Name;
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../options.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';

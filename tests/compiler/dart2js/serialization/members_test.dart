@@ -10,6 +10,7 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/resolution/class_members.dart';
 import 'package:compiler/src/serialization/equivalence.dart';

@@ -27,6 +27,7 @@ import '../elements/modelx.dart'
         ParameterElementX,
         VariableElementX,
         VariableList;
+import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/resolution_types.dart';
 import '../options.dart';

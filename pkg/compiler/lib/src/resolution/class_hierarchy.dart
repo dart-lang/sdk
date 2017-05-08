@@ -17,6 +17,7 @@ import '../elements/modelx.dart'
         SynthesizedConstructorElementX,
         TypeVariableElementX,
         UnnamedMixinApplicationElementX;
+import '../elements/names.dart';
 import '../ordered_typeset.dart'
     show OrderedTypeSet, ResolutionOrderedTypeSetBuilder;
 import '../tree/tree.dart';

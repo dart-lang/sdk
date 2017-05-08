@@ -22,6 +22,7 @@ import 'deferred_load.dart' as deferred_load;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
+import 'elements/names.dart' as names;
 import 'elements/operators.dart' as operators;
 import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
@@ -47,7 +48,7 @@ class ElementVisitor extends elements_visitor.BaseElementVisitor {
 void main(List<String> arguments) {
   useApi(null);
   dart2js.main(arguments);
-  elements.Name.isPublicName(null);
+  names.Name.isPublicName(null);
   useConstant();
   useNode(null);
   useUtil(null);
@@ -257,7 +258,7 @@ usedByTests() {
 
 useElements(
     [elements.ClassElement e,
-    elements.Name n,
+    names.Name n,
     modelx.FieldElementX f,
     PartialClassElement pce,
     PartialFunctionElement pfe,

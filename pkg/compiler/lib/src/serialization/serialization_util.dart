@@ -10,6 +10,7 @@ import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show WrappedMessage;
+import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';

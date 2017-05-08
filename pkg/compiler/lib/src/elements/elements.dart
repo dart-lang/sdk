@@ -20,15 +20,13 @@ import 'package:front_end/src/fasta/scanner.dart'
     show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart' hide AsyncModifier;
 import '../universe/call_structure.dart';
-import 'package:front_end/src/fasta/scanner/characters.dart' show $_;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
+import 'names.dart';
 import 'resolution_types.dart';
 import 'types.dart';
 import 'visitor.dart' show ElementVisitor;
-
-part 'names.dart';
 
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;

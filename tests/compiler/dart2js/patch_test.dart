@@ -9,6 +9,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/universe/call_structure.dart' show CallStructure;

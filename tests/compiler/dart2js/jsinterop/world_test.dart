@@ -7,8 +7,8 @@ library jsinterop.world_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show ClassElement, PublicName;
+import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';

@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'

@@ -12,6 +12,7 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;

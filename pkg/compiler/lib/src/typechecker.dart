@@ -31,15 +31,13 @@ import 'elements/elements.dart'
         InitializingFormalElement,
         LibraryElement,
         MemberSignature,
-        Name,
         ParameterElement,
-        PrivateName,
-        PublicName,
         ResolvedAst,
         SetterElement,
         TypeDeclarationElement,
         TypedElement,
         VariableElement;
+import 'elements/names.dart';
 import 'enqueue.dart' show DeferredAction;
 import 'resolution/class_members.dart' show MembersCreator, ErroneousMember;
 import 'resolution/tree_elements.dart' show TreeElements;

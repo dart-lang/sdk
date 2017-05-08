@@ -20,6 +20,7 @@ import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'

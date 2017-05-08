@@ -11,6 +11,7 @@ import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../enqueue.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';

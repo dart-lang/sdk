@@ -7,9 +7,9 @@ library dart2js.type_system;
 
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/values.dart';
-import 'elements/types.dart';
-import 'elements/elements.dart' show PublicName;
 import 'elements/entities.dart';
+import 'elements/names.dart' show PublicName;
+import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
 import 'universe/call_structure.dart' show CallStructure;

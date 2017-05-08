@@ -10,6 +10,7 @@ library dart2js.access_semantics;
 import '../constants/expressions.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/names.dart';
 
 /// Enum representing the different kinds of destinations which a property
 /// access or method or function invocation might refer to.

@@ -18,6 +18,7 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';

@@ -50,10 +50,10 @@ import '../elements/elements.dart'
         LocalFunctionElement,
         LocalVariableElement,
         MethodElement,
-        Name,
         ParameterElement,
         PrefixElement,
         TypeVariableElement;
+import '../elements/names.dart' show Name;
 import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
 import '../elements/resolution_types.dart'

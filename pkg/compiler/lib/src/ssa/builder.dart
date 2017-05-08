@@ -20,6 +20,7 @@ import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
+import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';

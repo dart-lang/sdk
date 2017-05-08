@@ -4,7 +4,7 @@
 
 library dart2js.operators;
 
-import 'elements.dart' show PublicName;
+import 'names.dart' show PublicName;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 

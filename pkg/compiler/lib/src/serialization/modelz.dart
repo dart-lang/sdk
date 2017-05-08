@@ -18,6 +18,7 @@ import '../elements/common.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionSignatureX;
+import '../elements/names.dart';
 import '../elements/visitor.dart';
 import '../io/source_file.dart';
 import '../ordered_typeset.dart';
