@@ -276,31 +276,31 @@ typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
  * fully general.
  */
 class _StreamSubscriptionTransformer<S, T> implements StreamTransformer<S, T> {
-  final _SubscriptionTransformer<S, T> _transformer;
+  final _SubscriptionTransformer<S, T> _onListen;
 
-  const _StreamSubscriptionTransformer(this._transformer);
+  const _StreamSubscriptionTransformer(this._onListen);
 
   Stream<T> bind(Stream<S> stream) =>
-      new _BoundSubscriptionStream<S, T>(stream, _transformer);
+      new _BoundSubscriptionStream<S, T>(stream, _onListen);
 }
 
 /**
  * A stream transformed by a [_StreamSubscriptionTransformer].
  *
- * When this stream is listened to it invokes the [_transformer] function with
+ * When this stream is listened to it invokes the [_onListen] function with
  * the stored [_stream]. Usually the transformer starts listening at this
  * moment.
  */
 class _BoundSubscriptionStream<S, T> extends Stream<T> {
-  final _SubscriptionTransformer<S, T> _transformer;
+  final _SubscriptionTransformer<S, T> _onListen;
   final Stream<S> _stream;
 
-  _BoundSubscriptionStream(this._stream, this._transformer);
+  _BoundSubscriptionStream(this._stream, this._onListen);
 
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> result = _transformer(_stream, cancelOnError);
+    StreamSubscription<T> result = _onListen(_stream, cancelOnError);
     result.onData(onData);
     result.onError(onError);
     result.onDone(onDone);
