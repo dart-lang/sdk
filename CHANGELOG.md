@@ -19,9 +19,9 @@
 * New `prefer_constructors_over_static_methods` rule.
 * New `avoid_returning_null` rule.
 * New `avoid_classes_with_only_static_members` rule.
-* New `do_not_check_for_null_in_equality_operators` rule.
+* New `avoid_null_checks_in_equality_operators` rule.
 * New `avoid_catches_without_on_clauses` rule.
-* New `do_not_catch_errors` rule.
+* New `avoid_catching_errors` rule.
 * New `use_rethrow_when_possible` rule.
 * Many lint fixes (notably `prefer_final_fields`, `unnecessary_lambdas`, `await_only_futures`, `cascade_invocations`, `avoid_types_on_closure_parameters`, and `overridden_fields`).
 * Significant performance improvements for `prefer_interpolation_to_compose_strings`.

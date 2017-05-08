@@ -13,10 +13,12 @@ import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_annotating_with_dynamic.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_catches_without_on_clauses.dart';
+import 'package:linter/src/rules/avoid_catching_errors.dart';
 import 'package:linter/src/rules/avoid_classes_with_only_static_members.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
+import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
 import 'package:linter/src/rules/avoid_positional_boolean_parameters.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/avoid_returning_null.dart';
@@ -33,8 +35,6 @@ import 'package:linter/src/rules/comment_references.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
-import 'package:linter/src/rules/do_not_catch_errors.dart';
-import 'package:linter/src/rules/do_not_check_for_null_in_equality_operators.dart';
 import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
@@ -108,15 +108,18 @@ void registerLintRules() {
     ..register(new AvoidAnnotatingWithDynamic())
     ..register(new AvoidTypesOnClosureParameters())
     ..register(new AvoidAs())
+    ..register(new AvoidCatchingErrors())
     ..register(new AvoidCatchesWithoutOnClauses())
     ..register(new AvoidClassesWithOnlyStaticMembers())
     ..register(new AvoidEmptyElse())
     ..register(new AvoidFunctionLiteralInForeachMethod())
     ..register(new AvoidInitToNull())
+    ..register(new AvoidNullChecksInEqualityOperators())
     ..register(new AvoidPositionalBooleanParameters())
     ..register(new AvoidReturningNull())
     ..register(new AvoidReturnTypesOnSetters())
     ..register(new AvoidReturningThis())
+    ..register(new AvoidSettersWithoutGetters())
     ..register(new AvoidSlowAsyncIo())
     ..register(new AwaitOnlyFutures())
     ..registerDefault(new CamelCaseTypes())
@@ -127,9 +130,6 @@ void registerLintRules() {
     ..register(new ControlFlowInFinally())
     ..registerDefault(new ConstantIdentifierNames())
     ..register(new DirectivesOrdering())
-    ..register(new DoNotCatchErrors())
-    ..register(new DoNotCheckForNullInEqualityOperators())
-    ..register(new AvoidSettersWithoutGetters())
     ..register(new EmptyCatches())
     ..registerDefault(new EmptyConstructorBodies())
     ..register(new EmptyStatements())

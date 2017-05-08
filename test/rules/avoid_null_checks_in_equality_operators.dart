@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N do_not_check_for_null_in_equality_operators`
+// test w/ `pub run test -N avoid_null_checks_in_equality_operators`
 
 class BadPerson1 {
   final String name = 'I am a bad person';

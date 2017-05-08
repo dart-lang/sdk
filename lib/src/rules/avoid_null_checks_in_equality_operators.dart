@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.do_not_check_for_null_in_double_equals_operator;
+library linter.src.rules.avoid_null_checks_in_equality_operators;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -71,11 +71,11 @@ bool _isParameterWithQuestionQuestion(
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
 
-class DoNotCheckForNullInEqualityOperators extends LintRule {
+class AvoidNullChecksInEqualityOperators extends LintRule {
   _Visitor _visitor;
-  DoNotCheckForNullInEqualityOperators()
+  AvoidNullChecksInEqualityOperators()
       : super(
-            name: 'do_not_check_for_null_in_equality_operators',
+            name: 'avoid_null_checks_in_equality_operators',
             description: _desc,
             details: _details,
             group: Group.style) {

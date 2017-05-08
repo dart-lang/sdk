@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.do_not_catch_errors;
+library linter.src.rules.avoid_catching_errors;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -35,11 +35,11 @@ try {
 
 ''';
 
-class DoNotCatchErrors extends LintRule {
+class AvoidCatchingErrors extends LintRule {
   _Visitor _visitor;
-  DoNotCatchErrors()
+  AvoidCatchingErrors()
       : super(
-            name: 'do_not_catch_errors',
+            name: 'avoid_catching_errors',
             description: _desc,
             details: _details,
             group: Group.style) {
