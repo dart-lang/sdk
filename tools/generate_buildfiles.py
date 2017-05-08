@@ -16,21 +16,21 @@ DART_USE_GYP = "DART_USE_GYP"
 DART_DISABLE_BUILDFILES = "DART_DISABLE_BUILDFILES"
 
 
-def use_gyp():
+def UseGyp():
   return DART_USE_GYP in os.environ
 
 
-def disable_buildfiles():
+def DisableBuildfiles():
   return DART_DISABLE_BUILDFILES in os.environ
 
 
-def execute(args):
+def Execute(args):
   process = subprocess.Popen(args, cwd=DART_ROOT)
   process.wait()
   return process.returncode
 
 
-def run_android_gn(options):
+def RunAndroidGn(options):
   if not HOST_OS in ['linux', 'macos']:
     return 0
   gn_command = [
@@ -43,10 +43,10 @@ def run_android_gn(options):
   if options.verbose:
     gn_command.append('-v')
     print ' '.join(gn_command)
-  return execute(gn_command)
+  return Execute(gn_command)
 
 
-def run_host_gn(options):
+def RunHostGn(options):
   gn_command = [
     'python',
     os.path.join(DART_ROOT, 'tools', 'gn.py'),
@@ -56,27 +56,27 @@ def run_host_gn(options):
   if options.verbose:
     gn_command.append('-v')
     print ' '.join(gn_command)
-  return execute(gn_command)
+  return Execute(gn_command)
 
 
-def run_gn(options):
-  status = run_host_gn(options)
+def RunGn(options):
+  status = RunHostGn(options)
   if status != 0:
     return status
-  return run_android_gn(options)
+  return RunAndroidGn(options)
 
 
-def run_gyp(options):
+def RunGyp(options):
   gyp_command = [
     'python',
     os.path.join(DART_ROOT, 'tools', 'gyp_dart.py'),
   ]
   if options.verbose:
     print ' '.join(gyp_command)
-  return execute(gyp_command)
+  return Execute(gyp_command)
 
 
-def parse_args(args):
+def ParseArgs(args):
   args = args[1:]
   parser = argparse.ArgumentParser(
       description="A script to generate Dart's build files.")
@@ -87,11 +87,11 @@ def parse_args(args):
       action="store_true")
   parser.add_argument("--gn",
       help='Use GN',
-      default=not use_gyp(),
+      default=not UseGyp(),
       action='store_true')
   parser.add_argument("--gyp",
       help='Use gyp',
-      default=use_gyp(),
+      default=UseGyp(),
       action='store_true')
 
   options = parser.parse_args(args)
@@ -103,13 +103,13 @@ def parse_args(args):
 
 def main(argv):
   # Check the environment and become a no-op if directed.
-  if disable_buildfiles():
+  if DisableBuildfiles():
     return 0
-  options = parse_args(argv)
+  options = ParseArgs(argv)
   if options.gn:
-    return run_gn(options)
+    return RunGn(options)
   else:
-    return run_gyp(options)
+    return RunGyp(options)
 
 
 if __name__ == '__main__':

@@ -111,6 +111,24 @@ def ParseStringMap(key, string_map):
   return None
 
 
+def UseSanitizer(args):
+  return args.asan or args.msan or args.tsan
+
+
+def DontUseClang(args, target_os, host_cpu, target_cpu):
+  # We don't have clang on Windows.
+  return (target_os == 'win'
+         # TODO(zra): Experiment with using clang for the arm cross-builds.
+         or (target_os == 'linux'
+             and (target_cpu.startswith('arm') or
+                  target_cpu.startswith('mips'))
+         # TODO(zra): Only use clang when a sanitizer build is specified until
+         # clang bugs in tcmalloc inline assembly for ia32 are fixed.
+         or (target_os == 'linux'
+             and host_cpu == 'x86'
+             and not UseSanitizer(args))))
+
+
 def ToGnArgs(args, mode, arch, target_os):
   gn_args = {}
 
@@ -138,9 +156,7 @@ def ToGnArgs(args, mode, arch, target_os):
 
   # Use tcmalloc only when targeting Linux and when not using ASAN.
   gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux')
-                                  and not args.asan
-                                  and not args.msan
-                                  and not args.tsan)
+                                  and not UseSanitizer(args))
 
   if gn_args['target_os'] == 'linux':
     if gn_args['target_cpu'] == 'arm':
@@ -164,20 +180,10 @@ def ToGnArgs(args, mode, arch, target_os):
   # 'is_debug', 'is_release' and 'is_product'.
   gn_args['dart_runtime_mode'] = 'develop'
 
-  # TODO(zra): Investigate using clang with these configurations.
-  # Clang compiles tcmalloc's inline assembly for ia32 on Linux wrong, so we
-  # don't use clang in that configuration. Thus, we use gcc for ia32 *unless*
-  # a clang-based sanitizer is specified.
-  has_clang = (host_os != 'win'
-               and not gn_args['target_cpu'].startswith('mips')
-               and not ((gn_args['target_os'] == 'linux') and
-                        (gn_args['target_cpu'] == 'arm64'))
-               and not ((gn_args['target_os'] == 'linux')
-                        and (gn_args['host_cpu'] == 'x86')
-                        and not args.asan
-                        and not args.msan
-                        and not args.tsan))  # Use clang for sanitizer builds.
-  gn_args['is_clang'] = args.clang and has_clang
+  dont_use_clang = DontUseClang(args, gn_args['target_os'],
+                                      gn_args['host_cpu'],
+                                      gn_args['target_cpu'])
+  gn_args['is_clang'] = args.clang and not dont_use_clang
 
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
   gn_args['is_msan'] = args.msan and gn_args['is_clang']
