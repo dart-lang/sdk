@@ -614,37 +614,70 @@ assert_(condition, [message]) => JS(
   if (!$condition) $throwAssertionError(message);
 })()''');
 
-var _stack = null;
-@JSExportName('throw')
-throw_(obj) => JS(
-    '',
-    '''(() => {
-    $_stack = new Error();
-    throw $obj;
-})()''');
+/// Store a JS error for an exception.  For non-primitives, we store as an
+/// expando.  For primitive, we use a side cache.  To limit memory leakage, we
+/// only keep the last [_maxTraceCache] entries.
+final _error = JS('', 'Symbol("_error")');
+Map _primitiveErrorCache;
+const _maxErrorCache = 10;
 
-getError(exception) => JS(
-    '',
-    '''(() => {
-  var stack = $_stack;
-  return stack !== null ? stack : $exception;
-})()''');
+bool _isJsError(exception) {
+  return JS('bool', '#.Error != null && # instanceof #.Error', global_,
+      exception, global_);
+}
+
+// Record/return the JS error for an exception.  If an error was already
+// recorded, prefer that to [newError].
+recordJsError(exception, [newError]) {
+  if (_isJsError(exception)) return exception;
+
+  var useExpando =
+      exception != null && JS('bool', 'typeof # == "object"', exception);
+  var error;
+  if (useExpando) {
+    error = JS('', '#[#]', exception, _error);
+  } else {
+    if (_primitiveErrorCache == null) _primitiveErrorCache = {};
+    error = _primitiveErrorCache[exception];
+  }
+  if (error != null) return error;
+  if (newError != null) {
+    error = newError;
+  } else {
+    // We should only hit this path when a non-Error was thrown from JS.  In
+    // case, there is no stack trace on the exception, so we create one:
+    error = JS('', 'new Error()');
+  }
+  if (useExpando) {
+    JS('', '#[#] = #', exception, _error, error);
+  } else {
+    _primitiveErrorCache[exception] = error;
+    if (_primitiveErrorCache.length > _maxErrorCache) {
+      _primitiveErrorCache.remove(_primitiveErrorCache.keys.first);
+    }
+  }
+  return error;
+}
+
+@JSExportName('throw')
+throw_(obj) {
+  // Note, we create the error here to avoid the extra frame.
+  // package:stack_trace and tests appear to assume this.  We could fix use
+  // cases instead, but we're already on the exceptional path here.
+  recordJsError(obj, JS('', 'new Error()'));
+  JS('', 'throw #', obj);
+}
 
 // This is a utility function: it is only intended to be called from dev
 // tools.
-stackPrint(exception) => JS(
-    '',
-    '''(() => {
-  var error = $getError($exception);
-  console.log(error.stack ? error.stack : 'No stack trace for: ' + error);
-})()''');
+stackPrint(exception) {
+  var error = recordJsError(exception);
+  JS('', 'console.log(#.stack ? #.stack : "No stack trace for: " + #)', error,
+      error, error);
+}
 
-stackTrace(exception) => JS(
-    '',
-    '''(() => {
-  var error = $getError($exception);
-  return $getTraceFromException(error);
-})()''');
+// Forward to dart:_js_helper to create a _StackTrace object.
+stackTrace(exception) => getTraceFromException(exception);
 
 ///
 /// Implements a sequence of .? operations.

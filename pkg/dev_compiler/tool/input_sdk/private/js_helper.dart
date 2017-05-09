@@ -492,9 +492,8 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
-  static StackTrace extractStackTrace(Error error) {
-    return getTraceFromException(JS('', r'#.$thrownJsError', error));
-  }
+  static StackTrace extractStackTrace(Error error) =>
+      getTraceFromException(error);
 }
 
 /**
@@ -627,10 +626,18 @@ class UnknownJsTypeError extends Error {
 }
 
 /**
- * Called by generated code to fetch the stack trace from an
+ * Called by generated code to fetch the stack trace from a Dart
  * exception. Should never return null.
  */
-StackTrace getTraceFromException(exception) => new _StackTrace(exception);
+final _stackTrace = JS('', 'Symbol("_stackTrace")');
+StackTrace getTraceFromException(exception) {
+  var error = JS('', 'dart.recordJsError(#)', exception);
+  var trace = JS('StackTrace', '#[#]', error, _stackTrace);
+  if (trace != null) return trace;
+  trace = new _StackTrace(error);
+  JS('', '#[#] = #', error, _stackTrace, trace);
+  return trace;
+}
 
 class _StackTrace implements StackTrace {
   var _exception;

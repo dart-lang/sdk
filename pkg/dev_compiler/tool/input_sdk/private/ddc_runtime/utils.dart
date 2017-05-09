@@ -60,7 +60,7 @@ defineLazyProperty(to, name, desc) => JS(
       value = x;
     }
     function circularInitError() {
-      $throwInternalError('circular initialization for field ' + $name);
+      $throwCyclicInitializationError($name);
     }
     function lazyGetter() {
       if (init == null) return value;

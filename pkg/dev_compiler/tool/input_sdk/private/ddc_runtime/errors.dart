@@ -88,6 +88,11 @@ throwAssertionError([message]) => JS(
   $throw_(error);
 })()''');
 
+throwCyclicInitializationError([String message]) {
+  if (_trapRuntimeErrors) JS('', 'debugger');
+  throw new CyclicInitializationError(message);
+}
+
 throwNullValueError() => JS(
     '',
     '''(() => {
