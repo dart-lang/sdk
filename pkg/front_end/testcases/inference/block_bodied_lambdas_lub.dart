@@ -12,9 +12,9 @@ test2() {
   var /*@type=Iterable<num>*/ y = /*@promotedType=none*/ o
       .map(/*@returnType=num*/ (/*@type=num*/ x) {
     if (new Random().nextBool()) {
-      return x.toInt() + 1;
+      return /*@promotedType=none*/ x.toInt() + 1;
     } else {
-      return x.toDouble();
+      return /*@promotedType=none*/ x.toDouble();
     }
   });
   Iterable<num> w = /*@promotedType=none*/ y;

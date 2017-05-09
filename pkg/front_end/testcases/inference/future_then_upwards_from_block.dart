@@ -11,10 +11,10 @@ main() {
   Future<int> base;
   var /*@type=Future<bool>*/ f = /*@promotedType=none*/ base
       .then(/*@returnType=bool*/ (/*@type=int*/ x) {
-    return x == 0;
+    return /*@promotedType=none*/ x == 0;
   });
-  var /*@type=Future<bool>*/ g = /*@promotedType=none*/ base
-      .then(/*@returnType=bool*/ (/*@type=int*/ x) => x == 0);
+  var /*@type=Future<bool>*/ g = /*@promotedType=none*/ base.then(
+      /*@returnType=bool*/ (/*@type=int*/ x) => /*@promotedType=none*/ x == 0);
   Future<bool> b = /*@promotedType=none*/ f;
   b = /*@promotedType=none*/ g;
 }

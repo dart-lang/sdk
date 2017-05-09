@@ -19,9 +19,9 @@ main() {
   List<Trace> traces = /*@typeArgs=Trace*/ [];
   var /*@type=int*/ longest = /*@promotedType=none*/ traces
       .map(/*@returnType=int*/ (/*@type=Trace*/ trace) {
-    return trace.frames
+    return /*@promotedType=none*/ trace.frames
         .map(/*@returnType=int*/ (/*@type=Frame*/ frame) =>
-            frame.location.length)
+            /*@promotedType=none*/ frame.location.length)
         .fold(0, math.max);
   }).fold(0, math.max);
 }

@@ -18,17 +18,21 @@ void main() {
   MyFuture<bool> f;
   Future<int> t1 = /*@promotedType=none*/ f.then(
       /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
-          x ? 2 : await new Future<int>.value(3));
+          /*@promotedType=none*/ x ? 2 : await new Future<int>.value(3));
   Future<int> t2 = /*@promotedType=none*/ f
       .then(/*@returnType=Future<int>*/ (/*@type=bool*/ x) async {
-    return /*info:DOWN_CAST_COMPOSITE*/ await x ? 2 : new Future<int>.value(3);
+    return /*info:DOWN_CAST_COMPOSITE*/ await /*@promotedType=none*/ x
+        ? 2
+        : new Future<int>.value(3);
   });
   Future<int> t5 = /*@promotedType=none*/ f.then(
       /*error:INVALID_CAST_FUNCTION_EXPR*/
       /*@returnType=Object*/ (/*@type=bool*/ x) =>
-          x ? 2 : new Future<int>.value(3));
+          /*@promotedType=none*/ x ? 2 : new Future<int>.value(3));
   Future<int> t6 = /*@promotedType=none*/ f.then(
       /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) {
-    return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new Future<int>.value(3);
+    return /*info:DOWN_CAST_COMPOSITE*/ /*@promotedType=none*/ x
+        ? 2
+        : new Future<int>.value(3);
   });
 }

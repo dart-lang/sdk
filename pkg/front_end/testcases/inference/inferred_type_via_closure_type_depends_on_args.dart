@@ -7,5 +7,5 @@ library test;
 
 class C {
   static final /*@topType=(bool) -> bool*/ f = /*@returnType=bool*/ (bool b) =>
-      b;
+      /*@promotedType=none*/ b;
 }

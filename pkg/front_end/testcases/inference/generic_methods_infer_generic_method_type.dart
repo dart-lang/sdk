@@ -6,11 +6,11 @@
 library test;
 
 class C {
-  T m<T>(T x) => x;
+  T m<T>(T x) => /*@promotedType=none*/ x;
 }
 
 class D extends C {
-  m<S>(x) => x;
+  m<S>(x) => /*@promotedType=none*/ x;
 }
 
 main() {

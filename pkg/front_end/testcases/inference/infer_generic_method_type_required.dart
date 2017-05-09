@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  T m<T>(T x) => x;
+  T m<T>(T x) => /*@promotedType=none*/ x;
 }
 
 main() {

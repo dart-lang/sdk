@@ -11,7 +11,7 @@ class C<T> {
 
   factory C.named(T t) {
     var /*@type=C<T>*/ x = new C<T>();
-    /*@promotedType=none*/ x.t = t;
+    /*@promotedType=none*/ x.t = /*@promotedType=none*/ t;
     return /*@promotedType=none*/ x;
   }
 }

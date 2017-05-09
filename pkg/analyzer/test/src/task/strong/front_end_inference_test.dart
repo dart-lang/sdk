@@ -276,16 +276,24 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     Element element = node.staticElement;
-    if (element is LocalVariableElement && node.inGetterContext()) {
-      int offset = node.offset;
-      DartType type = node.staticType;
-      if (identical(type, element.type)) {
-        _instrumentation.record(uri, offset, 'promotedType',
-            const fasta.InstrumentationValueLiteral('none'));
-      } else {
-        _instrumentation.record(uri, offset, 'promotedType',
-            new _InstrumentationValueForType(type));
+    void recordPromotions(DartType elementType) {
+      if (node.inGetterContext() && !node.inDeclarationContext()) {
+        int offset = node.offset;
+        DartType type = node.staticType;
+        if (identical(type, elementType)) {
+          _instrumentation.record(uri, offset, 'promotedType',
+              const fasta.InstrumentationValueLiteral('none'));
+        } else {
+          _instrumentation.record(uri, offset, 'promotedType',
+              new _InstrumentationValueForType(type));
+        }
       }
+    }
+
+    if (element is LocalVariableElement) {
+      recordPromotions(element.type);
+    } else if (element is ParameterElement) {
+      recordPromotions(element.type);
     }
   }
 

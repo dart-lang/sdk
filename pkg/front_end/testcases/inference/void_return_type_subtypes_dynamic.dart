@@ -7,7 +7,7 @@ library test;
 
 T run<T>(T f()) {
   print("running");
-  var /*@type=T*/ t = f();
+  var /*@type=T*/ t = /*@promotedType=none*/ f();
   print("done running");
   return /*@promotedType=none*/ t;
 }

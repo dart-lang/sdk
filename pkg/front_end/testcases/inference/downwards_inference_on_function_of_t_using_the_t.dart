@@ -9,12 +9,14 @@ void main() {
   {
     T f<T>(T x) => null;
     var /*@type=f(T) -> T*/ v1 = f;
-    v1 = /*@returnType=S*/ <S>(/*@type=S*/ x) => x;
+    v1 = /*@returnType=S*/ <S>(/*@type=S*/ x) => /*@promotedType=none*/ x;
   }
   {
     List<T> f<T>(T x) => null;
     var /*@type=f(T) -> List<T>*/ v2 = f;
-    v2 = /*@returnType=List<S>*/ <S>(/*@type=S*/ x) => /*@typeArgs=S*/ [x];
+    v2 = /*@returnType=List<S>*/ <S>(/*@type=S*/ x) => /*@typeArgs=S*/ [
+          /*@promotedType=none*/ x
+        ];
     Iterable<int> r = /*@promotedType=none*/ v2(42);
     Iterable<String> s = /*@promotedType=none*/ v2('hello');
     Iterable<List<int>> t = /*@promotedType=none*/ v2(<int>[]);
