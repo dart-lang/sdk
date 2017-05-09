@@ -167,7 +167,7 @@ Token defaultRecoveryStrategy(
           error = next;
         } else {
           errorTail.next = next;
-          next.previousToken = errorTail;
+          next.previous = errorTail;
         }
         errorTail = next;
         next = next.next;
@@ -208,23 +208,22 @@ Token defaultRecoveryStrategy(
       good = current;
     } else {
       goodTail.next = current;
-      current.previousToken = goodTail;
+      current.previous = goodTail;
     }
     beforeGoodTail = goodTail;
     goodTail = current;
   }
 
-  error.previousToken = new SymbolToken.eof(-1)..next = error;
+  error.previous = new SymbolToken.eof(-1)..next = error;
   Token tail;
   if (good != null) {
     errorTail.next = good;
-    good.previousToken = errorTail;
+    good.previous = errorTail;
     tail = goodTail;
   } else {
     tail = errorTail;
   }
-  if (!tail.isEof)
-    tail.next = new SymbolToken.eof(tail.end)..previousToken = tail;
+  if (!tail.isEof) tail.next = new SymbolToken.eof(tail.end)..previous = tail;
   return error;
 }
 

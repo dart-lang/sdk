@@ -104,6 +104,7 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta/kernel',
     'lib/src/fasta/scanner',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/type_inference': new SubpackageRules(allowedDependencies: [
     'lib/src',

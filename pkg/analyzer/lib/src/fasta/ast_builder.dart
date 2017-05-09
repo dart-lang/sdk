@@ -15,6 +15,7 @@ import 'package:front_end/src/fasta/parser/parser.dart'
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, CommentToken, Token;
+import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -212,7 +213,7 @@ class AstBuilder extends ScopeListener {
       // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
       // metadata, but the spec doesn't permit it.
       List<Annotation> metadata;
-      Comment comment = _toAnalyzerComment(token.precedingCommentTokens);
+      Comment comment = _toAnalyzerComment(token.precedingComments);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
@@ -1863,7 +1864,7 @@ class AstBuilder extends ScopeListener {
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
     if (token.precedingComments != null) {
-      push(_toAnalyzerComment(token.precedingCommentTokens));
+      push(_toAnalyzerComment(token.precedingComments));
     } else {
       push(NullValue.Comments);
     }
@@ -1894,7 +1895,7 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  Comment _toAnalyzerComment(Token comments) {
+  Comment _toAnalyzerComment(analyzer.Token comments) {
     if (comments == null) return null;
 
     // This is temporary placeholder code to get tests to pass.
@@ -1949,7 +1950,7 @@ class AstBuilder extends ScopeListener {
   /// into tokens and inject into the token stream before the [token].
   Token _injectGenericComment(Token token, TokenType type, int prefixLen) {
     if (parseGenericMethodComments) {
-      CommentToken t = token.precedingCommentTokens;
+      CommentToken t = token.precedingComments;
       for (; t != null; t = t.next) {
         if (t.type == type) {
           String code = t.lexeme.substring(prefixLen, t.lexeme.length - 2);

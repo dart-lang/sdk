@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/parser/identifier_context.dart';
 import 'package:front_end/src/fasta/parser/parser.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
+import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 /// "Mini AST" representation of a declaration which can accept annotations.
 class AnnotatedNode {
@@ -54,7 +55,7 @@ class Comment {
 
   final List<Token> tokens;
 
-  factory Comment(Token commentToken) {
+  factory Comment(analyzer.Token commentToken) {
     var tokens = <Token>[];
     bool isDocumentation = false;
     while (commentToken != null) {
@@ -163,7 +164,7 @@ class MiniAstBuilder extends StackListener {
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
     if (token.precedingComments != null) {
-      push(new Comment(token.precedingCommentTokens));
+      push(new Comment(token.precedingComments));
     } else {
       push(NullValue.Comments);
     }
@@ -389,7 +390,7 @@ class MiniAstBuilder extends StackListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      var comment = new Comment(token.precedingCommentTokens);
+      var comment = new Comment(token.precedingComments);
       push(new EnumConstantDeclaration(comment, null, token.lexeme));
     } else {
       push(token.lexeme);

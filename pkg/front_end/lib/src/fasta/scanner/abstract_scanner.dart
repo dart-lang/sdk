@@ -867,13 +867,13 @@ abstract class AbstractScanner implements Scanner {
    */
   void appendToken(Token token) {
     tail.next = token;
-    tail.next.previousToken = tail;
+    tail.next.previous = tail;
     tail = tail.next;
     if (comments != null) {
       for (CommentToken c = comments; c != null; c = c.next) {
         c.parent = tail;
       }
-      tail.precedingCommentTokens = comments;
+      tail.precedingComments = comments;
       comments = null;
       commentsTail = null;
     }
@@ -885,7 +885,7 @@ abstract class AbstractScanner implements Scanner {
       commentsTail = comments;
     } else {
       commentsTail.next = newComment;
-      commentsTail.next.previousToken = commentsTail;
+      commentsTail.next.previous = commentsTail;
       commentsTail = commentsTail.next;
     }
   }

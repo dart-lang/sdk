@@ -71,6 +71,11 @@ abstract class ErrorToken extends Token {
 
   TokenType get type => TokenType.BAD_INPUT;
 
+  /// This is a token that wraps around an error message. Return 1
+  /// instead of the size of the length of the error message.
+  @override
+  int get charCount => 1;
+
   String get lexeme => throw assertionMessage;
 
   bool get isIdentifier => false;

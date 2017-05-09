@@ -9,6 +9,7 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart';
+import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 /// Implementation of [Instrumentation] which checks property/value pairs
 /// against expectations encoded in source files using "/*@...*/" comments.
@@ -99,7 +100,7 @@ class ValidatingInstrumentation implements Instrumentation {
     var testedFeaturesState = _testedFeaturesState.putIfAbsent(uri, () => {});
     ScannerResult result = scan(bytes, includeComments: true);
     for (Token token = result.tokens; !token.isEof; token = token.next) {
-      for (Token commentToken = token.precedingCommentTokens;
+      for (analyzer.Token commentToken = token.precedingComments;
           commentToken != null;
           commentToken = commentToken.next) {
         String lexeme = commentToken.lexeme;

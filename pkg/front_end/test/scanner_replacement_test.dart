@@ -319,7 +319,7 @@ class ScannerTest_Replacement extends ScannerTest {
       });
       token = token.next;
     }
-    if (!token.previousToken.isEof) {
+    if (!token.previous.isEof) {
       var head = new fasta.SymbolToken(analyzer.TokenType.EOF, -1);
       token.previous = head;
       head.next = token;
@@ -331,7 +331,7 @@ class ScannerTest_Replacement extends ScannerTest {
   void assertValidTokenStream(fasta.Token firstToken,
       {bool errorsFirst: false}) {
     fasta.Token token = firstToken;
-    fasta.Token previous = token.previousToken;
+    fasta.Token previous = token.previous;
     expect(previous.isEof, isTrue, reason: 'Missing leading EOF');
     expect(previous.next, token, reason: 'Invalid leading EOF');
     expect(previous.previous, previous, reason: 'Invalid leading EOF');

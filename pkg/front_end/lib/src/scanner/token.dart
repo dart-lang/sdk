@@ -384,10 +384,7 @@ class Keyword extends TokenType {
    */
   final bool isBuiltIn;
 
-  /**
-   * A flag indicating whether the keyword can be used as an identifier
-   * in some situations.
-   */
+  @override
   final bool isPseudo;
 
   /**
@@ -454,6 +451,9 @@ class KeywordToken extends SimpleToken {
 
   @override
   Token copy() => new KeywordToken(keyword, offset);
+
+  @override
+  bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
   // Changed return type from Keyword to Object because
@@ -528,10 +528,8 @@ class SimpleToken implements Token {
   @override
   Token previous;
 
-  /**
-   * The next token in the token stream.
-   */
-  Token _next;
+  @override
+  Token next;
 
   /**
    * Initialize a newly created token to have the given [type] and [offset].
@@ -554,6 +552,9 @@ class SimpleToken implements Token {
   bool get isEof => type == TokenType.EOF;
 
   @override
+  bool get isIdentifier => false;
+
+  @override
   bool get isOperator => type.isOperator;
 
   @override
@@ -573,9 +574,6 @@ class SimpleToken implements Token {
 
   @override
   String get lexeme => type.lexeme;
-
-  @override
-  Token get next => _next;
 
   @override
   CommentToken get precedingComments => null;
@@ -618,14 +616,14 @@ class SimpleToken implements Token {
 
   @override
   Token setNext(Token token) {
-    _next = token;
+    next = token;
     token.previous = this;
     return token;
   }
 
   @override
   Token setNextWithoutSettingPrevious(Token token) {
-    _next = token;
+    next = token;
     return token;
   }
 
@@ -663,6 +661,9 @@ class StringToken extends SimpleToken {
   StringToken(TokenType type, String value, int offset) : super(type, offset) {
     this._value = StringUtilities.intern(value);
   }
+
+  @override
+  bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
   @override
   String get lexeme => _value;
@@ -785,6 +786,12 @@ abstract class Token implements SyntacticEntity {
   bool get isEof;
 
   /**
+   * True if this token is an identifier. Some keywords allowed as identifiers,
+   * see implementation in [KeywordToken].
+   */
+  bool get isIdentifier;
+
+  /**
    * Return `true` if this token represents an operator.
    */
   bool get isOperator;
@@ -817,6 +824,8 @@ abstract class Token implements SyntacticEntity {
 
   /**
    * Return the lexeme that represents this token.
+   *
+   * For [StringToken]s the [lexeme] includes the quotes, explicit escapes, etc.
    */
   String get lexeme;
 
@@ -824,6 +833,11 @@ abstract class Token implements SyntacticEntity {
    * Return the next token in the token stream.
    */
   Token get next;
+
+  /**
+   * Return the next token in the token stream.
+   */
+  void set next(Token next);
 
   @override
   int get offset;
@@ -1571,6 +1585,12 @@ class TokenType {
    * Return `true` if this type of token is a keyword.
    */
   bool get isKeyword => kind == KEYWORD_TOKEN;
+
+  /**
+   * A flag indicating whether the keyword can be used as an identifier
+   * in some situations.
+   */
+  bool get isPseudo => false;
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.

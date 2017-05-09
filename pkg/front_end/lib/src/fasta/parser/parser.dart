@@ -1051,7 +1051,7 @@ class Parser {
       } else if (!optional("dynamic", token)) {
         reportRecoverableErrorCodeWithToken(token, codeBuiltInIdentifierAsType);
       }
-    } else if (!inPlainSync && token.isPseudo) {
+    } else if (!inPlainSync && token.type.isPseudo) {
       if (optional('await', token)) {
         reportRecoverableErrorCode(token, codeAwaitAsIdentifier);
       } else if (optional('yield', token)) {
