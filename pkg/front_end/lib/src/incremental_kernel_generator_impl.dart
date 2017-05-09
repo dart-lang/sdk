@@ -12,9 +12,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
-import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/kernel.dart' hide Source;
-import 'package:kernel/target/vm.dart';
 
 dynamic unimplemented() {
   // TODO(paulberry): get rid of this.
@@ -36,15 +34,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// etc.
   final ProcessedOptions _options;
 
-  /// The set of absolute file URIs that were reported through [invalidate]
-  /// and not checked for actual changes yet.
-  final Set<Uri> _invalidatedFiles = new Set<Uri>();
-
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   TranslateUri _uriTranslator;
-
-  /// The current file system state.
-  FileSystemState _fsState;
 
   /// The cached SDK kernel.
   DillTarget _sdkDillTarget;
@@ -54,18 +45,13 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   @override
   Future<DeltaProgram> computeDelta(
       {Future<Null> watch(Uri uri, bool used)}) async {
-    await _initialize();
-    await _ensureVmLibrariesLoaded();
-    await _refreshInvalidatedFiles();
-
-    // Ensure that the graph starting at the entry point is ready.
-    await _fsState.getFile(_entryPoint);
+    _uriTranslator ??= await _options.getUriTranslator();
 
     DillTarget sdkTarget = await _getSdkDillTarget();
     // TODO(scheglov) Use it to also serve other package kernels.
 
-    KernelTarget kernelTarget = new KernelTarget(_fsState.fileSystemView,
-        sdkTarget, _uriTranslator, _options.strongMode, null);
+    KernelTarget kernelTarget = new KernelTarget(_options.fileSystem, sdkTarget,
+        _uriTranslator, _options.strongMode, null);
     kernelTarget.read(_entryPoint);
 
     // TODO(scheglov) Replace with a better API.
@@ -80,24 +66,10 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   }
 
   @override
-  void invalidate(Uri uri) {
-    _invalidatedFiles.add(uri);
-  }
+  void invalidate(String path) => unimplemented();
 
   @override
   void invalidateAll() => unimplemented();
-
-  /// Fasta unconditionally loads all VM libraries.  In order to be able to
-  /// serve them using the file system view, we need to ask [_fsState] for
-  /// the corresponding files.
-  Future<Null> _ensureVmLibrariesLoaded() async {
-    List<String> extraLibraries = new VmTarget(null).extraRequiredLibraries;
-    for (String absoluteUriStr in extraLibraries) {
-      Uri absoluteUri = Uri.parse(absoluteUriStr);
-      Uri fileUri = _uriTranslator.translate(absoluteUri);
-      await _fsState.getFile(fileUri);
-    }
-  }
 
   /// Return the [DillTarget] that is used inside of [KernelTarget] to
   /// resynthesize SDK libraries.
@@ -113,24 +85,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 //      sdkProgram.visitChildren(new _ClearCanonicalNamesVisitor());
     }
     return _sdkDillTarget;
-  }
-
-  /// Ensure that asynchronous data from options is ready.
-  ///
-  /// Ideally this data should be prepared in the constructor, but constructors
-  /// cannot be asynchronous.
-  Future<Null> _initialize() async {
-    _uriTranslator ??= await _options.getUriTranslator();
-    _fsState ??= new FileSystemState(_options.fileSystem, _uriTranslator);
-  }
-
-  /// Refresh all the invalidated files and update dependencies.
-  Future<Null> _refreshInvalidatedFiles() async {
-    for (Uri fileUri in _invalidatedFiles) {
-      FileState file = await _fsState.getFile(fileUri);
-      await file.refresh();
-    }
-    _invalidatedFiles.clear();
   }
 }
 
