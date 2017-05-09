@@ -95,12 +95,10 @@ abstract class IncrementalKernelGenerator {
   /// errors, it is safe to call [computeDelta] again.
   Future<DeltaProgram> computeDelta({Future<Null> watch(Uri uri, bool used)});
 
-  /// Remove any source file(s) associated with the given file path from the set
-  /// of valid sources.  This guarantees that those files will be re-read on the
+  /// Remove the file associated with the given file [uri] from the set of
+  /// valid files.  This guarantees that those files will be re-read on the
   /// next call to [computeDelta]).
-  ///
-  /// TODO(scheglov) Update to use URI.
-  void invalidate(String path);
+  void invalidate(Uri uri);
 
   /// Remove all source files from the set of valid sources.  This guarantees
   /// that all files will be re-read on the next call to [computeDelta].

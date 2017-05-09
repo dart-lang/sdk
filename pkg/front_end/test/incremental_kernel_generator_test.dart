@@ -57,13 +57,7 @@ main() {
 }
 ''');
 
-    // Compute the initial state
-    {
-      Program program = await getInitialState(uri);
-      Library library = _getLibrary(program, uri);
-      expect(
-          _getLibraryText(library),
-          r'''
+    String initialText = r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -71,7 +65,13 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::int v = 1;
 }
-''');
+''';
+
+    // Compute the initial state.
+    {
+      Program program = await getInitialState(uri);
+      Library library = _getLibrary(program, uri);
+      expect(_getLibraryText(library), initialText);
     }
 
     // Update the entry point library.
@@ -83,11 +83,19 @@ main() {
 }
 ''');
 
-    // The delta has the updated entry point library.
+    // Because we have not invalidated the file, we get the same library.
+    // TODO(scheglov) Eventually we should get an empty Program.
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
-      Program program = delta.newProgram;
-      Library library = _getLibrary(program, uri);
+      Library library = _getLibrary(delta.newProgram, uri);
+      expect(_getLibraryText(library), initialText);
+    }
+
+    // Invalidate the file, so get the new text.
+    incrementalKernelGenerator.invalidate(uri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Library library = _getLibrary(delta.newProgram, uri);
       expect(
           _getLibraryText(library),
           r'''
