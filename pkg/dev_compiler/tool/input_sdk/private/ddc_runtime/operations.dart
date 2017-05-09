@@ -29,6 +29,57 @@ class InvocationImpl extends Invocation {
   }
 }
 
+/// Given an object and a method name, tear off the method.
+/// Sets the runtime type of the torn off method appropriately,
+/// and also binds the object.
+///
+/// If the optional `f` argument is passed in, it will be used as the method.
+/// This supports cases like `super.foo` where we need to tear off the method
+/// from the superclass, not from the `obj` directly.
+/// TODO(leafp): Consider caching the tearoff on the object?
+bind(obj, name, f) {
+  if (f == null) f = JS('', '#[#]', obj, name);
+
+  // TODO(jmesserly): it would be nice to do this lazily, but JS interop seems
+  // to require us to be eager (the test below).
+  var sig = getMethodType(getType(obj), name);
+
+  // JS interop case: do not bind this for compatibility with the dart2js
+  // implementation where we cannot bind this reliably here until we trust
+  // types more.
+  if (sig == null) return f;
+
+  f = JS('', '#.bind(#)', f, obj);
+  JS(
+      '',
+      r'''#[dartx["=="]] = function boundMethodEquals(other) {
+    return other[#] === this[#] && other[#] === this[#];
+  }''',
+      f,
+      _boundMethodTarget,
+      _boundMethodTarget,
+      _boundMethodName,
+      _boundMethodName);
+  JS('', '#[#] = #', f, _boundMethodTarget, obj);
+  JS('', '#[#] = #', f, _boundMethodName, name);
+  tag(f, sig);
+  return f;
+}
+
+final _boundMethodTarget = JS('', 'Symbol("_boundMethodTarget")');
+final _boundMethodName = JS('', 'Symbol("_boundMethodName")');
+
+/// Instantiate a generic method.
+///
+/// We need to apply the type arguments both to the function, as well as its
+/// associated function type.
+gbind(f, @rest typeArgs) {
+  var result = JS('', '#.apply(null, #)', f, typeArgs);
+  var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
+  tag(result, sig);
+  return result;
+}
+
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.

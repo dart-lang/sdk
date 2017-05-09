@@ -276,43 +276,6 @@ classGetConstructorType(cls, name) => JS(
   return sigCtor[$name];
 })()''');
 
-/// Given an object and a method name, tear off the method.
-/// Sets the runtime type of the torn off method appropriately,
-/// and also binds the object.
-///
-/// If the optional `f` argument is passed in, it will be used as the method.
-/// This supports cases like `super.foo` where we need to tear off the method
-/// from the superclass, not from the `obj` directly.
-/// TODO(leafp): Consider caching the tearoff on the object?
-bind(obj, name, f) => JS(
-    '',
-    '''(() => {
-  if ($f === void 0) $f = $obj[$name];
-  // TODO(jmesserly): track the function's signature on the function, instead
-  // of having to go back to the class?
-  let sig = $getMethodType($getType($obj), $name);
-
-  // JS interop case: do not bind this for compatibility with the dart2js
-  // implementation where we cannot bind this reliably here until we trust
-  // types more.
-  if (sig == null) return $f;
-
-  $f = $f.bind($obj);
-  $tag($f, sig);
-  return $f;
-})()''');
-
-/// Instantiate a generic method.
-///
-/// We need to apply the type arguments both to the function, as well as its
-/// associated function type.
-gbind(f, @rest typeArgs) {
-  var result = JS('', '#.apply(null, #)', f, typeArgs);
-  var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
-  tag(result, sig);
-  return result;
-}
-
 // Set up the method signature field on the constructor
 _setInstanceSignature(f, sigF, kind) => defineMemoizedGetter(
     f,

@@ -3782,7 +3782,7 @@ class CodeGenerator extends Object
 
       // TODO(vsm): Constructors in dart:html and friends are trying to
       // allocate a type defined on window/self, but this often conflicts a
-      // with the generated extenstion class in scope.  We really should
+      // with the generated extension class in scope.  We really should
       // qualify explicitly in dart:html itself.
       var constructorPattern = new RegExp("new [A-Z][A-Za-z]+\\(");
       if (constructorPattern.matchAsPrefix(source) != null) {
