@@ -929,8 +929,7 @@ class FragmentEmitter {
       }
     }
 
-    return wrapPhase(
-        'inheritance', js.js.statement('{#; #;}', [inheritCalls, mixinCalls]));
+    return wrapPhase('inheritance', inheritCalls.toList()..addAll(mixinCalls));
   }
 
   /// Emits the setup of method aliases.
@@ -1061,8 +1060,10 @@ class FragmentEmitter {
   /// Wraps the statement in a named function to that it shows up as a unit in
   /// profiles.
   // TODO(sra): Should this be conditional?
-  js.Statement wrapPhase(String name, js.Statement statement) {
-    return js.js.statement('(function #(){#})();', [name, statement]);
+  js.Statement wrapPhase(String name, List<js.Statement> statements) {
+    js.Block block = new js.Block(statements);
+    if (statements.isEmpty) return block;
+    return js.js.statement('(function #(){#})();', [name, block]);
   }
 
   /// Emits the section that installs tear-off getters.
@@ -1099,7 +1100,7 @@ class FragmentEmitter {
         }
       }
     }
-    return wrapPhase('installTearOffs', new js.Block(inits));
+    return wrapPhase('installTearOffs', inits);
   }
 
   /// Emits the constants section.
@@ -1118,7 +1119,7 @@ class FragmentEmitter {
       compiler.dumpInfoTask.registerConstantAst(constant.value, assignment);
       assignments.add(assignment);
     }
-    return wrapPhase('constants', new js.Block(assignments));
+    return wrapPhase('constants', assignments);
   }
 
   /// Emits the static non-final fields section.
@@ -1137,7 +1138,7 @@ class FragmentEmitter {
       return js.js
           .statement("#.# = #;", [field.holder.name, field.name, field.code]);
     });
-    return wrapPhase('staticFields', new js.Block(statements.toList()));
+    return wrapPhase('staticFields', statements.toList());
   }
 
   /// Emits lazy fields.
@@ -1156,7 +1157,7 @@ class FragmentEmitter {
       ]);
     });
 
-    return wrapPhase('lazyInitializers', new js.Block(statements.toList()));
+    return wrapPhase('lazyInitializers', statements.toList());
   }
 
   /// Emits the embedded globals that are needed for deferred loading.
@@ -1470,6 +1471,6 @@ class FragmentEmitter {
         js.js.statement("setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
     statements.addAll(subclassAssignments);
 
-    return wrapPhase('nativeSupport', new js.Block(statements));
+    return wrapPhase('nativeSupport', statements);
   }
 }
