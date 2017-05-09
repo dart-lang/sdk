@@ -6,15 +6,13 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-typedef String _Generator(String libName, String className);
-
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main([List<String> args]) {
   final parser = new ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Specifies project root.')
-    ..addOption('library',
-        abbr: 'l', help: 'Specifies lower_underscore rule library name.');
+    ..addOption('name',
+        abbr: 'n', help: 'Specifies lower_underscore rule name.');
 
   var options;
   try {
@@ -34,35 +32,35 @@ void main([List<String> args]) {
     }
   }
 
-  final libName = options['library'];
+  final ruleName = options['name'];
 
-  if (libName == null) {
+  if (ruleName == null) {
     printUsage(parser);
     return;
   }
 
   // Generate rule stub.
-  generateRule(libName, outDir: outDir);
+  generateRule(ruleName, outDir: outDir);
 }
 
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
-void generateRule(String libName, {String outDir}) {
+void generateRule(String ruleName, {String outDir}) {
   // Generate rule stub.
-  generateStub(libName, 'lib/src/rules', _generateLib, outDir: outDir);
+  generateStub(ruleName, 'lib/src/rules', _generateClass, outDir: outDir);
 
   // Generate test stub.
-  generateStub(libName, 'test/rules', _generateTest, outDir: outDir);
+  generateStub(ruleName, 'test/rules', _generateTest, outDir: outDir);
 
   // Update rule registry.
-  updateRuleRegistry(libName);
+  updateRuleRegistry(ruleName);
 }
 
-void generateStub(String libName, String stubPath, _Generator generator,
+void generateStub(String ruleName, String stubPath, _Generator generator,
     {String outDir}) {
-  final generated = generator(libName, toClassName(libName));
+  final generated = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
-    final outPath = '$outDir/$stubPath/$libName.dart';
+    final outPath = '$outDir/$stubPath/$ruleName.dart';
     final outFile = new File(outPath);
     if (outFile.existsSync()) {
       print('Warning: stub already exists at $outPath; skipping');
@@ -84,22 +82,20 @@ ${parser.usage}
 ''');
 }
 
-String toClassName(String libName) =>
-    libName.split('_').map((bit) => capitalize(bit)).join();
+String toClassName(String ruleName) =>
+    ruleName.split('_').map((bit) => capitalize(bit)).join();
 
-void updateRuleRegistry(String libName) {
+void updateRuleRegistry(String ruleName) {
   print("Don't forget to update lib/rules.dart with a line like:");
-  print("  ..register(new ${toClassName(libName)}())");
+  print("  ..register(new ${toClassName(ruleName)}())");
   print("Then run your test like so:");
-  print("  pub run test -N $libName");
+  print("  pub run test -N $ruleName");
 }
 
-String _generateLib(String libName, String className) => """
+String _generateClass(String ruleName, String className) => """
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-library linter.src.rules.$libName;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -126,7 +122,7 @@ const _details = r'''
 
 class $className extends LintRule {
   $className() : super(
-          name: '$libName',
+          name: '$ruleName',
             description: _desc,
             details: _details,
             group: Group.style);
@@ -151,3 +147,5 @@ String _generateTest(String libName, String className) => '''
 // test w/ `pub run test -N $libName`
 
 ''';
+
+typedef String _Generator(String libName, String className);

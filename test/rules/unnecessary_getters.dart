@@ -4,8 +4,6 @@
 
 // test w/ `pub run test -N unnecessary_getters`
 
-library test.rules.unecessary_getters;
-
 class BoxBad {
   var _contents;
   get contents => _contents; //__LINT [9:8]

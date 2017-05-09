@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules;
-
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';

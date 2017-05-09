@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Common AST helpers.
-library linter.src.ast;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';

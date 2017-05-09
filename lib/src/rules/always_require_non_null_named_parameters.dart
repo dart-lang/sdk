@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.always_require_non_null_named_parameters;
-
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstVisitor, TypedLiteral;
 import 'package:analyzer/dart/ast/token.dart';
