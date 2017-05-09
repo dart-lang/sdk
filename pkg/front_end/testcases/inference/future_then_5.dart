@@ -16,31 +16,31 @@ class MyFuture<T> implements Future<T> {
 
 void main() {
   Future f;
-  Future<int> t1 = /*@promotedType=none*/ f.then(
+  Future<int> t1 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
           await new MyFuture<int>.value(3));
-  Future<int> t2 = /*@promotedType=none*/ f
-      .then(/*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
+  Future<int> t2 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return await new MyFuture<int>.value(3);
   });
-  Future<int> t3 = /*@promotedType=none*/ f
-      .then(/*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async => 3);
-  Future<int> t4 = /*@promotedType=none*/ f
-      .then(/*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
+  Future<int> t3 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async => 3);
+  Future<int> t4 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return 3;
   });
-  Future<int> t5 = /*@promotedType=none*/ f.then(
+  Future<int> t5 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
       /*@returnType=MyFuture<int>*/ (/*@type=dynamic*/ _) =>
           new MyFuture<int>.value(3));
-  Future<int> t6 = /*@promotedType=none*/ f
-      .then(/*@returnType=MyFuture<int>*/ (/*@type=dynamic*/ _) {
+  Future<int> t6 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+      /*@returnType=MyFuture<int>*/ (/*@type=dynamic*/ _) {
     return new MyFuture<int>.value(3);
   });
-  Future<int> t7 = /*@promotedType=none*/ f.then(
+  Future<int> t7 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
           new MyFuture<int>.value(3));
-  Future<int> t8 = /*@promotedType=none*/ f
-      .then(/*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
+  Future<int> t8 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return new MyFuture<int>.value(3);
   });
 }

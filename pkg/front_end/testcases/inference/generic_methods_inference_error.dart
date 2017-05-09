@@ -7,7 +7,7 @@ library test;
 
 main() {
   List<String> y;
-  Iterable<String> x = /*@promotedType=none*/ y.map(
+  Iterable<String> x = /*@promotedType=none*/ y. /*@typeArgs=String*/ map(
       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=double*/ (String
               z) =>
           1.0);

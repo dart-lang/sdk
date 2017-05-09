@@ -10,7 +10,8 @@ class C {
 }
 
 main() {
-  var /*@type=List<dynamic>*/ v = new C().f<dynamic>(/*@returnType=int*/ () {
+  var /*@type=List<dynamic>*/ v =
+      new C(). /*@typeArgs=dynamic*/ f<dynamic>(/*@returnType=int*/ () {
     return 1;
   });
 }

@@ -12,16 +12,16 @@ main() {
   num x;
   dynamic y;
 
-  num a = max(
+  num a = /*@typeArgs=num*/ max(
       /*@promotedType=none*/ x,
       /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ y);
-  Object b = max(
+  Object b = /*@typeArgs=num*/ max(
       /*@promotedType=none*/ x,
       /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ y);
-  dynamic c = /*error:COULD_NOT_INFER*/ max(
+  dynamic c = /*error:COULD_NOT_INFER*/ /*@typeArgs=dynamic*/ max(
       /*@promotedType=none*/ x,
       /*@promotedType=none*/ y);
-  var /*@type=dynamic*/ d = /*error:COULD_NOT_INFER*/ max(
+  var /*@type=dynamic*/ d = /*error:COULD_NOT_INFER*/ /*@typeArgs=dynamic*/ max(
       /*@promotedType=none*/ x,
       /*@promotedType=none*/ y);
 }

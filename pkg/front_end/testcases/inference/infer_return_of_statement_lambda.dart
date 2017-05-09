@@ -7,7 +7,8 @@ library test;
 
 List<String> strings() {
   var /*@type=Iterable<String>*/ stuff = /*@typeArgs=dynamic*/ []
-      .expand(/*@returnType=List<String>*/ (/*@type=dynamic*/ i) {
+      . /*@typeArgs=String*/ expand(
+          /*@returnType=List<String>*/ (/*@type=dynamic*/ i) {
     return <String>[];
   });
   return /*@promotedType=none*/ stuff.toList();

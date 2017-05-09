@@ -11,9 +11,9 @@ main() {
   Future<int> f;
   Future<List<int>>
       b = /*info:ASSIGNMENT_CAST should be pass*/ /*@promotedType=none*/ f
-          .then(
+          . /*@typeArgs=List<dynamic>*/ then(
               /*@returnType=List<dynamic>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ [])
           .whenComplete(/*@returnType=Null*/ () {});
-  b = /*@promotedType=none*/ f.then(
+  b = /*@promotedType=none*/ f. /*@typeArgs=List<int>*/ then(
       /*@returnType=List<int>*/ (/*@type=int*/ x) => /*@typeArgs=int*/ []);
 }

@@ -273,6 +273,16 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
+    var inferredTypeArguments = _getInferredFunctionTypeArguments(
+            node.function.staticType, node.staticInvokeType, node.typeArguments)
+        .toList();
+    if (inferredTypeArguments.isNotEmpty) {
+      _recordTypeArguments(node.methodName.offset, inferredTypeArguments);
+    }
+  }
+
   visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     Element element = node.staticElement;
@@ -311,6 +321,19 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  /// Based on DDC code generator's `_emitFunctionTypeArguments`
+  Iterable<DartType> _getInferredFunctionTypeArguments(
+      DartType g, DartType f, TypeArgumentList typeArgs) {
+    if (g is FunctionType &&
+        g.typeFormals.isNotEmpty &&
+        f is FunctionType &&
+        f.typeFormals.isEmpty) {
+      return _recoverTypeArguments(g, f);
+    } else {
+      return const [];
+    }
+  }
+
   void _recordTopType(int offset, DartType type) {
     _instrumentation.record(
         uri, offset, 'topType', new _InstrumentationValueForType(type));
@@ -324,5 +347,14 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   void _recordTypeArguments(int offset, List<DartType> typeArguments) {
     _instrumentation.record(uri, offset, 'typeArgs',
         new _InstrumentationValueForTypeArgs(typeArguments));
+  }
+
+  /// Based on DDC code generator's `_recoverTypeArguments`
+  Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
+    assert(identical(g.element, f.element));
+    assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
+    assert(g.typeFormals.length + g.typeArguments.length ==
+        f.typeArguments.length);
+    return f.typeArguments.skip(g.typeArguments.length);
   }
 }

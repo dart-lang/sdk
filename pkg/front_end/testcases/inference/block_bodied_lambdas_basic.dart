@@ -8,7 +8,7 @@ library test;
 test1() {
   List<int> o;
   var /*@type=Iterable<int>*/ y = /*@promotedType=none*/ o
-      .map(/*@returnType=int*/ (/*@type=int*/ x) {
+      . /*@typeArgs=int*/ map(/*@returnType=int*/ (/*@type=int*/ x) {
     return /*@promotedType=none*/ x + 1;
   });
   Iterable<int> z = /*@promotedType=none*/ y;

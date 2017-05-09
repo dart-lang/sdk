@@ -11,5 +11,5 @@ T id<T>(T x) => /*@promotedType=none*/ x;
 
 main() async {
   Future<String> f;
-  String s = await id(/*@promotedType=none*/ f);
+  String s = await /*@typeArgs=FutureOr<String>*/ id(/*@promotedType=none*/ f);
 }

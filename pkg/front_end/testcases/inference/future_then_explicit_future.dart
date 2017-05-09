@@ -9,15 +9,17 @@ import "dart:async";
 
 m1() {
   Future<int> f;
-  var /*@type=Future<List<int>>*/ x = /*@promotedType=none*/ f.then<
-          Future<List<int>>>(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
-      /*@returnType=List<dynamic>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ []);
+  var /*@type=Future<List<int>>*/ x = /*@promotedType=none*/ f
+      . /*@typeArgs=Future<List<int>>*/ then<Future<List<int>>>(
+          /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
+          /*@returnType=List<dynamic>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ []);
   Future<List<int>> y = /*@promotedType=none*/ x;
 }
 
 m2() {
   Future<int> f;
-  var /*@type=Future<List<int>>*/ x = /*@promotedType=none*/ f.then<List<int>>(
-      /*@returnType=List<int>*/ (/*@type=int*/ x) => /*@typeArgs=int*/ []);
+  var /*@type=Future<List<int>>*/ x = /*@promotedType=none*/ f
+      . /*@typeArgs=List<int>*/ then<List<int>>(
+          /*@returnType=List<int>*/ (/*@type=int*/ x) => /*@typeArgs=int*/ []);
   Future<List<int>> y = /*@promotedType=none*/ x;
 }

@@ -17,10 +17,12 @@ void main() {
     v2 = /*@returnType=List<S>*/ <S>(/*@type=S*/ x) => /*@typeArgs=S*/ [
           /*@promotedType=none*/ x
         ];
-    Iterable<int> r = /*@promotedType=none*/ v2(42);
-    Iterable<String> s = /*@promotedType=none*/ v2('hello');
-    Iterable<List<int>> t = /*@promotedType=none*/ v2(<int>[]);
-    Iterable<num> u = /*@promotedType=none*/ v2(42);
-    Iterable<num> v = /*@promotedType=none*/ v2<num>(42);
+    Iterable<int> r = /*@promotedType=none*/ /*@typeArgs=int*/ v2(42);
+    Iterable<String>
+        s = /*@promotedType=none*/ /*@typeArgs=String*/ v2('hello');
+    Iterable<List<int>>
+        t = /*@promotedType=none*/ /*@typeArgs=List<int>*/ v2(<int>[]);
+    Iterable<num> u = /*@promotedType=none*/ /*@typeArgs=num*/ v2(42);
+    Iterable<num> v = /*@promotedType=none*/ /*@typeArgs=num*/ v2<num>(42);
   }
 }

@@ -18,10 +18,10 @@ class Frame {
 main() {
   List<Trace> traces = /*@typeArgs=Trace*/ [];
   var /*@type=int*/ longest = /*@promotedType=none*/ traces
-      .map(/*@returnType=int*/ (/*@type=Trace*/ trace) {
+      . /*@typeArgs=int*/ map(/*@returnType=int*/ (/*@type=Trace*/ trace) {
     return /*@promotedType=none*/ trace.frames
-        .map(/*@returnType=int*/ (/*@type=Frame*/ frame) =>
+        . /*@typeArgs=int*/ map(/*@returnType=int*/ (/*@type=Frame*/ frame) =>
             /*@promotedType=none*/ frame.location.length)
-        .fold(0, math.max);
-  }).fold(0, math.max);
+        . /*@typeArgs=int*/ fold(0, math.max);
+  }). /*@typeArgs=int*/ fold(0, math.max);
 }

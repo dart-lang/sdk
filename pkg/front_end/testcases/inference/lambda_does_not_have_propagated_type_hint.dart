@@ -9,8 +9,8 @@ List<String> getListOfString() => const <String>[];
 
 void foo() {
   List myList = getListOfString();
-  /*@promotedType=none*/ myList
-      .map(/*@returnType=int*/ (/*@type=dynamic*/ type) => 42);
+  /*@promotedType=none*/ myList. /*@typeArgs=int*/ map(
+      /*@returnType=int*/ (/*@type=dynamic*/ type) => 42);
 }
 
 void bar() {

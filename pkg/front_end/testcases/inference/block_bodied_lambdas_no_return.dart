@@ -8,6 +8,6 @@ library test;
 test1() {
   List<int> o;
   var /*@type=Iterable<Null>*/ y = /*@promotedType=none*/ o
-      .map(/*@returnType=Null*/ (/*@type=int*/ x) {});
+      . /*@typeArgs=Null*/ map(/*@returnType=Null*/ (/*@type=int*/ x) {});
   Iterable<int> z = /*@promotedType=none*/ y;
 }

@@ -10,5 +10,5 @@ class C {
 }
 
 main() {
-  var /*@type=double*/ y = new C().m(1, 'bbb', 2.0);
+  var /*@type=double*/ y = new C(). /*@typeArgs=double*/ m(1, 'bbb', 2.0);
 }

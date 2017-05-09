@@ -14,8 +14,10 @@ main() async {
     /*@promotedType=none*/ b,
     /*@promotedType=none*/ c
   ];
-  var /*@type=List<A>*/ result = await Future.wait(/*@promotedType=none*/ lll);
-  var /*@type=List<A>*/ result2 = await Future.wait(/*@typeArgs=Future<A>*/ [
+  var /*@type=List<A>*/ result =
+      await Future. /*@typeArgs=A*/ wait(/*@promotedType=none*/ lll);
+  var /*@type=List<A>*/ result2 =
+      await Future. /*@typeArgs=A*/ wait(/*@typeArgs=Future<A>*/ [
     /*@promotedType=none*/ b,
     /*@promotedType=none*/ c
   ]);

@@ -15,13 +15,13 @@ class MyFuture<T> implements Future<T> {
 }
 
 void main() {
-  var /*@type=MyFuture<double>*/ f =
-      foo().then(/*@returnType=double*/ (/*@type=dynamic*/ _) => 2.3);
+  var /*@type=MyFuture<double>*/ f = foo(). /*@typeArgs=double*/ then(
+      /*@returnType=double*/ (/*@type=dynamic*/ _) => 2.3);
   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ /*@promotedType=none*/ f;
 
   // The unnecessary cast is to illustrate that we inferred <double> for
   // the generic type args, even though we had a return type context.
-  Future<num> f3 = /*info:UNNECESSARY_CAST*/ foo().then(
+  Future<num> f3 = /*info:UNNECESSARY_CAST*/ foo(). /*@typeArgs=double*/ then(
       /*@returnType=double*/ (/*@type=dynamic*/ _) => 2.3) as Future<double>;
 }
 

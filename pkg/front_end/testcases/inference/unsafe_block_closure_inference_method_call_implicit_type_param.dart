@@ -10,7 +10,7 @@ class C {
 }
 
 main() {
-  var /*@type=List<int>*/ v = new C().f(
+  var /*@type=List<int>*/ v = new C(). /*@typeArgs=int*/ f(
       /*@returnType=int*/ () {
     return 1;
   });
