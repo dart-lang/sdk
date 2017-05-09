@@ -19,7 +19,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
   String testCode;
-  String testFile = '/test.dart';
+  String testFile;
   Source testSource;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
@@ -111,5 +111,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     }
     testUnitElement = testUnit.element;
     testLibraryElement = testUnitElement.library;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testFile = provider.convertPath('/test.dart');
   }
 }
