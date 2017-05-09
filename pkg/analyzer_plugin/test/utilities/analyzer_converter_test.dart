@@ -196,7 +196,7 @@ class B<K, V> {}''');
       expect(element.typeParameters, isNull);
       {
         plugin.Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, testFile);
         expect(location.offset, 27);
         expect(location.length, '_A'.length);
         expect(location.startLine, 2);
@@ -237,7 +237,7 @@ class A {
     expect(element.typeParameters, isNull);
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
       expect(location.startLine, 2);
@@ -278,7 +278,7 @@ enum E2 { three, four }''');
       expect(element.typeParameters, isNull);
       {
         plugin.Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, testFile);
         expect(location.offset, 17);
         expect(location.length, '_E1'.length);
         expect(location.startLine, 2);
@@ -317,7 +317,7 @@ enum E2 { three, four }''');
       expect(element.name, 'one');
       {
         plugin.Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, testFile);
         expect(location.offset, 23);
         expect(location.length, 'one'.length);
         expect(location.startLine, 2);
@@ -341,7 +341,7 @@ enum E2 { three, four }''');
       expect(element.name, 'three');
       {
         plugin.Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, testFile);
         expect(location.offset, 44);
         expect(location.length, 'three'.length);
         expect(location.startLine, 3);
@@ -360,7 +360,7 @@ enum E2 { three, four }''');
       expect(element.name, 'index');
       {
         plugin.Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'index'.length);
         expect(location.startLine, 1);
@@ -378,7 +378,7 @@ enum E2 { three, four }''');
       expect(element.name, 'values');
       {
         plugin.Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'values'.length);
         expect(location.startLine, 1);
@@ -406,7 +406,7 @@ class A {
     expect(element.name, 'myField');
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 25);
       expect(location.length, 'myField'.length);
       expect(location.startLine, 2);
@@ -434,7 +434,7 @@ typedef int F<T>(String x);
     expect(element.typeParameters, '<T>');
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 12);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -461,7 +461,7 @@ class A {
     expect(element.name, 'myGetter');
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -489,7 +489,7 @@ class A {
     expect(element.name, 'myMethod');
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -517,7 +517,7 @@ class A {
     expect(element.name, 'mySetter');
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
       expect(location.startLine, 2);
@@ -596,7 +596,7 @@ myLabel:
     expect(element.name, 'myLabel');
     {
       plugin.Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, testFile);
       expect(location.offset, 9);
       expect(location.length, 'myLabel'.length);
       expect(location.startLine, 2);
