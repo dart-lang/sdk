@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
@@ -36,6 +35,7 @@ import 'package:crypto/crypto.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**

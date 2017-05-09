@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -21,6 +20,7 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/dependency_grapher_impl.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:path/src/context.dart';
 
 dynamic unimplemented() {

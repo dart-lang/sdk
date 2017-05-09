@@ -15,7 +15,6 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -40,6 +39,7 @@ import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -743,6 +743,19 @@ class Driver implements CommandLineStarter {
     }
   }
 
+  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
+    if (severity == ErrorSeverity.ERROR) {
+      return true;
+    } else if (severity == ErrorSeverity.WARNING &&
+        (options.warningsAreFatal || options.hintsAreFatal)) {
+      return true;
+    } else if (severity == ErrorSeverity.INFO && options.hintsAreFatal) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
       ResourceProvider resourceProvider, CommandLineOptions options) {
     if (options.analysisOptionsFile != null) {
@@ -844,19 +857,6 @@ class Driver implements CommandLineStarter {
   /// Convert [sourcePath] into an absolute path.
   static String _normalizeSourcePath(String sourcePath) =>
       path.normalize(new io.File(sourcePath).absolute.path);
-
-  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
-    if (severity == ErrorSeverity.ERROR) {
-      return true;
-    } else if (severity == ErrorSeverity.WARNING &&
-        (options.warningsAreFatal || options.hintsAreFatal)) {
-      return true;
-    } else if (severity == ErrorSeverity.INFO && options.hintsAreFatal) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 }
 
 class _DriverError implements Exception {

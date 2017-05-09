@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -20,6 +19,7 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
 import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
+import 'package:front_end/src/incremental/byte_store.dart';
 
 /**
  * Context information necessary to analyze one or more libraries within an
