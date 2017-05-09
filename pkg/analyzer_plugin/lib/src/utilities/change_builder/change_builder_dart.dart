@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -845,7 +845,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
     futureType = futureType.instantiate(<DartType>[type]);
     // prepare code for the types
-    addReplacement(rangeNode(typeAnnotation), (EditBuilder builder) {
+    addReplacement(range.node(typeAnnotation), (EditBuilder builder) {
       if (!(builder as DartEditBuilder).writeType(futureType)) {
         builder.write('void');
       }

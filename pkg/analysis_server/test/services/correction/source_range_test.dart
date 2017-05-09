@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library test.services.correction.source_range;
 
 import 'package:analysis_server/src/services/correction/source_range.dart';

@@ -13,6 +13,7 @@ import 'levenshtein_test.dart' as levenshtein_test;
 import 'name_suggestion_test.dart' as name_suggestion_test;
 import 'organize_directives_test.dart' as organize_directives_test;
 import 'sort_members_test.dart' as sort_members_test;
+// ignore: deprecated_member_use
 import 'source_range_test.dart' as source_range_test;
 import 'status_test.dart' as status_test;
 import 'strings_test.dart' as strings_test;
