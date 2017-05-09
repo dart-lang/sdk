@@ -74,7 +74,8 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
     // interrupt.
     fputs(Dart_GetError(result), stdout);
   } else {
-    fwrite(chars, sizeof(*chars), length, stdout);
+    intptr_t res = fwrite(chars, sizeof(*chars), length, stdout);
+    ASSERT(res == length);
   }
   fputc('\n', stdout);
   fflush(stdout);
