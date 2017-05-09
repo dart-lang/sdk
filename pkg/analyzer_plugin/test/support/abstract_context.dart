@@ -79,7 +79,12 @@ class Required {
     driver.addFile(path);
     driver.changeFile(path);
     _fileContentOverlay[path] = content;
-    return null;
+    return provider.getFile(path).createSource();
+  }
+
+  Element findElementInUnit(CompilationUnit unit, String name,
+      [ElementKind kind]) {
+    return findChildElement(unit.element, name, kind);
   }
 
   File newFile(String path, [String content]) =>
