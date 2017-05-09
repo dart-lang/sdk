@@ -624,7 +624,6 @@ class Server {
   Future<Null> start(
       {bool checked: true,
       int diagnosticPort,
-      bool enableNewAnalysisDriver: false,
       bool profileServer: false,
       String sdkPath,
       int servicesPort,
@@ -676,9 +675,6 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
-    }
-    if (!enableNewAnalysisDriver) {
-      arguments.add('--disable-new-analysis-driver');
     }
 //    stdout.writeln('Launching $serverPath');
 //    stdout.writeln('$dartBinary ${arguments.join(' ')}');
