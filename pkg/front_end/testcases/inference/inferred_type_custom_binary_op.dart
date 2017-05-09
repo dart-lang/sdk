@@ -9,5 +9,10 @@ class C {
   bool operator *(C other) => true;
 }
 
-C c;
+C c = new C();
 var /*@topType=bool*/ x = c * c;
+
+main() {
+  c;
+  x;
+}

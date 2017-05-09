@@ -23,6 +23,31 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
+_ArgumentForEachFunction _forEachArgument(Arguments arguments) {
+  return (void callback(String name, Expression expression)) {
+    for (var expression in arguments.positional) {
+      callback(null, expression);
+    }
+    for (var namedExpression in arguments.named) {
+      callback(namedExpression.name, namedExpression.value);
+    }
+  };
+}
+
+List<DartType> _getExplicitTypeArguments(Arguments arguments) {
+  if (arguments is KernelArguments) {
+    return arguments._hasExplicitTypeArguments ? arguments.types : null;
+  } else {
+    // This code path should only be taken in situations where there are no
+    // type arguments at all, e.g. calling a user-definable operator.
+    assert(arguments.types.isEmpty);
+    return null;
+  }
+}
+
+typedef void _ArgumentForEachFunction(
+    void callback(String name, Expression expression));
+
 /// Concrete shadow object representing a set of invocation arguments.
 class KernelArguments extends Arguments {
   bool _hasExplicitTypeArguments;
@@ -114,26 +139,16 @@ class KernelConstructorInvocation extends ConstructorInvocation
       Reference targetReference, Arguments arguments)
       : super.byReference(targetReference, arguments);
 
-  void _forEachArgument(void callback(String name, Expression expression)) {
-    for (var expression in arguments.positional) {
-      callback(null, expression);
-    }
-    for (var namedExpression in arguments.named) {
-      callback(namedExpression.name, namedExpression.value);
-    }
-  }
-
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    KernelArguments arguments = this.arguments;
     return inferrer.inferConstructorInvocation(
         typeContext,
         typeNeeded,
         fileOffset,
         target,
-        arguments._hasExplicitTypeArguments ? arguments.types : null,
-        _forEachArgument, (types) {
+        _getExplicitTypeArguments(arguments),
+        _forEachArgument(arguments), (types) {
       arguments.types.clear();
       arguments.types.addAll(types);
     });
@@ -398,9 +413,17 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    inferrer.inferExpression(receiver, null, false);
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferMethodInvocation(
+        typeContext,
+        typeNeeded,
+        fileOffset,
+        receiver,
+        name,
+        _getExplicitTypeArguments(arguments),
+        _forEachArgument(arguments), (types) {
+      arguments.types.clear();
+      arguments.types.addAll(types);
+    });
   }
 }
 

@@ -13,9 +13,15 @@ import 'package:kernel/ast.dart'
         Constructor,
         DartType,
         DynamicType,
-        FunctionNode,
+        Field,
+        FunctionType,
         InterfaceType,
-        Member;
+        Member,
+        Name,
+        Procedure,
+        TypeParameter,
+        TypeParameterType;
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -57,6 +63,9 @@ abstract class TypeInferrer<S, E, V, F> {
 /// possible without knowing the identity of the type parameters.  It defers to
 /// abstract methods for everything else.
 abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
+  static final FunctionType _functionReturningDynamic =
+      new FunctionType(const [], const DynamicType());
+
   @override
   final String uri;
 
@@ -69,6 +78,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
   final bool strongMode;
 
+  final ClassHierarchy classHierarchy;
+
   final Instrumentation instrumentation;
 
   final TypeSchemaEnvironment typeSchemaEnvironment;
@@ -80,6 +91,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
+        classHierarchy = engine.classHierarchy,
         instrumentation = engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment;
 
@@ -152,6 +164,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       void forEachArgument(void callback(String name, E expression)),
       void setInferredTypeArguments(List<DartType> types)) {
     List<DartType> inferredTypes;
+    FunctionType constructorType = target.function.functionType;
     Substitution substitution;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
@@ -176,8 +189,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     int i = 0;
     forEachArgument((name, expression) {
       DartType formalType = name != null
-          ? _getNamedParameterType(target.function, name)
-          : _getPositionalParameterType(target.function, i++);
+          ? _getNamedParameterType(constructorType, name)
+          : _getPositionalParameterType(constructorType, i++);
       DartType inferredFormalType = substitution != null
           ? substitution.substituteType(formalType)
           : formalType;
@@ -391,6 +404,98 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
         : null;
   }
 
+  /// Performs the core type inference algorithm for method invocations.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [offset] is the location of the method invocation in the source file.
+  /// [receiver] is the object whose method is being invoked, and [methodName]
+  /// is the name of the method.  [explicitTypeArguments] is the set of type
+  /// arguments explicitly provided, or `null` if no type arguments were
+  /// provided.  [forEachArgument] is a callback which can be used to iterate
+  /// through all invocation arguments (both named and positional).
+  /// [setInferredTypeArguments] is a callback which can be used to record the
+  /// inferred type arguments.
+  DartType inferMethodInvocation(
+      DartType typeContext,
+      bool typeNeeded,
+      int offset,
+      E receiver,
+      Name methodName,
+      List<DartType> explicitTypeArguments,
+      void forEachArgument(void callback(String name, E expression)),
+      void setInferredTypeArguments(List<DartType> types)) {
+    // First infer the receiver so we can look up the method that was invoked.
+    var receiverType = inferExpression(receiver, null, true);
+    // TODO(paulberry): can we share some of the code below with
+    // inferConstructorInvocation?
+    var memberFunctionType = _getCalleeFunctionType(receiverType, methodName);
+    List<TypeParameter> memberTypeParameters =
+        memberFunctionType.typeParameters;
+    bool inferenceNeeded = explicitTypeArguments == null &&
+        strongMode &&
+        memberTypeParameters.isNotEmpty;
+    List<DartType> inferredTypes;
+    Substitution substitution;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    if (inferenceNeeded) {
+      inferredTypes = new List<DartType>.filled(
+          memberTypeParameters.length, const UnknownType());
+      typeSchemaEnvironment.inferGenericFunctionOrType(
+          memberFunctionType.returnType,
+          memberTypeParameters,
+          null,
+          null,
+          typeContext,
+          inferredTypes);
+      substitution =
+          Substitution.fromPairs(memberTypeParameters, inferredTypes);
+      formalTypes = [];
+      actualTypes = [];
+    } else if (explicitTypeArguments != null) {
+      substitution =
+          Substitution.fromPairs(memberTypeParameters, inferredTypes);
+    }
+    int i = 0;
+    forEachArgument((name, expression) {
+      DartType formalType = name != null
+          ? _getNamedParameterType(memberFunctionType, name)
+          : _getPositionalParameterType(memberFunctionType, i++);
+      DartType inferredFormalType = substitution != null
+          ? substitution.substituteType(formalType)
+          : formalType;
+      var expressionType =
+          inferExpression(expression, inferredFormalType, inferenceNeeded);
+      if (inferenceNeeded) {
+        formalTypes.add(formalType);
+        actualTypes.add(expressionType);
+      }
+    });
+    if (inferenceNeeded) {
+      typeSchemaEnvironment.inferGenericFunctionOrType(
+          memberFunctionType.returnType,
+          memberTypeParameters,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          inferredTypes);
+      substitution =
+          Substitution.fromPairs(memberTypeParameters, inferredTypes);
+      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
+          new InstrumentationValueForTypeArgs(inferredTypes));
+      setInferredTypeArguments(inferredTypes);
+    }
+    if (typeNeeded) {
+      return substitution == null
+          ? memberFunctionType.returnType
+          : substitution.substituteType(memberFunctionType.returnType);
+    } else {
+      return null;
+    }
+  }
+
   /// Performs the core type inference algorithm for null literals.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -479,15 +584,55 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return inferExpression(value, declaredType, typeNeeded);
   }
 
-  DartType _getNamedParameterType(FunctionNode function, String name) {
+  FunctionType _getCalleeFunctionType(DartType receiverType, Name methodName) {
+    if (receiverType is InterfaceType) {
+      var member =
+          classHierarchy.getInterfaceMember(receiverType.classNode, methodName);
+      if (member == null) return _functionReturningDynamic;
+      var memberClass = member.enclosingClass;
+      if (member is Procedure) {
+        var memberFunctionType = member.function.functionType;
+        if (memberClass.typeParameters.isNotEmpty) {
+          var castedType = classHierarchy.getClassAsInstanceOf(
+              receiverType.classNode, memberClass);
+          memberFunctionType = Substitution
+              .fromInterfaceType(Substitution
+                  .fromInterfaceType(receiverType)
+                  .substituteType(castedType.asInterfaceType))
+              .substituteType(memberFunctionType);
+        }
+        return memberFunctionType;
+      } else if (member is Field) {
+        // TODO(paulberry): handle this case
+        return _functionReturningDynamic;
+      } else {
+        return _functionReturningDynamic;
+      }
+    } else if (receiverType is DynamicType) {
+      return _functionReturningDynamic;
+    } else if (receiverType is FunctionType) {
+      // TODO(paulberry): handle the case of invoking .call() or .toString() on
+      // a function type.
+      return _functionReturningDynamic;
+    } else if (receiverType is TypeParameterType) {
+      // TODO(paulberry): use the bound
+      return _functionReturningDynamic;
+    } else {
+      // TODO(paulberry): handle the case of invoking .toString() on a type
+      // that's none of the above (e.g. `dynamic` or `bottom`)
+      return _functionReturningDynamic;
+    }
+  }
+
+  DartType _getNamedParameterType(FunctionType functionType, String name) {
     // TODO(paulberry): is there a kernel function that does this binary search?
     int lower = 0;
-    int upper = function.namedParameters.length - 1;
+    int upper = functionType.namedParameters.length - 1;
     while (lower <= upper) {
       int pivot = (lower + upper) ~/ 2;
-      int comparison = name.compareTo(function.namedParameters[pivot].name);
+      int comparison = name.compareTo(functionType.namedParameters[pivot].name);
       if (comparison == 0) {
-        return function.namedParameters[pivot].type;
+        return functionType.namedParameters[pivot].type;
       } else if (comparison < 0) {
         upper = pivot - 1;
       } else {
@@ -497,9 +642,9 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return const DynamicType();
   }
 
-  DartType _getPositionalParameterType(FunctionNode function, int i) {
-    if (i < function.positionalParameters.length) {
-      return function.positionalParameters[i].type;
+  DartType _getPositionalParameterType(FunctionType functionType, int i) {
+    if (i < functionType.positionalParameters.length) {
+      return functionType.positionalParameters[i];
     } else {
       return const DynamicType();
     }

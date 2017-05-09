@@ -10,6 +10,6 @@ class C {
 }
 
 main() {
-  C c;
+  C c = new C();
   var /*@type=bool*/ x = /*@promotedType=none*/ c[0];
 }

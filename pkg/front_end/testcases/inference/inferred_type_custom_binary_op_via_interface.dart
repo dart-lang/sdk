@@ -13,3 +13,7 @@ abstract class C implements I {}
 
 C c;
 var /*@topType=bool*/ x = c * c;
+
+main() {
+  c;
+}

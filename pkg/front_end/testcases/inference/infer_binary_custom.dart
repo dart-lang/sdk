@@ -12,3 +12,8 @@ class A {
 
 var /*@topType=int*/ v_add = new A() + 'foo';
 var /*@topType=double*/ v_minus = new A() - 'bar';
+
+main() {
+  v_add;
+  v_minus;
+}
