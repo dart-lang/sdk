@@ -1934,7 +1934,7 @@ class RODataSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(count);
     for (intptr_t i = 0; i < count; i++) {
       RawObject* object = objects_[i];
-      int32_t rodata_offset = s->GetRODataOffset(object);
+      int32_t rodata_offset = s->GetDataOffset(object);
       s->Write<int32_t>(rodata_offset);
       s->AssignRef(object);
     }
@@ -4856,7 +4856,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
 
-  if (kind_ != Snapshot::kAppAOT) {
+  if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
       AddBaseObject(StubCode::EntryAt(i)->code());
     }
@@ -5260,7 +5260,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
 
-  if (kind_ != Snapshot::kAppAOT) {
+  if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
       AddBaseObject(StubCode::EntryAt(i)->code());
     }

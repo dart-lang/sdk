@@ -714,8 +714,8 @@ class ImageWriter : public ZoneAllocated {
     instructions_.Clear();
     objects_.Clear();
   }
-  int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
-  int32_t GetObjectOffsetFor(RawObject* raw_object);
+  int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
+  int32_t GetDataOffsetFor(RawObject* raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() = 0;
