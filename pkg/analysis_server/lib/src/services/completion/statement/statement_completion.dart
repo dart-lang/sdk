@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -22,6 +21,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * An enumeration of possible statement completion kinds.
@@ -367,7 +367,7 @@ class StatementCompletionProcessor {
       int delta = 0;
       if (text.startsWith(';')) {
         delta = 1;
-        _addReplaceEdit(rangeStartLength(statement.body.offset, delta), '');
+        _addReplaceEdit(range.startLength(statement.body, delta), '');
         if (hasWhileKeyword) {
           text = utils.getNodeText(statement);
           if (text.indexOf(new RegExp(r'do\s*;\s*while')) == 0) {
@@ -375,7 +375,7 @@ class StatementCompletionProcessor {
             int start = text.indexOf(';') + 1;
             delta += end - start - 1;
             _addReplaceEdit(
-                rangeStartLength(start + statement.offset, end - start), ' ');
+                new SourceRange(start + statement.offset, end - start), ' ');
           }
         }
         sb = new SourceBuilder(file, sb.offset + delta);
@@ -451,12 +451,12 @@ class StatementCompletionProcessor {
       src = src.substring(forNode.leftParenthesis.offset - forNode.offset);
       if (src.startsWith(new RegExp(r'\(\s*in\s*\)'))) {
         _addReplaceEdit(
-            rangeStartEnd(forNode.leftParenthesis.offset + 1,
+            range.startOffsetEndOffset(forNode.leftParenthesis.offset + 1,
                 forNode.rightParenthesis.offset),
             ' in ');
       } else if (src.startsWith(new RegExp(r'\(\s*in'))) {
         _addReplaceEdit(
-            rangeStartEnd(
+            range.startOffsetEndOffset(
                 forNode.leftParenthesis.offset + 1, forNode.inKeyword.offset),
             ' ');
       }
@@ -465,7 +465,8 @@ class StatementCompletionProcessor {
       src = src.substring(forNode.inKeyword.offset - forNode.offset);
       if (src.startsWith(new RegExp(r'in\s*\)'))) {
         _addReplaceEdit(
-            rangeStartEnd(forNode.inKeyword.offset + forNode.inKeyword.length,
+            range.startOffsetEndOffset(
+                forNode.inKeyword.offset + forNode.inKeyword.length,
                 forNode.rightParenthesis.offset),
             ' ');
       }
@@ -510,7 +511,7 @@ class StatementCompletionProcessor {
             // emptyCondition
             int end = text.indexOf(')');
             sb = new SourceBuilder(file, forNode.leftSeparator.offset);
-            _addReplaceEdit(rangeStartLength(sb.offset, end), '; ; ');
+            _addReplaceEdit(new SourceRange(sb.offset, end), '; ; ');
             delta = end - '; '.length;
           } else {
             // emptyInitializersEmptyCondition
@@ -521,7 +522,7 @@ class StatementCompletionProcessor {
           // emptyUpdaters
           exitPosition = _newPosition(forNode.rightSeparator.offset);
           sb = new SourceBuilder(file, forNode.rightSeparator.offset);
-          _addReplaceEdit(rangeStartLength(sb.offset, 0), '; ');
+          _addReplaceEdit(new SourceRange(sb.offset, 0), '; ');
           delta = -'; '.length;
         }
       } else if (_isSyntheticExpression(forNode.initialization)) {
@@ -536,7 +537,7 @@ class StatementCompletionProcessor {
           // missingLeftSeparator
           int end = text.indexOf(')');
           sb = new SourceBuilder(file, start);
-          _addReplaceEdit(rangeStartLength(start, end), '; ');
+          _addReplaceEdit(new SourceRange(start, end), '; ');
           delta = end - '; '.length;
           exitPosition = new Position(file, start);
         } else {
@@ -922,7 +923,7 @@ class StatementCompletionProcessor {
 
   void _insertBuilder(SourceBuilder builder, [int length = 0]) {
     {
-      SourceRange range = rangeStartLength(builder.offset, length);
+      SourceRange range = new SourceRange(builder.offset, length);
       String text = builder.toString();
       _addReplaceEdit(range, text);
     }

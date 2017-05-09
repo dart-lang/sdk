@@ -81,6 +81,14 @@ class RangeFactory {
   }
 
   /**
+   * Return a source range whose length is the same as the given [range], but
+   * whose offset is the offset of the given [range] with [offset] added to it.
+   */
+  SourceRange offsetBy(SourceRange range, int offset) {
+    return new SourceRange(range.offset + offset, range.length);
+  }
+
+  /**
    * Return a source range that starts at the start of [leftEntity] and ends at
    * the end of [rightEntity].
    */
@@ -96,6 +104,15 @@ class RangeFactory {
    */
   SourceRange startLength(SyntacticEntity entity, int length) {
     return new SourceRange(entity.offset, length);
+  }
+
+  /**
+   * Return a source range that starts at the given [startOffset] and ends at
+   * the given [endOffset].
+   */
+  SourceRange startOffsetEndOffset(int startOffset, int endOffset) {
+    int length = endOffset - startOffset;
+    return new SourceRange(startOffset, length);
   }
 
   /**

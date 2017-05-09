@@ -76,6 +76,10 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     expect(range.nodes([]), new SourceRange(0, 0));
   }
 
+  test_offsetBy() {
+    expect(range.offsetBy(new SourceRange(7, 3), 2), new SourceRange(9, 3));
+  }
+
   test_startEnd_nodeNode() async {
     await resolveTestUnit(' main() {}');
     FunctionDeclaration mainFunction = testUnit.declarations[0];
@@ -89,6 +93,10 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     FunctionDeclaration mainFunction = testUnit.declarations[0];
     SimpleIdentifier mainName = mainFunction.name;
     expect(range.startLength(mainName, 10), new SourceRange(1, 10));
+  }
+
+  test_startOffsetEndOffset() {
+    expect(range.startOffsetEndOffset(6, 11), new SourceRange(6, 5));
   }
 
   test_startStart_nodeNode() async {
