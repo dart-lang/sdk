@@ -640,7 +640,13 @@ class FixProcessor {
       ParameterElement element =
           parameters.firstWhere((p) => p.name == paramName, orElse: () => null);
       String defaultValue = getDefaultStringParameterValue(element);
-      sb.append('$paramName: $defaultValue'); // TODO(pq): add trailing comma
+      sb.append('$paramName: $defaultValue');
+
+      // Insert a trailing comma after Flutter instance creation params.
+      InstanceCreationExpression newExpr = identifyNewExpression(node);
+      if (newExpr != null && isFlutterInstanceCreationExpression(newExpr)) {
+        sb.append(',');
+      }
 
       _insertBuilder(sb, null);
       _addFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, [paramName]);

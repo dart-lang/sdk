@@ -433,6 +433,42 @@ class A {
 ''');
   }
 
+  test_addMissingRequiredArg_cons_flutter_children() async {
+    addPackageSource(
+        'flutter', 'src/widgets/framework.dart', flutter_framework_code);
+
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required List<Widget> children});
+}
+
+build() {
+  return new MyWidget();
+}
+''');
+
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(children: <Widget>[],);
+}
+''',
+        target: '/test.dart');
+  }
+
   test_addMissingRequiredArg_cons_single() async {
     _addMetaPackageSource();
     addSource(
