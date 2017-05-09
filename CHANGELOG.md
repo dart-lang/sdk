@@ -25,7 +25,7 @@
 * Many lint fixes (notably `prefer_final_fields`, `unnecessary_lambdas`, `await_only_futures`, `cascade_invocations`, `avoid_types_on_closure_parameters`, and `overridden_fields`).
 * Significant performance improvements for `prefer_interpolation_to_compose_strings`.
 * New `unnecessary_this` rule.
-* New `prefer_initiliazling_formals` rule.
+* New `prefer_initializing_formals` rule.
 
 # 0.1.30
 
