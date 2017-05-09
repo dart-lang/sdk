@@ -74,7 +74,7 @@ dynamic _getGenericArgs(obj) {
 }
 
 dynamic _defaultConstructorType(type) {
-  return JS('', '#.fnType(#, [])', _dart, type);
+  return JS('', '#.definiteFunctionType(#, [])', _dart, type);
 }
 
 dynamic _getMixins(type) {
