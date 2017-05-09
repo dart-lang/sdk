@@ -1,6 +1,8 @@
 analyzer:
   strong-mode: true
   exclude:
+    # ignore vscode .history files
+    - .history/**
     - test/_data/**
     - test/rules/**
 linter:
