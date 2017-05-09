@@ -8,7 +8,6 @@ import 'constants/constant_system.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
 import 'elements/types.dart';
-import 'tree/dartstring.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 
@@ -254,8 +253,7 @@ class AddOperation implements BinaryOperation {
     } else if (left.isString && right.isString) {
       StringConstantValue leftString = left;
       StringConstantValue rightString = right;
-      DartString result = new DartString.concat(
-          leftString.primitiveValue, rightString.primitiveValue);
+      String result = leftString.primitiveValue + rightString.primitiveValue;
       return DART_CONSTANT_SYSTEM.createString(result);
     } else {
       return null;
@@ -369,10 +367,9 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
     if (left.isString && right.isInt) {
       StringConstantValue stringConstant = left;
       IntConstantValue indexConstant = right;
-      DartString dartString = stringConstant.primitiveValue;
+      String string = stringConstant.primitiveValue;
       int index = indexConstant.primitiveValue;
-      if (index < 0 || index >= dartString.length) return null;
-      String string = dartString.slowToString();
+      if (index < 0 || index >= string.length) return null;
       int value = string.codeUnitAt(index);
       return DART_CONSTANT_SYSTEM.createInt(value);
     }
@@ -431,7 +428,7 @@ class DartConstantSystem extends ConstantSystem {
   DoubleConstantValue createDouble(double d) => new DoubleConstantValue(d);
 
   @override
-  StringConstantValue createString(DartString string) {
+  StringConstantValue createString(String string) {
     return new StringConstantValue(string);
   }
 

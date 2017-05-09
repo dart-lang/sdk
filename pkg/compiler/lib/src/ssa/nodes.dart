@@ -15,7 +15,6 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
-import '../tree/dartstring.dart' as ast;
 import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -294,7 +293,7 @@ class HGraph {
     return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
   }
 
-  HConstant addConstantString(ast.DartString str, ClosedWorld closedWorld) {
+  HConstant addConstantString(String str, ClosedWorld closedWorld) {
     return addConstant(
         closedWorld.constantSystem.createString(str), closedWorld);
   }

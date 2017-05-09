@@ -3954,7 +3954,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               argumentNode, MessageKind.STRING_EXPECTED, {'type': type});
         } else {
           StringConstantValue stringConstant = name;
-          String nameString = stringConstant.toDartString().slowToString();
+          String nameString = stringConstant.primitiveValue;
           if (validateSymbol(argumentNode, nameString)) {
             registry.registerConstSymbol(nameString);
           }

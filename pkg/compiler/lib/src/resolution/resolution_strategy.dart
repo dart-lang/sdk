@@ -527,7 +527,7 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
           String name;
           if (value.isString) {
             StringConstantValue stringValue = value;
-            name = stringValue.primitiveValue.slowToString();
+            name = stringValue.primitiveValue;
           } else {
             // TODO(jacobr): report a warning if the value is not a String.
             name = '';

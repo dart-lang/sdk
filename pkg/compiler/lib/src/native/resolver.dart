@@ -571,5 +571,5 @@ String readAnnotationName(
         spannable, 'Annotations needs one string: ${value.toStructuredText()}');
   }
   StringConstantValue specStringConstant = fields.single;
-  return specStringConstant.toDartString().slowToString();
+  return specStringConstant.primitiveValue;
 }

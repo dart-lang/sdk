@@ -10,7 +10,6 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
-import '../tree/dartstring.dart' show DartString;
 import '../universe/call_structure.dart' show CallStructure;
 import 'constructors.dart';
 import 'evaluation.dart';
@@ -328,7 +327,7 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    return constantSystem.createString(new DartString.literal(primitiveValue));
+    return constantSystem.createString(primitiveValue);
   }
 
   @override
@@ -653,29 +652,19 @@ class ConcatenateConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    DartString accumulator;
+    StringBuffer sb = new StringBuffer();
     for (ConstantExpression expression in expressions) {
       ConstantValue value = expression.evaluate(environment, constantSystem);
-      DartString valueString;
-      if (value.isNum || value.isBool || value.isNull) {
+      if (value.isPrimitive) {
         PrimitiveConstantValue primitive = value;
-        valueString =
-            new DartString.literal(primitive.primitiveValue.toString());
-      } else if (value.isString) {
-        PrimitiveConstantValue primitive = value;
-        valueString = primitive.primitiveValue;
+        sb.write(primitive.primitiveValue);
       } else {
         // TODO(johnniwinther): Specialize message to indicated that the problem
         // is not constness but the types of the const expressions.
         return new NonConstantValue();
       }
-      if (accumulator == null) {
-        accumulator = valueString;
-      } else {
-        accumulator = new DartString.concat(accumulator, valueString);
-      }
     }
-    return constantSystem.createString(accumulator);
+    return constantSystem.createString(sb.toString());
   }
 
   @override
@@ -1433,8 +1422,8 @@ class BoolFromEnvironmentConstantExpression
       return new NonConstantValue();
     }
     StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text = environment.readFromEnvironment(
-        nameStringConstantValue.primitiveValue.slowToString());
+    String text =
+        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
     if (text == 'true') {
       return constantSystem.createBool(true);
     } else if (text == 'false') {
@@ -1497,8 +1486,8 @@ class IntFromEnvironmentConstantExpression
       return new NonConstantValue();
     }
     StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text = environment.readFromEnvironment(
-        nameStringConstantValue.primitiveValue.slowToString());
+    String text =
+        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
     int value;
     if (text != null) {
       value = int.parse(text, onError: (_) => null);
@@ -1563,12 +1552,12 @@ class StringFromEnvironmentConstantExpression
       return new NonConstantValue();
     }
     StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text = environment.readFromEnvironment(
-        nameStringConstantValue.primitiveValue.slowToString());
+    String text =
+        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
     if (text == null) {
       return defaultConstantValue;
     } else {
-      return constantSystem.createString(new DartString.literal(text));
+      return constantSystem.createString(text);
     }
   }
 

@@ -294,8 +294,7 @@ class KernelImpactBuilder extends ir.Visitor {
             "${value.toStructuredText()}");
       }
       StringConstantValue stringValue = value;
-      impactBuilder
-          .registerConstSymbolName(stringValue.primitiveValue.slowToString());
+      impactBuilder.registerConstSymbolName(stringValue.primitiveValue);
     }
   }
 

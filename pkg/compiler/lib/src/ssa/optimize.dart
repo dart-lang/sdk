@@ -18,7 +18,6 @@ import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
 import '../native/native.dart' as native;
 import '../options.dart';
-import '../tree/dartstring.dart' as ast;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -1128,8 +1127,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction folded = _graph.addConstant(
-        constantSystem.createString(new ast.DartString.concat(
-            leftString.primitiveValue, rightString.primitiveValue)),
+        constantSystem.createString(
+            leftString.primitiveValue + rightString.primitiveValue),
         _closedWorld);
     if (prefix == null) return folded;
     return new HStringConcat(
@@ -1154,7 +1153,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
       PrimitiveConstantValue primitive = constant.constant;
       return _graph.addConstant(
-          constantSystem.createString(primitive.toDartString()), _closedWorld);
+          constantSystem.createString('${primitive.primitiveValue}'),
+          _closedWorld);
     }
 
     HInstruction tryToString() {

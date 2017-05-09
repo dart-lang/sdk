@@ -7,7 +7,6 @@ library dart2js.constant_system;
 import '../common_elements.dart' show CommonElements;
 import '../elements/operators.dart';
 import '../elements/types.dart';
-import '../tree/dartstring.dart' show DartString;
 import 'values.dart';
 
 abstract class Operation {
@@ -61,7 +60,7 @@ abstract class ConstantSystem {
 
   ConstantValue createInt(int i);
   ConstantValue createDouble(double d);
-  ConstantValue createString(DartString string);
+  ConstantValue createString(String string);
   ConstantValue createBool(bool value);
   ConstantValue createNull();
   ConstantValue createList(InterfaceType type, List<ConstantValue> values);

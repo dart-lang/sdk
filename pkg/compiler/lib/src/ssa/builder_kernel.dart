@@ -25,7 +25,6 @@ import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
-import '../tree/dartstring.dart';
 import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
 import '../universe/selector.dart';
@@ -709,8 +708,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _trap(String message) {
     HInstruction nullValue = graph.addConstantNull(closedWorld);
-    HInstruction errorMessage =
-        graph.addConstantString(new DartString.literal(message), closedWorld);
+    HInstruction errorMessage = graph.addConstantString(message, closedWorld);
     HInstruction trap = new HForeignCode(js.js.parseForeignJS("#.#"),
         commonMasks.dynamicType, <HInstruction>[nullValue, errorMessage]);
     trap.sideEffects
@@ -752,12 +750,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
-    HInstruction prefixConstant = graph.addConstantString(
-        new DartString.literal(checkLoad.import.name), closedWorld);
+    HInstruction prefixConstant =
+        graph.addConstantString(checkLoad.import.name, closedWorld);
     var prefixElement = astAdapter.getElement(checkLoad.import);
     HInstruction uriConstant = graph.addConstantString(
-        new DartString.literal(prefixElement.deferredImport.uri.toString()),
-        closedWorld);
+        prefixElement.deferredImport.uri.toString(), closedWorld);
     _pushStaticInvocation(astAdapter.checkDeferredIsLoaded,
         [prefixConstant, uriConstant], astAdapter.checkDeferredIsLoadedType);
   }
@@ -767,10 +764,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(efortuna): Source information!
     push(new HInvokeStatic(
         commonElements.loadLibraryWrapper,
-        [
-          graph.addConstantString(
-              new DartString.literal(loadLibrary.import.name), closedWorld)
-        ],
+        [graph.addConstantString(loadLibrary.import.name, closedWorld)],
         commonMasks.nonNullType,
         targetCanThrow: false));
   }
@@ -1345,8 +1339,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void generateError(
       ir.Node node, ir.Procedure procedure, String message, TypeMask typeMask) {
-    HInstruction errorMessage =
-        graph.addConstantString(new DartString.literal(message), closedWorld);
+    HInstruction errorMessage = graph.addConstantString(message, closedWorld);
     // TODO(sra): Associate source info from [node].
     _pushStaticInvocation(procedure, [errorMessage], typeMask);
   }
@@ -1835,8 +1828,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitStringLiteral(ir.StringLiteral stringLiteral) {
-    stack.add(graph.addConstantString(
-        new DartString.literal(stringLiteral.value), closedWorld));
+    stack.add(graph.addConstantString(stringLiteral.value, closedWorld));
   }
 
   @override
@@ -2383,7 +2375,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     HConstant hConstant = instruction;
     StringConstantValue stringConstant = hConstant.constant;
-    return stringConstant.primitiveValue.slowToString();
+    return stringConstant.primitiveValue;
   }
 
   void handleForeignJsCurrentIsolateContext(ir.StaticInvocation invocation) {
@@ -2891,8 +2883,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       registry?.registerDynamicUse(new DynamicUse(selector, null));
     }
 
-    ConstantValue nameConstant =
-        constantSystem.createString(new DartString.literal(publicName));
+    ConstantValue nameConstant = constantSystem.createString(publicName);
 
     js.Name internalName = namer.invocationName(selector);
 
@@ -2903,7 +2894,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
-          constantSystem.createString(new DartString.literal(argumentName));
+          constantSystem.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
     }
     var argumentNamesInstruction =

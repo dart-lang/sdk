@@ -1080,7 +1080,7 @@ class _DeclaredDeferredImport implements _DeferredImport {
         if (element == compiler.commonElements.deferredLibraryClass) {
           ConstructedConstantValue constant = value;
           StringConstantValue s = constant.fields.values.single;
-          result = s.primitiveValue.slowToString();
+          result = s.primitiveValue;
           break;
         }
       }

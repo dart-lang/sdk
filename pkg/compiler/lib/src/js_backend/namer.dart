@@ -1810,7 +1810,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitString(StringConstantValue constant, [_]) {
     // No `addRoot` since string constants are always inlined.
-    addIdentifier(constant.primitiveValue.slowToString());
+    addIdentifier(constant.primitiveValue);
   }
 
   @override
@@ -1980,7 +1980,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitString(StringConstantValue constant, [_]) {
-    return _hashString(2, constant.primitiveValue.slowToString());
+    return _hashString(2, constant.primitiveValue);
   }
 
   @override

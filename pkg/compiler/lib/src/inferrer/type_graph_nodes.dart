@@ -19,8 +19,7 @@ import '../elements/resolution_types.dart'
         ResolutionInterfaceType,
         ResolutionTypeKind;
 import '../js_backend/backend.dart';
-import '../tree/dartstring.dart' show DartString;
-import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
+import '../tree/tree.dart' as ast show Node, Send;
 import '../types/masks.dart'
     show
         CommonMasks,
@@ -1041,7 +1040,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           TypeMask arg = arguments.positional[0].type;
           if (arg is ValueTypeMask && arg.value.isString) {
             DictionaryTypeMask dictionaryTypeMask = typeMask;
-            String key = arg.value.primitiveValue.slowToString();
+            String key = arg.value.primitiveValue;
             if (dictionaryTypeMask.typeMap.containsKey(key)) {
               if (debug.VERBOSE) {
                 print("Dictionary lookup for $key yields "
@@ -1222,14 +1221,13 @@ class ConcreteTypeInformation extends TypeInformation {
 }
 
 class StringLiteralTypeInformation extends ConcreteTypeInformation {
-  final DartString value;
+  final String value;
 
-  StringLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask, new StringConstantValue(value))),
-        this.value = value;
+  StringLiteralTypeInformation(this.value, TypeMask mask)
+      : super(new ValueTypeMask(mask, new StringConstantValue(value)));
 
-  String asString() => value.slowToString();
-  String toString() => 'Type $type value ${value.slowToString()}';
+  String asString() => value;
+  String toString() => 'Type $type value ${value}';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStringLiteralTypeInformation(this);
@@ -1237,14 +1235,13 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
 }
 
 class BoolLiteralTypeInformation extends ConcreteTypeInformation {
-  final ast.LiteralBool value;
+  final bool value;
 
-  BoolLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask,
-            value.value ? new TrueConstantValue() : new FalseConstantValue())),
-        this.value = value;
+  BoolLiteralTypeInformation(this.value, TypeMask mask)
+      : super(new ValueTypeMask(
+            mask, value ? new TrueConstantValue() : new FalseConstantValue()));
 
-  String toString() => 'Type $type value ${value.value}';
+  String toString() => 'Type $type value ${value}';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitBoolLiteralTypeInformation(this);

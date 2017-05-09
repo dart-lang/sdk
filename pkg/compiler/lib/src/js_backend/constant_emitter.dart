@@ -165,8 +165,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
    */
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
-    return js.escapedString(constant.primitiveValue.slowToString(),
-        ascii: true);
+    return js.escapedString(constant.primitiveValue, ascii: true);
   }
 
   @override
@@ -303,7 +302,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     ClassElement element = constant.type.element;
     if (backend.isForeign(element) && element.name == 'JS_CONST') {
       StringConstantValue str = constant.fields.values.single;
-      String value = str.primitiveValue.slowToString();
+      String value = str.primitiveValue;
       return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.Expression constructor =
