@@ -2992,41 +2992,6 @@ class CodeGenerator extends Object
       bool nameType: true,
       bool hoistType: true,
       definite: false}) {
-    var parts = _emitFunctionTypeParts(type,
-        parameters: parameters,
-        lowerTypedef: lowerTypedef,
-        nameType: nameType,
-        hoistType: hoistType);
-    var helper = definite ? 'definiteFunctionType' : 'functionType';
-    var fullType = _callHelper('${helper}(#)', [parts]);
-    if (!nameType) return fullType;
-    return _typeTable.nameType(type, fullType,
-        hoistType: hoistType, definite: definite);
-  }
-
-  JS.Expression _emitAnnotatedFunctionType(
-      FunctionType type, List<Annotation> metadata,
-      {List<FormalParameter> parameters,
-      bool lowerTypedef: false,
-      bool nameType: true,
-      bool hoistType: true,
-      bool definite: false}) {
-    var result = _emitFunctionType(type,
-        parameters: parameters,
-        lowerTypedef: lowerTypedef,
-        nameType: nameType,
-        hoistType: hoistType,
-        definite: definite);
-    return _emitAnnotatedResult(result, metadata);
-  }
-
-  /// Emit the pieces of a function type, as an array of return type,
-  /// regular args, and optional/named args.
-  List<JS.Expression> _emitFunctionTypeParts(FunctionType type,
-      {List<FormalParameter> parameters,
-      bool lowerTypedef: false,
-      bool nameType: true,
-      bool hoistType: true}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
@@ -3052,25 +3017,51 @@ class CodeGenerator extends Object
       typeParts = [rt, ra];
     }
 
+    JS.Expression fullType;
     var typeFormals = type.typeFormals;
+    String helperCall;
     if (typeFormals.isNotEmpty) {
-      // TODO(jmesserly): this is a suboptimal representation for universal
-      // function types (as callable functions). See discussion at
-      // https://github.com/dart-lang/sdk/issues/27333
       var tf = _emitTypeFormals(typeFormals);
-      var names = _typeTable.discharge(typeFormals);
-      var parts = new JS.ArrayInitializer(typeParts);
-      if (names.isEmpty) {
-        typeParts = [
-          js.call('(#) => #', [tf, parts])
-        ];
-      } else {
-        typeParts = [
-          js.call('(#) => {#; return #;}', [tf, names, parts])
-        ];
+
+      addTypeFormalsAsParameters(List<JS.Expression> elements) {
+        var names = _typeTable.discharge(typeFormals);
+        var array = new JS.ArrayInitializer(elements);
+        return names.isEmpty
+            ? js.call('(#) => #', [tf, array])
+            : js.call('(#) => {#; return #;}', [tf, names, array]);
       }
+
+      typeParts = [addTypeFormalsAsParameters(typeParts)];
+
+      helperCall = definite ? 'gFnType(#)' : 'gFnTypeFuzzy(#)';
+      // If any explicit bounds were passed, emit them.
+      if (typeFormals.any((t) => t.bound != null)) {
+        var bounds = typeFormals.map((t) => _emitType(t.type.bound)).toList();
+        typeParts.add(addTypeFormalsAsParameters(bounds));
+      }
+    } else {
+      helperCall = definite ? 'fnType(#)' : 'fnTypeFuzzy(#)';
     }
-    return typeParts;
+    fullType = _callHelper(helperCall, [typeParts]);
+    if (!nameType) return fullType;
+    return _typeTable.nameType(type, fullType,
+        hoistType: hoistType, definite: definite);
+  }
+
+  JS.Expression _emitAnnotatedFunctionType(
+      FunctionType type, List<Annotation> metadata,
+      {List<FormalParameter> parameters,
+      bool lowerTypedef: false,
+      bool nameType: true,
+      bool hoistType: true,
+      bool definite: false}) {
+    var result = _emitFunctionType(type,
+        parameters: parameters,
+        lowerTypedef: lowerTypedef,
+        nameType: nameType,
+        hoistType: hoistType,
+        definite: definite);
+    return _emitAnnotatedResult(result, metadata);
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.

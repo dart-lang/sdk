@@ -8,9 +8,9 @@ define(['dart_sdk'], function(dart_sdk) {
   const sunflower = Object.create(null);
   const circle = Object.create(null);
   const painter = Object.create(null);
-  let StringToElement = () => (StringToElement = dart.constFn(dart.definiteFunctionType(html.Element, [core.String])))();
-  let EventTovoid = () => (EventTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.Event])))();
-  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
+  let StringToElement = () => (StringToElement = dart.constFn(dart.fnType(html.Element, [core.String])))();
+  let EventTovoid = () => (EventTovoid = dart.constFn(dart.fnType(dart.void, [html.Event])))();
+  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.fnType(dart.void, [])))();
   dart.defineLazy(sunflower, {
     get SEED_RADIUS() {
       return 2;
@@ -131,7 +131,7 @@ define(['dart_sdk'], function(dart_sdk) {
   painter.CirclePainter[dart.implements] = () => [circle.Circle];
   dart.setSignature(painter.CirclePainter, {
     fields: () => ({color: dart.fieldType(core.String)}),
-    methods: () => ({draw: dart.definiteFunctionType(dart.void, [html.CanvasRenderingContext2D])})
+    methods: () => ({draw: dart.fnType(dart.void, [html.CanvasRenderingContext2D])})
   });
   sunflower.SunflowerSeed = class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
     new(x, y, radius, color) {

@@ -2,9 +2,9 @@ export const es6_modules = Object.create(null);
 import { core, dart, dartx } from 'dart_sdk';
 let B = () => (B = dart.constFn(es6_modules.B$()))();
 let _B = () => (_B = dart.constFn(es6_modules._B$()))();
-let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
-let VoidToString = () => (VoidToString = dart.constFn(dart.definiteFunctionType(core.String, [])))();
-es6_modules.Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
+let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
+let VoidToString = () => (VoidToString = dart.constFn(dart.fnType(core.String, [])))();
+es6_modules.Callback = dart.typedef('Callback', () => dart.fnTypeFuzzy(dart.void, [], {i: core.int}));
 es6_modules.A = class A extends core.Object {};
 es6_modules._A = class _A extends core.Object {};
 es6_modules.B$ = dart.generic(T => {

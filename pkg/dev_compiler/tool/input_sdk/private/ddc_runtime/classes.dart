@@ -179,10 +179,10 @@ generic(typeConstructor, [setBaseClass]) => JS(
   return makeGenericType;
 })()''');
 
-getGenericClass(type) =>
-    JS('', '$safeGetOwnProperty($type, $_originalDeclaration)');
+getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
-getGenericArgs(type) => JS('', '$safeGetOwnProperty($type, $_typeArguments)');
+List getGenericArgs(type) =>
+    JS('List', '#', safeGetOwnProperty(type, _typeArguments));
 
 // TODO(vsm): Collapse into one expando.
 final _constructorSig = JS('', 'Symbol("sigCtor")');

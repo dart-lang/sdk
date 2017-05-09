@@ -58,7 +58,7 @@ part of dart._runtime;
 fn(closure, t) {
   if (t == null) {
     // No type arguments, it's all dynamic
-    t = definiteFunctionType(JS('', '#', dynamic),
+    t = fnType(JS('', '#', dynamic),
         JS('', 'Array(#.length).fill(#)', closure, dynamic), JS('', 'void 0'));
   }
   tag(closure, t);
@@ -111,7 +111,7 @@ _checkPrimitiveType(obj) {
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
   var args = JS('', 'Array(#.length).fill(#)', obj, dynamic);
-  return definiteFunctionType(bottom, args, JS('', 'void 0'));
+  return fnType(bottom, args, JS('', 'void 0'));
 }
 
 /// Returns the runtime representation of the type of obj.
