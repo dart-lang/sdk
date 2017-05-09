@@ -100,7 +100,11 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         resolutionEnqueuerListener,
         new ElementResolutionWorldBuilder(
-            backend, compiler.resolution, const OpenWorldStrategy()),
+            backend,
+            compiler.resolution,
+            backend.nativeBasicData,
+            backend.nativeDataBuilder,
+            const OpenWorldStrategy()),
         new KernelWorkItemBuilder(compiler),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(

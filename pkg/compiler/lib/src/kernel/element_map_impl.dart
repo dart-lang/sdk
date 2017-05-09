@@ -1246,10 +1246,13 @@ class _EvaluationEnvironment implements EvaluationEnvironment {
 class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
   final KernelToElementMapImpl elementMap;
 
-  KernelResolutionWorldBuilder(this.elementMap, NativeBasicData nativeBasicData,
+  KernelResolutionWorldBuilder(
+      this.elementMap,
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(elementMap.elementEnvironment, elementMap.commonElements,
-            nativeBasicData, selectorConstraintsStrategy);
+            nativeBasicData, nativeDataBuilder, selectorConstraintsStrategy);
 
   @override
   Iterable<InterfaceType> getSupertypes(ClassEntity cls) {

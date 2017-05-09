@@ -439,7 +439,6 @@ class JavaScriptBackend {
   final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
       new NativeBasicDataBuilderImpl();
   NativeBasicDataImpl _nativeBasicData;
-  //NativeData get nativeData => _nativeData;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
@@ -891,7 +890,7 @@ class JavaScriptBackend {
             compiler.deferredLoadTask,
             kernelTask),
         compiler.frontEndStrategy.createResolutionWorldBuilder(
-            nativeBasicData, const OpenWorldStrategy()),
+            nativeBasicData, _nativeDataBuilder, const OpenWorldStrategy()),
         compiler.frontEndStrategy
             .createResolutionWorkItemBuilder(impactTransformer));
   }

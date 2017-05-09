@@ -13,10 +13,14 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
   final JavaScriptBackend _backend;
   final Resolution _resolution;
 
-  ElementResolutionWorldBuilder(this._backend, this._resolution,
+  ElementResolutionWorldBuilder(
+      this._backend,
+      this._resolution,
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(_backend.compiler.elementEnvironment, _resolution.commonElements,
-            _backend.nativeBasicData, selectorConstraintsStrategy);
+            nativeBasicData, nativeDataBuilder, selectorConstraintsStrategy);
 
   bool isImplemented(ClassElement cls) {
     return super.isImplemented(cls.declaration);

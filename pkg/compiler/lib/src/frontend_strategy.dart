@@ -59,6 +59,7 @@ abstract class FrontEndStrategy {
   /// used in this strategy.
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] corresponding to how a resolved model for

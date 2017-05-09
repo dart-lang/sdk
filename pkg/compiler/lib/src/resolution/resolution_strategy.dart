@@ -112,9 +112,14 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new ElementResolutionWorldBuilder(
-        _compiler.backend, _compiler.resolution, selectorConstraintsStrategy);
+        _compiler.backend,
+        _compiler.resolution,
+        nativeBasicData,
+        nativeDataBuilder,
+        selectorConstraintsStrategy);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
