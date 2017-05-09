@@ -230,6 +230,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// during each phase and a time-breakdown between phases at the end.
   final bool verbose;
 
+  /// Track allocations in the JS output.
+  ///
+  /// This is an experimental feature.
+  final bool experimentalTrackAllocations;
+
+  /// The path to the file that contains the profiled allocations.
+  ///
+  /// The file must contain the Map that was produced by using
+  /// [experimentalTrackAllocations] encoded as a JSON map.
+  ///
+  /// This is an experimental feature.
+  final String experimentalAllocationsPath;
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
@@ -284,6 +297,10 @@ class CompilerOptions implements DiagnosticOptions {
             !_hasOption(options, Flags.disableNativeLiveTypeAnalysis),
         enableTypeAssertions: _hasOption(options, Flags.enableCheckedMode),
         enableUserAssertions: _hasOption(options, Flags.enableCheckedMode),
+        experimentalTrackAllocations:
+            _hasOption(options, Flags.experimentalTrackAllocations),
+        experimentalAllocationsPath: _extractStringOption(
+            options, "${Flags.experimentalAllocationsPath}=", null),
         generateCodeWithCompileTimeErrors:
             _hasOption(options, Flags.generateCodeWithCompileTimeErrors),
         generateSourceMap: !_hasOption(options, Flags.noSourceMaps),
@@ -349,6 +366,8 @@ class CompilerOptions implements DiagnosticOptions {
       bool enableNativeLiveTypeAnalysis: true,
       bool enableTypeAssertions: false,
       bool enableUserAssertions: false,
+      bool experimentalTrackAllocations: false,
+      String experimentalAllocationsPath: null,
       bool generateCodeWithCompileTimeErrors: false,
       bool generateSourceMap: true,
       bool kernelGlobalInference: false,
@@ -421,6 +440,8 @@ class CompilerOptions implements DiagnosticOptions {
         enableNativeLiveTypeAnalysis: enableNativeLiveTypeAnalysis,
         enableTypeAssertions: enableTypeAssertions,
         enableUserAssertions: enableUserAssertions,
+        experimentalTrackAllocations: experimentalTrackAllocations,
+        experimentalAllocationsPath: experimentalAllocationsPath,
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap,
         kernelGlobalInference: kernelGlobalInference,
@@ -472,6 +493,8 @@ class CompilerOptions implements DiagnosticOptions {
       this.enableNativeLiveTypeAnalysis: false,
       this.enableTypeAssertions: false,
       this.enableUserAssertions: false,
+      this.experimentalTrackAllocations: false,
+      this.experimentalAllocationsPath: null,
       this.generateCodeWithCompileTimeErrors: false,
       this.generateSourceMap: true,
       this.kernelGlobalInference: false,
@@ -530,6 +553,8 @@ class CompilerOptions implements DiagnosticOptions {
       enableNativeLiveTypeAnalysis,
       enableTypeAssertions,
       enableUserAssertions,
+      experimentalTrackAllocations,
+      experimentalAllocationsPath,
       generateCodeWithCompileTimeErrors,
       generateSourceMap,
       kernelGlobalInference,
@@ -593,6 +618,10 @@ class CompilerOptions implements DiagnosticOptions {
             enableTypeAssertions ?? options.enableTypeAssertions,
         enableUserAssertions:
             enableUserAssertions ?? options.enableUserAssertions,
+        experimentalTrackAllocations: experimentalTrackAllocations ??
+            options.experimentalTrackAllocations,
+        experimentalAllocationsPath:
+            experimentalAllocationsPath ?? options.experimentalAllocationsPath,
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
             options.generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,

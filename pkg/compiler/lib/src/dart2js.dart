@@ -404,6 +404,14 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
 
+    // Experimental features.
+    // We don't provide documentation for these yet.
+    // TODO(29574): provide documentation when this feature is supported.
+    // TODO(29574): provide a warning/hint/error, when profile-based data is
+    // used without `--fast-startup`.
+    new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
+    new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
+
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
     new OptionHandler('-.*', (String argument) {

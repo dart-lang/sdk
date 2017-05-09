@@ -23,6 +23,10 @@ class Flags {
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String enableExperimentalMirrors =
       '--enable-experimental-mirrors';
+  static const String experimentalTrackAllocations =
+      '--experimental-track-allocations';
+  static const String experimentalAllocationsPath =
+      '--experimental-allocations-path';
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =

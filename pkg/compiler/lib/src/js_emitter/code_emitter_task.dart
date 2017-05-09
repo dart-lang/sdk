@@ -189,6 +189,7 @@ class CodeEmitterTask extends CompilerTask {
       _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
+          compiler.reporter,
           compiler.elementEnvironment,
           compiler.commonElements,
           compiler.types,
