@@ -88,12 +88,12 @@ class ToAnalyzerTokenStreamConverter {
     _endTokenStack = <Token>[null];
 
     while (true) {
-      if (token.info.kind == BAD_INPUT_TOKEN) {
+      if (token.type.kind == BAD_INPUT_TOKEN) {
         ErrorToken errorToken = token;
         translateErrorToken(errorToken, reportError);
       } else {
         var translatedToken = translateToken(
-            token, translateCommentTokens(token.precedingCommentTokens));
+            token, translateCommentTokens(token.precedingComments));
         _matchGroups(token, translatedToken);
         translatedToken.setNext(translatedToken);
         _analyzerTokenTail.setNext(translatedToken);
@@ -115,7 +115,7 @@ class ToAnalyzerTokenStreamConverter {
 
   /// Translates a sequence of fasta comment tokens to the corresponding
   /// analyzer tokens.
-  analyzer.CommentToken translateCommentTokens(Token token) {
+  analyzer.CommentToken translateCommentTokens(analyzer.Token token) {
     analyzer.CommentToken head;
     if (token != null) {
       head = toAnalyzerCommentToken(token);
@@ -208,13 +208,13 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
       beginTokenStack.last.endGroup = translatedToken;
       beginTokenStack.removeLast();
       endTokenStack.removeLast();
-    } else if (translatedToken.info.kind == LT_TOKEN) {
+    } else if (translatedToken.type.kind == LT_TOKEN) {
       BeginGroupToken beginGroupToken = translatedToken;
       angleBracketStack.add(beginGroupToken);
-    } else if (translatedToken.info.kind == GT_TOKEN &&
+    } else if (translatedToken.type.kind == GT_TOKEN &&
         angleBracketStack.isNotEmpty) {
       angleBracketStack.removeLast().endGroup = translatedToken;
-    } else if (translatedToken.info.kind == GT_GT_TOKEN &&
+    } else if (translatedToken.type.kind == GT_GT_TOKEN &&
         angleBracketStack.isNotEmpty) {
       angleBracketStack.removeLast();
       if (angleBracketStack.isNotEmpty) {
@@ -232,7 +232,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     }
   }
 
-  Token translateComments(analyzer.Token token) {
+  analyzer.Token translateComments(analyzer.Token token) {
     if (token == null) {
       return null;
     }
@@ -241,7 +241,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token = token.next;
     while (token != null) {
       tail.next = fromAnalyzerToken(token);
-      tail.next.previousToken = tail; // ignore: deprecated_member_use
+      tail.next.previous = tail; // ignore: deprecated_member_use
       tail = tail.next;
       token = token.next;
     }
@@ -250,10 +250,10 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
 
   analyzer.Token translateAndAppend(analyzer.Token analyzerToken) {
     var token = fromAnalyzerToken(analyzerToken);
-    token.precedingCommentTokens =
+    token.precedingComments =
         translateComments(analyzerToken.precedingComments);
     tokenTail.next = token;
-    tokenTail.next.previousToken = tokenTail; // ignore: deprecated_member_use
+    tokenTail.next.previous = tokenTail; // ignore: deprecated_member_use
     tokenTail = token;
     matchGroups(analyzerToken, token);
     return analyzerToken.next;
@@ -262,11 +262,12 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
   while (true) {
     // TODO(paulberry): join up begingroup/endgroup.
     if (analyzerToken.type == TokenType.EOF) {
-      tokenTail.next = new SymbolToken.eof(analyzerToken.offset);
-      tokenTail.next.previousToken = tokenTail; // ignore: deprecated_member_use
-      tokenTail.next.precedingCommentTokens =
+      SymbolToken eof = new SymbolToken.eof(analyzerToken.offset);
+      tokenTail.next = eof;
+      eof.previous = tokenTail; // ignore: deprecated_member_use
+      eof.precedingComments =
           translateComments(analyzerToken.precedingComments);
-      tokenTail.next.next = tokenTail.next;
+      eof.next = eof;
       return tokenHead.next;
     }
     analyzerToken = translateAndAppend(analyzerToken);
@@ -275,10 +276,10 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
 
 /// Converts a single analyzer token into a Fasta token.
 Token fromAnalyzerToken(analyzer.Token token) {
-  Token beginGroup(TokenType info) => new BeginGroupToken(info, token.offset);
-  Token string(TokenType info) =>
-      new StringToken.fromString(info, token.lexeme, token.offset);
-  Token symbol(TokenType info) => new SymbolToken(info, token.offset);
+  Token beginGroup(TokenType type) => new BeginGroupToken(type, token.offset);
+  Token string(TokenType type) =>
+      new StringToken.fromString(type, token.lexeme, token.offset);
+  Token symbol(TokenType type) => new SymbolToken(type, token.offset);
   if (token.type.isKeyword) {
     var keyword = Keyword.keywords[token.lexeme];
     if (keyword != null) {

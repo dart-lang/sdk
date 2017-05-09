@@ -27,6 +27,7 @@ import '../util/util.dart';
 import 'common.dart';
 import 'elements.dart';
 import 'entities.dart';
+import 'names.dart';
 import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 

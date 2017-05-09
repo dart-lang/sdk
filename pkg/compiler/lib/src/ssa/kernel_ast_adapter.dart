@@ -17,7 +17,7 @@ import '../elements/entities.dart';
 import '../elements/modelx.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../kernel/element_adapter.dart';
+import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -35,7 +35,7 @@ import 'types.dart';
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter extends KernelElementAdapterMixin {
+class KernelAstAdapter extends KernelToElementMapMixin {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;
@@ -61,7 +61,7 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
       this._nodeToAst, this._nodeToElement)
       : nativeBehaviorBuilder = new native.ResolverBehaviorBuilder(
-            _backend.compiler, _backend.nativeData) {
+            _backend.compiler, _backend.nativeBasicData) {
     KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {
@@ -83,6 +83,11 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
       _nodeToElement[kernel.typeParameters[typeVariable]] = typeVariable;
     }
     _typeConverter = new DartTypeConverter(this);
+  }
+
+  @override
+  ConstantValue computeConstantValue(ConstantExpression constant) {
+    return _compiler.constants.getConstantValue(constant);
   }
 
   /// Called to find the corresponding Kernel element for a particular Element

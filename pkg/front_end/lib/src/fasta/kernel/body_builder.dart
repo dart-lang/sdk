@@ -14,7 +14,7 @@ import '../parser/identifier_context.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelField;
+    show KernelArguments, KernelField;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -567,9 +567,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      push(new Arguments(positional, named: named));
+      push(astFactory.arguments(positional, named: named));
     } else {
-      push(new Arguments(arguments));
+      push(astFactory.arguments(arguments));
     }
   }
 
@@ -783,7 +783,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         coreTypes.getClass("dart:core", "NoSuchMethodError").constructors.first;
     return new Throw(new ConstructorInvocation(
         constructor,
-        new Arguments(<Expression>[
+        astFactory.arguments(<Expression>[
           astFactory.nullLiteral(null),
           new SymbolLiteral(name),
           new ListLiteral(arguments.positional),
@@ -1026,7 +1026,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    push(new StringConcatenation(expressions ?? parts));
+    push(astFactory.stringConcatenation(expressions ?? parts, null));
   }
 
   @override
@@ -1283,18 +1283,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
     List<DartType> typeArguments = pop();
-    DartType typeArgument = const DynamicType();
+    DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = typeArguments.first;
       if (typeArguments.length > 1) {
-        typeArgument = const DynamicType();
+        typeArgument = null;
         warningNotError(
             "Too many type arguments on List literal.", beginToken.charOffset);
       }
     }
-    push(new ListLiteral(expressions,
-        typeArgument: typeArgument, isConst: constKeyword != null)
-      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset);
+    push(astFactory.listLiteral(expressions, typeArgument, constKeyword != null,
+        constKeyword ?? beginToken));
   }
 
   @override
@@ -1933,7 +1932,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
     Token nameToken = token.next;
-    Arguments arguments = pop();
+    KernelArguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
@@ -1946,7 +1945,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       if (typeArguments != null) {
         assert(arguments.types.isEmpty);
-        arguments.types.addAll(typeArguments);
+        astFactory.setExplicitArgumentTypes(arguments, typeArguments);
       }
 
       String errorName;
@@ -2546,7 +2545,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String message = formatUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
     return new Throw(buildStaticInvocation(constructor.target,
-        new Arguments(<Expression>[new StringLiteral(message)])));
+        astFactory.arguments(<Expression>[new StringLiteral(message)])));
   }
 
   Expression buildAbstractClassInstantiationError(String className,
@@ -2555,7 +2554,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         charOffset);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
-        new Arguments(<Expression>[new StringLiteral(className)])));
+        astFactory.arguments(<Expression>[new StringLiteral(className)])));
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {

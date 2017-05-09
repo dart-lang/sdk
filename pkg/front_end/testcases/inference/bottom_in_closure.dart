@@ -6,3 +6,7 @@
 library test;
 
 var /*@topType=() -> dynamic*/ v = /*@returnType=dynamic*/ () => null;
+
+main() {
+  v;
+}

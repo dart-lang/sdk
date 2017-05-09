@@ -23,98 +23,8 @@ main() {
   });
 }
 
-@reflectiveTest
-class FileTest extends _BaseTest {
-  String path;
-  FileSystemEntity file;
-
-  setUp() {
-    super.setUp();
-    path = p.join(tempPath, 'file.txt');
-    file = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
-  }
-
-  test_equals_differentPaths() {
-    expect(file == entityForPath(p.join(tempPath, 'file2.txt')), isFalse);
-  }
-
-  test_equals_samePath() {
-    expect(file == entityForPath(p.join(tempPath, 'file.txt')), isTrue);
-  }
-
-  test_hashCode_samePath() {
-    expect(file.hashCode, entityForPath(p.join(tempPath, 'file.txt')).hashCode);
-  }
-
-  test_readAsBytes_badUtf8() async {
-    // A file containing invalid UTF-8 can still be read as raw bytes.
-    List<int> bytes = [0xc0, 0x40]; // Invalid UTF-8
-    new io.File(path).writeAsBytesSync(bytes);
-    expect(await file.readAsBytes(), bytes);
-  }
-
-  test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), throwsException);
-  }
-
-  test_readAsBytes_exists() async {
-    var s = 'contents';
-    new io.File(path).writeAsStringSync(s);
-    expect(await file.readAsBytes(), UTF8.encode(s));
-  }
-
-  test_readAsString_badUtf8() {
-    new io.File(path).writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), throwsException);
-  }
-
-  test_readAsString_doesNotExist() {
-    expect(file.readAsString(), throwsException);
-  }
-
-  test_readAsString_exists() async {
-    var s = 'contents';
-    new io.File(path).writeAsStringSync(s);
-    expect(await file.readAsString(), s);
-  }
-
-  test_readAsString_utf8() async {
-    var bytes = [0xe2, 0x82, 0xac]; // Unicode € symbol (in UTF-8)
-    new io.File(path).writeAsBytesSync(bytes);
-    expect(await file.readAsString(), '\u20ac');
-  }
-
-  test_uri() {
-    expect(file.uri, p.toUri(path));
-  }
-
-  test_exists_doesNotExist() async {
-    expect(await file.exists(), isFalse);
-  }
-
-  test_exists_fileExists() async {
-    new io.File(path).writeAsStringSync('contents');
-    expect(await file.exists(), isTrue);
-  }
-
-  test_lastModified_increasesOnEachChange() async {
-    new io.File(path).writeAsStringSync('contents1');
-    var mod1 = await file.lastModified();
-
-    // Pause to ensure the file-system time-stamps are different.
-    await new Future.delayed(new Duration(seconds: 1));
-    new io.File(path).writeAsStringSync('contents2');
-    var mod2 = await file.lastModified();
-    expect(mod2.isAfter(mod1), isTrue);
-
-    await new Future.delayed(new Duration(seconds: 1));
-    var path2 = p.join(tempPath, 'file2.txt');
-    new io.File(path2).writeAsStringSync('contents2');
-    var file2 = entityForPath(path2);
-    var mod3 = await file2.lastModified();
-    expect(mod3.isAfter(mod2), isTrue);
-  }
-}
+const Matcher _throwsFileSystemException =
+    const Throws(const isInstanceOf<FileSystemException>());
 
 @reflectiveTest
 class DirectoryTest extends _BaseTest {
@@ -135,22 +45,119 @@ class DirectoryTest extends _BaseTest {
     expect(dir == entityForPath(p.join(tempPath, 'dir')), isTrue);
   }
 
-  test_readAsBytes() async {
+  test_exists_directoryExists() async {
     await new io.Directory(path).create();
-    expect(dir.readAsBytes(), throwsException);
-  }
-
-  test_uri() {
-    expect(dir.uri, p.toUri(path));
+    expect(await dir.exists(), isTrue);
   }
 
   test_exists_doesNotExist() async {
     expect(await dir.exists(), isFalse);
   }
 
-  test_exists_directoryExists() async {
+  test_readAsBytes() async {
     await new io.Directory(path).create();
-    expect(await dir.exists(), isTrue);
+    expect(dir.readAsBytes(), _throwsFileSystemException);
+  }
+
+  test_uri() {
+    expect(dir.uri, p.toUri(path));
+  }
+}
+
+@reflectiveTest
+class FileTest extends _BaseTest {
+  String path;
+  FileSystemEntity file;
+
+  setUp() {
+    super.setUp();
+    path = p.join(tempPath, 'file.txt');
+    file = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
+  }
+
+  test_equals_differentPaths() {
+    expect(file == entityForPath(p.join(tempPath, 'file2.txt')), isFalse);
+  }
+
+  test_equals_samePath() {
+    expect(file == entityForPath(p.join(tempPath, 'file.txt')), isTrue);
+  }
+
+  test_exists_doesNotExist() async {
+    expect(await file.exists(), isFalse);
+  }
+
+  test_exists_fileExists() async {
+    new io.File(path).writeAsStringSync('contents');
+    expect(await file.exists(), isTrue);
+  }
+
+  test_hashCode_samePath() {
+    expect(file.hashCode, entityForPath(p.join(tempPath, 'file.txt')).hashCode);
+  }
+
+  test_lastModified_doesNotExist() {
+    expect(file.lastModified(), _throwsFileSystemException);
+  }
+
+  test_lastModified_increasesOnEachChange() async {
+    new io.File(path).writeAsStringSync('contents1');
+    var mod1 = await file.lastModified();
+
+    // Pause to ensure the file-system time-stamps are different.
+    await new Future.delayed(new Duration(seconds: 1));
+    new io.File(path).writeAsStringSync('contents2');
+    var mod2 = await file.lastModified();
+    expect(mod2.isAfter(mod1), isTrue);
+
+    await new Future.delayed(new Duration(seconds: 1));
+    var path2 = p.join(tempPath, 'file2.txt');
+    new io.File(path2).writeAsStringSync('contents2');
+    var file2 = entityForPath(path2);
+    var mod3 = await file2.lastModified();
+    expect(mod3.isAfter(mod2), isTrue);
+  }
+
+  test_readAsBytes_badUtf8() async {
+    // A file containing invalid UTF-8 can still be read as raw bytes.
+    List<int> bytes = [0xc0, 0x40]; // Invalid UTF-8
+    new io.File(path).writeAsBytesSync(bytes);
+    expect(await file.readAsBytes(), bytes);
+  }
+
+  test_readAsBytes_doesNotExist() {
+    expect(file.readAsBytes(), _throwsFileSystemException);
+  }
+
+  test_readAsBytes_exists() async {
+    var s = 'contents';
+    new io.File(path).writeAsStringSync(s);
+    expect(await file.readAsBytes(), UTF8.encode(s));
+  }
+
+  test_readAsString_badUtf8() {
+    new io.File(path).writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
+    expect(file.readAsString(), _throwsFileSystemException);
+  }
+
+  test_readAsString_doesNotExist() {
+    expect(file.readAsString(), _throwsFileSystemException);
+  }
+
+  test_readAsString_exists() async {
+    var s = 'contents';
+    new io.File(path).writeAsStringSync(s);
+    expect(await file.readAsString(), s);
+  }
+
+  test_readAsString_utf8() async {
+    var bytes = [0xe2, 0x82, 0xac]; // Unicode € symbol (in UTF-8)
+    new io.File(path).writeAsBytesSync(bytes);
+    expect(await file.readAsString(), '\u20ac');
+  }
+
+  test_uri() {
+    expect(file.uri, p.toUri(path));
   }
 }
 

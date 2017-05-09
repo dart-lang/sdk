@@ -37,11 +37,12 @@ import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/native/enqueue.dart';
 import 'package:compiler/src/native/resolver.dart';
-import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/util/util.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -51,6 +52,7 @@ import '../serialization/model_test_helper.dart';
 import '../serialization/test_helper.dart';
 
 import 'closed_world_test.dart' hide KernelWorkItemBuilder;
+import 'compiler_helper.dart';
 import 'impact_test.dart';
 
 const SOURCE = const {
@@ -84,10 +86,11 @@ main() {
   new Class1().method1();
   new Class2().method2();
   new Class2().method3();
-  null is List<int>;
+  null is List<int>; // Use generic test
   method1(); // Both top level and instance method named 'method1' are live.
   #main; // Use a const symbol.
-  new Int8List(0);
+  const Symbol('foo'); // Use the const Symbol constructor directly
+  new Int8List(0); // Use redirect factory to abstract native class
 }
 '''
 };
@@ -142,34 +145,15 @@ Future<ResultKind> mainInternal(List<String> args,
   BackendUsage backendUsage1 = compiler1.backend.backendUsage;
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
-  print('---- analyze-all -------------------------------------------------');
-  Compiler compiler = compilerFor(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
-  await compiler.run(entryPoint);
+  Pair<Compiler, Compiler> compilers =
+      await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
+  Compiler compiler = compilers.a;
   compiler.resolutionWorldBuilder.closeWorld();
   ElementEnvironment environment1 = compiler.elementEnvironment;
 
-  print('---- closed world from kernel ------------------------------------');
-  Compiler compiler2 = compilerFor(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeOnly,
-        Flags.enableAssertMessage,
-        Flags.loadFromDill
-      ]);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler2.resolution.retainCachesForTesting = true;
+  Compiler compiler2 = compilers.b;
   KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMap elementMap = frontEndStrategy.elementMap;
-  compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
-      elementMap,
-      compiler2.reporter,
-      compiler2.measurer,
-      compiler.backend.kernelTask.program);
-  await compiler2.run(entryPoint);
+  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
   Expect.isFalse(compiler2.compilationFailed);
 
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
@@ -180,6 +164,9 @@ Future<ResultKind> mainInternal(List<String> args,
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
   BackendUsage backendUsage2 = compiler2.backend.backendUsage;
   ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+
+  checkNativeClasses(compiler1, compiler2, equivalence);
+
   checkBackendUsage(backendUsage1, backendUsage2, equivalence);
 
   checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
@@ -192,6 +179,25 @@ Future<ResultKind> mainInternal(List<String> args,
       verbose: arguments.verbose);
 
   return ResultKind.success;
+}
+
+void checkNativeClasses(
+    Compiler compiler1, Compiler compiler2, KernelEquivalence equivalence) {
+  Iterable<ClassEntity> nativeClasses1 = compiler1
+      .backend.nativeResolutionEnqueuerForTesting.nativeClassesForTesting;
+  Iterable<ClassEntity> nativeClasses2 = compiler2
+      .backend.nativeResolutionEnqueuerForTesting.nativeClassesForTesting;
+
+  checkSetEquivalence(compiler1, compiler2, 'nativeClasses', nativeClasses1,
+      nativeClasses2, equivalence.entityEquivalence);
+
+  Iterable<ClassEntity> registeredClasses1 = compiler1
+      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
+  Iterable<ClassEntity> registeredClasses2 = compiler2
+      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
+
+  checkSetEquivalence(compiler1, compiler2, 'registeredClasses',
+      registeredClasses1, registeredClasses2, equivalence.entityEquivalence);
 }
 
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
@@ -300,17 +306,4 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
   });
 
   // TODO(johnniwinther): Test the remaining properties of [ElementEnvironment].
-}
-
-class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
-  final ir.Program program;
-
-  MemoryDillLibraryLoaderTask(KernelToElementMap elementMap,
-      DiagnosticReporter reporter, Measurer measurer, this.program)
-      : super(elementMap, null, null, reporter, measurer);
-
-  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
-      {bool skipFileWithPartOfTag: false}) async {
-    return createLoadedLibraries(program);
-  }
 }

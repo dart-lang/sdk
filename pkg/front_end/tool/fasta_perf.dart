@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -83,7 +84,7 @@ Future setup(Uri entryUri) async {
   // sdk directly.
   var sdkRoot =
       Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
-  uriResolver = await TranslateUri.parse(sdkRoot);
+  uriResolver = await TranslateUri.parse(PhysicalFileSystem.instance, sdkRoot);
 }
 
 /// Scan [contents] and return the first token produced by the scanner.
@@ -214,8 +215,8 @@ generateKernel(Uri entryUri,
   var timer = new Stopwatch()..start();
   final Ticker ticker = new Ticker();
   final DillTarget dillTarget = new DillTarget(ticker, uriResolver);
-  final KernelTarget kernelTarget =
-      new KernelTarget(dillTarget, uriResolver, strongMode);
+  final KernelTarget kernelTarget = new KernelTarget(
+      PhysicalFileSystem.instance, dillTarget, uriResolver, strongMode);
   var entrypoints = [
     entryUri,
     // These extra libraries are added to match the same set of libraries

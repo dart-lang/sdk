@@ -7,3 +7,7 @@ library multiline_newline_cr;
 const constantMultilineString = """ab""";
 
 var nonConstantMultilineString = """ab""";
+
+const constantRawMultilineString = r"""\a\b""";
+
+var nonConstantRawMultilineString = r"""\a\b""";

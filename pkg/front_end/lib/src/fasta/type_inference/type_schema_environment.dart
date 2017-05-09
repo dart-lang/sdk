@@ -4,16 +4,50 @@
 
 import 'dart:math' as math;
 
+import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+/// A constraint on a type parameter that we're inferring.
+class TypeConstraint {
+  /// The lower bound of the type being constrained.  This bound must be a
+  /// subtype of the type being constrained.
+  DartType lower;
+
+  /// The upper bound of the type being constrained.  The type being constrained
+  /// must be a subtype of this bound.
+  DartType upper;
+
+  TypeConstraint()
+      : lower = const UnknownType(),
+        upper = const UnknownType();
+
+  TypeConstraint._(this.lower, this.upper);
+
+  TypeConstraint clone() => new TypeConstraint._(lower, upper);
+
+  String toString() =>
+      '${typeSchemaToString(lower)} <: <type> <: ${typeSchemaToString(upper)}';
+}
+
 class TypeSchemaEnvironment extends TypeEnvironment {
   TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : super(coreTypes, hierarchy);
+
+  /// Modify the given [constraint]'s lower bound to include [lower].
+  void addLowerBound(TypeConstraint constraint, DartType lower) {
+    constraint.lower = getLeastUpperBound(constraint.lower, lower);
+  }
+
+  /// Modify the given [constraint]'s upper bound to include [upper].
+  void addUpperBound(TypeConstraint constraint, DartType upper) {
+    constraint.upper = getGreatestLowerBound(constraint.upper, upper);
+  }
 
   /// Computes the greatest lower bound of [type1] and [type2].
   DartType getGreatestLowerBound(DartType type1, DartType type2) {
@@ -124,6 +158,208 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     return const DynamicType();
   }
 
+  /// Infers a generic type, function, method, or list/map literal
+  /// instantiation, using the downward context type as well as the argument
+  /// types if available.
+  ///
+  /// For example, given a function type with generic type parameters, this
+  /// infers the type parameters from the actual argument types, and returns the
+  /// instantiated function type.
+  ///
+  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
+  /// result type R, and generic type parameters T0, T1, ... Tm, use the
+  /// argument types A0, A1, ... An to solve for the type parameters.
+  ///
+  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
+  /// running the subtype algorithm, and when we reach a type parameter Tj,
+  /// recording the lower or upper bound it must satisfy. At the end, all
+  /// constraints can be combined to determine the type.
+  ///
+  /// All constraints on each type parameter Tj are tracked, as well as where
+  /// they originated, so we can issue an error message tracing back to the
+  /// argument values, type parameter "extends" clause, or the return type
+  /// context.
+  ///
+  /// TODO(paulberry): I think [formalTypes] and [actualTypes] might only be
+  /// used for upwards inference.  If this is the case, consider having the
+  /// caller to pass `null` for these to signal downwards inference, rather than
+  /// use an optional boolean parameter that might easily be missed.
+  DartType inferGenericFunctionOrType(
+      List<TypeParameter> typeParametersToInfer,
+      DartType genericType,
+      List<DartType> formalTypes,
+      List<DartType> actualTypes,
+      DartType returnContextType,
+      List<DartType> typesFromDownwardsInference,
+      {bool downwards: false}) {
+    if (typeParametersToInfer.isEmpty) {
+      return genericType;
+    }
+
+    // Create a TypeConstraintGatherer that will allow certain type parameters
+    // to be inferred. It will optimistically assume these type parameters can
+    // be subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
+
+    DartType declaredReturnType =
+        genericType is FunctionType ? genericType.returnType : genericType;
+
+    if (returnContextType != null) {
+      gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
+    }
+
+    for (int i = 0; i < actualTypes.length; i++) {
+      // Try to pass each argument to each parameter, recording any type
+      // parameter bounds that were implied by this assignment.
+      gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+    }
+
+    return inferTypeFromConstraints(gatherer.computeConstraints(), genericType,
+        typeParametersToInfer, typesFromDownwardsInference,
+        downwardsInferPhase: downwards);
+  }
+
+  /// Use the given [constraints] to substitute for type variables in
+  /// [genericType].
+  ///
+  /// [typeParametersToInfer] is the set of type parameters that should be
+  /// substituted for.  [typesFromDownwardsInference] should be a list of the
+  /// same length, initially filled with `null`.
+  ///
+  /// If [downwardsInferPhase] is `true`, then we are in the first pass of
+  /// inference, pushing context types down.  This means we are allowed to push
+  /// down `?` to precisely represent an unknown type.  Also, any types that are
+  /// inferred during this stage will be stored in [typesFromDownwardsInference]
+  /// for later use.
+  ///
+  /// If [downwardsInferPhase] is `false`, then we are in the second pass of
+  /// inference, and must not conclude `?` for any type formal.  In this pass,
+  /// values will be read from [typesFromDownwardsInference] to use as a
+  /// starting point for inference.
+  DartType inferTypeFromConstraints(
+      Map<TypeParameter, TypeConstraint> constraints,
+      DartType genericType,
+      List<TypeParameter> typeParametersToInfer,
+      List<DartType> typesFromDownwardsInference,
+      {bool downwardsInferPhase: false}) {
+    // Initialize the inferred type array.
+    //
+    // In the downwards phase, they all start as `?` to offer reasonable
+    // degradation for f-bounded type parameters.
+    var inferredTypes = new List<DartType>.filled(
+        typeParametersToInfer.length, const UnknownType());
+
+    for (int i = 0; i < typeParametersToInfer.length; i++) {
+      TypeParameter typeParam = typeParametersToInfer[i];
+
+      var typeParamBound = typeParam.bound;
+      DartType extendsConstraint;
+      if (!_isObjectOrDynamic(typeParamBound)) {
+        extendsConstraint = Substitution
+            .fromPairs(typeParametersToInfer, inferredTypes)
+            .substituteType(typeParamBound);
+      }
+
+      var constraint = constraints[typeParam];
+      if (downwardsInferPhase) {
+        typesFromDownwardsInference[i] = inferredTypes[i] =
+            _inferTypeParameterFromContext(constraint, extendsConstraint);
+      } else {
+        inferredTypes[i] = _inferTypeParameterFromAll(
+            typesFromDownwardsInference[i], constraint, extendsConstraint);
+      }
+    }
+
+    // If the downwards infer phase has failed, we'll catch this in the upwards
+    // phase later on.
+    if (downwardsInferPhase) {
+      return Substitution
+          .fromPairs(typeParametersToInfer, inferredTypes)
+          .substituteType(genericType);
+    }
+
+    // Check the inferred types against all of the constraints.
+    var knownTypes = <TypeParameter, DartType>{};
+    for (int i = 0; i < typeParametersToInfer.length; i++) {
+      TypeParameter typeParam = typeParametersToInfer[i];
+      var constraint = constraints[typeParam];
+      var typeParamBound = Substitution
+          .fromPairs(typeParametersToInfer, inferredTypes)
+          .substituteType(typeParam.bound);
+
+      var inferred = inferredTypes[i];
+      bool success = typeSatisfiesConstraint(inferred, constraint);
+      if (success && !_isObjectOrDynamic(typeParamBound)) {
+        // If everything else succeeded, check the `extends` constraint.
+        var extendsConstraint = typeParamBound;
+        success = isSubtypeOf(inferred, extendsConstraint);
+      }
+
+      if (!success) {
+        // TODO(paulberry): report error.
+
+        // Heuristic: even if we failed, keep the erroneous type.
+        // It should satisfy at least some of the constraints (e.g. the return
+        // context). If we fall back to instantiateToBounds, we'll typically get
+        // more errors (e.g. because `dynamic` is the most common bound).
+      }
+
+      if (isKnown(inferred)) {
+        knownTypes[typeParam] = inferred;
+      }
+    }
+
+    // Use instantiate to bounds to finish things off.
+    var result = instantiateToBounds(genericType, knownTypes: knownTypes);
+
+    // TODO(paulberry): report any errors from instantiateToBounds.
+
+    return result;
+  }
+
+  /// Given a [DartType] [type], if [type] is an uninstantiated
+  /// parameterized type then instantiate the parameters to their
+  /// bounds. See the issue for the algorithm description.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+  ///
+  /// TODO(paulberry) Compute lazily and cache.
+  DartType instantiateToBounds(DartType type,
+      {Map<TypeParameter, DartType> knownTypes}) {
+    List<TypeParameter> typeFormals = _typeFormalsAsParameters(type);
+    int count = typeFormals.length;
+    if (count == 0) {
+      return type;
+    }
+    var substitution = <TypeParameter, DartType>{};
+    for (TypeParameter parameter in typeFormals) {
+      // Note: we treat class<T extends Object> as equivalent to class<T>; in
+      // both cases they instantiate to class<dynamic>.  See dartbug.com/29561
+      if (_isObjectOrDynamic(parameter.bound)) {
+        substitution[parameter] = const DynamicType();
+      } else {
+        substitution[parameter] = parameter.bound;
+      }
+    }
+    if (knownTypes != null) {
+      type = substitute(type, knownTypes);
+    }
+    var result = substituteDeep(type, substitution);
+    if (result != null) return result;
+
+    // Instantiation failed due to a circularity.
+    // TODO(paulberry): report the error.
+    // Substitute `dynamic` for all parameters to try to allow compilation to
+    // continue.  Note that [substituteDeep] is destructive of the
+    // [substitution] so we create a fresh one.
+    substitution = <TypeParameter, DartType>{};
+    for (TypeParameter parameter in typeFormals) {
+      substitution[parameter] = const DynamicType();
+    }
+    return substitute(type, substitution);
+  }
+
   @override
   bool isBottom(DartType t) {
     if (t is UnknownType) {
@@ -140,6 +376,35 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     } else {
       return super.isTop(t);
     }
+  }
+
+  /// Computes the constraint solution for a type variable based on a given set
+  /// of constraints.
+  ///
+  /// If [grounded] is `true`, then the returned type is guaranteed to be a
+  /// known type (i.e. it will not contain any instances of `?`).
+  DartType solveTypeConstraint(TypeConstraint constraint,
+      {bool grounded: false}) {
+    // Prefer the known bound, if any.
+    if (isKnown(constraint.lower)) return constraint.lower;
+    if (isKnown(constraint.upper)) return constraint.upper;
+
+    // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
+    if (constraint.lower is! UnknownType) {
+      return grounded
+          ? leastClosure(coreTypes, constraint.lower)
+          : constraint.lower;
+    } else {
+      return grounded
+          ? greatestClosure(coreTypes, constraint.upper)
+          : constraint.upper;
+    }
+  }
+
+  /// Determine if the given [type] satisfies the given type [constraint].
+  bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
+    return isSubtypeOf(constraint.lower, type) &&
+        isSubtypeOf(type, constraint.upper);
   }
 
   /// Compute the greatest lower bound of function types [f] and [g].
@@ -305,6 +570,44 @@ class TypeSchemaEnvironment extends TypeEnvironment {
         requiredParameterCount: requiredParameterCount);
   }
 
+  DartType _inferTypeParameterFromAll(DartType typeFromContextInference,
+      TypeConstraint constraint, DartType extendsConstraint) {
+    // See if we already fixed this type from downwards inference.
+    // If so, then we aren't allowed to change it based on argument types.
+    if (isKnown(typeFromContextInference)) {
+      return typeFromContextInference;
+    }
+
+    if (extendsConstraint != null) {
+      constraint = constraint.clone();
+      addUpperBound(constraint, extendsConstraint);
+    }
+
+    return solveTypeConstraint(constraint, grounded: true);
+  }
+
+  DartType _inferTypeParameterFromContext(
+      TypeConstraint constraint, DartType extendsConstraint) {
+    DartType t = solveTypeConstraint(constraint);
+    if (!isKnown(t)) {
+      return t;
+    }
+
+    // If we're about to make our final choice, apply the extends clause.
+    // This gives us a chance to refine the choice, in case it would violate
+    // the `extends` clause. For example:
+    //
+    //     Object obj = math.min/*<infer Object, error>*/(1, 2);
+    //
+    // If we consider the `T extends num` we conclude `<num>`, which works.
+    if (extendsConstraint != null) {
+      constraint = constraint.clone();
+      addUpperBound(constraint, extendsConstraint);
+      return solveTypeConstraint(constraint);
+    }
+    return t;
+  }
+
   DartType _interfaceLeastUpperBound(InterfaceType type1, InterfaceType type2) {
     // This currently does not implement a very complete least upper bound
     // algorithm, but handles a couple of the very common cases that are
@@ -341,6 +644,23 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       return new InterfaceType(type1.classNode, tArgs);
     }
     return hierarchy.getClassicLeastUpperBound(type1, type2);
+  }
+
+  bool _isObjectOrDynamic(DartType type) =>
+      type is DynamicType ||
+      (type is InterfaceType &&
+          identical(type.classNode, coreTypes.objectClass));
+
+  /// Given a [type], returns the [TypeParameter]s corresponding to its formal
+  /// type parameters (if any).
+  List<TypeParameter> _typeFormalsAsParameters(DartType type) {
+    if (type is TypedefType) {
+      return type.typedefNode.typeParameters;
+    } else if (type is InterfaceType) {
+      return type.classNode.typeParameters;
+    } else {
+      return const [];
+    }
   }
 
   DartType _typeParameterLeastUpperBound(DartType type1, DartType type2) {

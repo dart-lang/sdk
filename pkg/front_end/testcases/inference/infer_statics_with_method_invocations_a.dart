@@ -3,3 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 m3(String a, String b, [a1, a2]) {}
+
+main() {}

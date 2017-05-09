@@ -149,8 +149,8 @@ class Foo {
   void test_matchesAny() {
     var scanner = new StringScanner('true', includeComments: true);
     var token = scanner.tokenize();
-    expect(token.matchesAny([TokenType.KEYWORD]), true);
-    expect(token.matchesAny([TokenType.AMPERSAND, TokenType.KEYWORD]), true);
+    expect(token.matchesAny([Keyword.TRUE]), true);
+    expect(token.matchesAny([TokenType.AMPERSAND, Keyword.TRUE]), true);
     expect(token.matchesAny([TokenType.AMPERSAND]), false);
   }
 

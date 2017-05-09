@@ -17,7 +17,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
-    defineReflectiveTests(ExtractLocalTest_Driver);
   });
 }
 
@@ -1344,10 +1343,4 @@ main() {
     }
     return subExpressions;
   }
-}
-
-@reflectiveTest
-class ExtractLocalTest_Driver extends ExtractLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

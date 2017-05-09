@@ -8,6 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File, IOSink;
 
+import 'package:front_end/file_system.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -50,9 +51,6 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync;
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     show MixinFullResolution;
 
-import 'package:kernel/transformations/setup_builtin_library.dart'
-    as setup_builtin_library;
-
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -92,6 +90,9 @@ import 'kernel_builder.dart'
 import 'verifier.dart' show verifyProgram;
 
 class KernelTarget extends TargetImplementation {
+  /// The [FileSystem] which should be used to access files.
+  final FileSystem fileSystem;
+
   final bool strongMode;
 
   final DillTarget dillTarget;
@@ -107,8 +108,8 @@ class KernelTarget extends TargetImplementation {
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
-  KernelTarget(
-      DillTarget dillTarget, TranslateUri uriTranslator, this.strongMode,
+  KernelTarget(this.fileSystem, DillTarget dillTarget,
+      TranslateUri uriTranslator, this.strongMode,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
@@ -124,7 +125,8 @@ class KernelTarget extends TargetImplementation {
     errors.add(error);
   }
 
-  SourceLoader<Library> createLoader() => new SourceLoader<Library>(this);
+  SourceLoader<Library> createLoader() =>
+      new SourceLoader<Library>(fileSystem, this);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
@@ -679,15 +681,11 @@ class KernelTarget extends TargetImplementation {
   /// first time.
   void runBuildTransformations() {
     transformMixinApplications();
-    // TODO(ahe): Don't call this from two different places.
-    setup_builtin_library.transformProgram(program);
     otherTransformations();
   }
 
   /// Run all transformations that are needed when linking a program.
-  void runLinkTransformations(Program program) {
-    setup_builtin_library.transformProgram(program);
-  }
+  void runLinkTransformations(Program program) {}
 
   void transformMixinApplications() {
     new MixinFullResolution().transform(program);

@@ -51,30 +51,30 @@ class TypeSchemaEliminationTest {
           new FunctionType([unknownType], dynamicType)
         ], dynamicType))
             .toString(),
-        '((dart.core::Object) → dynamic) → dynamic');
+        '((dynamic) → dynamic) → dynamic');
   }
 
   void test_greatestClosure_covariant() {
     expect(greatestClosure(new FunctionType([], unknownType)).toString(),
-        '() → dart.core::Object');
+        '() → dynamic');
     expect(
         greatestClosure(new InterfaceType(coreTypes.listClass, [unknownType]))
             .toString(),
-        'dart.core::List<dart.core::Object>');
+        'dart.core::List<dynamic>');
   }
 
   void test_greatestClosure_simple() {
-    expect(greatestClosure(unknownType).toString(), 'dart.core::Object');
+    expect(greatestClosure(unknownType).toString(), 'dynamic');
   }
 
   void test_leastClosure_contravariant() {
     expect(
         leastClosure(new FunctionType([unknownType], dynamicType)).toString(),
-        '(dart.core::Object) → dynamic');
+        '(dynamic) → dynamic');
     expect(
         leastClosure(new FunctionType([], dynamicType,
             namedParameters: [new NamedType('foo', unknownType)])).toString(),
-        '({foo: dart.core::Object}) → dynamic');
+        '({foo: dynamic}) → dynamic');
   }
 
   void test_leastClosure_contravariant_contravariant() {

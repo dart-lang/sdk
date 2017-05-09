@@ -935,7 +935,7 @@ class FunctionNode : public TreeNode {
   DartType* return_type() { return return_type_; }
 
   Statement* body() { return body_; }
-  void set_body(Statement* body) { body_ = body; }
+  void ReplaceBody(Statement* body);
 
   TokenPosition position() { return position_; }
   TokenPosition end_position() { return end_position_; }

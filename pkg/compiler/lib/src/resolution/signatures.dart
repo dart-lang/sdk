@@ -17,6 +17,7 @@ import '../elements/modelx.dart'
         InitializingFormalElementX,
         LocalParameterElementX,
         TypeVariableElementX;
+import '../elements/names.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'members.dart' show ResolverVisitor;

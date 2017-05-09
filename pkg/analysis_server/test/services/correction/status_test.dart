@@ -26,6 +26,9 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
@@ -43,7 +46,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     Element element = findElement('MyClass');
     SourceRange range = rangeElementName(element);
     SearchMatch match = new SearchMatchImpl(
-        context,
+        element.context,
         element.library.source.uri.toString(),
         element.source.uri.toString(),
         null,

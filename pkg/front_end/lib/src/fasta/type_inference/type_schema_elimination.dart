@@ -46,13 +46,10 @@ DartType leastClosure(CoreTypes coreTypes, DartType schema) =>
 class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
   final DartType nullType;
 
-  final DartType objectType;
-
   bool isLeastClosure;
 
   _TypeSchemaEliminationVisitor(CoreTypes coreTypes, this.isLeastClosure)
-      : nullType = coreTypes.nullClass.rawType,
-        objectType = coreTypes.objectClass.rawType;
+      : nullType = coreTypes.nullClass.rawType;
 
   @override
   DartType visitFunctionType(FunctionType node) {
@@ -112,7 +109,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
 
   @override
   DartType visitUnknownType(UnknownType node) =>
-      isLeastClosure ? nullType : objectType;
+      isLeastClosure ? nullType : const DynamicType();
 
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `?`, the original

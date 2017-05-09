@@ -7,8 +7,8 @@ library fasta.source_class_builder;
 import 'package:front_end/src/fasta/builder/class_builder.dart'
     show ClassBuilder;
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
-    show TypeInferenceEngine;
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
 
 import 'package:kernel/ast.dart'
     show Class, Constructor, Supertype, TreeNode, setParents;
@@ -155,10 +155,10 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   @override
-  void prepareInitializerInference(TypeInferenceEngine typeInferenceEngine,
-      LibraryBuilder library, ClassBuilder currentClass) {
+  void prepareInitializerInference(
+      SourceLibraryBuilder library, ClassBuilder currentClass) {
     scope.forEach((name, builder) {
-      builder.prepareInitializerInference(typeInferenceEngine, library, this);
+      builder.prepareInitializerInference(library, this);
     });
   }
 }

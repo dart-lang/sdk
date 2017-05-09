@@ -9,3 +9,7 @@ test() {
   dynamic x = 3;
   x = "hi";
 }
+
+main() {
+  test();
+}

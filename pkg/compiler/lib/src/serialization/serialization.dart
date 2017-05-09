@@ -26,8 +26,8 @@ final Map<String, String> canonicalNames = computeCanonicalNames();
 
 Map<String, String> computeCanonicalNames() {
   Map<String, String> result = <String, String>{};
-  for (TokenType info in TokenType.all) {
-    result[info.value] = info.value;
+  for (TokenType type in TokenType.all) {
+    result[type.value] = type.value;
   }
   return result;
 }

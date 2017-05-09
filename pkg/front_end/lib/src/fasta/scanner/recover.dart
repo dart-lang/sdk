@@ -84,13 +84,13 @@ Token defaultRecoveryStrategy(
     // [errorTail] ends. This is the case for "b" above.
     bool append = false;
     if (goodTail != null) {
-      if (goodTail.info == TokenType.IDENTIFIER &&
+      if (goodTail.type == TokenType.IDENTIFIER &&
           goodTail.charEnd == first.charOffset) {
         prepend = true;
       }
     }
     Token next = errorTail.next;
-    if (next.info == TokenType.IDENTIFIER &&
+    if (next.type == TokenType.IDENTIFIER &&
         errorTail.charOffset + 1 == next.charOffset) {
       append = true;
     }
@@ -167,7 +167,7 @@ Token defaultRecoveryStrategy(
           error = next;
         } else {
           errorTail.next = next;
-          next.previousToken = errorTail;
+          next.previous = errorTail;
         }
         errorTail = next;
         next = next.next;
@@ -208,28 +208,27 @@ Token defaultRecoveryStrategy(
       good = current;
     } else {
       goodTail.next = current;
-      current.previousToken = goodTail;
+      current.previous = goodTail;
     }
     beforeGoodTail = goodTail;
     goodTail = current;
   }
 
-  error.previousToken = new SymbolToken.eof(-1)..next = error;
+  error.previous = new SymbolToken.eof(-1)..next = error;
   Token tail;
   if (good != null) {
     errorTail.next = good;
-    good.previousToken = errorTail;
+    good.previous = errorTail;
     tail = goodTail;
   } else {
     tail = errorTail;
   }
-  if (!tail.isEof)
-    tail.next = new SymbolToken.eof(tail.end)..previousToken = tail;
+  if (!tail.isEof) tail.next = new SymbolToken.eof(tail.end)..previous = tail;
   return error;
 }
 
-Token synthesizeToken(int charOffset, String value, TokenType info) {
-  return new StringToken.fromString(info, value, charOffset);
+Token synthesizeToken(int charOffset, String value, TokenType type) {
+  return new StringToken.fromString(type, value, charOffset);
 }
 
 Token skipToEof(Token token) {

@@ -1,0 +1,10 @@
+library test;
+import self as self;
+
+static method test() → dynamic {
+  dynamic x = 3;
+  x = "hi";
+}
+static method main() → dynamic {
+  self::test();
+}

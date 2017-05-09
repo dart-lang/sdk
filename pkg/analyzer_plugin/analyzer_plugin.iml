@@ -9,9 +9,14 @@
       <excludeFolder url="file://$MODULE_DIR$/test/integration/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/support/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/plugin/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/channel/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/utilities/change_builder/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/src/utilities/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/support/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/utilities/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/utilities/subscriptions/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/spec/packages" />
     </content>

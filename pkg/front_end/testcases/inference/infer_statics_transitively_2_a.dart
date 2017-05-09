@@ -10,3 +10,7 @@ final a1 = m2;
 class A {
   static final a2 = b1;
 }
+
+main() {
+  a1;
+}

@@ -1,6 +1,0 @@
-library test;
-import self as self;
-
-static field dynamic topSimple;
-static method main() → dynamic
-  ;

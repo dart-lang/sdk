@@ -406,7 +406,9 @@ class BaseNativeClassFinder implements NativeClassFinder {
   /// Returns the name of the super class of [cls] or `null` of [cls] has
   /// no explicit superclass.
   String _findExtendsNameOfClass(ClassEntity cls) {
-    return _elementEnvironment.getSuperClass(cls)?.name;
+    return _elementEnvironment
+        .getSuperClass(cls, skipUnnamedMixinApplications: true)
+        ?.name;
   }
 
   /// Adds all subclasses of [nativeClasses] found in [libraries] to

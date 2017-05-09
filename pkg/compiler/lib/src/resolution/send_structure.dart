@@ -6,14 +6,14 @@ library dart2js.resolution.send_structure;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/operators.dart';
+import '../elements/resolution_types.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import 'access_semantics.dart';
-import 'operators.dart';
 import 'semantic_visitor.dart';
 
 /// Interface for the structure of the semantics of a [Send] or [NewExpression]

@@ -45,6 +45,18 @@ class InstrumentationValueForType extends InstrumentationValue {
   }
 }
 
+/// Instance of [InstrumentationValue] describing a list of [DartType]s.
+class InstrumentationValueForTypeArgs extends InstrumentationValue {
+  final List<DartType> types;
+
+  InstrumentationValueForTypeArgs(this.types);
+
+  @override
+  String toString() => types
+      .map((type) => new InstrumentationValueForType(type).toString())
+      .join(', ');
+}
+
 /// Instance of [InstrumentationValue] which only matches the given literal
 /// string.
 class InstrumentationValueLiteral extends InstrumentationValue {

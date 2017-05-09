@@ -18,6 +18,7 @@ library compiler.src.kernel.fasta_support;
 import 'dart:async' show Future;
 import 'dart:io' show exitCode;
 
+import 'package:front_end/physical_file_system.dart';
 import 'package:kernel/ast.dart' show Source;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
@@ -35,7 +36,8 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 /// dart2js SDK.
 Future compilePlatform(Uri patchedSdk, Uri output, {Uri packages}) async {
   Uri deps = Uri.base.resolveUri(new Uri.file("${output.toFilePath()}.d"));
-  TranslateUri uriTranslator = await TranslateUri.parse(patchedSdk, packages);
+  TranslateUri uriTranslator = await TranslateUri.parse(
+      PhysicalFileSystem.instance, patchedSdk, packages);
   var ticker = new Ticker(isVerbose: false);
   var dillTarget = new DillTargetForDart2js(ticker, uriTranslator);
   var kernelTarget =
@@ -75,7 +77,8 @@ class KernelTargetForDart2js extends KernelTarget {
   KernelTargetForDart2js(
       DillTarget target, TranslateUri uriTranslator, bool strongMode,
       [Map<String, Source> uriToSource])
-      : super(target, uriTranslator, strongMode, uriToSource);
+      : super(PhysicalFileSystem.instance, target, uriTranslator, strongMode,
+            uriToSource);
 
   @override
   Token skipNativeClause(Token token) => _skipNative(token);

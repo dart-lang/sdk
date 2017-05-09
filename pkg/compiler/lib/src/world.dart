@@ -24,7 +24,7 @@ import 'js_backend/native_data.dart' show NativeData;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
-import 'universe/function_set.dart' show FunctionSet, FunctionSetBuilder;
+import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
 import 'universe/world_builder.dart' show ResolutionWorldBuilder;
@@ -270,10 +270,6 @@ abstract class ClosedWorld implements World {
   // TODO(johnniwinther): Find a better strategy for caching these?
   TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask());
 
-  /// Returns the [FunctionSet] containing all live functions in the closed
-  /// world.
-  FunctionSet get allFunctions;
-
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
 
@@ -284,7 +280,21 @@ abstract class ClosedWorld implements World {
   /// Returns all resolved typedefs.
   Iterable<TypedefElement> get allTypedefs;
 
-  /// Returns the single [Element] that matches a call to [selector] on a
+  /// Returns the mask for the potential receivers of a dynamic call to
+  /// [selector] on [mask].
+  ///
+  /// This will narrow the constraints of [mask] to a [TypeMask] of the
+  /// set of classes that actually implement the selected member or implement
+  /// the handling 'noSuchMethod' where the selected member is unimplemented.
+  TypeMask computeReceiverType(Selector selector, TypeMask mask);
+
+  /// Returns all the instance members that may be invoked with the
+  /// [selector] on a receiver with the given [mask]. The returned elements may
+  /// include noSuchMethod handlers that are potential targets indirectly
+  /// through the noSuchMethod mechanism.
+  Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask);
+
+  /// Returns the single [MemberEntity] that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist, `null` is returned.
   MemberEntity locateSingleElement(Selector selector, TypeMask mask);
 
@@ -389,7 +399,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final InterceptorData interceptorData;
   final BackendUsage _backendUsage;
 
-  FunctionSet _allFunctions;
+  final FunctionSet _allFunctions;
 
   final Iterable<TypedefElement> _allTypedefs;
 
@@ -428,7 +438,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.interceptorData,
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
-      FunctionSetBuilder functionSetBuilder,
+      FunctionSet functionSet,
       Iterable<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -436,13 +446,13 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       Map<ClassEntity, ClassSet> classSets})
       : this._backendUsage = backendUsage,
         this._resolverWorld = resolutionWorldBuilder,
+        this._allFunctions = functionSet,
         this._allTypedefs = allTypedefs,
         this._mixinUses = mixinUses,
         this._typesImplementedBySubclasses = typesImplementedBySubclasses,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
     _commonMasks = new CommonMasks(this);
-    _allFunctions = functionSetBuilder.close(this);
   }
 
   @override
@@ -452,8 +462,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// `FlatTypeMask.flags` property.
   final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks =
       new List<Map<ClassEntity, TypeMask>>.filled(8, null);
-
-  FunctionSet get allFunctions => _allFunctions;
 
   CommonMasks get commonMasks {
     return _commonMasks;
@@ -969,8 +977,18 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   Iterable<TypedefElement> get allTypedefs => _allTypedefs;
 
+  TypeMask computeReceiverType(Selector selector, TypeMask mask) {
+    return _allFunctions.receiverType(selector, mask, this);
+  }
+
+  Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask) {
+    return _allFunctions.filter(selector, mask, this);
+  }
+
   bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
-    return allFunctions.filter(selector, mask).any((each) => each.isGetter);
+    return _allFunctions
+        .filter(selector, mask, this)
+        .any((each) => each.isGetter);
   }
 
   FieldEntity locateSingleField(Selector selector, TypeMask mask) {
@@ -1016,7 +1034,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
-    for (MemberElement e in allFunctions.filter(selector, mask)) {
+    for (MemberElement e in _allFunctions.filter(selector, mask, this)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {
@@ -1038,10 +1056,10 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   SideEffects getSideEffectsOfElement(Entity element) {
     assert(_checkEntity(element));
-    return _sideEffects.putIfAbsent(element, () {
-      return new SideEffects();
-    });
+    return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
+
+  static _makeSideEffects() => new SideEffects();
 
   @override
   SideEffects getCurrentlyKnownSideEffects(Entity element) {
@@ -1124,7 +1142,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
-      FunctionSetBuilder functionSetBuilder,
+      FunctionSet functionSet,
       Iterable<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -1137,7 +1155,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
             interceptorData: interceptorData,
             backendUsage: backendUsage,
             resolutionWorldBuilder: resolutionWorldBuilder,
-            functionSetBuilder: functionSetBuilder,
+            functionSet: functionSet,
             allTypedefs: allTypedefs,
             mixinUses: mixinUses,
             typesImplementedBySubclasses: typesImplementedBySubclasses,
@@ -1270,7 +1288,7 @@ class KernelClosedWorld extends ClosedWorldBase {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
-      FunctionSetBuilder functionSetBuilder,
+      FunctionSet functionSet,
       Iterable<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -1283,7 +1301,7 @@ class KernelClosedWorld extends ClosedWorldBase {
             interceptorData: interceptorData,
             backendUsage: backendUsage,
             resolutionWorldBuilder: resolutionWorldBuilder,
-            functionSetBuilder: functionSetBuilder,
+            functionSet: functionSet,
             allTypedefs: allTypedefs,
             mixinUses: mixinUses,
             typesImplementedBySubclasses: typesImplementedBySubclasses,

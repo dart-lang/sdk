@@ -7,9 +7,9 @@ library dart2js.type_system;
 
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/values.dart';
-import 'elements/types.dart';
-import 'elements/elements.dart' show PublicName;
 import 'elements/entities.dart';
+import 'elements/names.dart' show PublicName;
+import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
 import 'universe/call_structure.dart' show CallStructure;
@@ -1198,15 +1198,19 @@ abstract class ElementEnvironment {
 
   /// Returns the superclass of [cls].
   ///
-  /// Unnamed mixin applications are included, for instance for these classes
+  /// If [skipUnnamedMixinApplications] is `true`, unnamed mixin applications
+  /// are excluded, for instance for these classes
   ///
   ///     class S {}
   ///     class M {}
   ///     class C extends S with M {}
   ///
   /// the result of `getSuperClass(C)` is the unnamed mixin application
-  /// typically named `S+M` and `getSuperClass(S+M)` is `S`.
-  ClassEntity getSuperClass(ClassEntity cls);
+  /// typically named `S+M` and `getSuperClass(S+M)` is `S`, whereas
+  /// the result of `getSuperClass(C, skipUnnamedMixinApplications: false)` is
+  /// `S`.
+  ClassEntity getSuperClass(ClassEntity cls,
+      {bool skipUnnamedMixinApplications: false});
 
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 

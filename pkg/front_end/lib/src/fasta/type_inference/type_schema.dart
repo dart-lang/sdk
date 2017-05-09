@@ -6,6 +6,9 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/import_table.dart';
 import 'package:kernel/text/ast_to_text.dart';
 
+/// Determines whether a type schema contains `?` somewhere inside it.
+bool isKnown(DartType schema) => schema.accept(new _IsKnownVisitor());
+
 /// Converts a [DartType] to a string, representing the unknown type as `?`.
 String typeSchemaToString(DartType schema) {
   StringBuffer buffer = new StringBuffer();
@@ -72,4 +75,41 @@ class UnknownType extends DartType {
 
   @override
   visitChildren(Visitor v) {}
+}
+
+/// Visitor that computes [isKnown].
+class _IsKnownVisitor extends TypeSchemaVisitor<bool> {
+  @override
+  bool defaultDartType(DartType node) => true;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    if (!node.returnType.accept(this)) return false;
+    for (var parameterType in node.positionalParameters) {
+      if (!parameterType.accept(this)) return false;
+    }
+    for (var namedParameterType in node.namedParameters) {
+      if (!namedParameterType.type.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    for (var typeArgument in node.typeArguments) {
+      if (!typeArgument.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    for (var typeArgument in node.typeArguments) {
+      if (!typeArgument.accept(this)) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool visitUnknownType(UnknownType node) => false;
 }

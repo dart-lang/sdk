@@ -15,6 +15,7 @@ import 'package:front_end/src/fasta/parser/parser.dart'
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, CommentToken, Token;
+import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -212,7 +213,7 @@ class AstBuilder extends ScopeListener {
       // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
       // metadata, but the spec doesn't permit it.
       List<Annotation> metadata;
-      Comment comment = _toAnalyzerComment(token.precedingCommentTokens);
+      Comment comment = _toAnalyzerComment(token.precedingComments);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
@@ -1863,7 +1864,7 @@ class AstBuilder extends ScopeListener {
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
     if (token.precedingComments != null) {
-      push(_toAnalyzerComment(token.precedingCommentTokens));
+      push(_toAnalyzerComment(token.precedingComments));
     } else {
       push(NullValue.Comments);
     }
@@ -1894,7 +1895,7 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  Comment _toAnalyzerComment(Token comments) {
+  Comment _toAnalyzerComment(analyzer.Token comments) {
     if (comments == null) return null;
 
     // This is temporary placeholder code to get tests to pass.
@@ -1943,15 +1944,15 @@ class AstBuilder extends ScopeListener {
     pop();
   }
 
-  /// Check if the given [token] has a comment token with the given [info],
+  /// Check if the given [token] has a comment token with the given [type],
   /// which should be either [TokenType.GENERIC_METHOD_TYPE_ASSIGN] or
   /// [TokenType.GENERIC_METHOD_TYPE_LIST].  If found, parse the comment
   /// into tokens and inject into the token stream before the [token].
-  Token _injectGenericComment(Token token, TokenType info, int prefixLen) {
+  Token _injectGenericComment(Token token, TokenType type, int prefixLen) {
     if (parseGenericMethodComments) {
-      CommentToken t = token.precedingCommentTokens;
+      CommentToken t = token.precedingComments;
       for (; t != null; t = t.next) {
-        if (t.info == info) {
+        if (t.type == type) {
           String code = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
           Token tokens = _scanGenericMethodComment(code, t.offset + prefixLen);
           if (tokens != null) {
@@ -1970,7 +1971,7 @@ class AstBuilder extends ScopeListener {
   void _injectTokenList(Token beforeToken, Token firstToken) {
     // Scanner creates a cyclic EOF token.
     Token lastToken = firstToken;
-    while (lastToken.next.info != TokenType.EOF) {
+    while (lastToken.next.type != TokenType.EOF) {
       lastToken = lastToken.next;
     }
     // Inject these new tokens into the stream.

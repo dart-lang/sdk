@@ -6,3 +6,7 @@
 library test;
 
 var /*@topType=dynamic*/ v = null;
+
+main() {
+  v;
+}

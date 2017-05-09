@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
+multiline_newline_test/04: MissingCompileTimeError # Fixed in ahe's dev-branch
+multiline_newline_test/04r: MissingCompileTimeError # Fixed in ahe's dev-branch
+multiline_newline_test/05: MissingCompileTimeError # Fixed in ahe's dev-branch
+multiline_newline_test/05r: MissingCompileTimeError # Fixed in ahe's dev-branch
+multiline_newline_test/06: MissingCompileTimeError # Fixed in ahe's dev-branch
+multiline_newline_test/06r: MissingCompileTimeError # Fixed in ahe's dev-branch
+
 built_in_identifier_test/01: CompileTimeError
 call_nonexistent_static_test/01: CompileTimeError
 call_nonexistent_static_test/04: CompileTimeError
@@ -247,13 +254,6 @@ mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
-multiline_newline_test/01: RuntimeError
-multiline_newline_test/02: RuntimeError
-multiline_newline_test/03: RuntimeError
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/06: MissingCompileTimeError
-multiline_newline_test/none: RuntimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_aggregated_test/01: MissingCompileTimeError
 named_parameters_aggregated_test/03: MissingCompileTimeError
@@ -485,9 +485,6 @@ mixin_invalid_bound_test/07: Fail
 mixin_super_bound2_test/01: RuntimeError
 mixin_super_bound_test: RuntimeError
 msk_bound_test: RuntimeError
-multiline_newline_test/01: CompileTimeError
-multiline_newline_test/02: CompileTimeError
-multiline_newline_test/03: CompileTimeError
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_22728_test: RuntimeError

@@ -4,8 +4,8 @@
 
 /// Entity model for elements derived from Kernel IR.
 
-import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 
 class KLibrary implements LibraryEntity {

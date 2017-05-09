@@ -28,3 +28,5 @@ foo() {
   int y = /*error:INVALID_ASSIGNMENT*/ new B<String>().m(null, null).value;
   String z = new B<String>().m(null, null).value;
 }
+
+main() {}

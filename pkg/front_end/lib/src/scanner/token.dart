@@ -166,132 +166,148 @@ class DocumentationCommentToken extends CommentToken {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class Keyword {
-  static const Keyword ABSTRACT = const Keyword("abstract", isBuiltIn: true);
+class Keyword extends TokenType {
+  static const Keyword ABSTRACT =
+      const Keyword("abstract", "ABSTRACT", isBuiltIn: true);
 
-  static const Keyword AS =
-      const Keyword("as", info: TokenType.AS, isBuiltIn: true);
+  static const Keyword AS = const Keyword("as", "AS",
+      precedence: RELATIONAL_PRECEDENCE, isBuiltIn: true);
 
-  static const Keyword ASSERT = const Keyword("assert");
+  static const Keyword ASSERT = const Keyword("assert", "ASSERT");
 
-  static const Keyword ASYNC = const Keyword("async", isPseudo: true);
+  static const Keyword ASYNC = const Keyword("async", "ASYNC", isPseudo: true);
 
-  static const Keyword AWAIT = const Keyword("await", isPseudo: true);
+  static const Keyword AWAIT = const Keyword("await", "AWAIT", isPseudo: true);
 
-  static const Keyword BREAK = const Keyword("break");
+  static const Keyword BREAK = const Keyword("break", "BREAK");
 
-  static const Keyword CASE = const Keyword("case");
+  static const Keyword CASE = const Keyword("case", "CASE");
 
-  static const Keyword CATCH = const Keyword("catch");
+  static const Keyword CATCH = const Keyword("catch", "CATCH");
 
-  static const Keyword CLASS = const Keyword("class");
+  static const Keyword CLASS = const Keyword("class", "CLASS");
 
-  static const Keyword CONST = const Keyword("const");
+  static const Keyword CONST = const Keyword("const", "CONST");
 
-  static const Keyword CONTINUE = const Keyword("continue");
+  static const Keyword CONTINUE = const Keyword("continue", "CONTINUE");
 
-  static const Keyword COVARIANT = const Keyword("covariant", isBuiltIn: true);
+  static const Keyword COVARIANT =
+      const Keyword("covariant", "COVARIANT", isBuiltIn: true);
 
-  static const Keyword DEFAULT = const Keyword("default");
+  static const Keyword DEFAULT = const Keyword("default", "DEFAULT");
 
-  static const Keyword DEFERRED = const Keyword("deferred", isBuiltIn: true);
+  static const Keyword DEFERRED =
+      const Keyword("deferred", "DEFERRED", isBuiltIn: true);
 
-  static const Keyword DO = const Keyword("do");
+  static const Keyword DO = const Keyword("do", "DO");
 
-  static const Keyword DYNAMIC = const Keyword("dynamic", isBuiltIn: true);
+  static const Keyword DYNAMIC =
+      const Keyword("dynamic", "DYNAMIC", isBuiltIn: true);
 
-  static const Keyword ELSE = const Keyword("else");
+  static const Keyword ELSE = const Keyword("else", "ELSE");
 
-  static const Keyword ENUM = const Keyword("enum");
+  static const Keyword ENUM = const Keyword("enum", "ENUM");
 
-  static const Keyword EXPORT = const Keyword("export", isBuiltIn: true);
+  static const Keyword EXPORT =
+      const Keyword("export", "EXPORT", isBuiltIn: true);
 
-  static const Keyword EXTENDS = const Keyword("extends");
+  static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
 
-  static const Keyword EXTERNAL = const Keyword("external", isBuiltIn: true);
+  static const Keyword EXTERNAL =
+      const Keyword("external", "EXTERNAL", isBuiltIn: true);
 
-  static const Keyword FACTORY = const Keyword("factory", isBuiltIn: true);
+  static const Keyword FACTORY =
+      const Keyword("factory", "FACTORY", isBuiltIn: true);
 
-  static const Keyword FALSE = const Keyword("false");
+  static const Keyword FALSE = const Keyword("false", "FALSE");
 
-  static const Keyword FINAL = const Keyword("final");
+  static const Keyword FINAL = const Keyword("final", "FINAL");
 
-  static const Keyword FINALLY = const Keyword("finally");
+  static const Keyword FINALLY = const Keyword("finally", "FINALLY");
 
-  static const Keyword FOR = const Keyword("for");
+  static const Keyword FOR = const Keyword("for", "FOR");
 
-  static const Keyword FUNCTION = const Keyword("Function", isPseudo: true);
+  static const Keyword FUNCTION =
+      const Keyword("Function", "FUNCTION", isPseudo: true);
 
-  static const Keyword GET = const Keyword("get", isBuiltIn: true);
+  static const Keyword GET = const Keyword("get", "GET", isBuiltIn: true);
 
-  static const Keyword HIDE = const Keyword("hide", isPseudo: true);
+  static const Keyword HIDE = const Keyword("hide", "HIDE", isPseudo: true);
 
-  static const Keyword IF = const Keyword("if");
+  static const Keyword IF = const Keyword("if", "IF");
 
   static const Keyword IMPLEMENTS =
-      const Keyword("implements", isBuiltIn: true);
+      const Keyword("implements", "IMPLEMENTS", isBuiltIn: true);
 
-  static const Keyword IMPORT = const Keyword("import", isBuiltIn: true);
+  static const Keyword IMPORT =
+      const Keyword("import", "IMPORT", isBuiltIn: true);
 
-  static const Keyword IN = const Keyword("in");
+  static const Keyword IN = const Keyword("in", "IN");
 
-  static const Keyword IS = const Keyword("is", info: TokenType.IS);
+  static const Keyword IS =
+      const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
-  static const Keyword LIBRARY = const Keyword("library", isBuiltIn: true);
+  static const Keyword LIBRARY =
+      const Keyword("library", "LIBRARY", isBuiltIn: true);
 
-  static const Keyword NATIVE = const Keyword("native", isPseudo: true);
+  static const Keyword NATIVE =
+      const Keyword("native", "NATIVE", isPseudo: true);
 
-  static const Keyword NEW = const Keyword("new");
+  static const Keyword NEW = const Keyword("new", "NEW");
 
-  static const Keyword NULL = const Keyword("null");
+  static const Keyword NULL = const Keyword("null", "NULL");
 
-  static const Keyword OF = const Keyword("of", isPseudo: true);
+  static const Keyword OF = const Keyword("of", "OF", isPseudo: true);
 
-  static const Keyword ON = const Keyword("on", isPseudo: true);
+  static const Keyword ON = const Keyword("on", "ON", isPseudo: true);
 
-  static const Keyword OPERATOR = const Keyword("operator", isBuiltIn: true);
+  static const Keyword OPERATOR =
+      const Keyword("operator", "OPERATOR", isBuiltIn: true);
 
-  static const Keyword PART = const Keyword("part", isBuiltIn: true);
+  static const Keyword PART = const Keyword("part", "PART", isBuiltIn: true);
 
-  static const Keyword PATCH = const Keyword("patch", isPseudo: true);
+  static const Keyword PATCH = const Keyword("patch", "PATCH", isPseudo: true);
 
-  static const Keyword RETHROW = const Keyword("rethrow");
+  static const Keyword RETHROW = const Keyword("rethrow", "RETHROW");
 
-  static const Keyword RETURN = const Keyword("return");
+  static const Keyword RETURN = const Keyword("return", "RETURN");
 
-  static const Keyword SET = const Keyword("set", isBuiltIn: true);
+  static const Keyword SET = const Keyword("set", "SET", isBuiltIn: true);
 
-  static const Keyword SHOW = const Keyword("show", isPseudo: true);
+  static const Keyword SHOW = const Keyword("show", "SHOW", isPseudo: true);
 
-  static const Keyword SOURCE = const Keyword("source", isPseudo: true);
+  static const Keyword SOURCE =
+      const Keyword("source", "SOURCE", isPseudo: true);
 
-  static const Keyword STATIC = const Keyword("static", isBuiltIn: true);
+  static const Keyword STATIC =
+      const Keyword("static", "STATIC", isBuiltIn: true);
 
-  static const Keyword SUPER = const Keyword("super");
+  static const Keyword SUPER = const Keyword("super", "SUPER");
 
-  static const Keyword SWITCH = const Keyword("switch");
+  static const Keyword SWITCH = const Keyword("switch", "SWITCH");
 
-  static const Keyword SYNC = const Keyword("sync", isPseudo: true);
+  static const Keyword SYNC = const Keyword("sync", "SYNC", isPseudo: true);
 
-  static const Keyword THIS = const Keyword("this");
+  static const Keyword THIS = const Keyword("this", "THIS");
 
-  static const Keyword THROW = const Keyword("throw");
+  static const Keyword THROW = const Keyword("throw", "THROW");
 
-  static const Keyword TRUE = const Keyword("true");
+  static const Keyword TRUE = const Keyword("true", "TRUE");
 
-  static const Keyword TRY = const Keyword("try");
+  static const Keyword TRY = const Keyword("try", "TRY");
 
-  static const Keyword TYPEDEF = const Keyword("typedef", isBuiltIn: true);
+  static const Keyword TYPEDEF =
+      const Keyword("typedef", "TYPEDEF", isBuiltIn: true);
 
-  static const Keyword VAR = const Keyword("var");
+  static const Keyword VAR = const Keyword("var", "VAR");
 
-  static const Keyword VOID = const Keyword("void");
+  static const Keyword VOID = const Keyword("void", "VOID");
 
-  static const Keyword WHILE = const Keyword("while");
+  static const Keyword WHILE = const Keyword("while", "WHILE");
 
-  static const Keyword WITH = const Keyword("with");
+  static const Keyword WITH = const Keyword("with", "WITH");
 
-  static const Keyword YIELD = const Keyword("yield", isPseudo: true);
+  static const Keyword YIELD = const Keyword("yield", "YIELD", isPseudo: true);
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
@@ -363,31 +379,22 @@ class Keyword {
    */
   static final Map<String, Keyword> keywords = _createKeywordMap();
 
-  final TokenType info;
-
   /**
    * A flag indicating whether the keyword is "built-in" identifier.
    */
   final bool isBuiltIn;
 
-  /**
-   * A flag indicating whether the keyword can be used as an identifier
-   * in some situations.
-   */
+  @override
   final bool isPseudo;
-
-  /**
-   * The lexeme for the keyword.
-   */
-  final String lexeme;
 
   /**
    * Initialize a newly created keyword.
    */
-  const Keyword(this.lexeme,
+  const Keyword(String lexeme, String name,
       {this.isBuiltIn: false,
       this.isPseudo: false,
-      this.info: TokenType.KEYWORD});
+      int precedence: NO_PRECEDENCE})
+      : super(lexeme, name, precedence, KEYWORD_TOKEN);
 
   bool get isBuiltInOrPseudo => isBuiltIn || isPseudo;
 
@@ -440,13 +447,13 @@ class KeywordToken extends SimpleToken {
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
-
-  @override
-  String get lexeme => keyword.lexeme;
+  KeywordToken(this.keyword, int offset) : super(keyword, offset);
 
   @override
   Token copy() => new KeywordToken(keyword, offset);
+
+  @override
+  bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
   // Changed return type from Keyword to Object because
@@ -521,10 +528,8 @@ class SimpleToken implements Token {
   @override
   Token previous;
 
-  /**
-   * The next token in the token stream.
-   */
-  Token _next;
+  @override
+  Token next;
 
   /**
    * Initialize a newly created token to have the given [type] and [offset].
@@ -532,7 +537,22 @@ class SimpleToken implements Token {
   SimpleToken(this.type, this.offset);
 
   @override
+  int get charCount => length;
+
+  @override
+  int get charOffset => offset;
+
+  @override
+  int get charEnd => end;
+
+  @override
   int get end => offset + length;
+
+  @override
+  bool get isEof => type == TokenType.EOF;
+
+  @override
+  bool get isIdentifier => false;
 
   @override
   bool get isOperator => type.isOperator;
@@ -547,16 +567,19 @@ class SimpleToken implements Token {
   Keyword get keyword => null;
 
   @override
+  int get kind => type.kind;
+
+  @override
   int get length => lexeme.length;
 
   @override
   String get lexeme => type.lexeme;
 
   @override
-  Token get next => _next;
+  CommentToken get precedingComments => null;
 
   @override
-  CommentToken get precedingComments => null;
+  String get stringValue => type.stringValue;
 
   @override
   void applyDelta(int delta) {
@@ -593,14 +616,14 @@ class SimpleToken implements Token {
 
   @override
   Token setNext(Token token) {
-    _next = token;
+    next = token;
     token.previous = this;
     return token;
   }
 
   @override
   Token setNextWithoutSettingPrevious(Token token) {
-    _next = token;
+    next = token;
     return token;
   }
 
@@ -638,6 +661,9 @@ class StringToken extends SimpleToken {
   StringToken(TokenType type, String value, int offset) : super(type, offset) {
     this._value = StringUtilities.intern(value);
   }
+
+  @override
+  bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
   @override
   String get lexeme => _value;
@@ -736,8 +762,34 @@ abstract class Token implements SyntacticEntity {
    */
   factory Token(TokenType type, int offset) = SimpleToken;
 
+  /**
+   * The number of characters parsed by this token.
+   */
+  int get charCount;
+
+  /**
+   * The character offset of the start of this token within the source text.
+   */
+  int get charOffset;
+
+  /**
+   * The character offset of the end of this token within the source text.
+   */
+  int get charEnd;
+
   @override
   int get end;
+
+  /**
+   * Return `true` if this token represents an end of file.
+   */
+  bool get isEof;
+
+  /**
+   * True if this token is an identifier. Some keywords allowed as identifiers,
+   * see implementation in [KeywordToken].
+   */
+  bool get isIdentifier;
 
   /**
    * Return `true` if this token represents an operator.
@@ -762,11 +814,18 @@ abstract class Token implements SyntacticEntity {
    */
   Keyword get keyword;
 
+  /**
+   * The kind enum of this token as determined by its [type].
+   */
+  int get kind;
+
   @override
   int get length;
 
   /**
    * Return the lexeme that represents this token.
+   *
+   * For [StringToken]s the [lexeme] includes the quotes, explicit escapes, etc.
    */
   String get lexeme;
 
@@ -774,6 +833,11 @@ abstract class Token implements SyntacticEntity {
    * Return the next token in the token stream.
    */
   Token get next;
+
+  /**
+   * Return the next token in the token stream.
+   */
+  void set next(Token next);
 
   @override
   int get offset;
@@ -805,6 +869,26 @@ abstract class Token implements SyntacticEntity {
    * Set the previous token in the token stream to the given [token].
    */
   void set previous(Token token);
+
+  /**
+   * For symbol and keyword tokens, returns the string value represented by this
+   * token. For [StringToken]s this method returns [:null:].
+   *
+   * For [SymbolToken]s and [KeywordToken]s, the string value is a compile-time
+   * constant originating in the [TokenType] or in the [Keyword] instance.
+   * This allows testing for keywords and symbols using [:identical:], e.g.,
+   * [:identical('class', token.value):].
+   *
+   * Note that returning [:null:] for string tokens is important to identify
+   * symbols and keywords, we cannot use [lexeme] instead. The string literal
+   *   "$a($b"
+   * produces ..., SymbolToken($), StringToken(a), StringToken((), ...
+   *
+   * After parsing the identifier 'a', the parser tests for a function
+   * declaration using [:identical(next.stringValue, '('):], which (rightfully)
+   * returns false because stringValue returns [:null:].
+   */
+  String get stringValue;
 
   /**
    * Return the type of the token.
@@ -1015,32 +1099,36 @@ class TokenType {
   static const TokenType EOF =
       const TokenType('', 'EOF', NO_PRECEDENCE, EOF_TOKEN);
 
-  static const TokenType DOUBLE =
-      const TokenType('double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN);
+  static const TokenType DOUBLE = const TokenType(
+      'double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN,
+      stringValue: null);
 
   static const TokenType HEXADECIMAL = const TokenType(
-      'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN);
+      'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN,
+      stringValue: null);
 
   static const TokenType IDENTIFIER = const TokenType(
-      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN);
+      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN,
+      stringValue: null);
 
-  static const TokenType INT =
-      const TokenType('int', 'INT', NO_PRECEDENCE, INT_TOKEN);
-
-  static const TokenType KEYWORD =
-      const TokenType('keyword', 'KEYWORD', NO_PRECEDENCE, KEYWORD_TOKEN);
+  static const TokenType INT = const TokenType(
+      'int', 'INT', NO_PRECEDENCE, INT_TOKEN,
+      stringValue: null);
 
   static const TokenType MULTI_LINE_COMMENT = const TokenType(
-      'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
+      'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
+      stringValue: null);
 
   static const TokenType SCRIPT_TAG =
       const TokenType('script', 'SCRIPT_TAG', NO_PRECEDENCE, SCRIPT_TOKEN);
 
   static const TokenType SINGLE_LINE_COMMENT = const TokenType(
-      'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN);
+      'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
+      stringValue: null);
 
-  static const TokenType STRING =
-      const TokenType('string', 'STRING', NO_PRECEDENCE, STRING_TOKEN);
+  static const TokenType STRING = const TokenType(
+      'string', 'STRING', NO_PRECEDENCE, STRING_TOKEN,
+      stringValue: null);
 
   static const TokenType AMPERSAND = const TokenType(
       '&', 'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
@@ -1288,32 +1376,34 @@ class TokenType {
       'generic_comment_list',
       'GENERIC_METHOD_TYPE_LIST',
       NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_LIST_TOKEN);
+      GENERIC_METHOD_TYPE_LIST_TOKEN,
+      stringValue: null);
 
   static const TokenType GENERIC_METHOD_TYPE_ASSIGN = const TokenType(
       'generic_comment_assign',
       'GENERIC_METHOD_TYPE_ASSIGN',
       NO_PRECEDENCE,
-      GENERIC_METHOD_TYPE_ASSIGN_TOKEN);
+      GENERIC_METHOD_TYPE_ASSIGN_TOKEN,
+      stringValue: null);
 
-  static const TokenType AS =
-      const TokenType('as', 'AS', RELATIONAL_PRECEDENCE, KEYWORD_TOKEN);
+  static const TokenType AS = Keyword.AS;
 
-  static const TokenType IS =
-      const TokenType('is', 'IS', RELATIONAL_PRECEDENCE, KEYWORD_TOKEN);
+  static const TokenType IS = Keyword.IS;
 
   /**
    * Token type used by error tokens.
    */
   static const TokenType BAD_INPUT = const TokenType(
-      'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN);
+      'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN,
+      stringValue: null);
 
   /**
    * Token type used by synthetic tokens that are created during parser
    * recovery (non-analyzer use case).
    */
-  static const TokenType RECOVERY =
-      const TokenType('recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN);
+  static const TokenType RECOVERY = const TokenType(
+      'recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN,
+      stringValue: null);
 
   // TODO(danrubel): "all" is misleading
   // because this list does not include all TokenType instances.
@@ -1323,7 +1413,6 @@ class TokenType {
     TokenType.HEXADECIMAL,
     TokenType.IDENTIFIER,
     TokenType.INT,
-    TokenType.KEYWORD,
     TokenType.MULTI_LINE_COMMENT,
     TokenType.SCRIPT_TAG,
     TokenType.SINGLE_LINE_COMMENT,
@@ -1438,8 +1527,16 @@ class TokenType {
    */
   final int precedence;
 
+  /**
+   * See [Token.stringValue] for an explanation.
+   */
+  final String stringValue;
+
   const TokenType(this.lexeme, this.name, this.precedence, this.kind,
-      {this.isOperator: false, this.isUserDefinableOperator: false});
+      {this.isOperator: false,
+      this.isUserDefinableOperator: false,
+      String stringValue: 'unspecified'})
+      : this.stringValue = stringValue == 'unspecified' ? lexeme : stringValue;
 
   /**
    * Return `true` if this type of token represents an additive operator.
@@ -1488,6 +1585,12 @@ class TokenType {
    * Return `true` if this type of token is a keyword.
    */
   bool get isKeyword => kind == KEYWORD_TOKEN;
+
+  /**
+   * A flag indicating whether the keyword can be used as an identifier
+   * in some situations.
+   */
+  bool get isPseudo => false;
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.

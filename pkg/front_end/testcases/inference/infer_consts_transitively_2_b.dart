@@ -4,3 +4,7 @@
 
 /*@testedFeatures=inference*/
 const /*@topType=int*/ b1 = 2;
+
+main() {
+  b1;
+}

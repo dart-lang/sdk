@@ -14,7 +14,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
-    defineReflectiveTests(NamedConstructorContributorTest_Driver);
   });
 }
 
@@ -182,11 +181,4 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
-}
-
-@reflectiveTest
-class NamedConstructorContributorTest_Driver
-    extends NamedConstructorContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

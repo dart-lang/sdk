@@ -11,13 +11,14 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
+import '../elements/operators.dart' as op;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
-import '../resolution/operators.dart' as op;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -1989,7 +1990,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<MemberEntity> targets = closedWorld.allFunctions.filter(
+        Iterable<MemberEntity> targets = closedWorld.locateMembers(
             setterSelector, types.newTypedSelector(thisType, setterMask));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update

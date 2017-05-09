@@ -22569,7 +22569,8 @@ class HttpRequest extends HttpRequestEventTarget {
       _blink.BlinkXMLHttpRequest.instance.statusText_Getter_(this);
 
   /**
-   * Length of time before a request is automatically terminated.
+   * Length of time in milliseconds before a request is automatically
+   * terminated.
    *
    * When the time has passed, a [TimeoutEvent] is dispatched.
    *
@@ -22588,7 +22589,8 @@ class HttpRequest extends HttpRequestEventTarget {
   int get timeout => _blink.BlinkXMLHttpRequest.instance.timeout_Getter_(this);
 
   /**
-   * Length of time before a request is automatically terminated.
+   * Length of time in milliseconds before a request is automatically
+   * terminated.
    *
    * When the time has passed, a [TimeoutEvent] is dispatched.
    *
@@ -46570,7 +46572,7 @@ class _ContentCssRect extends CssRect {
    * `height` function in jQuery and the calculated `height` CSS value,
    * converted to a num in pixels.
    */
-  set height(newHeight) {
+  set height(dynamic newHeight) {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
@@ -46590,7 +46592,7 @@ class _ContentCssRect extends CssRect {
    * and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  set width(newWidth) {
+  set width(dynamic newWidth) {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
@@ -46750,7 +46752,7 @@ abstract class CssRect implements Rectangle<num> {
    *
    * Note that only the content height can actually be set via this method.
    */
-  set height(newHeight) {
+  set height(dynamic newHeight) {
     throw new UnsupportedError("Can only set height for content rect.");
   }
 
@@ -46764,7 +46766,7 @@ abstract class CssRect implements Rectangle<num> {
    *
    * Note that only the content width can be set via this method.
    */
-  set width(newWidth) {
+  set width(dynamic newWidth) {
     throw new UnsupportedError("Can only set width for content rect.");
   }
 

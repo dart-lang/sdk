@@ -116,7 +116,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
     TypeMask result = const TypeMask.nonNullEmpty();
     Iterable<MemberEntity> elements =
-        inferrer.closedWorld.allFunctions.filter(selector, mask);
+        inferrer.closedWorld.locateMembers(selector, mask);
     for (MemberElement element in elements) {
       TypeMask type =
           inferrer.typeOfElementWithSelector(element, selector).type;

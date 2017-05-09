@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'channel/test_all.dart' as channel;
+import 'utilities/test_all.dart' as utilities;
 
 main() {
   defineReflectiveSuite(() {
     channel.main();
+    utilities.main();
   }, name: 'src');
 }

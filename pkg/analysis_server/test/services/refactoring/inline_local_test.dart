@@ -14,7 +14,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineLocalTest);
-    defineReflectiveTests(InlineLocalTest_Driver);
   });
 }
 
@@ -637,10 +636,4 @@ main() {
     refactoring =
         new InlineLocalRefactoring(searchEngine, astProvider, testUnit, offset);
   }
-}
-
-@reflectiveTest
-class InlineLocalTest_Driver extends InlineLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

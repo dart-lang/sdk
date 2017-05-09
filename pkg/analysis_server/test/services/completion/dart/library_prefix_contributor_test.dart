@@ -15,7 +15,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixContributorTest);
-    defineReflectiveTests(LibraryPrefixContributorTest_Driver);
   });
 }
 
@@ -375,10 +374,4 @@ main() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
-}
-
-@reflectiveTest
-class LibraryPrefixContributorTest_Driver extends LibraryPrefixContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

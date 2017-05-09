@@ -8,3 +8,5 @@ const a2 = 4;
 class A {
   static const a3 = null;
 }
+
+main() {}

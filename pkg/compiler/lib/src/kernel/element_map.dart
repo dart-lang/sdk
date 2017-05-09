@@ -2,1301 +2,816 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.kernel.element_map;
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common/resolution.dart';
-import '../compile_time_constants.dart';
-import '../constants/constant_system.dart';
+import '../common/names.dart';
 import '../constants/constructors.dart';
-import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
+import '../elements/operators.dart';
 import '../elements/types.dart';
-import '../frontend_strategy.dart';
-import '../js_backend/constant_system_javascript.dart';
-import '../js_backend/native_data.dart';
-import '../js_backend/no_such_method_registry.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
-import '../native/resolver.dart';
-import '../ordered_typeset.dart';
-import '../ssa/kernel_impact.dart';
 import '../universe/call_structure.dart';
-import '../universe/world_builder.dart';
-import '../util/util.dart' show Link, LinkBuilder;
-import 'element_adapter.dart';
-import 'elements.dart';
+import '../universe/selector.dart';
+import 'kernel_debug.dart';
 
-part 'native_basic_data.dart';
-part 'no_such_method_resolver.dart';
-part 'types.dart';
+/// Interface that translates between Kernel IR nodes and entities.
+abstract class KernelToElementMap {
+  /// Access to the commonly used elements and types.
+  CommonElements get commonElements;
 
-/// Element builder used for creating elements and types corresponding to Kernel
-/// IR nodes.
-class KernelToElementMap extends KernelElementAdapterMixin {
-  CommonElements _commonElements;
-  native.BehaviorBuilder _nativeBehaviorBuilder;
-  final DiagnosticReporter reporter;
-  ElementEnvironment _elementEnvironment;
-  DartTypeConverter _typeConverter;
-  KernelConstantEnvironment _constantEnvironment;
-  _KernelDartTypes _types;
+  /// [ElementEnvironment] for library, class and member lookup.
+  ElementEnvironment get elementEnvironment;
 
-  /// Library environment. Used for fast lookup.
-  _KEnv _env = new _KEnv();
+  /// Returns the [DartType] corresponding to [type].
+  DartType getDartType(ir.DartType type);
 
-  /// List of library environments by `KLibrary.libraryIndex`. This is used for
-  /// fast lookup into library classes and members.
-  List<_KLibraryEnv> _libraryEnvs = <_KLibraryEnv>[];
+  /// Returns the list of [DartType]s corresponding to [types].
+  List<DartType> getDartTypes(List<ir.DartType> types);
 
-  /// List of class environments by `KClass.classIndex`. This is used for
-  /// fast lookup into class members.
-  List<_KClassEnv> _classEnvs = <_KClassEnv>[];
+  /// Returns the [InterfaceType] corresponding to [type].
+  InterfaceType getInterfaceType(ir.InterfaceType type);
 
-  Map<ir.Library, KLibrary> _libraryMap = <ir.Library, KLibrary>{};
-  Map<ir.Class, KClass> _classMap = <ir.Class, KClass>{};
-  Map<ir.TypeParameter, KTypeVariable> _typeVariableMap =
-      <ir.TypeParameter, KTypeVariable>{};
+  /// Return the [InterfaceType] corresponding to the [cls] with the given
+  /// [typeArguments].
+  InterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments);
 
-  List<_MemberData> _memberList = <_MemberData>[];
+  /// Returns the [CallStructure] corresponding to the [arguments].
+  CallStructure getCallStructure(ir.Arguments arguments);
 
-  Map<ir.Member, KConstructor> _constructorMap = <ir.Member, KConstructor>{};
-  Map<ir.Procedure, KFunction> _methodMap = <ir.Procedure, KFunction>{};
-  Map<ir.Field, KField> _fieldMap = <ir.Field, KField>{};
+  /// Returns the [Selector] corresponding to the invocation or getter/setter
+  /// access of [node].
+  Selector getSelector(ir.Expression node);
 
-  Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
-      <ir.TreeNode, KLocalFunction>{};
+  /// Returns the [ConstructorEntity] corresponding to the generative or factory
+  /// constructor [node].
+  ConstructorEntity getConstructor(ir.Member node);
 
-  KernelToElementMap(this.reporter) {
-    _elementEnvironment = new KernelElementEnvironment(this);
-    _commonElements = new CommonElements(_elementEnvironment);
-    _constantEnvironment = new KernelConstantEnvironment(this);
-    _nativeBehaviorBuilder =
-        new KernelBehaviorBuilder(_commonElements, _constantEnvironment);
-    _types = new _KernelDartTypes(this);
-    _typeConverter = new DartTypeConverter(this);
+  /// Returns the [MemberEntity] corresponding to the member [node].
+  MemberEntity getMember(ir.Member node);
+
+  /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  FunctionEntity getMethod(ir.Procedure node);
+
+  /// Returns the [FieldEntity] corresponding to the field [node].
+  FieldEntity getField(ir.Field node);
+
+  /// Returns the [ClassEntity] corresponding to the class [node].
+  ClassEntity getClass(ir.Class node);
+
+  /// Returns the [Local] corresponding to the [node]. The node must be either
+  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Local getLocalFunction(ir.TreeNode node);
+
+  /// Returns the [LibraryEntity] corresponding to the library [node].
+  LibraryEntity getLibrary(ir.Library node);
+
+  /// Returns the [Name] corresponding to [name].
+  Name getName(ir.Name name);
+
+  /// Returns `true` is [node] has a `@Native(...)` annotation.
+  bool isNativeClass(ir.Class node);
+
+  /// Return `true` if [node] is the `dart:_foreign_helper` library.
+  bool isForeignLibrary(ir.Library node);
+
+  /// Computes the native behavior for reading the native [field].
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field);
+
+  /// Computes the native behavior for writing to the native [field].
+  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+
+  /// Computes the native behavior for calling [procedure].
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node);
+
+  /// Compute the kind of foreign helper function called by [node], if any.
+  ForeignKind getForeignKind(ir.StaticInvocation node);
+
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+
+  /// Computes the [ConstantValue] for the constant [expression].
+  ConstantValue getConstantValue(ir.Expression expression);
+}
+
+/// Kinds of foreign functions.
+enum ForeignKind {
+  JS,
+  JS_BUILTIN,
+  JS_EMBEDDED_GLOBAL,
+  JS_INTERCEPTOR_CONSTANT,
+  NONE,
+}
+
+abstract class KernelToElementMapMixin implements KernelToElementMap {
+  DiagnosticReporter get reporter;
+  FunctionType getFunctionType(ir.FunctionNode node);
+  native.BehaviorBuilder get nativeBehaviorBuilder;
+  ConstantValue computeConstantValue(ConstantExpression constant);
+
+  @override
+  Name getName(ir.Name name) {
+    return new Name(
+        name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
-  /// Adds libraries in [program] to the set of libraries.
-  ///
-  /// The main method of the first program is used as the main method for the
-  /// compilation.
-  void addProgram(ir.Program program) {
-    _env.addProgram(program);
+  @override
+  CallStructure getCallStructure(ir.Arguments arguments) {
+    int argumentCount = arguments.positional.length + arguments.named.length;
+    List<String> namedArguments = arguments.named.map((e) => e.name).toList();
+    return new CallStructure(argumentCount, namedArguments);
   }
 
-  KMethod get _mainFunction {
-    return _env.mainMethod != null ? _getMethod(_env.mainMethod) : null;
-  }
-
-  KLibrary get _mainLibrary {
-    return _env.mainMethod != null
-        ? _getLibrary(_env.mainMethod.enclosingLibrary)
-        : null;
-  }
-
-  Iterable<LibraryEntity> get _libraries {
-    if (_env.length != _libraryMap.length) {
-      // Create a [KLibrary] for each library.
-      _env.forEachLibrary((_KLibraryEnv env) {
-        _getLibrary(env.library, env);
-      });
+  @override
+  Selector getSelector(ir.Expression node) {
+    // TODO(efortuna): This is screaming for a common interface between
+    // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
+    // folks.
+    if (node is ir.PropertyGet) {
+      return getGetterSelector(node.name);
     }
-    return _libraryMap.values;
+    if (node is ir.SuperPropertyGet) {
+      return getGetterSelector(node.name);
+    }
+    if (node is ir.PropertySet) {
+      return getSetterSelector(node.name);
+    }
+    if (node is ir.SuperPropertySet) {
+      return getSetterSelector(node.name);
+    }
+    if (node is ir.InvocationExpression) {
+      return getInvocationSelector(node);
+    }
+    throw new SpannableAssertionFailure(
+        CURRENT_ELEMENT_SPANNABLE,
+        "Can only get the selector for a property get or an invocation: "
+        "${node}");
   }
 
-  @override
-  CommonElements get commonElements => _commonElements;
-
-  @override
-  ElementEnvironment get elementEnvironment => _elementEnvironment;
-
-  ConstantEnvironment get constantEnvironment => _constantEnvironment;
-
-  DartTypes get types => _types;
-
-  @override
-  native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
-
-  LibraryEntity lookupLibrary(Uri uri) {
-    _KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
-    if (libraryEnv == null) return null;
-    return _getLibrary(libraryEnv.library, libraryEnv);
-  }
-
-  KLibrary _getLibrary(ir.Library node, [_KLibraryEnv libraryEnv]) {
-    return _libraryMap.putIfAbsent(node, () {
-      Uri canonicalUri = node.importUri;
-      _libraryEnvs.add(libraryEnv ?? _env.lookupLibrary(canonicalUri));
-      String name = node.name;
-      if (name == null) {
-        // Use the file name as script name.
-        String path = canonicalUri.path;
-        name = path.substring(path.lastIndexOf('/') + 1);
+  Selector getInvocationSelector(ir.InvocationExpression invocation) {
+    Name name = getName(invocation.name);
+    SelectorKind kind;
+    if (Elements.isOperatorName(invocation.name.name)) {
+      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
+        kind = SelectorKind.INDEX;
+      } else {
+        kind = SelectorKind.OPERATOR;
       }
-      return new KLibrary(_libraryMap.length, name, canonicalUri);
+    } else {
+      kind = SelectorKind.CALL;
+    }
+
+    CallStructure callStructure = getCallStructure(invocation.arguments);
+    return new Selector(kind, name, callStructure);
+  }
+
+  Selector getGetterSelector(ir.Name irName) {
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+    return new Selector.getter(name);
+  }
+
+  Selector getSetterSelector(ir.Name irName) {
+    Name name = new Name(
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+    return new Selector.setter(name);
+  }
+
+  ConstantValue getConstantValue(ir.Expression node) {
+    ConstantExpression constant = new Constantifier(this).visit(node);
+    if (constant == null) {
+      throw new UnsupportedError(
+          'No constant for ${DebugPrinter.prettyPrint(node)}');
+    }
+    return computeConstantValue(constant);
+  }
+
+  /// Converts [annotations] into a list of [ConstantValue]s.
+  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
+    if (annotations.isEmpty) return const <ConstantValue>[];
+    List<ConstantValue> metadata = <ConstantValue>[];
+    annotations.forEach((ir.Expression node) {
+      metadata.add(getConstantValue(node));
     });
+    return metadata;
   }
 
-  MemberEntity lookupLibraryMember(KLibrary library, String name,
-      {bool setter: false}) {
-    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
-    ir.Member member = libraryEnv.lookupMember(name, setter: setter);
-    return member != null ? getMember(member) : null;
+  /// Returns `true` is [node] has a `@Native(...)` annotation.
+  // TODO(johnniwinther): Cache this for later use.
+  bool isNativeClass(ir.Class node) {
+    for (ir.Expression annotation in node.annotations) {
+      if (annotation is ir.ConstructorInvocation) {
+        FunctionEntity target = getConstructor(annotation.target);
+        if (target.enclosingClass == commonElements.nativeAnnotationClass) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
-  ClassEntity lookupClass(KLibrary library, String name) {
-    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
-    _KClassEnv classEnv = libraryEnv.lookupClass(name);
-    if (classEnv != null) {
-      return _getClass(classEnv.cls, classEnv);
+  /// Compute the kind of foreign helper function called by [node], if any.
+  ForeignKind getForeignKind(ir.StaticInvocation node) {
+    if (isForeignLibrary(node.target.enclosingLibrary)) {
+      switch (node.target.name.name) {
+        case JavaScriptBackend.JS:
+          return ForeignKind.JS;
+        case JavaScriptBackend.JS_BUILTIN:
+          return ForeignKind.JS_BUILTIN;
+        case JavaScriptBackend.JS_EMBEDDED_GLOBAL:
+          return ForeignKind.JS_EMBEDDED_GLOBAL;
+        case JavaScriptBackend.JS_INTERCEPTOR_CONSTANT:
+          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+      }
+    }
+    return ForeignKind.NONE;
+  }
+
+  /// Return `true` if [node] is the `dart:_foreign_helper` library.
+  bool isForeignLibrary(ir.Library node) {
+    return node.importUri == Uris.dart__foreign_helper;
+  }
+
+  /// Looks up [typeName] for use in the spec-string of a `JS` called.
+  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
+  // the `ForeignResolver`.
+  // TODO(johnniwinther): Cache the result to avoid redundant lookups?
+  native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+    DartType lookup(String typeName, {bool required}) {
+      DartType findIn(Uri uri) {
+        LibraryEntity library = elementEnvironment.lookupLibrary(uri);
+        if (library != null) {
+          ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
+          if (cls != null) {
+            // TODO(johnniwinther): Align semantics.
+            return resolveAsRaw
+                ? elementEnvironment.getRawType(cls)
+                : elementEnvironment.getThisType(cls);
+          }
+        }
+        return null;
+      }
+
+      // TODO(johnniwinther): Narrow the set of lookups base on the depending
+      // library.
+      DartType type = findIn(Uris.dart_core);
+      type ??= findIn(Uris.dart__js_helper);
+      type ??= findIn(Uris.dart__interceptors);
+      type ??= findIn(Uris.dart__isolate_helper);
+      type ??= findIn(Uris.dart__native_typed_data);
+      type ??= findIn(Uris.dart_collection);
+      type ??= findIn(Uris.dart_math);
+      type ??= findIn(Uris.dart_html);
+      type ??= findIn(Uris.dart_html_common);
+      type ??= findIn(Uris.dart_svg);
+      type ??= findIn(Uris.dart_web_audio);
+      type ??= findIn(Uris.dart_web_gl);
+      type ??= findIn(Uris.dart_web_sql);
+      type ??= findIn(Uris.dart_indexed_db);
+      type ??= findIn(Uris.dart_typed_data);
+      if (type == null && required) {
+        reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+            MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
+      }
+      return type;
+    }
+
+    return lookup;
+  }
+
+  String _getStringArgument(ir.StaticInvocation node, int index) {
+    return node.arguments.positional[index].accept(new Stringifier());
+  }
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 2 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
+      return new native.NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
+      return new native.NativeBehavior();
+    }
+
+    String codeString = _getStringArgument(node, 1);
+    if (codeString == null) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
+      return new native.NativeBehavior();
+    }
+
+    return native.NativeBehavior.ofJsCall(
+        specString,
+        codeString,
+        typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        commonElements);
+  }
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 1) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
+      return new native.NativeBehavior();
+    }
+    if (node.arguments.positional.length < 2) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
+      return new native.NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+      return new native.NativeBehavior();
+    }
+    return native.NativeBehavior.ofJsBuiltinCall(
+        specString,
+        typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        commonElements);
+  }
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 1) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          "JS embedded global expression has no type.");
+      return new native.NativeBehavior();
+    }
+    if (node.arguments.positional.length < 2) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
+      return new native.NativeBehavior();
+    }
+    if (node.arguments.positional.length > 2 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          "JS embedded global has more than 2 arguments.");
+      return new native.NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+      return new native.NativeBehavior();
+    }
+    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
+        specString,
+        typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        commonElements);
+  }
+
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length != 1 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    }
+    ir.Node argument = node.arguments.positional.first;
+    if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
+      return getInterfaceType(argument.type);
     }
     return null;
   }
 
-  void _forEachClass(KLibrary library, void f(ClassEntity cls)) {
-    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
-    libraryEnv.forEachClass((_KClassEnv classEnv) {
-      if (!classEnv.isUnnamedMixinApplication) {
-        f(_getClass(classEnv.cls, classEnv));
-      }
-    });
+  /// Computes the native behavior for reading the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
+    DartType type = getDartType(field.type);
+    List<ConstantValue> metadata = getMetadata(field.annotations);
+    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+    return nativeBehaviorBuilder.buildFieldLoadBehavior(
+        type, metadata, typeLookup(resolveAsRaw: false),
+        isJsInterop: false);
   }
 
-  MemberEntity lookupClassMember(KClass cls, String name,
-      {bool setter: false}) {
-    _KClassEnv classEnv = _classEnvs[cls.classIndex];
-    ir.Member member = classEnv.lookupMember(name, setter: setter);
-    return member != null ? getMember(member) : null;
+  /// Computes the native behavior for writing to the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
+    DartType type = getDartType(field.type);
+    return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
   }
 
-  ConstructorEntity lookupConstructor(KClass cls, String name) {
-    _KClassEnv classEnv = _classEnvs[cls.classIndex];
-    ir.Member member = classEnv.lookupConstructor(name);
-    return member != null ? getConstructor(member) : null;
+  /// Computes the native behavior for calling [procedure].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
+    DartType type = getFunctionType(procedure.function);
+    List<ConstantValue> metadata = getMetadata(procedure.annotations);
+    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+    return nativeBehaviorBuilder.buildMethodBehavior(
+        type, metadata, typeLookup(resolveAsRaw: false),
+        isJsInterop: false);
   }
+}
 
-  KClass _getClass(ir.Class node, [_KClassEnv classEnv]) {
-    return _classMap.putIfAbsent(node, () {
-      KLibrary library = _getLibrary(node.enclosingLibrary);
-      if (classEnv == null) {
-        classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
-      }
-      _classEnvs.add(classEnv);
-      return new KClass(library, _classMap.length, node.name,
-          isAbstract: node.isAbstract);
-    });
-  }
-
-  Iterable<ConstantExpression> _getClassMetadata(KClass cls) {
-    return _classEnvs[cls.classIndex].getMetadata(this);
-  }
-
-  KTypeVariable _getTypeVariable(ir.TypeParameter node) {
-    return _typeVariableMap.putIfAbsent(node, () {
-      if (node.parent is ir.Class) {
-        ir.Class cls = node.parent;
-        int index = cls.typeParameters.indexOf(node);
-        return new KTypeVariable(_getClass(cls), node.name, index);
-      }
-      if (node.parent is ir.FunctionNode) {
-        ir.FunctionNode func = node.parent;
-        int index = func.typeParameters.indexOf(node);
-        if (func.parent is ir.Constructor) {
-          ir.Constructor constructor = func.parent;
-          ir.Class cls = constructor.enclosingClass;
-          return _getTypeVariable(cls.typeParameters[index]);
-        }
-        if (func.parent is ir.Procedure) {
-          ir.Procedure procedure = func.parent;
-          if (procedure.kind == ir.ProcedureKind.Factory) {
-            ir.Class cls = procedure.enclosingClass;
-            return _getTypeVariable(cls.typeParameters[index]);
-          } else {
-            return new KTypeVariable(_getMethod(procedure), node.name, index);
-          }
-        }
-      }
-      throw new UnsupportedError('Unsupported type parameter type node $node.');
-    });
-  }
-
-  ParameterStructure _getParameterStructure(ir.FunctionNode node) {
-    // TODO(johnniwinther): Cache the computed function type.
-    int requiredParameters = node.requiredParameterCount;
-    int positionalParameters = node.positionalParameters.length;
-    List<String> namedParameters =
-        node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(
-        requiredParameters, positionalParameters, namedParameters);
-  }
-
-  KConstructor _getConstructor(ir.Member node) {
-    return _constructorMap.putIfAbsent(node, () {
-      int memberIndex = _memberList.length;
-      KConstructor constructor;
-      KClass enclosingClass = _getClass(node.enclosingClass);
-      Name name = getName(node.name);
-      bool isExternal = node.isExternal;
-
-      ir.FunctionNode functionNode;
-      if (node is ir.Constructor) {
-        functionNode = node.function;
-        constructor = new KGenerativeConstructor(memberIndex, enclosingClass,
-            name, _getParameterStructure(functionNode),
-            isExternal: isExternal, isConst: node.isConst);
-      } else if (node is ir.Procedure) {
-        functionNode = node.function;
-        constructor = new KFactoryConstructor(memberIndex, enclosingClass, name,
-            _getParameterStructure(functionNode),
-            isExternal: isExternal, isConst: node.isConst);
-      } else {
-        // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
-        throw new SpannableAssertionFailure(
-            NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
-      }
-      _memberList.add(new _ConstructorData(node, functionNode));
-      return constructor;
-    });
-  }
-
-  KFunction _getMethod(ir.Procedure node) {
-    return _methodMap.putIfAbsent(node, () {
-      int memberIndex = _memberList.length;
-      KLibrary library;
-      KClass enclosingClass;
-      if (node.enclosingClass != null) {
-        enclosingClass = _getClass(node.enclosingClass);
-        library = enclosingClass.library;
-      } else {
-        library = _getLibrary(node.enclosingLibrary);
-      }
-      Name name = getName(node.name);
-      bool isStatic = node.isStatic;
-      bool isExternal = node.isExternal;
-      bool isAbstract = node.isAbstract;
-      KFunction function;
-      switch (node.kind) {
-        case ir.ProcedureKind.Factory:
-          throw new UnsupportedError("Cannot create method from factory.");
-        case ir.ProcedureKind.Getter:
-          function = new KGetter(memberIndex, library, enclosingClass, name,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-        case ir.ProcedureKind.Method:
-        case ir.ProcedureKind.Operator:
-          function = new KMethod(memberIndex, library, enclosingClass, name,
-              _getParameterStructure(node.function),
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-        case ir.ProcedureKind.Setter:
-          function = new KSetter(
-              memberIndex, library, enclosingClass, getName(node.name).setter,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-      }
-      _memberList.add(new _FunctionData(node, node.function));
-      return function;
-    });
-  }
-
-  KField _getField(ir.Field node) {
-    return _fieldMap.putIfAbsent(node, () {
-      int memberIndex = _memberList.length;
-      KLibrary library;
-      KClass enclosingClass;
-      if (node.enclosingClass != null) {
-        enclosingClass = _getClass(node.enclosingClass);
-        library = enclosingClass.library;
-      } else {
-        library = _getLibrary(node.enclosingLibrary);
-      }
-      Name name = getName(node.name);
-      bool isStatic = node.isStatic;
-      _memberList.add(new _FieldData(node));
-      return new KField(memberIndex, library, enclosingClass, name,
-          isStatic: isStatic,
-          isAssignable: node.isMutable,
-          isConst: node.isConst);
-    });
-  }
-
-  KLocalFunction _getLocal(ir.TreeNode node) {
-    return _localFunctionMap.putIfAbsent(node, () {
-      MemberEntity memberContext;
-      Entity executableContext;
-      ir.TreeNode parent = node.parent;
-      while (parent != null) {
-        if (parent is ir.Member) {
-          executableContext = memberContext = getMember(parent);
-          break;
-        }
-        if (parent is ir.FunctionDeclaration ||
-            parent is ir.FunctionExpression) {
-          KLocalFunction localFunction = _getLocal(parent);
-          executableContext = localFunction;
-          memberContext = localFunction.memberContext;
-          break;
-        }
-        parent = parent.parent;
-      }
-      String name;
-      FunctionType functionType;
-      if (node is ir.FunctionDeclaration) {
-        name = node.variable.name;
-        functionType = getFunctionType(node.function);
-      } else if (node is ir.FunctionExpression) {
-        functionType = getFunctionType(node.function);
-      }
-      return new KLocalFunction(
-          name, memberContext, executableContext, functionType);
-    });
-  }
+/// Visitor that converts string literals and concatenations of string literals
+/// into the string value.
+class Stringifier extends ir.ExpressionVisitor<String> {
+  @override
+  String visitStringLiteral(ir.StringLiteral node) => node.value;
 
   @override
-  DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
+  String visitStringConcatenation(ir.StringConcatenation node) {
+    StringBuffer sb = new StringBuffer();
+    for (ir.Expression expression in node.expressions) {
+      String value = expression.accept(this);
+      if (value == null) return null;
+      sb.write(value);
+    }
+    return sb.toString();
+  }
+}
 
-  @override
-  InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments) {
-    return new InterfaceType(getClass(cls), getDartTypes(typeArguments));
+/// Visitor that converts a kernel constant expression into a
+/// [ConstantExpression].
+class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
+  final bool requireConstant;
+  final KernelToElementMapMixin elementAdapter;
+
+  Constantifier(this.elementAdapter, {this.requireConstant: true});
+
+  CommonElements get _commonElements => elementAdapter.commonElements;
+
+  ConstantExpression visit(ir.Expression node) {
+    ConstantExpression constant = node.accept(this);
+    if (constant == null && requireConstant) {
+      throw new UnsupportedError(
+          "No constant computed for $node (${node.runtimeType})");
+    }
+    return constant;
   }
 
-  @override
-  InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.convert(type);
+  ConstantExpression defaultExpression(ir.Expression node) {
+    throw new UnimplementedError(
+        'Unimplemented constant expression $node (${node.runtimeType})');
+  }
 
-  @override
-  List<DartType> getDartTypes(List<ir.DartType> types) {
-    // TODO(johnniwinther): Add the type argument to the list literal when we
-    // no longer use resolution types.
-    List<DartType> list = /*<DartType>*/ [];
-    types.forEach((ir.DartType type) {
-      list.add(getDartType(type));
-    });
+  List<ConstantExpression> _computeList(List<ir.Expression> expressions) {
+    List<ConstantExpression> list = <ConstantExpression>[];
+    for (ir.Expression expression in expressions) {
+      ConstantExpression constant = visit(expression);
+      if (constant == null) return null;
+      list.add(constant);
+    }
     return list;
   }
 
-  void _ensureThisAndRawType(KClass cls, _KClassEnv env) {
-    if (env.thisType == null) {
-      ir.Class node = env.cls;
-      // TODO(johnniwinther): Add the type argument to the list literal when we
-      // no longer use resolution types.
-      if (node.typeParameters.isEmpty) {
-        env.thisType =
-            env.rawType = new InterfaceType(cls, const/*<DartType>*/ []);
+  List<ConstantExpression> _computeArguments(ir.Arguments node) {
+    List<ConstantExpression> arguments = <ConstantExpression>[];
+    for (ir.Expression argument in node.positional) {
+      ConstantExpression constant = visit(argument);
+      if (constant == null) return null;
+      arguments.add(constant);
+    }
+    for (ir.NamedExpression argument in node.named) {
+      ConstantExpression constant = visit(argument.value);
+      if (constant == null) return null;
+      arguments.add(constant);
+    }
+    return arguments;
+  }
+
+  ConstructedConstantExpression _computeConstructorInvocation(
+      ir.Constructor target, ir.Arguments arguments) {
+    return new ConstructedConstantExpression(
+        elementAdapter.createInterfaceType(
+            target.enclosingClass, arguments.types),
+        elementAdapter.getConstructor(target),
+        elementAdapter.getCallStructure(arguments),
+        _computeArguments(arguments));
+  }
+
+  @override
+  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
+    return _computeConstructorInvocation(node.target, node.arguments);
+  }
+
+  @override
+  ConstantExpression visitVariableGet(ir.VariableGet node) {
+    if (node.variable.parent is ir.FunctionNode) {
+      ir.FunctionNode function = node.variable.parent;
+      int index = function.positionalParameters.indexOf(node.variable);
+      if (index != -1) {
+        return new PositionalArgumentReference(index);
       } else {
-        env.thisType = new InterfaceType(
-            cls,
-            new List/*<DartType>*/ .generate(node.typeParameters.length,
-                (int index) {
-              return new TypeVariableType(
-                  _getTypeVariable(node.typeParameters[index]));
-            }));
-        env.rawType = new InterfaceType(
-            cls,
-            new List/*<DartType>*/ .filled(
-                node.typeParameters.length, const DynamicType()));
+        assert(function.namedParameters.contains(node.variable));
+        return new NamedArgumentReference(node.variable.name);
       }
     }
-  }
-
-  InterfaceType _getThisType(KClass cls) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    _ensureThisAndRawType(cls, env);
-    return env.thisType;
-  }
-
-  InterfaceType _getRawType(KClass cls) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    _ensureThisAndRawType(cls, env);
-    return env.rawType;
-  }
-
-  InterfaceType _asInstanceOf(InterfaceType type, KClass cls) {
-    OrderedTypeSet orderedTypeSet = _getOrderedTypeSet(type.element);
-    InterfaceType supertype =
-        orderedTypeSet.asInstanceOf(cls, _getHierarchyDepth(cls));
-    if (supertype != null) {
-      supertype = _substByContext(supertype, type);
-    }
-    return supertype;
-  }
-
-  void _ensureSupertypes(KClass cls, _KClassEnv env) {
-    if (env.orderedTypeSet == null) {
-      _ensureThisAndRawType(cls, env);
-
-      ir.Class node = env.cls;
-
-      if (node.supertype == null) {
-        env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
-      } else {
-        InterfaceType processSupertype(ir.Supertype node) {
-          InterfaceType type = _typeConverter.visitSupertype(node);
-          KClass superclass = type.element;
-          _KClassEnv env = _classEnvs[superclass.classIndex];
-          _ensureSupertypes(superclass, env);
-          return type;
-        }
-
-        env.supertype = processSupertype(node.supertype);
-        LinkBuilder<InterfaceType> linkBuilder =
-            new LinkBuilder<InterfaceType>();
-        if (node.mixedInType != null) {
-          linkBuilder
-              .addLast(env.mixedInType = processSupertype(node.mixedInType));
-        }
-        node.implementedTypes.forEach((ir.Supertype supertype) {
-          linkBuilder.addLast(processSupertype(supertype));
-        });
-        Link<InterfaceType> interfaces = linkBuilder.toLink();
-        OrderedTypeSetBuilder setBuilder =
-            new _KernelOrderedTypeSetBuilder(this, cls);
-        env.orderedTypeSet =
-            setBuilder.createOrderedTypeSet(env.supertype, interfaces);
-      }
-    }
-  }
-
-  OrderedTypeSet _getOrderedTypeSet(KClass cls) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.orderedTypeSet;
-  }
-
-  int _getHierarchyDepth(KClass cls) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.orderedTypeSet.maxDepth;
-  }
-
-  InterfaceType _substByContext(InterfaceType type, InterfaceType context) {
-    return type.subst(
-        context.typeArguments, _getThisType(context.element).typeArguments);
-  }
-
-  InterfaceType _getSuperType(KClass cls) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.supertype;
-  }
-
-  void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    env.orderedTypeSet.supertypes.forEach(f);
-  }
-
-  void _forEachMixin(KClass cls, void f(ClassEntity mixin)) {
-    while (cls != null) {
-      _KClassEnv env = _classEnvs[cls.classIndex];
-      _ensureSupertypes(cls, env);
-      if (env.mixedInType != null) {
-        f(env.mixedInType.element);
-      }
-      cls = env.supertype?.element;
-    }
-  }
-
-  void _forEachClassMember(
-      KClass cls, void f(ClassEntity cls, MemberEntity member)) {
-    _KClassEnv env = _classEnvs[cls.classIndex];
-    env.forEachMember((ir.Member member) {
-      f(cls, getMember(member));
-    });
-    _ensureSupertypes(cls, env);
-    if (env.supertype != null) {
-      _forEachClassMember(env.supertype.element, f);
-    }
-  }
-
-  @override
-  FunctionType getFunctionType(ir.FunctionNode node) {
-    DartType returnType = getDartType(node.returnType);
-    List<DartType> parameterTypes = /*<DartType>*/ [];
-    List<DartType> optionalParameterTypes = /*<DartType>*/ [];
-    for (ir.VariableDeclaration variable in node.positionalParameters) {
-      if (parameterTypes.length == node.requiredParameterCount) {
-        optionalParameterTypes.add(getDartType(variable.type));
-      } else {
-        parameterTypes.add(getDartType(variable.type));
-      }
-    }
-    List<String> namedParameters = <String>[];
-    List<DartType> namedParameterTypes = /*<DartType>*/ [];
-    List<ir.VariableDeclaration> sortedNamedParameters =
-        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
-    for (ir.VariableDeclaration variable in sortedNamedParameters) {
-      namedParameters.add(variable.name);
-      namedParameterTypes.add(getDartType(variable.type));
-    }
-    return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes);
-  }
-
-  LibraryEntity getLibrary(ir.Library node) => _getLibrary(node);
-
-  ir.Library getKernelLibrary(KLibrary entity) =>
-      _libraryEnvs[entity.libraryIndex].library;
-
-  ir.Class getKernelClass(KClass entity) => _classEnvs[entity.classIndex].cls;
-
-  @override
-  Local getLocalFunction(ir.TreeNode node) => _getLocal(node);
-
-  @override
-  ClassEntity getClass(ir.Class node) => _getClass(node);
-
-  @override
-  FieldEntity getField(ir.Field node) => _getField(node);
-
-  TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
-      _getTypeVariable(node);
-
-  @override
-  FunctionEntity getMethod(ir.Procedure node) => _getMethod(node);
-
-  @override
-  MemberEntity getMember(ir.Member node) {
-    if (node is ir.Field) {
-      return _getField(node);
-    } else if (node is ir.Constructor) {
-      return _getConstructor(node);
-    } else if (node is ir.Procedure) {
-      if (node.kind == ir.ProcedureKind.Factory) {
-        return _getConstructor(node);
-      } else {
-        return _getMethod(node);
-      }
-    }
-    throw new UnsupportedError("Unexpected member: $node");
-  }
-
-  @override
-  FunctionEntity getConstructor(ir.Member node) => _getConstructor(node);
-
-  ConstantConstructor _getConstructorConstant(KConstructor constructor) {
-    _ConstructorData data = _memberList[constructor.memberIndex];
-    return data.getConstructorConstant(this, constructor);
-  }
-
-  ConstantExpression _getFieldConstant(KField field) {
-    _FieldData data = _memberList[field.memberIndex];
-    return data.getFieldConstant(this, field);
-  }
-
-  FunctionType _getFunctionType(KFunction function) {
-    _FunctionData data = _memberList[function.memberIndex];
-    return data.getFunctionType(this);
-  }
-
-  ResolutionImpact computeWorldImpact(KMember member) {
-    return _memberList[member.memberIndex].getWorldImpact(this);
-  }
-}
-
-/// Environment for fast lookup of program libraries.
-class _KEnv {
-  final Set<ir.Program> programs = new Set<ir.Program>();
-
-  Map<Uri, _KLibraryEnv> _libraryMap;
-
-  /// TODO(johnniwinther): Handle arbitrary load order if needed.
-  ir.Member get mainMethod => programs.first?.mainMethod;
-
-  void addProgram(ir.Program program) {
-    if (programs.add(program)) {
-      if (_libraryMap != null) {
-        _addLibraries(program);
-      }
-    }
-  }
-
-  void _addLibraries(ir.Program program) {
-    for (ir.Library library in program.libraries) {
-      _libraryMap[library.importUri] = new _KLibraryEnv(library);
-    }
-  }
-
-  void _ensureLibraryMap() {
-    if (_libraryMap == null) {
-      _libraryMap = <Uri, _KLibraryEnv>{};
-      for (ir.Program program in programs) {
-        _addLibraries(program);
-      }
-    }
-  }
-
-  /// Return the [_KLibraryEnv] for the library with the canonical [uri].
-  _KLibraryEnv lookupLibrary(Uri uri) {
-    _ensureLibraryMap();
-    return _libraryMap[uri];
-  }
-
-  /// Calls [f] for each library in this environment.
-  void forEachLibrary(void f(_KLibraryEnv library)) {
-    _ensureLibraryMap();
-    _libraryMap.values.forEach(f);
-  }
-
-  /// Returns the number of libraries in this environment.
-  int get length {
-    _ensureLibraryMap();
-    return _libraryMap.length;
-  }
-}
-
-/// Environment for fast lookup of library classes and members.
-class _KLibraryEnv {
-  final ir.Library library;
-
-  Map<String, _KClassEnv> _classMap;
-  Map<String, ir.Member> _memberMap;
-  Map<String, ir.Member> _setterMap;
-
-  _KLibraryEnv(this.library);
-
-  void _ensureClassMap() {
-    if (_classMap == null) {
-      _classMap = <String, _KClassEnv>{};
-      for (ir.Class cls in library.classes) {
-        _classMap[cls.name] = new _KClassEnv(cls);
-      }
-    }
-  }
-
-  /// Return the [_KClassEnv] for the class [name] in [library].
-  _KClassEnv lookupClass(String name) {
-    _ensureClassMap();
-    return _classMap[name];
-  }
-
-  /// Calls [f] for each class in this library.
-  void forEachClass(void f(_KClassEnv cls)) {
-    _ensureClassMap();
-    _classMap.values.forEach(f);
-  }
-
-  /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupMember(String name, {bool setter: false}) {
-    if (_memberMap == null) {
-      _memberMap = <String, ir.Member>{};
-      _setterMap = <String, ir.Member>{};
-      for (ir.Member member in library.members) {
-        if (member is ir.Procedure) {
-          if (member.kind == ir.ProcedureKind.Setter) {
-            _setterMap[member.name.name] = member;
-          } else {
-            _memberMap[member.name.name] = member;
-          }
-        } else if (member is ir.Field) {
-          _memberMap[member.name.name] = member;
-          if (member.isMutable) {
-            _setterMap[member.name.name] = member;
-          }
-        } else {
-          throw new SpannableAssertionFailure(
-              NO_LOCATION_SPANNABLE, "Unexpected library member node: $member");
-        }
-      }
-    }
-    return _memberMap[name];
-  }
-}
-
-/// Environment for fast lookup of class members.
-class _KClassEnv {
-  final ir.Class cls;
-  final bool isUnnamedMixinApplication;
-
-  InterfaceType thisType;
-  InterfaceType rawType;
-  InterfaceType supertype;
-  InterfaceType mixedInType;
-  OrderedTypeSet orderedTypeSet;
-
-  Map<String, ir.Member> _constructorMap;
-  Map<String, ir.Member> _memberMap;
-  Map<String, ir.Member> _setterMap;
-
-  Iterable<ConstantExpression> _metadata;
-
-  _KClassEnv(this.cls)
-      // TODO(johnniwinther): Change this to use a property on [cls] when such
-      // is added to kernel.
-      : isUnnamedMixinApplication = cls.name.contains('+');
-
-  void _ensureMaps() {
-    if (_memberMap == null) {
-      _memberMap = <String, ir.Member>{};
-      _setterMap = <String, ir.Member>{};
-      _constructorMap = <String, ir.Member>{};
-
-      void addMembers(ir.Class c) {
-        for (ir.Member member in c.members) {
-          if (member is ir.Constructor ||
-              member is ir.Procedure &&
-                  member.kind == ir.ProcedureKind.Factory) {
-            _constructorMap[member.name.name] = member;
-          } else if (member is ir.Procedure) {
-            if (member.kind == ir.ProcedureKind.Setter) {
-              _setterMap[member.name.name] = member;
-            } else {
-              _memberMap[member.name.name] = member;
-            }
-          } else if (member is ir.Field) {
-            _memberMap[member.name.name] = member;
-            if (member.isMutable) {
-              _setterMap[member.name.name] = member;
-            }
-            _memberMap[member.name.name] = member;
-          } else {
-            throw new SpannableAssertionFailure(
-                NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
-          }
-        }
-      }
-
-      if (cls.mixedInClass != null) {
-        addMembers(cls.mixedInClass);
-      }
-      addMembers(cls);
-    }
-  }
-
-  /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupMember(String name, {bool setter: false}) {
-    _ensureMaps();
-    return setter ? _setterMap[name] : _memberMap[name];
-  }
-
-  /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupConstructor(String name) {
-    _ensureMaps();
-    return _constructorMap[name];
-  }
-
-  void forEachMember(f(ir.Member member)) {
-    _ensureMaps();
-    _memberMap.values.forEach(f);
-    for (ir.Member member in _setterMap.values) {
-      if (member is ir.Procedure) {
-        f(member);
-      } else {
-        // Skip fields; these are also in _memberMap.
-      }
-    }
-  }
-
-  Iterable<ConstantExpression> getMetadata(KernelToElementMap elementMap) {
-    if (_metadata == null) {
-      _metadata = elementMap.getMetadata(cls.annotations);
-    }
-    return _metadata;
-  }
-}
-
-class _MemberData {
-  final ir.Member node;
-  Iterable<ConstantExpression> _metadata;
-
-  _MemberData(this.node);
-
-  ResolutionImpact getWorldImpact(KernelToElementMap elementMap) {
-    return buildKernelImpact(node, elementMap);
-  }
-
-  Iterable<ConstantExpression> getMetadata(KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(node.annotations);
-  }
-}
-
-class _FunctionData extends _MemberData {
-  final ir.FunctionNode functionNode;
-  FunctionType _type;
-  CallStructure _callStructure;
-
-  _FunctionData(ir.Member node, this.functionNode) : super(node);
-
-  FunctionType getFunctionType(KernelToElementMap elementMap) {
-    return _type ??= elementMap.getFunctionType(functionNode);
-  }
-
-  CallStructure get callStructure {
-    return _callStructure ??= new CallStructure(
-        functionNode.positionalParameters.length +
-            functionNode.namedParameters.length,
-        functionNode.namedParameters.map((d) => d.name).toList());
-  }
-}
-
-class _ConstructorData extends _FunctionData {
-  ConstantConstructor _constantConstructor;
-
-  _ConstructorData(ir.Member node, ir.FunctionNode functionNode)
-      : super(node, functionNode);
-
-  ConstantConstructor getConstructorConstant(
-      KernelToElementMap elementMap, KConstructor constructor) {
-    if (_constantConstructor == null) {
-      if (node is ir.Constructor && constructor.isConst) {
-        _constantConstructor =
-            new Constantifier(elementMap).computeConstantConstructor(node);
-      } else {
-        throw new SpannableAssertionFailure(
-            constructor,
-            "Unexpected constructor $constructor in "
-            "KernelWorldBuilder._getConstructorConstant");
-      }
-    }
-    return _constantConstructor;
-  }
-}
-
-class _FieldData extends _MemberData {
-  ConstantExpression _constant;
-
-  _FieldData(ir.Field node) : super(node);
-
-  ir.Field get node => super.node;
-
-  ConstantExpression getFieldConstant(
-      KernelToElementMap elementMap, KField field) {
-    if (_constant == null) {
-      if (node.isConst) {
-        _constant = new Constantifier(elementMap).visit(node.initializer);
-      } else {
-        throw new SpannableAssertionFailure(
-            field,
-            "Unexpected field $field in "
-            "KernelWorldBuilder._getConstructorConstant");
-      }
-    }
-    return _constant;
-  }
-}
-
-class KernelElementEnvironment implements ElementEnvironment {
-  final KernelToElementMap elementMap;
-
-  KernelElementEnvironment(this.elementMap);
-
-  @override
-  DartType get dynamicType => const DynamicType();
-
-  @override
-  LibraryEntity get mainLibrary => elementMap._mainLibrary;
-
-  @override
-  FunctionEntity get mainFunction => elementMap._mainFunction;
-
-  @override
-  Iterable<LibraryEntity> get libraries => elementMap._libraries;
-
-  @override
-  InterfaceType getThisType(ClassEntity cls) {
-    return elementMap._getThisType(cls);
-  }
-
-  @override
-  InterfaceType getRawType(ClassEntity cls) {
-    return elementMap._getRawType(cls);
-  }
-
-  @override
-  bool isGenericClass(ClassEntity cls) {
-    return getThisType(cls).typeArguments.isNotEmpty;
-  }
-
-  @override
-  DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     throw new UnimplementedError(
-        'KernelElementEnvironment.getTypeVariableBound');
+        'Unimplemented constant expression $node (${node.runtimeType})');
   }
 
   @override
-  InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments) {
-    return new InterfaceType(cls, typeArguments);
-  }
-
-  @override
-  bool isSubtype(DartType a, DartType b) {
-    return elementMap.types.isSubtype(a, b);
-  }
-
-  @override
-  FunctionType getFunctionType(KFunction function) {
-    return elementMap._getFunctionType(function);
-  }
-
-  @override
-  FunctionType getLocalFunctionType(KLocalFunction function) {
-    return function.functionType;
-  }
-
-  @override
-  DartType getUnaliasedType(DartType type) => type;
-
-  @override
-  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
-      {bool required: false}) {
-    ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
-    if (constructor == null && required) {
-      throw new SpannableAssertionFailure(
-          CURRENT_ELEMENT_SPANNABLE,
-          "The constructor '$name' was not found in class '${cls.name}' "
-          "in library ${cls.library.canonicalUri}.");
+  ConstantExpression visitStaticGet(ir.StaticGet node) {
+    if (node.target is ir.Field) {
+      return new FieldConstantExpression(elementAdapter.getField(node.target));
+    } else if (node.target is ir.Procedure) {
+      FunctionEntity function = elementAdapter.getMethod(node.target);
+      DartType type = elementAdapter.getFunctionType(node.target.function);
+      return new FunctionConstantExpression(function, type);
     }
-    return constructor;
+    throw new UnimplementedError(
+        'Unexpected constant expression $node (${node.runtimeType})');
   }
 
   @override
-  MemberEntity lookupClassMember(ClassEntity cls, String name,
-      {bool setter: false, bool required: false}) {
-    MemberEntity member =
-        elementMap.lookupClassMember(cls, name, setter: setter);
-    if (member == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-          "The member '$name' was not found in ${cls.name}.");
-    }
-    return member;
+  ConstantExpression visitNullLiteral(ir.NullLiteral node) {
+    return new NullConstantExpression();
   }
 
   @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap._getSuperType(cls)?.element;
+  ConstantExpression visitBoolLiteral(ir.BoolLiteral node) {
+    return new BoolConstantExpression(node.value);
   }
 
   @override
-  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
-    elementMap._forEachSupertype(cls, f);
+  ConstantExpression visitIntLiteral(ir.IntLiteral node) {
+    return new IntConstantExpression(node.value);
   }
 
   @override
-  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
-    elementMap._forEachMixin(cls, f);
+  ConstantExpression visitDoubleLiteral(ir.DoubleLiteral node) {
+    return new DoubleConstantExpression(node.value);
   }
 
   @override
-  void forEachClassMember(
-      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    elementMap._forEachClassMember(cls, f);
+  ConstantExpression visitStringLiteral(ir.StringLiteral node) {
+    return new StringConstantExpression(node.value);
   }
 
   @override
-  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
-      {bool setter: false, bool required: false}) {
-    MemberEntity member =
-        elementMap.lookupLibraryMember(library, name, setter: setter);
-    if (member == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-          "The member '${name}' was not found in library '${library.name}'.");
-    }
-    return member;
+  ConstantExpression visitSymbolLiteral(ir.SymbolLiteral node) {
+    return new SymbolConstantExpression(node.value);
   }
 
   @override
-  ClassEntity lookupClass(LibraryEntity library, String name,
-      {bool required: false}) {
-    ClassEntity cls = elementMap.lookupClass(library, name);
-    if (cls == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-          "The class '$name'  was not found in library '${library.name}'.");
-    }
-    return cls;
+  ConstantExpression visitStringConcatenation(ir.StringConcatenation node) {
+    return new ConcatenateConstantExpression(_computeList(node.expressions));
   }
 
   @override
-  void forEachClass(KLibrary library, void f(ClassEntity cls)) {
-    elementMap._forEachClass(library, f);
-  }
-
-  @override
-  LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
-    LibraryEntity library = elementMap.lookupLibrary(uri);
-    if (library == null && required) {
-      throw new SpannableAssertionFailure(
-          CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
-    }
-    return library;
-  }
-
-  @override
-  CallStructure getCallStructure(KFunction function) {
-    _FunctionData data = elementMap._memberList[function.memberIndex];
-    return data.callStructure;
-  }
-
-  @override
-  bool isDeferredLoadLibraryGetter(KMember member) {
-    // TODO(johnniwinther): Support these.
-    return false;
-  }
-
-  @override
-  Iterable<ConstantValue> getMemberMetadata(KMember member) {
-    List<ConstantValue> values = <ConstantValue>[];
-    _MemberData memberData = elementMap._memberList[member.memberIndex];
-    for (ConstantExpression constant in memberData.getMetadata(elementMap)) {
-      values.add(elementMap.constantEnvironment.getConstantValue(constant));
-    }
-    return values;
-  }
-}
-
-/// Visitor that converts kernel dart types into [DartType].
-class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
-  final KernelToElementMap elementAdapter;
-  bool topLevel = true;
-
-  DartTypeConverter(this.elementAdapter);
-
-  DartType convert(ir.DartType type) {
-    topLevel = true;
-    return type.accept(this);
-  }
-
-  /// Visit a inner type.
-  DartType visitType(ir.DartType type) {
-    topLevel = false;
-    return type.accept(this);
-  }
-
-  InterfaceType visitSupertype(ir.Supertype node) {
-    ClassEntity cls = elementAdapter.getClass(node.classNode);
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
-  }
-
-  List<DartType> visitTypes(List<ir.DartType> types) {
-    topLevel = false;
-    return new List.generate(
-        types.length, (int index) => types[index].accept(this));
-  }
-
-  @override
-  DartType visitTypeParameterType(ir.TypeParameterType node) {
-    return new TypeVariableType(elementAdapter.getTypeVariable(node.parameter));
-  }
-
-  @override
-  DartType visitFunctionType(ir.FunctionType node) {
-    return new FunctionType(
-        visitType(node.returnType),
-        visitTypes(node.positionalParameters
-            .take(node.requiredParameterCount)
-            .toList()),
-        visitTypes(node.positionalParameters
-            .skip(node.requiredParameterCount)
-            .toList()),
-        node.namedParameters.map((n) => n.name).toList(),
-        node.namedParameters.map((n) => visitType(n.type)).toList());
-  }
-
-  @override
-  DartType visitInterfaceType(ir.InterfaceType node) {
-    ClassEntity cls = elementAdapter.getClass(node.classNode);
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
-  }
-
-  @override
-  DartType visitVoidType(ir.VoidType node) {
-    return const VoidType();
-  }
-
-  @override
-  DartType visitDynamicType(ir.DynamicType node) {
-    return const DynamicType();
-  }
-
-  @override
-  DartType visitInvalidType(ir.InvalidType node) {
-    if (topLevel) {
+  ConstantExpression visitMapLiteral(ir.MapLiteral node) {
+    if (!node.isConst) {
       throw new UnimplementedError(
-          "Outermost invalid types not currently supported");
+          'Unexpected constant expression $node (${node.runtimeType})');
     }
-    // Nested invalid types are treated as `dynamic`.
-    return const DynamicType();
+    DartType keyType = elementAdapter.getDartType(node.keyType);
+    DartType valueType = elementAdapter.getDartType(node.valueType);
+    List<ConstantExpression> keys = <ConstantExpression>[];
+    List<ConstantExpression> values = <ConstantExpression>[];
+    for (ir.MapEntry entry in node.entries) {
+      keys.add(visit(entry.key));
+      values.add(visit(entry.value));
+    }
+    return new MapConstantExpression(
+        _commonElements.mapType(keyType, valueType), keys, values);
   }
-}
-
-/// [native.BehaviorBuilder] for kernel based elements.
-class KernelBehaviorBuilder extends native.BehaviorBuilder {
-  final CommonElements commonElements;
-  final ConstantEnvironment constants;
-
-  KernelBehaviorBuilder(
-    this.commonElements,
-    this.constants,
-  );
 
   @override
-  bool get trustJSInteropTypeAnnotations {
+  ConstantExpression visitListLiteral(ir.ListLiteral node) {
+    if (!node.isConst) {
+      throw new UnimplementedError(
+          'Unexpected constant expression $node (${node.runtimeType})');
+    }
+    DartType elementType = elementAdapter.getDartType(node.typeArgument);
+    List<ConstantExpression> values = <ConstantExpression>[];
+    for (ir.Expression value in node.expressions) {
+      values.add(visit(value));
+    }
+    return new ListConstantExpression(
+        _commonElements.listType(elementType), values);
+  }
+
+  @override
+  ConstantExpression visitConditionalExpression(ir.ConditionalExpression node) {
+    ConstantExpression condition = visit(node.condition);
+    ConstantExpression trueExp = visit(node.then);
+    ConstantExpression falseExp = visit(node.otherwise);
+    return new ConditionalConstantExpression(condition, trueExp, falseExp);
+  }
+
+  @override
+  ConstantExpression visitPropertyGet(ir.PropertyGet node) {
+    if (node.name.name != 'length') {
+      throw new UnimplementedError(
+          'Unexpected constant expression $node (${node.runtimeType})');
+    }
+    ConstantExpression receiver = visit(node.receiver);
+    return new StringLengthConstantExpression(receiver);
+  }
+
+  @override
+  ConstantExpression visitMethodInvocation(ir.MethodInvocation node) {
+    // Method invocations are generally not constant expressions but unary
+    // and binary expressions are encoded as method invocations in kernel.
+    if (node.arguments.named.isNotEmpty) {
+      throw new UnimplementedError(
+          'Unexpected constant expression $node (${node.runtimeType})');
+    }
+    if (node.arguments.positional.length == 0) {
+      UnaryOperator operator;
+      if (node.name.name == UnaryOperator.NEGATE.selectorName) {
+        operator = UnaryOperator.NEGATE;
+      } else {
+        operator = UnaryOperator.parse(node.name.name);
+      }
+      if (operator != null) {
+        ConstantExpression expression = visit(node.receiver);
+        return new UnaryConstantExpression(operator, expression);
+      }
+    }
+    if (node.arguments.positional.length == 1) {
+      BinaryOperator operator = BinaryOperator.parse(node.name.name);
+      if (operator != null) {
+        ConstantExpression left = visit(node.receiver);
+        ConstantExpression right = visit(node.arguments.positional.single);
+        return new BinaryConstantExpression(left, operator, right);
+      }
+    }
     throw new UnimplementedError(
-        "KernelNativeBehaviorComputer.trustJSInteropTypeAnnotations");
+        'Unexpected constant expression $node (${node.runtimeType})');
   }
 
   @override
-  DiagnosticReporter get reporter {
-    throw new UnimplementedError("KernelNativeBehaviorComputer.reporter");
-  }
-
-  @override
-  NativeData get nativeData {
-    throw new UnimplementedError("KernelNativeBehaviorComputer.nativeData");
-  }
-}
-
-/// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
-/// [_EvaluationEnvironment] for the evaluation.
-class KernelConstantEnvironment implements ConstantEnvironment {
-  KernelToElementMap _worldBuilder;
-  Map<ConstantExpression, ConstantValue> _valueMap =
-      <ConstantExpression, ConstantValue>{};
-
-  KernelConstantEnvironment(this._worldBuilder);
-
-  @override
-  ConstantSystem get constantSystem => const JavaScriptConstantSystem();
-
-  @override
-  ConstantValue getConstantValueForVariable(VariableElement element) {
+  ConstantExpression visitStaticInvocation(ir.StaticInvocation node) {
+    MemberEntity member = elementAdapter.getMember(node.target);
+    if (member == _commonElements.identicalFunction) {
+      if (node.arguments.positional.length == 2 &&
+          node.arguments.named.isEmpty) {
+        ConstantExpression left = visit(node.arguments.positional[0]);
+        ConstantExpression right = visit(node.arguments.positional[1]);
+        return new IdenticalConstantExpression(left, right);
+      }
+    } else if (member.name == 'fromEnvironment' &&
+        node.arguments.positional.length == 1) {
+      ConstantExpression name = visit(node.arguments.positional.single);
+      ConstantExpression defaultValue;
+      if (node.arguments.named.length == 1) {
+        if (node.arguments.named.single.name != 'defaultValue') {
+          throw new UnimplementedError(
+              'Unexpected constant expression $node (${node.runtimeType})');
+        }
+        defaultValue = visit(node.arguments.named.single.value);
+      }
+      if (member.enclosingClass == _commonElements.boolClass) {
+        return new BoolFromEnvironmentConstantExpression(name, defaultValue);
+      } else if (member.enclosingClass == _commonElements.intClass) {
+        return new IntFromEnvironmentConstantExpression(name, defaultValue);
+      } else if (member.enclosingClass == _commonElements.stringClass) {
+        return new StringFromEnvironmentConstantExpression(name, defaultValue);
+      }
+    }
     throw new UnimplementedError(
-        "KernelConstantEnvironment.getConstantValueForVariable");
+        'Unexpected constant expression $node (${node.runtimeType})');
   }
 
   @override
-  ConstantValue getConstantValue(ConstantExpression expression) {
-    return _valueMap.putIfAbsent(expression, () {
-      return expression.evaluate(
-          new _EvaluationEnvironment(_worldBuilder), constantSystem);
+  ConstantExpression visitLogicalExpression(ir.LogicalExpression node) {
+    BinaryOperator operator = BinaryOperator.parse(node.operator);
+    if (operator != null) {
+      ConstantExpression left = visit(node.left);
+      ConstantExpression right = visit(node.right);
+      return new BinaryConstantExpression(left, operator, right);
+    }
+    throw new UnimplementedError(
+        'Unexpected constant expression $node (${node.runtimeType})');
+  }
+
+  @override
+  ConstantExpression visitLet(ir.Let node) {
+    if (node.body is ir.ConditionalExpression) {
+      ir.ConditionalExpression conditional = node.body;
+      if (conditional.condition is ir.MethodInvocation) {
+        ir.MethodInvocation methodInvocation = conditional.condition;
+        if (methodInvocation.name.name == BinaryOperator.EQ.name &&
+            methodInvocation.receiver is ir.VariableGet &&
+            methodInvocation.arguments.positional.single is ir.NullLiteral &&
+            conditional.otherwise is ir.VariableGet) {
+          ir.VariableGet variableGet1 = methodInvocation.receiver;
+          ir.VariableGet variableGet2 = conditional.otherwise;
+          if (variableGet1.variable == node.variable &&
+              variableGet2.variable == node.variable) {
+            // We have <left> ?? <right> encoded as:
+            //    let #1 = <left> in #1 == null ? <right> : #1
+            ConstantExpression left = visit(node.variable.initializer);
+            ConstantExpression right = visit(conditional.then);
+            return new BinaryConstantExpression(
+                left, BinaryOperator.IF_NULL, right);
+          }
+        }
+      }
+    }
+    throw new UnimplementedError(
+        'Unexpected constant expression $node (${node.runtimeType})');
+  }
+
+  /// Compute the [ConstantConstructor] corresponding to the const constructor
+  /// [node].
+  ConstantConstructor computeConstantConstructor(ir.Constructor node) {
+    assert(node.isConst);
+    ir.Class cls = node.enclosingClass;
+    InterfaceType type = elementAdapter.elementEnvironment
+        .getThisType(elementAdapter.getClass(cls));
+
+    Map<dynamic, ConstantExpression> defaultValues =
+        <dynamic, ConstantExpression>{};
+    int parameterIndex = 0;
+    node.function.positionalParameters
+        .forEach((ir.VariableDeclaration parameter) {
+      if (parameterIndex >= node.function.requiredParameterCount) {
+        if (parameter.initializer != null) {
+          defaultValues[parameterIndex] = parameter.initializer.accept(this);
+        } else {
+          defaultValues[parameterIndex] = new NullConstantExpression();
+        }
+      }
+      parameterIndex++;
     });
-  }
+    node.function.namedParameters.forEach((ir.VariableDeclaration parameter) {
+      defaultValues[parameter.name] = parameter.initializer.accept(this);
+    });
 
-  @override
-  bool hasConstantValue(ConstantExpression expression) {
-    throw new UnimplementedError("KernelConstantEnvironment.hasConstantValue");
-  }
-}
+    bool isRedirecting = node.initializers.length == 1 &&
+        node.initializers.single is ir.RedirectingInitializer;
 
-/// Evaluation environment used for computing [ConstantValue]s for
-/// kernel based [ConstantExpression]s.
-class _EvaluationEnvironment implements Environment {
-  final KernelToElementMap _worldBuilder;
+    Map<FieldEntity, ConstantExpression> fieldMap =
+        <FieldEntity, ConstantExpression>{};
 
-  _EvaluationEnvironment(this._worldBuilder);
-
-  @override
-  CommonElements get commonElements {
-    throw new UnimplementedError("_EvaluationEnvironment.commonElements");
-  }
-
-  @override
-  InterfaceType substByContext(InterfaceType base, InterfaceType target) {
-    if (base.typeArguments.isNotEmpty) {
-      throw new UnimplementedError("_EvaluationEnvironment.substByContext");
+    void registerField(ir.Field field, ConstantExpression constant) {
+      fieldMap[elementAdapter.getField(field)] = constant;
     }
-    return base;
-  }
 
-  @override
-  ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
-    return _worldBuilder._getConstructorConstant(constructor);
-  }
+    if (!isRedirecting) {
+      for (ir.Field field in cls.fields) {
+        if (field.initializer != null) {
+          registerField(field, field.initializer.accept(this));
+        }
+      }
+    }
 
-  @override
-  ConstantExpression getFieldConstant(FieldEntity field) {
-    return _worldBuilder._getFieldConstant(field);
-  }
-
-  @override
-  ConstantExpression getLocalConstant(Local local) {
-    throw new UnimplementedError("_EvaluationEnvironment.getLocalConstant");
-  }
-
-  @override
-  String readFromEnvironment(String name) {
-    throw new UnimplementedError("_EvaluationEnvironment.readFromEnvironment");
-  }
-}
-
-class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
-  final KernelToElementMap elementMap;
-
-  KernelResolutionWorldBuilder(this.elementMap, NativeBasicData nativeBasicData,
-      SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(elementMap.elementEnvironment, elementMap.commonElements,
-            nativeBasicData, selectorConstraintsStrategy);
-
-  @override
-  Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
-    return elementMap._getOrderedTypeSet(cls).supertypes;
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap._getSuperType(cls)?.element;
-  }
-
-  @override
-  bool implementsFunction(ClassEntity cls) {
-    // TODO(johnniwinther): Implement this.
-    return false;
-  }
-
-  @override
-  int getHierarchyDepth(ClassEntity cls) {
-    return elementMap._getHierarchyDepth(cls);
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassEntity cls) {
-    // TODO(johnniwinther): Implement this.
-    return null;
-  }
-
-  @override
-  bool validateClass(ClassEntity cls) => true;
-
-  @override
-  bool checkClass(ClassEntity cls) => true;
-}
-
-// Interface for testing equivalence of Kernel-based entities.
-class WorldDeconstructionForTesting {
-  final KernelToElementMap builder;
-
-  WorldDeconstructionForTesting(this.builder);
-
-  KClass getSuperclassForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
-    ir.Supertype supertype = env.cls.supertype;
-    if (supertype == null) return null;
-    return builder.getClass(supertype.classNode);
-  }
-
-  bool isUnnamedMixinApplication(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
-    return env.isUnnamedMixinApplication;
-  }
-
-  InterfaceType getMixinTypeForClass(KClass cls) {
-    _KClassEnv env = builder._classEnvs[cls.classIndex];
-    ir.Supertype mixedInType = env.cls.mixedInType;
-    if (mixedInType == null) return null;
-    return builder.createInterfaceType(
-        mixedInType.classNode, mixedInType.typeArguments);
+    ConstructedConstantExpression superConstructorInvocation;
+    for (ir.Initializer initializer in node.initializers) {
+      if (initializer is ir.FieldInitializer) {
+        registerField(initializer.field, initializer.value.accept(this));
+      } else if (initializer is ir.SuperInitializer) {
+        superConstructorInvocation = _computeConstructorInvocation(
+            initializer.target, initializer.arguments);
+      } else if (initializer is ir.RedirectingInitializer) {
+        superConstructorInvocation = _computeConstructorInvocation(
+            initializer.target, initializer.arguments);
+      } else {
+        throw new UnsupportedError(
+            'Unexpected initializer $node (${node.runtimeType})');
+      }
+    }
+    if (isRedirecting) {
+      return new RedirectingGenerativeConstantConstructor(
+          defaultValues, superConstructorInvocation);
+    } else {
+      return new GenerativeConstantConstructor(
+          type, defaultValues, fieldMap, superConstructorInvocation);
+    }
   }
 }

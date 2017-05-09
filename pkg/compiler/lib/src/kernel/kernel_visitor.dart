@@ -31,8 +31,6 @@ import '../constants/expressions.dart'
         IntFromEnvironmentConstantExpression,
         StringFromEnvironmentConstantExpression,
         TypeConstantExpression;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
     show
@@ -52,12 +50,14 @@ import '../elements/elements.dart'
         LocalFunctionElement,
         LocalVariableElement,
         MethodElement,
-        Name,
         ParameterElement,
         PrefixElement,
         TypeVariableElement;
-import '../resolution/operators.dart'
+import '../elements/names.dart' show Name;
+import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../resolution/semantic_visitor.dart'
     show
         BaseImplementationOfCompoundsMixin,

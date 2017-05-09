@@ -14,7 +14,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
-    defineReflectiveTests(KeywordContributorTest_Driver);
   });
 }
 
@@ -1574,6 +1573,34 @@ class A {
     expect(suggestions, isEmpty);
   }
 
+  test_method_param_named_init() async {
+    addTestSource('class A { foo({bool bar: ^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_named_init2() async {
+    addTestSource('class A { foo({bool bar: f^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_positional_init() async {
+    addTestSource('class A { foo([bool bar = ^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_positional_init2() async {
+    addTestSource('class A { foo([bool bar = f^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
   test_named_constructor_invocation() async {
     addTestSource('void main() {new Future.^}');
     await computeSuggestions();
@@ -1774,10 +1801,4 @@ class A {
     if (iter2.any((c) => !iter1.contains(c))) return false;
     return true;
   }
-}
-
-@reflectiveTest
-class KeywordContributorTest_Driver extends KeywordContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

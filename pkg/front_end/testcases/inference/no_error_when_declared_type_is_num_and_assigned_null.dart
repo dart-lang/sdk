@@ -9,3 +9,7 @@ test1() {
   num x = 3;
   x = null;
 }
+
+main() {
+  test1();
+}

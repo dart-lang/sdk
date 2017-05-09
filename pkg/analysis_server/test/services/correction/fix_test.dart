@@ -31,8 +31,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
     defineReflectiveTests(LintFixTest);
-    defineReflectiveTests(FixProcessorTest_Driver);
-    defineReflectiveTests(LintFixTest_Driver);
   });
 }
 
@@ -55,6 +53,7 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
   String flutterPkgLibPath = '/packages/flutter/lib';
 
   Fix fix;
+
   SourceChange change;
   String resultCode;
 
@@ -580,7 +579,7 @@ main() {
 library libA;
 import 'package:meta/meta.dart';
 
-typedef int Callback(a,b,c);
+typedef int Callback(int a, String b,c);
 
 class A {
   A({@required Callback callback}) {}
@@ -600,7 +599,7 @@ main() {
 import 'libA.dart';
 
 main() {
-  A a = new A(callback: (a, b, c) {});
+  A a = new A(callback: (int a, String b, c) {});
 }
 ''',
         target: '/test.dart');
@@ -5886,12 +5885,6 @@ class Required {
 }
 
 @reflectiveTest
-class FixProcessorTest_Driver extends FixProcessorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}
-
-@reflectiveTest
 class LintFixTest extends BaseFixProcessorTest {
   AnalysisError error;
 
@@ -6866,12 +6859,6 @@ Function finalVar() {
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
-}
-
-@reflectiveTest
-class LintFixTest_Driver extends LintFixTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class _DartFixContextImpl implements DartFixContext {

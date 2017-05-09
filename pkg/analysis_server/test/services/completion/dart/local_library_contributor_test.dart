@@ -14,7 +14,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
-    defineReflectiveTests(LocalLibraryContributorTest_Driver);
   });
 }
 
@@ -306,10 +305,4 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
-}
-
-@reflectiveTest
-class LocalLibraryContributorTest_Driver extends LocalLibraryContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

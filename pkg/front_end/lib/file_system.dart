@@ -39,12 +39,20 @@ abstract class FileSystemEntity {
   /// [FileSystem.entityForUri], since the URI might have been normalized.
   Uri get uri;
 
+  /// Whether this file system entity exists.
+  Future<bool> exists();
+
+  /// Extracts the last-modification time of the file system entity, if it
+  /// exists and it is a file, otherwise the future is completed with
+  /// [FileSystemException].
+  Future<DateTime> lastModified();
+
   /// Attempts to access this file system entity as a file and read its contents
   /// as raw bytes.
   ///
   /// If an error occurs while attempting to read the file (e.g. because no such
   /// file exists, or the entity is a directory), the future is completed with
-  /// an [Exception].
+  /// [FileSystemException].
   Future<List<int>> readAsBytes();
 
   /// Attempts to access this file system entity as a file and read its contents
@@ -54,14 +62,19 @@ abstract class FileSystemEntity {
   ///
   /// If an error occurs while attempting to read the file (e.g. because no such
   /// file exists, the entity is a directory, or the file is not valid UTF-8),
-  /// the future is completed with an [Exception].
+  /// the future is completed with [FileSystemException].
   Future<String> readAsString();
+}
 
-  /// Whether this file system entity exists.
-  Future<bool> exists();
+/**
+ * Base class for all file system exceptions.
+ */
+class FileSystemException implements Exception {
+  final Uri uri;
+  final String message;
 
-  /// Extracts the last-modification time of the file system entity, if it
-  /// exists and it is a file, otherwise the future is completed with an
-  /// [Exception].
-  Future<DateTime> lastModified();
+  FileSystemException(this.uri, this.message);
+
+  @override
+  String toString() => 'FileSystemException(uri=$uri; message=$message)';
 }

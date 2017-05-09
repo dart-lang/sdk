@@ -67,30 +67,34 @@ class MemoryFileSystemEntity implements FileSystemEntity {
       identical(other._fileSystem, _fileSystem);
 
   @override
-  Future<List<int>> readAsBytes() async {
-    List<int> contents = _fileSystem._files[uri];
-    if (contents != null) {
-      return contents.toList();
-    }
-    throw new Exception('File does not exist');
-  }
-
-  @override
-  Future<String> readAsString() async {
-    List<int> contents = await readAsBytes();
-    return UTF8.decode(contents);
-  }
-
-  @override
   Future<bool> exists() async => _fileSystem._files[uri] != null;
 
   @override
   Future<DateTime> lastModified() async {
     var lastModified = _fileSystem._lastModified[uri];
     if (lastModified == null) {
-      throw new Exception('File does not exist');
+      throw new FileSystemException(uri, 'File $uri does not exist.');
     }
     return lastModified;
+  }
+
+  @override
+  Future<List<int>> readAsBytes() async {
+    List<int> contents = _fileSystem._files[uri];
+    if (contents == null) {
+      throw new FileSystemException(uri, 'File $uri does not exist.');
+    }
+    return contents.toList();
+  }
+
+  @override
+  Future<String> readAsString() async {
+    List<int> bytes = await readAsBytes();
+    try {
+      return UTF8.decode(bytes);
+    } on FormatException catch (e) {
+      throw new FileSystemException(uri, e.message);
+    }
   }
 
   /// Writes the given raw bytes to this file system entity.

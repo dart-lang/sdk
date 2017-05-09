@@ -211,7 +211,7 @@ template("mac_toolchain") {
 mac_toolchain("clang_x64") {
   toolchain_cpu = "x64"
   toolchain_os = "mac"
-  prefix = rebase_path("//third_party/llvm-build/Release+Asserts/bin",
+  prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-darwin/bin",
                        root_build_dir)
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
@@ -221,10 +221,10 @@ mac_toolchain("clang_x64") {
 }
 
 # Toolchain used for Mac host (i386) targets.
-mac_toolchain("clang_i386") {
+mac_toolchain("clang_x86") {
   toolchain_cpu = "i386"
   toolchain_os = "mac"
-  prefix = rebase_path("//third_party/llvm-build/Release+Asserts/bin",
+  prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-darwin/bin",
                        root_build_dir)
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"

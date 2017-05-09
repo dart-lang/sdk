@@ -1,0 +1,27 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object> extends core::Object {
+  final field self::A::T x = null;
+  final field self::A::T w = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A<core::int> {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → dynamic
+    return 3;
+  get w() → dynamic
+    return "hello";
+}
+static method foo() → dynamic {
+  core::String y = new self::B::•().x;
+  core::int z = new self::B::•().x;
+}
+static method main() → dynamic {
+  self::foo();
+}

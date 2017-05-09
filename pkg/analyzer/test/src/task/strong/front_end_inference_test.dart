@@ -16,6 +16,7 @@ import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     as fasta;
+import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/kernel.dart' as fasta;
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
@@ -31,6 +32,9 @@ main() {
     });
   }, timeout: new Timeout(const Duration(seconds: 60)));
 }
+
+/// Set this to `true` to cause expectation comments to be updated.
+const bool fixProblems = false;
 
 @reflectiveTest
 class RunFrontEndInferenceTest {
@@ -85,7 +89,7 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
     Uri uri = provider.pathContext.toUri(path);
 
     List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
-    fasta.CompilerContext.current.uriToSource[uri.toString()] =
+    fasta.CompilerContext.current.uriToSource[relativizeUri(uri).toString()] =
         new fasta.Source(lineStarts, UTF8.encode(code));
 
     var validation = new fasta.ValidatingInstrumentation();
@@ -99,7 +103,12 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
     validation.finish();
 
     if (validation.hasProblems) {
-      return validation.problemsAsString;
+      if (fixProblems) {
+        validation.fixSource(uri);
+        return null;
+      } else {
+        return validation.problemsAsString;
+      }
     } else {
       return null;
     }
@@ -239,7 +248,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     if (type is InterfaceType) {
       if (type.typeParameters.isNotEmpty &&
           node.constructorName.type.typeArguments == null) {
-        _recordTypeArguments(node.offset, type.typeArguments);
+        _recordTypeArguments(node.constructorName.offset, type.typeArguments);
       }
     }
   }

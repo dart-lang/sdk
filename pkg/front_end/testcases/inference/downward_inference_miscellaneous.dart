@@ -27,6 +27,6 @@ void main() {
   }
   {
     int f(int x) => 0;
-    A<int> a = /*@typeArgs=int*/ new A(f);
+    A<int> a = new /*@typeArgs=int*/ A(f);
   }
 }

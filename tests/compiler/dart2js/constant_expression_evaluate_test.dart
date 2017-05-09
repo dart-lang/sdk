@@ -39,7 +39,7 @@ class ConstantData {
   const ConstantData(this.code, this.expectedValues);
 }
 
-class MemoryEnvironment implements Environment {
+class MemoryEnvironment implements EvaluationEnvironment {
   final Compiler _compiler;
   final Map<String, String> env;
 
@@ -281,7 +281,7 @@ Future testData(TestData data) async {
     FieldElement field = library.localLookup(name);
     ConstantExpression constant = field.constant;
     data.expectedValues.forEach((Map<String, String> env, String expectedText) {
-      Environment environment = new MemoryEnvironment(compiler, env);
+      EvaluationEnvironment environment = new MemoryEnvironment(compiler, env);
       ConstantValue value =
           constant.evaluate(environment, DART_CONSTANT_SYSTEM);
       String valueText = value.toStructuredText();

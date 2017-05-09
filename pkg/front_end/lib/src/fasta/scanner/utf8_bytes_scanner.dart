@@ -198,24 +198,24 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   }
 
   @override
-  StringToken createSubstringToken(TokenType info, int start, bool asciiOnly,
+  StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new StringToken.fromUtf8Bytes(
-        info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   @override
-  CommentToken createCommentToken(TokenType info, int start, bool asciiOnly,
+  CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new CommentToken.fromUtf8Bytes(
-        info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   @override
-  DartDocToken createDartDocToken(TokenType info, int start, bool asciiOnly,
+  DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new DartDocToken.fromUtf8Bytes(
-        info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
   bool atEndOfFile() => byteOffset >= bytes.length - 1;

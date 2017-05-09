@@ -6,6 +6,8 @@ library fasta.compiler_context;
 
 import 'dart:async' show Zone, runZoned;
 
+import 'package:front_end/file_system.dart';
+import 'package:front_end/physical_file_system.dart';
 import 'package:kernel/ast.dart' show Source;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
@@ -18,6 +20,7 @@ final CompilerContext rootContext =
     new CompilerContext(CompilerCommandLine.forRootContext());
 
 class CompilerContext {
+  final FileSystem fileSystem = PhysicalFileSystem.instance;
   final CompilerCommandLine options;
 
   final Map<String, Source> uriToSource = <String, Source>{};

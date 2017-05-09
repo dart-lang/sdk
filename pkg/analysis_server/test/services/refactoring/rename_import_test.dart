@@ -12,7 +12,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameImportTest);
-    defineReflectiveTests(RenameImportTest_Driver);
   });
 }
 
@@ -228,10 +227,4 @@ main() {
         findNodeAtString(search, (node) => node is ImportDirective);
     createRenameRefactoringForElement(directive.element);
   }
-}
-
-@reflectiveTest
-class RenameImportTest_Driver extends RenameImportTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

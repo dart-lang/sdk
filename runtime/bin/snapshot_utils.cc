@@ -347,7 +347,20 @@ void Snapshot::GenerateScript(const char* snapshot_filename) {
 
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
+  // Snapshots with code are not supported on IA32 or DBC.
+  uint8_t* isolate_buffer = NULL;
+  intptr_t isolate_size = 0;
+
+  Dart_Handle result =
+      Dart_CreateSnapshot(NULL, NULL, &isolate_buffer, &isolate_size);
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+
+  WriteAppSnapshot(snapshot_filename, NULL, 0, NULL, 0, isolate_buffer,
+                   isolate_size, NULL, 0);
+#else
   uint8_t* isolate_data_buffer = NULL;
   intptr_t isolate_data_size = 0;
   uint8_t* isolate_instructions_buffer = NULL;
@@ -361,19 +374,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   WriteAppSnapshot(snapshot_filename, NULL, 0, NULL, 0, isolate_data_buffer,
                    isolate_data_size, isolate_instructions_buffer,
                    isolate_instructions_size);
-#else
-  uint8_t* isolate_buffer = NULL;
-  intptr_t isolate_size = 0;
-
-  Dart_Handle result =
-      Dart_CreateSnapshot(NULL, NULL, &isolate_buffer, &isolate_size);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-
-  WriteAppSnapshot(snapshot_filename, NULL, 0, NULL, 0, isolate_buffer,
-                   isolate_size, NULL, 0);
-#endif  // defined(TARGET_ARCH_X64)
+#endif
 }
 
 

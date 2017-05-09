@@ -14,7 +14,6 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberReferencesTest);
-    defineReflectiveTests(MemberReferencesTest_Driver);
   });
 }
 
@@ -31,6 +30,12 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     Response response = await waitResponse(request);
     searchId = new SearchFindMemberReferencesResult.fromResponse(response).id;
     return waitForSearchResults();
+  }
+
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
   }
 
   test_fields_explicit() async {
@@ -111,14 +116,5 @@ mainUnresolved(a, b) {
     assertNoResult(SearchResultKind.INVOCATION, 'foo(2)');
     assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
     assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
-  }
-}
-
-@reflectiveTest
-class MemberReferencesTest_Driver extends MemberReferencesTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
   }
 }

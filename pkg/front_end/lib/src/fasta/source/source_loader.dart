@@ -8,6 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
 
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
@@ -44,8 +45,6 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
-import '../io.dart' show readBytesFromFile;
-
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -57,6 +56,9 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceLoader<L> extends Loader<L> {
+  /// The [FileSystem] which should be used to access files.
+  final FileSystem fileSystem;
+
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
   final bool excludeSource = CompilerContext.current.options.excludeSource;
 
@@ -70,7 +72,7 @@ class SourceLoader<L> extends Loader<L> {
 
   Instrumentation instrumentation;
 
-  SourceLoader(KernelTarget target) : super(target);
+  SourceLoader(this.fileSystem, KernelTarget target) : super(target);
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
@@ -78,10 +80,21 @@ class SourceLoader<L> extends Loader<L> {
     if (uri == null || uri.scheme != "file") {
       return inputError(library.uri, -1, "Not found: ${library.uri}.");
     }
+
+    // Get the library text from the cache, or read from the file system.
     List<int> bytes = sourceBytes[uri];
     if (bytes == null) {
-      bytes = sourceBytes[uri] = await readBytesFromFile(uri);
+      try {
+        List<int> rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
+        Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
+        zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
+        bytes = zeroTerminatedBytes;
+        sourceBytes[uri] = bytes;
+      } on FileSystemException catch (e) {
+        return inputError(uri, -1, e.message);
+      }
     }
+
     byteCount += bytes.length - 1;
     ScannerResult result = scan(bytes);
     Token token = result.tokens;
@@ -391,7 +404,7 @@ class SourceLoader<L> extends Loader<L> {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        library.prepareInitializerInference(typeInferenceEngine, library, null);
+        library.prepareInitializerInference(library, null);
       }
     });
     ticker.logMs("Prepared initializer inference");

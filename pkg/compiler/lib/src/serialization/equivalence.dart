@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'
@@ -1448,7 +1449,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
       if (t1 == null || t2 == null) return false;
       return strategy.test(
               t1, t2, 'charOffset', t1.charOffset, t2.charOffset) &&
-          strategy.test(t1, t2, 'info', t1.info, t2.info) &&
+          strategy.test(t1, t2, 'info', t1.type, t2.type) &&
           strategy.test(t1, t2, 'value', t1.lexeme, t2.lexeme);
     });
   }

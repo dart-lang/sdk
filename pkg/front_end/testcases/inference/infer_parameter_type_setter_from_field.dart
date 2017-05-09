@@ -12,3 +12,5 @@ class C extends D {
 class D {
   int foo;
 }
+
+main() {}

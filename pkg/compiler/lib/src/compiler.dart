@@ -193,7 +193,7 @@ abstract class Compiler {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     frontEndStrategy = options.loadFromDill
-        ? new KernelFrontEndStrategy(reporter)
+        ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
         ? new KernelBackendStrategy()

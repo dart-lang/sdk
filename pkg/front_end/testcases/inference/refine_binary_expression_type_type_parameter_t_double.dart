@@ -15,3 +15,5 @@ class C<T extends num> {
     double r4 = a / b;
   }
 }
+
+main() {}

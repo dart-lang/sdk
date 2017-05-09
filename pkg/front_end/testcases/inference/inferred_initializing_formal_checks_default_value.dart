@@ -9,3 +9,5 @@ class Foo {
   var /*@topType=int*/ x = 1;
   Foo([this.x = /*error:INVALID_ASSIGNMENT*/ "1"]);
 }
+
+main() {}

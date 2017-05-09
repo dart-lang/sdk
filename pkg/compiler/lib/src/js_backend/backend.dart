@@ -20,6 +20,7 @@ import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
@@ -112,14 +113,24 @@ class FunctionInlineCache {
   final Map<FunctionEntity, int> _cachedDecisions =
       new Map<FunctionEntity, int>();
 
+  /// Checks that [method] is the canonical representative for this method.
+  ///
+  /// For a [MethodElement] this means it must be the declaration element.
+  bool checkFunction(FunctionEntity method) {
+    if (method is MethodElement) return method.isDeclaration;
+    return true;
+  }
+
   /// Returns the current cache decision. This should only be used for testing.
-  int getCurrentCacheDecisionForTesting(Element element) {
+  int getCurrentCacheDecisionForTesting(FunctionEntity element) {
+    assert(checkFunction(element));
     return _cachedDecisions[element];
   }
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
   bool canInline(FunctionEntity element, {bool insideLoop}) {
+    assert(checkFunction(element));
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -175,6 +186,7 @@ class FunctionInlineCache {
   }
 
   void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
+    assert(checkFunction(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -230,6 +242,7 @@ class FunctionInlineCache {
   }
 
   void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
+    assert(checkFunction(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -288,6 +301,7 @@ class FunctionInlineCache {
   }
 
   void markAsMustInline(FunctionEntity element) {
+    assert(checkFunction(element));
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -421,12 +435,12 @@ class JavaScriptBackend {
   /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
 
-  NativeDataImpl _nativeData;
+  NativeDataBuilderImpl _nativeDataBuilder;
   final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
       new NativeBasicDataBuilderImpl();
   NativeBasicDataImpl _nativeBasicData;
-  NativeData get nativeData => _nativeData;
-  NativeDataBuilder get nativeDataBuilder => _nativeData;
+  //NativeData get nativeData => _nativeData;
+  NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
@@ -682,10 +696,9 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(
-                nativeData, closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(nativeData, closedWorld, codegenWorldBuilder)
-        : new Namer(nativeData, closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(closedWorld, codegenWorldBuilder)
+        : new Namer(closedWorld, codegenWorldBuilder);
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -835,7 +848,7 @@ class JavaScriptBackend {
         commonElements,
         backendUsageBuilder,
         compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
-    _nativeData = new NativeDataImpl(nativeBasicData);
+    _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = compiler.frontEndStrategy
         .createCustomElementsResolutionAnalysis(
             nativeBasicData, backendUsageBuilder);
@@ -904,7 +917,7 @@ class JavaScriptBackend {
         commonElements,
         emitter,
         _nativeResolutionEnqueuer,
-        nativeData);
+        closedWorld.nativeData);
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -995,9 +1008,7 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  // TODO(johnniwinther): Remove this. It is now only used for testing.
-  @deprecated
-  native.NativeEnqueuer get nativeResolutionEnqueuer =>
+  native.NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
       _nativeResolutionEnqueuer;
 
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
@@ -1145,7 +1156,7 @@ class JavaScriptBackend {
         commonElements,
         impacts,
         checkedModeHelpers,
-        nativeData,
+        closedWorld.nativeData,
         backendUsage,
         rtiNeed,
         nativeCodegenEnqueuer,

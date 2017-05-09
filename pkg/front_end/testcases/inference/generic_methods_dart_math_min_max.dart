@@ -12,7 +12,7 @@ void printDouble(double x) => print(x);
 
 num myMax(num x, num y) => max(x, y);
 
-main() {
+f() {
   // Okay if static types match.
   printInt(max(1, 2));
   printInt(min(1, 2));
@@ -34,3 +34,5 @@ main() {
       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hi",
       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "there"));
 }
+
+main() {}

@@ -7,7 +7,7 @@ import("//build/dart/dart_package.gni")
 dart_package("kernel") {
   package_name = "kernel"
 
-  source_dir = "lib"
+  disable_analysis = true
 
   deps = [
     "//third_party/dart-pkg/pub/args",

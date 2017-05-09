@@ -8,6 +8,8 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -21,6 +23,11 @@ abstract class DartAssistContext {
    * The [AnalysisContext] to get assists in.
    */
   AnalysisContext get analysisContext;
+
+  /**
+   * The provider for parsed or resolved ASTs.
+   */
+  AstProvider get astProvider;
 
   /**
    * The length of the selection.
@@ -65,7 +72,8 @@ abstract class DartAssistContributor implements AssistContributor {
     if (unit == null) {
       return Assist.EMPTY_LIST;
     }
-    DartAssistContext dartContext = new _DartAssistContextImpl(context, unit);
+    DartAssistContext dartContext = new _DartAssistContextImpl(
+        new AstProviderForContext(analysisContext), context, unit);
     return internalComputeAssists(dartContext);
   }
 
@@ -81,6 +89,11 @@ abstract class DartAssistContributor implements AssistContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 class _DartAssistContextImpl implements DartAssistContext {
+  /**
+   * The provider for parsed or resolved ASTs.
+   */
+  final AstProvider astProvider;
+
   final AssistContext _context;
 
   /**
@@ -88,7 +101,7 @@ class _DartAssistContextImpl implements DartAssistContext {
    */
   final CompilationUnit unit;
 
-  _DartAssistContextImpl(this._context, this.unit);
+  _DartAssistContextImpl(this.astProvider, this._context, this.unit);
 
   /**
    * The [AnalysisContext] to get assists in.

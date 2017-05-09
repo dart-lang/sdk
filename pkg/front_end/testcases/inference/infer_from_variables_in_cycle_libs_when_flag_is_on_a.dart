@@ -6,3 +6,5 @@
 import 'infer_from_variables_in_cycle_libs_when_flag_is_on2.dart';
 
 var /*@topType=int*/ x = 2; // ok to infer
+
+main() {}

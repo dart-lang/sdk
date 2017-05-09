@@ -189,7 +189,9 @@ String getDefaultStringParameterValue(ParameterElement param) {
       }
     }
     if (type is FunctionType) {
-      String params = type.parameters.map((p) => p.name).join(', ');
+      String params = type.parameters
+          .map((p) => '${getTypeString(p.type)}${p.name}')
+          .join(', ');
       //TODO(pq): consider adding a `TODO:` message in generated stub
       return '($params) {}';
     }
@@ -197,6 +199,8 @@ String getDefaultStringParameterValue(ParameterElement param) {
   }
   return null;
 }
+
+String getTypeString(DartType type) => type.isDynamic ? '' : '${type.name} ';
 
 bool isDartList(DartType type) {
   ClassElement element = type.element;
@@ -251,4 +255,5 @@ String nameForType(TypeAnnotation type) {
   return DYNAMIC;
 }
 
+//TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';

@@ -34,7 +34,6 @@ class InterceptorStubGenerator {
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final JavaScriptConstantCompiler _constants;
   final Namer _namer;
-  final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
@@ -48,12 +47,13 @@ class InterceptorStubGenerator {
       this._nativeCodegenEnqueuer,
       this._constants,
       this._namer,
-      this._nativeData,
       this._interceptorData,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._codegenWorldBuilder,
       this._closedWorld);
+
+  NativeData get _nativeData => _closedWorld.nativeData;
 
   Emitter get _emitter => _emitterTask.emitter;
 

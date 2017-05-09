@@ -155,7 +155,7 @@ List createResolutionEnqueuerListener(Compiler compiler) {
       backend.mirrorsResolutionAnalysis,
       new TypeVariableResolutionAnalysis(
           compiler.elementEnvironment, backend.impacts, backendUsageBuilder),
-      backend.nativeResolutionEnqueuer,
+      backend.nativeResolutionEnqueuerForTesting,
       compiler.deferredLoadTask,
       backend.kernelTask);
   return [listener, backendUsageBuilder];

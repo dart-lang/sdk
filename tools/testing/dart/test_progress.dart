@@ -4,9 +4,9 @@
 
 library test_progress;
 
-import "dart:io";
-import "dart:io" as io;
 import "dart:convert" show JSON;
+import "dart:io";
+
 import "path.dart";
 import "status_file_parser.dart";
 import "summary_report.dart";
@@ -14,148 +14,36 @@ import "test_runner.dart";
 import "test_suite.dart";
 import "utils.dart";
 
-String _pad(String s, int length) {
-  StringBuffer buffer = new StringBuffer();
-  for (int i = s.length; i < length; i++) {
-    buffer.write(' ');
-  }
-  buffer.write(s);
-  return buffer.toString();
-}
-
-String _padTime(int time) {
-  if (time == 0) {
-    return '00';
-  } else if (time < 10) {
-    return '0$time';
-  } else {
-    return '$time';
-  }
-}
-
-String _timeString(Duration d) {
-  var min = d.inMinutes;
-  var sec = d.inSeconds % 60;
-  return '${_padTime(min)}:${_padTime(sec)}';
-}
-
+/// Controls how message strings are processed before being displayed.
 class Formatter {
-  const Formatter();
-  String passed(msg) => msg;
-  String failed(msg) => msg;
+  /// Messages are left as-is.
+  static const normal = const Formatter._();
+
+  /// Messages are wrapped in ANSI escape codes to color them for display on a
+  /// terminal.
+  static const color = const _ColorFormatter();
+
+  const Formatter._();
+
+  /// Formats a success message.
+  String passed(String message) => message;
+
+  /// Formats a failure message.
+  String failed(String message) => message;
 }
 
-class ColorFormatter extends Formatter {
-  static int BOLD = 1;
-  static int GREEN = 32;
-  static int RED = 31;
-  static int NONE = 0;
-  static String ESCAPE = decodeUtf8([27]);
+class _ColorFormatter extends Formatter {
+  static const _green = 32;
+  static const _red = 31;
+  static const _escape = '\u001b';
 
-  String passed(String msg) => _color(msg, GREEN);
-  String failed(String msg) => _color(msg, RED);
+  const _ColorFormatter() : super._();
 
-  static String _color(String msg, int color) {
-    return "$ESCAPE[${color}m$msg$ESCAPE[0m";
-  }
-}
+  String passed(String message) => _color(message, _green);
+  String failed(String message) => _color(message, _red);
 
-List<String> _buildFailureOutput(TestCase test,
-    [Formatter formatter = const Formatter()]) {
-  List<String> getLinesWithoutCarriageReturn(List<int> output) {
-    return decodeUtf8(output)
-        .replaceAll('\r\n', '\n')
-        .replaceAll('\r', '\n')
-        .split('\n');
-  }
-
-  List<String> output = new List<String>();
-  output.add('');
-  output.add(formatter.failed('FAILED: ${test.configurationString}'
-      ' ${test.displayName}'));
-  StringBuffer expected = new StringBuffer();
-  expected.write('Expected: ');
-  for (var expectation in test.expectedOutcomes) {
-    expected.write('$expectation ');
-  }
-  output.add(expected.toString());
-  output.add('Actual: ${test.result}');
-  if (!test.lastCommandOutput.hasTimedOut) {
-    if (test.commandOutputs.length != test.commands.length &&
-        !test.expectCompileError) {
-      output.add('Unexpected compile-time error.');
-    } else {
-      if (test.expectCompileError) {
-        output.add('Compile-time error expected.');
-      }
-      if (test.hasRuntimeError) {
-        output.add('Runtime error expected.');
-      }
-      if (test.configuration['checked'] && test.isNegativeIfChecked) {
-        output.add('Dynamic type error expected.');
-      }
-    }
-  }
-  for (var i = 0; i < test.commands.length; i++) {
-    var command = test.commands[i];
-    var commandOutput = test.commandOutputs[command];
-    if (commandOutput != null) {
-      output.add("CommandOutput[${command.displayName}]:");
-      if (!commandOutput.diagnostics.isEmpty) {
-        String prefix = 'diagnostics:';
-        for (var s in commandOutput.diagnostics) {
-          output.add('$prefix ${s}');
-          prefix = '   ';
-        }
-      }
-      if (!commandOutput.stdout.isEmpty) {
-        output.add('');
-        output.add('stdout:');
-        output.addAll(getLinesWithoutCarriageReturn(commandOutput.stdout));
-      }
-      if (!commandOutput.stderr.isEmpty) {
-        output.add('');
-        output.add('stderr:');
-        output.addAll(getLinesWithoutCarriageReturn(commandOutput.stderr));
-      }
-    }
-  }
-  if (test is BrowserTestCase) {
-    // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration["_servers_"].httpServerCommandline();
-    output.add('');
-    output.add('To retest, run:  $command');
-  }
-  for (var i = 0; i < test.commands.length; i++) {
-    var command = test.commands[i];
-    var commandOutput = test.commandOutputs[command];
-    output.add('');
-    output.add('Command[${command.displayName}]: $command');
-    if (commandOutput != null) {
-      output.add('Took ${commandOutput.time}');
-    } else {
-      output.add('Did not run');
-    }
-  }
-
-  var arguments = ['python', 'tools/test.py'];
-  arguments.addAll(test.configuration['_reproducing_arguments_']);
-  arguments.add(test.displayName);
-  var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
-
-  output.add('');
-  output.add('Short reproduction command (experimental):');
-  output.add("    $testPyCommandline");
-  return output;
-}
-
-String _buildSummaryEnd(int failedTests) {
-  if (failedTests == 0) {
-    return '\n===\n=== All tests succeeded\n===\n';
-  } else {
-    var pluralSuffix = failedTests != 1 ? 's' : '';
-    return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
-  }
+  static String _color(String message, int color) =>
+      "$_escape[${color}m$message$_escape[0m";
 }
 
 class EventListener {
@@ -168,7 +56,7 @@ class EventListener {
 class ExitCodeSetter extends EventListener {
   void done(TestCase test) {
     if (test.unexpectedOutput) {
-      io.exitCode = 1;
+      exitCode = 1;
     }
   }
 }
@@ -210,7 +98,7 @@ class FlakyLogWriter extends EventListener {
   }
 
   void _appendToFlakyFile(String msg) {
-    var file = new File(TestUtils.flakyFileName());
+    var file = new File(TestUtils.flakyFileName);
     var fd = file.openSync(mode: FileMode.APPEND);
     fd.writeStringSync(msg);
     fd.closeSync();
@@ -307,7 +195,7 @@ class TestOutcomeLogWriter extends EventListener {
 
   void _writeTestOutcomeRecord(Map record) {
     if (_sink == null) {
-      _sink = new File(TestUtils.testOutcomeFileName())
+      _sink = new File(TestUtils.testOutcomeFileName)
           .openWrite(mode: FileMode.APPEND);
     }
     _sink.write("${JSON.encode(record)}\n");
@@ -496,7 +384,7 @@ class SkippedCompilationsPrinter extends EventListener {
   void allDone() {
     if (_skippedCompilations > 0) {
       print('\n$_skippedCompilations compilations were skipped because '
-          'the previous output was already up to date\n');
+          'the previous output was already up to date.\n');
     }
   }
 }
@@ -512,12 +400,12 @@ class LineProgressIndicator extends EventListener {
 }
 
 class TestFailurePrinter extends EventListener {
-  bool _printSummary;
-  var _formatter;
-  var _failureSummary = <String>[];
-  var _failedTests = 0;
+  final bool _printSummary;
+  final Formatter _formatter;
+  final _failureSummary = <String>[];
+  int _failedTests = 0;
 
-  TestFailurePrinter(this._printSummary, [this._formatter = const Formatter()]);
+  TestFailurePrinter(this._printSummary, [this._formatter = Formatter.normal]);
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -538,7 +426,7 @@ class TestFailurePrinter extends EventListener {
     if (_printSummary) {
       if (!_failureSummary.isEmpty) {
         print('\n=== Failure summary:\n');
-        for (String line in _failureSummary) {
+        for (var line in _failureSummary) {
           print(line);
         }
         print('');
@@ -551,6 +439,24 @@ class TestFailurePrinter extends EventListener {
 
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
+
+  static EventListener fromName(
+      String name, DateTime startTime, Formatter formatter) {
+    switch (name) {
+      case 'compact':
+        return new CompactProgressIndicator(startTime, formatter);
+      case 'line':
+        return new LineProgressIndicator();
+      case 'verbose':
+        return new VerboseProgressIndicator(startTime);
+      case 'status':
+        return new ProgressIndicator(startTime);
+      case 'buildbot':
+        return new BuildbotProgressIndicator(startTime);
+      default:
+        throw new ArgumentError('Unknown progress indicator "$name".');
+    }
+  }
 
   void testAdded() {
     _foundTests++;
@@ -597,18 +503,18 @@ abstract class CompactIndicator extends ProgressIndicator {
 }
 
 class CompactProgressIndicator extends CompactIndicator {
-  Formatter _formatter;
+  final Formatter _formatter;
 
   CompactProgressIndicator(DateTime startTime, this._formatter)
       : super(startTime);
 
   void _printProgress() {
     var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
-    var progressPadded = _pad(_allTestsKnown ? percent : '--', 3);
-    var passedPadded = _pad(_passedTests.toString(), 5);
-    var failedPadded = _pad(_failedTests.toString(), 5);
-    Duration d = (new DateTime.now()).difference(_startTime);
-    var progressLine = '\r[${_timeString(d)} | $progressPadded% | '
+    var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
+    var passedPadded = _passedTests.toString().padLeft(5);
+    var failedPadded = _failedTests.toString().padLeft(5);
+    var elapsed = (new DateTime.now()).difference(_startTime);
+    var progressLine = '\r[${_timeString(elapsed)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
     stdout.write(progressLine);
@@ -629,7 +535,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
 class BuildbotProgressIndicator extends ProgressIndicator {
   static String stepName;
-  var _failureSummary = <String>[];
+  final _failureSummary = <String>[];
 
   BuildbotProgressIndicator(DateTime startTime) : super(startTime);
 
@@ -666,21 +572,111 @@ class BuildbotProgressIndicator extends ProgressIndicator {
   }
 }
 
-EventListener progressIndicatorFromName(
-    String name, DateTime startTime, Formatter formatter) {
-  switch (name) {
-    case 'compact':
-      return new CompactProgressIndicator(startTime, formatter);
-    case 'line':
-      return new LineProgressIndicator();
-    case 'verbose':
-      return new VerboseProgressIndicator(startTime);
-    case 'status':
-      return new ProgressIndicator(startTime);
-    case 'buildbot':
-      return new BuildbotProgressIndicator(startTime);
-    default:
-      assert(false);
-      return null;
+String _timeString(Duration duration) {
+  var min = duration.inMinutes;
+  var sec = duration.inSeconds % 60;
+  return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+}
+
+List<String> _linesWithoutCarriageReturn(List<int> output) {
+  return decodeUtf8(output)
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n')
+      .split('\n');
+}
+
+List<String> _buildFailureOutput(TestCase test,
+    [Formatter formatter = Formatter.normal]) {
+  var output = [
+    '',
+    formatter.failed('FAILED: ${test.configurationString}${test.displayName}')
+  ];
+
+  var expected = new StringBuffer();
+  expected.write('Expected: ');
+  for (var expectation in test.expectedOutcomes) {
+    expected.write('$expectation ');
+  }
+
+  output.add(expected.toString());
+  output.add('Actual: ${test.result}');
+  if (!test.lastCommandOutput.hasTimedOut) {
+    if (test.commandOutputs.length != test.commands.length &&
+        !test.expectCompileError) {
+      output.add('Unexpected compile-time error.');
+    } else {
+      if (test.expectCompileError) {
+        output.add('Compile-time error expected.');
+      }
+      if (test.hasRuntimeError) {
+        output.add('Runtime error expected.');
+      }
+      if (test.configuration['checked'] && test.isNegativeIfChecked) {
+        output.add('Dynamic type error expected.');
+      }
+    }
+  }
+
+  for (var i = 0; i < test.commands.length; i++) {
+    var command = test.commands[i];
+    var commandOutput = test.commandOutputs[command];
+    if (commandOutput != null) {
+      output.add("CommandOutput[${command.displayName}]:");
+      if (!commandOutput.diagnostics.isEmpty) {
+        String prefix = 'diagnostics:';
+        for (var s in commandOutput.diagnostics) {
+          output.add('$prefix ${s}');
+          prefix = '   ';
+        }
+      }
+      if (!commandOutput.stdout.isEmpty) {
+        output.add('');
+        output.add('stdout:');
+        output.addAll(_linesWithoutCarriageReturn(commandOutput.stdout));
+      }
+      if (!commandOutput.stderr.isEmpty) {
+        output.add('');
+        output.add('stderr:');
+        output.addAll(_linesWithoutCarriageReturn(commandOutput.stderr));
+      }
+    }
+  }
+
+  if (test is BrowserTestCase) {
+    // Additional command for rerunning the steps locally after the fact.
+    var command = test.configuration["_servers_"].httpServerCommandLine();
+    output.add('');
+    output.add('To retest, run:  $command');
+  }
+
+  for (var i = 0; i < test.commands.length; i++) {
+    var command = test.commands[i];
+    var commandOutput = test.commandOutputs[command];
+    output.add('');
+    output.add('Command[${command.displayName}]: $command');
+    if (commandOutput != null) {
+      output.add('Took ${commandOutput.time}');
+    } else {
+      output.add('Did not run');
+    }
+  }
+
+  var arguments = ['python', 'tools/test.py'];
+  arguments.addAll(test.configuration['_reproducing_arguments_']);
+  arguments.add(test.displayName);
+  var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
+
+  output.add('');
+  output.add('Short reproduction command (experimental):');
+  output.add("    $testPyCommandline");
+  return output;
+}
+
+String _buildSummaryEnd(int failedTests) {
+  if (failedTests == 0) {
+    return '\n===\n=== All tests succeeded\n===\n';
+  } else {
+    var pluralSuffix = failedTests != 1 ? 's' : '';
+    return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
   }
 }

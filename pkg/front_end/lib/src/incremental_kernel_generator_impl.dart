@@ -4,18 +4,14 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/base/source.dart';
-import 'package:front_end/src/incremental_resolved_ast_generator_impl.dart';
-import 'package:analyzer/src/kernel/loader.dart';
+import 'package:front_end/src/fasta/dill/dill_target.dart';
+import 'package:front_end/src/fasta/kernel/kernel_target.dart';
+import 'package:front_end/src/fasta/ticker.dart';
+import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:kernel/kernel.dart' hide Source;
 
 dynamic unimplemented() {
@@ -23,124 +19,81 @@ dynamic unimplemented() {
   throw new UnimplementedError();
 }
 
-DartOptions _convertOptions(ProcessedOptions options) {
-  // TODO(paulberry): make sure options.compileSdk is handled correctly.
-  return new DartOptions(
-      strongMode: true, // TODO(paulberry): options.strongMode,
-      sdk: null, // TODO(paulberry): _uriToPath(options.sdkRoot, options),
-      sdkSummary:
-          null, // TODO(paulberry): options.compileSdk ? null : _uriToPath(options.sdkSummary, options),
-      packagePath:
-          null, // TODO(paulberry): _uriToPath(options.packagesFileUri, options),
-      declaredVariables: null // TODO(paulberry): options.declaredVariables
-      );
-}
-
 /// Implementation of [IncrementalKernelGenerator].
+///
+/// TODO(scheglov) Update the documentation.
 ///
 /// Theory of operation: an instance of [IncrementalResolvedAstGenerator] is
 /// used to obtain resolved ASTs, and these are fed into kernel code generation
 /// logic.
-///
-/// Note that the kernel doesn't expect to take resolved ASTs as a direct input;
-/// it expects to request resolved ASTs from an [AnalysisContext].  To deal with
-/// this, we create [_AnalysisContextProxy] which returns the resolved ASTs when
-/// requested.  TODO(paulberry): Make this unnecessary.
 class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
-  final IncrementalResolvedAstGenerator _resolvedAstGenerator;
+  /// The URI of the program entry point.
+  final Uri _entryPoint;
+
+  /// The compiler options, such as the [FileSystem], the SDK dill location,
+  /// etc.
   final ProcessedOptions _options;
 
-  IncrementalKernelGeneratorImpl(Uri source, ProcessedOptions options)
-      : _resolvedAstGenerator =
-            new IncrementalResolvedAstGeneratorImpl(source, options),
-        _options = options;
+  /// The object that knows how to resolve "package:" and "dart:" URIs.
+  TranslateUri _uriTranslator;
+
+  /// The cached SDK kernel.
+  DillTarget _sdkDillTarget;
+
+  IncrementalKernelGeneratorImpl(this._entryPoint, this._options);
 
   @override
   Future<DeltaProgram> computeDelta(
       {Future<Null> watch(Uri uri, bool used)}) async {
-    var deltaLibraries = await _resolvedAstGenerator.computeDelta();
-    var kernelOptions = _convertOptions(_options);
-    var packages = null; // TODO(paulberry)
-    var kernels = <Uri, Program>{};
-    for (Uri uri in deltaLibraries.newState.keys) {
-      // The kernel generation code doesn't currently support building a kernel
-      // directly from resolved ASTs--it wants to query an analysis context.  So
-      // we provide it with a proxy analysis context that feeds it the resolved
-      // ASTs.
-      var strongMode = true; // TODO(paulberry): set this correctly
-      var analysisOptions = new _AnalysisOptionsProxy(strongMode);
-      var context =
-          new _AnalysisContextProxy(deltaLibraries.newState, analysisOptions);
-      var program = new Program();
-      var loader =
-          new DartLoader(program, kernelOptions, packages, context: context);
-      loader.loadLibrary(uri);
-      kernels[uri] = program;
-      // TODO(paulberry) rework watch invocation to eliminate race condition,
-      // include part source files, and prevent watch from being a bottleneck
-      if (watch != null) await watch(uri, true);
+    _uriTranslator ??= await _options.getUriTranslator();
+
+    DillTarget sdkTarget = await _getSdkDillTarget();
+    // TODO(scheglov) Use it to also serve other package kernels.
+
+    KernelTarget kernelTarget = new KernelTarget(_options.fileSystem, sdkTarget,
+        _uriTranslator, _options.strongMode, null);
+    kernelTarget.read(_entryPoint);
+
+    // TODO(scheglov) Replace with a better API.
+    // Firstly, we don't "write" anything here.
+    // Secondly, it catches all the exceptions and write them to `stderr`.
+    // This is too interactive and not API-clients friendly.
+    await kernelTarget.writeOutline(null);
+
+    // TODO(scheglov) Replace with a better API.
+    Program program = await kernelTarget.writeProgram(null);
+    return new DeltaProgram(program);
+  }
+
+  @override
+  void invalidate(String path) => unimplemented();
+
+  @override
+  void invalidateAll() => unimplemented();
+
+  /// Return the [DillTarget] that is used inside of [KernelTarget] to
+  /// resynthesize SDK libraries.
+  Future<DillTarget> _getSdkDillTarget() async {
+    if (_sdkDillTarget == null) {
+      _sdkDillTarget =
+          new DillTarget(new Ticker(isVerbose: false), _uriTranslator);
+      // TODO(scheglov) Read the SDK kernel.
+//      _sdkDillTarget.read(options.sdkSummary);
+//      await _sdkDillTarget.writeOutline(null);
+    } else {
+//      Program sdkProgram = _sdkDillTarget.loader.program;
+//      sdkProgram.visitChildren(new _ClearCanonicalNamesVisitor());
     }
-    // TODO(paulberry) invoke watch with used=false for each unused source
-    return new DeltaProgram(kernels);
-  }
-
-  @override
-  void invalidate(String path) => _resolvedAstGenerator.invalidate(path);
-
-  @override
-  void invalidateAll() => _resolvedAstGenerator.invalidateAll();
-}
-
-class _AnalysisContextProxy implements AnalysisContext {
-  final Map<Uri, Map<Uri, CompilationUnit>> _resolvedLibraries;
-
-  @override
-  final _SourceFactoryProxy sourceFactory = new _SourceFactoryProxy();
-
-  @override
-  final AnalysisOptions analysisOptions;
-
-  _AnalysisContextProxy(this._resolvedLibraries, this.analysisOptions);
-
-  List<AnalysisError> computeErrors(Source source) {
-    // TODO(paulberry): do we need to return errors sometimes?
-    return [];
-  }
-
-  LibraryElement computeLibraryElement(Source source) {
-    assert(_resolvedLibraries.containsKey(source.uri));
-    return resolutionMap
-        .elementDeclaredByCompilationUnit(
-            _resolvedLibraries[source.uri][source.uri])
-        .library;
-  }
-
-  noSuchMethod(Invocation invocation) => unimplemented();
-
-  CompilationUnit resolveCompilationUnit(
-      Source unitSource, LibraryElement library) {
-    var unit = _resolvedLibraries[library.source.uri][unitSource.uri];
-    assert(unit != null);
-    return unit;
+    return _sdkDillTarget;
   }
 }
 
-class _AnalysisOptionsProxy implements AnalysisOptions {
-  final bool strongMode;
-
-  _AnalysisOptionsProxy(this.strongMode);
-
-  noSuchMethod(Invocation invocation) => unimplemented();
-}
-
-class _SourceFactoryProxy implements SourceFactory {
-  Source forUri2(Uri absoluteUri) => new _SourceProxy(absoluteUri);
-
-  noSuchMethod(Invocation invocation) => unimplemented();
-}
-
-class _SourceProxy extends BasicSource {
-  _SourceProxy(Uri uri) : super(uri);
-
-  noSuchMethod(Invocation invocation) => unimplemented();
-}
+///// Clears canonical names of [NamedNode] references.
+//class _ClearCanonicalNamesVisitor extends Visitor {
+//  defaultNode(Node node) {
+//    if (node is NamedNode) {
+//      node.reference.canonicalName = null;
+//    }
+//    node.visitChildren(this);
+//  }
+//}

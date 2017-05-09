@@ -44,6 +44,7 @@ import '../../js_backend/js_backend.dart'
         Namer,
         SetterName,
         TypeVariableCodegenAnalysis;
+import '../../js_backend/native_data.dart';
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -93,6 +94,7 @@ class EmitterFactory implements js_emitter.EmitterFactory {
 class Emitter implements js_emitter.Emitter {
   final Compiler compiler;
   final CodeEmitterTask task;
+  final ClosedWorld _closedWorld;
 
   // The following fields will be set to copies of the program-builder's
   // collector.
@@ -171,13 +173,11 @@ class Emitter implements js_emitter.Emitter {
 
   final bool generateSourceMap;
 
-  Emitter(Compiler compiler, Namer namer, ClosedWorld closedWorld,
-      this.generateSourceMap, this.task, this._sorter)
-      : this.compiler = compiler,
-        this.namer = namer,
-        classEmitter = new ClassEmitter(closedWorld),
-        interceptorEmitter = new InterceptorEmitter(closedWorld),
-        nsmEmitter = new NsmEmitter(closedWorld) {
+  Emitter(this.compiler, this.namer, this._closedWorld, this.generateSourceMap,
+      this.task, this._sorter)
+      : classEmitter = new ClassEmitter(_closedWorld),
+        interceptorEmitter = new InterceptorEmitter(_closedWorld),
+        nsmEmitter = new NsmEmitter(_closedWorld) {
     constantEmitter = new ConstantEmitter(
         compiler, namer, this.constantReference, constantListGenerator);
     containerBuilder.emitter = this;
@@ -187,6 +187,8 @@ class Emitter implements js_emitter.Emitter {
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  NativeData get _nativeData => _closedWorld.nativeData;
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
     return _cspPrecompiledFunctions.putIfAbsent(
@@ -1648,14 +1650,14 @@ class Emitter implements js_emitter.Emitter {
   ClassBuilder getStaticMethodDescriptor(
       MethodElement element, Fragment fragment) {
     Element owner = element.library;
-    if (!backend.nativeData.isNativeMember(element)) {
+    if (!_nativeData.isNativeMember(element)) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
       ClassElement cls = element.enclosingClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
-          !backend.nativeData.isNativeClass(cls) &&
+          !_nativeData.isNativeClass(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
               compiler.deferredLoadTask.outputUnitForElement(cls)) {
         owner = cls;

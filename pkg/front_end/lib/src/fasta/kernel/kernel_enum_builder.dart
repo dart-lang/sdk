@@ -124,15 +124,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
     ///     }
     members["index"] = new KernelFieldBuilder(
-        astFactory,
-        parent.loader.typeInferenceEngine,
-        null,
-        intType,
-        "index",
-        finalMask,
-        parent,
-        charOffset,
-        null);
+        null, intType, "index", finalMask, parent, charOffset, null);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
         null,
         constMask,
@@ -150,16 +142,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     constructors[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
-        astFactory,
-        parent.loader.typeInferenceEngine,
-        null,
-        listType,
-        "values",
-        constMask | staticMask,
-        parent,
-        charOffset,
-        null);
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
+        "values", constMask | staticMask, parent, charOffset, null);
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
         null,
@@ -183,16 +167,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         inputError(null, null, "Duplicated name: $name");
         continue;
       }
-      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
-          astFactory,
-          parent.loader.typeInferenceEngine,
-          null,
-          selfType,
-          name,
-          constMask | staticMask,
-          parent,
-          charOffset,
-          null);
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(null, selfType,
+          name, constMask | staticMask, parent, charOffset, null);
       members[name] = fieldBuilder;
       toStringEntries.add(new MapEntry(
           new IntLiteral(index), new StringLiteral("$className.$name")));

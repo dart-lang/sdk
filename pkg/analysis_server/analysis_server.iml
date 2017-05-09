@@ -39,7 +39,6 @@
       <excludeFolder url="file://$MODULE_DIR$/test/source/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/plugin/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/test/src/utilities/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/stress/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/stress/replay/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/stress/utilities/packages" />
@@ -58,6 +57,5 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="application" />
     <orderEntry type="library" name="Dart SDK" level="project" />
-    <orderEntry type="library" name="Dart Packages" level="project" />
   </component>
 </module>

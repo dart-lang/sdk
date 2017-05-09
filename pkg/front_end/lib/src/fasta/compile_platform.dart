@@ -62,12 +62,12 @@ Future compilePlatformInternal(
   }
 
   TranslateUri uriTranslator =
-      await TranslateUri.parse(patchedSdk, c.options.packages);
+      await TranslateUri.parse(c.fileSystem, patchedSdk, c.options.packages);
   ticker.logMs("Read packages file");
 
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-  KernelTarget kernelTarget = new KernelTarget(
-      dillTarget, uriTranslator, c.options.strongMode, c.uriToSource);
+  KernelTarget kernelTarget = new KernelTarget(c.fileSystem, dillTarget,
+      uriTranslator, c.options.strongMode, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.writeOutline(null);

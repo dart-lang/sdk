@@ -8,6 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File;
 
+import 'package:front_end/physical_file_system.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
@@ -59,7 +60,8 @@ class InterpreterContext extends ChainContext {
       Chain suite, Map<String, String> environment) async {
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
-    TranslateUri uriTranslator = await TranslateUri.parse(packages);
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
     return new InterpreterContext(strongMode, uriTranslator);
   }
 }
@@ -77,8 +79,8 @@ class FastaCompile extends Step<TestDescription, Program, InterpreterContext> {
     dillTarget.loader
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
-    KernelTarget sourceTarget =
-        new KernelTarget(dillTarget, context.uriTranslator, context.strongMode);
+    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
+        dillTarget, context.uriTranslator, context.strongMode);
 
     Program p;
     try {

@@ -82,14 +82,12 @@ class ServerPluginTest {
     expect(plugin.contextRootContaining(filePath2), isNull);
   }
 
-  @failingTest
   void test_handleAnalysisHandleWatchEvents() {
     var result = plugin.handleAnalysisHandleWatchEvents(
         new AnalysisHandleWatchEventsParams([]));
     expect(result, isNotNull);
   }
 
-  @failingTest
   void test_handleAnalysisReanalyze_all() {
     plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
@@ -254,6 +252,8 @@ class ServerPluginTest {
  * A concrete implementation of a server plugin that is suitable for testing.
  */
 class TestServerPlugin extends ServerPlugin {
+  Map<String, List<AnalysisService>> latestSubscriptions;
+
   TestServerPlugin(ResourceProvider resourceProvider) : super(resourceProvider);
 
   @override
@@ -268,5 +268,11 @@ class TestServerPlugin extends ServerPlugin {
   @override
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot) {
     return new MockAnalysisDriver();
+  }
+
+  @override
+  void sendNotificationsForSubscriptions(
+      Map<String, List<AnalysisService>> subscriptions) {
+    latestSubscriptions = subscriptions;
   }
 }

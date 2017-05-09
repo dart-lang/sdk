@@ -118,7 +118,8 @@ abstract class FastaAccessor implements Accessor {
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return buildThrowNoSuchMethodError(new Arguments(<Expression>[value]),
+    return buildThrowNoSuchMethodError(
+        helper.astFactory.arguments(<Expression>[value]),
         isSetter: true);
   }
 
@@ -209,7 +210,8 @@ abstract class ErrorAccessor implements FastaAccessor {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError(new Arguments(<Expression>[value]), isSetter: true);
+    return buildError(helper.astFactory.arguments(<Expression>[value]),
+        isSetter: true);
   }
 
   @override
@@ -217,7 +219,8 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new Arguments(<Expression>[value]), isGetter: true);
+    return buildError(helper.astFactory.arguments(<Expression>[value]),
+        isGetter: true);
   }
 
   @override
@@ -225,7 +228,8 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new Arguments(<Expression>[new IntLiteral(1)]),
+    return buildError(
+        helper.astFactory.arguments(<Expression>[new IntLiteral(1)]),
         isGetter: true);
   }
 
@@ -234,14 +238,16 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new Arguments(<Expression>[new IntLiteral(1)]),
+    return buildError(
+        helper.astFactory.arguments(<Expression>[new IntLiteral(1)]),
         isGetter: true);
   }
 
   @override
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return buildError(new Arguments(<Expression>[value]), isSetter: true);
+    return buildError(helper.astFactory.arguments(<Expression>[value]),
+        isSetter: true);
   }
 
   @override
@@ -254,7 +260,8 @@ abstract class ErrorAccessor implements FastaAccessor {
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildError(new Arguments(<Expression>[value]), isSetter: true);
+    return buildError(helper.astFactory.arguments(<Expression>[value]),
+        isSetter: true);
   }
 }
 

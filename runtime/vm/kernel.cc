@@ -243,6 +243,14 @@ void LocalInitializer::VisitChildren(Visitor* visitor) {
 FunctionNode::~FunctionNode() {}
 
 
+void FunctionNode::ReplaceBody(Statement* body) {
+  delete body_;
+  // Use static_cast to invoke the conversion function and so avoid triggering
+  // ASSERT(pointer_ == NULL) in operator= when overwriting a non-NULL body.
+  static_cast<Statement*&>(body_) = body;
+}
+
+
 void FunctionNode::AcceptTreeVisitor(TreeVisitor* visitor) {
   visitor->VisitFunctionNode(this);
 }

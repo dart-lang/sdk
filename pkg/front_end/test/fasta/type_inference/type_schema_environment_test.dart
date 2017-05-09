@@ -51,11 +51,45 @@ class TypeSchemaEnvironmentTest {
 
   Class get mapClass => coreTypes.mapClass;
 
+  InterfaceType get nullType => coreTypes.nullClass.rawType;
+
   InterfaceType get numType => coreTypes.numClass.rawType;
 
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectType => objectClass.rawType;
+
+  void test_addLowerBound() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var C =
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    var typeConstraint = new TypeConstraint();
+    expect(typeConstraint.lower, same(unknownType));
+    env.addLowerBound(typeConstraint, B);
+    expect(typeConstraint.lower, same(B));
+    env.addLowerBound(typeConstraint, C);
+    expect(typeConstraint.lower, same(A));
+  }
+
+  void test_addUpperBound() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var C =
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    var typeConstraint = new TypeConstraint();
+    expect(typeConstraint.upper, same(unknownType));
+    env.addUpperBound(typeConstraint, A);
+    expect(typeConstraint.upper, same(A));
+    env.addUpperBound(typeConstraint, B);
+    expect(typeConstraint.upper, same(B));
+    env.addUpperBound(typeConstraint, C);
+    expect(typeConstraint.upper, same(bottomType));
+  }
 
   void test_glb_bottom() {
     var A = _addClass(_class('A')).rawType;
@@ -223,6 +257,197 @@ class TypeSchemaEnvironmentTest {
     var B = _addClass(_class('B')).rawType;
     var env = _makeEnv();
     expect(env.getGreatestLowerBound(A, B), same(bottomType));
+  }
+
+  void test_inferGenericFunctionOrType() {
+    var env = _makeEnv();
+    {
+      // Test an instantiation of [1, 2.0] with no context.  This should infer
+      // as List<?> during downwards inference.
+      var typesFromDownwardsInference = <DartType>[null];
+      TypeParameterType T = listClass.thisType.typeArguments[0];
+      expect(
+          env.inferGenericFunctionOrType([T.parameter], listClass.thisType, [],
+              [], null, typesFromDownwardsInference,
+              downwards: true),
+          _list(unknownType));
+      // And upwards inference should refine it to List<num>.
+      expect(
+          env.inferGenericFunctionOrType([T.parameter], listClass.thisType,
+              [T, T], [intType, doubleType], null, typesFromDownwardsInference),
+          _list(numType));
+    }
+    {
+      // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
+      // should infer as List<Object> during downwards inference.
+      var typesFromDownwardsInference = <DartType>[null];
+      TypeParameterType T = listClass.thisType.typeArguments[0];
+      expect(
+          env.inferGenericFunctionOrType([T.parameter], listClass.thisType, [],
+              [], _list(objectType), typesFromDownwardsInference,
+              downwards: true),
+          _list(objectType));
+      // And upwards inference should preserve the type.
+      expect(
+          env.inferGenericFunctionOrType(
+              [T.parameter],
+              listClass.thisType,
+              [T, T],
+              [intType, doubleType],
+              _list(objectType),
+              typesFromDownwardsInference),
+          _list(objectType));
+    }
+  }
+
+  void test_inferTypeFromConstraints_applyBound() {
+    // class A<T extends num> {}
+    var T = new TypeParameter('T', numType);
+    var A = _addClass(_class('A', typeParameters: [T])).thisType;
+    var env = _makeEnv();
+    {
+      // With no constraints:
+      var constraints = {T: new TypeConstraint()};
+      // Downward inference should infer A<?>
+      var typesFromDownwardsInference = <DartType>[null];
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference,
+              downwardsInferPhase: true),
+          new InterfaceType(A.classNode, [unknownType]));
+      expect(typesFromDownwardsInference[0], unknownType);
+      // Upward inference should infer A<num>
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference),
+          new InterfaceType(A.classNode, [numType]));
+    }
+    {
+      // With an upper bound of Object:
+      var constraints = {T: _makeConstraint(upper: objectType)};
+      // Downward inference should infer A<num>
+      var typesFromDownwardsInference = <DartType>[null];
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference,
+              downwardsInferPhase: true),
+          new InterfaceType(A.classNode, [numType]));
+      expect(typesFromDownwardsInference[0], numType);
+      // Upward inference should infer A<num>
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference),
+          new InterfaceType(A.classNode, [numType]));
+      // Upward inference should still infer A<num> even if there are more
+      // constraints now, because num was finalized during downward inference.
+      constraints = {T: _makeConstraint(lower: intType, upper: intType)};
+      expect(
+          env.inferTypeFromConstraints(
+              constraints, A, [T], typesFromDownwardsInference),
+          new InterfaceType(A.classNode, [numType]));
+    }
+  }
+
+  void test_inferTypeFromConstraints_simple() {
+    var env = _makeEnv();
+    var T = listClass.typeParameters[0];
+    // With an upper bound of List<?>:
+    var constraints = {T: _makeConstraint(upper: _list(unknownType))};
+    // Downwards inference should infer List<List<?>>
+    var typesFromDownwardsInference = <DartType>[null];
+    expect(
+        env.inferTypeFromConstraints(
+            constraints, listClass.thisType, [T], typesFromDownwardsInference,
+            downwardsInferPhase: true),
+        _list(_list(unknownType)));
+    // And it should have recorded List<?> as the type inferred for T.
+    expect(typesFromDownwardsInference[0], _list(unknownType));
+    // Upwards inference should refine that to List<List<dynamic>>
+    expect(
+        env.inferTypeFromConstraints(
+            constraints, listClass.thisType, [T], typesFromDownwardsInference),
+        _list(_list(dynamicType)));
+  }
+
+  void test_instantiateToBounds_noTypesKnown() {
+    // class A {}
+    var A = _addClass(_class('A')).rawType;
+    // class B<T extends int> {}
+    var B = _addClass(
+            _class('B', typeParameters: [new TypeParameter('T', intType)]))
+        .thisType;
+    // class C<T extends int, S extends B<T>> {}
+    var C = () {
+      var T = new TypeParameter('T', intType);
+      var S = new TypeParameter(
+          'S', new InterfaceType(B.classNode, [new TypeParameterType(T)]));
+      return _addClass(_class('C', typeParameters: [T, S])).thisType;
+    }();
+    // class D<T extends B<T>> {}
+    var D = () {
+      var T = new TypeParameter('T');
+      T.bound = new InterfaceType(B.classNode, [new TypeParameterType(T)]);
+      return _addClass(_class('D', typeParameters: [T])).thisType;
+    }();
+    // typedef T E<T extends int>();
+    var E = () {
+      var T = new TypeParameter('T', intType);
+      var typedefNode = new Typedef(
+          'E', new FunctionType([], new TypeParameterType(T)),
+          typeParameters: [T]);
+      return new TypedefType(typedefNode, [new TypeParameterType(T)]);
+    }();
+    // class F<T> {}
+    var F = _addClass(
+            _class('F', typeParameters: [new TypeParameter('T', objectType)]))
+        .thisType;
+    var env = _makeEnv();
+    // A => A
+    expect(env.instantiateToBounds(A), same(A));
+    // B => B<int>
+    expect(
+        env.instantiateToBounds(B), new InterfaceType(B.classNode, [intType]));
+    // C => C<int, A<int>>
+    expect(
+        env.instantiateToBounds(C),
+        new InterfaceType(C.classNode, [
+          intType,
+          new InterfaceType(B.classNode, [intType])
+        ]));
+    // D => error
+    // However to allow analysis to continue D => D<dynamic>
+    // TODO(paulberry): check that an error is reported.
+    expect(env.instantiateToBounds(D), D.classNode.rawType);
+    // E => E<int> => () -> int
+    expect(
+        env.instantiateToBounds(E), new TypedefType(E.typedefNode, [intType]));
+    // F => F<dynamic>
+    expect(env.instantiateToBounds(F), F.classNode.rawType);
+  }
+
+  void test_instantiateToBounds_typesKnown() {
+    // class A<T extends num> {}
+    var A = _addClass(
+            _class('A', typeParameters: [new TypeParameter('T', numType)]))
+        .thisType;
+    // class B<T extends A<T>> {}
+    var B = () {
+      var T = new TypeParameter('T');
+      T.bound = new InterfaceType(A.classNode, [new TypeParameterType(T)]);
+      return _addClass(_class('B', typeParameters: [T])).thisType;
+    }();
+    var env = _makeEnv();
+    // A => A<int> (if T known to be `int`)
+    expect(
+        env.instantiateToBounds(A,
+            knownTypes: {A.classNode.typeParameters[0]: intType}),
+        new InterfaceType(A.classNode, [intType]));
+    // Check that known types can be used to break circularities
+    // B => B<int> (if T known to be `int`)
+    expect(
+        env.instantiateToBounds(B,
+            knownTypes: {B.classNode.typeParameters[0]: intType}),
+        new InterfaceType(B.classNode, [intType]));
   }
 
   void test_lub_bottom() {
@@ -446,6 +671,122 @@ class TypeSchemaEnvironmentTest {
     expect(env.getGreatestLowerBound(unknownType, A), same(A));
   }
 
+  void test_solveTypeConstraint() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    // Solve(? <: T <: ?) => ?
+    expect(env.solveTypeConstraint(_makeConstraint()), same(unknownType));
+    // Solve(? <: T <: ?, grounded) => dynamic
+    expect(env.solveTypeConstraint(_makeConstraint(), grounded: true),
+        dynamicType);
+    // Solve(A <: T <: ?) => A
+    expect(env.solveTypeConstraint(_makeConstraint(lower: A)), A);
+    // Solve(A <: T <: ?, grounded) => A
+    expect(
+        env.solveTypeConstraint(_makeConstraint(lower: A), grounded: true), A);
+    // Solve(A<?> <: T <: ?) => A<?>
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: new InterfaceType(A.classNode, [unknownType]))),
+        new InterfaceType(A.classNode, [unknownType]));
+    // Solve(A<?> <: T <: ?, grounded) => A<Null>
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        new InterfaceType(A.classNode, [nullType]));
+    // Solve(? <: T <: A) => A
+    expect(env.solveTypeConstraint(_makeConstraint(upper: A)), A);
+    // Solve(? <: T <: A, grounded) => A
+    expect(
+        env.solveTypeConstraint(_makeConstraint(upper: A), grounded: true), A);
+    // Solve(? <: T <: A<?>) => A<?>
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            upper: new InterfaceType(A.classNode, [unknownType]))),
+        new InterfaceType(A.classNode, [unknownType]));
+    // Solve(? <: T <: A<?>, grounded) => A<dynamic>
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                upper: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        new InterfaceType(A.classNode, [dynamicType]));
+    // Solve(B <: T <: A) => B
+    expect(env.solveTypeConstraint(_makeConstraint(lower: B, upper: A)), B);
+    // Solve(B <: T <: A, grounded) => B
+    expect(
+        env.solveTypeConstraint(_makeConstraint(lower: B, upper: A),
+            grounded: true),
+        B);
+    // Solve(B<?> <: T <: A) => A
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: new InterfaceType(B.classNode, [unknownType]), upper: A)),
+        A);
+    // Solve(B<?> <: T <: A, grounded) => A
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(B.classNode, [unknownType]), upper: A),
+            grounded: true),
+        A);
+    // Solve(B <: T <: A<?>) => B
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: B, upper: new InterfaceType(A.classNode, [unknownType]))),
+        B);
+    // Solve(B <: T <: A<?>, grounded) => B
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: B, upper: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        B);
+    // Solve(B<?> <: T <: A<?>) => B<?>
+    expect(
+        env.solveTypeConstraint(_makeConstraint(
+            lower: new InterfaceType(B.classNode, [unknownType]),
+            upper: new InterfaceType(A.classNode, [unknownType]))),
+        new InterfaceType(B.classNode, [unknownType]));
+    // Solve(B<?> <: T <: A<?>) => B<Null>
+    expect(
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: new InterfaceType(B.classNode, [unknownType]),
+                upper: new InterfaceType(A.classNode, [unknownType])),
+            grounded: true),
+        new InterfaceType(B.classNode, [nullType]));
+  }
+
+  void test_typeConstraint_default() {
+    var typeConstraint = new TypeConstraint();
+    expect(typeConstraint.lower, same(unknownType));
+    expect(typeConstraint.upper, same(unknownType));
+  }
+
+  void test_typeSatisfiesConstraint() {
+    var A = _addClass(_class('A')).rawType;
+    var B =
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var C =
+        _addClass(_class('C', supertype: B.classNode.asThisSupertype)).rawType;
+    var D =
+        _addClass(_class('D', supertype: C.classNode.asThisSupertype)).rawType;
+    var E =
+        _addClass(_class('E', supertype: D.classNode.asThisSupertype)).rawType;
+    var env = _makeEnv();
+    var typeConstraint = _makeConstraint(upper: B, lower: D);
+    expect(env.typeSatisfiesConstraint(A, typeConstraint), isFalse);
+    expect(env.typeSatisfiesConstraint(B, typeConstraint), isTrue);
+    expect(env.typeSatisfiesConstraint(C, typeConstraint), isTrue);
+    expect(env.typeSatisfiesConstraint(D, typeConstraint), isTrue);
+    expect(env.typeSatisfiesConstraint(E, typeConstraint), isFalse);
+  }
+
   void test_unknown_at_bottom() {
     var A = _addClass(_class('A')).rawType;
     var env = _makeEnv();
@@ -479,6 +820,14 @@ class TypeSchemaEnvironmentTest {
 
   DartType _list(DartType elementType) =>
       new InterfaceType(listClass, [elementType]);
+
+  TypeConstraint _makeConstraint(
+      {DartType lower: const UnknownType(),
+      DartType upper: const UnknownType()}) {
+    return new TypeConstraint()
+      ..lower = lower
+      ..upper = upper;
+  }
 
   TypeSchemaEnvironment _makeEnv() {
     return new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(program));

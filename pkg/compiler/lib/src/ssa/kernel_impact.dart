@@ -8,12 +8,13 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart' show AstElement, ResolvedAst;
 import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../kernel/element_adapter.dart';
+import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -62,7 +63,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 }
 
 ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelElementAdapter elementAdapter) {
+    ir.Member member, KernelToElementMap elementAdapter) {
   KernelImpactBuilder builder =
       new KernelImpactBuilder('${member.name}', elementAdapter);
   if (member is ir.Procedure) {
@@ -77,7 +78,7 @@ ResolutionImpact buildKernelImpact(
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
-  final KernelElementAdapter elementAdapter;
+  final KernelToElementMap elementAdapter;
 
   KernelImpactBuilder(String name, this.elementAdapter)
       : this.impactBuilder = new ResolutionWorldImpactBuilder(name);
@@ -269,6 +270,9 @@ class KernelImpactBuilder extends ir.Visitor {
       {bool isConst: false}) {
     _visitArguments(node.arguments);
     ConstructorEntity constructor = elementAdapter.getConstructor(target);
+    if (commonElements.isSymbolConstructor(constructor)) {
+      impactBuilder.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
+    }
     InterfaceType type = elementAdapter.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     CallStructure callStructure =
@@ -279,6 +283,19 @@ class KernelImpactBuilder extends ir.Visitor {
             constructor, callStructure, type));
     if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
+    if (isConst && commonElements.isSymbolConstructor(constructor)) {
+      ConstantValue value =
+          elementAdapter.getConstantValue(node.arguments.positional.first);
+      if (!value.isString) {
+        throw new SpannableAssertionFailure(
+            CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected constant value in const Symbol(...) call: "
+            "${value.toStructuredText()}");
+      }
+      StringConstantValue stringValue = value;
+      impactBuilder
+          .registerConstSymbolName(stringValue.primitiveValue.slowToString());
     }
   }
 

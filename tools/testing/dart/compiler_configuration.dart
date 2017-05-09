@@ -161,7 +161,7 @@ abstract class CompilerConfiguration {
       String buildDir,
       String tempDir,
       CommandBuilder commandBuilder,
-      List arguments,
+      List<String> arguments,
       Map<String, String> environmentOverrides) {
     return new CommandArtifact([], null, null);
   }
@@ -256,7 +256,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       String outputFileName,
       String buildDir,
       CommandBuilder commandBuilder,
-      List arguments,
+      List<String> arguments,
       Map<String, String> environmentOverrides) {
     Iterable<String> extraArguments = [
       '--sdk',
@@ -275,7 +275,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
         true,
         bootstrapDependencies(buildDir),
         computeCompilerPath(buildDir),
-        []..addAll(arguments)..addAll(extraArguments),
+        <String>[]..addAll(arguments)..addAll(extraArguments),
         environmentOverrides);
   }
 
@@ -283,7 +283,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       String buildDir,
       String tempDir,
       CommandBuilder commandBuilder,
-      List arguments,
+      List<String> arguments,
       Map<String, String> environmentOverrides) {
     return new CommandArtifact(<Command>[
       this.computeCompilationCommand('$tempDir/out.dill', buildDir,

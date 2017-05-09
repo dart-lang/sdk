@@ -19,3 +19,8 @@ test2() {
   x2.add(4.0);
   List<int> y = /*info:ASSIGNMENT_CAST*/ x2;
 }
+
+main() {
+  test1();
+  test2();
+}

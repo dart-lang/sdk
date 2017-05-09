@@ -75,32 +75,7 @@ const double SQRT2 = 1.4142135623730951;
   * same mathematical value) then it is unspecified which of the two arguments
   * is returned.
   */
-T min<T extends num>(T a, T b) {
-  // These partially redundant type checks improve code quality for dart2js.
-  // Most of the improvement is at call sites from the inferred non-null num
-  // return type.
-  if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-
-  if (a > b) return b;
-  if (a < b) return a;
-  if (b is double) {
-    // Special case for NaN and -0.0. If one argument is NaN return NaN.
-    // [min] must also distinguish between -0.0 and 0.0.
-    if (a is double) {
-      if (a == 0.0) {
-        // a is either 0.0 or -0.0. b is either 0.0, -0.0 or NaN.
-        // The following returns -0.0 if either a or b is -0.0, and it
-        // returns NaN if b is NaN.
-        return (a + b) * a * b;
-      }
-    }
-    // Check for NaN and b == -0.0.
-    if (a == 0 && b.isNegative || b.isNaN) return b;
-    return a;
-  }
-  return a;
-}
+external T min<T extends num>(T a, T b);
 
 /**
   * Returns the larger of two numbers.
@@ -110,34 +85,7 @@ T min<T extends num>(T a, T b) {
   * otherwise equal (including int and doubles with the same mathematical value)
   * then it is unspecified which of the two arguments is returned.
   */
-T max<T extends num>(T a, T b) {
-  // These partially redundant type checks improve code quality for dart2js.
-  // Most of the improvement is at call sites from the inferred non-null num
-  // return type.
-  if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-
-  if (a > b) return a;
-  if (a < b) return b;
-  if (b is double) {
-    // Special case for NaN and -0.0. If one argument is NaN return NaN.
-    // [max] must also distinguish between -0.0 and 0.0.
-    if (a is double) {
-      if (a == 0.0) {
-        // a is either 0.0 or -0.0. b is either 0.0, -0.0, or NaN.
-        // The following returns 0.0 if either a or b is 0.0, and it
-        // returns NaN if b is NaN.
-        return a + b;
-      }
-    }
-    // Check for NaN.
-    if (b.isNaN) return b;
-    return a;
-  }
-  // max(-0.0, 0) must return 0.
-  if (b == 0 && a.isNegative) return b;
-  return a;
-}
+external T max<T extends num>(T a, T b);
 
 /**
  * A variant of [atan].

@@ -43,26 +43,26 @@ class StringScanner extends ArrayBasedScanner {
   void handleUnicode(int startScanOffset) {}
 
   @override
-  StringToken createSubstringToken(TokenType info, int start, bool asciiOnly,
+  StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new StringToken.fromSubstring(
-        info, string, start, scanOffset + extraOffset, tokenStart,
+        type, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
   }
 
   @override
-  CommentToken createCommentToken(TokenType info, int start, bool asciiOnly,
+  CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new CommentToken.fromSubstring(
-        info, string, start, scanOffset + extraOffset, tokenStart,
+        type, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
   }
 
   @override
-  DartDocToken createDartDocToken(TokenType info, int start, bool asciiOnly,
+  DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new DartDocToken.fromSubstring(
-        info, string, start, scanOffset + extraOffset, tokenStart,
+        type, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
   }
 

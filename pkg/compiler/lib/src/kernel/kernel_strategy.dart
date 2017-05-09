@@ -34,17 +34,18 @@ import '../resolved_uri_translator.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
-import 'element_map.dart';
+import 'element_map_impl.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
 class KernelFrontEndStrategy implements FrontEndStrategy {
-  KernelToElementMap elementMap;
+  KernelToElementMapImpl elementMap;
 
   KernelAnnotationProcessor _annotationProcesser;
 
-  KernelFrontEndStrategy(DiagnosticReporter reporter)
-      : elementMap = new KernelToElementMap(reporter);
+  KernelFrontEndStrategy(
+      DiagnosticReporter reporter, env.Environment environment)
+      : elementMap = new KernelToElementMapImpl(reporter, environment);
 
   @override
   LibraryLoaderTask createLibraryLoader(
@@ -119,7 +120,7 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
 
   KernelWorkItemBuilder(this._elementMap, this._impactTransformer);
@@ -131,7 +132,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 }
 
 class KernelWorkItem implements ResolutionWorkItem {
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final MemberEntity element;
 

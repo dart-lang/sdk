@@ -33,8 +33,8 @@ class ErrorConfig {
   }
 
   void _process(String code, Object action) {
-    action = toLowerCase(action);
     code = toUpperCase(code);
+    action = toLowerCase(action);
     if (AnalyzerOptions.ignoreSynonyms.contains(action)) {
       processors.add(new ErrorProcessor.ignore(code));
     } else {
@@ -88,7 +88,12 @@ class ErrorProcessor {
   String get description => '$code -> ${severity?.name}';
 
   /// Check if this processor applies to the given [error].
-  bool appliesTo(AnalysisError error) => code == error.errorCode.name;
+  ///
+  /// Note: [code] is normalized to uppercase; `errorCode.name` for regular
+  /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
+  bool appliesTo(AnalysisError error) =>
+      code == error.errorCode.name ||
+      code == error.errorCode.name.toUpperCase();
 
   /// Return an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.

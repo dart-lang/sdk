@@ -17,6 +17,7 @@ import '../util/util.dart' show equalElements;
 import 'elements.dart';
 import 'entities.dart';
 import 'modelx.dart' show TypeDeclarationElementX;
+import 'names.dart';
 import 'types.dart';
 
 enum ResolutionTypeKind {

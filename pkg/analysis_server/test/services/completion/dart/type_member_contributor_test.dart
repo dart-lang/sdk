@@ -15,7 +15,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
-    defineReflectiveTests(TypeMemberContributorTest_Driver);
   });
 }
 
@@ -62,6 +61,61 @@ void f(Derived d) {
     addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
+  }
+
+  test_ArgDefaults_method() async {
+    addTestSource('''
+class A {
+  bool a(int b, bool c) => false;
+}
+
+void main() {new A().a^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('a', 'A', 'bool', defaultArgListString: 'b, c');
+  }
+
+  test_ArgDefaults_method_none() async {
+    addTestSource('''
+class A {
+  bool a() => false;
+}
+
+void main() {new A().a^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('a', 'A', 'bool', defaultArgListString: null);
+  }
+
+  test_ArgDefaults_method_with_optional_positional() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, [bool boo, int baz]) => false;
+}
+
+void main() {new A().f^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool', defaultArgListString: 'bar');
+  }
+
+  test_ArgDefaults_method_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, {bool boo, @required int baz}) => false;
+}
+
+void main() {new A().f^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        defaultArgListString: 'bar, baz: null');
   }
 
   test_ArgumentList() async {
@@ -4154,66 +4208,5 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class TypeMemberContributorTest_Driver extends TypeMemberContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_ArgDefaults_method() async {
-    addTestSource('''
-class A {
-  bool a(int b, bool c) => false;
-}
-
-void main() {new A().a^}''');
-    await computeSuggestions();
-
-    assertSuggestMethod('a', 'A', 'bool', defaultArgListString: 'b, c');
-  }
-
-  test_ArgDefaults_method_none() async {
-    addTestSource('''
-class A {
-  bool a() => false;
-}
-
-void main() {new A().a^}''');
-    await computeSuggestions();
-
-    assertSuggestMethod('a', 'A', 'bool', defaultArgListString: null);
-  }
-
-  test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-class A {
-  bool foo(int bar, [bool boo, int baz]) => false;
-}
-
-void main() {new A().f^}''');
-    await computeSuggestions();
-
-    assertSuggestMethod('foo', 'A', 'bool', defaultArgListString: 'bar');
-  }
-
-  test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-class A {
-  bool foo(int bar, {bool boo, @required int baz}) => false;
-}
-
-void main() {new A().f^}''');
-    await computeSuggestions();
-
-    assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
   }
 }

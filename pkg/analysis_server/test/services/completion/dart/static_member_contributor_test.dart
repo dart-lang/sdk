@@ -14,7 +14,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticMemberContributorTest);
-    defineReflectiveTests(StaticMemberContributorTest_Driver);
   });
 }
 
@@ -287,10 +286,4 @@ void main() {async.Future.^.w()}''');
     assertNotSuggested('Object');
     assertNotSuggested('==');
   }
-}
-
-@reflectiveTest
-class StaticMemberContributorTest_Driver extends StaticMemberContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

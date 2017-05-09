@@ -18,3 +18,7 @@ foo() {
   int y = /*error:INVALID_ASSIGNMENT*/ new B<String>().x;
   String z = new B<String>().x;
 }
+
+main() {
+  foo();
+}

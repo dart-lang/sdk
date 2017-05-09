@@ -25,6 +25,9 @@ main() {
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_file_definingUnit() async {
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/1111/b.dart';

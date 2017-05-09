@@ -6,6 +6,7 @@ library test.kernel.closures.suite;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/physical_file_system.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
@@ -67,7 +68,8 @@ class ClosureConversionContext extends ChainContext {
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
-    TranslateUri uriTranslator = await TranslateUri.parse(packages);
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
     return new ClosureConversionContext(
         strongMode, updateExpectations, uriTranslator);
   }
@@ -94,8 +96,8 @@ class FastaCompile
     dillTarget.loader
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
-    KernelTarget sourceTarget =
-        new KernelTarget(dillTarget, context.uriTranslator, context.strongMode);
+    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
+        dillTarget, context.uriTranslator, context.strongMode);
 
     Program p;
     try {

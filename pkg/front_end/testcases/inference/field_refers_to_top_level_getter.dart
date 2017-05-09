@@ -10,3 +10,5 @@ class C {
 }
 
 int get y => null;
+
+main() {}

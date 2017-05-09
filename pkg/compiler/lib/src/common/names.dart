@@ -6,7 +6,7 @@
 /// the compiler.
 library dart2js.common.names;
 
-import '../elements/elements.dart' show Name, PublicName;
+import '../elements/names.dart' show Name, PublicName;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 

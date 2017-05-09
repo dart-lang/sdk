@@ -28,9 +28,9 @@ class FrequencyBasedNamer extends Namer
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
-  FrequencyBasedNamer(NativeData nativeData, ClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder)
-      : super(nativeData, closedWorld, codegenWorldBuilder) {
+  FrequencyBasedNamer(
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+      : super(closedWorld, codegenWorldBuilder) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }
 

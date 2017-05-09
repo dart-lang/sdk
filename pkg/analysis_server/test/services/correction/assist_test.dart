@@ -15,6 +15,9 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -28,7 +31,6 @@ import 'flutter_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
-    defineReflectiveTests(AssistProcessorTest_Driver);
   });
 }
 
@@ -4645,12 +4647,24 @@ main() {
   Future<List<Assist>> _computeAssists() async {
     CompilationUnitElement testUnitElement =
         resolutionMap.elementDeclaredByCompilationUnit(testUnit);
-    DartAssistContext assistContext = new _DartAssistContextForValues(
-        testUnitElement.source,
-        offset,
-        length,
-        testUnitElement.context,
-        testUnit);
+    DartAssistContext assistContext;
+    if (enableNewAnalysisDriver) {
+      assistContext = new _DartAssistContextForValues(
+          testUnitElement.source,
+          offset,
+          length,
+          testUnitElement.context,
+          new AstProviderForDriver(driver),
+          testUnit);
+    } else {
+      assistContext = new _DartAssistContextForValues(
+          testUnitElement.source,
+          offset,
+          length,
+          testUnitElement.context,
+          new AstProviderForContext(testUnitElement.context),
+          testUnit);
+    }
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
   }
@@ -4703,12 +4717,6 @@ main() {
   }
 }
 
-@reflectiveTest
-class AssistProcessorTest_Driver extends AssistProcessorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}
-
 class _DartAssistContextForValues implements DartAssistContext {
   @override
   final Source source;
@@ -4723,8 +4731,11 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisContext analysisContext;
 
   @override
+  final AstProvider astProvider;
+
+  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisContext, this.unit);
+      this.selectionLength, this.analysisContext, this.astProvider, this.unit);
 }

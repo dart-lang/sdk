@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
-import 'package:front_end/src/base/uri_resolver.dart';
+import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:package_config/packages_file.dart' as package_config;
 
 /// Wrapper around [CompilerOptions] which exposes the options in a form useful
@@ -26,9 +26,9 @@ class ProcessedOptions {
   /// not been computed yet.
   Map<String, Uri> _packages;
 
-  /// A URI resolver based on the options, or `null` if the URI resolver has not
-  /// been computed yet.
-  UriResolver _uriResolver;
+  /// The object that knows how to resolve "package:" and "dart:" URIs,
+  /// or `null` if it has not been computed yet.
+  TranslateUri _uriTranslator;
 
   /// The summary bundle for the SDK, or `null` if it has not been read yet.
   PackageBundle _sdkSummary;
@@ -55,6 +55,9 @@ class ProcessedOptions {
     return _raw.fileSystem;
   }
 
+  /// Whether to interpret Dart sources in strong-mode.
+  bool get strongMode => _raw.strongMode;
+
   /// Get the summary bundle for the SDK.
   ///
   /// This is an asynchronous getter since file system operations are required.
@@ -79,18 +82,19 @@ class ProcessedOptions {
     return _sdkSummary;
   }
 
-  /// Get the [UriResolver] which resolves "package:" and "dart:" URIs.
+  /// Get the [TranslateUri] which resolves "package:" and "dart:" URIs.
   ///
-  /// This is an asynchronous getter since file system operations may be
+  /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriResolver> getUriResolver() async {
-    if (_uriResolver == null) {
+  Future<TranslateUri> getUriTranslator() async {
+    if (_uriTranslator == null) {
       await _getPackages();
-      var sdkLibraries =
-          <String, Uri>{}; // TODO(paulberry): support SDK libraries
-      _uriResolver = new UriResolver(_packages, sdkLibraries);
+      // TODO(scheglov) Load SDK libraries from whatever format we decide.
+      // TODO(scheglov) Remove the field "_raw.dartLibraries".
+      _uriTranslator = new TranslateUri(_packages, _raw.dartLibraries);
+      _uriTranslator.dartLibraries.addAll(_raw.dartLibraries);
     }
-    return _uriResolver;
+    return _uriTranslator;
   }
 
   /// Get the package map which maps package names to URIs.

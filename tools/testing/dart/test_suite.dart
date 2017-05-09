@@ -421,12 +421,13 @@ abstract class TestSuite {
    */
   Future<List> listDir(Path path, Function isValid) {
     var dir = new Directory(path.toNativePath());
-    return dir.exists().then((var exist) {
-      if (!exist) return [];
+    return dir.exists().then((exists) {
+      if (!exists) return [];
       return dir
           .list(recursive: false)
           .where((fse) => fse is Directory)
-          .map((Directory directory) {
+          .map((FileSystemEntity entity) {
+            var directory = entity as Directory;
             var fullPath = directory.absolute.path;
             var packageName = new Path(fullPath).filename;
             if (isValid(packageName)) {
@@ -471,8 +472,8 @@ class CCTestSuite extends TestSuite {
   CCTestSuite(Map configuration, String suiteName, String runnerName,
       this.statusFilePaths,
       {this.testPrefix: ''})
-      : super(configuration, suiteName),
-        dartDir = TestUtils.dartDir.toNativePath() {
+      : dartDir = TestUtils.dartDir.toNativePath(),
+        super(configuration, suiteName) {
     // For running the tests we use the given '$runnerName' binary
     targetRunnerPath = '$buildDir/$runnerName';
 
@@ -581,11 +582,11 @@ class StandardTestSuite extends TestSuite {
   StandardTestSuite(Map configuration, String suiteName, Path suiteDirectory,
       this.statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
-      : super(configuration, suiteName),
-        dartDir = TestUtils.dartDir,
+      : dartDir = TestUtils.dartDir,
         listRecursively = recursive,
         suiteDir = TestUtils.dartDir.join(suiteDirectory),
-        extraVmOptions = TestUtils.getExtraVmOptions(configuration) {
+        extraVmOptions = TestUtils.getExtraVmOptions(configuration),
+        super(configuration, suiteName) {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
@@ -727,8 +728,8 @@ class StandardTestSuite extends TestSuite {
     var lister = dir
         .list(recursive: listRecursively)
         .where((fse) => fse is File)
-        .forEach((File f) {
-      enqueueFile(f.path, group);
+        .forEach((FileSystemEntity entity) {
+      enqueueFile((entity as File).path, group);
     });
     group.add(lister);
   }
@@ -858,7 +859,7 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = new List.from(vmOptions)..addAll(extraVmOptions);
       }
 
-      var commands = []..addAll(baseCommands);
+      var commands = baseCommands.toList();
       commands.addAll(
           makeCommands(info, vmOptionsVarient, allVmOptions, commonArguments));
       enqueueNewTestCase(new TestCase(
@@ -1007,7 +1008,7 @@ class StandardTestSuite extends TestSuite {
     assert(configuration.containsKey('_servers_'));
     int serverPort = configuration['_servers_'].port;
     int crossOriginPort = configuration['_servers_'].crossOriginPort;
-    Map parameters = {'crossOriginPort': crossOriginPort.toString()};
+    var parameters = {'crossOriginPort': crossOriginPort.toString()};
     if (subtestName != null) {
       parameters['group'] = subtestName;
     }
@@ -1197,11 +1198,8 @@ class StandardTestSuite extends TestSuite {
           _getUriForBrowserTest(htmlPath_subtest, subtestName).toString();
 
       if (runtime == "drt") {
-        var dartFlags = [];
-        var contentShellOptions = [];
-
-        contentShellOptions.add('--no-timeout');
-        contentShellOptions.add('--run-layout-test');
+        var dartFlags = <String>[];
+        var contentShellOptions = ['--no-timeout', '--run-layout-test'];
 
         // Disable the GPU under Linux and Dartium. If the GPU is enabled,
         // Chrome may send a termination signal to a test.  The test will be
@@ -1395,7 +1393,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
-    List args = TestUtils.standardOptions(configuration);
+    var args = TestUtils.standardOptions(configuration);
 
     String packages = packagesArgument(
         optionsFromFile['packageRoot'], optionsFromFile['packages']);
@@ -1969,24 +1967,18 @@ class TestUtils {
     }
   }
 
-  static Path debugLogfile() {
-    return new Path(".debug.log");
-  }
+  static final debugLogFilePath = new Path(".debug.log");
 
-  static String flakyFileName() {
-    // If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
-    // will be written to this file. This is useful for the debugging of
-    // flaky tests.
-    // When running on a built bot, the file can be made visible in the
-    // waterfall UI.
-    return ".flaky.log";
-  }
+  /// If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
+  /// will be written to this file.
+  ///
+  /// This is useful for debugging flaky tests. When running on a buildbot, the
+  /// file can be made visible in the waterfall UI.
+  static const flakyFileName = ".flaky.log";
 
-  static String testOutcomeFileName() {
-    // If test.py was invoked with '--write-test-outcome-log it will write
-    // test outcomes to this file.
-    return ".test-outcome.log";
-  }
+  /// If test.py was invoked with '--write-test-outcome-log it will write
+  /// test outcomes to this file.
+  static const testOutcomeFileName = ".test-outcome.log";
 
   static void ensureExists(String filename, Map configuration) {
     if (!configuration['list'] && !existsCache.doesFileExist(filename)) {
@@ -2018,7 +2010,7 @@ class TestUtils {
   }
 
   static List<String> standardOptions(Map configuration) {
-    List args = ["--ignore-unrecognized-flags"];
+    var args = ["--ignore-unrecognized-flags"];
     String compiler = configuration["compiler"];
     if (compiler == "dart2js") {
       args = ['--generate-code-with-compile-time-errors', '--test-mode'];

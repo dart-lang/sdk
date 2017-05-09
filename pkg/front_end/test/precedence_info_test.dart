@@ -26,8 +26,8 @@ class PrecedenceInfoTest {
       check(source, token);
     }
 
-    for (TokenType info in TokenType.all) {
-      assertLexeme(info.value);
+    for (TokenType type in TokenType.all) {
+      assertLexeme(type.value);
     }
     assertLexeme('1.0'); // DOUBLE
     assertLexeme('0xA'); // HEXADECIMAL
@@ -374,7 +374,7 @@ class PrecedenceInfoTest {
       for (String source in lexemes) {
         var scanner = new StringScanner(source, includeComments: true);
         var token = scanner.tokenize();
-        expect(token.info.precedence, precedence, reason: source);
+        expect(token.type.precedence, precedence, reason: source);
       }
     });
   }
@@ -389,8 +389,9 @@ class PrecedenceInfoTest {
     assertLexeme('1.0', TokenType.DOUBLE);
     assertLexeme('0xA', TokenType.HEXADECIMAL);
     assertLexeme('1', TokenType.INT);
-    assertLexeme('var', TokenType.KEYWORD);
+    assertLexeme('var', Keyword.VAR);
     assertLexeme('#!/', TokenType.SCRIPT_TAG);
+    assertLexeme('foo', TokenType.IDENTIFIER);
     assertLexeme('"foo"', TokenType.STRING);
   }
 }

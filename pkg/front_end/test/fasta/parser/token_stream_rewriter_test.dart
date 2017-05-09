@@ -17,7 +17,7 @@ main() {
 
 /// Abstract base class for tests of [TokenStreamRewriter].
 abstract class TokenStreamRewriterTest {
-  /// Indicates whether the tests should set up [Token.previousToken].
+  /// Indicates whether the tests should set up [Token.previous].
   bool get setPrevious;
 
   void test_insert_at_end() {
@@ -29,8 +29,8 @@ abstract class TokenStreamRewriterTest {
     expect(rewriter.firstToken, same(a));
     expect(a.next, same(b));
     expect(b.next, same(eof));
-    expect(eof.previousToken, same(b));
-    expect(b.previousToken, same(a));
+    expect(eof.previous, same(b));
+    expect(b.previous, same(a));
   }
 
   void test_insert_at_start() {
@@ -41,8 +41,8 @@ abstract class TokenStreamRewriterTest {
     rewriter.insertTokenBefore(a, b);
     expect(rewriter.firstToken, same(a));
     expect(a.next, same(b));
-    expect(a.previousToken.next, same(a));
-    expect(b.previousToken, same(a));
+    expect(a.previous.next, same(a));
+    expect(b.previous, same(a));
   }
 
   void test_resume_at_previous_insertion_point() {
@@ -105,18 +105,18 @@ abstract class TokenStreamRewriterTest {
   /// The EOF token is returned.
   Token _link(Iterable<Token> tokens) {
     Token head = new SymbolToken.eof(-1);
-    if (!setPrevious) head.previousToken = null;
+    if (!setPrevious) head.previous = null;
     for (var token in tokens) {
       head.next = token;
-      if (setPrevious) token.previousToken = head;
+      if (setPrevious) token.previous = head;
       head = token;
     }
     int eofOffset = head.charOffset + head.lexeme.length;
     if (eofOffset < 0) eofOffset = 0;
     Token eof = new SymbolToken.eof(eofOffset);
-    if (!setPrevious) eof.previousToken = null;
+    if (!setPrevious) eof.previous = null;
     head.next = eof;
-    if (setPrevious) eof.previousToken = head;
+    if (setPrevious) eof.previous = head;
     return eof;
   }
 
@@ -130,7 +130,7 @@ abstract class TokenStreamRewriterTest {
 }
 
 /// Concrete implementation of [TokenStreamRewriterTest] in which
-/// [Token.previousToken] values are set to null.
+/// [Token.previous] values are set to null.
 ///
 /// This forces [TokenStreamRewriter] to use its more complex heursitc for
 /// finding previous tokens.
@@ -140,9 +140,9 @@ class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
 }
 
 /// Concrete implementation of [TokenStreamRewriterTest] in which
-/// [Token.previousToken] values are set to non-null.
+/// [Token.previous] values are set to non-null.
 ///
-/// Since [TokenStreamRewriter] makes use of [Token.previousToken] when it can,
+/// Since [TokenStreamRewriter] makes use of [Token.previous] when it can,
 /// these tests do not exercise the more complex heuristics for finding previous
 /// tokens.
 @reflectiveTest

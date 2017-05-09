@@ -20,18 +20,65 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportedReferenceContributorTest);
-    defineReflectiveTests(ImportedReferenceContributorTest_Driver);
   });
 }
 
 @reflectiveTest
 class ImportedReferenceContributorTest extends DartCompletionContributorTest {
+  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
+    ..generateFlutterWidgetChildrenBoilerPlate = true;
+
   @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
   @override
   DartCompletionContributor createContributor() {
     return new ImportedReferenceContributor();
+  }
+
+  test_ArgDefaults_Flutter_cons_with_children() async {
+    addMetaPackageSource();
+
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Container(
+    child: new Row^
+  );
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggestConstructor("Row",
+        defaultArgListString: "children: <Widget>[]",
+        defaultArgumentListTextRanges: [10, 10]);
+  }
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_function_with_required_named() async {
+    addMetaPackageSource();
+
+    resolveSource(
+        '/testB.dart',
+        '''
+lib B;
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+''');
+
+    addTestSource('''
+import "/testB.dart";
+
+void main() {f^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        defaultArgListString: 'bar, baz: null');
   }
 
   test_ArgumentList() async {
@@ -1957,7 +2004,6 @@ int myFunc() {}
     assertNotSuggested('two');
   }
 
-  @failingTest
   test_enum_deprecated() async {
     addSource('/libA.dart', 'library A; @deprecated enum E { one, two }');
     addTestSource('import "/libA.dart"; main() {^}');
@@ -4508,65 +4554,5 @@ class B extends A {
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class ImportedReferenceContributorTest_Driver
-    extends ImportedReferenceContributorTest {
-  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
-    ..generateFlutterWidgetChildrenBoilerPlate = true;
-
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_ArgDefaults_Flutter_cons_with_children() async {
-    addMetaPackageSource();
-
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Container(
-    child: new Row^
-  );
-''');
-
-    await computeSuggestions(options: generateChildrenBoilerPlate);
-
-    assertSuggestConstructor("Row",
-        defaultArgListString: "children: <Widget>[]",
-        defaultArgumentListTextRanges: [10, 10]);
-  }
-
-  /// Sanity check.  Permutations tested in local_ref_contributor.
-  test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
-
-    resolveSource(
-        '/testB.dart',
-        '''
-lib B;
-import 'package:meta/meta.dart';
-
-bool foo(int bar, {bool boo, @required int baz}) => false;
-''');
-
-    addTestSource('''
-import "/testB.dart";
-
-void main() {f^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('foo', 'bool',
-        defaultArgListString: 'bar, baz: null');
-  }
-
-  @override
-  test_enum_deprecated() {
-    // TODO(scheglov) remove it?
   }
 }

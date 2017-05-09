@@ -4309,7 +4309,7 @@
         ],
         "setRequestHeader": [
           "/**",
-          "   * Sets the value of an HTTP requst header.",
+          "   * Sets the value of an HTTP request header.",
           "   *",
           "   * This method should be called after the request is opened, but before",
           "   * the request is sent.",
@@ -4340,7 +4340,8 @@
         ],
         "timeout": [
           "/**",
-          "   * Length of time before a request is automatically terminated.",
+          "   * Length of time in milliseconds before a request is automatically",
+          "   * terminated.",
           "   *",
           "   * When the time has passed, a [TimeoutEvent] is dispatched.",
           "   *",

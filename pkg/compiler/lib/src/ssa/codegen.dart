@@ -80,7 +80,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.emitter,
           backend.nativeCodegenEnqueuer,
           backend.checkedModeHelpers,
-          backend.nativeData,
           backend.interceptorData,
           backend.oneShotInterceptorData,
           backend.rtiSubstitutions,
@@ -107,7 +106,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.emitter,
           backend.nativeCodegenEnqueuer,
           backend.checkedModeHelpers,
-          backend.nativeData,
           backend.interceptorData,
           backend.oneShotInterceptorData,
           backend.rtiSubstitutions,
@@ -153,7 +151,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CodeEmitterTask _emitter;
   final native.NativeCodegenEnqueuer _nativeEnqueuer;
   final CheckedModeHelpers _checkedModeHelpers;
-  final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
@@ -211,7 +208,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._emitter,
       this._nativeEnqueuer,
       this._checkedModeHelpers,
-      this._nativeData,
       this._interceptorData,
       this._oneShotInterceptorData,
       this._rtiSubstitutions,
@@ -237,6 +233,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   CommonElements get _commonElements => _closedWorld.commonElements;
 
   ConstantSystem get _constantSystem => _closedWorld.constantSystem;
+
+  NativeData get _nativeData => _closedWorld.nativeData;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -2928,6 +2926,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     DartType type = node.typeExpression;
     assert(!type.isTypedef);
     assert(!type.isDynamic);
+    assert(!type.isVoid);
     if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.

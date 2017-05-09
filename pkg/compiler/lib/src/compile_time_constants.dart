@@ -15,11 +15,11 @@ import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
-import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'elements/modelx.dart' show ConstantVariableMixin;
-import 'resolution/operators.dart';
+import 'elements/operators.dart';
+import 'elements/resolution_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
 import 'universe/call_structure.dart' show CallStructure;
@@ -1442,7 +1442,7 @@ class ErroneousAstConstant extends AstConstant {
             new NullConstantValue());
 }
 
-class _CompilerEnvironment implements Environment {
+class _CompilerEnvironment implements EvaluationEnvironment {
   final Compiler _compiler;
 
   _CompilerEnvironment(this._compiler);

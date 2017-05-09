@@ -4103,10 +4103,21 @@ class NamedType extends Node implements Comparable<NamedType> {
 final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 
 /// Reference to a type variable.
+///
+/// A type variable has an optional bound because type promotion can change the
+/// bound.  A bound of `null` indicates that the bound has not been promoted and
+/// is the same as the [TypeParameter]'s bound.  This allows one to detect
+/// whether the bound has been promoted.
 class TypeParameterType extends DartType {
   TypeParameter parameter;
 
-  TypeParameterType(this.parameter);
+  /// An optional promoted bound on the type parameter.
+  ///
+  /// 'null' indicates that the type parameter's bound has not been promoted and
+  /// is therefore the same as the bound of [parameter].
+  DartType bound;
+
+  TypeParameterType(this.parameter, [this.bound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
 
@@ -4371,7 +4382,7 @@ class Source {
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.
   String getTextLine(int line) {
-    _rangeCheck(line, 1, lineStarts.length, "line");
+    RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
     if (source == null) return null;
 
     cachedText ??= UTF8.decode(source, allowMalformed: true);
@@ -4396,7 +4407,7 @@ class Source {
 
   /// Translates an offset to line and column numbers in the given file.
   Location getLocation(String file, int offset) {
-    _rangeCheck(offset, 0, lineStarts.last, "offset");
+    RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
       int mid = high - ((high - low) >> 1); // Get middle, rounding up.
@@ -4413,11 +4424,6 @@ class Source {
     int columnNumber = 1 + offset - lineStart;
     return new Location(file, lineNumber, columnNumber);
   }
-}
-
-void _rangeCheck(int value, int min, int max, String name) {
-  RangeError.checkValueInInterval(value, min, max, name,
-      "The value of '$name' ($value) must be between $min and $max.");
 }
 
 /// Returns the [Reference] object for the given member.

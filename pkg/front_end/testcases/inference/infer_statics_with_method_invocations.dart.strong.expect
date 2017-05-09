@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_statics_with_method_invocations_a.dart" as inf;
+
+class T extends core::Object {
+  static final field self::T foo = self::T::m1(self::T::m2(inf::m3("", "")));
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  static method m1(core::String m) → self::T {
+    return null;
+  }
+  static method m2(dynamic e) → core::String {
+    return "";
+  }
+}
+static method main() → dynamic {}

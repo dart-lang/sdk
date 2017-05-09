@@ -9,3 +9,7 @@ test1() {
   var /*@type=List<Null>*/ x = /*@typeArgs=Null*/ [null];
   /*@promotedType=none*/ x.add(/*error:INVALID_CAST_LITERAL*/ 42);
 }
+
+main() {
+  test1();
+}

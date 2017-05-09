@@ -1084,7 +1084,8 @@ class BinaryBuilder {
         return new FunctionType(positional, returnType);
       case Tag.TypeParameterType:
         int index = readUInt();
-        return new TypeParameterType(typeParameterStack[index]);
+        var bound = readDartTypeOption();
+        return new TypeParameterType(typeParameterStack[index], bound);
       default:
         throw fail('Invalid dart type tag: $tag');
     }

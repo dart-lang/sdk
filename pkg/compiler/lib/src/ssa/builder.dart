@@ -15,20 +15,21 @@ import '../compiler.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/resolution_types.dart';
-import '../elements/types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
+import '../elements/names.dart';
+import '../elements/operators.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
-import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -215,7 +216,7 @@ class SsaBuilder extends ast.Visitor
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     localsHandler = new LocalsHandler(
-        this, target, null, backend.nativeData, backend.interceptorData);
+        this, target, null, closedWorld.nativeData, backend.interceptorData);
     loopHandler = new SsaLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
   }
@@ -406,13 +407,14 @@ class SsaBuilder extends ast.Visitor
     if (compiler.elementHasCompileTimeError(element)) return false;
 
     MethodElement function = element;
+    MethodElement declaration = function.declaration;
     ResolvedAst functionResolvedAst = function.resolvedAst;
     bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
     // inline (no need to check the hard constraints).
     bool cachedCanBeInlined =
-        inlineCache.canInline(function, insideLoop: insideLoop);
+        inlineCache.canInline(declaration, insideLoop: insideLoop);
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
@@ -534,9 +536,9 @@ class SsaBuilder extends ast.Visitor
           functionResolvedAst, maxInliningNodes,
           enableUserAssertions: options.enableUserAssertions);
       if (canInline) {
-        inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+        inlineCache.markAsInlinable(declaration, insideLoop: insideLoop);
       } else {
-        inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+        inlineCache.markAsNonInlinable(declaration, insideLoop: insideLoop);
       }
       return canInline;
     }

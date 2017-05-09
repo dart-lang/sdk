@@ -9,3 +9,7 @@ test1() {
   int x = 3;
   x = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
+
+main() {
+  test1();
+}

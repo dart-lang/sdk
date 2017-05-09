@@ -621,7 +621,7 @@ class RawObject {
   friend class InstanceAccumulator;        // GetClassId
   friend class RetainingPathVisitor;       // GetClassId
   friend class SkippedCodeFunctions;       // StorePointer
-  friend class InstructionsReader;         // tags_ check
+  friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
@@ -1229,7 +1229,7 @@ class RawInstructions : public RawObject {
   friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class Function;
-  friend class InstructionsReader;
+  friend class ImageReader;
   friend class ImageWriter;
 };
 

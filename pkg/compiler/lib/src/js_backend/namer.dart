@@ -16,6 +16,7 @@ import '../common_elements.dart' show CommonElements;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -489,7 +490,6 @@ class Namer {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
-  final NativeData _nativeData;
   final ClosedWorld _closedWorld;
   final CodegenWorldBuilder _codegenWorldBuilder;
 
@@ -561,7 +561,7 @@ class Namer {
   final Map<LibraryElement, String> _libraryKeys =
       new HashMap<LibraryElement, String>();
 
-  Namer(this._nativeData, this._closedWorld, this._codegenWorldBuilder) {
+  Namer(this._closedWorld, this._codegenWorldBuilder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
@@ -569,6 +569,8 @@ class Namer {
   }
 
   CommonElements get _commonElements => _closedWorld.commonElements;
+
+  NativeData get _nativeData => _closedWorld.nativeData;
 
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';

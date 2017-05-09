@@ -4053,7 +4053,7 @@ Fragment FlowGraphBuilder::CheckAssignableInCheckedMode(
     const dart::String& dst_name) {
   Fragment instructions;
   if (I->type_checks() && !dst_type.IsDynamicType() &&
-      !dst_type.IsObjectType()) {
+      !dst_type.IsObjectType() && !dst_type.IsVoidType()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions += AssertAssignable(dst_type, dst_name);

@@ -12,7 +12,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLocalTest);
-    defineReflectiveTests(RenameLocalTest_Driver);
   });
 }
 
@@ -551,10 +550,4 @@ main() {
     // old name
     expect(refactoring.oldName, 'test');
   }
-}
-
-@reflectiveTest
-class RenameLocalTest_Driver extends RenameLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

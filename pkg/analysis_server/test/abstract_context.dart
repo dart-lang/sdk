@@ -73,8 +73,10 @@ class AbstractContextTest {
 
   /**
    * Return `true` if the new analysis driver should be used by these tests.
+   *
+   * Remove this after there are no subclasses that override it.
    */
-  bool get enableNewAnalysisDriver => false;
+  bool get enableNewAnalysisDriver => true;
 
   Source addMetaPackageSource() => addPackageSource(
       'meta',
@@ -98,19 +100,18 @@ class Required {
 
   Source addSource(String path, String content, [Uri uri]) {
     File file = newFile(path, content);
+    Source source = file.createSource(uri);
     if (enableNewAnalysisDriver) {
       driver.addFile(path);
       driver.changeFile(path);
       _fileContentOverlay[path] = content;
-      return null;
     } else {
-      Source source = file.createSource(uri);
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(source);
       context.applyChanges(changeSet);
       context.setContents(source, content);
-      return source;
     }
+    return source;
   }
 
   File newFile(String path, [String content]) =>

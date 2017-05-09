@@ -180,6 +180,60 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(suggestions, hasLength(2));
   }
 
+  test_constructor() async {
+    addTestFile('class A {bool foo; A() : ^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor2() async {
+    addTestFile('class A {bool foo; A() : s^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor3() async {
+    addTestFile('class A {bool foo; A() : a=7,^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor4() async {
+    addTestFile('class A {bool foo; A() : a=7,s^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor5() async {
+    addTestFile('class A {bool foo; A() : a=7,s^}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor6() async {
+    addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
   @failingTest
   test_html() {
     //

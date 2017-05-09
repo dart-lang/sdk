@@ -17,3 +17,7 @@ foo() {
   String y = /*info:DYNAMIC_CAST*/ new B().x;
   int z = /*info:DYNAMIC_CAST*/ new B().x;
 }
+
+main() {
+  foo();
+}

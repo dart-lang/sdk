@@ -949,6 +949,8 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
+  
+  Option<DartType> bound;
 }
 
 type VectorType extends DartType {

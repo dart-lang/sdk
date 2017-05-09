@@ -134,6 +134,7 @@ import 'elements/modelx.dart'
         LibraryElementX,
         MetadataAnnotationX,
         SetterElementX;
+import 'elements/names.dart';
 import 'enqueue.dart' show DeferredAction;
 import 'id_generator.dart';
 import 'library_loader.dart' show LibraryLoader;

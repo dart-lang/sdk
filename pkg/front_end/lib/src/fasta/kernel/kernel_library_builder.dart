@@ -165,7 +165,7 @@ class KernelLibraryBuilder
       KernelTypeBuilder type, String name, int charOffset, Token initializer) {
     addBuilder(
         name,
-        new KernelFieldBuilder(loader.astFactory, loader.typeInferenceEngine,
+        new KernelFieldBuilder(
             metadata, type, name, modifiers, this, charOffset, initializer),
         charOffset);
   }

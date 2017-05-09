@@ -14,8 +14,8 @@ import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/kernel/element_adapter.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -55,6 +55,9 @@ main() {
   testStringInterpolationConst();
   testStringJuxtaposition();
   testSymbol();
+  testConstSymbol();
+  testComplexConstSymbol();
+  testIfNullConstSymbol();
   testTypeLiteral();
   testBoolFromEnvironment();
   testEmptyListLiteral();
@@ -215,6 +218,25 @@ testStringInterpolationConst() {
 }
 testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
+testConstSymbol() => const Symbol('main');
+
+const complexSymbolField1 = "true".length == 4;
+const complexSymbolField2 = "true" "false" "${4}${null}";
+const complexSymbolField3 = const { 
+  0.1: const bool.fromEnvironment('a', defaultValue: true),
+  false: const int.fromEnvironment('b', defaultValue: 42),
+  const <int>[]: const String.fromEnvironment('c'),
+  testComplexConstSymbol: #testComplexConstSymbol,
+  1 + 2: identical(0, -0), 
+  true || false: false && true,
+  override: const GenericClass<int, String>.generative(),
+}; 
+const complexSymbolField = 
+    complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
+testComplexConstSymbol() => const Symbol(complexSymbolField);
+
+testIfNullConstSymbol() => const Symbol(null ?? 'foo');
+
 testTypeLiteral() => Object;
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 testEmptyListLiteral() => [];
@@ -721,8 +743,8 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
-    KernelToElementMap kernelElementMap =
-        new KernelToElementMap(compiler.reporter);
+    KernelToElementMapImpl kernelElementMap =
+        new KernelToElementMapImpl(compiler.reporter, compiler.environment);
     kernelElementMap.addProgram(backend.kernelTask.program);
 
     checkLibrary(compiler, kernelElementMap, compiler.mainApp,
@@ -734,26 +756,25 @@ main(List<String> args) {
   });
 }
 
-void checkLibrary(Compiler compiler, KernelElementAdapter kernelElementAdapter,
+void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
     LibraryElement library,
     {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, kernelElementAdapter, member,
-            fullTest: fullTest);
+        checkElement(compiler, elementMap, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, kernelElementAdapter, element, fullTest: fullTest);
+      checkElement(compiler, elementMap, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
-    AstElement element,
+void checkElement(
+    Compiler compiler, KernelToElementMapMixin elementMap, AstElement element,
     {bool fullTest: false}) {
   if (!fullTest && element.library.isPlatformLibrary) {
     return;
@@ -775,12 +796,11 @@ void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
     ResolutionImpact kernelImpact1 = build(compiler, element.resolvedAst);
     ir.Member member = getIrMember(compiler, element.resolvedAst);
     Expect.isNotNull(kernelImpact1, 'No impact computed for $element');
-    ResolutionImpact kernelImpact2 =
-        buildKernelImpact(member, kernelElementAdapter);
+    ResolutionImpact kernelImpact2 = buildKernelImpact(member, elementMap);
     Expect.isNotNull(kernelImpact2, 'No impact computed for $member');
     testResolutionImpactEquivalence(astImpact, kernelImpact1,
         strategy: const CheckStrategy());
-    KernelEquivalence equivalence = new KernelEquivalence(kernelElementAdapter);
+    KernelEquivalence equivalence = new KernelEquivalence(elementMap);
     testResolutionImpactEquivalence(astImpact, kernelImpact2,
         strategy: new CheckStrategy(
             elementEquivalence: equivalence.entityEquivalence,

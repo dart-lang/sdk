@@ -138,12 +138,8 @@ class Timer {
 /// Independently, it takes the [completer] and returns the future of the
 /// completer for convenience of the transformed code.
 dynamic _asyncStart(_WrappedAsyncBody bodyFunction, Completer completer) {
-  // Expansion and specialization of `await null`.
-  Function thenCallback =
-      (result) => bodyFunction(async_error_codes.SUCCESS, result);
-  // We can skip the zone registration, since the bodyFunction is already
-  // registered (see [_wrapJsFunctionForAsync]).
-  Future._nullFuture._thenNoZoneRegistration(thenCallback, null);
+  // TODO(sra): Specialize this implementation of `await null`.
+  _awaitOnObject(null, bodyFunction);
   return completer.future;
 }
 

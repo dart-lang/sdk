@@ -22,6 +22,7 @@ import '../elements/modelx.dart'
         FieldElementX,
         InitializingFormalElementX,
         ParameterElementX;
+import '../elements/names.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart' show Feature;

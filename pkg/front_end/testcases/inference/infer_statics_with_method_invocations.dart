@@ -17,3 +17,5 @@ class T {
     return '';
   }
 }
+
+main() {}

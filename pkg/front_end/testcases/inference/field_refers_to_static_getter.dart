@@ -9,3 +9,5 @@ class C {
   final /*@topType=int*/ x = _x;
   static int get _x => null;
 }
+
+main() {}

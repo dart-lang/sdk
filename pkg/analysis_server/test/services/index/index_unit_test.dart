@@ -42,6 +42,9 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
   PackageIndex packageIndex;
   UnitIndex unitIndex;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   _ElementIndexAssert assertThat(Element element) {
     List<_Relation> relations = _getElementRelations(element);
     return new _ElementIndexAssert(this, element, relations);

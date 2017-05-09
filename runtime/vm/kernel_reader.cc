@@ -208,14 +208,14 @@ Object& KernelReader::ReadProgram() {
 
       Procedure* procedure =
           reinterpret_cast<Procedure*>(to_patch.kernel_function());
-      // If dart:_builtin was not compiled from Kernel at all or if it was
-      // linked with a script, it does not need to be patched.
-      if ((procedure != NULL) && (procedure->function()->body() == NULL)) {
+      // If dart:_builtin was not compiled from Kernel at all it does not need
+      // to be patched.
+      if (procedure != NULL) {
         // We will handle the StaticGet specially and will not use the name.
         //
-        // TODO(kmillikin): we are leaking the function body.  Find a way to
+        // TODO(kmillikin): we are leaking the new function body.  Find a way to
         // deallocate it.
-        procedure->function()->set_body(
+        procedure->function()->ReplaceBody(
             new ReturnStatement(new StaticGet(NameIndex())));
       }
       return library;

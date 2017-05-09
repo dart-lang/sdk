@@ -9,6 +9,7 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../options.dart';
 import '../world.dart';

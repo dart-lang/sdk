@@ -10,6 +10,7 @@ import 'dart:io' show File;
 
 import 'dart:convert' show JSON;
 
+import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
@@ -87,11 +88,18 @@ class FastaContext extends ChainContext {
 
   Future<Program> platform;
 
-  FastaContext(this.vm, bool strongMode, bool updateExpectations,
-      this.uriTranslator, bool fullCompile, AstKind astKind)
+  FastaContext(
+      this.vm,
+      bool strongMode,
+      bool updateExpectations,
+      bool updateComments,
+      bool skipVm,
+      this.uriTranslator,
+      bool fullCompile,
+      AstKind astKind)
       : steps = <Step>[
           new Outline(fullCompile, astKind, strongMode,
-              updateExpectations: updateExpectations),
+              updateComments: updateComments),
           const Print(),
           new Verify(fullCompile),
           new MatchExpectation(
@@ -100,7 +108,7 @@ class FastaContext extends ChainContext {
                   : ".outline.expect",
               updateExpectations: updateExpectations)
         ] {
-    if (fullCompile) {
+    if (fullCompile && !skipVm) {
       steps.add(const WriteDill());
       steps.add(const Run());
     }
@@ -118,14 +126,24 @@ class FastaContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator = await TranslateUri.parse(packages);
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
+    bool updateComments = environment["updateComments"] == "true";
+    bool skipVm = environment["skipVm"] == "true";
     String astKindString = environment[AST_KIND_INDEX];
     AstKind astKind =
         astKindString == null ? null : AstKind.values[int.parse(astKindString)];
-    return new FastaContext(vm, strongMode, updateExpectations, uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE), astKind);
+    return new FastaContext(
+        vm,
+        strongMode,
+        updateExpectations,
+        updateComments,
+        skipVm,
+        uriTranslator,
+        environment.containsKey(ENABLE_FULL_COMPILE),
+        astKind);
   }
 }
 
@@ -160,9 +178,9 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
   final bool strongMode;
 
   const Outline(this.fullCompile, this.astKind, this.strongMode,
-      {this.updateExpectations: false});
+      {this.updateComments: false});
 
-  final bool updateExpectations;
+  final bool updateComments;
 
   String get name {
     return fullCompile ? "${astKind} compile" : "outline";
@@ -180,7 +198,8 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       ..setProgram(platform);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
-        : new KernelTarget(dillTarget, context.uriTranslator, strongMode);
+        : new KernelTarget(PhysicalFileSystem.instance, dillTarget,
+            context.uriTranslator, strongMode);
 
     Program p;
     try {
@@ -197,7 +216,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         p = await sourceTarget.writeProgram(null);
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
-          if (updateExpectations) {
+          if (updateComments) {
             await instrumentation.fixSource(description.uri);
           } else {
             return fail(null, instrumentation.problemsAsString);

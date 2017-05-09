@@ -7,10 +7,10 @@ import 'dart:async';
 import 'package:front_end/dependency_grapher.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/base/uri_resolver.dart';
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/source/directive_listener.dart';
+import 'package:front_end/src/fasta/translate_uri.dart';
 
 /// Generates a representation of the dependency graph of a program.
 ///
@@ -25,10 +25,10 @@ import 'package:front_end/src/fasta/source/directive_listener.dart';
 /// package:front_end/dependency_grapher.dart.
 Future<Graph> graphForProgram(List<Uri> sources, ProcessedOptions options,
     {FileReader fileReader}) async {
-  var uriResolver = await options.getUriResolver();
+  TranslateUri uriTranslator = await options.getUriTranslator();
   fileReader ??= (originalUri, resolvedUri) =>
       options.fileSystem.entityForUri(resolvedUri).readAsString();
-  var walker = new _Walker(fileReader, uriResolver, options.compileSdk);
+  var walker = new _Walker(fileReader, uriTranslator, options.compileSdk);
   var startingPoint = new _StartingPoint(walker, sources);
   await walker.walk(startingPoint);
   return walker.graph;
@@ -50,12 +50,12 @@ class _StartingPoint extends _WalkerNode {
 
 class _Walker extends AsyncDependencyWalker<_WalkerNode> {
   final FileReader fileReader;
-  final UriResolver uriResolver;
+  final TranslateUri uriTranslator;
   final _nodesByUri = <Uri, _WalkerNode>{};
   final graph = new Graph();
   final bool compileSdk;
 
-  _Walker(this.fileReader, this.uriResolver, this.compileSdk);
+  _Walker(this.fileReader, this.uriTranslator, this.compileSdk);
 
   @override
   Future<Null> evaluate(_WalkerNode v) {
@@ -94,7 +94,8 @@ class _WalkerNode extends Node<_WalkerNode> {
   Future<List<_WalkerNode>> computeDependencies() async {
     var dependencies = <_WalkerNode>[];
     // TODO(paulberry): add error recovery if the file can't be read.
-    var resolvedUri = walker.uriResolver.resolve(uri);
+    var resolvedUri =
+        uri.scheme == 'file' ? uri : walker.uriTranslator.translate(uri);
     if (resolvedUri == null) {
       // TODO(paulberry): If an error reporter was provided, report the error
       // in the proper way and continue.

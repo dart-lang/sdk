@@ -6,9 +6,10 @@ import 'package:kernel/ast.dart';
 
 /// Returns a [Program] object containing empty definitions of core SDK classes.
 Program createMockSdkProgram() {
-  var coreLib = new Library(Uri.parse('dart:core'));
-  var asyncLib = new Library(Uri.parse('dart:async'));
-  var internalLib = new Library(Uri.parse('dart:_internal'));
+  var coreLib = new Library(Uri.parse('dart:core'), name: 'dart.core');
+  var asyncLib = new Library(Uri.parse('dart:async'), name: 'dart.async');
+  var internalLib =
+      new Library(Uri.parse('dart:_internal'), name: 'dart._internal');
 
   Class addClass(Library lib, Class c) {
     lib.addClass(c);

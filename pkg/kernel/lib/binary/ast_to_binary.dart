@@ -1013,6 +1013,7 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
+    writeOptionalNode(node.bound);
   }
 
   visitVectorType(VectorType node) {

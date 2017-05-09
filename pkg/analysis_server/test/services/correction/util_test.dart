@@ -19,6 +19,9 @@ main() {
 
 @reflectiveTest
 class UtilTest extends AbstractSingleUnitTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_addLibraryImports_dart_hasImports_between() async {
     await resolveTestUnit('''
 import 'dart:async';

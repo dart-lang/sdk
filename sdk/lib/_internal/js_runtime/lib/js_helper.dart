@@ -1739,6 +1739,7 @@ checkNull(object) {
   return object;
 }
 
+@NoInline()
 checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
@@ -3413,11 +3414,6 @@ listSuperNativeTypeCast(value, property) {
   if (value is List || value == null) return value;
   if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
-}
-
-voidTypeCheck(value) {
-  if (value == null) return value;
-  throw new TypeErrorImplementation(value, 'void');
 }
 
 extractFunctionTypeObjectFrom(o) {

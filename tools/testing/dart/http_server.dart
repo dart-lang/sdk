@@ -177,7 +177,7 @@ class TestingServers {
         port: crossOriginPort, allowedPort: _serverList[0].port);
   }
 
-  String httpServerCommandline() {
+  String httpServerCommandLine() {
     var dart = Platform.resolvedExecutable;
     var script = _dartDirectory.resolve('tools/testing/dart/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
@@ -460,7 +460,7 @@ class TestingServers {
 }
 
 // Helper class for displaying directory listings.
-class _Entry implements Comparable {
+class _Entry implements Comparable<_Entry> {
   final String name;
   final String displayName;
 

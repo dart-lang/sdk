@@ -35,6 +35,10 @@ import 'package:kernel/ast.dart';
 /// shadow-ify [DartType], since analyzer ASTs need to be able to record the
 /// exact tokens that were used to specify a type.
 abstract class AstFactory<V> {
+  /// Creates an [Arguments] data structure.
+  Arguments arguments(List<Expression> positional,
+      {List<DartType> types, List<NamedExpression> named});
+
   /// Creates an `as` expression.
   AsExpression asExpression(Expression operand, Token operator, DartType type);
 
@@ -132,6 +136,10 @@ abstract class AstFactory<V> {
   /// Creates a return statement.
   Statement returnStatement(Expression expression, Token token);
 
+  /// Updates an [Arguments] data structure with the given generic [types].
+  /// Should only be used when [types] were specified explicitly.
+  void setExplicitArgumentTypes(Arguments arguments, List<DartType> types);
+
   /// Creates a read of a static variable.
   StaticGet staticGet(Member readTarget, Token token);
 
@@ -186,4 +194,7 @@ abstract class AstFactory<V> {
   /// Creates a read of a local variable.
   VariableGet variableGet(VariableDeclaration variable,
       TypePromotionFact<V> fact, TypePromotionScope scope, Token token);
+
+  /// Creates a write of a local variable.
+  VariableSet variableSet(VariableDeclaration variable, Expression value);
 }

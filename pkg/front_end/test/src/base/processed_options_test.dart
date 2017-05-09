@@ -81,7 +81,7 @@ class ProcessedOptionsTest {
       ..sdkSummary = uri);
   }
 
-  test_getUriResolver_explicitPackagesFile() async {
+  test_getUriTranslator_explicitPackagesFile() async {
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -94,11 +94,11 @@ class ProcessedOptionsTest {
       ..fileSystem = fileSystem
       ..packagesFileUri = Uri.parse('file:///explicit.packages');
     var processed = new ProcessedOptions(raw);
-    var uriResolver = await processed.getUriResolver();
-    expect(uriResolver.packages, {'foo': Uri.parse('file:///baz/')});
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages, {'foo': Uri.parse('file:///baz/')});
   }
 
-  test_getUriResolver_explicitPackagesFile_withBaseLocation() async {
+  test_getUriTranslator_explicitPackagesFile_withBaseLocation() async {
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -111,12 +111,12 @@ class ProcessedOptionsTest {
       ..fileSystem = fileSystem
       ..packagesFileUri = Uri.parse('file:///base/location/explicit.packages');
     var processed = new ProcessedOptions(raw);
-    var uriResolver = await processed.getUriResolver();
-    expect(
-        uriResolver.packages, {'foo': Uri.parse('file:///base/location/baz/')});
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages,
+        {'foo': Uri.parse('file:///base/location/baz/')});
   }
 
-  test_getUriResolver_noPackages() async {
+  test_getUriTranslator_noPackages() async {
     // .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -125,8 +125,8 @@ class ProcessedOptionsTest {
       ..fileSystem = fileSystem
       ..packagesFileUri = new Uri();
     var processed = new ProcessedOptions(raw);
-    var uriResolver = await processed.getUriResolver();
-    expect(uriResolver.packages, isEmpty);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages, isEmpty);
   }
 
   void writeMockSummaryTo(Uri uri) {
