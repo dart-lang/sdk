@@ -589,7 +589,7 @@ List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
   var output = [
     '',
-    formatter.failed('FAILED: ${test.configurationString}${test.displayName}')
+    formatter.failed('FAILED: ${test.configurationString} ${test.displayName}')
   ];
 
   var expected = new StringBuffer();
