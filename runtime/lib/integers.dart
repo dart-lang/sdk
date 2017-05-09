@@ -565,11 +565,17 @@ class _Smi extends _IntegerImplementation implements int, _int64 {
     // Inspired by Andrei Alexandrescu: "Three Optimization Tips for C++"
     // Avoid expensive remainder operation by doing it on more than
     // one digit at a time.
-    const int DIGIT_ZERO = 0x30;
     int length = _positiveBase10Length(this);
     _OneByteString result = _OneByteString._allocate(length);
-    int index = length - 1;
-    var smi = this;
+    return _positiveToDigitString(result, this, length - 1);
+  }
+
+  // Converts an smi >= 100 to a String. Result must be large enough for all
+  // of the digits. Index is the index for the smallest magnitude digit.
+  static String _positiveToDigitString(_OneByteString result, int smi,
+      int index) {
+    assert(smi >= 100);
+    const int DIGIT_ZERO = 0x30;
     do {
       // Two digits at a time.
       var twoDigits = smi.remainder(100);
@@ -616,9 +622,7 @@ class _Smi extends _IntegerImplementation implements int, _int64 {
   // Doesn't negate the smi to avoid negating the most negative smi, which
   // would become a non-smi.
   static String _negativeToString(int negSmi) {
-    // Character code for '-'
     const int MINUS_SIGN = 0x2d;
-    // Character code for '0'.
     const int DIGIT_ZERO = 0x30;
     if (negSmi > -10) {
       return _OneByteString._allocate(2)
@@ -635,8 +639,18 @@ class _Smi extends _IntegerImplementation implements int, _int64 {
     // Number of digits, not including minus.
     int digitCount = _negativeBase10Length(negSmi);
     _OneByteString result = _OneByteString._allocate(digitCount + 1);
-    result._setAt(0, MINUS_SIGN); // '-'.
-    int index = digitCount;
+    return _negativeToDigitString(result, negSmi, digitCount);
+   }
+
+  // Converts an smi <= -100 to a String. Result must be large enough for all
+  // of the digits plus the '-' sign. Index is the index for the smallest
+  // magnitude digit.
+  static String _negativeToDigitString(_OneByteString result, int negSmi,
+      int index) {
+    assert(negSmi <= -100);
+    const int MINUS_SIGN = 0x2d;
+    const int DIGIT_ZERO = 0x30;
+    result._setAt(0, MINUS_SIGN);
     do {
       var twoDigits = negSmi.remainder(100);
       negSmi = negSmi ~/ 100;
