@@ -26,13 +26,8 @@ class ClassEmitter extends CodeEmitterHelper {
 
   ClassEmitter(this.closedWorld);
 
-  ClassStubGenerator get _stubGenerator => new ClassStubGenerator(
-      task.emitter,
-      compiler.commonElements,
-      namer,
-      codegenWorldBuilder,
-      backend.interceptorData,
-      closedWorld,
+  ClassStubGenerator get _stubGenerator => new ClassStubGenerator(task.emitter,
+      compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
       enableMinification: compiler.options.enableMinification);
 
   /**

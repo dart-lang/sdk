@@ -293,7 +293,6 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
-        _interceptorData,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _worldBuilder,
@@ -597,12 +596,7 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        _task.emitter,
-        _commonElements,
-        _namer,
-        _worldBuilder,
-        _interceptorData,
-        _closedWorld,
+        _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
@@ -936,7 +930,6 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
-        _interceptorData,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _worldBuilder,
@@ -1015,7 +1008,6 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
-        _interceptorData,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _worldBuilder,

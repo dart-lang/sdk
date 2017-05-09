@@ -20,6 +20,7 @@ import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Pair, Setlet;
+import '../world.dart' show ClosedWorld;
 import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
@@ -183,9 +184,11 @@ class CodegenRegistry {
 class CodegenWorkItem extends WorkItem {
   CodegenRegistry registry;
   final ResolvedAst resolvedAst;
-  final JavaScriptBackend backend;
+  final JavaScriptBackend _backend;
+  final ClosedWorld _closedWorld;
 
-  factory CodegenWorkItem(JavaScriptBackend backend, MemberElement element) {
+  factory CodegenWorkItem(JavaScriptBackend backend, ClosedWorld closedWorld,
+      MemberElement element) {
     // If this assertion fails, the resolution callbacks of the backend may be
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we
@@ -193,17 +196,16 @@ class CodegenWorkItem extends WorkItem {
     assert(invariant(element, element.hasResolvedAst,
         message: "$element has no resolved ast."));
     ResolvedAst resolvedAst = element.resolvedAst;
-    return new CodegenWorkItem.internal(resolvedAst, backend);
+    return new CodegenWorkItem.internal(resolvedAst, backend, closedWorld);
   }
 
-  CodegenWorkItem.internal(ResolvedAst resolvedAst, this.backend)
-      : this.resolvedAst = resolvedAst;
+  CodegenWorkItem.internal(this.resolvedAst, this._backend, this._closedWorld);
 
   MemberElement get element => resolvedAst.element;
 
   WorldImpact run() {
     registry = new CodegenRegistry(element);
-    return backend.codegen(this);
+    return _backend.codegen(this, _closedWorld);
   }
 
   String toString() => 'CodegenWorkItem(${resolvedAst.element})';

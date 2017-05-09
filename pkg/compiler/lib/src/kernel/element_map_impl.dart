@@ -23,6 +23,7 @@ import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
@@ -1250,9 +1251,15 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       this.elementMap,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(elementMap.elementEnvironment, elementMap.commonElements,
-            nativeBasicData, nativeDataBuilder, selectorConstraintsStrategy);
+      : super(
+            elementMap.elementEnvironment,
+            elementMap.commonElements,
+            nativeBasicData,
+            nativeDataBuilder,
+            interceptorDataBuilder,
+            selectorConstraintsStrategy);
 
   @override
   Iterable<InterfaceType> getSupertypes(ClassEntity cls) {

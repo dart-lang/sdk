@@ -168,7 +168,8 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(Namer namer, ClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder) {
     measure(() {
-      _nativeEmitter = new NativeEmitter(this, closedWorld.nativeData);
+      _nativeEmitter = new NativeEmitter(
+          this, closedWorld.nativeData, closedWorld.interceptorData);
       _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
       metadataCollector = new MetadataCollector(
           compiler.options,
@@ -200,7 +201,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.nativeData,
           backend.rtiNeed,
           backend.mirrorsData,
-          backend.interceptorData,
+          closedWorld.interceptorData,
           backend.superMemberData,
           typeTestRegistry.rtiChecks,
           backend.rtiEncoder,

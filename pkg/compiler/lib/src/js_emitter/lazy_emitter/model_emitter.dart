@@ -28,6 +28,7 @@ import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
+import '../../js_backend/interceptor_data.dart';
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
@@ -55,6 +56,10 @@ class ModelEmitter {
     this.constantEmitter = new ConstantEmitter(
         compiler, namer, this.generateConstantReference, constantListGenerator);
   }
+
+  InterceptorData get _interceptorData =>
+      // TODO(johnniwinther): Pass [InterceptorData] directly?
+      nativeEmitter.interceptorData;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.
@@ -867,8 +872,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
         if (method.needsTearOff) {
           MethodElement element = method.element;
-          bool isIntercepted =
-              backend.interceptorData.isInterceptedMethod(element);
+          bool isIntercepted = _interceptorData.isInterceptedMethod(element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));

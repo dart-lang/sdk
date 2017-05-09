@@ -80,7 +80,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.emitter,
           backend.nativeCodegenEnqueuer,
           backend.checkedModeHelpers,
-          backend.interceptorData,
           backend.oneShotInterceptorData,
           backend.rtiSubstitutions,
           backend.rtiEncoder,
@@ -106,7 +105,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.emitter,
           backend.nativeCodegenEnqueuer,
           backend.checkedModeHelpers,
-          backend.interceptorData,
           backend.oneShotInterceptorData,
           backend.rtiSubstitutions,
           backend.rtiEncoder,
@@ -151,7 +149,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CodeEmitterTask _emitter;
   final native.NativeCodegenEnqueuer _nativeEnqueuer;
   final CheckedModeHelpers _checkedModeHelpers;
-  final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
@@ -208,7 +205,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._emitter,
       this._nativeEnqueuer,
       this._checkedModeHelpers,
-      this._interceptorData,
       this._oneShotInterceptorData,
       this._rtiSubstitutions,
       this._rtiEncoder,
@@ -235,6 +231,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   ConstantSystem get _constantSystem => _closedWorld.constantSystem;
 
   NativeData get _nativeData => _closedWorld.nativeData;
+
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);

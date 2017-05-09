@@ -45,7 +45,7 @@ abstract class InterceptorData {
 abstract class InterceptorDataBuilder {
   void addInterceptors(ClassEntity cls);
   void addInterceptorsForNativeClassMembers(ClassEntity cls);
-  InterceptorData onResolutionComplete();
+  InterceptorData close();
 }
 
 class InterceptorDataImpl implements InterceptorData {
@@ -239,7 +239,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   InterceptorDataBuilderImpl(
       this._nativeData, this._elementEnvironment, this._commonElements);
 
-  InterceptorData onResolutionComplete() {
+  InterceptorData close() {
     return new InterceptorDataImpl(
         _nativeData,
         _commonElements,

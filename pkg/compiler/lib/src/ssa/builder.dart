@@ -215,8 +215,8 @@ class SsaBuilder extends ast.Visitor
         sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
-    localsHandler = new LocalsHandler(
-        this, target, null, closedWorld.nativeData, backend.interceptorData);
+    localsHandler = new LocalsHandler(this, target, null,
+        closedWorld.nativeData, closedWorld.interceptorData);
     loopHandler = new SsaLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
   }

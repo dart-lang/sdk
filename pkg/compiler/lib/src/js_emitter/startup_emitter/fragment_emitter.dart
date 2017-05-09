@@ -447,6 +447,10 @@ class FragmentEmitter {
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
       this.modelEmitter);
 
+  InterceptorData get _interceptorData =>
+      // TODO(johnniwinther): Pass [InterceptorData] directly?
+      modelEmitter.nativeEmitter.interceptorData;
+
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       modelEmitter.generateEmbeddedGlobalAccess(global);
 
@@ -1028,7 +1032,7 @@ class FragmentEmitter {
     bool isIntercepted = false;
     if (method is InstanceMethod) {
       MethodElement element = method.element;
-      isIntercepted = backend.interceptorData.isInterceptedMethod(element);
+      isIntercepted = _interceptorData.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();

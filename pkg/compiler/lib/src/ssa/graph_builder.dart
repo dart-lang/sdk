@@ -73,7 +73,7 @@ abstract class GraphBuilder {
 
   NativeData get nativeData => closedWorld.nativeData;
 
-  InterceptorData get interceptorData => backend.interceptorData;
+  InterceptorData get interceptorData => closedWorld.interceptorData;
 
   BackendUsage get backendUsage => backend.backendUsage;
 

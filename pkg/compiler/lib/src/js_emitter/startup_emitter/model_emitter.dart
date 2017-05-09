@@ -43,6 +43,7 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
+import '../../js_backend/interceptor_data.dart';
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;

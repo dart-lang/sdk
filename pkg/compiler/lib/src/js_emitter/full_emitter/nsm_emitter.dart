@@ -34,13 +34,8 @@ class NsmEmitter extends CodeEmitterHelper {
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
-    ClassStubGenerator generator = new ClassStubGenerator(
-        task.emitter,
-        compiler.commonElements,
-        namer,
-        codegenWorldBuilder,
-        backend.interceptorData,
-        closedWorld,
+    ClassStubGenerator generator = new ClassStubGenerator(task.emitter,
+        compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
         enableMinification: compiler.options.enableMinification);
 
     // Keep track of the JavaScript names we've already added so we
@@ -148,9 +143,9 @@ class NsmEmitter extends CodeEmitterHelper {
     // Find out how many selectors there are with the special calling
     // convention.
     Iterable<Selector> interceptedSelectors = trivialNsmHandlers.where(
-        (Selector s) => backend.interceptorData.isInterceptedName(s.name));
+        (Selector s) => closedWorld.interceptorData.isInterceptedName(s.name));
     Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
-        (Selector s) => !backend.interceptorData.isInterceptedName(s.name));
+        (Selector s) => !closedWorld.interceptorData.isInterceptedName(s.name));
 
     // Get the short names (JS names, perhaps minified).
     Iterable<jsAst.Name> interceptedShorts =

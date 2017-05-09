@@ -2730,7 +2730,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     List<HInstruction> inputs = <HInstruction>[];
 
     selector ??= astAdapter.getSelector(node);
-    bool isIntercepted = astAdapter.isInterceptedSelector(selector);
+
+    bool isIntercepted =
+        closedWorld.interceptorData.isInterceptedSelector(selector);
 
     if (isIntercepted) {
       HInterceptor interceptor = _interceptorFor(receiver);
@@ -2932,7 +2934,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction receiver = localsHandler.readThis();
 
     List<HInstruction> inputs = <HInstruction>[];
-    if (astAdapter.isInterceptedSelector(selector)) {
+    if (closedWorld.interceptorData.isInterceptedSelector(selector)) {
       inputs.add(_interceptorFor(receiver));
     }
     inputs.add(receiver);

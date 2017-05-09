@@ -21,6 +21,7 @@ import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
+import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
@@ -109,9 +110,10 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelResolutionWorldBuilder(elementMap, nativeBasicData,
-        nativeDataBuilder, selectorConstraintsStrategy);
+        nativeDataBuilder, interceptorDataBuilder, selectorConstraintsStrategy);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(

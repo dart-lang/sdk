@@ -30,6 +30,7 @@ import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scanner_task.dart';
 import 'package:compiler/src/universe/world_impact.dart';
+import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
 
 class TestCompiler extends apiimpl.CompilerImpl {
@@ -128,9 +129,9 @@ class TestBackend extends JavaScriptBackend {
             useKernel: compiler.options.useKernel);
 
   @override
-  WorldImpact codegen(CodegenWorkItem work) {
+  WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
     compiler.test('Compiler.codegen');
-    return super.codegen(work);
+    return super.codegen(work, closedWorld);
   }
 }
 

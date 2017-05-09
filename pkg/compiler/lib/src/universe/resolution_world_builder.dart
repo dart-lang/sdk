@@ -334,6 +334,7 @@ abstract class ResolutionWorldBuilderBase
 
   final NativeBasicData _nativeBasicData;
   final NativeDataBuilder _nativeDataBuilder;
+  final InterceptorDataBuilder _interceptorDataBuilder;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -365,6 +366,7 @@ abstract class ResolutionWorldBuilderBase
       this._commonElements,
       this._nativeBasicData,
       this._nativeDataBuilder,
+      this._interceptorDataBuilder,
       this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
@@ -921,9 +923,15 @@ abstract class KernelResolutionWorldBuilderBase
       CommonElements commonElements,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(elementEnvironment, commonElements, nativeBasicData,
-            nativeDataBuilder, selectorConstraintsStrategy);
+      : super(
+            elementEnvironment,
+            commonElements,
+            nativeBasicData,
+            nativeDataBuilder,
+            interceptorDataBuilder,
+            selectorConstraintsStrategy);
 
   @override
   ClosedWorld closeWorld() {

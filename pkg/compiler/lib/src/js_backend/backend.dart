@@ -441,8 +441,6 @@ class JavaScriptBackend {
   NativeBasicDataImpl _nativeBasicData;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
-  InterceptorDataBuilder _interceptorDataBuilder;
-  InterceptorData _interceptorData;
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsage _backendUsage;
   BackendUsageBuilder _backendUsageBuilder;
@@ -600,18 +598,6 @@ class JavaScriptBackend {
     assert(invariant(NO_LOCATION_SPANNABLE, _lookupMapAnalysis != null,
         message: "LookupMapAnalysis has not been created yet."));
     return _lookupMapAnalysis;
-  }
-
-  InterceptorData get interceptorData {
-    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
-        message: "InterceptorData has not been computed yet."));
-    return _interceptorData;
-  }
-
-  InterceptorDataBuilder get interceptorDataBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData == null,
-        message: "InterceptorData has already been computed."));
-    return _interceptorDataBuilder;
   }
 
   OneShotInterceptorData get oneShotInterceptorData {
@@ -777,7 +763,6 @@ class JavaScriptBackend {
     compiler.frontEndStrategy.annotationProcesser
         .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
     _backendUsage = backendUsageBuilder.close();
-    _interceptorData = interceptorDataBuilder.onResolutionComplete();
   }
 
   /// Called when the closed world from resolution has been computed.
@@ -796,8 +781,6 @@ class JavaScriptBackend {
         commonElements,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _oneShotInterceptorData =
-        new OneShotInterceptorData(interceptorData, commonElements);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
@@ -862,8 +845,9 @@ class JavaScriptBackend {
         mirrorsDataBuilder,
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
-    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBasicData, compiler.elementEnvironment, commonElements);
+    InterceptorDataBuilder interceptorDataBuilder =
+        new InterceptorDataBuilderImpl(
+            nativeBasicData, compiler.elementEnvironment, commonElements);
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -890,7 +874,10 @@ class JavaScriptBackend {
             compiler.deferredLoadTask,
             kernelTask),
         compiler.frontEndStrategy.createResolutionWorldBuilder(
-            nativeBasicData, _nativeDataBuilder, const OpenWorldStrategy()),
+            nativeBasicData,
+            _nativeDataBuilder,
+            interceptorDataBuilder,
+            const OpenWorldStrategy()),
         compiler.frontEndStrategy
             .createResolutionWorkItemBuilder(impactTransformer));
   }
@@ -923,7 +910,7 @@ class JavaScriptBackend {
         const TreeShakingEnqueuerStrategy(),
         new CodegenWorldBuilderImpl(
             nativeBasicData, closedWorld, constants, const TypeMaskStrategy()),
-        new CodegenWorkItemBuilder(this, compiler.options),
+        new CodegenWorkItemBuilder(this, closedWorld, compiler.options),
         new CodegenEnqueuerListener(
             compiler.elementEnvironment,
             commonElements,
@@ -937,7 +924,7 @@ class JavaScriptBackend {
             nativeCodegenEnqueuer));
   }
 
-  WorldImpact codegen(CodegenWorkItem work) {
+  WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
     MemberElement element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
@@ -995,7 +982,7 @@ class JavaScriptBackend {
       }
     }
 
-    jsAst.Fun function = functionCompiler.compile(work, _closedWorld);
+    jsAst.Fun function = functionCompiler.compile(work, closedWorld);
     if (function.sourceInformation == null) {
       function = function.withSourceInformation(
           sourceInformationStrategy.buildSourceMappedMarker());
@@ -1126,24 +1113,12 @@ class JavaScriptBackend {
     }
   }
 
-  // TODO(johnniwinther): Create a CodegenPhase object for the backend to hold
-  // data only available during code generation.
-  ClosedWorld _closedWorldCache;
-  ClosedWorld get _closedWorld {
-    assert(invariant(NO_LOCATION_SPANNABLE, _closedWorldCache != null,
-        message: "ClosedWorld has not be set yet."));
-    return _closedWorldCache;
-  }
-
-  void set _closedWorld(ClosedWorld value) {
-    _closedWorldCache = value;
-  }
-
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
-    _closedWorld = closedWorld;
+    _oneShotInterceptorData =
+        new OneShotInterceptorData(closedWorld.interceptorData, commonElements);
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
     _rtiEncoder =
