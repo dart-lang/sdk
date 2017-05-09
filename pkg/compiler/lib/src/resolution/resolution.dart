@@ -291,10 +291,17 @@ class ResolverTask extends CompilerTask {
     });
   }
 
+  /// Returns `true` if [element] has been processed by the resolution enqueuer.
+  bool _hasBeenProcessed(MemberElement element) {
+    assert(invariant(element, element == element.analyzableElement.declaration,
+        message: "Unexpected element $element"));
+    return enqueuer.processedEntities.contains(element);
+  }
+
   WorldImpact resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return reporter.withCurrentElement(element, () {
-      if (enqueuer.hasBeenProcessed(element)) {
+      if (_hasBeenProcessed(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
         assert(invariant(element, element.isConstructor,
@@ -769,7 +776,7 @@ class ResolverTask extends CompilerTask {
         // mixin application has been performed.
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
-        if (resolution.enqueuer.hasBeenProcessed(member)) {
+        if (_hasBeenProcessed(member)) {
           if (member.resolvedAst.kind == ResolvedAstKind.PARSED) {
             checkMixinSuperUses(
                 member.resolvedAst.elements, mixinApplication, mixin);

@@ -13,7 +13,6 @@ import 'common_elements.dart' show ElementEnvironment;
 import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
 import 'options.dart';
-import 'elements/elements.dart' show MemberElement;
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
@@ -416,14 +415,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   ImpactUseCase get impactUse => IMPACT_USE;
 
   bool get isResolutionQueue => true;
-
-  /// Returns `true` if [element] has been processed by the resolution enqueuer.
-  // TODO(johnniwinther): Remove this together with the resolver.
-  bool hasBeenProcessed(MemberElement element) {
-    assert(invariant(element, element == element.analyzableElement.declaration,
-        message: "Unexpected element $element"));
-    return _processedEntities.contains(element);
-  }
 
   /// Registers [entity] as processed by the resolution enqueuer. Used only for
   /// testing.
