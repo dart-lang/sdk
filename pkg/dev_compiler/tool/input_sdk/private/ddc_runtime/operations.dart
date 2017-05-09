@@ -246,9 +246,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     let formalCount = $ftype.formalCount;
     
     if ($typeArgs == null) {
-      // TODO(jmesserly): this should use instantiate to bounds logic.
-      // See https://github.com/dart-lang/sdk/issues/27256
-      $typeArgs = Array(formalCount).fill($dynamic);
+      $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
       // TODO(jmesserly): is this the right error?
       $throwStrongModeError(
@@ -256,7 +254,6 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
     }
-    // Instantiate the function type.
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
     $throwStrongModeError(

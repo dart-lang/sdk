@@ -4,19 +4,19 @@ define(['dart_sdk'], function(dart_sdk) {
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const async_helper = Object.create(null);
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.functionType(dart.dynamic, [])))();
-  let StringToException = () => (StringToException = dart.constFn(dart.definiteFunctionType(core.Exception, [core.String])))();
-  let _Action0Tovoid = () => (_Action0Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [async_helper._Action0])))();
-  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
-  let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic])))();
-  let FnTovoid = () => (FnTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [VoidTodynamic()])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnTypeFuzzy(dart.dynamic, [])))();
+  let StringToException = () => (StringToException = dart.constFn(dart.fnType(core.Exception, [core.String])))();
+  let _Action0Tovoid = () => (_Action0Tovoid = dart.constFn(dart.fnType(dart.void, [async_helper._Action0])))();
+  let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.fnType(dart.void, [])))();
+  let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.fnType(dart.void, [dart.dynamic])))();
+  let FnTovoid = () => (FnTovoid = dart.constFn(dart.fnType(dart.void, [VoidTodynamic()])))();
   dart.defineLazy(async_helper, {
     get _initialized() {
       return false;
     },
     set _initialized(_) {}
   });
-  async_helper._Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
+  async_helper._Action0 = dart.typedef('_Action0', () => dart.fnTypeFuzzy(dart.void, []));
   dart.defineLazy(async_helper, {
     get _onAsyncEnd() {
       return null;
