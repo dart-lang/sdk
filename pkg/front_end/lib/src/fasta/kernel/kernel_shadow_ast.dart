@@ -133,9 +133,9 @@ class KernelConstructorInvocation extends ConstructorInvocation
         fileOffset,
         target,
         arguments._hasExplicitTypeArguments ? arguments.types : null,
-        _forEachArgument, (type) {
+        _forEachArgument, (types) {
       arguments.types.clear();
-      arguments.types.addAll(type.typeArguments);
+      arguments.types.addAll(types);
     });
   }
 }

@@ -5,6 +5,7 @@
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
@@ -140,8 +141,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// is the set of type arguments explicitly provided, or `null` if no type
   /// arguments were provided.  [forEachArgument] is a callback which can be
   /// used to iterate through all constructor arguments (both named and
-  /// positional).  [setClassType] is a callback which can be used to record the
-  /// inferred type.
+  /// positional).  [setInferredTypeArguments] is a callback which can be used
+  /// to record the inferred type arguments.
   DartType inferConstructorInvocation(
       DartType typeContext,
       bool typeNeeded,
@@ -149,9 +150,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       Constructor target,
       List<DartType> explicitTypeArguments,
       void forEachArgument(void callback(String name, E expression)),
-      void setClassType(InterfaceType type)) {
-    List<DartType> typesFromDownwardsInference;
-    InterfaceType inferredClassType;
+      void setInferredTypeArguments(List<DartType> types)) {
+    List<DartType> inferredTypes;
     Substitution substitution;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
@@ -161,22 +161,17 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
         strongMode &&
         targetTypeParameters.isNotEmpty;
     if (inferenceNeeded) {
-      typesFromDownwardsInference =
-          new List<DartType>.filled(targetTypeParameters.length, null);
-      inferredClassType = typeSchemaEnvironment.inferGenericFunctionOrType(
-          targetClass.typeParameters,
-          targetClass.thisType,
-          [],
-          [],
-          typeContext,
-          typesFromDownwardsInference,
-          downwards: true);
-      substitution = Substitution.fromPairs(
-          targetTypeParameters, typesFromDownwardsInference);
+      inferredTypes = new List<DartType>.filled(
+          targetTypeParameters.length, const UnknownType());
+      typeSchemaEnvironment.inferGenericFunctionOrType(targetClass.thisType,
+          targetClass.typeParameters, null, null, typeContext, inferredTypes);
+      substitution =
+          Substitution.fromPairs(targetTypeParameters, inferredTypes);
       formalTypes = [];
       actualTypes = [];
-    } else {
-      inferredClassType = targetClass.rawType;
+    } else if (explicitTypeArguments != null) {
+      substitution =
+          Substitution.fromPairs(targetTypeParameters, explicitTypeArguments);
     }
     int i = 0;
     forEachArgument((name, expression) {
@@ -194,18 +189,26 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       }
     });
     if (inferenceNeeded) {
-      inferredClassType = typeSchemaEnvironment.inferGenericFunctionOrType(
-          targetClass.typeParameters,
+      typeSchemaEnvironment.inferGenericFunctionOrType(
           targetClass.thisType,
+          targetClass.typeParameters,
           formalTypes,
           actualTypes,
           typeContext,
-          typesFromDownwardsInference);
+          inferredTypes);
+      substitution =
+          Substitution.fromPairs(targetTypeParameters, inferredTypes);
       instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
-          new InstrumentationValueForTypeArgs(inferredClassType.typeArguments));
-      setClassType(inferredClassType);
+          new InstrumentationValueForTypeArgs(inferredTypes));
+      setInferredTypeArguments(inferredTypes);
     }
-    return typeNeeded ? inferredClassType : null;
+    if (typeNeeded) {
+      return substitution == null
+          ? targetClass.rawType
+          : substitution.substituteType(targetClass.thisType);
+    } else {
+      return null;
+    }
   }
 
   /// Maps the type of a variable's initializer expression to the correct
@@ -347,28 +350,20 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       void setTypeArgument(DartType typeArgument)) {
     var listClass = coreTypes.listClass;
     var listType = listClass.thisType;
-    List<DartType> typesFromDownwardsInference;
-    InterfaceType inferredListType;
+    List<DartType> inferredTypes;
     DartType inferredTypeArgument;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
     bool inferenceNeeded = declaredTypeArgument == null && strongMode;
     if (inferenceNeeded) {
-      typesFromDownwardsInference = [null];
-      inferredListType = typeSchemaEnvironment.inferGenericFunctionOrType(
-          listClass.typeParameters,
-          listType,
-          [],
-          [],
-          typeContext,
-          typesFromDownwardsInference,
-          downwards: true);
-      inferredTypeArgument = typesFromDownwardsInference[0];
+      inferredTypes = [const UnknownType()];
+      typeSchemaEnvironment.inferGenericFunctionOrType(listType,
+          listClass.typeParameters, null, null, typeContext, inferredTypes);
+      inferredTypeArgument = inferredTypes[0];
       formalTypes = [];
       actualTypes = [];
     } else {
       inferredTypeArgument = declaredTypeArgument ?? const DynamicType();
-      inferredListType = new InterfaceType(listClass, [inferredTypeArgument]);
     }
     for (var expression in expressions) {
       var expressionType =
@@ -379,19 +374,21 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       }
     }
     if (inferenceNeeded) {
-      inferredListType = typeSchemaEnvironment.inferGenericFunctionOrType(
-          listClass.typeParameters,
+      typeSchemaEnvironment.inferGenericFunctionOrType(
           listType,
+          listClass.typeParameters,
           formalTypes,
           actualTypes,
           typeContext,
-          typesFromDownwardsInference);
-      inferredTypeArgument = inferredListType.typeArguments[0];
+          inferredTypes);
+      inferredTypeArgument = inferredTypes[0];
       instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
       setTypeArgument(inferredTypeArgument);
     }
-    return typeNeeded ? inferredListType : null;
+    return typeNeeded
+        ? new InterfaceType(listClass, [inferredTypeArgument])
+        : null;
   }
 
   /// Performs the core type inference algorithm for null literals.
