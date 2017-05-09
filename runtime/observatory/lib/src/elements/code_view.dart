@@ -644,6 +644,6 @@ class CodeViewElement extends HtmlElement implements Renderable {
       case M.CodeKind.collected:
         return 'collected';
     }
-    throw new Exception('Unkown CodeKind ($kind)');
+    throw new Exception('Unknown CodeKind ($kind)');
   }
 }

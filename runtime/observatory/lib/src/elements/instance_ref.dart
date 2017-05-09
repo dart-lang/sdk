@@ -138,7 +138,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = 'Closure',
-              new SpanElement()..text = _instance.closureFunction.name
+              new SpanElement()..text = ' (${_instance.closureFunction.name})'
             ]
         ];
       case M.InstanceKind.regExp:
@@ -148,18 +148,16 @@ class InstanceRefElement extends HtmlElement implements Renderable {
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = _instance.clazz.name,
-              new SpanElement()..text = _instance.pattern.name
+              new SpanElement()..text = ' (${_instance.pattern.valueAsString})'
             ]
         ];
       case M.InstanceKind.stackTrace:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..text = _instance.clazz.name,
-          new CurlyBlockElement(queue: _r.queue)
-            ..content = [
-              new DivElement()
-                ..classes = ['stackTraceBox']
-                ..text = _instance.valueAsString
+            ..children = [
+              new SpanElement()
+                ..classes = ['emphasize']
+                ..text = _instance.clazz.name,
             ]
         ];
       case M.InstanceKind.plainInstance:
@@ -206,13 +204,14 @@ class InstanceRefElement extends HtmlElement implements Renderable {
             ..text = _instance.clazz.name
         ];
     }
-    throw new Exception('Unkown InstanceKind: ${_instance.kind}');
+    throw new Exception('Unknown InstanceKind: ${_instance.kind}');
   }
 
   bool _hasValue() {
     switch (_instance.kind) {
       case M.InstanceKind.plainInstance:
       case M.InstanceKind.mirrorReference:
+      case M.InstanceKind.stackTrace:
       case M.InstanceKind.weakProperty:
         return true;
       case M.InstanceKind.list:
@@ -297,6 +296,12 @@ class InstanceRefElement extends HtmlElement implements Renderable {
           new SpanElement()..text = '<referent> : ',
           new InstanceRefElement(_isolate, _loadedInstance.referent, _instances,
               queue: _r.queue)
+        ];
+      case M.InstanceKind.stackTrace:
+        return [
+          new DivElement()
+            ..classes = ['stackTraceBox']
+            ..text = _instance.valueAsString
         ];
       case M.InstanceKind.weakProperty:
         return [

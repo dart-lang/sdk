@@ -85,27 +85,37 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     if (_path == null) {
       return [new SpanElement()..text = 'Loading'];
     }
-    return _path.elements.map(_createItem).toList();
+
+    var elements = new List();
+    bool first = true;
+    for (var item in _path.elements) {
+      elements.add(_createItem(item, first));
+      first = false;
+    }
+    elements.add(_createGCRootItem());
+    return elements;
   }
 
-  Element _createItem(M.RetainingPathItem item) {
+  Element _createItem(M.RetainingPathItem item, bool first) {
     final content = <Element>[];
 
-    if (item.parentField != null) {
+    if (first) {
+      // No prefix.
+    } else if (item.parentField != null) {
       content.add(new SpanElement()
         ..children = [
-          new SpanElement()..text = 'from ',
+          new SpanElement()..text = 'retained by ',
           anyRef(_isolate, item.parentField, _instances, queue: _r.queue),
           new SpanElement()..text = ' of ',
         ]);
     } else if (item.parentListIndex != null) {
-      content.add(
-          new SpanElement()..text = 'from [ ${item.parentListIndex} ] of ');
+      content.add(new SpanElement()
+        ..text = 'retained by [ ${item.parentListIndex} ] of ');
     } else if (item.parentWordOffset != null) {
       content.add(new SpanElement()
-        ..text = 'from word [ ${item.parentWordOffset} ] of ');
+        ..text = 'retained by offset ${item.parentWordOffset} of ');
     } else {
-      content.add(new SpanElement()..text = 'from ');
+      content.add(new SpanElement()..text = 'retained by ');
     }
 
     content.add(anyRef(_isolate, item.source, _instances, queue: _r.queue));
@@ -113,5 +123,11 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     return new DivElement()
       ..classes = ['indent']
       ..children = content;
+  }
+
+  Element _createGCRootItem() {
+    return new DivElement()
+      ..classes = ['indent']
+      ..text = 'retained by a GC root';
   }
 }

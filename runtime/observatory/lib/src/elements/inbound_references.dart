@@ -93,21 +93,20 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
 
     if (reference.parentField != null) {
       content.addAll([
-        new SpanElement()..text = 'from ',
+        new SpanElement()..text = 'referenced by ',
         anyRef(_isolate, reference.parentField, _instances, queue: _r.queue),
         new SpanElement()..text = ' of '
       ]);
     } else if (reference.parentListIndex != null) {
       content.add(new SpanElement()
-        ..text = 'from [ ${reference.parentListIndex} ] of ');
+        ..text = 'referenced by [ ${reference.parentListIndex} ] of ');
     } else if (reference.parentWordOffset != null) {
       content.add(new SpanElement()
-        ..text = 'from word [ ${reference.parentWordOffset} ] of ');
+        ..text = 'referenced by offset ${reference.parentWordOffset} of ');
     }
 
     content.addAll([
       anyRef(_isolate, reference.source, _instances, queue: _r.queue),
-      new SpanElement()..text = ' referenced by ',
       new InboundReferencesElement(
           _isolate, reference.source, _references, _instances,
           queue: _r.queue)

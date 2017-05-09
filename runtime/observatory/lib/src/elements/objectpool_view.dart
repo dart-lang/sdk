@@ -172,6 +172,6 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
             ..text = 'NativeEntry 0x${entry.asInteger.toRadixString(16)}'
         ];
     }
-    throw new Exception('Unkown ObjectPoolEntryKind (${entry.kind})');
+    throw new Exception('Unknown ObjectPoolEntryKind (${entry.kind})');
   }
 }
