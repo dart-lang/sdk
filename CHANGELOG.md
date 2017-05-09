@@ -10,7 +10,6 @@
 * New `avoid_positional_boolean_parameters` rule.
 * New `always_require_non_null_named_parameters` rule.
 * New `prefer_conditional_assignment` rule.
-* New `prefer_conditional_assignment` rule.
 * New `avoid_types_on_closure_parameters` rule.
 * New `always_put_control_body_on_new_line` rule.
 * New `use_setters_to_change_properties` rule.
