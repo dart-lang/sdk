@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:front_end/file_system.dart';
@@ -26,8 +25,7 @@ class FileState {
   final Uri fileUri;
 
   bool _exists;
-  List<int> _contentBytes;
-  String _content;
+  List<int> _content;
 
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
@@ -38,10 +36,7 @@ class FileState {
   FileState._(this._fsState, this.fileUri);
 
   /// The content of the file.
-  String get content => _content;
-
-  /// The content bytes of the file.
-  List<int> get contentBytes => _contentBytes;
+  List<int> get content => _content;
 
   /// Whether the file exists.
   bool get exists => _exists;
@@ -76,17 +71,15 @@ class FileState {
     // Read the content.
     try {
       FileSystemEntity entry = _fsState.fileSystem.entityForUri(fileUri);
-      _contentBytes = await entry.readAsBytes();
-      _content = UTF8.decode(_contentBytes);
+      _content = await entry.readAsBytes();
       _exists = true;
     } catch (_) {
-      _contentBytes = new Uint8List(0);
-      _content = '';
+      _content = new Uint8List(0);
       _exists = false;
     }
 
     // Parse directives.
-    ScannerResult scannerResults = scanString(_content);
+    ScannerResult scannerResults = _scan();
     var listener = new DirectiveListener();
     new TopLevelParser(listener).parseUnit(scannerResults.tokens);
 
@@ -135,6 +128,13 @@ class FileState {
 
     FileState file = await _fsState.getFile(resolvedUri);
     files.add(file);
+  }
+
+  /// Scan the content of the file.
+  ScannerResult _scan() {
+    var zeroTerminatedBytes = new Uint8List(_content.length + 1);
+    zeroTerminatedBytes.setRange(0, _content.length, _content);
+    return scan(zeroTerminatedBytes);
   }
 }
 
@@ -197,29 +197,27 @@ class _FileSystemViewEntry implements FileSystemEntity {
   _FileSystemViewEntry(this.uri, this.file);
 
   @override
-  Future<bool> exists() async => file?.exists ?? false;
+  Future<bool> exists() async => _shouldNotBeQueried();
 
   @override
-  Future<DateTime> lastModified() async {
-    throw new StateError(
-        'FileSystemViewEntry modification stamp should not be queried');
-  }
+  Future<DateTime> lastModified() async => _shouldNotBeQueried();
 
   @override
   Future<List<int>> readAsBytes() async {
-    _throwIfDoesNotExist();
-    return file.contentBytes;
-  }
-
-  @override
-  Future<String> readAsString() async {
-    _throwIfDoesNotExist();
-    return file.content;
-  }
-
-  void _throwIfDoesNotExist() {
     if (file == null) {
       throw new FileSystemException(uri, 'File $uri does not exist.');
     }
+    return file.content;
+  }
+
+  @override
+  Future<String> readAsString() async => _shouldNotBeQueried();
+
+  /// _FileSystemViewEntry is used by the incremental kernel generator to
+  /// provide Fasta with a consistent, race condition free view of the files
+  /// constituting the project.  It should only need to be used for reading
+  /// file contents.
+  dynamic _shouldNotBeQueried() {
+    throw new StateError('The method should not be invoked.');
   }
 }
