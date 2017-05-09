@@ -10,6 +10,7 @@ import '../common/backend_api.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
+import '../common/work.dart';
 import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
@@ -648,5 +649,23 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
 
     _compiler.libraryLoader.libraries
         .forEach(processJsInteropAnnotationsInLibrary);
+  }
+}
+
+/// Builder that creates work item necessary for the resolution of a
+/// [MemberElement].
+class ResolutionWorkItemBuilder extends WorkItemBuilder {
+  final Resolution _resolution;
+
+  ResolutionWorkItemBuilder(this._resolution);
+
+  @override
+  WorkItem createWorkItem(MemberElement element) {
+    assert(invariant(element, element.isDeclaration));
+    if (element.isMalformed) return null;
+
+    assert(invariant(element, element is AnalyzableElement,
+        message: 'Element $element is not analyzable.'));
+    return _resolution.createWorkItem(element);
   }
 }

@@ -6,7 +6,6 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -14,7 +13,7 @@ import 'common_elements.dart' show ElementEnvironment;
 import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
 import 'options.dart';
-import 'elements/elements.dart' show AnalyzableElement, MemberElement;
+import 'elements/elements.dart' show MemberElement;
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
@@ -608,22 +607,4 @@ class DeferredAction {
 /// Interface for creating work items for enqueued member entities.
 abstract class WorkItemBuilder {
   WorkItem createWorkItem(MemberEntity entity);
-}
-
-/// Builder that creates work item necessary for the resolution of a
-/// [MemberElement].
-class ResolutionWorkItemBuilder extends WorkItemBuilder {
-  final Resolution _resolution;
-
-  ResolutionWorkItemBuilder(this._resolution);
-
-  @override
-  WorkItem createWorkItem(MemberElement element) {
-    assert(invariant(element, element.isDeclaration));
-    if (element.isMalformed) return null;
-
-    assert(invariant(element, element is AnalyzableElement,
-        message: 'Element $element is not analyzable.'));
-    return _resolution.createWorkItem(element);
-  }
 }
