@@ -230,7 +230,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         result,
         context,
         server.resourceProvider,
-        server.searchEngine,
         source,
         params.offset,
         performance,

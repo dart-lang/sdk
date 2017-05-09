@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -134,9 +133,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final ResourceProvider resourceProvider;
 
   @override
-  final SearchEngine searchEngine;
-
-  @override
   CompletionTarget target;
 
   /**
@@ -171,7 +167,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.result,
       this.context,
       this.resourceProvider,
-      this.searchEngine,
       this.librarySource,
       this.source,
       this.offset,
@@ -445,7 +440,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request.result,
         request.context,
         request.resourceProvider,
-        request.searchEngine,
         libSource,
         request.source,
         request.offset,

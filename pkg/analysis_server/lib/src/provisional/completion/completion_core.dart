@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/ide_options.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -82,11 +81,6 @@ abstract class CompletionRequest {
    * requested.
    */
   AnalysisResult get result;
-
-  /**
-   * Return the search engine.
-   */
-  SearchEngine get searchEngine;
 
   /**
    * Return the source in which the completion is being requested.

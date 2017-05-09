@@ -11,11 +11,8 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl, ReplacementRange;
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
@@ -32,8 +29,6 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 
 abstract class DartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
-  Index index;
-  SearchEngineImpl searchEngine;
   String testFile = '/completionTest.dart';
   Source testSource;
   int completionOffset;
@@ -490,7 +485,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         analysisResult,
         enableNewAnalysisDriver ? null : context,
         provider,
-        searchEngine,
         testSource,
         completionOffset,
         new CompletionPerformance(),
@@ -631,9 +625,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    index = createMemoryIndex();
-    searchEngine =
-        new SearchEngineImpl(index, (_) => new AstProviderForContext(context));
     contributor = createContributor();
   }
 }

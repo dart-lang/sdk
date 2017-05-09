@@ -62,7 +62,6 @@ part '$testFile';
         enableNewAnalysisDriver ? await driver.getResult(testFile) : null,
         enableNewAnalysisDriver ? null : context,
         provider,
-        searchEngine,
         testSource,
         completionOffset,
         new CompletionPerformance(),

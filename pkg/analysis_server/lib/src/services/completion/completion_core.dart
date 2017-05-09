@@ -7,7 +7,6 @@ library analysis_server.src.services.completion.completion_core;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
@@ -61,9 +60,6 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   final ResourceProvider resourceProvider;
 
-  @override
-  final SearchEngine searchEngine;
-
   bool _aborted = false;
 
   final CompletionPerformance performance;
@@ -75,7 +71,6 @@ class CompletionRequestImpl implements CompletionRequest {
       this.result,
       AnalysisContext context,
       this.resourceProvider,
-      this.searchEngine,
       Source source,
       int offset,
       this.performance,
