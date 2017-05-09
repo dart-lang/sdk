@@ -53,6 +53,13 @@ class DillMemberBuilder extends MemberBuilder {
     return isConstructor &&
         isRedirectingGenerativeConstructorImplementation(member);
   }
+
+  bool get isSynthetic {
+    // TODO(ahe): Kernel should eventually support a synthetic bit.
+    return isConstructor &&
+        name == "" &&
+        (charOffset == parent.charOffset || charOffset == -1);
+  }
 }
 
 int computeModifiers(Member member) {

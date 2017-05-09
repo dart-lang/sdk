@@ -46,12 +46,10 @@ class Mixin<M extends core::Object> extends core::Object {
   constructor •() → void
     ;
 }
-class Mix<M extends core::Object> extends self::Mix^Mixin<self::Mix::M> {
+class Mix<M extends core::Object> = self::Base<self::Mix::M> with self::Mixin<self::Mix::M> {
   constructor •() → void
     : super self::Base::•()
     ;
-}
-abstract class Mix^Mixin<M extends core::Object> = self::Base<self::Mix^Mixin::M> with self::Mixin<self::Mix^Mixin::M> {
 }
 static method main() → dynamic
   ;

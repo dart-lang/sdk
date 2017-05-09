@@ -436,10 +436,6 @@ class OutlineBuilder extends UnhandledListener {
     List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();
     String name = pop();
-    if (typeVariables != null && mixinApplication is MixinApplicationBuilder) {
-      mixinApplication.typeVariables = typeVariables;
-      mixinApplication.subclassName = name;
-    }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addNamedMixinApplication(metadata, name, typeVariables, modifiers,

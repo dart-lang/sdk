@@ -50,7 +50,7 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
-  final KernelTypeBuilder mixedInType;
+  KernelTypeBuilder mixedInType;
 
   SourceClassBuilder(
       List<MetadataBuilder> metadata,

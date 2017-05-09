@@ -81,10 +81,9 @@ import 'kernel_builder.dart'
         KernelProcedureBuilder,
         LibraryBuilder,
         MemberBuilder,
-        MixinApplicationBuilder,
-        NamedMixinApplicationBuilder,
         NamedTypeBuilder,
         TypeBuilder,
+        TypeDeclarationBuilder,
         TypeVariableBuilder;
 
 import 'verifier.dart' show verifyProgram;
@@ -148,33 +147,34 @@ class KernelTarget extends TargetImplementation {
     return new KernelLibraryBuilder(uri, fileUri, loader);
   }
 
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
-    if (cls == null) return;
+  void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
     TypeBuilder supertype = cls.supertype;
-    add(NamedTypeBuilder type) {
-      Builder builder = type.builder;
-      if (builder is ClassBuilder) {
-        set.add(builder);
-      }
-    }
-
-    if (supertype == null) {
-      // OK.
-    } else if (supertype is MixinApplicationBuilder) {
-      add(supertype.supertype);
-      for (NamedTypeBuilder t in supertype.mixins) {
-        add(t);
-      }
-    } else if (supertype is NamedTypeBuilder) {
-      add(supertype);
-    } else {
+    if (supertype is NamedTypeBuilder) {
+      f(supertype);
+    } else if (supertype != null) {
       internalError("Unhandled: ${supertype.runtimeType}");
     }
     if (cls.interfaces != null) {
       for (NamedTypeBuilder t in cls.interfaces) {
-        add(t);
+        f(t);
       }
     }
+    if (cls.library.loader == loader &&
+        // TODO(ahe): Implement DillClassBuilder.mixedInType and remove the
+        // above check.
+        cls.mixedInType != null) {
+      f(cls.mixedInType);
+    }
+  }
+
+  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
+    if (cls == null) return;
+    forEachDirectSupertype(cls, (NamedTypeBuilder type) {
+      Builder builder = type.builder;
+      if (builder is ClassBuilder) {
+        set.add(builder);
+      }
+    });
   }
 
   List<ClassBuilder> collectAllClasses() {
@@ -214,6 +214,7 @@ class KernelTarget extends TargetImplementation {
         builder.charOffset, builder.fileUri ?? Uri.parse(cls.fileUri))
       ..builder = objectClassBuilder;
     builder.interfaces = null;
+    builder.mixedInType = null;
   }
 
   Future<Program> handleInputError(Uri uri, InputError error,
@@ -240,8 +241,8 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
-      loader.buildProgram();
       loader.checkSemantics();
+      loader.buildProgram();
       List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
       installDefaultSupertypes();
       installDefaultConstructors(sourceClasses);
@@ -447,19 +448,13 @@ class KernelTarget extends TargetImplementation {
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
-    if (builder.cls.isMixinApplication) {
-      // We have to test if builder.cls is a mixin application. [builder] may
-      // think it's a mixin application, but if its mixed-in type couldn't be
-      // resolved, the target class won't be a mixin application and we need
-      // to add a default constructor to complete error recovery.
-      return;
-    }
+    if (builder.isMixinApplication && !builder.isNamedMixinApplication) return;
     if (builder.constructors.local.isNotEmpty) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    if (builder is NamedMixinApplicationBuilder) {
+    if (builder.isNamedMixinApplication) {
       /// >A mixin application of the form S with M; defines a class C with
       /// >superclass S.
       /// >...
@@ -469,14 +464,10 @@ class KernelTarget extends TargetImplementation {
       /// >that is accessible to LM , C has an implicitly declared constructor
       /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
       /// >super(ai1,...,aiki);.
-      Builder supertype = builder;
-      while (supertype is NamedMixinApplicationBuilder) {
-        NamedMixinApplicationBuilder named = supertype;
-        TypeBuilder type = named.mixinApplication;
-        if (type is MixinApplicationBuilder) {
-          MixinApplicationBuilder t = type;
-          type = t.supertype;
-        }
+      TypeDeclarationBuilder supertype = builder;
+      while (supertype.isMixinApplication) {
+        SourceClassBuilder named = supertype;
+        TypeBuilder type = named.supertype;
         if (type is NamedTypeBuilder) {
           supertype = type.builder;
         } else {

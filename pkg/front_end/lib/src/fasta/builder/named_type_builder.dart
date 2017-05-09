@@ -30,6 +30,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   }
 
   void resolveIn(Scope scope) {
+    if (builder != null) return;
     Builder member = scope.lookup(name, charOffset, fileUri);
     if (member is TypeDeclarationBuilder) {
       builder = member;
@@ -55,7 +56,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(name);
-    if (arguments == null) return buffer;
+    if (arguments?.isEmpty ?? true) return buffer;
     buffer.write("<");
     bool first = true;
     for (T t in arguments) {

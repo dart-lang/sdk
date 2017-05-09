@@ -56,7 +56,13 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// superclass.
   bool get isMixinApplication => mixedInType != null;
 
+  bool get isNamedMixinApplication {
+    return isMixinApplication && super.isNamedMixinApplication;
+  }
+
   T get mixedInType;
+
+  void set mixedInType(T mixin);
 
   List<ConstructorReferenceBuilder> get constructorReferences => null;
 
@@ -115,30 +121,52 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     List arguments;
     List variables;
     Builder builder;
-    while (builder != superclass) {
-      if (supertype is NamedTypeBuilder) {
-        NamedTypeBuilder t = supertype;
-        builder = t.builder;
-        arguments = t.arguments;
-        if (builder is ClassBuilder) {
-          variables = builder.typeVariables;
-          if (builder != superclass) {
-            supertype = builder.supertype;
-          }
+
+    /// If [application] is mixing in [superclass] directly or via other named
+    /// mixin applications, return it.
+    NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
+      for (TypeBuilder t in application.mixins) {
+        if (t is NamedTypeBuilder) {
+          if (t.builder == superclass) return t;
+        } else if (t is MixinApplicationBuilder) {
+          NamedTypeBuilder s = findSuperclass(t);
+          if (s != null) return s;
         }
+      }
+      return null;
+    }
+
+    void handleNamedTypeBuilder(NamedTypeBuilder t) {
+      builder = t.builder;
+      arguments = t.arguments ?? const [];
+      if (builder is ClassBuilder) {
+        ClassBuilder cls = builder;
+        variables = cls.typeVariables;
+        supertype = cls.supertype;
+      }
+    }
+
+    while (builder != superclass) {
+      variables = null;
+      if (supertype is NamedTypeBuilder) {
+        handleNamedTypeBuilder(supertype);
       } else if (supertype is MixinApplicationBuilder) {
         MixinApplicationBuilder t = supertype;
+        NamedTypeBuilder s = findSuperclass(t);
+        if (s != null) {
+          handleNamedTypeBuilder(s);
+        }
         supertype = t.supertype;
       } else {
-        internalError("Superclass not found.", fileUri, charOffset);
+        internalError("Superclass not found '${superclass.fullNameForErrors}'.",
+            fileUri, charOffset);
       }
       if (variables != null) {
         Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
             <TypeVariableBuilder, TypeBuilder>{};
-        arguments ??= const [];
         for (int i = 0; i < variables.length; i++) {
           TypeBuilder argument =
-              arguments.length < i ? arguments[i] : dynamicType;
+              i < arguments.length ? arguments[i] : dynamicType;
           if (substitutionMap != null) {
             argument = argument.subst(substitutionMap);
           }

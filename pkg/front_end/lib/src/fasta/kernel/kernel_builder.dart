@@ -24,9 +24,6 @@ export 'kernel_library_builder.dart' show KernelLibraryBuilder;
 export 'kernel_mixin_application_builder.dart'
     show KernelMixinApplicationBuilder;
 
-export 'kernel_named_mixin_application_builder.dart'
-    show KernelNamedMixinApplicationBuilder;
-
 export 'kernel_procedure_builder.dart'
     show
         KernelConstructorBuilder,

@@ -31,7 +31,14 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
+import '../builder/builder.dart'
+    show
+        Builder,
+        ClassBuilder,
+        EnumBuilder,
+        LibraryBuilder,
+        NamedTypeBuilder,
+        TypeBuilder;
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -358,13 +365,68 @@ class SourceLoader<L> extends Loader<L> {
             reported.add(cls);
           }
         }
+        String involvedString =
+            involved.map((c) => c.fullNameForErrors).join("', '");
         cls.addCompileTimeError(
             cls.charOffset,
-            "'${cls.name}' is a supertype of "
-            "itself via '${involved.map((c) => c.name).join(' ')}'.");
+            "'${cls.fullNameForErrors}' is a supertype of itself via "
+            "'$involvedString'.");
       }
     });
     ticker.logMs("Found cycles");
+    Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>.from([
+      coreLibrary["bool"],
+      coreLibrary["int"],
+      coreLibrary["num"],
+      coreLibrary["double"],
+      coreLibrary["String"],
+    ]);
+    for (ClassBuilder cls in allClasses) {
+      if (cls.library.loader != this) continue;
+      Set<ClassBuilder> directSupertypes = new Set<ClassBuilder>();
+      target.addDirectSupertype(cls, directSupertypes);
+      for (ClassBuilder supertype in directSupertypes) {
+        if (supertype is EnumBuilder) {
+          cls.addCompileTimeError(
+              cls.charOffset,
+              "'${supertype.name}' is an enum and can't be extended or "
+              "implemented.");
+        } else if (cls.library != coreLibrary &&
+            blackListedClasses.contains(supertype)) {
+          cls.addCompileTimeError(
+              cls.charOffset,
+              "'${supertype.name}' is restricted and can't be extended or "
+              "implemented.");
+        }
+      }
+      TypeBuilder mixedInType = cls.mixedInType;
+      if (mixedInType != null) {
+        bool isClassBuilder = false;
+        if (mixedInType is NamedTypeBuilder) {
+          var builder = mixedInType.builder;
+          if (builder is ClassBuilder) {
+            isClassBuilder = true;
+            for (Builder constructory in builder.constructors.local.values) {
+              if (constructory.isConstructor && !constructory.isSynthetic) {
+                cls.addCompileTimeError(
+                    cls.charOffset,
+                    "Can't use '${builder.fullNameForErrors}' as a mixin "
+                    "because it has constructors.");
+                builder.addCompileTimeError(
+                    constructory.charOffset,
+                    "This constructor prevents using "
+                    "'${builder.fullNameForErrors}' as a mixin.");
+              }
+            }
+          }
+        }
+        if (!isClassBuilder) {
+          cls.addCompileTimeError(cls.charOffset,
+              "The type '${mixedInType.fullNameForErrors}' can't be mixed in.");
+        }
+      }
+    }
+    ticker.logMs("Checked restricted supertypes");
   }
 
   void buildProgram() {
