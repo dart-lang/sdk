@@ -34,7 +34,7 @@ void main(List<String> args) {
     ..addOption('package-root',
         help: 'Directory containing packages',
         abbr: 'p',
-        defaultsTo: 'packages/')
+        defaultsTo: 'packages${path.separator}')
     ..addFlag('log', help: 'Show individual build commands')
     ..addOption('tmp',
         help:
@@ -241,14 +241,13 @@ void processDependence(String from, String to) {
   dependenceMap[fromModule].add(toModule);
 }
 
-String canonicalize(String uri, String root) {
-  var sourceUri = Uri.parse(uri);
-  if (sourceUri.scheme == '') {
-    sourceUri = path.toUri(
-        path.isAbsolute(uri) ? path.absolute(uri) : path.join(root, uri));
-    return sourceUri.path;
+String canonicalize(String uri, String root, String packageRoot) {
+  if (uri.startsWith('package:')) {
+    uri = path.join(packageRoot, uri.substring(8));
   }
-  return sourceUri.toString();
+  String sourcePath = path.isAbsolute(uri) ? uri : path.join(root, uri);
+  sourcePath = path.normalize(sourcePath);
+  return sourcePath;
 }
 
 /// Simplified from ParseDartTask.resolveDirective.
@@ -264,25 +263,22 @@ String _resolveDirective(UriBasedDirective directive) {
       : null;
 }
 
-String _loadFile(String uri, String packageRoot) {
-  if (uri.startsWith('package:')) {
-    uri = path.join(packageRoot, uri.substring(8));
-  }
+String _loadFile(String uri) {
   return new File(uri).readAsStringSync();
 }
 
 void transitiveFiles(String entryPoint, String root, String packageRoot) {
-  entryPoint = canonicalize(entryPoint, root);
   if (entryPoint.startsWith('dart:')) return;
+  entryPoint = canonicalize(entryPoint, root, packageRoot);
   if (processFile(entryPoint)) {
     // Process this
-    var source = _loadFile(entryPoint, packageRoot);
+    var source = _loadFile(entryPoint);
     var entryDir = path.dirname(entryPoint);
     var unit = parseDirectives(source, name: entryPoint, suppressErrors: true);
     for (var d in unit.directives) {
       if (d is ImportDirective || d is ExportDirective) {
         var uri = _resolveDirective(d);
-        processDependence(entryPoint, canonicalize(uri, entryDir));
+        processDependence(entryPoint, canonicalize(uri, entryDir, packageRoot));
         transitiveFiles(uri, entryDir, packageRoot);
       } else if (d is PartDirective) {
         var uri = _resolveDirective(d);
