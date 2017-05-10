@@ -60,6 +60,7 @@ inference/*: Crash, Fail
 inference/conditional_lub: Pass
 inference/int_upwards_local: Pass
 inference/local_reference_upwards_local: Pass
+inference/propagate_variable_get: Pass
 inference/type_promotion_simple: Pass
 inference/type_promotion_stopped_by_access_in_a_closure: Pass
 inference/type_promotion_stopped_by_assignment_in_scope: Pass

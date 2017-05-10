@@ -563,7 +563,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       TypePromotionFact<V> typePromotionFact,
       TypePromotionScope typePromotionScope,
       int offset,
-      DartType declaredType,
+      DartType declaredOrInferredType,
       void setPromotedType(DartType type)) {
     DartType promotedType = typePromoter.computePromotedType(
         typePromotionFact, typePromotionScope, mutatedInClosure);
@@ -575,9 +575,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
             ? new InstrumentationValueForType(promotedType)
             : const InstrumentationValueLiteral('none'));
     setPromotedType(promotedType);
-    return typeNeeded
-        ? (promotedType ?? declaredType ?? const DynamicType())
-        : null;
+    return typeNeeded ? (promotedType ?? declaredOrInferredType) : null;
   }
 
   DartType inferVariableSet(

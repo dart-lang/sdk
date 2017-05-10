@@ -932,9 +932,9 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var variable = this.variable as KernelVariableDeclaration;
     bool mutatedInClosure = variable._mutatedInClosure;
-    DartType declaredType = variable._declaredType;
+    DartType declaredOrInferredType = variable.type;
     return inferrer.inferVariableGet(typeContext, typeNeeded, mutatedInClosure,
-        _fact, _scope, fileOffset, declaredType, (type) {
+        _fact, _scope, fileOffset, declaredOrInferredType, (type) {
       promotedType = type;
     });
   }
