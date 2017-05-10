@@ -35,14 +35,14 @@ class IncrementalKernelGeneratorTest {
 
     // TODO(scheglov) Make `.packages` file optional.
 
-    incrementalKernelGenerator = new IncrementalKernelGenerator(
-        entryPoint,
-        new CompilerOptions()
-          ..fileSystem = fileSystem
-          ..strongMode = true
-          ..chaseDependencies = true
-          ..dartLibraries = dartLibraries
-          ..packagesFileUri = Uri.parse('file:///test/.packages'));
+    var compilerOptions = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..strongMode = true
+      ..chaseDependencies = true
+      ..dartLibraries = dartLibraries
+      ..packagesFileUri = Uri.parse('file:///test/.packages');
+    incrementalKernelGenerator = await IncrementalKernelGenerator.newInstance(
+        compilerOptions, entryPoint);
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 

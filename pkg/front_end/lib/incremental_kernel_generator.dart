@@ -56,17 +56,6 @@ class DeltaProgram {
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class IncrementalKernelGenerator {
-  /// Creates an [IncrementalKernelGenerator] which is prepared to generate
-  /// kernel representations of the program whose main library is in the given
-  /// [source].
-  ///
-  /// No file system access is performed by this constructor; the initial
-  /// "previous program state" is an empty program containing no code, and the
-  /// initial set of valid sources is empty.  To obtain a kernel representation
-  /// of the program, call [computeDelta].
-  factory IncrementalKernelGenerator(Uri source, CompilerOptions options) =>
-      new IncrementalKernelGeneratorImpl(source, new ProcessedOptions(options));
-
   /// Generates a kernel representation of the changes to the program, assuming
   /// that all valid sources are unchanged since the last call to
   /// [computeDelta].
@@ -108,4 +97,19 @@ abstract class IncrementalKernelGenerator {
   /// unchanged, parts of the previous program state will still be re-used to
   /// speed up compilation.
   void invalidateAll();
+
+  /// Creates an [IncrementalKernelGenerator] which is prepared to generate
+  /// kernel representations of the program whose main library is in the given
+  /// [entryPoint].
+  ///
+  /// The initial "previous program state" is an empty program containing no
+  /// code, and the initial set of valid sources is empty.  To obtain a kernel
+  /// representation of the program, call [computeDelta].
+  static Future<IncrementalKernelGenerator> newInstance(
+      CompilerOptions options, Uri entryPoint) async {
+    var processedOptions = new ProcessedOptions(options);
+    var uriTranslator = await processedOptions.getUriTranslator();
+    return new IncrementalKernelGeneratorImpl(
+        processedOptions, uriTranslator, entryPoint);
+  }
 }

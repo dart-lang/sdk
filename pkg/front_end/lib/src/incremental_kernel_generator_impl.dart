@@ -29,32 +29,33 @@ dynamic unimplemented() {
 /// used to obtain resolved ASTs, and these are fed into kernel code generation
 /// logic.
 class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
-  /// The URI of the program entry point.
-  final Uri _entryPoint;
-
   /// The compiler options, such as the [FileSystem], the SDK dill location,
   /// etc.
   final ProcessedOptions _options;
+
+  /// The object that knows how to resolve "package:" and "dart:" URIs.
+  final TranslateUri _uriTranslator;
+
+  /// The current file system state.
+  final FileSystemState _fsState;
+
+  /// The URI of the program entry point.
+  final Uri _entryPoint;
 
   /// The set of absolute file URIs that were reported through [invalidate]
   /// and not checked for actual changes yet.
   final Set<Uri> _invalidatedFiles = new Set<Uri>();
 
-  /// The object that knows how to resolve "package:" and "dart:" URIs.
-  TranslateUri _uriTranslator;
-
-  /// The current file system state.
-  FileSystemState _fsState;
-
   /// The cached SDK kernel.
   DillTarget _sdkDillTarget;
 
-  IncrementalKernelGeneratorImpl(this._entryPoint, this._options);
+  IncrementalKernelGeneratorImpl(
+      this._options, this._uriTranslator, this._entryPoint)
+      : _fsState = new FileSystemState(_options.fileSystem, _uriTranslator);
 
   @override
   Future<DeltaProgram> computeDelta(
       {Future<Null> watch(Uri uri, bool used)}) async {
-    await _initialize();
     await _ensureVmLibrariesLoaded();
     await _refreshInvalidatedFiles();
 
@@ -113,15 +114,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 //      sdkProgram.visitChildren(new _ClearCanonicalNamesVisitor());
     }
     return _sdkDillTarget;
-  }
-
-  /// Ensure that asynchronous data from options is ready.
-  ///
-  /// Ideally this data should be prepared in the constructor, but constructors
-  /// cannot be asynchronous.
-  Future<Null> _initialize() async {
-    _uriTranslator ??= await _options.getUriTranslator();
-    _fsState ??= new FileSystemState(_options.fileSystem, _uriTranslator);
   }
 
   /// Refresh all the invalidated files and update dependencies.
