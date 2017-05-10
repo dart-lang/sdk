@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -20,14 +19,12 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart' show pumpEventQueue;
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionDomainHandlerTest);
-    defineReflectiveTests(_NoSearchEngine);
   });
 }
 
@@ -785,29 +782,5 @@ class MockRelevancySorter implements DartContributionSorter {
       throw 'unexpected sort';
     }
     return new Future.value();
-  }
-}
-
-@reflectiveTest
-class _NoSearchEngine extends AbstractAnalysisTest {
-  @override
-  void setUp() {
-    super.setUp();
-    createProject();
-    handler = new CompletionDomainHandler(server);
-  }
-
-  test_noSearchEngine() async {
-    addTestFile('''
-main() {
-  ^
-}
-    ''');
-    await waitForTasksFinished();
-    Request request =
-        new CompletionGetSuggestionsParams(testFile, 0).toRequest('0');
-    Response response = handler.handleRequest(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }
