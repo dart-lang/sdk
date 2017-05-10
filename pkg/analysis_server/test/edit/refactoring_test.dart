@@ -35,6 +35,12 @@ main() {
 
 @reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
+
   test_function() {
     addTestFile('''
 int get test => 42;
@@ -132,6 +138,12 @@ main(A a, B b, C c, D d) {
 
 @reflectiveTest
 class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
+
   test_function() {
     addTestFile('''
 int test() => 42;
@@ -514,6 +526,12 @@ class ExtractMethodTest extends _AbstractGetRefactoring_Test {
   String name = 'res';
   ExtractMethodOptions options;
 
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
+
   test_expression() {
     addTestFile('''
 main() {
@@ -781,6 +799,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
+    enableNewAnalysisDriver = true;
     super.setUp();
     createProject();
     ExtensionManager manager = new ExtensionManager();
@@ -1074,6 +1093,12 @@ main() {
 @reflectiveTest
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
   InlineMethodOptions options = new InlineMethodOptions(true, true);
+
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
 
   test_feedback() {
     addTestFile('''

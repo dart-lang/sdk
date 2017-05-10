@@ -45,6 +45,12 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     expect(serverErrors, isEmpty);
   }
 
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = false;
+    super.setUp();
+  }
+
   test_constructor_named() async {
     addTestFile('''
 class A {
@@ -678,6 +684,12 @@ class _NoSearchEngine extends AbstractSearchDomainTest {
   @override
   Index createIndex() {
     return null;
+  }
+
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = false;
+    super.setUp();
   }
 
   test_requestError_noSearchEngine() async {

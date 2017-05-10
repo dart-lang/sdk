@@ -23,6 +23,12 @@ main() {
 
 @reflectiveTest
 class AbstractRequestHandlerTest extends AbstractAnalysisTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
+
   test_waitForResponses_empty_noTimeout() async {
     AbstractRequestHandler handler = new TestAbstractRequestHandler(server);
     Map<PluginInfo, Future<plugin.Response>> futures =

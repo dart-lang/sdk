@@ -47,6 +47,12 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
+
   test_localVariable() async {
     addTestFile('''
 class A {

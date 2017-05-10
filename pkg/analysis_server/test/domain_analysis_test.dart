@@ -393,6 +393,12 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     }
   }
 
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    super.setUp();
+  }
+
   test_setRoots_packages() {
     // prepare package
     String pkgFile = '/packages/pkgA/libA.dart';
