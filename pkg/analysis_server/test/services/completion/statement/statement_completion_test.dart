@@ -17,6 +17,7 @@ main() {
     defineReflectiveTests(_DeclarationCompletionTest);
     defineReflectiveTests(_ControlFlowCompletionTest);
     defineReflectiveTests(_DoCompletionTest);
+    defineReflectiveTests(_ExpressionCompletionTest);
     defineReflectiveTests(_ForCompletionTest);
     defineReflectiveTests(_ForEachCompletionTest);
     defineReflectiveTests(_IfCompletionTest);
@@ -303,6 +304,23 @@ class Sample {
         (s) => _afterLast(s, '  '));
   }
 
+  test_extendsNoBody() async {
+    await _prepareCompletion(
+        'Sample',
+        '''
+class Sample extends Object
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete class declaration',
+        '''
+class Sample extends Object {
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
   test_functionDeclNoBody() async {
     await _prepareCompletion(
         'source()',
@@ -320,12 +338,69 @@ String source() {
         (s) => _after(s, '  '));
   }
 
+  test_functionDeclNoParen() async {
+    await _prepareCompletion(
+        'source(',
+        '''
+String source(
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete function declaration',
+        '''
+String source() {
+  ////
+}
+''',
+        (s) => _after(s, '  '));
+  }
+
+  test_implementsNoBody() async {
+    await _prepareCompletion(
+        'Sample',
+        '''
+class Interface {}
+class Sample implements Interface
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete class declaration',
+        '''
+class Interface {}
+class Sample implements Interface {
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
   test_methodDeclNoBody() async {
     await _prepareCompletion(
         'source()',
         '''
 class Sample {
   String source()
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete function declaration',
+        '''
+class Sample {
+  String source() {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_methodDeclNoParen() async {
+    await _prepareCompletion(
+        'source(',
+        '''
+class Sample {
+  String source(
 }
 ''',
         atEnd: true);
@@ -355,6 +430,25 @@ String source;
 ////
 ''',
         (s) => _after(s, ';\n'));
+  }
+
+  test_withNoBody() async {
+    await _prepareCompletion(
+        'Sample',
+        '''
+class M {}
+class Sample extends Object with M
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete class declaration',
+        '''
+class M {}
+class Sample extends Object with M {
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
   }
 }
 
@@ -491,10 +585,248 @@ main() {
 }
 
 @reflectiveTest
+class _ExpressionCompletionTest extends StatementCompletionTest {
+  test_listAssign() async {
+    await _prepareCompletion(
+        '= ',
+        '''
+main() {
+  var x = [1, 2, 3
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  var x = [1, 2, 3];
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_listAssignMultiLine() async {
+    // The indent of the final line is incorrect.
+    await _prepareCompletion(
+        '3',
+        '''
+main() {
+  var x = [
+    1,
+    2,
+    3
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  var x = [
+    1,
+    2,
+    3,
+  ];
+    ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  @failingTest
+  test_mapAssign() async {
+    await _prepareCompletion(
+        '3: 3',
+        '''
+main() {
+  var x = {1: 1, 2: 2, 3: 3
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  var x = {1: 1, 2: 2, 3: 3};
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  @failingTest
+  test_mapAssignMissingColon() async {
+    await _prepareCompletion(
+        '3',
+        '''
+main() {
+  var x = {1: 1, 2: 2, 3
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  var x = {1: 1, 2: 2, 3: };
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_returnString() async {
+    await _prepareCompletion(
+        'text',
+        '''
+main() {
+  if (done()) {
+    return 'text
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete control flow block',
+        '''
+main() {
+  if (done()) {
+    return 'text';
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_stringAssign() async {
+    await _prepareCompletion(
+        '= ',
+        '''
+main() {
+  var x = '
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Add a semicolon and newline',
+        '''
+main() {
+  var x = '';
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_stringSingle() async {
+    await _prepareCompletion(
+        'text',
+        '''
+main() {
+  print("text
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  print("text");
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_stringSingleRaw() async {
+    await _prepareCompletion(
+        'text',
+        '''
+main() {
+  print(r"text
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  print(r"text");
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_stringTriple() async {
+    await _prepareCompletion(
+        'text',
+        '''
+main() {
+  print(\'\'\'text
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  print(\'\'\'text\'\'\');
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
+  }
+
+  test_stringTripleRaw() async {
+    await _prepareCompletion(
+        'text',
+        r"""
+main() {
+  print(r'''text
+}
+""",
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        r"""
+main() {
+  print(r'''text''');
+  ////
+}
+""",
+        (s) => _afterLast(s, '  '));
+  }
+}
+
+@reflectiveTest
 class _ForCompletionTest extends StatementCompletionTest {
   test_emptyCondition() async {
     await _prepareCompletion(
-        '}',
+        '0;',
+        '''
+main() {
+  for (int i = 0;)      /**/  ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-statement',
+        '''
+main() {
+  for (int i = 0; ; ) /**/ {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_emptyConditionWithBody() async {
+    await _prepareCompletion(
+        '0;',
         '''
 main() {
   for (int i = 0;) {
@@ -514,9 +846,9 @@ main() {
   }
 
   test_emptyInitializers() async {
-    // TODO(messick) This should insert a newline and move the cursor there.
+    // This does nothing, same as for Java.
     await _prepareCompletion(
-        '}',
+        'r (',
         '''
 main() {
   for () {
@@ -532,16 +864,37 @@ main() {
   }
 }
 ''',
-        (s) => _after(s, 'for ('));
+        (s) => _after(s, 'r ('));
+  }
+
+  test_emptyInitializersAfterBody() async {
+    await _prepareCompletion(
+        '}',
+        '''
+main() {
+  for () {
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  for () {
+  }
+  ////
+}
+''',
+        (s) => _afterLast(s, '  '));
   }
 
   test_emptyInitializersEmptyCondition() async {
     await _prepareCompletion(
-        '}',
+        '/**/',
         '''
 main() {
-  for (;/**/) {
-  }
+  for (;/**/)
 }
 ''',
         atEnd: true);
@@ -549,11 +902,12 @@ main() {
         'Complete for-statement',
         '''
 main() {
-  for (;/**/) {
+  for (; /**/; ) {
+    ////
   }
 }
 ''',
-        (s) => _after(s, '/**/'));
+        (s) => _after(s, '    '));
   }
 
   test_emptyParts() async {
@@ -579,7 +933,28 @@ main() {
 
   test_emptyUpdaters() async {
     await _prepareCompletion(
-        '}',
+        '/**/',
+        '''
+main() {
+  for (int i = 0; i < 10 /**/)
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-statement',
+        '''
+main() {
+  for (int i = 0; i < 10 /**/; ) {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_emptyUpdatersWithBody() async {
+    await _prepareCompletion(
+        '/**/',
         '''
 main() {
   for (int i = 0; i < 10 /**/) {
@@ -595,7 +970,7 @@ main() {
   }
 }
 ''',
-        (s) => _after(s, '10 /**/; '));
+        (s) => _after(s, '*/; '));
   }
 
   test_keywordOnly() async {
@@ -621,7 +996,7 @@ main() {
 
   test_missingLeftSeparator() async {
     await _prepareCompletion(
-        '}',
+        '= 0',
         '''
 main() {
   for (int i = 0) {
@@ -633,7 +1008,7 @@ main() {
         'Complete for-statement',
         '''
 main() {
-  for (int i = 0; ) {
+  for (int i = 0; ; ) {
   }
 }
 ''',
@@ -755,8 +1130,7 @@ main() {
 
 @reflectiveTest
 class _IfCompletionTest extends StatementCompletionTest {
-  test_afterCondition_BAD() async {
-    // TODO(messick) Stop inserting the space after the closing brace.
+  test_afterCondition() async {
     await _prepareCompletion(
         'if (true) ', // Trigger completion after space.
         '''
@@ -771,7 +1145,7 @@ main() {
 main() {
   if (true) {
     ////
-  } ////
+  }
 }
 ''',
         (s) => _after(s, '    '));
@@ -863,6 +1237,29 @@ main() {
         (s) => _after(s, '    '));
   }
 
+  test_withElse() async {
+    await _prepareCompletion(
+        'else',
+        '''
+main() {
+  if () {
+  } else
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete if-statement',
+        '''
+main() {
+  if () {
+  } else {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
   test_withElse_BAD() async {
     await _prepareCompletion(
         'if ()',
@@ -883,6 +1280,29 @@ main() {
 }
 ''',
         (s) => _after(s, 'if ()'));
+  }
+
+  test_withElseNoThen() async {
+    await _prepareCompletion(
+        'else',
+        '''
+main() {
+  if ()
+  else
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete if-statement',
+        '''
+main() {
+  if ()
+  else {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
   }
 
   test_withinEmptyCondition() async {
@@ -1333,9 +1753,6 @@ main() {
 }
 ''',
         atEnd: true);
-    // It would be better to expect the cursor to follow the on-keyword but
-    // the parser thinks the exception type is 'catch' so it's kinda broken.
-    // See https://github.com/dart-lang/sdk/issues/29410
     _assertHasChange(
         'Complete try-statement',
         '''
@@ -1344,6 +1761,31 @@ main() {
   } on catch () {
     ////
   }
+}
+''',
+        (s) => _after(s, 'catch ('));
+  }
+
+  test_onCatchComment() async {
+    await _prepareCompletion(
+        'on',
+        '''
+main() {
+  try {
+  } on catch
+  //
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } on catch () {
+    ////
+  }
+  //
 }
 ''',
         (s) => _after(s, 'catch ('));
