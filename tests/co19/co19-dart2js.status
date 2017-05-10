@@ -1671,12 +1671,12 @@ WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage t
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
 # ROLL 50 FAILURES START
 LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Pass, Timeout # Roll 50 failure
-LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Timeout, RuntimeError # Roll 50 failure
 LayoutTests/fast/dom/icon-size-property_t01: Pass, Timeout # Roll 50 failure
-LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Timeout # Roll 50 failure
+LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Pass, Timeout # Roll 50 failure
 LayoutTests/fast/filesystem/*: Pass, Timeout # Roll 50 failure
-LibTest/html/Window/requestFileSystem_A01_t01: Timeout # Roll 50 failure
-LibTest/html/Window/requestFileSystem_A01_t02: Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t01: Pass, Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t02: Pass, Timeout # Roll 50 failure
 # ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == chrome && $checked]
@@ -1754,12 +1754,12 @@ WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 # ROLL 50 FAILURES START
 LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Pass, Timeout # Roll 50 failure
-LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Timeout, RuntimeError # Roll 50 failure
 LayoutTests/fast/dom/icon-size-property_t01: Pass, Timeout # Roll 50 failure
-LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Timeout # Roll 50 failure
+LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Pass, Timeout # Roll 50 failure
 LayoutTests/fast/filesystem/*: Pass, Timeout # Roll 50 failure
-LibTest/html/Window/requestFileSystem_A01_t01: Timeout # Roll 50 failure
-LibTest/html/Window/requestFileSystem_A01_t02: Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t01: Pass, Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t02: Pass, Timeout # Roll 50 failure
 # ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
@@ -5202,6 +5202,9 @@ WebPlatformTest/webstorage/event_session_storagearea_t01: Pass, RuntimeError # F
 WebPlatformTest/webstorage/event_session_url_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Makes the following test time out.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
+# ROLL 50 FAILURES START
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # Roll 50 failure
+# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure

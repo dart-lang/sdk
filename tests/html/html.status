@@ -40,19 +40,21 @@ js_interop_constructor_name_test/HTMLDivElement-types-erroneous2: Fail # Issue 2
 custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
-fileapi_test/directoryReader: Timeout # Roll 50 failure
-fileapi_test/entry: Timeout # Roll 50 failure
-fileapi_test/fileEntry: Timeout # Roll 50 failure
-fileapi_test/getDirectory: Timeout # Roll 50 failure
-fileapi_test/getFile: Timeout # Roll 50 failure
-indexeddb_1_test/functional: Timeout # Roll 50 failure
-indexeddb_2_test: Timeout # Roll 50 failure
-indexeddb_3_test: Timeout # Roll 50 failure
-indexeddb_4_test: Timeout # Roll 50 failure
-indexeddb_5_test: Timeout # Roll 50 failure
-js_typed_interop_side_cast_exp_test: RuntimeError # Roll 50 failure
-keyboard_event_test: RuntimeError # Roll 50 failure
-websql_test/functional: Timeout # Roll 50 failure
+fileapi_test/directoryReader: Pass, Timeout # Roll 50 failure
+fileapi_test/entry: Pass, Timeout # Roll 50 failure
+fileapi_test/fileEntry: Pass, Timeout # Roll 50 failure
+fileapi_test/getDirectory: Pass, Timeout # Roll 50 failure
+fileapi_test/getFile: Pass, Timeout # Roll 50 failure
+indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
+indexeddb_2_test: Pass, Timeout # Roll 50 failure
+indexeddb_3_test: Pass, Timeout # Roll 50 failure
+indexeddb_4_test: Pass, Timeout # Roll 50 failure
+indexeddb_5_test: Pass, Timeout # Roll 50 failure
+js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+keyboard_event_test: Pass, RuntimeError # Roll 50 failure
+svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
+websql_test/functional: Pass, Timeout # Roll 50 failure
+xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 # ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $checked ]
