@@ -15,6 +15,7 @@ import '../../elements/elements.dart'
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../../js_backend/interceptor_data.dart' show InterceptorData;
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show Emitter, EmitterFactory;
@@ -29,7 +30,8 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, task.nativeEmitter);
+    return new Emitter(
+        task.compiler, namer, task.nativeEmitter, closedWorld.interceptorData);
   }
 }
 
@@ -40,10 +42,12 @@ class Emitter implements emitterTask.Emitter {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
+  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
+      InterceptorData interceptorData)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+        _emitter =
+            new ModelEmitter(compiler, namer, nativeEmitter, interceptorData);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 

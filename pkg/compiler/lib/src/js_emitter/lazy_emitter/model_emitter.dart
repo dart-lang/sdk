@@ -39,6 +39,7 @@ class ModelEmitter {
   final Namer namer;
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
+  final InterceptorData _interceptorData;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -50,16 +51,11 @@ class ModelEmitter {
 
   static const String typeNameProperty = r"builtin$cls";
 
-  ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
-      : this.compiler = compiler,
-        this.namer = namer {
+  ModelEmitter(
+      this.compiler, this.namer, this.nativeEmitter, this._interceptorData) {
     this.constantEmitter = new ConstantEmitter(
         compiler, namer, this.generateConstantReference, constantListGenerator);
   }
-
-  InterceptorData get _interceptorData =>
-      // TODO(johnniwinther): Pass [InterceptorData] directly?
-      nativeEmitter.interceptorData;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.

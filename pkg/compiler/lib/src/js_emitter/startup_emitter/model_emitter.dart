@@ -60,6 +60,7 @@ class ModelEmitter {
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
+  final InterceptorData _interceptorData;
 
   // The full code that is written to each hunk part-file.
   final Map<Fragment, CodeOutput> outputBuffers = <Fragment, CodeOutput>{};
@@ -75,10 +76,8 @@ class ModelEmitter {
 
   static const String typeNameProperty = r"builtin$cls";
 
-  ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter,
-      this.shouldGenerateSourceMap)
-      : this.compiler = compiler,
-        this.namer = namer {
+  ModelEmitter(this.compiler, this.namer, this.nativeEmitter,
+      this._interceptorData, this.shouldGenerateSourceMap) {
     this.constantEmitter = new ConstantEmitter(
         compiler, namer, this.generateConstantReference, constantListGenerator);
   }
@@ -154,8 +153,8 @@ class ModelEmitter {
     List<DeferredFragment> deferredFragments =
         new List<DeferredFragment>.from(program.deferredFragments);
 
-    FragmentEmitter fragmentEmitter =
-        new FragmentEmitter(compiler, namer, backend, constantEmitter, this);
+    FragmentEmitter fragmentEmitter = new FragmentEmitter(
+        compiler, namer, backend, constantEmitter, this, _interceptorData);
 
     Map<DeferredFragment, _DeferredFragmentHash> deferredHashTokens =
         new Map<DeferredFragment, _DeferredFragmentHash>();

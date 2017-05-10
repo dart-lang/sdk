@@ -487,13 +487,10 @@ class FragmentEmitter {
   final JavaScriptBackend backend;
   final ConstantEmitter constantEmitter;
   final ModelEmitter modelEmitter;
+  final InterceptorData _interceptorData;
 
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
-      this.modelEmitter);
-
-  InterceptorData get _interceptorData =>
-      // TODO(johnniwinther): Pass [InterceptorData] directly?
-      modelEmitter.nativeEmitter.interceptorData;
+      this.modelEmitter, this._interceptorData);
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       modelEmitter.generateEmbeddedGlobalAccess(global);
