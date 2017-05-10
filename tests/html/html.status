@@ -36,6 +36,24 @@ js_type_test/dynamic-String-not-Foo: Fail  # Issue 26838
 js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous1: Fail # Issue 26838
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous2: Fail # Issue 26838
+# ROLL 50 FAILURES START
+custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
+custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
+custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
+fileapi_test/directoryReader: Timeout # Roll 50 failure
+fileapi_test/entry: Timeout # Roll 50 failure
+fileapi_test/fileEntry: Timeout # Roll 50 failure
+fileapi_test/getDirectory: Timeout # Roll 50 failure
+fileapi_test/getFile: Timeout # Roll 50 failure
+indexeddb_1_test/functional: Timeout # Roll 50 failure
+indexeddb_2_test: Timeout # Roll 50 failure
+indexeddb_3_test: Timeout # Roll 50 failure
+indexeddb_4_test: Timeout # Roll 50 failure
+indexeddb_5_test: Timeout # Roll 50 failure
+js_typed_interop_side_cast_exp_test: RuntimeError # Roll 50 failure
+keyboard_event_test: RuntimeError # Roll 50 failure
+websql_test/functional: Timeout # Roll 50 failure
+# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked

@@ -1669,6 +1669,15 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
+# ROLL 50 FAILURES START
+LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/icon-size-property_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Timeout # Roll 50 failure
+LayoutTests/fast/filesystem/*: Pass, Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t01: Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t02: Timeout # Roll 50 failure
+# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == chrome && $checked]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
@@ -1743,6 +1752,15 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: Run
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
+# ROLL 50 FAILURES START
+LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/icon-size-property_t01: Pass, Timeout # Roll 50 failure
+LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Timeout # Roll 50 failure
+LayoutTests/fast/filesystem/*: Pass, Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t01: Timeout # Roll 50 failure
+LibTest/html/Window/requestFileSystem_A01_t02: Timeout # Roll 50 failure
+# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # Please triage this failure
