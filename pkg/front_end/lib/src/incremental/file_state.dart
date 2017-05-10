@@ -123,8 +123,13 @@ class FileState {
     }
 
     // Resolve the absolute URI into the absolute file URI.
-    Uri resolvedUri = _fsState.uriTranslator.translate(absoluteUri);
-    if (resolvedUri == null) return;
+    Uri resolvedUri;
+    if (absoluteUri.isScheme('file')) {
+      resolvedUri = absoluteUri;
+    } else {
+      resolvedUri = _fsState.uriTranslator.translate(absoluteUri);
+      if (resolvedUri == null) return;
+    }
 
     FileState file = await _fsState.getFile(resolvedUri);
     files.add(file);

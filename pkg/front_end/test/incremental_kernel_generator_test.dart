@@ -110,6 +110,101 @@ static method main() → dynamic {
     }
   }
 
+  test_updatePart() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String libPath = '/test/lib/test.dart';
+    String partPath = '/test/lib/bar.dart';
+    Uri libUri = writeFile(
+        libPath,
+        r'''
+library foo;
+part 'bar.dart';
+var a = 1;
+var c = b;
+void main() {}
+''');
+    Uri partUri = writeFile(
+        partPath,
+        r'''
+part of foo;
+var b = 2;
+var d = a;
+''');
+
+    // Check the initial state - types flow between the part and the library.
+    Program program = await getInitialState(libUri);
+    Library library = _getLibrary(program, libUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static field core::int a = 1;
+static field core::int c = self::b;
+static field core::int b = 2 /* from file:///test/lib/bar.dart */;
+static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static method main() → void {}
+''');
+
+    // Update [b] in the part, the type is changed in the part and library.
+    {
+      writeFile(
+          partPath,
+          r'''
+part of foo;
+var b = 2.3;
+var d = a;
+''');
+      incrementalKernelGenerator.invalidate(partUri);
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Library library = _getLibrary(delta.newProgram, libUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static field core::int a = 1;
+static field core::double c = self::b;
+static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
+static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static method main() → void {}
+''');
+    }
+
+    // Update [a] in the library, the type is changed in the part and library.
+    {
+      writeFile(
+          libPath,
+          r'''
+library foo;
+part 'bar.dart';
+var a = 'aaa';
+var c = b;
+void main() {}
+''');
+      incrementalKernelGenerator.invalidate(libUri);
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Library library = _getLibrary(delta.newProgram, libUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static field core::String a = "aaa";
+static field core::double c = self::b;
+static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
+static field core::String d = self::a /* from file:///test/lib/bar.dart */;
+static method main() → void {}
+''');
+    }
+  }
+
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
@@ -117,27 +212,6 @@ static method main() → dynamic {
     fileSystem.entityForUri(uri).writeAsStringSync(text);
     return uri;
   }
-
-//  test_part() async {
-//    writeFiles({
-//      '/foo.dart': 'library foo; part "bar.dart"; main() { print(1); f(); }',
-//      '/bar.dart': 'part of foo; f() { print(2); }'
-//    });
-//    var fooUri = Uri.parse('file:///foo.dart');
-//    var initialState = await getInitialState(fooUri);
-//    expect(initialState.keys, unorderedEquals([fooUri]));
-//    var library = _getLibrary(initialState[fooUri], fooUri);
-//    var mainStatements =
-//        _getProcedureStatements(_getProcedure(library, 'main'));
-//    var fProcedure = _getProcedure(library, 'f');
-//    var fStatements = _getProcedureStatements(fProcedure);
-//    expect(mainStatements, hasLength(2));
-//    _checkPrintLiteralInt(mainStatements[0], 1);
-//    _checkFunctionCall(mainStatements[1], fProcedure);
-//    expect(fStatements, hasLength(1));
-//    _checkPrintLiteralInt(fStatements[0], 2);
-//     TODO(paulberry): now test incremental updates
-//  }
 
   /// Write the given file contents to the virtual filesystem.
   void writeFiles(Map<String, String> contents) {
