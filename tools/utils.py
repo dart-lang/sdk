@@ -294,7 +294,6 @@ def GetBuildConf(mode, arch, conf_os=None):
     host_arch = ARCH_GUESS
     cross_build = ''
     if GetArchFamily(host_arch) != GetArchFamily(arch):
-      print "GetBuildConf: Cross-build of %s on %s\n" % (arch, host_arch)
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
