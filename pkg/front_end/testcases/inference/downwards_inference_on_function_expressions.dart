@@ -57,7 +57,7 @@ void main() {
     Function2<int, int>
         l0 = /*@returnType=int*/ (/*@type=int*/ x) => /*@promotedType=none*/ x;
     Function2<int, int>
-        l1 = /*@returnType=int*/ (/*@type=int*/ x) => /*@promotedType=none*/ x +
+        l1 = /*@returnType=int*/ (/*@type=int*/ x) => /*@promotedType=none*/ x /*@target=num::+*/ +
             1;
     Function2<int, String>
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ (/*@type=int*/ x) =>
@@ -67,6 +67,6 @@ void main() {
             .substring(3);
     Function2<String, String>
         l4 = /*@returnType=String*/ (/*@type=String*/ x) => /*@promotedType=none*/ x
-            .substring(3);
+            . /*@target=String::substring*/ substring(3);
   }
 }

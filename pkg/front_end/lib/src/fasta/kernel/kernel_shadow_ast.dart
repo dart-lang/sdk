@@ -423,6 +423,14 @@ class KernelMethodInvocation extends MethodInvocation
         _forEachArgument(arguments), (types) {
       arguments.types.clear();
       arguments.types.addAll(types);
+    }, (target) {
+      if (!inferrer.strongMode) {
+        // Our non-strong golden files currently don't include interface
+        // targets, so we can't store the interface target without causing tests
+        // to fail.  TODO(paulberry): fix this.
+        return;
+      }
+      interfaceTarget = target;
     });
   }
 }

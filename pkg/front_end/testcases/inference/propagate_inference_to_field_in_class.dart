@@ -13,5 +13,6 @@ test() {
   var /*@type=A*/ a = new A();
   A b = /*@promotedType=none*/ a; // doesn't require down cast
   print(/*@promotedType=none*/ a.x); // doesn't require dynamic invoke
-  print(/*@promotedType=none*/ a.x + 2); // ok to use in bigger expression
+  print(/*@promotedType=none*/ a.x /*@target=num::+*/ +
+      2); // ok to use in bigger expression
 }

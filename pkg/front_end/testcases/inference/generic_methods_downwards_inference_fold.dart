@@ -7,14 +7,15 @@ library test;
 
 void main() {
   List<int> o;
-  int y = /*@promotedType=none*/ o. /*@typeArgs=int*/ fold(
+  int y = /*@promotedType=none*/ o. /*@typeArgs=int*/ /*@target=List::fold*/ fold(
       0,
       /*@returnType=int*/ (/*@type=int*/ x,
-          /*@type=int*/ y) => /*@promotedType=none*/ x + /*@promotedType=none*/ y);
-  var /*@type=dynamic*/ z = /*@promotedType=none*/ o. /*@typeArgs=dynamic*/ fold(
-      0,
-      /*@returnType=dynamic*/ (/*@type=dynamic*/ x,
-          /*@type=int*/ y) => /*info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ x + /*@promotedType=none*/ y);
+          /*@type=int*/ y) => /*@promotedType=none*/ x /*@target=num::+*/ + /*@promotedType=none*/ y);
+  var /*@type=dynamic*/ z = /*@promotedType=none*/ o
+      . /*@typeArgs=dynamic*/ /*@target=List::fold*/ fold(
+          0,
+          /*@returnType=dynamic*/ (/*@type=dynamic*/ x,
+              /*@type=int*/ y) => /*info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ x + /*@promotedType=none*/ y);
   y = /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ z;
 }
 
@@ -23,7 +24,7 @@ void functionExpressionInvocation() {
   int y = (/*@promotedType=none*/ o.fold)(
       0,
       /*@returnType=int*/ (/*@type=int*/ x,
-          /*@type=int*/ y) => /*@promotedType=none*/ x + /*@promotedType=none*/ y);
+          /*@type=int*/ y) => /*@promotedType=none*/ x /*@target=num::+*/ + /*@promotedType=none*/ y);
   var /*@type=dynamic*/ z = (/*@promotedType=none*/ o.fold)(
       0,
       /*@returnType=dynamic*/ (/*@type=dynamic*/ x,

@@ -10,8 +10,8 @@ class A {
   double operator -(other) => 2.0;
 }
 
-var /*@topType=int*/ v_add = new A() + 'foo';
-var /*@topType=double*/ v_minus = new A() - 'bar';
+var /*@topType=int*/ v_add = new A() /*@target=A::+*/ + 'foo';
+var /*@topType=double*/ v_minus = new A() /*@target=A::-*/ - 'bar';
 
 main() {
   v_add;

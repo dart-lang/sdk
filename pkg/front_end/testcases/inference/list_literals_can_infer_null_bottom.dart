@@ -7,7 +7,8 @@ library test;
 
 test1() {
   var /*@type=List<Null>*/ x = /*@typeArgs=Null*/ [null];
-  /*@promotedType=none*/ x.add(/*error:INVALID_CAST_LITERAL*/ 42);
+  /*@promotedType=none*/ x
+      . /*@target=List::add*/ add(/*error:INVALID_CAST_LITERAL*/ 42);
 }
 
 main() {

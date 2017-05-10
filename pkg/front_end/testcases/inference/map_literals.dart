@@ -7,10 +7,13 @@ library test;
 
 test1() {
   var /*@type=Map<int, String>*/ x = /*@typeArgs=int, String*/ {1: 'x', 2: 'y'};
-  /*@promotedType=none*/ x[3] = 'z';
-  /*@promotedType=none*/ x[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-  /*@promotedType=none*/ x[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
-  /*@promotedType=none*/ x[3] = /*error:INVALID_ASSIGNMENT*/ 42;
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [3] = 'z';
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [
+      3] = /*error:INVALID_ASSIGNMENT*/ 42;
   Map<num, String> y = /*@promotedType=none*/ x;
 }
 
@@ -20,11 +23,13 @@ test2() {
     2: 'y',
     3.0: new RegExp('.')
   };
-  /*@promotedType=none*/ x[3] = 'z';
-  /*@promotedType=none*/ x[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-  /*@promotedType=none*/ x[4.0] = 'u';
-  /*@promotedType=none*/ x[3] = /*error:INVALID_ASSIGNMENT*/ 42;
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [3] = 'z';
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [4.0] = 'u';
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [
+      3] = /*error:INVALID_ASSIGNMENT*/ 42;
   Pattern p = null;
-  /*@promotedType=none*/ x[2] = /*@promotedType=none*/ p;
+  /*@promotedType=none*/ x /*@target=Map::[]=*/ [2] = /*@promotedType=none*/ p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ x;
 }

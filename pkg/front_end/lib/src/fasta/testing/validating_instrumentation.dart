@@ -24,7 +24,8 @@ class ValidatingInstrumentation implements Instrumentation {
       'typeArgs',
       'promotedType',
       'type',
-      'returnType'
+      'returnType',
+      'target',
     ],
   };
 
@@ -176,7 +177,11 @@ class ValidatingInstrumentation implements Instrumentation {
   }
 
   String _escape(String s) {
-    return s.replaceAll(r'\', r'\\').replaceAll('*/', r'*\/');
+    s = s.replaceAll(r'\', r'\\');
+    if (s.endsWith('/')) {
+      s = '$s ';
+    }
+    return s.replaceAll('/*', r'/\*').replaceAll('*/', r'*\/');
   }
 
   String _formatProblem(

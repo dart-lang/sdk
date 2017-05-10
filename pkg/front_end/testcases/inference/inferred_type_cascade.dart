@@ -13,5 +13,5 @@ class A {
 
 var /*@topType=A*/ v = new A()
   ..a = 1
-  ..b.add(2)
-  ..m();
+  ..b. /*@target=List::add*/ add(2)
+  .. /*@target=A::m*/ m();

@@ -416,7 +416,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// provided.  [forEachArgument] is a callback which can be used to iterate
   /// through all invocation arguments (both named and positional).
   /// [setInferredTypeArguments] is a callback which can be used to record the
-  /// inferred type arguments.
+  /// inferred type arguments.  [setInterfaceTarget] is a callback which can be
+  /// used to record the method being invoked.
   DartType inferMethodInvocation(
       DartType typeContext,
       bool typeNeeded,
@@ -425,12 +426,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       Name methodName,
       List<DartType> explicitTypeArguments,
       void forEachArgument(void callback(String name, E expression)),
-      void setInferredTypeArguments(List<DartType> types)) {
+      void setInferredTypeArguments(List<DartType> types),
+      void setInterfaceTarget(Procedure procedure)) {
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = inferExpression(receiver, null, true);
     // TODO(paulberry): can we share some of the code below with
     // inferConstructorInvocation?
-    var memberFunctionType = _getCalleeFunctionType(receiverType, methodName);
+    var memberFunctionType = _getCalleeFunctionType(
+        receiverType, methodName, offset, setInterfaceTarget);
     List<TypeParameter> memberTypeParameters =
         memberFunctionType.typeParameters;
     bool inferenceNeeded = explicitTypeArguments == null &&
@@ -583,13 +586,17 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return inferExpression(value, declaredType, typeNeeded);
   }
 
-  FunctionType _getCalleeFunctionType(DartType receiverType, Name methodName) {
+  FunctionType _getCalleeFunctionType(DartType receiverType, Name methodName,
+      int offset, void setInterfaceTarget(Procedure procedure)) {
     if (receiverType is InterfaceType) {
       var member =
           classHierarchy.getInterfaceMember(receiverType.classNode, methodName);
       if (member == null) return _functionReturningDynamic;
       var memberClass = member.enclosingClass;
       if (member is Procedure) {
+        instrumentation?.record(Uri.parse(uri), offset, 'target',
+            new InstrumentationValueForProcedure(member));
+        setInterfaceTarget(member);
         var memberFunctionType = member.function.functionType;
         if (memberClass.typeParameters.isNotEmpty) {
           var castedType = classHierarchy.getClassAsInstanceOf(

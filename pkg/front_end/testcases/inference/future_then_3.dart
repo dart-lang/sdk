@@ -16,31 +16,39 @@ class MyFuture<T> implements Future<T> {
 
 void main() {
   MyFuture f;
-  MyFuture<int> t1 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
-          await new Future<int>.value(3));
-  MyFuture<int> t2 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
+  MyFuture<int> t1 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
+              await new Future<int>.value(3));
+  MyFuture<int> t2 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return await new Future<int>.value(3);
   });
-  MyFuture<int> t3 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async => 3);
-  MyFuture<int> t4 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
+  MyFuture<int> t3 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async => 3);
+  MyFuture<int> t4 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return 3;
   });
-  MyFuture<int> t5 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) =>
-          new Future<int>.value(3));
-  MyFuture<int> t6 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) {
+  MyFuture<int> t5 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) =>
+              new Future<int>.value(3));
+  MyFuture<int> t6 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) {
     return new Future<int>.value(3);
   });
-  MyFuture<int> t7 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
-          new Future<int>.value(3));
-  MyFuture<int> t8 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
+  MyFuture<int> t7 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
+              new Future<int>.value(3));
+  MyFuture<int> t8 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return new Future<int>.value(3);
   });
 }

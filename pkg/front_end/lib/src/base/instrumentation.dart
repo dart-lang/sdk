@@ -26,6 +26,20 @@ abstract class InstrumentationValue {
   bool matches(String description) => description == toString();
 }
 
+/// Instance of [InstrumentationValue] describing a [Procedure].
+class InstrumentationValueForProcedure extends InstrumentationValue {
+  final Procedure procedure;
+
+  InstrumentationValueForProcedure(this.procedure);
+
+  @override
+  String toString() => procedure
+      .toString()
+      .replaceAll('dart.core::', '')
+      .replaceAll('dart.async::', '')
+      .replaceAll('test::', '');
+}
+
 /// Instance of [InstrumentationValue] describing a [DartType].
 class InstrumentationValueForType extends InstrumentationValue {
   final DartType type;

@@ -146,10 +146,14 @@ inference/generic_methods_inference_error: Fail
 inference/generic_methods_iterable_and_future: Fail
 inference/generic_methods_nested_generic_instantiation: Fail
 inference/generic_methods_uses_greatest_lower_bound: Fail
+inference/infer_assign_to_index: Fail
+inference/infer_assign_to_property: Fail
+inference/infer_assign_to_property_custom: Fail
 inference/infer_binary_double_double: Fail
 inference/infer_binary_double_int: Fail
 inference/infer_binary_int_double: Fail
 inference/infer_binary_int_int: Fail
+inference/infer_conditional: Fail
 inference/infer_consts_transitively_2: Fail
 inference/infer_consts_transitively_2_a: Fail
 inference/infer_correctly_on_multiple_variables_declared_together: Fail
@@ -167,9 +171,11 @@ inference/infer_return_of_statement_lambda: Fail
 inference/infer_statics_transitively: Fail
 inference/infer_statics_transitively3: Fail
 inference/infer_statics_transitively_a: Fail
+inference/infer_statics_with_method_invocations: Fail
 inference/infer_throw: Fail
 inference/infer_type_on_var_from_field: Fail
 inference/infer_typed_map_literal: Fail
+inference/infer_types_on_generic_instantiations_in_library_cycle: Fail
 inference/infer_types_on_loop_indices_for_each_loop: Fail
 inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
 inference/infer_variable_void: Fail
@@ -207,6 +213,7 @@ inference/propagate_inference_to_field_in_class_dynamic_warnings: Fail
 inference/propagate_inference_transitively: Fail
 inference/propagate_inference_transitively2: Fail
 inference/reference_to_typedef: Fail
+inference/refine_binary_expression_type_type_parameter_t_double: Fail
 inference/refine_binary_expression_type_type_parameter_t_int: Fail
 inference/refine_binary_expression_type_type_parameter_t_t: Fail
 inference/static_method_tear_off: Fail

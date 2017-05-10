@@ -7,9 +7,9 @@ library test;
 
 List<String> strings() {
   var /*@type=Iterable<String>*/ stuff = /*@typeArgs=dynamic*/ []
-      . /*@typeArgs=String*/ expand(
+      . /*@typeArgs=String*/ /*@target=Iterable::expand*/ expand(
           /*@returnType=List<String>*/ (/*@type=dynamic*/ i) {
     return <String>[];
   });
-  return /*@promotedType=none*/ stuff.toList();
+  return /*@promotedType=none*/ stuff. /*@target=Iterable::toList*/ toList();
 }

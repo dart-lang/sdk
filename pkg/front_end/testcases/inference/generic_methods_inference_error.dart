@@ -7,8 +7,9 @@ library test;
 
 main() {
   List<String> y;
-  Iterable<String> x = /*@promotedType=none*/ y. /*@typeArgs=String*/ map(
-      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=double*/ (String
-              z) =>
-          1.0);
+  Iterable<String> x = /*@promotedType=none*/ y
+      . /*@typeArgs=String*/ /*@target=List::map*/ map(
+          /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=double*/ (String
+                  z) =>
+              1.0);
 }

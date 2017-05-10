@@ -16,21 +16,25 @@ class MyFuture<T> implements Future<T> {
 
 void main() {
   Future<bool> f;
-  Future<int> t1 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
-          /*@promotedType=none*/ x ? 2 : await new MyFuture<int>.value(3));
-  Future<int> t2 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=Future<int>*/ (/*@type=bool*/ x) async {
+  Future<int> t1 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=Future::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
+              /*@promotedType=none*/ x ? 2 : await new MyFuture<int>.value(3));
+  Future<int> t2 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=Future::then*/ then(
+          /*@returnType=Future<int>*/ (/*@type=bool*/ x) async {
     return /*info:DOWN_CAST_COMPOSITE*/ await /*@promotedType=none*/ x
         ? 2
         : new MyFuture<int>.value(3);
   });
-  Future<int> t5 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
-      /*@returnType=Object*/ (/*@type=bool*/ x) =>
-          /*@promotedType=none*/ x ? 2 : new MyFuture<int>.value(3));
-  Future<int> t6 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
-      /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) {
+  Future<int> t5 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=Future::then*/ then(
+          /*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
+          /*@returnType=Object*/ (/*@type=bool*/ x) =>
+              /*@promotedType=none*/ x ? 2 : new MyFuture<int>.value(3));
+  Future<int> t6 = /*@promotedType=none*/ f
+      . /*@typeArgs=int*/ /*@target=Future::then*/ then(
+          /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) {
     return /*info:DOWN_CAST_COMPOSITE*/ /*@promotedType=none*/ x
         ? 2
         : new MyFuture<int>.value(3);

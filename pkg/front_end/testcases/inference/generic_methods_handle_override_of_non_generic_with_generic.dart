@@ -16,6 +16,7 @@ class D extends C {
 }
 
 main() {
-  int y = /*info:DYNAMIC_CAST*/ (/*info:UNNECESSARY_CAST*/ new D() as C).m(42);
+  int y = /*info:DYNAMIC_CAST*/ (/*info:UNNECESSARY_CAST*/ new D() as C)
+      . /*@target=C::m*/ m(42);
   print(/*@promotedType=none*/ y);
 }

@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-const /*@topType=f(String) -> int*/ v = C.f;
+const /*@topType=C::f(String) -> int*/ v = C.f;
 
 class C {
   static int f(String s) => null;

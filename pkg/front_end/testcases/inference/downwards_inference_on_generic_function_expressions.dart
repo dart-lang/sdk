@@ -57,8 +57,8 @@ void main() {
     String string2String<T>(String x) => null;
     var /*@type=int2int(int) -> int*/ x = int2int;
     x = /*@returnType=int*/ <T>(/*@type=int*/ x) => /*@promotedType=none*/ x;
-    x = /*@returnType=int*/ <T>(/*@type=int*/ x) => /*@promotedType=none*/ x +
-        1;
+    x = /*@returnType=int*/ <
+        T>(/*@type=int*/ x) => /*@promotedType=none*/ x /*@target=num::+*/ + 1;
     var /*@type=int2String(int) -> String*/ y = int2String;
     y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <
             T>(/*@type=int*/ x) =>
@@ -66,7 +66,7 @@ void main() {
     y = /*@returnType=String*/ <
         T>(/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ /*@promotedType=none*/ x.substring(3);
     var /*@type=string2String(String) -> String*/ z = string2String;
-    z = /*@returnType=String*/ <
-        T>(/*@type=String*/ x) => /*@promotedType=none*/ x.substring(3);
+    z = /*@returnType=String*/ <T>(/*@type=String*/ x) => /*@promotedType=none*/ x
+        . /*@target=String::substring*/ substring(3);
   }
 }

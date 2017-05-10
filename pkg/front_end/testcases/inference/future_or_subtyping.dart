@@ -12,7 +12,7 @@ add2(int y) {}
 main() {
   Future<int> f;
   var /*@type=Future<void>*/ a = /*@promotedType=none*/ f
-      . /*@typeArgs=void*/ then(add);
+      . /*@typeArgs=void*/ /*@target=Future::then*/ then(add);
   var /*@type=Future<dynamic>*/ b = /*@promotedType=none*/ f
-      . /*@typeArgs=dynamic*/ then(add2);
+      . /*@typeArgs=dynamic*/ /*@target=Future::then*/ then(add2);
 }

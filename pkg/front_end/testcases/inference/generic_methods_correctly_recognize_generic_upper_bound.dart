@@ -22,5 +22,7 @@ main() {
   s = c;
   */
 
-  new Foo<String>(). /*error:COULD_NOT_INFER*/ /*@typeArgs=int*/ method(42);
+  new Foo<String>()
+      . /*error:COULD_NOT_INFER*/ /*@typeArgs=int*/ /*@target=Foo::method*/ method(
+          42);
 }

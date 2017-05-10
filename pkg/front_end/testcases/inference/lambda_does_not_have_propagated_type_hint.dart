@@ -9,7 +9,7 @@ List<String> getListOfString() => const <String>[];
 
 void foo() {
   List myList = getListOfString();
-  /*@promotedType=none*/ myList. /*@typeArgs=int*/ map(
+  /*@promotedType=none*/ myList. /*@typeArgs=int*/ /*@target=List::map*/ map(
       /*@returnType=int*/ (/*@type=dynamic*/ type) => 42);
 }
 

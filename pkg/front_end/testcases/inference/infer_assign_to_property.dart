@@ -18,9 +18,9 @@ var /*@topType=dynamic*/ v_minus =
 var /*@topType=dynamic*/ v_multiply =
     (/*error:TOP_LEVEL_UNSUPPORTED*/ new A().f *= 1);
 var /*@topType=dynamic*/ v_prefix_pp =
-    (++new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f);
+    (/*@target=num::+*/ ++new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f);
 var /*@topType=dynamic*/ v_prefix_mm =
-    (--new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f);
+    (/*@target=num::-*/ --new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f);
 var /*@topType=dynamic*/ v_postfix_pp =
     (new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ f++);
 var /*@topType=dynamic*/ v_postfix_mm =

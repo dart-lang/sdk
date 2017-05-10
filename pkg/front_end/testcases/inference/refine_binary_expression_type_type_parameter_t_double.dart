@@ -9,10 +9,10 @@ class C<T extends num> {
   T a;
 
   void op(double b) {
-    double r1 = a + /*@promotedType=none*/ b;
-    double r2 = a - /*@promotedType=none*/ b;
-    double r3 = a * /*@promotedType=none*/ b;
-    double r4 = a / /*@promotedType=none*/ b;
+    double r1 = a /*@target=num::+*/ + /*@promotedType=none*/ b;
+    double r2 = a /*@target=num::-*/ - /*@promotedType=none*/ b;
+    double r3 = a /*@target=num::**/ * /*@promotedType=none*/ b;
+    double r4 = a /*@target=num::/ */ / /*@promotedType=none*/ b;
   }
 }
 
