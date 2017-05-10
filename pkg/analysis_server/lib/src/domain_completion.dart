@@ -139,9 +139,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   @override
   Response handleRequest(Request request) {
-    if (server.searchEngine == null) {
-      return new Response.noIndexGenerated(request);
-    }
     return runZoned(() {
       String requestName = request.method;
       if (requestName == COMPLETION_GET_SUGGESTIONS) {

@@ -326,13 +326,11 @@ a:focus, a:hover {
       </dd>
     </dl>
     <dl>
-      <dt>--no-index</dt>
+      <dt class="deprecated">--no-index</dt>
       <dd>
-      Disable the server from generating an index. If this flag is passed and an
-      API is used that requires an index, then an error, <tt>NO_INDEX_GENERATED</tt>,
-      will be thrown. The set of API calls that require an index include:
-      refactoring calls, code completions and searching.
-      
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
+        This flag used to disable the server from generating an index, but now
+        it has no effect.
       </dd>
     </dl>
     <dl>
@@ -3943,12 +3941,6 @@ a:focus, a:hover {
             
             <p>
               A malformed request was received.
-            </p>
-          </dd><dt class="value">NO_INDEX_GENERATED</dt><dd>
-            
-            <p>
-              The "--no-index" flag was passed when the analysis server created,
-              but this API call requires an index to have been generated.
             </p>
           </dd><dt class="value">ORGANIZE_DIRECTIVES_ERROR</dt><dd>
             

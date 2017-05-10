@@ -503,9 +503,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Response _getAvailableRefactorings(Request request) {
-    if (searchEngine == null) {
-      return new Response.noIndexGenerated(request);
-    }
     _getAvailableRefactoringsImpl(request);
     return Response.DELAYED_RESPONSE;
   }
@@ -552,9 +549,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Response _getRefactoring(Request request) {
-    if (searchEngine == null) {
-      return new Response.noIndexGenerated(request);
-    }
     if (refactoringManager.hasPendingRequest) {
       refactoringManager.cancel();
       _newRefactoringManager();

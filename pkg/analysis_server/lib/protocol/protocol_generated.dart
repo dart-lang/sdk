@@ -15624,7 +15624,6 @@ class RequestError implements HasToJson {
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
- *   NO_INDEX_GENERATED
  *   ORGANIZE_DIRECTIVES_ERROR
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
@@ -15736,13 +15735,6 @@ class RequestErrorCode implements Enum {
       const RequestErrorCode._("INVALID_REQUEST");
 
   /**
-   * The "--no-index" flag was passed when the analysis server created, but
-   * this API call requires an index to have been generated.
-   */
-  static const RequestErrorCode NO_INDEX_GENERATED =
-      const RequestErrorCode._("NO_INDEX_GENERATED");
-
-  /**
    * An "edit.organizeDirectives" request specified a Dart file that cannot be
    * analyzed. The reason is described in the message.
    */
@@ -15839,7 +15831,6 @@ class RequestErrorCode implements Enum {
     INVALID_OVERLAY_CHANGE,
     INVALID_PARAMETER,
     INVALID_REQUEST,
-    NO_INDEX_GENERATED,
     ORGANIZE_DIRECTIVES_ERROR,
     REFACTORING_REQUEST_CANCELLED,
     SERVER_ALREADY_STARTED,
@@ -15887,8 +15878,6 @@ class RequestErrorCode implements Enum {
         return INVALID_PARAMETER;
       case "INVALID_REQUEST":
         return INVALID_REQUEST;
-      case "NO_INDEX_GENERATED":
-        return NO_INDEX_GENERATED;
       case "ORGANIZE_DIRECTIVES_ERROR":
         return ORGANIZE_DIRECTIVES_ERROR;
       case "REFACTORING_REQUEST_CANCELLED":

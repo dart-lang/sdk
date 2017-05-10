@@ -180,9 +180,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   @override
   protocol.Response handleRequest(protocol.Request request) {
-    if (searchEngine == null) {
-      return new protocol.Response.noIndexGenerated(request);
-    }
     try {
       String requestName = request.method;
       if (requestName == SEARCH_FIND_ELEMENT_REFERENCES) {

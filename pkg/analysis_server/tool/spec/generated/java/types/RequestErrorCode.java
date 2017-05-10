@@ -102,12 +102,6 @@ public class RequestErrorCode {
   public static final String INVALID_REQUEST = "INVALID_REQUEST";
 
   /**
-   * The "--no-index" flag was passed when the analysis server created, but this API call requires an
-   * index to have been generated.
-   */
-  public static final String NO_INDEX_GENERATED = "NO_INDEX_GENERATED";
-
-  /**
    * An "edit.organizeDirectives" request specified a Dart file that cannot be analyzed. The reason
    * is described in the message.
    */

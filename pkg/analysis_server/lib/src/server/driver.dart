@@ -278,11 +278,6 @@ class Driver implements ServerStarter {
       'verbose-flutter-completions';
 
   /**
-   * The name of the flag used to disable the index.
-   */
-  static const String NO_INDEX = "no-index";
-
-  /**
    * The name of the flag used to enable version 2 of semantic highlight
    * notification.
    */
@@ -391,7 +386,6 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
         !results[DISABLE_NEW_ANALYSIS_DRIVER];
-    analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
@@ -568,8 +562,6 @@ class Driver implements ServerStarter {
             " status and performance information");
     parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
-    parser.addFlag(NO_INDEX,
-        help: "disable indexing sources", defaultsTo: false, negatable: false);
     parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
         help: "enable version 2 of semantic highlight",
         defaultsTo: false,

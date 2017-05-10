@@ -478,15 +478,6 @@ class Response {
                 RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a request that requires an index, but indexing is disabled.
-   */
-  Response.noIndexGenerated(Request request)
-      : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.NO_INDEX_GENERATED, 'Indexing is disabled'));
-
-  /**
    * Initialize a newly created instance to represent the
    * ORGANIZE_DIRECTIVES_ERROR error condition.
    */

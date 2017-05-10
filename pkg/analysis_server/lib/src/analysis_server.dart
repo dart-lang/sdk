@@ -1900,7 +1900,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
