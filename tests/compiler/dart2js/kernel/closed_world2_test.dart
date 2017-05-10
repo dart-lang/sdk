@@ -291,7 +291,7 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
           (ClassEntity declarer1, MemberEntity member1) {
         members1[member1] = declarer1;
       });
-      env1.forEachClassMember(cls1,
+      env2.forEachClassMember(cls2,
           (ClassEntity declarer2, MemberEntity member2) {
         members2[member2] = declarer2;
       });

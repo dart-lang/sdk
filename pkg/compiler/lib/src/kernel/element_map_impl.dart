@@ -764,19 +764,22 @@ class _KClassEnv {
       _setterMap = <String, ir.Member>{};
       _constructorMap = <String, ir.Member>{};
 
-      void addMembers(ir.Class c) {
+      void addMembers(ir.Class c, {bool includeStatic}) {
         for (ir.Member member in c.members) {
           if (member is ir.Constructor ||
               member is ir.Procedure &&
                   member.kind == ir.ProcedureKind.Factory) {
+            if (!includeStatic) continue;
             _constructorMap[member.name.name] = member;
           } else if (member is ir.Procedure) {
+            if (!includeStatic && member.isStatic) continue;
             if (member.kind == ir.ProcedureKind.Setter) {
               _setterMap[member.name.name] = member;
             } else {
               _memberMap[member.name.name] = member;
             }
           } else if (member is ir.Field) {
+            if (!includeStatic && member.isStatic) continue;
             _memberMap[member.name.name] = member;
             if (member.isMutable) {
               _setterMap[member.name.name] = member;
@@ -790,9 +793,9 @@ class _KClassEnv {
       }
 
       if (cls.mixedInClass != null) {
-        addMembers(cls.mixedInClass);
+        addMembers(cls.mixedInClass, includeStatic: false);
       }
-      addMembers(cls);
+      addMembers(cls, includeStatic: true);
     }
   }
 

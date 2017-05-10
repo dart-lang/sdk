@@ -310,6 +310,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     cls.forEachMember((ClassElement declarer, MemberElement member) {
       if (member.isSynthesized) return;
       if (member.isMalformed) return;
+      if (member.isConstructor) return;
       f(declarer, member);
     }, includeSuperAndInjectedMembers: true);
   }
