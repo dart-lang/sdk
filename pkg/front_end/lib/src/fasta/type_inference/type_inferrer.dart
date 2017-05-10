@@ -454,9 +454,10 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
           Substitution.fromPairs(memberTypeParameters, inferredTypes);
       formalTypes = [];
       actualTypes = [];
-    } else if (explicitTypeArguments != null) {
+    } else if (explicitTypeArguments != null &&
+        memberTypeParameters.length == explicitTypeArguments.length) {
       substitution =
-          Substitution.fromPairs(memberTypeParameters, inferredTypes);
+          Substitution.fromPairs(memberTypeParameters, explicitTypeArguments);
     }
     int i = 0;
     forEachArgument((name, expression) {

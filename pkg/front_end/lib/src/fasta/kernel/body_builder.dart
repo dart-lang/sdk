@@ -586,7 +586,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List<DartType> typeArguments = pop();
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
-      arguments.types.addAll(typeArguments);
+      assert(arguments.types.isEmpty);
+      astFactory.setExplicitArgumentTypes(arguments, typeArguments);
     } else {
       assert(typeArguments == null);
     }

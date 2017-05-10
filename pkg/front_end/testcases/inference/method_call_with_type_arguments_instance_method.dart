@@ -12,3 +12,5 @@ class C {
 class D<T> {}
 
 var /*@topType=D<int>*/ f = new C().f<int>();
+
+main() {}
