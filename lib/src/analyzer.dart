@@ -29,6 +29,9 @@ class Analyzer {
   /// Shared instance.
   static Analyzer facade = new Analyzer();
 
+  /// Returns currently registered lint rules.
+  Iterable<LintRule> get registeredRules => Registry.ruleRegistry;
+
   /// Create a library name prefix based on [libraryPath], [projectRoot] and
   /// current [packageName].
   String createLibraryNamePrefix(

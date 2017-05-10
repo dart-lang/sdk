@@ -6,8 +6,11 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/rules.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 import '../bin/linter.dart' as dartlint;
 import 'mocks.dart';
@@ -411,24 +414,65 @@ defineTests() {
         // expect(exitCode, 1);
         expect(
             collectingOut.trim(),
-            stringContainsInOrder([
-              'b, // LINT',
-              '1 file analyzed, 1 issue found, in'
-            ]));
+            stringContainsInOrder(
+                ['b, // LINT', '1 file analyzed, 1 issue found, in']));
       });
     });
 
-//    group('examples', () {
-//      test('all.yaml', () {
-//TODO(pq): update LintConfig to read analysis options format
-//        var src = readFile('example/all.yaml');
-//        var config = new LintConfig.parse(src);
-//        List<String> configuredRules = config.ruleConfigs.map((c) => c.name).toList();
-//        expect(configuredRules, unorderedEquals(Registry.ruleRegistry.map((r)=>r.name)));
-//      });
-//    });
+    group('examples', () {
+      test('all.yaml', () {
+        String src = readFile('example/all.yaml');
 
+        Map<String, YamlNode> options = _getOptionsFromString(src);
+        var configuredLints =
+            ((options['linter'] as YamlMap)['rules'] as YamlList);
+
+        registerLintRules();
+        expect(
+            configuredLints,
+            unorderedEquals(
+                Analyzer.facade.registeredRules.map((r) => r.name)));
+      });
+    });
   });
+}
+
+/// Provide the options found in [optionsSource].
+Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
+  Map<String, YamlNode> options = <String, YamlNode>{};
+  if (optionsSource == null) {
+    return options;
+  }
+
+  YamlNode doc = loadYamlNode(optionsSource);
+
+  // Empty options.
+  if (doc is YamlScalar && doc.value == null) {
+    return options;
+  }
+  if ((doc != null) && (doc is! YamlMap)) {
+    throw new Exception(
+        'Bad options file format (expected map, got ${doc.runtimeType})');
+  }
+  if (doc is YamlMap) {
+    doc.nodes.forEach((k, YamlNode v) {
+      var key;
+      if (k is YamlScalar) {
+        key = k.value;
+      }
+      if (key is! String) {
+        throw new Exception(
+            'Bad options file format (expected String scope key, '
+            'got ${k.runtimeType})');
+      }
+      if (v != null && v is! YamlNode) {
+        throw new Exception('Bad options file format (expected Node value, '
+            'got ${v.runtimeType}: `${v.toString()}`)');
+      }
+      options[key] = v;
+    });
+  }
+  return options;
 }
 
 class MockProcessResult extends Mock implements ProcessResult {}
