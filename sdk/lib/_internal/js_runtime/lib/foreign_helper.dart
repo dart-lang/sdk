@@ -143,7 +143,26 @@ import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
 external JS(String typeDescription, String codeTemplate,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]);
+    [arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    arg5,
+    arg6,
+    arg7,
+    arg8,
+    arg9,
+    arg10,
+    arg11,
+    arg12,
+    arg13,
+    arg14,
+    arg51,
+    arg16,
+    arg17,
+    arg18,
+    arg19]);
 
 /**
  * Returns the isolate in which this code is running.
