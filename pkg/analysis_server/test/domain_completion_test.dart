@@ -708,7 +708,7 @@ class B extends A {m() {^}}
         ^
       }
     ''');
-    PluginInfo info = new PluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.CompletionGetSuggestionsResult result =
         new plugin.CompletionGetSuggestionsResult(
             1, 2, <plugin.CompletionSuggestion>[

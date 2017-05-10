@@ -22,7 +22,8 @@ import 'package:watcher/watcher.dart' as watcher;
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PluginInfoTest);
+    defineReflectiveTests(BuiltInPluginInfoTest);
+    defineReflectiveTests(DiscoveredPluginInfoTest);
     defineReflectiveTests(PluginManagerTest);
     defineReflectiveTests(PluginManagerFromDiskTest);
     defineReflectiveTests(PluginSessionTest);
@@ -31,18 +32,88 @@ main() {
 }
 
 @reflectiveTest
-class PluginInfoTest {
+class BuiltInPluginInfoTest {
+  TestNotificationManager notificationManager;
+  BuiltInPluginInfo plugin;
+
+  void setUp() {
+    notificationManager = new TestNotificationManager();
+    plugin = new BuiltInPluginInfo(null, 'test plugin', notificationManager,
+        InstrumentationService.NULL_SERVICE);
+  }
+
+  test_addContextRoot() {
+    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    plugin.addContextRoot(contextRoot1);
+    expect(plugin.contextRoots, [contextRoot1]);
+    plugin.addContextRoot(contextRoot1);
+    expect(plugin.contextRoots, [contextRoot1]);
+  }
+
+  test_creation() {
+    expect(plugin.pluginId, 'test plugin');
+    expect(plugin.notificationManager, notificationManager);
+    expect(plugin.contextRoots, isEmpty);
+    expect(plugin.currentSession, isNull);
+  }
+
+  test_removeContextRoot() {
+    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    ContextRoot contextRoot2 = new ContextRoot('/pkg2', []);
+    plugin.addContextRoot(contextRoot1);
+    expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
+    plugin.addContextRoot(contextRoot2);
+    expect(plugin.contextRoots, unorderedEquals([contextRoot1, contextRoot2]));
+    plugin.removeContextRoot(contextRoot1);
+    expect(plugin.contextRoots, unorderedEquals([contextRoot2]));
+    plugin.removeContextRoot(contextRoot2);
+    expect(plugin.contextRoots, isEmpty);
+  }
+
+  @failingTest
+  test_start_notRunning() {
+    fail('Not tested');
+  }
+
+  test_start_running() async {
+    plugin.currentSession = new PluginSession(plugin);
+    try {
+      await plugin.start('');
+      fail('Expected a StateError');
+    } on StateError {
+      // Expected.
+    }
+  }
+
+  test_stop_notRunning() {
+    expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
+  }
+
+  test_stop_running() {
+    PluginSession session = new PluginSession(plugin);
+    TestServerCommunicationChannel channel =
+        new TestServerCommunicationChannel(session);
+    plugin.currentSession = session;
+    plugin.stop();
+    expect(plugin.currentSession, isNull);
+    expect(channel.sentRequests, hasLength(1));
+    expect(channel.sentRequests[0].method, 'plugin.shutdown');
+  }
+}
+
+@reflectiveTest
+class DiscoveredPluginInfoTest {
   MemoryResourceProvider resourceProvider;
   TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
   String packagesPath = '/pluginDir/.packages';
-  PluginInfo plugin;
+  DiscoveredPluginInfo plugin;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
-    plugin = new PluginInfo(pluginPath, executionPath, packagesPath,
+    plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -189,8 +260,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
           expect(plugins, hasLength(1));
           watcher.WatchEvent watchEvent = new watcher.WatchEvent(
-              watcher.ChangeType.MODIFY,
-              path.join(plugin1Path, 'lib', 'lib.dart'));
+              watcher.ChangeType.MODIFY, path.join(pkgPath, 'lib', 'lib.dart'));
           List<Future<Response>> responses =
               await manager.broadcastWatchEvent(watchEvent);
           expect(responses, hasLength(1));
@@ -218,8 +288,9 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
                 List<PluginInfo> plugins =
                     manager.pluginsForContextRoot(contextRoot);
                 expect(plugins, hasLength(2));
-                List<String> paths =
-                    plugins.map((PluginInfo plugin) => plugin.path).toList();
+                List<String> paths = plugins
+                    .map((PluginInfo plugin) => plugin.pluginId)
+                    .toList();
                 expect(paths, unorderedEquals([plugin1Path, plugin2Path]));
 
                 await manager.stopAll();
@@ -237,7 +308,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
       List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
       expect(plugins, hasLength(1));
-      expect(plugins[0].path, pluginPath);
+      expect(plugins[0].pluginId, pluginPath);
 
       await manager.stopAll();
     });
@@ -306,8 +377,12 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
       String mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
       String byteStorePath = path.join(pluginPath, 'byteStore');
       new io.Directory(byteStorePath).createSync();
-      PluginInfo plugin = new PluginInfo(pluginPath, mainPath, packagesPath,
-          notificationManager, InstrumentationService.NULL_SERVICE);
+      PluginInfo plugin = new DiscoveredPluginInfo(
+          pluginPath,
+          mainPath,
+          packagesPath,
+          notificationManager,
+          InstrumentationService.NULL_SERVICE);
       PluginSession session = new PluginSession(plugin);
       plugin.currentSession = session;
       expect(await session.start(byteStorePath), isTrue);
@@ -329,7 +404,7 @@ class PluginSessionTest {
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
-    plugin = new PluginInfo(pluginPath, executionPath, packagesPath,
+    plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
     session = new PluginSession(plugin);
   }

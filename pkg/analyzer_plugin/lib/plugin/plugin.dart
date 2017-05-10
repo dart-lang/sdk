@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverGeneric, AnalysisDriverScheduler, PerformanceLog;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -83,7 +84,8 @@ abstract class ServerPlugin {
    * is given, then it will be used to access the file system. Otherwise a
    * resource provider that accesses the physical file system will be used.
    */
-  ServerPlugin(this.resourceProvider) {
+  ServerPlugin(ResourceProvider provider)
+      : resourceProvider = provider ?? PhysicalResourceProvider.INSTANCE {
     analysisDriverScheduler = new AnalysisDriverScheduler(performanceLog);
     analysisDriverScheduler.start();
   }

@@ -22,13 +22,41 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart' as watcher;
 
 /**
- * Information about a single plugin.
+ * Information about a plugin that is built-in.
  */
-class PluginInfo {
+class BuiltInPluginInfo extends PluginInfo {
+  /**
+   * The entry point function that will be executed in the plugin's isolate.
+   */
+  final EntryPoint entryPoint;
+
+  @override
+  final String pluginId;
+
+  /**
+   * Initialize a newly created built-in plugin.
+   */
+  BuiltInPluginInfo(
+      this.entryPoint,
+      this.pluginId,
+      NotificationManager notificationManager,
+      InstrumentationService instrumentationService)
+      : super(notificationManager, instrumentationService);
+
+  @override
+  ServerCommunicationChannel _createChannel() {
+    return new ServerIsolateChannel.builtIn(
+        entryPoint, pluginId, instrumentationService);
+  }
+}
+
+/**
+ * Information about a plugin that was discovered.
+ */
+class DiscoveredPluginInfo extends PluginInfo {
   /**
    * The path to the root directory of the definition of the plugin on disk (the
    * directory containing the 'pubspec.yaml' file and the 'bin' directory).
@@ -46,6 +74,33 @@ class PluginInfo {
    */
   final String packagesPath;
 
+  /**
+   * Initialize the newly created information about a plugin.
+   */
+  DiscoveredPluginInfo(
+      this.path,
+      this.executionPath,
+      this.packagesPath,
+      NotificationManager notificationManager,
+      InstrumentationService instrumentationService)
+      : super(notificationManager, instrumentationService);
+
+  @override
+  String get pluginId => path;
+
+  @override
+  ServerCommunicationChannel _createChannel() {
+    return new ServerIsolateChannel.discovered(
+        new Uri.file(executionPath, windows: Platform.isWindows),
+        new Uri.file(packagesPath, windows: Platform.isWindows),
+        instrumentationService);
+  }
+}
+
+/**
+ * Information about a single plugin.
+ */
+abstract class PluginInfo {
   /**
    * The object used to manage the receiving and sending of notifications.
    */
@@ -71,14 +126,18 @@ class PluginInfo {
   /**
    * Initialize the newly created information about a plugin.
    */
-  PluginInfo(this.path, this.executionPath, this.packagesPath,
-      this.notificationManager, this.instrumentationService);
+  PluginInfo(this.notificationManager, this.instrumentationService);
 
   /**
    * Return the data known about this plugin.
    */
   PluginData get data =>
-      new PluginData(path, currentSession?.name, currentSession?.version);
+      new PluginData(pluginId, currentSession?.name, currentSession?.version);
+
+  /**
+   * Return the id of this plugin, used to identify the plugin to users.
+   */
+  String get pluginId;
 
   /**
    * Add the given [contextRoot] to the set of context roots being analyzed by
@@ -88,6 +147,19 @@ class PluginInfo {
     if (contextRoots.add(contextRoot)) {
       _updatePluginRoots();
     }
+  }
+
+  /**
+   * Return `true` if at least one of the context roots being analyzed contains
+   * the file with the given [filePath].
+   */
+  bool isAnalyzing(String filePath) {
+    for (var contextRoot in contextRoots) {
+      if (contextRoot.containsFile(filePath)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -136,6 +208,11 @@ class PluginInfo {
     currentSession = null;
     return doneFuture;
   }
+
+  /**
+   * Create the channel used to communicate with the server.
+   */
+  ServerCommunicationChannel _createChannel();
 
   /**
    * Update the context roots that the plugin should be analyzing.
@@ -224,7 +301,7 @@ class PluginManager {
       if (pluginPaths == null) {
         return;
       }
-      plugin = new PluginInfo(path, pluginPaths[0], pluginPaths[1],
+      plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
@@ -279,14 +356,15 @@ class PluginManager {
      * Return `true` if the given glob [pattern] matches the file being watched.
      */
     bool matches(String pattern) =>
-        new Glob(path.separator, pattern).matches(filePath);
+        new Glob(resourceProvider.pathContext.separator, pattern)
+            .matches(filePath);
 
     WatchEvent event = null;
     List<Future<Response>> responses = <Future<Response>>[];
     for (PluginInfo plugin in _pluginMap.values) {
       PluginSession session = plugin.currentSession;
       if (session != null &&
-          path.isWithin(plugin.path, filePath) &&
+          plugin.isAnalyzing(filePath) &&
           session.interestingFiles.any(matches)) {
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
@@ -322,7 +400,7 @@ class PluginManager {
     List<PluginInfo> plugins = _pluginMap.values.toList();
     for (PluginInfo plugin in plugins) {
       plugin.removeContextRoot(contextRoot);
-      if (plugin.contextRoots.isEmpty) {
+      if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
         plugin.stop();
       }
@@ -573,7 +651,8 @@ class PluginSession {
         stop();
       }
     }
-    info.notificationManager.handlePluginNotification(info.path, notification);
+    info.notificationManager
+        .handlePluginNotification(info.pluginId, notification);
   }
 
   /**
@@ -641,10 +720,7 @@ class PluginSession {
     if (!isCompatible) {
       return false;
     }
-    channel = new ServerIsolateChannel(
-        new Uri.file(info.executionPath, windows: Platform.isWindows),
-        new Uri.file(info.packagesPath, windows: Platform.isWindows),
-        info.instrumentationService);
+    channel = info._createChannel();
     await channel.listen(handleResponse, handleNotification,
         onDone: handleOnDone, onError: handleOnError);
     if (channel == null) {

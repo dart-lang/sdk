@@ -51,7 +51,7 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   test_fromPlugins() async {
-    PluginInfo info = new PluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     String message = 'From a plugin';
     plugin.PrioritizedSourceChange change = new plugin.PrioritizedSourceChange(
         5,

@@ -54,7 +54,7 @@ main() {
   }
 
   test_fromPlugins() async {
-    PluginInfo info = new PluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.AnalysisErrorFixes fixes = new plugin.AnalysisErrorFixes(
         new plugin.AnalysisError(
             plugin.AnalysisErrorSeverity.ERROR,

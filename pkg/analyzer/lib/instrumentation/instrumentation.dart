@@ -235,24 +235,24 @@ class InstrumentationService {
     }
   }
 
-  void logPluginNotification(Uri pluginUri, String notification) {
+  void logPluginNotification(String pluginId, String notification) {
     if (_instrumentationServer != null) {
-      _instrumentationServer.log(
-          _join([TAG_PLUGIN_NOTIFICATION, _toString(pluginUri), notification]));
+      _instrumentationServer
+          .log(_join([TAG_PLUGIN_NOTIFICATION, pluginId, notification]));
     }
   }
 
-  void logPluginRequest(Uri pluginUri, String request) {
+  void logPluginRequest(String pluginId, String request) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_REQUEST, _toString(pluginUri), request]));
+          .log(_join([TAG_PLUGIN_REQUEST, pluginId, request]));
     }
   }
 
-  void logPluginResponse(Uri pluginUri, String response) {
+  void logPluginResponse(String pluginId, String response) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_RESPONSE, _toString(pluginUri), response]));
+          .log(_join([TAG_PLUGIN_RESPONSE, pluginId, response]));
     }
   }
 
@@ -476,9 +476,9 @@ class MulticastInstrumentationServer implements InstrumentationServer {
  */
 class PluginData {
   /**
-   * The path to the plugin.
+   * The id used to uniquely identify the plugin.
    */
-  final String path;
+  final String pluginId;
 
   /**
    * The name of the plugin.
@@ -493,14 +493,14 @@ class PluginData {
   /**
    * Initialize a newly created set of data about a plugin.
    */
-  PluginData(this.path, this.name, this.version);
+  PluginData(this.pluginId, this.name, this.version);
 
   /**
    * Add the information about the plugin to the list of [fields] to be sent to
    * the instrumentation server.
    */
   void addToFields(List<String> fields) {
-    fields.add(path);
+    fields.add(pluginId);
     if (name != null) {
       fields.add(name);
     }
