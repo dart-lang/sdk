@@ -210,6 +210,10 @@ class MockTouch implements Touch {
     throw new UnimplementedError();
   }
 
+  String get region {
+    throw new UnimplementedError();
+  }
+
   num get rotationAngle {
     throw new UnimplementedError();
   }
@@ -268,7 +272,8 @@ class MockTouchEvent implements TouchEvent {
 
   EventTarget get target => wrapped.target;
 
-  int get timeStamp => wrapped.timeStamp;
+  /*At different times, int, double, and String*/
+  get timeStamp => wrapped.timeStamp;
 
   String get type => wrapped.type;
 
@@ -315,6 +320,14 @@ class MockTouchEvent implements TouchEvent {
     throw new UnimplementedError();
   }
 
+  List<EventTarget> deepPath() {
+    throw new UnimplementedError();
+  }
+
+  bool get isTrusted {
+    throw new UnimplementedError();
+  }
+
   Point get layer {
     throw new UnimplementedError();
   }
@@ -331,7 +344,15 @@ class MockTouchEvent implements TouchEvent {
     throw new UnimplementedError();
   }
 
+  bool get scoped {
+    throw new UnimplementedError();
+  }
+
   Point get screen {
+    throw new UnimplementedError();
+  }
+
+  /*InputDeviceCapabilities*/ get sourceCapabilities {
     throw new UnimplementedError();
   }
 
