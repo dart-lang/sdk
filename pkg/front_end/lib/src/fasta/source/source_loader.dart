@@ -391,8 +391,11 @@ class SourceLoader<L> extends Loader<L> {
               cls.charOffset,
               "'${supertype.name}' is an enum and can't be extended or "
               "implemented.");
-        } else if (cls.library != coreLibrary &&
+        } else if (!cls.library.uri.isScheme('dart') &&
             blackListedClasses.contains(supertype)) {
+          // These types are rarely extended in more than one platform library
+          // but it can be on different libraries depending on the target
+          // platform (e.g. dart:core for VM, dart:_interceptors for dart2js).
           cls.addCompileTimeError(
               cls.charOffset,
               "'${supertype.name}' is restricted and can't be extended or "
