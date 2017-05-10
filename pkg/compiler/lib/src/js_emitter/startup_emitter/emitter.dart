@@ -15,7 +15,6 @@ import '../../elements/elements.dart'
     show ClassElement, Element, FieldElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
-import '../../js_backend/interceptor_data.dart';
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show Emitter, EmitterFactory;
@@ -34,8 +33,8 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, task.nativeEmitter,
-        closedWorld.interceptorData, generateSourceMap);
+    return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
+        task, generateSourceMap);
   }
 }
 
@@ -46,12 +45,17 @@ class Emitter implements emitterTask.Emitter {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
-      InterceptorData interceptorData, bool shouldGenerateSourceMap)
+  Emitter(
+      Compiler compiler,
+      Namer namer,
+      NativeEmitter nativeEmitter,
+      ClosedWorld closedWorld,
+      CodeEmitterTask task,
+      bool shouldGenerateSourceMap)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter,
-            interceptorData, shouldGenerateSourceMap);
+        _emitter = new ModelEmitter(compiler, namer, nativeEmitter, closedWorld,
+            task, shouldGenerateSourceMap);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 

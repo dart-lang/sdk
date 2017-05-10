@@ -29,7 +29,9 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
 import '../../js_backend/interceptor_data.dart';
+import '../../world.dart';
 import '../constant_ordering.dart' show deepCompareConstants;
+import '../code_emitter_task.dart';
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
@@ -39,7 +41,7 @@ class ModelEmitter {
   final Namer namer;
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
-  final InterceptorData _interceptorData;
+  final ClosedWorld _closedWorld;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -51,11 +53,20 @@ class ModelEmitter {
 
   static const String typeNameProperty = r"builtin$cls";
 
-  ModelEmitter(
-      this.compiler, this.namer, this.nativeEmitter, this._interceptorData) {
+  ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
+      CodeEmitterTask task) {
     this.constantEmitter = new ConstantEmitter(
-        compiler, namer, this.generateConstantReference, constantListGenerator);
+        compiler.options,
+        _closedWorld.commonElements,
+        compiler.backend.rtiNeed,
+        compiler.backend.rtiEncoder,
+        namer,
+        task,
+        this.generateConstantReference,
+        constantListGenerator);
   }
+
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.

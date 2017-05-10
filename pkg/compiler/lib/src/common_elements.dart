@@ -739,6 +739,10 @@ class CommonElements {
   FunctionEntity get jsStringOperatorAdd =>
       _jsStringOperatorAdd ??= _findClassMember(jsStringClass, '+');
 
+  ClassEntity _jsConstClass;
+  ClassEntity get jsConstClass =>
+      _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
+
   // From package:js
   ClassEntity _jsAnnotationClass;
   ClassEntity get jsAnnotationClass {

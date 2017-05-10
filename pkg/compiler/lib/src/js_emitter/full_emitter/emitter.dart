@@ -179,7 +179,14 @@ class Emitter implements js_emitter.Emitter {
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
         nsmEmitter = new NsmEmitter(_closedWorld) {
     constantEmitter = new ConstantEmitter(
-        compiler, namer, this.constantReference, constantListGenerator);
+        compiler.options,
+        _closedWorld.commonElements,
+        compiler.backend.rtiNeed,
+        compiler.backend.rtiEncoder,
+        namer,
+        task,
+        this.constantReference,
+        constantListGenerator);
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
