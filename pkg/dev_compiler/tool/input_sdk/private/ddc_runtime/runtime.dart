@@ -89,9 +89,29 @@ final global_ = JS(
         window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
       }
     }
+
     var globalState = (typeof window != "undefined") ? window
       : (typeof global != "undefined") ? global
       : (typeof self != "undefined") ? self : {};
+
+    // These settings must be configured before the application starts so that
+    // user code runs with the correct configuration.
+    if ('ddcSettings' in globalState) {
+      let settings = globalState.ddcSettings;
+      if ('trapRuntimeErrors' in settings) {
+        $trapRuntimeErrors(settings.trapRuntimeErrors);
+      }
+      if ('ignoreWhitelistedErrors' in settings) {
+        $ignoreWhitelistedErrors(settings.ignoreWhitelistedErrors);
+      }
+      if ('failForWeakModeIsChecks' in settings) {
+        $failForWeakModeIsChecks(settings.failForWeakModeIsChecks);
+      }
+      if ('trackProfile' in settings) {
+        $trackProfile(settings.trackProfile);
+      }
+    }
+
     return globalState;
   }()
 ''');

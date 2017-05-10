@@ -114,7 +114,11 @@ clearDynamicStats() {
   _callMethodRecords.clear();
 }
 
-bool trackProfile = JS('bool', 'dart.global.trackDdcProfile');
+bool _trackProfile = false;
+
+void trackProfile(bool flag) {
+  _trackProfile = flag;
+}
 
 _trackCall(obj) {
   if (JS('bool', '!#', trackProfile)) return;
