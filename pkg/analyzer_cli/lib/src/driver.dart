@@ -747,9 +747,9 @@ class Driver implements CommandLineStarter {
     if (severity == ErrorSeverity.ERROR) {
       return true;
     } else if (severity == ErrorSeverity.WARNING &&
-        (options.warningsAreFatal || options.hintsAreFatal)) {
+        (options.warningsAreFatal || options.infosAreFatal)) {
       return true;
-    } else if (severity == ErrorSeverity.INFO && options.hintsAreFatal) {
+    } else if (severity == ErrorSeverity.INFO && options.infosAreFatal) {
       return true;
     } else {
       return false;

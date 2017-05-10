@@ -36,7 +36,7 @@ main() {
         expect(options.enableSuperMixins, isFalse);
         expect(options.enableTypeChecks, isFalse);
         expect(options.enableAssertInitializer, isNull);
-        expect(options.hintsAreFatal, isFalse);
+        expect(options.infosAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
         expect(options.machineFormat, isFalse);
@@ -96,7 +96,13 @@ main() {
       test('hintsAreFatal', () {
         CommandLineOptions options = CommandLineOptions
             .parse(['--dart-sdk', '.', '--fatal-hints', 'foo.dart']);
-        expect(options.hintsAreFatal, isTrue);
+        expect(options.infosAreFatal, isTrue);
+      });
+
+      test('infosAreFatal', () {
+        CommandLineOptions options = CommandLineOptions
+            .parse(['--dart-sdk', '.', '--fatal-infos', 'foo.dart']);
+        expect(options.infosAreFatal, isTrue);
       });
 
       test('log', () {

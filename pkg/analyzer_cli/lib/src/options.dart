@@ -98,9 +98,6 @@ class CommandLineOptions {
   /// errors.
   final bool enableTypeChecks;
 
-  /// Whether to treat hints as fatal
-  final bool hintsAreFatal;
-
   /// Whether to ignore unrecognized flags
   final bool ignoreUnrecognizedFlags;
 
@@ -135,6 +132,9 @@ class CommandLineOptions {
   /// Whether to treat warnings as fatal
   final bool warningsAreFatal;
 
+  /// Whether to treat info level items as fatal
+  final bool infosAreFatal;
+
   /// Whether to use strong static checking.
   final bool strongMode;
 
@@ -144,8 +144,7 @@ class CommandLineOptions {
   /// Whether implicit dynamic is enabled (mainly for strong mode users)
   final bool implicitDynamic;
 
-  // TODO(devoncarew): Do we need this flag? Shouldn't we go by the severity of
-  // the lint?
+  // TODO(devoncarew): Deprecate and remove this flag.
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
@@ -180,7 +179,6 @@ class CommandLineOptions {
         displayVersion = args['version'],
         enableTypeChecks = args['enable_type_checks'],
         enableAssertInitializer = args['enable-assert-initializers'],
-        hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args[lintsFlag],
         log = args['log'],
@@ -193,11 +191,12 @@ class CommandLineOptions {
         showPackageWarningsPrefix = args['x-package-warnings-prefix'],
         showSdkWarnings = args['sdk-warnings'],
         _sourceFiles = args.rest,
+        infosAreFatal = args['fatal-infos'] || args['fatal-hints'],
         warningsAreFatal = args['fatal-warnings'],
+        lintsAreFatal = args['fatal-lints'],
         strongMode = args['strong'],
         implicitCasts = !args['no-implicit-casts'],
         implicitDynamic = !args['no-implicit-dynamic'],
-        lintsAreFatal = args['fatal-lints'],
         useAnalysisDriverMemoryByteStore =
             args['use-analysis-driver-memory-byte-store'],
         verbose = args['verbose'],
@@ -341,16 +340,10 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('fatal-hints',
-          help: 'Treat hints as fatal.', defaultsTo: false, negatable: false)
+      ..addFlag('fatal-infos',
+          help: 'Treat infos as fatal.', defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings',
           help: 'Treat non-type warnings as fatal.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('fatal-lints',
-          help: 'Treat lints as fatal.', defaultsTo: false, negatable: false)
-      ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports.',
           defaultsTo: false,
           negatable: false)
       ..addFlag('help',
@@ -486,6 +479,21 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',
           help: 'Use memory byte store, not the file system cache.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('fatal-hints',
+          help: 'Treat hints as fatal (deprecated: use --fatal-infos).',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('fatal-lints',
+          help: 'Treat lints as fatal.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('package-warnings',
+          help: 'Show warnings from package: imports.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
