@@ -86,6 +86,15 @@ class Evaluator
   Configuration eval(Expression expr, ExpressionConfiguration config) =>
       expr.accept1(this, config);
 
+  Configuration evalArgs(List<ArgumentExpression> args, Environment env,
+      ApplicationContinuation cont) {
+    if (args.isNotEmpty) {
+      return new ExpressionConfiguration(args.first.expression, env,
+          new ActualArgumentsContinuation(args.first, args.skip(1), env, cont));
+    }
+    return new ArgumentContinuationConfiguration(cont, <ArgumentValue>[]);
+  }
+
   Configuration defaultExpression(
       Expression node, ExpressionConfiguration config) {
     throw new NotImplemented('Evaluation for expressions of type '
@@ -138,9 +147,12 @@ class Evaluator
           node.arguments.positional.first, config.environment, cont);
     } else {
       log.info('static-invocation-${node.target.name.toString()}\n');
-      var cont = new ActualArgumentsContinuation(node.arguments,
-          node.target.function, config.environment, config.continuation);
-      return cont.createCurrentConfiguration();
+
+      List<ArgumentExpression> args =
+          _createArgumentExpressionList(node.arguments, node.target.function);
+      ApplicationContinuation cont = new StaticInvocationApplication(
+          node.target.function, config.continuation);
+      return new ArgumentsConfiguration(args, config.environment, cont);
     }
   }
 
@@ -328,7 +340,17 @@ class ContinuationConfiguration extends Configuration {
 
   ContinuationConfiguration(this.continuation, this.value);
 
-  Configuration step(StatementExecuter executer) => continuation(value);
+  Configuration step(StatementExecuter _) => continuation(value);
+}
+
+/// Represents the configuration for applying an [ApplicationContinuation].
+class ArgumentContinuationConfiguration extends Configuration {
+  final ApplicationContinuation continuation;
+  final List<ArgumentValue> argumentValues;
+
+  ArgumentContinuationConfiguration(this.continuation, this.argumentValues);
+
+  Configuration step(StatementExecuter _) => continuation(argumentValues);
 }
 
 /// Represents the configuration for evaluating an [Expression].
@@ -339,7 +361,7 @@ class ExpressionConfiguration extends Configuration {
   final Environment environment;
 
   /// Next continuation to be applied.
-  final ExpressionContinuation continuation;
+  final Continuation continuation;
 
   ExpressionConfiguration(this.expression, this.environment, this.continuation);
 
@@ -347,8 +369,123 @@ class ExpressionConfiguration extends Configuration {
       executer.eval(expression, this);
 }
 
+/// Represents the configuration for evaluating a list of argument expressions.
+class ArgumentsConfiguration extends Configuration {
+  final List<ArgumentExpression> arguments;
+  final Environment environment;
+  final Continuation continuation;
+
+  ArgumentsConfiguration(this.arguments, this.environment, this.continuation);
+
+  Configuration step(StatementExecuter executer) =>
+      executer.evalArgs(arguments, environment, continuation);
+}
+
+abstract class ArgumentExpression {
+  Expression get expression;
+}
+
+class PositionalArgumentExpression extends ArgumentExpression {
+  final Expression expression;
+
+  PositionalArgumentExpression(this.expression);
+}
+
+class NamedArgumentExpression extends ArgumentExpression {
+  final String name;
+  final Expression expression;
+
+  NamedArgumentExpression(this.name, this.expression);
+}
+
+abstract class ArgumentValue {
+  Value get value;
+}
+
+class PositionalArgumentValue extends ArgumentValue {
+  final Value value;
+
+  PositionalArgumentValue(this.value);
+}
+
+class NamedArgumentValue extends ArgumentValue {
+  final String name;
+  final Value value;
+
+  NamedArgumentValue(this.name, this.value);
+}
+
+abstract class Continuation {}
+
+/// Represents the continuation called after the evaluation of argument
+/// expressions.
+abstract class ApplicationContinuation extends Continuation {
+  Configuration call(List<ArgumentValue> args);
+
+  /// Creates an environment binding actual argument values to formal parameters
+  /// of the function in a new environment, which is used to execute the
+  /// body od the function.
+  static Environment createEnvironment(
+      FunctionNode function, List<ArgumentValue> args) {
+    Environment newEnv = new Environment.empty();
+    List<PositionalArgumentValue> positional = args.reversed
+        .where((ArgumentValue av) => av is PositionalArgumentValue)
+        .toList();
+
+    // Add positional parameters.
+    for (int i = 0; i < positional.length; ++i) {
+      newEnv.expand(function.positionalParameters[i], positional[i].value);
+    }
+
+    Map<String, Value> named = new Map.fromIterable(
+        args.where((ArgumentValue av) => av is NamedArgumentValue),
+        key: (NamedArgumentValue av) => av.name,
+        value: (NamedArgumentValue av) => av.value);
+
+    // Add named parameters.
+    for (VariableDeclaration v in function.namedParameters) {
+      newEnv.expand(v, named[v.name.toString()]);
+    }
+
+    return newEnv;
+  }
+}
+
+/// Represents the application continuation for static invocation.
+class StaticInvocationApplication extends ApplicationContinuation {
+  final FunctionNode function;
+  final ExpressionContinuation continuation;
+
+  StaticInvocationApplication(this.function, this.continuation);
+
+  Configuration call(List<ArgumentValue> args) {
+    Environment functionEnv =
+        ApplicationContinuation.createEnvironment(function, args);
+
+    State bodyState = new State.initial()
+        .withExpressionContinuation(continuation)
+        .withConfiguration(new ExitConfiguration(continuation))
+        .withEnvironment(functionEnv);
+    return new StatementConfiguration(function.body, bodyState);
+  }
+}
+
+/// Represents the application continuation called after the evaluation of all
+/// argument expressions for an invocation.
+class ArgumentValueApplication extends ApplicationContinuation {
+  final ArgumentValue value;
+  final ApplicationContinuation applicationContinuation;
+
+  ArgumentValueApplication(this.value, this.applicationContinuation);
+
+  Configuration call(List<ArgumentValue> args) {
+    args.add(value);
+    return new ArgumentContinuationConfiguration(applicationContinuation, args);
+  }
+}
+
 /// Represents an expression continuation.
-abstract class ExpressionContinuation {
+abstract class ExpressionContinuation extends Continuation {
   Configuration call(Value v);
 }
 
@@ -422,137 +559,26 @@ class SetterContinuation extends ExpressionContinuation {
 /// argument for function invocation.
 /// TODO: Add checks for validation of arguments according to spec.
 class ActualArgumentsContinuation extends ExpressionContinuation {
-  final Arguments arguments;
-  final FunctionNode functionNode;
+  final ArgumentExpression currentArgument;
+  final List<ArgumentExpression> arguments;
   final Environment environment;
-  final ExpressionContinuation continuation;
+  final ApplicationContinuation applicationContinuation;
 
-  final List<Value> _positional = <Value>[];
-  int _currentPositional = 0;
-  final Map<String, Value> _named = <String, Value>{};
-  int _currentNamed = 0;
-
-  ActualArgumentsContinuation(
-      this.arguments, this.functionNode, this.environment, this.continuation);
+  ActualArgumentsContinuation(this.currentArgument, this.arguments,
+      this.environment, this.applicationContinuation);
 
   Configuration call(Value v) {
-    if (_currentPositional < arguments.positional.length) {
-      _positional.add(v);
-      _currentPositional++;
+    ArgumentValue argumentValue;
+    if (currentArgument is NamedArgumentExpression) {
+      argumentValue = new NamedArgumentValue(
+          (currentArgument as NamedArgumentExpression).name, v);
     } else {
-      assert(_currentNamed < arguments.named.length);
-      String name = arguments.named[_currentNamed].name;
-      _named[name] = v;
-      _currentNamed++;
+      assert(currentArgument is PositionalArgumentExpression);
+      argumentValue = new PositionalArgumentValue(v);
     }
 
-    return createCurrentConfiguration();
-  }
-
-  Configuration createCurrentConfiguration() {
-    // Next argument to evaluate is a provided positional argument.
-    if (_currentPositional < arguments.positional.length) {
-      return new ExpressionConfiguration(
-          arguments.positional[_currentPositional], environment, this);
-    }
-    // Next argument to evaluate is a provided named argument.
-    if (_currentNamed < arguments.named.length) {
-      return new ExpressionConfiguration(
-          arguments.named[_currentNamed].value, environment, this);
-    }
-
-    // TODO: check if the number of actual arguments is larger then the number
-    // of required arguments and smaller then the number of formal arguments.
-
-    return new OptionalArgumentsContinuation(
-            _positional, _named, functionNode, environment, continuation)
-        .createCurrentConfiguration();
-  }
-}
-
-class OptionalArgumentsContinuation extends ExpressionContinuation {
-  final List<Value> positional;
-  final Map<String, Value> named;
-  final FunctionNode functionNode;
-  final Environment environment;
-  final ExpressionContinuation continuation;
-
-  final Map<String, VariableDeclaration> _missingFormalNamed =
-      <String, VariableDeclaration>{};
-
-  int _currentPositional;
-  String _currentNamed;
-
-  OptionalArgumentsContinuation(this.positional, this.named, this.functionNode,
-      this.environment, this.continuation) {
-    _currentPositional = positional.length;
-    assert(_currentPositional >= functionNode.requiredParameterCount);
-
-    for (VariableDeclaration vd in functionNode.namedParameters) {
-      if (named[vd.name] == null) {
-        _missingFormalNamed[vd.name] = vd;
-      }
-    }
-  }
-
-  Configuration call(Value v) {
-    if (_currentPositional < functionNode.positionalParameters.length) {
-      // Value is a optional positional argument
-      positional.add(v);
-      _currentPositional++;
-    } else {
-      // Value is a optional named argument.
-      assert(named[_currentNamed] == null);
-      named[_currentNamed] = v;
-    }
-
-    return createCurrentConfiguration();
-  }
-
-  /// Creates the current configuration for the evaluation of invocation a
-  /// function.
-  Configuration createCurrentConfiguration() {
-    if (_currentPositional < functionNode.positionalParameters.length) {
-      // Next argument to evaluate is a missing positional argument.
-      // Evaluate its initializer.
-      return new ExpressionConfiguration(
-          functionNode.positionalParameters[_currentPositional].initializer,
-          environment,
-          this);
-    }
-    if (named.length < functionNode.namedParameters.length) {
-      // Next argument to evaluate is a missing named argument.
-      // Evaluate its initializer.
-      _currentNamed = _missingFormalNamed.keys.first;
-      Expression initializer = _missingFormalNamed[_currentNamed].initializer;
-      _missingFormalNamed.remove(_currentNamed);
-      return new ExpressionConfiguration(initializer, environment, this);
-    }
-
-    Environment newEnv = _createEnvironment();
-    State bodyState = new State.initial()
-        .withExpressionContinuation(continuation)
-        .withConfiguration(new ExitConfiguration(continuation))
-        .withEnvironment(newEnv);
-
-    return new StatementConfiguration(functionNode.body, bodyState);
-  }
-
-  /// Creates an environment binding actual argument values to formal parameters
-  /// of the function in a new environment, which is used to execute the
-  /// body od the function.
-  Environment _createEnvironment() {
-    Environment newEnv = new Environment.empty();
-    // Add positional parameters.
-    for (int i = 0; i < positional.length; ++i) {
-      newEnv.expand(functionNode.positionalParameters[i], positional[i]);
-    }
-    // Add named parameters.
-    for (VariableDeclaration v in functionNode.namedParameters) {
-      newEnv.expand(v, named[v.name.toString()]);
-    }
-
-    return newEnv;
+    return new ArgumentsConfiguration(arguments, environment,
+        new ArgumentValueApplication(argumentValue, applicationContinuation));
   }
 }
 
@@ -788,6 +814,9 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
       statement.accept1(this, state);
   Configuration eval(Expression expression, ExpressionConfiguration config) =>
       evaluator.eval(expression, config);
+  Configuration evalArgs(
+          List<ArgumentExpression> args, Environment env, Continuation cont) =>
+      evaluator.evalArgs(args, env, cont);
 
   Configuration defaultStatement(Statement node, State state) {
     throw notImplemented(
@@ -1109,4 +1138,44 @@ class NullValue extends LiteralValue {
 
 notImplemented({String m, Object obj}) {
   throw new NotImplemented(m ?? 'Evaluation for $obj is not implemented');
+}
+
+// ------------------------------------------------------------------------
+//                             INTERNAL FUNCTIONS
+// ------------------------------------------------------------------------
+/// Creates a list of all argument expressions to be evaluated for the
+/// invocation of the provided [FunctionNode] containing the actual arguments
+/// and the optional argument initializers.
+List<ArgumentExpression> _createArgumentExpressionList(
+    Arguments providedArgs, FunctionNode fun) {
+  List<ArgumentExpression> args = <ArgumentExpression>[];
+  // Add positional arguments expressions.
+  args.addAll(providedArgs.positional
+      .map((Expression e) => new PositionalArgumentExpression(e)));
+
+  // Add optional positional argument initializers.
+  for (int i = providedArgs.positional.length;
+      i < fun.positionalParameters.length;
+      i++) {
+    args.add(new PositionalArgumentExpression(
+        fun.positionalParameters[i].initializer));
+  }
+
+  Map<String, NamedArgumentExpression> namedFormals = new Map.fromIterable(
+      fun.namedParameters,
+      key: (VariableDeclaration vd) => vd.name,
+      value: (VariableDeclaration vd) =>
+          new NamedArgumentExpression(vd.name, vd.initializer));
+
+  // Add named expressions.
+  for (int i = 0; i < providedArgs.named.length; i++) {
+    var current = providedArgs.named[i];
+    args.add(new NamedArgumentExpression(current.name, current.value));
+    namedFormals.remove(current.name);
+  }
+
+  // Add missing optional named initializers.
+  args.addAll(namedFormals.values);
+
+  return args;
 }
