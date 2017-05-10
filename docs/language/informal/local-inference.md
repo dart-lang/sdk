@@ -29,10 +29,8 @@ TODO(leafp): Specify this precisely
 Note that the closure of a type schema is a proper type.
 
 Note that the least closure of a type schema is always a subtype of any type
-which matches the schema, and the greatest closure of is always a supertype of
+which matches the schema, and the greatest closure is always a supertype of
 any type which matches the schema.
-
-
 
 ### Type variable elimination (least and greatest closure of a type)
 
@@ -42,9 +40,9 @@ replaced with `Null`, and every contravariant occurrence of `Ti` replaced
 with `Object`.
 
 We define the greatest closure of a type `M` with respect to a set of type
-variables `T0, ..., Tn` to be `M` with every contravariant occurrence of `Ti`
-replaced with `Null`, and every covariant occurrence of `Ti` replaced with
-`Object`.
+variables `T0, ..., Tn` to be `M` with every covariant occurrence of `Ti`
+replaced with `Object`, and every contravariant occurrence of `Ti` replaced with
+`Null`.
 
 TODO(leafp): Specify this precisely
 
@@ -94,7 +92,7 @@ is, any solution to the original constraint is a solution to the new constraint.
 The motivation for these operations is that constraint generation may produce a
 constraint on a type variable from an outer scope (say `S`) that refers to a
 type variable from an inner scope (say `T`).  For example, ` <T>(S) -> int <:
-<T>(List<T> -> int ` constrains `List<T>` to be a subtype of `S`.  But this
+<T>(List<T>) -> int ` constrains `List<T>` to be a subtype of `S`.  But this
 constraint is ill-formed outside of the scope of `T`, and hence if inference
 requires this constraint to be generated and moved out of the scope of `T`, we
 must approximate the constraint to the nearest constraint which does not mention
@@ -114,16 +112,16 @@ Inference relies on various operations on constraint sets.
 
 The merge of constraint set `C` for a type variable `T` is a pair of types `Mb
 <: T <: Mt` defined as follows:
-  - let `Mt` be the lower bound of the `Mi` such that `T <: Mi` is in `C`
+  - Let `Mt` be the lower bound of the `Mi` such that `T <: Mi` is in `C`
       (and `?` if there are no subtype bounds for T in `C`)
-  - let `Mb` be the upper bound of the `Mi` such that `Mi <: T` is in `C` (and
+  - Let `Mb` be the upper bound of the `Mi` such that `Mi <: T` is in `C` (and
       `?` if there are no supertype bounds for T in `C`)
 
 #### Constraint solution for a type variable
 
 The constraint solution for a type variable `T` with respect to a constraint set
 `C` is defined as follows:
-  - let `Mb <: T <: Mb` be the merge of `C` with respect to `T`.
+  - Let `Mb <: T <: Mb` be the merge of `C` with respect to `T`.
   - If `Mb` is known (that is, it does not contain `?`) then the solution is
     `Mb`
   - Otherwise, if `Mt` is known (that is, it does not contain `?`) then the
@@ -135,7 +133,7 @@ The constraint solution for a type variable `T` with respect to a constraint set
 
 The grounded constraint solution for a type variable `T` with respect to a
 constraint set `C` is define as follows:
-  - let `Mb <: T <: Mb` be the merge of `C` with respect to `T`.
+  - Let `Mb <: T <: Mb` be the merge of `C` with respect to `T`.
   - If `Mb` is known (that is, it does not contain `?`) then the solution is
     `Mb`
   - Otherwise, if `Mt` is known (that is, it does not contain `?`) then the
@@ -237,7 +235,7 @@ to `L` under constraints `C`:
   - If `R<B0, ..., Bj>` is the superclass of `P<M0, ..., Mk>` and `R<B0, ...,
 Bj>` is a subtype match for `Q<N0, ..., Nj>` with respect to `L` under
 constraints `C`.
-  - Or `R<B0, ..., Bj>` is one of the interfaces implemented by `P<M0, ..., Mk>` 
+  - Or `R<B0, ..., Bj>` is one of the interfaces implemented by `P<M0, ..., Mk>`
 (considered in lexical order) and `R<B0, ..., Bj>` is a subtype match for `Q<N0,
 ..., Nj>` with respect to `L` under constraints `C`.
   - Or `R<B0, ..., Bj>` is a mixin into `P<M0, ..., Mk>` (considered in lexical
@@ -344,7 +342,7 @@ Otherwise:
   - If `C` does not constrain `Ti` then `Pi` is `?`
   - If `C` partially constrains `Ti`
     - If `C` is over constrained, then it is an inference failure error
-    - Otherwise `Pi` is the constraint solution for `Ti` with respect to `C` 
+    - Otherwise `Pi` is the constraint solution for `Ti` with respect to `C`
   - If `C` fully constrains `Ti`, then
     - Let `Ai` be `Bi[R0/T0, ..., ?/Ti, ..., ?/Tn]`
     - If `C + Ti <: Ai` is over constrained, it is an inference failure error.
@@ -362,7 +360,7 @@ have not been fixed by downwards resolution.
 generic method of type `<T0 extends B0, ..., Tn extends Bn>(P0, ..., Pk) -> Q`
 given actual argument types `R0, ..., Rk`, a partial solution `[T0 -> P0, ...,
 Tn -> Pn]` and a partial constraint set `Cp`:
-  - If `Ri <: Pi [T0, ..., Tn] -> Ci` 
+  - If `Ri <: Pi [T0, ..., Tn] -> Ci`
   - And the full constraint resolution of `Cp + C0 + ... + Cn` for `<T0 extends
 B0, ..., Tn extends Bn>` given the initial partial solution `[T0 -> P0, ..., Tn
 -> Pn]` is `[T0 -> M0, ..., Tn -> Mn]`
@@ -452,7 +450,7 @@ downwards context `P` with respect to return type `Q`.
   - And `<T0 extends B0, ..., Tn extends Bn>(P0, ..., Pk) -> Q` resolves via
 upwards resolution to a full solution `[T0 -> M0, ..., Tn -> Mn]`
     - Given partial solution `[T0 -> Q0, ..., Tn -> Qn]`
-    - And partial constraint set `Cp` 
+    - And partial constraint set `Cp`
     - And actual argument types `R0, ..., Rk`
   - And `N` is `Q[M0/T0, ..., Mn/Tn]`
 - A constructor invocation is inferred exactly as if it were a static generic
@@ -496,5 +494,5 @@ Return statements pull the return type from the enclosing function for downwards
 inference, and compute the upper bound of all returned values for upwards
 inference.  Appropriate adjustments for asynchronous and generator functions.
 
-Do statements 
+Do statements
 For each statement
