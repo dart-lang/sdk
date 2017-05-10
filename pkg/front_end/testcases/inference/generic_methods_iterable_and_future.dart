@@ -38,7 +38,7 @@ main() {
   Future<String> results4 = /*@promotedType=none*/ results
       . /*@typeArgs=String*/ then(
           /*@returnType=String*/ (List<int> list) => /*@promotedType=none*/ list
-              . /*@typeArgs=String*/ fold<String>(
+              .fold<String>(
                   '',
                   /*@returnType=String*/ (/*@type=String*/ x,
                           /*@type=int*/ y) =>

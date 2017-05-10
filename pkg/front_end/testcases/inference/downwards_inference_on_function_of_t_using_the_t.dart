@@ -23,6 +23,6 @@ void main() {
     Iterable<List<int>>
         t = /*@promotedType=none*/ /*@typeArgs=List<int>*/ v2(<int>[]);
     Iterable<num> u = /*@promotedType=none*/ /*@typeArgs=num*/ v2(42);
-    Iterable<num> v = /*@promotedType=none*/ /*@typeArgs=num*/ v2<num>(42);
+    Iterable<num> v = /*@promotedType=none*/ v2<num>(42);
   }
 }

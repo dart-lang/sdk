@@ -275,11 +275,15 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
-    var inferredTypeArguments = _getInferredFunctionTypeArguments(
-            node.function.staticType, node.staticInvokeType, node.typeArguments)
-        .toList();
-    if (inferredTypeArguments.isNotEmpty) {
-      _recordTypeArguments(node.methodName.offset, inferredTypeArguments);
+    if (node.typeArguments == null) {
+      var inferredTypeArguments = _getInferredFunctionTypeArguments(
+              node.function.staticType,
+              node.staticInvokeType,
+              node.typeArguments)
+          .toList();
+      if (inferredTypeArguments.isNotEmpty) {
+        _recordTypeArguments(node.methodName.offset, inferredTypeArguments);
+      }
     }
   }
 
