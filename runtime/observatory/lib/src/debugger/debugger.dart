@@ -8,7 +8,7 @@ part of debugger;
 abstract class Debugger {
   VM get vm;
   Isolate get isolate;
-  M.InstanceRepository instances;
+  M.ObjectRepository objects;
   ServiceMap get stack;
   int get currentFrame;
 }

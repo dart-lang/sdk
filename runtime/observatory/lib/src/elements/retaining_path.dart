@@ -22,7 +22,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.ObjectRef _object;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.RetainingPath _path;
   bool _expanded = false;
 
@@ -30,18 +30,18 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   M.ObjectRef get object => _object;
 
   factory RetainingPathElement(M.IsolateRef isolate, M.ObjectRef object,
-      M.RetainingPathRepository retainingPaths, M.InstanceRepository instances,
+      M.RetainingPathRepository retainingPaths, M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     RetainingPathElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -105,7 +105,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       content.add(new SpanElement()
         ..children = [
           new SpanElement()..text = 'retained by ',
-          anyRef(_isolate, item.parentField, _instances, queue: _r.queue),
+          anyRef(_isolate, item.parentField, _objects, queue: _r.queue),
           new SpanElement()..text = ' of ',
         ]);
     } else if (item.parentListIndex != null) {
@@ -118,7 +118,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       content.add(new SpanElement()..text = 'retained by ');
     }
 
-    content.add(anyRef(_isolate, item.source, _instances, queue: _r.queue));
+    content.add(anyRef(_isolate, item.source, _objects, queue: _r.queue));
 
     return new DivElement()
       ..classes = ['indent']

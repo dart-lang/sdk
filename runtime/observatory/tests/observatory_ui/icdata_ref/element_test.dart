@@ -12,15 +12,15 @@ main() {
 
   const isolate = const IsolateRefMock();
   const instance = const InstanceRefMock();
-  final repository = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
-    final e = new InstanceRefElement(isolate, instance, repository);
+    final e = new InstanceRefElement(isolate, instance, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.instance, equals(instance));
   });
   test('elements created after attachment', () async {
-    final e = new InstanceRefElement(isolate, instance, repository);
+    final e = new InstanceRefElement(isolate, instance, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

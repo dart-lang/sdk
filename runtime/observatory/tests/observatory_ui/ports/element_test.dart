@@ -15,9 +15,9 @@ main() {
   final events = new EventRepositoryMock();
   final notifs = new NotificationRepositoryMock();
   final ports = new PortsRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
-    final e = new PortsElement(vm, isolate, events, notifs, ports, instances);
+    final e = new PortsElement(vm, isolate, events, notifs, ports, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.ports, equals(ports));
@@ -34,8 +34,8 @@ main() {
       expect(i, equals(isolate));
       return isolatePorts;
     }, count: 1));
-    final instances = new InstanceRepositoryMock();
-    final e = new PortsElement(vm, isolate, events, notifs, ports, instances);
+    final objects = new ObjectRepositoryMock();
+    final e = new PortsElement(vm, isolate, events, notifs, ports, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

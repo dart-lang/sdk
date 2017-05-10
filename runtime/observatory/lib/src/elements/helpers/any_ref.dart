@@ -28,13 +28,13 @@ import 'package:observatory/src/elements/type_arguments_ref.dart';
 import 'package:observatory/src/elements/unknown_ref.dart';
 import 'package:observatory/src/elements/unlinkedcall_ref.dart';
 
-Element anyRef(M.IsolateRef isolate, ref, M.InstanceRepository instances,
+Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
     {RenderingQueue queue}) {
   if (ref is M.Guarded) {
     if (ref.isSentinel) {
-      return anyRef(isolate, ref.asSentinel, instances, queue: queue);
+      return anyRef(isolate, ref.asSentinel, objects, queue: queue);
     } else {
-      return anyRef(isolate, ref.asValue, instances, queue: queue);
+      return anyRef(isolate, ref.asValue, objects, queue: queue);
     }
   } else if (ref is M.ObjectRef) {
     if (ref is M.ClassRef) {
@@ -42,17 +42,17 @@ Element anyRef(M.IsolateRef isolate, ref, M.InstanceRepository instances,
     } else if (ref is M.CodeRef) {
       return new CodeRefElement(isolate, ref, queue: queue);
     } else if (ref is M.ContextRef) {
-      return new ContextRefElement(isolate, ref, queue: queue);
+      return new ContextRefElement(isolate, ref, objects, queue: queue);
     } else if (ref is M.Error) {
       return new ErrorRefElement(ref, queue: queue);
     } else if (ref is M.FieldRef) {
-      return new FieldRefElement(isolate, ref, instances, queue: queue);
+      return new FieldRefElement(isolate, ref, objects, queue: queue);
     } else if (ref is M.FunctionRef) {
       return new FunctionRefElement(isolate, ref, queue: queue);
     } else if (ref is M.ICDataRef) {
       return new ICDataRefElement(isolate, ref, queue: queue);
     } else if (ref is M.InstanceRef) {
-      return new InstanceRefElement(isolate, ref, instances, queue: queue);
+      return new InstanceRefElement(isolate, ref, objects, queue: queue);
     } else if (ref is M.LibraryRef) {
       return new LibraryRefElement(isolate, ref, queue: queue);
     } else if (ref is M.LocalVarDescriptorsRef) {

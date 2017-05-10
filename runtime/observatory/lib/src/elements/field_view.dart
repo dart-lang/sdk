@@ -61,7 +61,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
   M.ScriptRepository _scripts;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -81,7 +81,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ScriptRepository scripts,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -95,7 +95,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(scripts != null);
-    assert(instances != null);
+    assert(objects != null);
     FieldViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -110,7 +110,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
     e._references = references;
     e._retainingPaths = retainingPaths;
     e._scripts = scripts;
-    e._instances = instances;
+    e._objects = objects;
     if (field.dartOwner is M.LibraryRef) {
       e._library = field.dartOwner;
     }
@@ -160,7 +160,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = '$header ${field.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _field, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new BRElement(),
           new DivElement()
@@ -172,7 +172,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new ScriptInsetElement(_isolate, _field.location.script,
-                        _scripts, _instances, _events,
+                        _scripts, _objects, _events,
                         startPos: field.location.tokenPos,
                         endPos: field.location.tokenPos,
                         queue: _r.queue)
@@ -220,7 +220,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
             ..children = [
               _field.dartOwner == null
                   ? (new SpanElement()..text = '...')
-                  : anyRef(_isolate, _field.dartOwner, _instances,
+                  : anyRef(_isolate, _field.dartOwner, _objects,
                       queue: _r.queue)
             ]
         ],
@@ -263,7 +263,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = [
-              anyRef(_isolate, _field.staticValue, _instances, queue: _r.queue)
+              anyRef(_isolate, _field.staticValue, _objects, queue: _r.queue)
             ]
         ]);
     }

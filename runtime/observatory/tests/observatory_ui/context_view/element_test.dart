@@ -25,10 +25,10 @@ main() {
   final retainedSizes = new RetainedSizeRepositoryMock();
   final inbounds = new InboundReferencesRepositoryMock();
   final paths = new RetainingPathRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
     final e = new ContextViewElement(vm, isolate, context, events, notifs,
-        contexts, retainedSizes, reachableSizes, inbounds, paths, instances);
+        contexts, retainedSizes, reachableSizes, inbounds, paths, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.context, equals(context));
@@ -41,7 +41,7 @@ main() {
       return context;
     }, count: 1));
     final e = new ContextViewElement(vm, isolate, context, events, notifs,
-        contexts, retainedSizes, reachableSizes, inbounds, paths, instances);
+        contexts, retainedSizes, reachableSizes, inbounds, paths, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

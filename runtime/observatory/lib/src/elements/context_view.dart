@@ -50,7 +50,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -68,7 +68,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -80,7 +80,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     ContextViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -93,7 +93,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._references = references;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -134,7 +134,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Context',
           new HRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue)
         ]
     ];
@@ -156,7 +156,8 @@ class ContextViewElement extends HtmlElement implements Renderable {
                     new DivElement()
                       ..classes = ['memberName']
                       ..children = [
-                        new ContextRefElement(_isolate, _context.parentContext,
+                        new ContextRefElement(
+                            _isolate, _context.parentContext, _objects,
                             queue: _r.queue)
                       ]
                   ]
@@ -172,8 +173,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
           ..classes = ['content-centered-big']
           ..children = [
             new SpanElement()..text = 'Variables ',
-            new CurlyBlockElement(
-                expanded: _context.variables.length > 8, queue: _r.queue)
+            new CurlyBlockElement(expanded: true, queue: _r.queue)
               ..content = [
                 new DivElement()
                   ..classes = ['memberList']
@@ -187,7 +187,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
                           new DivElement()
                             ..classes = ['memberName']
                             ..children = [
-                              anyRef(_isolate, variable.value, _instances,
+                              anyRef(_isolate, variable.value, _objects,
                                   queue: _r.queue)
                             ]
                         ])

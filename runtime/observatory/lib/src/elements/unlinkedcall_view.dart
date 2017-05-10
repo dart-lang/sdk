@@ -47,7 +47,7 @@ class UnlinkedCallViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -65,7 +65,7 @@ class UnlinkedCallViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -77,7 +77,7 @@ class UnlinkedCallViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     UnlinkedCallViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -90,7 +90,7 @@ class UnlinkedCallViewElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._references = references;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -131,7 +131,7 @@ class UnlinkedCallViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'UnlinkedCall',
           new HRElement(),
           new ObjectCommonElement(_isolate, _unlinkedcall, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new DivElement()
             ..classes = ['memberList']
@@ -158,7 +158,7 @@ class UnlinkedCallViewElement extends HtmlElement implements Renderable {
                       _unlinkedcall.argumentsDescriptor == null
                           ? (new SpanElement()..text = '<none>')
                           : anyRef(_isolate, _unlinkedcall.argumentsDescriptor,
-                              _instances,
+                              _objects,
                               queue: _r.queue)
                     ]
                 ]

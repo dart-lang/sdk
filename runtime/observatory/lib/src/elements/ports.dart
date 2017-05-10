@@ -38,7 +38,7 @@ class PortsElement extends HtmlElement implements Renderable {
   M.EventRepository _events;
   M.NotificationRepository _notifications;
   M.PortsRepository _ports;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.Ports _isolatePorts;
 
   M.IsolateRef get isolate => _isolate;
@@ -52,14 +52,14 @@ class PortsElement extends HtmlElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.PortsRepository ports,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
     assert(ports != null);
-    assert(instances != null);
+    assert(objects != null);
     PortsElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -67,7 +67,7 @@ class PortsElement extends HtmlElement implements Renderable {
     e._events = events;
     e._notifications = notifications;
     e._ports = ports;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -134,7 +134,7 @@ class PortsElement extends HtmlElement implements Renderable {
             new DivElement()
               ..classes = ['memberValue']
               ..children = [
-                anyRef(_isolate, port.handler, _instances, queue: _r.queue)
+                anyRef(_isolate, port.handler, _objects, queue: _r.queue)
               ]
           ])
         .toList();

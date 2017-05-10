@@ -12,14 +12,16 @@ main() {
 
   const isolate = const IsolateRefMock();
   const context = const ContextRefMock();
+  final objects = new ObjectRepositoryMock();
+
   test('instantiation', () {
-    final e = new ContextRefElement(isolate, context);
+    final e = new ContextRefElement(isolate, context, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.context, equals(context));
   });
   test('elements created after attachment', () async {
-    final e = new ContextRefElement(isolate, context);
+    final e = new ContextRefElement(isolate, context, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
