@@ -381,6 +381,7 @@ class MyCompiler extends CompilerImpl {
           exit(1);
         }
 
+        backend.onResolutionEnd();
         closeResolution();
         var program = (backend as dynamic).kernelTask.program;
         print('total libraries: ${program.libraries.length}');
