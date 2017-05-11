@@ -1072,7 +1072,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         command is BrowserTestCommand &&
         command.browser == "ie11") {
       DebugLogger.warning("Timeout of ie11 on test page ${command.url}");
-      return;
+      return true;
     }
     return false;
   }
