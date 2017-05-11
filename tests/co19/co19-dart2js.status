@@ -1671,7 +1671,6 @@ WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage t
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
 # ROLL 50 FAILURES START
 LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Pass, Timeout # Roll 50 failure
-LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Timeout, RuntimeError # Roll 50 failure
 LayoutTests/fast/dom/icon-size-property_t01: Pass, Timeout # Roll 50 failure
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Pass, Timeout # Roll 50 failure
 LayoutTests/fast/filesystem/*: Pass, Timeout # Roll 50 failure
@@ -3034,7 +3033,6 @@ LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Skip # Tim
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement-validity_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: RuntimeError # Issue 26714
 LayoutTests/fast/dom/HTMLProgressElement/set-progress-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-inline-script_t01: RuntimeError # Please triage this failure
@@ -3140,7 +3138,6 @@ LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Ple
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # Issue 26714
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/insert-span-into-long-text-bug-28245_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/insertBefore-refChild-crash_t01: RuntimeError # Please triage this failure
