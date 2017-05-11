@@ -197,8 +197,6 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
 
   void _appendType(StringBuffer buffer, DartType type) {
     if (type is FunctionType) {
-      Element element = type.element;
-      _appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
       _appendParameters(buffer, type.parameters);
       buffer.write(' -> ');

@@ -6,4 +6,4 @@
 library test;
 
 typedef void F();
-final /*@topType=Map<String, F() -> void>*/ x = <String, F>{};
+final /*@topType=Map<String, () -> void>*/ x = <String, F>{};

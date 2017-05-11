@@ -8,7 +8,7 @@ library test;
 void main() {
   {
     String f<S>(int x) => null;
-    var /*@type=f(int) -> String*/ v = f;
+    var /*@type=(int) -> String*/ v = f;
     v = /*@returnType=String*/ <T>(int x) => null;
     v = /*@returnType=String*/ <T>(int x) => "hello";
     v = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ <T>(String x) =>
@@ -20,7 +20,7 @@ void main() {
   }
   {
     String f<S>(int x) => null;
-    var /*@type=f(int) -> String*/ v = f;
+    var /*@type=(int) -> String*/ v = f;
     v = /*@returnType=String*/ <T>(/*@type=int*/ x) => null;
     v = /*@returnType=String*/ <T>(/*@type=int*/ x) => "hello";
     v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <
@@ -35,7 +35,7 @@ void main() {
   }
   {
     List<String> f<S>(int x) => null;
-    var /*@type=f(int) -> List<String>*/ v = f;
+    var /*@type=(int) -> List<String>*/ v = f;
     v = /*@returnType=List<String>*/ <T>(int x) => null;
     v = /*@returnType=List<String>*/ <T>(int x) => /*@typeArgs=String*/ [
           "hello"
@@ -55,17 +55,17 @@ void main() {
     int int2int<S>(int x) => null;
     String int2String<T>(int x) => null;
     String string2String<T>(String x) => null;
-    var /*@type=int2int(int) -> int*/ x = int2int;
+    var /*@type=(int) -> int*/ x = int2int;
     x = /*@returnType=int*/ <T>(/*@type=int*/ x) => /*@promotedType=none*/ x;
     x = /*@returnType=int*/ <
         T>(/*@type=int*/ x) => /*@promotedType=none*/ x /*@target=num::+*/ + 1;
-    var /*@type=int2String(int) -> String*/ y = int2String;
+    var /*@type=(int) -> String*/ y = int2String;
     y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <
             T>(/*@type=int*/ x) =>
         /*@promotedType=none*/ x;
     y = /*@returnType=String*/ <
         T>(/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ /*@promotedType=none*/ x.substring(3);
-    var /*@type=string2String(String) -> String*/ z = string2String;
+    var /*@type=(String) -> String*/ z = string2String;
     z = /*@returnType=String*/ <T>(/*@type=String*/ x) => /*@promotedType=none*/ x
         . /*@target=String::substring*/ substring(3);
   }

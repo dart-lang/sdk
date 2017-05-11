@@ -65,7 +65,6 @@ inference/block_bodied_lambdas_async_mix_of_values_and_futures: Fail
 inference/block_bodied_lambdas_async_star: Fail
 inference/block_bodied_lambdas_basic: Fail
 inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Fail
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference_top_level: Fail
 inference/block_bodied_lambdas_infer_bottom_async: Fail
 inference/block_bodied_lambdas_infer_bottom_async_star: Fail
 inference/block_bodied_lambdas_infer_bottom_sync: Fail
@@ -184,7 +183,6 @@ inference/inferred_type_block_closure_no_args_no_return: Fail
 inference/inferred_type_cascade: Fail
 inference/inferred_type_extract_method_tear_off: Fail
 inference/inferred_type_extract_method_tear_off_via_interface: Fail
-inference/inferred_type_from_top_level_executable_tear_off: Fail
 inference/inferred_type_invoke_method: Fail
 inference/inferred_type_invoke_method_via_interface: Fail
 inference/inferred_type_is_typedef: Fail
@@ -216,7 +214,6 @@ inference/reference_to_typedef: Fail
 inference/refine_binary_expression_type_type_parameter_t_double: Fail
 inference/refine_binary_expression_type_type_parameter_t_int: Fail
 inference/refine_binary_expression_type_type_parameter_t_t: Fail
-inference/static_method_tear_off: Fail
 inference/type_promotion_stopped_by_access_in_a_closure: Fail
 inference/type_promotion_stopped_by_mutation_in_a_closure: Fail
 inference/unsafe_block_closure_inference_closure_call: Fail

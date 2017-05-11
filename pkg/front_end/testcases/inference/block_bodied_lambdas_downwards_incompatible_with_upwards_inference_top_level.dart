@@ -6,4 +6,8 @@
 library test;
 
 String f() => null;
-var /*@topType=f() -> String*/ g = f;
+var /*@topType=() -> String*/ g = f;
+
+main() {
+  f;
+}
