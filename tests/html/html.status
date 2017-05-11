@@ -382,6 +382,7 @@ typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
+svgelement_test: StaticWarning # Issue 29594
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
