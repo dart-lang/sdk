@@ -1,4 +1,4 @@
-part of html_common;
+part of "dart:html_common";
 
 convertDartToNative_PrepareForStructuredClone(value) =>
     new _StructuredCloneDartium()
