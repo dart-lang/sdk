@@ -1707,7 +1707,10 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
         }
         if (expectedReturnType.isVoid &&
             !types.isAssignable(expressionType, const ResolutionVoidType())) {
-          reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
+          // In `void f(...) => e`, `e` can have any type.
+          if (!node.isArrowBody) {
+            reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
+          }
         } else {
           checkAssignable(expression, expressionType, expectedReturnType);
         }
