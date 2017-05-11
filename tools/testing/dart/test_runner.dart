@@ -1043,7 +1043,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   // See: http://dartbug.com/15139.
   static int WHITELISTED_CONTENTSHELL_EXITCODE = -1073740022;
   static bool isWindows = io.Platform.operatingSystem == 'windows';
-  static bool _failedBecauseOfFlakyInfrastructure(List<int> stderrBytes) {
+  static bool _failedBecauseOfFlakyInfrastructure(
+      Command command, bool timedOut, List<int> stderrBytes) {
     // If the browser test failed, it may have been because content shell
     // and the virtual framebuffer X server didn't hook up, or it crashed with
     // a core dump. Sometimes content shell crashes after it has set the stdout
@@ -1052,7 +1053,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     var zygoteCrash =
         new RegExp(r"ERROR:zygote_linux\.cc\(\d+\)] write: Broken pipe");
     var stderr = decodeUtf8(stderrBytes);
-    // TODO(whesse): Issue: 7564
+    // TODO(7564): See http://dartbug.com/7564
     // This may not be happening anymore.  Test by removing this suppression.
     if (stderr.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
         stderr.contains(MESSAGE_FAILED_TO_RUN_COMMAND)) {
@@ -1060,11 +1061,18 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           "Warning: Failure because of missing XDisplay. Test ignored");
       return true;
     }
-    // Issue 26739
+    // TODO(26739): See http://dartbug.com/26739
     if (zygoteCrash.hasMatch(stderr)) {
       DebugLogger.warning("Warning: Failure because of content_shell "
           "zygote crash. Test ignored");
       return true;
+    }
+    // TODO(28955): See http://dartbug.com/28955
+    if (timedOut &&
+        command is BrowserTestCommand &&
+        command.browser == "ie11") {
+      DebugLogger.warning("Timeout of ie11 on test page ${command.url}");
+      return;
     }
     return false;
   }
@@ -1073,7 +1081,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   BrowserCommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
-      : _infraFailure = _failedBecauseOfFlakyInfrastructure(stderr),
+      : _infraFailure =
+            _failedBecauseOfFlakyInfrastructure(command, timedOut, stderr),
         super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 

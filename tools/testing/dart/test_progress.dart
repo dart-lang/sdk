@@ -62,7 +62,7 @@ class ExitCodeSetter extends EventListener {
 }
 
 class IgnoredTestMonitor extends EventListener {
-  static final int maxIgnored = 5;
+  static final int maxIgnored = 10;
 
   int countIgnored = 0;
 
