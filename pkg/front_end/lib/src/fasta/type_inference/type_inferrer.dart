@@ -631,21 +631,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   }
 
   DartType _getNamedParameterType(FunctionType functionType, String name) {
-    // TODO(paulberry): is there a kernel function that does this binary search?
-    int lower = 0;
-    int upper = functionType.namedParameters.length - 1;
-    while (lower <= upper) {
-      int pivot = (lower + upper) ~/ 2;
-      int comparison = name.compareTo(functionType.namedParameters[pivot].name);
-      if (comparison == 0) {
-        return functionType.namedParameters[pivot].type;
-      } else if (comparison < 0) {
-        upper = pivot - 1;
-      } else {
-        lower = pivot + 1;
-      }
-    }
-    return const DynamicType();
+    return functionType.getNamedParameter(name) ?? const DynamicType();
   }
 
   DartType _getPositionalParameterType(FunctionType functionType, int i) {

@@ -3991,6 +3991,27 @@ class FunctionType extends DartType {
         namedParameters: namedParameters);
   }
 
+  /// Looks up the type of the named parameter with the given name.
+  ///
+  /// Returns `null` if there is no named parameter with the given name.
+  DartType getNamedParameter(String name) {
+    int lower = 0;
+    int upper = namedParameters.length - 1;
+    while (lower <= upper) {
+      int pivot = (lower + upper) ~/ 2;
+      var namedParameter = namedParameters[pivot];
+      int comparison = name.compareTo(namedParameter.name);
+      if (comparison == 0) {
+        return namedParameter.type;
+      } else if (comparison < 0) {
+        upper = pivot - 1;
+      } else {
+        lower = pivot + 1;
+      }
+    }
+    return null;
+  }
+
   int get hashCode => _hashCode ??= _computeHashCode();
 
   int _computeHashCode() {
