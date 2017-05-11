@@ -874,6 +874,10 @@ class Dart2JSBackend(HtmlDartGenerator):
           and not self._OperationRequiresConversions(operation):
         has_indexed_getter = True
         break
+      if operation.id == '__getter__' and 'getter' in operation.specials \
+          and not self._OperationRequiresConversions(operation):
+        has_indexed_getter = True
+        break
     return has_indexed_getter
 
   def AddIndexer(self, element_type, nullable):

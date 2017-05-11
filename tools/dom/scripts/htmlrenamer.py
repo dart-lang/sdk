@@ -88,7 +88,6 @@ _removed_html_interfaces = [
   'Counter',
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
-  'DataView', # Typed arrays
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
   'DocumentType',

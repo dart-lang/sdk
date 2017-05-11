@@ -11666,7 +11666,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
 @Native("DOMStringList")
 class DomStringList extends Interceptor
     with ListMixin<String>, ImmutableListMixin<String>
-    implements List<String> {
+    implements JavaScriptIndexingBehavior<String>, List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() {
     throw new UnsupportedError("Not supported");
@@ -11679,7 +11679,7 @@ class DomStringList extends Interceptor
   String operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
       throw new RangeError.index(index, this);
-    return this.item(index);
+    return JS("String", "#[#]", this, index);
   }
 
   void operator []=(int index, String value) {
@@ -34458,7 +34458,7 @@ class TextTrackCue extends EventTarget {
 @Native("TextTrackCueList")
 class TextTrackCueList extends Interceptor
     with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue>
-    implements List<TextTrackCue> {
+    implements List<TextTrackCue>, JavaScriptIndexingBehavior<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() {
     throw new UnsupportedError("Not supported");
@@ -34467,6 +34467,12 @@ class TextTrackCueList extends Interceptor
   @DomName('TextTrackCueList.length')
   @DocsEditable()
   int get length => JS("int", "#.length", this);
+
+  TextTrackCue operator [](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
+      throw new RangeError.index(index, this);
+    return JS("TextTrackCue", "#[#]", this, index);
+  }
 
   void operator []=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -34525,7 +34531,7 @@ class TextTrackCueList extends Interceptor
 @Native("TextTrackList")
 class TextTrackList extends EventTarget
     with ListMixin<TextTrack>, ImmutableListMixin<TextTrack>
-    implements List<TextTrack> {
+    implements List<TextTrack>, JavaScriptIndexingBehavior<TextTrack> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() {
     throw new UnsupportedError("Not supported");
@@ -34551,6 +34557,12 @@ class TextTrackList extends EventTarget
   @DomName('TextTrackList.length')
   @DocsEditable()
   int get length => JS("int", "#.length", this);
+
+  TextTrack operator [](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
+      throw new RangeError.index(index, this);
+    return JS("TextTrack", "#[#]", this, index);
+  }
 
   void operator []=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -40053,7 +40065,7 @@ class _JenkinsSmiHash {
 @Native("ClientRectList,DOMRectList")
 class _ClientRectList extends Interceptor
     with ListMixin<Rectangle>, ImmutableListMixin<Rectangle>
-    implements List<Rectangle> {
+    implements List<Rectangle>, JavaScriptIndexingBehavior<Rectangle> {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() {
     throw new UnsupportedError("Not supported");
@@ -40066,7 +40078,7 @@ class _ClientRectList extends Interceptor
   Rectangle operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
       throw new RangeError.index(index, this);
-    return this.item(index);
+    return JS("Rectangle", "#[#]", this, index);
   }
 
   void operator []=(int index, Rectangle value) {
