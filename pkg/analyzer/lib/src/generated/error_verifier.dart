@@ -660,7 +660,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           function is PropertyAccessorElement &&
           function.isSetter;
       if (!isSetterWithImplicitReturn) {
-        _checkForReturnOfInvalidType(node.expression, expectedReturnType);
+        _checkForReturnOfInvalidType(node.expression, expectedReturnType,
+            isArrowFunction: true);
       }
       return super.visitExpressionFunctionBody(node);
     } finally {
@@ -5598,7 +5599,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * See [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForReturnOfInvalidType(
-      Expression returnExpression, DartType expectedReturnType) {
+      Expression returnExpression, DartType expectedReturnType,
+      {bool isArrowFunction = false}) {
     if (_enclosingFunction == null) {
       return;
     }
@@ -5610,6 +5612,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = _computeReturnTypeForMethod(returnExpression);
     if (expectedReturnType.isVoid) {
+      if (isArrowFunction) {
+        // "void f(..) => e" admits all types for "e".
+        return;
+      }
       if (staticReturnType.isVoid ||
           staticReturnType.isDynamic ||
           staticReturnType.isBottom ||

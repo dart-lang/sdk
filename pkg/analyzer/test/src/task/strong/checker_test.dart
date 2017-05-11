@@ -3536,7 +3536,7 @@ void voidFn() => null;
 class A {
   set a(y) => 4;
   set b(y) => voidFn();
-  void set c(y) => /*error:RETURN_OF_INVALID_TYPE*/4;
+  void set c(y) => 4;
   void set d(y) => voidFn();
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>
