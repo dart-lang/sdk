@@ -6453,8 +6453,17 @@ It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \
 \LMHash{}
 Let $S$ be the runtime type of $o$. In checked mode:
 \begin{itemize}
-\item  If the body of $f$ is marked \ASYNC{} (\ref{functions}) it is a dynamic type error if $o$ is not \NULL{} (\ref{null}) and \code{Future<flatten(S)>} is not a subtype of the actual return type  (\ref{actualTypeOfADeclaration}) of $f$.
-\item Otherwise, it is a dynamic type error if $o$ is not \NULL{} and the runtime type of $o$ is not a subtype of the actual return type of $f$.
+\item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
+it is a dynamic type error if $o$ is not \NULL{} (\ref{null}),
+the actual return type (\ref{actualTypeOfADeclaration}) of $f$ is not \VOID,
+and \code{Future<flatten(S)>} is not a subtype of the actual return type of $f$.
+% TODO(lrn): The "void foo() async { return e }" case is somewhat speculative.
+% When we disallow "return e" in a void function, we might also want to revisit
+% this rule. Currently it also covers the "void foo() async => e;" case, which
+% we might want to allow.
+\item Otherwise, it is a dynamic type error if $o$ is not \NULL{},
+the actual return type of $f$ is not \VOID{},
+and the runtime type of $o$ is not a subtype of the actual return type of $f$.
 \end{itemize}
 
 \LMHash{}
