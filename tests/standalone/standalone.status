@@ -148,6 +148,9 @@ io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
 io/file_input_stream_test: Skip # Issue 26109
 
+[ $runtime != vm || ($arch == arm || $arch == arm64 || $arch == mips) ]
+fragmentation_test: Skip # VM test uses too much memory for small systems.
+
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
 deoptimization_test: RuntimeError, OK # Requires bigint.
