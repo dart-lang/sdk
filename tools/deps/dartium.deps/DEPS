@@ -8,9 +8,8 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 # Now we need to override some settings and add some new ones.
 
 vars.update({
-  "dartium_chromium_commit": "7558afb6379171d7f96b2db68ae9d2b64b2c5544",
-  "dartium_webkit_commit": "6b2be51884a122443c468e93e9d5090fb709964b",
-  "chromium_base_revision": "338390",
+  "dartium_chromium_commit": "1ac95883b0e9e13d0ec62164f0ca461dacef8a4b",
+  "chromium_base_revision": "378081",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -67,7 +66,7 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
-  "WebCore_rev": "@2fe910c049be42bcef58f205debd4440e8139863",
+  "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
 
   "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
 })
@@ -76,11 +75,6 @@ deps.update({
   "src":
     Var("chromium_git") + "/dart/dartium/src.git" + "@" +
         Var("dartium_chromium_commit"),
-
-  "src/third_party/WebKit":
-    Var("chromium_git") + "/dart/dartium/blink.git" + "@" +
-        Var("dartium_webkit_commit"),
-
   "src/dart/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
   "src/dart/third_party/pkg/barback":
@@ -205,16 +199,16 @@ hooks.append({
              'src/dart/tools/bots/set_reference_build_revision.py',
              Var('chromium_base_revision')],
 })
-hooks.append({
+#hooks.append({
   # Peg the blink version number in LASTCHANGE.blink to be the upstream
   # webkit_revision number so that chrome remote devtools pulls assets from
   # the right place.
-  "name": "lastchange",
-  "pattern": ".",
-  "action": ["python", "-c",
-      "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
-      Var('webkit_revision') + "\\n')" ],
-})
+#  "name": "lastchange",
+#  "pattern": ".",
+#  "action": ["python", "-c",
+#      "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
+#      Var('webkit_revision') + "\\n')" ],
+#})
 hooks.append({
   "name": "checked_in_dart_sdks",
   "pattern": ".",

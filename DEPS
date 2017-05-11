@@ -122,7 +122,7 @@ vars = {
   "watcher_tag": "@0.9.7+3",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.4",
-  "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
+  "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "yaml_tag": "@2.1.12",

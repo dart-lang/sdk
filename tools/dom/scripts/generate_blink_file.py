@@ -59,7 +59,7 @@ _js_custom_members = Set([
 
     'Node.nodeType',
     'Node.textContent',
-    
+
     'HTMLCollection.length',
     'HTMLCollection.item',
     'Node.lastElementChild',
@@ -86,6 +86,17 @@ _js_custom_members = Set([
 # dart:html through JS interop except for createElement which is slightly more
 # tightly natively wired.
 # _js_custom_members = Set([])
+
+
+# Expose built-in methods support by an instance that is not shown in the IDL.
+_additional_methods = {
+  # Support propertyIsEnumerable (available on all objects only needed by
+  # CSSStyleDeclaration decides if style property is supported (handling
+  # camelcase and inject hyphens between camelcase).
+  # Format of dictionary is 'operation name', arguments, returns value (True or False)
+  'CSSStyleDeclaration': ('propertyIsEnumerable', 1, True), 
+}
+
 
 HEADER = """/* Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
@@ -320,7 +331,7 @@ OPERATION_0 = ['  %s_Callback_0_(mthis)',
                ' native "Blink_Operation_0_%s_%s";\n\n'
                ]
 
-# getter, setter, deleter and propertyQuery code
+# getter, setter, deleter, propertyQuery code, and propertyIsEnumerable
 OPERATION_1 = ['  $%s_Callback_1_(mthis, __arg_0)',
                ' => Blink_JsNative_DomException.callMethod(mthis /* %s */, "%s", [__arg_0]);\n\n',
                ' native "Blink_Operation_1_%s_%s";\n\n'
@@ -440,18 +451,26 @@ def Generate_Blink(output_dir, database, type_registry):
       blink_file.write(Select_Stub(CONSTRUCTOR_0, _Is_Native(name, 'constructor')) % rename_constructor(name))
 
     _Process_Attributes(blink_file, interface, interface.attributes)
-    _Process_Operations(blink_file, interface, interface.operations)
+    _Process_Operations(blink_file, interface, interface.operations, True)
+
+    _Emit_Extra_Operations(blink_file, name)
 
     secondary_parents = database.TransitiveSecondaryParents(interface, False)
     for secondary in secondary_parents:
       _Process_Attributes(blink_file, secondary, secondary.attributes)
-      _Process_Operations(blink_file, secondary, secondary.operations)
+      _Process_Operations(blink_file, secondary, secondary.operations, False)
 
     blink_file.write(CLASS_DEFINITION_END);
 
   blink_file.write(BLINK_UTILS)
 
   blink_file.close()
+
+def _Emit_Extra_Operations(blink_file, interface_name):
+  if (interface_name in _additional_methods):
+    (name, arg_count, return_value) = _additional_methods[interface_name]
+    exposed_name = ''.join(['__get', '___', name]) if return_value else name
+    blink_file.write(Select_Stub(OPERATION_1, False) % (exposed_name, interface_name, name))
 
 def _Emit_Blink_Constructors(blink_file, analyzed_constructors):
   (arg_min_count, arg_max_count) = generate_parameter_entries(analyzed_constructors.param_infos)
@@ -485,7 +504,7 @@ def _Process_Attributes(blink_file, interface, attributes):
       blink_file.write(Select_Stub(ATTRIBUTE_GETTER, is_native) % (name, interface.id, name))
       blink_file.write(Select_Stub(ATTRIBUTE_SETTER, is_native) % (name, interface.id, name))
 
-def _Process_Operations(blink_file, interface, operations):
+def _Process_Operations(blink_file, interface, operations, primary_interface = False):
   analyzeOperations = []
 
   for operation in sorted(operations, ConstantOutputOrder):
@@ -496,15 +515,34 @@ def _Process_Operations(blink_file, interface, operations):
         # Handle overloads
         analyzeOperations.append(operation)
       else:
-        _Emit_Blink_Operation(blink_file, interface, analyzeOperations)
+        _Emit_Blink_Operation(blink_file, interface, analyzeOperations, primary_interface)
         analyzeOperations = [operation]
   if len(analyzeOperations) > 0:
-    _Emit_Blink_Operation(blink_file, interface, analyzeOperations)
+    _Emit_Blink_Operation(blink_file, interface, analyzeOperations, primary_interface)
 
-def _Emit_Blink_Operation(blink_file, interface, analyzeOperations):
+# List of DartName operations to not emit (e.g., For now only WebGL2RenderingContextBase
+# has readPixels in both WebGLRenderingContextBase and WebGL2RenderingContextBase.
+# Furthermore, readPixels has the exact same number of arguments - in Javascript
+# there is no typing so they're the same.
+suppressed_operations = {
+    'WebGL2RenderingContextBase': [ 'readPixels2', 'texImage2D2' ],
+}
+
+def _Suppress_Secondary_Interface_Operation(interface, analyzed):
+  if interface.id in suppressed_operations:
+    # Should this DartName (name property) be suppressed on this interface?
+    return analyzed.name in suppressed_operations[interface.id]
+  return False
+
+def _Emit_Blink_Operation(blink_file, interface, analyzeOperations, primary_interface):
   analyzed = AnalyzeOperation(interface, analyzeOperations)
+
+  if not(primary_interface) and _Suppress_Secondary_Interface_Operation(interface, analyzed):
+    return
+
   (arg_min_count, arg_max_count) = generate_parameter_entries(analyzed.param_infos)
   name = analyzed.js_name
+
   is_native = _Is_Native(interface.id, name)
 
   operation = analyzeOperations[0]

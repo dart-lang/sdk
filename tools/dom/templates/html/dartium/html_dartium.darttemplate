@@ -377,3 +377,13 @@ class DartHtmlDomObject extends NativeFieldWrapperClass2 {}
 _createCustomUpgrader(Type customElementClass, $this) => $this;
 
 $endif
+
+/**
+ * Emitted for any setlike IDL entry needs a callback signature.
+ * Today there is only one.
+ */
+@DomName('FontFaceSetForEachCallback')
+@Experimental() // untriaged
+typedef void FontFaceSetForEachCallback(
+    FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+

@@ -90,13 +90,12 @@ def main():
 
   result = 0
 
-  # Archive to the revision bucket unless integration build
-  if info.channel != 'integration':
-    result = upload_steps.ArchiveAndUpload(info, archive_latest=False)
-    # On dev/stable we archive to the latest bucket as well
-    if info.channel != 'be':
-      result = (upload_steps.ArchiveAndUpload(info, archive_latest=True)
-                or result)
+  # Archive to the revision bucket
+  result = upload_steps.ArchiveAndUpload(info, archive_latest=False)
+  # On dev/stable we archive to the latest bucket as well
+  if info.channel != 'be':
+    result = (upload_steps.ArchiveAndUpload(info, archive_latest=True)
+              or result)
 
   # Run layout tests
   if info.mode == 'Release' or platform.system() != 'Darwin':

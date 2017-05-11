@@ -1342,346 +1342,6 @@ class BlobEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
-@DomName('Bluetooth')
-@Experimental() // untriaged
-@Native("Bluetooth")
-class Bluetooth extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory Bluetooth._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('Bluetooth.requestDevice')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future requestDevice(Map options) {
-    var options_1 = convertDartToNative_Dictionary(options);
-    return _requestDevice_1(options_1);
-  }
-
-  @JSName('requestDevice')
-  @DomName('Bluetooth.requestDevice')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _requestDevice_1(options) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothAdvertisingData')
-@Experimental() // untriaged
-@Native("BluetoothAdvertisingData")
-class BluetoothAdvertisingData extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothAdvertisingData._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('BluetoothAdvertisingData.rssi')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int rssi;
-
-  @DomName('BluetoothAdvertisingData.txPower')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int txPower;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothCharacteristicProperties')
-@Experimental() // untriaged
-@Native("BluetoothCharacteristicProperties")
-class BluetoothCharacteristicProperties extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothCharacteristicProperties._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('BluetoothCharacteristicProperties.authenticatedSignedWrites')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool authenticatedSignedWrites;
-
-  @DomName('BluetoothCharacteristicProperties.broadcast')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool broadcast;
-
-  @DomName('BluetoothCharacteristicProperties.indicate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool indicate;
-
-  @DomName('BluetoothCharacteristicProperties.notify')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool notify;
-
-  @DomName('BluetoothCharacteristicProperties.read')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool read;
-
-  @DomName('BluetoothCharacteristicProperties.reliableWrite')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool reliableWrite;
-
-  @DomName('BluetoothCharacteristicProperties.writableAuxiliaries')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool writableAuxiliaries;
-
-  @DomName('BluetoothCharacteristicProperties.write')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool write;
-
-  @DomName('BluetoothCharacteristicProperties.writeWithoutResponse')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool writeWithoutResponse;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothDevice')
-@Experimental() // untriaged
-@Native("BluetoothDevice")
-class BluetoothDevice extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothDevice._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('BluetoothDevice.adData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final BluetoothAdvertisingData adData;
-
-  @DomName('BluetoothDevice.deviceClass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceClass;
-
-  @DomName('BluetoothDevice.gatt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final BluetoothRemoteGattServer gatt;
-
-  @DomName('BluetoothDevice.id')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String id;
-
-  @DomName('BluetoothDevice.instanceID')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String instanceID;
-
-  @DomName('BluetoothDevice.name')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String name;
-
-  @DomName('BluetoothDevice.productID')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int productID;
-
-  @DomName('BluetoothDevice.productVersion')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int productVersion;
-
-  @DomName('BluetoothDevice.vendorID')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int vendorID;
-
-  @DomName('BluetoothDevice.vendorIDSource')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String vendorIDSource;
-
-  @JSName('connectGATT')
-  @DomName('BluetoothDevice.connectGATT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future connectGatt() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothRemoteGATTCharacteristic')
-@Experimental() // untriaged
-@Native("BluetoothRemoteGATTCharacteristic")
-class BluetoothRemoteGattCharacteristic extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothRemoteGattCharacteristic._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('BluetoothRemoteGATTCharacteristic.properties')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final BluetoothCharacteristicProperties properties;
-
-  @DomName('BluetoothRemoteGATTCharacteristic.uuid')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String uuid;
-
-  @DomName('BluetoothRemoteGATTCharacteristic.value')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final _DataView value;
-
-  @DomName('BluetoothRemoteGATTCharacteristic.readValue')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future readValue() native;
-
-  @DomName('BluetoothRemoteGATTCharacteristic.startNotifications')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future startNotifications() native;
-
-  @DomName('BluetoothRemoteGATTCharacteristic.stopNotifications')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future stopNotifications() native;
-
-  @DomName('BluetoothRemoteGATTCharacteristic.writeValue')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future writeValue(/*BufferSource*/ value) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothRemoteGATTServer')
-@Experimental() // untriaged
-@Native("BluetoothRemoteGATTServer")
-class BluetoothRemoteGattServer extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothRemoteGattServer._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('BluetoothRemoteGATTServer.connected')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool connected;
-
-  @DomName('BluetoothRemoteGATTServer.device')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final BluetoothDevice device;
-
-  @DomName('BluetoothRemoteGATTServer.connect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future connect() native;
-
-  @DomName('BluetoothRemoteGATTServer.disconnect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void disconnect() native;
-
-  @DomName('BluetoothRemoteGATTServer.getPrimaryService')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getPrimaryService(/*BluetoothServiceUUID*/ service) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothRemoteGATTService')
-@Experimental() // untriaged
-@Native("BluetoothRemoteGATTService")
-class BluetoothRemoteGattService extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothRemoteGattService._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('BluetoothRemoteGATTService.isPrimary')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool isPrimary;
-
-  @DomName('BluetoothRemoteGATTService.uuid')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String uuid;
-
-  @DomName('BluetoothRemoteGATTService.getCharacteristic')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getCharacteristic(/*BluetoothCharacteristicUUID*/ characteristic)
-      native;
-
-  @DomName('BluetoothRemoteGATTService.getCharacteristics')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getCharacteristics([/*BluetoothCharacteristicUUID*/ characteristic])
-      native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('BluetoothUUID')
-@Experimental() // untriaged
-@Native("BluetoothUUID")
-class BluetoothUuid extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory BluetoothUuid._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @JSName('canonicalUUID')
-  @DomName('BluetoothUUID.canonicalUUID')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String canonicalUuid(int alias) native;
-
-  @DomName('BluetoothUUID.getCharacteristic')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String getCharacteristic(Object name) native;
-
-  @DomName('BluetoothUUID.getDescriptor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String getDescriptor(Object name) native;
-
-  @DomName('BluetoothUUID.getService')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String getService(Object name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
 @DomName('Body')
 @Experimental() // untriaged
 @Native("Body")
@@ -19914,7 +19574,10 @@ class HtmlDocument extends Document {
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(
       String contextId, String name, int width, int height) {
-    return _getCssCanvasContext(contextId, name, width, height);
+    if (HtmlDocument.supportsCssCanvasContext)
+      return JS('CanvasRenderingContext', '#.getCSSCanvasContext(#, #, #, #)',
+          this, contextId, name, width, height);
+    throw new UnsupportedError("Not supported");
   }
 
   @DomName('Document.head')
@@ -20833,7 +20496,7 @@ class HttpRequest extends HttpRequestEventTarget {
   void send([body_OR_data]) native;
 
   /**
-   * Sets the value of an HTTP requst header.
+   * Sets the value of an HTTP request header.
    *
    * This method should be called after the request is opened, but before
    * the request is sent.
@@ -25915,11 +25578,6 @@ class Navigator extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  @DomName('Navigator.bluetooth')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Bluetooth bluetooth;
-
   @DomName('Navigator.connection')
   @DocsEditable()
   @Experimental() // untriaged
@@ -25959,7 +25617,7 @@ class Navigator extends Interceptor
   @DomName('Navigator.nfc')
   @DocsEditable()
   @Experimental() // untriaged
-  final Nfc nfc;
+  final _NFC nfc;
 
   @DomName('Navigator.permissions')
   @DocsEditable()
@@ -25995,11 +25653,6 @@ class Navigator extends Interceptor
   @DocsEditable()
   @Experimental() // untriaged
   final StorageQuota storageQuota;
-
-  @DomName('Navigator.usb')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Usb usb;
 
   @DomName('Navigator.vendor')
   @DocsEditable()
@@ -26319,74 +25972,6 @@ class NetworkInformation extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onChange => changeEvent.forTarget(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('NFC')
-@Experimental() // untriaged
-@Native("NFC")
-class Nfc extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory Nfc._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('NFC.cancelPush')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future cancelPush([String target]) native;
-
-  @DomName('NFC.cancelWatch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future cancelWatch([int id]) native;
-
-  @DomName('NFC.push')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future push(Object message, [Map options]) {
-    if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _push_1(message, options_1);
-    }
-    return _push_2(message);
-  }
-
-  @JSName('push')
-  @DomName('NFC.push')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _push_1(message, options) native;
-  @JSName('push')
-  @DomName('NFC.push')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _push_2(message) native;
-
-  @DomName('NFC.watch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future watch(MessageCallback callback, [Map options]) {
-    if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _watch_1(callback, options_1);
-    }
-    return _watch_2(callback);
-  }
-
-  @JSName('watch')
-  @DomName('NFC.watch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _watch_1(MessageCallback callback, options) native;
-  @JSName('watch')
-  @DomName('NFC.watch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _watch_2(MessageCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27265,7 +26850,7 @@ class Notification extends EventTarget {
   @DomName('Notification.actions')
   @DocsEditable()
   @Experimental() // untriaged
-  final List<NotificationAction> actions;
+  final List actions;
 
   @DomName('Notification.body')
   @DocsEditable()
@@ -36169,582 +35754,6 @@ abstract class UrlUtilsReadOnly extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
-@DomName('USB')
-@Experimental() // untriaged
-@Native("USB")
-class Usb extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory Usb._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USB.getDevices')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getDevices() native;
-
-  @DomName('USB.requestDevice')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future requestDevice(Map options) {
-    var options_1 = convertDartToNative_Dictionary(options);
-    return _requestDevice_1(options_1);
-  }
-
-  @JSName('requestDevice')
-  @DomName('USB.requestDevice')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _requestDevice_1(options) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBAlternateInterface')
-@Experimental() // untriaged
-@Native("USBAlternateInterface")
-class UsbAlternateInterface extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbAlternateInterface._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBAlternateInterface.USBAlternateInterface')
-  @DocsEditable()
-  factory UsbAlternateInterface(
-      UsbInterface deviceInterface, int alternateSetting) {
-    return UsbAlternateInterface._create_1(deviceInterface, alternateSetting);
-  }
-  static UsbAlternateInterface _create_1(deviceInterface, alternateSetting) =>
-      JS('UsbAlternateInterface', 'new USBAlternateInterface(#,#)',
-          deviceInterface, alternateSetting);
-
-  @DomName('USBAlternateInterface.alternateSetting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int alternateSetting;
-
-  @DomName('USBAlternateInterface.endpoints')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<UsbEndpoint> endpoints;
-
-  @DomName('USBAlternateInterface.interfaceClass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int interfaceClass;
-
-  @DomName('USBAlternateInterface.interfaceName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String interfaceName;
-
-  @DomName('USBAlternateInterface.interfaceProtocol')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int interfaceProtocol;
-
-  @DomName('USBAlternateInterface.interfaceSubclass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int interfaceSubclass;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBConfiguration')
-@Experimental() // untriaged
-@Native("USBConfiguration")
-class UsbConfiguration extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbConfiguration._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBConfiguration.USBConfiguration')
-  @DocsEditable()
-  factory UsbConfiguration(UsbDevice device, int configurationValue) {
-    return UsbConfiguration._create_1(device, configurationValue);
-  }
-  static UsbConfiguration _create_1(device, configurationValue) => JS(
-      'UsbConfiguration',
-      'new USBConfiguration(#,#)',
-      device,
-      configurationValue);
-
-  @DomName('USBConfiguration.configurationName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String configurationName;
-
-  @DomName('USBConfiguration.configurationValue')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int configurationValue;
-
-  @DomName('USBConfiguration.interfaces')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<UsbInterface> interfaces;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBConnectionEvent')
-@Experimental() // untriaged
-@Native("USBConnectionEvent")
-class UsbConnectionEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory UsbConnectionEvent._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBConnectionEvent.USBConnectionEvent')
-  @DocsEditable()
-  factory UsbConnectionEvent(String type, [Map eventInitDict]) {
-    if (eventInitDict != null) {
-      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
-      return UsbConnectionEvent._create_1(type, eventInitDict_1);
-    }
-    return UsbConnectionEvent._create_2(type);
-  }
-  static UsbConnectionEvent _create_1(type, eventInitDict) => JS(
-      'UsbConnectionEvent', 'new USBConnectionEvent(#,#)', type, eventInitDict);
-  static UsbConnectionEvent _create_2(type) =>
-      JS('UsbConnectionEvent', 'new USBConnectionEvent(#)', type);
-
-  @DomName('USBConnectionEvent.device')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final UsbDevice device;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBDevice')
-@Experimental() // untriaged
-@Native("USBDevice")
-class UsbDevice extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbDevice._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBDevice.configurations')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<UsbConfiguration> configurations;
-
-  @DomName('USBDevice.deviceClass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceClass;
-
-  @DomName('USBDevice.deviceProtocol')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceProtocol;
-
-  @DomName('USBDevice.deviceSubclass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceSubclass;
-
-  @DomName('USBDevice.deviceVersionMajor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceVersionMajor;
-
-  @DomName('USBDevice.deviceVersionMinor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceVersionMinor;
-
-  @DomName('USBDevice.deviceVersionSubminor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int deviceVersionSubminor;
-
-  @DomName('USBDevice.guid')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String guid;
-
-  @DomName('USBDevice.manufacturerName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String manufacturerName;
-
-  @DomName('USBDevice.productId')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int productId;
-
-  @DomName('USBDevice.productName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String productName;
-
-  @DomName('USBDevice.serialNumber')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String serialNumber;
-
-  @DomName('USBDevice.usbVersionMajor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int usbVersionMajor;
-
-  @DomName('USBDevice.usbVersionMinor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int usbVersionMinor;
-
-  @DomName('USBDevice.usbVersionSubminor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int usbVersionSubminor;
-
-  @DomName('USBDevice.vendorId')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int vendorId;
-
-  @DomName('USBDevice.claimInterface')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future claimInterface(int interfaceNumber) native;
-
-  @DomName('USBDevice.clearHalt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future clearHalt(int endpointNumber) native;
-
-  @DomName('USBDevice.close')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future close() native;
-
-  @DomName('USBDevice.controlTransferIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future controlTransferIn(Map setup, int length) {
-    var setup_1 = convertDartToNative_Dictionary(setup);
-    return _controlTransferIn_1(setup_1, length);
-  }
-
-  @JSName('controlTransferIn')
-  @DomName('USBDevice.controlTransferIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _controlTransferIn_1(setup, length) native;
-
-  @DomName('USBDevice.controlTransferOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future controlTransferOut(Map setup, [/*BufferSource*/ data]) {
-    if (data != null) {
-      var setup_1 = convertDartToNative_Dictionary(setup);
-      return _controlTransferOut_1(setup_1, data);
-    }
-    var setup_1 = convertDartToNative_Dictionary(setup);
-    return _controlTransferOut_2(setup_1);
-  }
-
-  @JSName('controlTransferOut')
-  @DomName('USBDevice.controlTransferOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _controlTransferOut_1(setup, data) native;
-  @JSName('controlTransferOut')
-  @DomName('USBDevice.controlTransferOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _controlTransferOut_2(setup) native;
-
-  @DomName('USBDevice.getConfiguration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getConfiguration() native;
-
-  @DomName('USBDevice.isochronousTransferIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future isochronousTransferIn(int endpointNumber, List<int> packetLengths)
-      native;
-
-  @DomName('USBDevice.isochronousTransferOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future isochronousTransferOut(int endpointNumber, /*BufferSource*/ data,
-      List<int> packetLengths) native;
-
-  @DomName('USBDevice.open')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future open() native;
-
-  @DomName('USBDevice.releaseInterface')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future releaseInterface(int interfaceNumber) native;
-
-  @DomName('USBDevice.reset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future reset() native;
-
-  @DomName('USBDevice.setConfiguration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future setConfiguration(int configurationValue) native;
-
-  @DomName('USBDevice.setInterface')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future setInterface(int interfaceNumber, int alternateSetting) native;
-
-  @DomName('USBDevice.transferIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future transferIn(int endpointNumber, int length) native;
-
-  @DomName('USBDevice.transferOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future transferOut(int endpointNumber, /*BufferSource*/ data) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBEndpoint')
-@Experimental() // untriaged
-@Native("USBEndpoint")
-class UsbEndpoint extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbEndpoint._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBEndpoint.USBEndpoint')
-  @DocsEditable()
-  factory UsbEndpoint(
-      UsbAlternateInterface alternate, int endpointNumber, String direction) {
-    return UsbEndpoint._create_1(alternate, endpointNumber, direction);
-  }
-  static UsbEndpoint _create_1(alternate, endpointNumber, direction) => JS(
-      'UsbEndpoint',
-      'new USBEndpoint(#,#,#)',
-      alternate,
-      endpointNumber,
-      direction);
-
-  @DomName('USBEndpoint.direction')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String direction;
-
-  @DomName('USBEndpoint.endpointNumber')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int endpointNumber;
-
-  @DomName('USBEndpoint.packetSize')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int packetSize;
-
-  @DomName('USBEndpoint.type')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String type;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBInTransferResult')
-@Experimental() // untriaged
-@Native("USBInTransferResult")
-class UsbInTransferResult extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbInTransferResult._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBInTransferResult.data')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final _DataView data;
-
-  @DomName('USBInTransferResult.status')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String status;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBInterface')
-@Experimental() // untriaged
-@Native("USBInterface")
-class UsbInterface extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbInterface._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBInterface.USBInterface')
-  @DocsEditable()
-  factory UsbInterface(UsbConfiguration configuration, int interfaceNumber) {
-    return UsbInterface._create_1(configuration, interfaceNumber);
-  }
-  static UsbInterface _create_1(configuration, interfaceNumber) => JS(
-      'UsbInterface', 'new USBInterface(#,#)', configuration, interfaceNumber);
-
-  @DomName('USBInterface.alternates')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<UsbAlternateInterface> alternates;
-
-  @DomName('USBInterface.interfaceNumber')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int interfaceNumber;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBIsochronousInTransferPacket')
-@Experimental() // untriaged
-@Native("USBIsochronousInTransferPacket")
-class UsbIsochronousInTransferPacket extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbIsochronousInTransferPacket._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBIsochronousInTransferPacket.data')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final _DataView data;
-
-  @DomName('USBIsochronousInTransferPacket.status')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String status;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBIsochronousInTransferResult')
-@Experimental() // untriaged
-@Native("USBIsochronousInTransferResult")
-class UsbIsochronousInTransferResult extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbIsochronousInTransferResult._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBIsochronousInTransferResult.data')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final _DataView data;
-
-  @DomName('USBIsochronousInTransferResult.packets')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<UsbIsochronousInTransferPacket> packets;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBIsochronousOutTransferPacket')
-@Experimental() // untriaged
-@Native("USBIsochronousOutTransferPacket")
-class UsbIsochronousOutTransferPacket extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbIsochronousOutTransferPacket._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBIsochronousOutTransferPacket.bytesWritten')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int bytesWritten;
-
-  @DomName('USBIsochronousOutTransferPacket.status')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String status;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBIsochronousOutTransferResult')
-@Experimental() // untriaged
-@Native("USBIsochronousOutTransferResult")
-class UsbIsochronousOutTransferResult extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbIsochronousOutTransferResult._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBIsochronousOutTransferResult.packets')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final List<UsbIsochronousOutTransferPacket> packets;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('USBOutTransferResult')
-@Experimental() // untriaged
-@Native("USBOutTransferResult")
-class UsbOutTransferResult extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory UsbOutTransferResult._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('USBOutTransferResult.bytesWritten')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int bytesWritten;
-
-  @DomName('USBOutTransferResult.status')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String status;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
 @DomName('VRDevice')
 @Experimental() // untriaged
 @Native("VRDevice")
@@ -40738,6 +39747,118 @@ class _Attr extends Node {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
+@DomName('Bluetooth')
+@Experimental() // untriaged
+@Native("Bluetooth")
+abstract class _Bluetooth extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _Bluetooth._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothAdvertisingData')
+@Experimental() // untriaged
+@Native("BluetoothAdvertisingData")
+abstract class _BluetoothAdvertisingData extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothAdvertisingData._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothCharacteristicProperties')
+@Experimental() // untriaged
+@Native("BluetoothCharacteristicProperties")
+abstract class _BluetoothCharacteristicProperties extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothCharacteristicProperties._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothDevice')
+@Experimental() // untriaged
+@Native("BluetoothDevice")
+abstract class _BluetoothDevice extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothDevice._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothRemoteGATTCharacteristic')
+@Experimental() // untriaged
+@Native("BluetoothRemoteGATTCharacteristic")
+abstract class _BluetoothRemoteGATTCharacteristic extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothRemoteGATTCharacteristic._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothRemoteGATTServer')
+@Experimental() // untriaged
+@Native("BluetoothRemoteGATTServer")
+abstract class _BluetoothRemoteGATTServer extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothRemoteGATTServer._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothRemoteGATTService')
+@Experimental() // untriaged
+@Native("BluetoothRemoteGATTService")
+abstract class _BluetoothRemoteGATTService extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothRemoteGATTService._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('BluetoothUUID')
+@Experimental() // untriaged
+@Native("BluetoothUUID")
+abstract class _BluetoothUUID extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _BluetoothUUID._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
 @DomName('Cache')
 @Experimental() // untriaged
 @Native("Cache")
@@ -41460,6 +40581,20 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
+@DomName('NFC')
+@Experimental() // untriaged
+@Native("NFC")
+abstract class _NFC extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _NFC._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
@@ -41850,6 +40985,247 @@ class _StyleSheetList extends Interceptor
 abstract class _SubtleCrypto extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USB')
+@Experimental() // untriaged
+@Native("USB")
+abstract class _USB extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory _USB._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBAlternateInterface')
+@Experimental() // untriaged
+@Native("USBAlternateInterface")
+abstract class _USBAlternateInterface extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBAlternateInterface._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('USBAlternateInterface.USBAlternateInterface')
+  @DocsEditable()
+  factory _USBAlternateInterface(
+      _USBInterface deviceInterface, int alternateSetting) {
+    return _USBAlternateInterface._create_1(deviceInterface, alternateSetting);
+  }
+  static _USBAlternateInterface _create_1(deviceInterface, alternateSetting) =>
+      JS('_USBAlternateInterface', 'new USBAlternateInterface(#,#)',
+          deviceInterface, alternateSetting);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBConfiguration')
+@Experimental() // untriaged
+@Native("USBConfiguration")
+abstract class _USBConfiguration extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBConfiguration._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('USBConfiguration.USBConfiguration')
+  @DocsEditable()
+  factory _USBConfiguration(_USBDevice device, int configurationValue) {
+    return _USBConfiguration._create_1(device, configurationValue);
+  }
+  static _USBConfiguration _create_1(device, configurationValue) => JS(
+      '_USBConfiguration',
+      'new USBConfiguration(#,#)',
+      device,
+      configurationValue);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBConnectionEvent')
+@Experimental() // untriaged
+@Native("USBConnectionEvent")
+abstract class _USBConnectionEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory _USBConnectionEvent._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('USBConnectionEvent.USBConnectionEvent')
+  @DocsEditable()
+  factory _USBConnectionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return _USBConnectionEvent._create_1(type, eventInitDict_1);
+    }
+    return _USBConnectionEvent._create_2(type);
+  }
+  static _USBConnectionEvent _create_1(type, eventInitDict) => JS(
+      '_USBConnectionEvent',
+      'new USBConnectionEvent(#,#)',
+      type,
+      eventInitDict);
+  static _USBConnectionEvent _create_2(type) =>
+      JS('_USBConnectionEvent', 'new USBConnectionEvent(#)', type);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBDevice')
+@Experimental() // untriaged
+@Native("USBDevice")
+abstract class _USBDevice extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBDevice._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBEndpoint')
+@Experimental() // untriaged
+@Native("USBEndpoint")
+abstract class _USBEndpoint extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBEndpoint._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('USBEndpoint.USBEndpoint')
+  @DocsEditable()
+  factory _USBEndpoint(
+      _USBAlternateInterface alternate, int endpointNumber, String direction) {
+    return _USBEndpoint._create_1(alternate, endpointNumber, direction);
+  }
+  static _USBEndpoint _create_1(alternate, endpointNumber, direction) => JS(
+      '_USBEndpoint',
+      'new USBEndpoint(#,#,#)',
+      alternate,
+      endpointNumber,
+      direction);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBInTransferResult')
+@Experimental() // untriaged
+@Native("USBInTransferResult")
+abstract class _USBInTransferResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBInTransferResult._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBInterface')
+@Experimental() // untriaged
+@Native("USBInterface")
+abstract class _USBInterface extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBInterface._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('USBInterface.USBInterface')
+  @DocsEditable()
+  factory _USBInterface(_USBConfiguration configuration, int interfaceNumber) {
+    return _USBInterface._create_1(configuration, interfaceNumber);
+  }
+  static _USBInterface _create_1(configuration, interfaceNumber) => JS(
+      '_USBInterface', 'new USBInterface(#,#)', configuration, interfaceNumber);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBIsochronousInTransferPacket')
+@Experimental() // untriaged
+@Native("USBIsochronousInTransferPacket")
+abstract class _USBIsochronousInTransferPacket extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBIsochronousInTransferPacket._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBIsochronousInTransferResult')
+@Experimental() // untriaged
+@Native("USBIsochronousInTransferResult")
+abstract class _USBIsochronousInTransferResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBIsochronousInTransferResult._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBIsochronousOutTransferPacket')
+@Experimental() // untriaged
+@Native("USBIsochronousOutTransferPacket")
+abstract class _USBIsochronousOutTransferPacket extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBIsochronousOutTransferPacket._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBIsochronousOutTransferResult')
+@Experimental() // untriaged
+@Native("USBIsochronousOutTransferResult")
+abstract class _USBIsochronousOutTransferResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBIsochronousOutTransferResult._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('USBOutTransferResult')
+@Experimental() // untriaged
+@Native("USBOutTransferResult")
+abstract class _USBOutTransferResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _USBOutTransferResult._() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -46587,6 +45963,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Shadows on top of the parent's currentTarget. */
   EventTarget _currentTarget;
 
+  final InputDeviceCapabilities sourceCapabilities;
+
   /**
    * The value we want to use for this object's dispatch. Created here so it is
    * only invoked once.
@@ -46740,7 +46118,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
   void _initUIEvent(
       String type, bool canBubble, bool cancelable, Window view, int detail) {
@@ -46820,13 +46197,21 @@ class _WrappedEvent implements Event {
 
   EventTarget get currentTarget => wrapped.currentTarget;
 
+  List<EventTarget> deepPath() {
+    return wrapped.deepPath();
+  }
+
   bool get defaultPrevented => wrapped.defaultPrevented;
 
   int get eventPhase => wrapped.eventPhase;
 
+  bool get isTrusted => wrapped.isTrusted;
+
+  bool get scoped => wrapped.scoped;
+
   EventTarget get target => wrapped.target;
 
-  int get timeStamp => wrapped.timeStamp;
+  double get timeStamp => wrapped.timeStamp;
 
   String get type => wrapped.type;
 

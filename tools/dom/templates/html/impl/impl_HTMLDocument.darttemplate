@@ -45,7 +45,7 @@ $if DART2JS
   static bool get supportsCssCanvasContext =>
       JS('bool', '!!(document.getCSSCanvasContext)');
 $else
-  static bool get supportsCssCanvasContext => true;
+  static bool get supportsCssCanvasContext => false;
 $endif
 
 
@@ -75,7 +75,11 @@ $endif
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
-    return _getCssCanvasContext(contextId, name, width, height);
+$if DART2JS
+      if (HtmlDocument.supportsCssCanvasContext)
+        return JS('CanvasRenderingContext', '#.getCSSCanvasContext(#, #, #, #)', this, contextId, name, width, height);
+$endif
+      throw new UnsupportedError("Not supported");
   }
 
   @DomName('Document.head')

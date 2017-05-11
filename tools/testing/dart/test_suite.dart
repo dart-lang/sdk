@@ -1208,6 +1208,8 @@ class StandardTestSuite extends TestSuite {
         if (configuration['system'] == 'linux' &&
             configuration['runtime'] == 'drt') {
           contentShellOptions.add('--disable-gpu');
+          // TODO(terry): Roll 50 need this in conjection with disable-gpu.
+          contentShellOptions.add('--disable-gpu-early-init');
         }
         if (compiler == 'none') {
           dartFlags.add('--ignore-unrecognized-flags');

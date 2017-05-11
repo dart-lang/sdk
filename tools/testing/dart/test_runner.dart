@@ -2105,6 +2105,10 @@ class RunningProcess {
       environment.remove(excludedEnvironmentVariable);
     }
 
+    // TODO(terry): Needed for roll 50?
+    environment["GLIBCPP_FORCE_NEW"] = "1";
+    environment["GLIBCXX_FORCE_NEW"] = "1";
+
     return environment;
   }
 }

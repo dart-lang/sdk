@@ -419,8 +419,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.version')
   @DocsEditable()
-  Object get version =>
-      (_blink.BlinkIDBDatabase.instance.version_Getter_(this));
+  int get version => _blink.BlinkIDBDatabase.instance.version_Getter_(this);
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
@@ -1258,7 +1257,7 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.error')
   @DocsEditable()
-  DomError get error => _blink.BlinkIDBRequest.instance.error_Getter_(this);
+  DomException get error => _blink.BlinkIDBRequest.instance.error_Getter_(this);
 
   @DomName('IDBRequest.readyState')
   @DocsEditable()
@@ -1374,7 +1373,8 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.error')
   @DocsEditable()
-  DomError get error => _blink.BlinkIDBTransaction.instance.error_Getter_(this);
+  DomException get error =>
+      _blink.BlinkIDBTransaction.instance.error_Getter_(this);
 
   @DomName('IDBTransaction.mode')
   @DocsEditable()

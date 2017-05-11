@@ -9,22 +9,18 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   factory $CLASSNAME(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
-
-$if DART2JS
     var options = {
       'canBubble' : canBubble,
       'cancelable' : cancelable,
       'oldURL': oldUrl,
       'newURL': newUrl,
     };
+$if DART2JS
     return JS('HashChangeEvent', 'new HashChangeEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
 $else
-    // TODO(alanknight): This is required while we're on Dartium 39, but will need
-    // to look like dart2js with later versions when initHashChange is removed.
-    var event = document._createEvent("HashChangeEvent");
-    event._initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
-    return event;
+    return _blink.BlinkHashChangeEvent.instance
+        .constructorCallback_2_(type, convertDartToNative_Dictionary(options));
 $endif
   }
 

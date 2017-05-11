@@ -63,6 +63,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Shadows on top of the parent's currentTarget. */
   EventTarget _currentTarget;
 
+  final InputDeviceCapabilities sourceCapabilities;
+
   /**
    * The value we want to use for this object's dispatch. Created here so it is
    * only invoked once.
@@ -216,7 +218,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
   void _initUIEvent(
       String type, bool canBubble, bool cancelable, Window view, int detail) {
