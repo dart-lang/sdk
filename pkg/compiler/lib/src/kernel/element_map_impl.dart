@@ -1323,3 +1323,53 @@ class WorldDeconstructionForTesting {
         mixedInType.classNode, mixedInType.typeArguments);
   }
 }
+
+class KernelNativeMemberResolver extends NativeMemberResolverBase {
+  final KernelToElementMapImpl elementMap;
+  final NativeBasicData nativeBasicData;
+  final NativeDataBuilder nativeDataBuilder;
+
+  KernelNativeMemberResolver(
+      this.elementMap, this.nativeBasicData, this.nativeDataBuilder);
+
+  @override
+  ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
+
+  @override
+  CommonElements get commonElements => elementMap.commonElements;
+
+  @override
+  native.NativeBehavior computeNativeFieldStoreBehavior(KField field) {
+    ir.Field node = elementMap._memberList[field.memberIndex].node;
+    return elementMap.getNativeBehaviorForFieldStore(node);
+  }
+
+  @override
+  native.NativeBehavior computeNativeFieldLoadBehavior(KField field,
+      {bool isJsInterop}) {
+    ir.Field node = elementMap._memberList[field.memberIndex].node;
+    return elementMap.getNativeBehaviorForFieldLoad(node,
+        isJsInterop: isJsInterop);
+  }
+
+  @override
+  native.NativeBehavior computeNativeMethodBehavior(KFunction function,
+      {bool isJsInterop}) {
+    ir.Member node = elementMap._memberList[function.memberIndex].node;
+    return elementMap.getNativeBehaviorForMethod(node,
+        isJsInterop: isJsInterop);
+  }
+
+  @override
+  bool isNativeMethod(KFunction function) {
+    ir.Member node = elementMap._memberList[function.memberIndex].node;
+    return node.isExternal &&
+        !elementMap.isForeignLibrary(node.enclosingLibrary);
+  }
+
+  @override
+  bool isJsInteropMember(MemberEntity element) {
+    // TODO(johnniwinther): Compute this.
+    return false;
+  }
+}

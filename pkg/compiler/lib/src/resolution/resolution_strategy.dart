@@ -127,6 +127,8 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer) {
     return new ResolutionWorkItemBuilder(_compiler.resolution);
   }

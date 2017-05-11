@@ -878,8 +878,8 @@ class JavaScriptBackend {
             _nativeDataBuilder,
             interceptorDataBuilder,
             const OpenWorldStrategy()),
-        compiler.frontEndStrategy
-            .createResolutionWorkItemBuilder(impactTransformer));
+        compiler.frontEndStrategy.createResolutionWorkItemBuilder(
+            nativeBasicData, _nativeDataBuilder, impactTransformer));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.

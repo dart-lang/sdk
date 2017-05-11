@@ -22,6 +22,8 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
+import 'package:compiler/src/js_backend/native_data.dart';
+import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/class_set.dart';
@@ -107,7 +109,8 @@ Future checkModels(Uri entryPoint,
     checkClosedWorlds(
         compilerNormal.resolutionWorldBuilder.closedWorldForTesting,
         compilerDeserialized.resolutionWorldBuilder.closedWorldForTesting,
-        areElementsEquivalent,
+        // Serialized native data include non-live members.
+        allowExtra: true,
         verbose: verbose);
     checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
   });
@@ -172,8 +175,9 @@ void checkResolutionEnqueuers(
 }
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
-    bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false}) {
+    {TestStrategy strategy: const TestStrategy(),
+    bool allowExtra: false,
+    bool verbose: false}) {
   if (verbose) {
     print(closedWorld1.dump());
     print(closedWorld2.dump());
@@ -185,8 +189,112 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
           .getClassHierarchyNode(closedWorld1.commonElements.objectClass),
       closedWorld2
           .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
-      elementEquivalence,
+      strategy.elementEquivalence,
       verbose: verbose);
+
+  checkNativeData(closedWorld1.nativeData, closedWorld2.nativeData,
+      strategy: strategy, allowExtra: allowExtra, verbose: verbose);
+  checkInterceptorData(closedWorld1.interceptorData,
+      closedWorld2.interceptorData, strategy.elementEquivalence,
+      verbose: verbose);
+}
+
+void checkNativeData(NativeDataImpl data1, NativeDataImpl data2,
+    {TestStrategy strategy: const TestStrategy(),
+    bool allowExtra: false,
+    bool verbose: false}) {
+  checkMapEquivalence(data1, data2, 'nativeMemberName', data1.nativeMemberName,
+      data2.nativeMemberName, strategy.elementEquivalence, equality,
+      allowExtra: allowExtra);
+
+  checkMapEquivalence(
+      data1,
+      data2,
+      'nativeMethodBehavior',
+      data1.nativeMethodBehavior,
+      data2.nativeMethodBehavior,
+      strategy.elementEquivalence,
+      (a, b) => testNativeBehavior(a, b, strategy: strategy),
+      allowExtra: allowExtra);
+
+  checkMapEquivalence(
+      data1,
+      data2,
+      'nativeFieldLoadBehavior',
+      data1.nativeFieldLoadBehavior,
+      data2.nativeFieldLoadBehavior,
+      strategy.elementEquivalence,
+      (a, b) => testNativeBehavior(a, b, strategy: strategy),
+      allowExtra: allowExtra);
+
+  checkMapEquivalence(
+      data1,
+      data2,
+      'nativeFieldStoreBehavior',
+      data1.nativeFieldStoreBehavior,
+      data2.nativeFieldStoreBehavior,
+      strategy.elementEquivalence,
+      (a, b) => testNativeBehavior(a, b, strategy: strategy),
+      allowExtra: allowExtra);
+
+  checkMapEquivalence(
+      data1,
+      data2,
+      'jsInteropLibraryNames',
+      data1.jsInteropLibraryNames,
+      data2.jsInteropLibraryNames,
+      strategy.elementEquivalence,
+      equality);
+
+  checkSetEquivalence(
+      data1,
+      data2,
+      'anonymousJsInteropClasses',
+      data1.anonymousJsInteropClasses,
+      data2.anonymousJsInteropClasses,
+      strategy.elementEquivalence);
+
+  checkMapEquivalence(
+      data1,
+      data2,
+      'jsInteropClassNames',
+      data1.jsInteropClassNames,
+      data2.jsInteropClassNames,
+      strategy.elementEquivalence,
+      equality);
+
+  checkMapEquivalence(
+      data1,
+      data2,
+      'jsInteropMemberNames',
+      data1.jsInteropMemberNames,
+      data2.jsInteropMemberNames,
+      strategy.elementEquivalence,
+      equality);
+}
+
+void checkInterceptorData(InterceptorDataImpl data1, InterceptorDataImpl data2,
+    bool elementEquivalence(Entity a, Entity b),
+    {bool verbose: false}) {
+  checkMapEquivalence(
+      data1,
+      data2,
+      'interceptedElements',
+      data1.interceptedElementsForTesting,
+      data2.interceptedElementsForTesting,
+      equality,
+      (a, b) => areSetsEquivalent(a, b, elementEquivalence));
+
+  checkSetEquivalence(data1, data2, 'interceptedClasses',
+      data1.interceptedClasses, data2.interceptedClasses, elementEquivalence);
+
+  checkSetEquivalence(
+      data1,
+      data2,
+      'classesMixedIntoInterceptedClasses',
+      data1.classesMixedIntoInterceptedClassesForTesting,
+      data2.classesMixedIntoInterceptedClassesForTesting,
+      elementEquivalence);
 }
 
 void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,

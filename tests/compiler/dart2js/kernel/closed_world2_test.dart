@@ -175,8 +175,8 @@ Future<ResultKind> mainInternal(List<String> args,
     return equivalence.typeEquivalence(unalias(a), b);
   }, elementFilter: elementFilter, verbose: arguments.verbose);
 
-  checkClosedWorlds(closedWorld1, closedWorld2, equivalence.entityEquivalence,
-      verbose: arguments.verbose);
+  checkClosedWorlds(closedWorld1, closedWorld2,
+      strategy: equivalence.defaultStrategy, verbose: arguments.verbose);
 
   return ResultKind.success;
 }

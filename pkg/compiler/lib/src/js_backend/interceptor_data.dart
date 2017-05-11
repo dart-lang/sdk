@@ -204,6 +204,12 @@ class InterceptorDataImpl implements InterceptorData {
 
   Iterable<ClassEntity> get interceptedClasses => _interceptedClasses;
 
+  Map<String, Set<MemberEntity>> get interceptedElementsForTesting =>
+      _interceptedElements;
+
+  Set<ClassEntity> get classesMixedIntoInterceptedClassesForTesting =>
+      _classesMixedIntoInterceptedClasses;
+
   bool mayGenerateInstanceofCheck(DartType type, ClosedWorld closedWorld) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.

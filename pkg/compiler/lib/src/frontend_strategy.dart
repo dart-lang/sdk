@@ -67,6 +67,8 @@ abstract class FrontEndStrategy {
   /// Creates the [WorkItemBuilder] corresponding to how a resolved model for
   /// a single member is obtained in this strategy.
   WorkItemBuilder createResolutionWorkItemBuilder(
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer);
 
   /// Computes the main function from [mainLibrary] adding additional world

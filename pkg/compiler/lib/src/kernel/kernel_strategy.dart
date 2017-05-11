@@ -117,32 +117,43 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer) {
-    return new KernelWorkItemBuilder(elementMap, impactTransformer);
+    return new KernelWorkItemBuilder(
+        elementMap, nativeBasicData, nativeDataBuilder, impactTransformer);
   }
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
+  final NativeMemberResolver _nativeMemberResolver;
 
-  KernelWorkItemBuilder(this._elementMap, this._impactTransformer);
+  KernelWorkItemBuilder(this._elementMap, NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder, this._impactTransformer)
+      : _nativeMemberResolver = new KernelNativeMemberResolver(
+            _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(_elementMap, _impactTransformer, entity);
+    return new KernelWorkItem(
+        _elementMap, _impactTransformer, _nativeMemberResolver, entity);
   }
 }
 
 class KernelWorkItem implements ResolutionWorkItem {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
+  final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
 
-  KernelWorkItem(this._elementMap, this._impactTransformer, this.element);
+  KernelWorkItem(this._elementMap, this._impactTransformer,
+      this._nativeMemberResolver, this.element);
 
   @override
   WorldImpact run() {
+    _nativeMemberResolver.resolveNativeMember(element);
     ResolutionImpact impact = _elementMap.computeWorldImpact(element);
     return _impactTransformer.transformResolutionImpact(impact);
   }

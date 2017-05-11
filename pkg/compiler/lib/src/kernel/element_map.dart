@@ -83,13 +83,15 @@ abstract class KernelToElementMap {
   bool isForeignLibrary(ir.Library node);
 
   /// Computes the native behavior for reading the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field);
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
   native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
   /// Computes the native behavior for calling [procedure].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure);
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+      {bool isJsInterop});
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
@@ -417,13 +419,13 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      {bool isJsInterop}) {
     DartType type = getDartType(field.type);
     List<ConstantValue> metadata = getMetadata(field.annotations);
-    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
     return nativeBehaviorBuilder.buildFieldLoadBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
-        isJsInterop: false);
+        isJsInterop: isJsInterop);
   }
 
   /// Computes the native behavior for writing to the native [field].
@@ -435,13 +437,13 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
 
   /// Computes the native behavior for calling [procedure].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+      {bool isJsInterop}) {
     DartType type = getFunctionType(procedure.function);
     List<ConstantValue> metadata = getMetadata(procedure.annotations);
-    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
-        isJsInterop: false);
+        isJsInterop: isJsInterop);
   }
 }
 

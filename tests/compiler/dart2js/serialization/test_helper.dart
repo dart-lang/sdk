@@ -228,17 +228,18 @@ bool checkSetEquivalence(var object1, var object2, String property,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkMapEquivalence(var object1, var object2, String property, Map map1,
-    Map map2, bool sameKey(a, b), bool sameValue(a, b)) {
+    Map map2, bool sameKey(a, b), bool sameValue(a, b),
+    {bool allowExtra: false}) {
   List<List> common = <List>[];
   List unfound = [];
-  Set remaining = computeSetDifference(map1.keys, map2.keys, common, unfound,
+  Set extra = computeSetDifference(map1.keys, map2.keys, common, unfound,
       sameElement: sameKey);
-  if (unfound.isNotEmpty || remaining.isNotEmpty) {
+  if (unfound.isNotEmpty || (!allowExtra && extra.isNotEmpty)) {
     String message =
         "Map key mismatch for `$property` on $object1 vs $object2: \n"
         "Common:\n ${common.join('\n ')}\n"
         "Unfound:\n ${unfound.join('\n ')}\n"
-        "Extra: \n ${remaining.join('\n ')}";
+        "Extra: \n ${extra.join('\n ')}";
     throw message;
   }
   for (List pair in common) {

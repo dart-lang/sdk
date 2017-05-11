@@ -117,8 +117,8 @@ main(List<String> args) {
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: elementFilter, verbose: arguments.verbose);
-    checkClosedWorlds(compiler.resolutionWorldBuilder.closedWorldForTesting,
-        closedWorld, areElementsEquivalent,
+    checkClosedWorlds(
+        compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);
   });
 }

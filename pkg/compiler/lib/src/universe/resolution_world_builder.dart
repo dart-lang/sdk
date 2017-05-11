@@ -938,13 +938,12 @@ abstract class KernelResolutionWorldBuilderBase
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
     _closed = true;
-    // TODO(johnniwinther): Implement this.
     return _closedWorldCache = new KernelClosedWorld(
         commonElements: _commonElements,
+        nativeData: _nativeDataBuilder.close(),
+        interceptorData: _interceptorDataBuilder.close(),
         // TODO(johnniwinther): Compute these.
         constantSystem: null,
-        nativeData: _nativeDataBuilder.close(),
-        interceptorData: null,
         backendUsage: null,
         resolutionWorldBuilder: this,
         functionSet: _allFunctions.close(),

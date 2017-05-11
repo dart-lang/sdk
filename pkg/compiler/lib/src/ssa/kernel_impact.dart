@@ -123,8 +123,9 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      impactBuilder.registerNativeData(
-          elementAdapter.getNativeBehaviorForFieldLoad(field));
+      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
       impactBuilder.registerNativeData(
           elementAdapter.getNativeBehaviorForFieldStore(field));
     }
@@ -163,8 +164,9 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      impactBuilder.registerNativeData(
-          elementAdapter.getNativeBehaviorForMethod(procedure));
+      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForMethod(procedure, isJsInterop: false));
     }
     return impactBuilder;
   }
