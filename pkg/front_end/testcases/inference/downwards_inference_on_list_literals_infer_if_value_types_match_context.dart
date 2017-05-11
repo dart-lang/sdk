@@ -30,7 +30,7 @@ abstract class C {
         /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
     assertDOf(
         /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
-    /*@promotedType=none*/ assertEOf(
+    assertEOf(
         /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
   }
 }
@@ -46,7 +46,7 @@ abstract class G<T> {
         /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
     this.assertDOf(
         /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
-    /*@promotedType=none*/ assertEOf(
+    assertEOf(
         /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
   }
 }
@@ -56,7 +56,7 @@ AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => null;
 
 main() {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
-  /*@promotedType=none*/ assertAOf(
+  assertAOf(
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
   assertBOf(
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
@@ -68,14 +68,14 @@ main() {
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
 
   C c;
-  /*@promotedType=none*/ c.assertAOf(
+  c.assertAOf(
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
-  /*@promotedType=none*/ c.assertDOf(
+  c.assertDOf(
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
 
   G<int> g;
-  /*@promotedType=none*/ g.assertAOf(
+  g.assertAOf(
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
-  /*@promotedType=none*/ g.assertDOf(
+  g.assertDOf(
       /*@typeArgs=<DartType>(DartType) -> void*/ [_isInt, _isString]);
 }

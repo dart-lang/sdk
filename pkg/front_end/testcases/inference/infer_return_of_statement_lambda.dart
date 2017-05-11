@@ -11,5 +11,5 @@ List<String> strings() {
           /*@returnType=List<String>*/ (/*@type=dynamic*/ i) {
     return <String>[];
   });
-  return /*@promotedType=none*/ stuff. /*@target=Iterable::toList*/ toList();
+  return stuff. /*@target=Iterable::toList*/ toList();
 }

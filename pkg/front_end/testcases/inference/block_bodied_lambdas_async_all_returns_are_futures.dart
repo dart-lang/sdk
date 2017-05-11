@@ -16,6 +16,6 @@ main() {
       return new Future<double>.value(2.0);
     }
   };
-  Future<num> g = /*@promotedType=none*/ f();
-  Future<int> h = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ f();
+  Future<num> g = f();
+  Future<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }

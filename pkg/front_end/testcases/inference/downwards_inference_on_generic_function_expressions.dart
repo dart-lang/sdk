@@ -30,7 +30,7 @@ void main() {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
     v = /*@returnType=String*/ <T>(/*@type=int*/ x) {
-      return /*error:RETURN_OF_INVALID_TYPE*/ /*@promotedType=none*/ x;
+      return /*error:RETURN_OF_INVALID_TYPE*/ x;
     };
   }
   {
@@ -56,17 +56,16 @@ void main() {
     String int2String<T>(int x) => null;
     String string2String<T>(String x) => null;
     var /*@type=(int) -> int*/ x = int2int;
-    x = /*@returnType=int*/ <T>(/*@type=int*/ x) => /*@promotedType=none*/ x;
-    x = /*@returnType=int*/ <
-        T>(/*@type=int*/ x) => /*@promotedType=none*/ x /*@target=num::+*/ + 1;
+    x = /*@returnType=int*/ <T>(/*@type=int*/ x) => x;
+    x = /*@returnType=int*/ <T>(/*@type=int*/ x) => x /*@target=num::+*/ + 1;
     var /*@type=(int) -> String*/ y = int2String;
     y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <
             T>(/*@type=int*/ x) =>
-        /*@promotedType=none*/ x;
+        x;
     y = /*@returnType=String*/ <
-        T>(/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ /*@promotedType=none*/ x.substring(3);
+        T>(/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ x.substring(3);
     var /*@type=(String) -> String*/ z = string2String;
-    z = /*@returnType=String*/ <T>(/*@type=String*/ x) => /*@promotedType=none*/ x
-        . /*@target=String::substring*/ substring(3);
+    z = /*@returnType=String*/ <T>(/*@type=String*/ x) =>
+        x. /*@target=String::substring*/ substring(3);
   }
 }

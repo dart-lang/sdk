@@ -17,13 +17,13 @@ class Frame {
 
 main() {
   List<Trace> traces = /*@typeArgs=Trace*/ [];
-  var /*@type=int*/ longest = /*@promotedType=none*/ traces
-      . /*@typeArgs=int*/ /*@target=List::map*/ map(
+  var /*@type=int*/ longest =
+      traces. /*@typeArgs=int*/ /*@target=List::map*/ map(
           /*@returnType=int*/ (/*@type=Trace*/ trace) {
-    return /*@promotedType=none*/ trace.frames
+    return trace.frames
         . /*@typeArgs=int*/ /*@target=List::map*/ map(
             /*@returnType=int*/ (/*@type=Frame*/ frame) =>
-                /*@promotedType=none*/ frame.location.length)
+                frame.location.length)
         . /*@typeArgs=int*/ /*@target=Iterable::fold*/ fold(0, math.max);
   }). /*@typeArgs=int*/ /*@target=Iterable::fold*/ fold(0, math.max);
 }

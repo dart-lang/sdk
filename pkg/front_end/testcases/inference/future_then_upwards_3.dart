@@ -18,7 +18,7 @@ void main() {
   var /*@type=Future<double>*/ f =
       foo(). /*@typeArgs=double*/ /*@target=Future::then*/ then(
           /*@returnType=double*/ (/*@type=dynamic*/ _) => 2.3);
-  Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ /*@promotedType=none*/ f;
+  Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
 
   // The unnecessary cast is to illustrate that we inferred <double> for
   // the generic type args, even though we had a return type context.

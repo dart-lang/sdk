@@ -7,5 +7,5 @@ library test;
 
 main() {
   var /*@type=int*/ a = 0;
-  var /*@type=int*/ b = /*@promotedType=none*/ a;
+  var /*@type=int*/ b = a;
 }

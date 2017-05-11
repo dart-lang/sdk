@@ -7,7 +7,7 @@ library test;
 
 main() {
   num n = null;
-  if (/*@promotedType=none*/ n is int) {
+  if (n is int) {
     var /*@type=int*/ i = /*@promotedType=int*/ n;
   }
 }

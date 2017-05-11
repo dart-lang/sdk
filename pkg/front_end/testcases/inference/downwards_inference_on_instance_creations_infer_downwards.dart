@@ -13,31 +13,27 @@ class A<S, T> {
 }
 
 class B<S, T> extends A<T, S> {
-  B(S y, T x) : super(/*@promotedType=none*/ x, /*@promotedType=none*/ y);
-  B.named(S y, T x)
-      : super.named(/*@promotedType=none*/ x, /*@promotedType=none*/ y);
+  B(S y, T x) : super(x, y);
+  B.named(S y, T x) : super.named(x, y);
 }
 
 class C<S> extends B<S, S> {
-  C(S a) : super(/*@promotedType=none*/ a, /*@promotedType=none*/ a);
-  C.named(S a)
-      : super.named(/*@promotedType=none*/ a, /*@promotedType=none*/ a);
+  C(S a) : super(a, a);
+  C.named(S a) : super.named(a, a);
 }
 
 class D<S, T> extends B<T, int> {
-  D(T a) : super(/*@promotedType=none*/ a, 3);
-  D.named(T a) : super.named(/*@promotedType=none*/ a, 3);
+  D(T a) : super(a, 3);
+  D.named(T a) : super.named(a, 3);
 }
 
 class E<S, T> extends A<C<S>, T> {
-  E(T a) : super(null, /*@promotedType=none*/ a);
+  E(T a) : super(null, a);
 }
 
 class F<S, T> extends A<S, T> {
-  F(S x, T y, {List<S> a, List<T> b})
-      : super(/*@promotedType=none*/ x, /*@promotedType=none*/ y);
-  F.named(S x, T y, [S a, T b])
-      : super(/*@promotedType=none*/ a, /*@promotedType=none*/ b);
+  F(S x, T y, {List<S> a, List<T> b}) : super(x, y);
+  F.named(S x, T y, [S a, T b]) : super(a, b);
 }
 
 void main() {

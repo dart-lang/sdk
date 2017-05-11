@@ -9,15 +9,15 @@ class C<T extends num> {
   T a;
 
   void op(int b) {
-    T r1 = a /*@target=num::+*/ + /*@promotedType=none*/ b;
-    T r2 = a /*@target=num::-*/ - /*@promotedType=none*/ b;
-    T r3 = a /*@target=num::**/ * /*@promotedType=none*/ b;
+    T r1 = a /*@target=num::+*/ + b;
+    T r2 = a /*@target=num::-*/ - b;
+    T r3 = a /*@target=num::**/ * b;
   }
 
   void opEq(int b) {
-    a += /*@promotedType=none*/ b;
-    a -= /*@promotedType=none*/ b;
-    a *= /*@promotedType=none*/ b;
+    a += b;
+    a -= b;
+    a *= b;
   }
 }
 

@@ -12,7 +12,7 @@ main() {
   var /*@type=(Object) -> Null*/ f = /*@returnType=Null*/ (Object x) {
     return null;
   };
-  String y = /*@promotedType=none*/ f(42);
+  String y = f(42);
 
   f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=String*/ (/*@type=Object*/ x) =>
       'hello';

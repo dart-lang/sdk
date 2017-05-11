@@ -7,6 +7,6 @@ library test;
 
 main() {
   List<int> x;
-  var /*@type=List<int>*/ y = /*@promotedType=none*/ x ?? /*@typeArgs=int*/ [];
-  List<int> z = /*@promotedType=none*/ y;
+  var /*@type=List<int>*/ y = x ?? /*@typeArgs=int*/ [];
+  List<int> z = y;
 }

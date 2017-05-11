@@ -6,7 +6,7 @@
 library test;
 
 class Foo<T extends Pattern> {
-  U method<U extends T>(U u) => /*@promotedType=none*/ u;
+  U method<U extends T>(U u) => u;
 }
 
 main() {

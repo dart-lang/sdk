@@ -28,6 +28,6 @@ test2() {
   x2 /*@target=Map::[]=*/ [4.0] = 'u';
   x2 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
   Pattern p = null;
-  x2 /*@target=Map::[]=*/ [2] = /*@promotedType=none*/ p;
+  x2 /*@target=Map::[]=*/ [2] = p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/ x2;
 }

@@ -325,10 +325,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
       if (node.inGetterContext() && !node.inDeclarationContext()) {
         int offset = node.offset;
         DartType type = node.staticType;
-        if (identical(type, elementType)) {
-          _instrumentation.record(uri, offset, 'promotedType',
-              const fasta.InstrumentationValueLiteral('none'));
-        } else {
+        if (!identical(type, elementType)) {
           _instrumentation.record(uri, offset, 'promotedType',
               new _InstrumentationValueForType(type));
         }

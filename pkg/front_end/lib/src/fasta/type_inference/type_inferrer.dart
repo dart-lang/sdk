@@ -570,13 +570,10 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       void setPromotedType(DartType type)) {
     DartType promotedType = typePromoter.computePromotedType(
         typePromotionFact, typePromotionScope, mutatedInClosure);
-    instrumentation?.record(
-        Uri.parse(uri),
-        offset,
-        'promotedType',
-        promotedType != null
-            ? new InstrumentationValueForType(promotedType)
-            : const InstrumentationValueLiteral('none'));
+    if (promotedType != null) {
+      instrumentation?.record(Uri.parse(uri), offset, 'promotedType',
+          new InstrumentationValueForType(promotedType));
+    }
     setPromotedType(promotedType);
     return typeNeeded ? (promotedType ?? declaredOrInferredType) : null;
   }

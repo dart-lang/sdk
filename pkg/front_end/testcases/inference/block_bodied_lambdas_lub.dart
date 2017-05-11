@@ -9,17 +9,15 @@ import 'dart:math' show Random;
 
 test2() {
   List<num> o;
-  var /*@type=Iterable<num>*/ y = /*@promotedType=none*/ o
-      . /*@typeArgs=num*/ /*@target=List::map*/ map(
+  var /*@type=Iterable<num>*/ y =
+      o. /*@typeArgs=num*/ /*@target=List::map*/ map(
           /*@returnType=num*/ (/*@type=num*/ x) {
     if (new Random(). /*@target=dart.math::Random::nextBool*/ nextBool()) {
-      return /*@promotedType=none*/ x
-              . /*@target=num::toInt*/ toInt() /*@target=num::+*/ +
-          1;
+      return x. /*@target=num::toInt*/ toInt() /*@target=num::+*/ + 1;
     } else {
-      return /*@promotedType=none*/ x. /*@target=num::toDouble*/ toDouble();
+      return x. /*@target=num::toDouble*/ toDouble();
     }
   });
-  Iterable<num> w = /*@promotedType=none*/ y;
-  Iterable<int> z = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ y;
+  Iterable<num> w = y;
+  Iterable<int> z = /*info:ASSIGNMENT_CAST*/ y;
 }
