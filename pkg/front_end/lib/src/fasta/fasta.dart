@@ -14,7 +14,7 @@ import 'package:front_end/physical_file_system.dart';
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;
 
-import 'package:kernel/kernel.dart' show Program, Library;
+import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -180,7 +180,7 @@ Future<CompilationResult> parseScript(
           await TranslateUri.parse(PhysicalFileSystem.instance, null, packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
       final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-      dillTarget.read(patchedSdk.resolve('platform.dill'));
+      _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
       final KernelTarget kernelTarget = new KernelTarget(
           PhysicalFileSystem.instance, dillTarget, uriTranslator, strongMode);
       kernelTarget.read(fileName);
@@ -250,8 +250,8 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     TranslateUri uriTranslator = await TranslateUri.parse(
         c.fileSystem, c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = new DillTarget(ticker, uriTranslator)
-      ..read(platform);
+    DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+    _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(PhysicalFileSystem.instance,
         dillTarget, uriTranslator, false, c.uriToSource);
 
@@ -261,6 +261,14 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     await kernelTarget.writeDepsFile(output, depsFile,
         extraDependencies: extraDependencies);
   });
+}
+
+/// Load the [Program] from the given [uri] and append its libraries
+/// to the [dillTarget].
+void _appendDillForUri(DillTarget dillTarget, Uri uri) {
+  var bytes = new File.fromUri(uri).readAsBytesSync();
+  var platformProgram = loadProgramFromBytes(bytes);
+  dillTarget.loader.appendLibraries(platformProgram);
 }
 
 // TODO(ahe): https://github.com/dart-lang/sdk/issues/28316

@@ -193,9 +193,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
-    dillTarget.loader
-      ..input = Uri.parse("org.dartlang:platform") // Make up a name.
-      ..setProgram(platform);
+    dillTarget.loader.appendLibraries(platform);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
         : new KernelTarget(PhysicalFileSystem.instance, dillTarget,

@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart' show Class;
 
 import 'dill_loader.dart' show DillLoader;
 
-import '../errors.dart' show inputError, internalError;
+import '../errors.dart' show internalError;
 
 import '../target_implementation.dart' show TargetImplementation;
 
@@ -37,11 +37,7 @@ class DillTarget extends TargetImplementation {
   }
 
   void read(Uri uri) {
-    if (loader.input == null) {
-      loader.input = uri;
-    } else {
-      inputError(uri, -1, "Can only read one dill file.");
-    }
+    internalError("Unsupported operation.");
   }
 
   Future<Null> writeProgram(Uri uri) {
@@ -49,7 +45,7 @@ class DillTarget extends TargetImplementation {
   }
 
   Future<Null> writeOutline(Uri uri) async {
-    if (loader.input == null) return null;
+    if (loader.program == null) return null;
     await loader.buildOutlines();
     isLoaded = true;
     return null;

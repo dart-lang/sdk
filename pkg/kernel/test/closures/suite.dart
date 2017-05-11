@@ -93,9 +93,7 @@ class FastaCompile
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
-    dillTarget.loader
-      ..input = Uri.parse("org.dartlang:platform") // Make up a name.
-      ..setProgram(platform);
+    dillTarget.loader.appendLibraries(platform);
     KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
         dillTarget, context.uriTranslator, context.strongMode);
 
