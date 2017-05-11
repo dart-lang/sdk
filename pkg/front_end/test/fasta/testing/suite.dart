@@ -82,11 +82,14 @@ class FastaContext extends ChainContext {
   final TranslateUri uriTranslator;
   final List<Step> steps;
   final Uri vm;
+  Uri sdk;
+  Uri platformUri;
+  Uri outlineUri;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
 
-  Future<Program> platform;
+  Future<Program> outline;
 
   FastaContext(
       this.vm,
@@ -114,10 +117,18 @@ class FastaContext extends ChainContext {
     }
   }
 
-  Future<Program> loadPlatform() {
-    return platform ??= new Future<Program>(() async {
-      Uri sdk = await computePatchedSdk();
-      return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
+  Future ensurePlatformUris() async {
+    if (sdk == null) {
+      sdk = await computePatchedSdk();
+      platformUri = sdk.resolve('platform.dill');
+      outlineUri = sdk.resolve('outline.dill');
+    }
+  }
+
+  Future<Program> loadPlatformOutline() {
+    return outline ??= new Future<Program>(() async {
+      await ensurePlatformUris();
+      return loadProgramFromBinary(outlineUri.toFilePath());
     });
   }
 
@@ -160,8 +171,10 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      process = await StdioProcess
-          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
+      await context.ensurePlatformUris();
+      var platformDill = context.platformUri.toFilePath();
+      var args = ['--platform=$platformDill', generated.path, "Hello, World!"];
+      process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {
       generated.parent.delete(recursive: true);
@@ -190,10 +203,10 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
-    Program platform = await context.loadPlatform();
+    Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
-    dillTarget.loader.appendLibraries(platform);
+    dillTarget.loader.appendLibraries(platformOutline);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
         : new KernelTarget(PhysicalFileSystem.instance, dillTarget,

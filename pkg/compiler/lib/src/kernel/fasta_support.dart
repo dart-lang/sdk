@@ -34,8 +34,9 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 
 /// Generates a platform.dill file containing the compiled Kernel IR of the
 /// dart2js SDK.
-Future compilePlatform(Uri patchedSdk, Uri output, {Uri packages}) async {
-  Uri deps = Uri.base.resolveUri(new Uri.file("${output.toFilePath()}.d"));
+Future compilePlatform(Uri patchedSdk, Uri fullOutput,
+    {Uri outlineOutput, Uri packages}) async {
+  Uri deps = Uri.base.resolveUri(new Uri.file("${fullOutput.toFilePath()}.d"));
   TranslateUri uriTranslator = await TranslateUri.parse(
       PhysicalFileSystem.instance, patchedSdk, packages);
   var ticker = new Ticker(isVerbose: false);
@@ -45,11 +46,11 @@ Future compilePlatform(Uri patchedSdk, Uri output, {Uri packages}) async {
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.writeOutline(null);
-  await kernelTarget.writeOutline(output);
+  await kernelTarget.writeOutline(outlineOutput);
 
   if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output);
-  await kernelTarget.writeDepsFile(output, deps);
+  await kernelTarget.writeProgram(fullOutput);
+  await kernelTarget.writeDepsFile(fullOutput, deps);
 }
 
 /// Extends the internal fasta [CompileTask] to use a dart2js-aware [DillTarget]

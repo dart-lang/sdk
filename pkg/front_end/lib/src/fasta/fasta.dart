@@ -222,15 +222,16 @@ Future<CompilationResult> parseScript(
   }
 }
 
-Future compilePlatform(Uri patchedSdk, Uri output,
-    {Uri packages, bool verbose: false}) async {
+Future compilePlatform(Uri patchedSdk, Uri fullOutput,
+    {Uri outlineOutput, Uri packages, bool verbose: false}) async {
   Ticker ticker = new Ticker(isVerbose: verbose);
   await CompilerCommandLine.withGlobalOptions("", [""], (CompilerContext c) {
     c.options.options["--packages"] = packages;
     if (verbose) {
       c.options.options["--verbose"] = true;
     }
-    return compilePlatformInternal(c, ticker, patchedSdk, output);
+    return compilePlatformInternal(
+        c, ticker, patchedSdk, fullOutput, outlineOutput);
   });
 }
 

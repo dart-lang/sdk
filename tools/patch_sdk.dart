@@ -104,11 +104,14 @@ Future _main(List<String> argv) async {
   if (forVm) _copyExtraVmLibraries(sdkOut);
 
   Uri platform = outDirUri.resolve('platform.dill.tmp');
+  Uri outline = outDirUri.resolve('outline.dill');
   Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
   if (forVm) {
-    await fasta.compilePlatform(outDirUri, platform, packages: packages);
+    await fasta.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
   } else {
-    await dart2js.compilePlatform(outDirUri, platform, packages: packages);
+    await dart2js.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
   }
 
   Uri platformFinalLocation = outDirUri.resolve('platform.dill');
