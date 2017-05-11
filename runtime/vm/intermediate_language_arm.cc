@@ -6363,7 +6363,7 @@ int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
   } else {
     // For class ID ranges use a subtract followed by an unsigned
     // comparison to check both ends of the ranges with one comparison.
-    __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
+    __ AddImmediate(biased_cid, bias - cid_start);
     bias = cid_start;
     __ CompareImmediate(biased_cid, cid_end - cid_start);
     no_match = HI;  // Unsigned higher.
@@ -7108,7 +7108,7 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Offset is relative to entry pc.
   const intptr_t entry_to_pc_offset = __ CodeSize() + Instr::kPCReadOffset;
   __ mov(target_address_reg, Operand(PC));
-  __ AddImmediate(target_address_reg, target_address_reg, -entry_to_pc_offset);
+  __ AddImmediate(target_address_reg, -entry_to_pc_offset);
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   Operand offset_opr = (offset()->definition()->representation() == kTagged)

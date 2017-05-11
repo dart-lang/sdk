@@ -200,7 +200,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const int64_t val = Smi::RawValue(true_value) - Smi::RawValue(false_value);
     __ AndImmediate(result, result, val);
     if (false_value != 0) {
-      __ AddImmediate(result, result, Smi::RawValue(false_value));
+      __ AddImmediate(result, Smi::RawValue(false_value));
     }
   }
 }
@@ -872,8 +872,7 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   const Register result = locs()->out(0).reg();
 
   __ ldr(result, Address(THR, Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(result, result,
-                  Symbols::kNullCharCodeSymbolOffset * kWordSize);
+  __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ SmiUntag(TMP, char_code);  // Untag to use scaled address mode.
   __ ldr(result, Address(result, TMP, UXTX, Address::Scaled));
 }
@@ -2175,7 +2174,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ CompareRegisters(R8, R3);
       __ b(&end_loop, CS);
       __ str(R6, Address(R8));
-      __ AddImmediate(R8, R8, kWordSize);
+      __ AddImmediate(R8, kWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);
     }
@@ -2423,7 +2422,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // generated code size.
   __ LoadObject(R3, type_arguments());
   __ LoadFieldFromOffset(R3, R3, TypeArguments::instantiations_offset());
-  __ AddImmediate(R3, R3, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R3, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
   Label loop, next, found, slow_case;
@@ -2435,7 +2434,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ CompareRegisters(TMP, function_type_args_reg);
   __ b(&found, EQ);
   __ Bind(&next);
-  __ AddImmediate(R3, R3, StubCode::kInstantiationSizeInWords * kWordSize);
+  __ AddImmediate(R3, StubCode::kInstantiationSizeInWords * kWordSize);
   __ CompareImmediate(R2, Smi::RawValue(StubCode::kNoInstantiator));
   __ b(&loop, NE);
   __ b(&slow_case);
@@ -5510,7 +5509,7 @@ void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
                                   intptr_t mask,
                                   Label* deopt) {
   Register biased_cid = locs()->temp(0).reg();
-  __ AddImmediate(biased_cid, biased_cid, -min);
+  __ AddImmediate(biased_cid, -min);
   __ CompareImmediate(biased_cid, max - min);
   __ b(deopt, HI);
 
@@ -5539,7 +5538,7 @@ int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
   } else {
     // For class ID ranges use a subtract followed by an unsigned
     // comparison to check both ends of the ranges with one comparison.
-    __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
+    __ AddImmediate(biased_cid, bias - cid_start);
     bias = cid_start;
     __ CompareImmediate(biased_cid, cid_end - cid_start);
     no_match = HI;  // Unsigned higher.
@@ -5934,7 +5933,7 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ adr(target_address_reg, Immediate(-entry_offset));
   } else {
     __ adr(target_address_reg, Immediate(0));
-    __ AddImmediate(target_address_reg, target_address_reg, -entry_offset);
+    __ AddImmediate(target_address_reg, -entry_offset);
   }
 
   // Add the offset.

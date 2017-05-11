@@ -1165,6 +1165,10 @@ class Assembler : public ValueObject {
   void BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                  const Object& equivalence);
 
+  void AddImmediate(Register dest, int64_t imm) {
+    AddImmediate(dest, dest, imm);
+  }
+
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,

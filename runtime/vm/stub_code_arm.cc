@@ -479,7 +479,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
     }
   } else {
-    __ AddImmediate(SP, SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
+    __ AddImmediate(SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
   }
 
   __ mov(R0, Operand(SP));  // Pass address of saved registers block.
@@ -845,7 +845,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into R2.
   __ ldr(R2, Address(R2, VMHandles::kOffsetOfRawPtrInHandle));
-  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1337,7 +1337,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
 // R8: points directly to the first ic data array element.
 #if defined(DEBUG)
   // Check that first entry is for Smi/Smi.
@@ -1636,7 +1636,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with entries: target functions and count.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: points directly to the first ic data array element.
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
@@ -2155,7 +2155,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2190,7 +2190,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
