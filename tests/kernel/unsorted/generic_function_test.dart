@@ -18,6 +18,6 @@ bar<R>(int body()) {
   return function();
 }
 
-main(args) {
+main() {
   Expect.isTrue(bar(() => 43) == 43);
 }
