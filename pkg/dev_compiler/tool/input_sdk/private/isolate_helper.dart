@@ -746,6 +746,14 @@ class IsolateNatives {
 
   static String thisScript = computeThisScript();
 
+  /// Returns the base path added to Uri.base to resolve `package:` Uris.
+  ///
+  /// This is used by `Isolate.resolvePackageUri` to load resources. The default
+  /// value is `packages/` but users can override this by using the
+  /// `defaultPackagesBase` hook.
+  static String get packagesBase =>
+      JS('String', r'#.defaultPackagesBase || "packages/"', global);
+
   /// Associates an ID with a native worker object.
   static final Expando<int> workerIds = new Expando<int>();
 
