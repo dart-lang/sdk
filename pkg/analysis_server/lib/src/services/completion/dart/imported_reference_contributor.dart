@@ -48,20 +48,9 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<ImportElement> imports = await request.resolveImports();
+    List<ImportElement> imports = request.libraryElement.imports;
     if (imports == null) {
       return EMPTY_LIST;
-    }
-
-    // If the target is in an expression
-    // then resolve the outermost/entire expression
-    AstNode node = request.target.containingNode;
-    if (node is Expression) {
-      await request.resolveContainingExpression(node);
-
-      // Discard any cached target information
-      // because it may have changed as a result of the resolution
-      node = request.target.containingNode;
     }
 
     this.request = request;

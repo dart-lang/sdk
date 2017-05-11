@@ -181,20 +181,11 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<CompilationUnitElement> libraryUnits = await request.resolveUnits();
+    List<CompilationUnitElement> libraryUnits =
+        request.result.unit.element.library.units;
     if (libraryUnits == null) {
       return EMPTY_LIST;
     }
-
-    AstNode node = request.target.containingNode;
-
-    // If the target is in an expression
-    // then resolve the outermost/entire expression
-    await request.resolveContainingExpression(node);
-
-    // Discard any cached target information
-    // because it may have changed as a result of the resolution
-    node = request.target.containingNode;
 
     OpType optype = (request as DartCompletionRequestImpl).opType;
     LibraryElementSuggestionBuilder visitor =

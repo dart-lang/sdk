@@ -26,9 +26,6 @@ class CombinatorContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    // TODO(scheglov) Not sure why we need this now.
-    await request.resolveImports();
-
     // Build list of suggestions
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);
     if (directive is NamespaceDirective) {

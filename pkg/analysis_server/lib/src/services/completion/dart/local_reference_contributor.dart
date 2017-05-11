@@ -48,16 +48,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
           optype.includeTypeNameSuggestions ||
           optype.includeVoidReturnSuggestions ||
           suggestLocalFields) {
-        // If the target is in an expression
-        // then resolve the outermost/entire expression
-        if (node is Expression) {
-          await request.resolveContainingExpression(node);
-
-          // Discard any cached target information
-          // because it may have changed as a result of the resolution
-          node = request.target.containingNode;
-        }
-
         // Do not suggest local vars within the current expression
         while (node is Expression) {
           node = node.parent;

@@ -75,21 +75,9 @@ part '$testFile';
     });
     request = await performAnalysis(200, requestCompleter);
 
-    // Get the unresolved directives
     var directives = request.target.unit.directives;
 
-    // Assert that the import does not have an export namespace
-    if (!enableNewAnalysisDriver) {
-      Element element = resolutionMap.elementDeclaredByDirective(directives[0]);
-      expect(element?.library?.exportNamespace, isNull);
-    }
-
-    // Resolve directives
-    var importCompleter = new Completer<List<ImportElement>>();
-    request.resolveImports().then((List<ImportElement> elements) {
-      importCompleter.complete(elements);
-    });
-    List<ImportElement> imports = await performAnalysis(200, importCompleter);
+    List<ImportElement> imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {

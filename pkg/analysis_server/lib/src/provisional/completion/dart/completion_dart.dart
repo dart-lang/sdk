@@ -118,44 +118,4 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * will be resolved if they can be resolved.
    */
   CompletionTarget get target;
-
-  /**
-   * Return a [Future] that completes when the element associated with
-   * the given [expression] in the target compilation unit is available.
-   * It may also complete if the expression cannot be resolved
-   * (e.g. unknown identifier, completion aborted, etc).
-   * Any information obtained from [target] prior to calling this method
-   * should be discarded as it may have changed.
-   */
-  Future resolveContainingExpression(AstNode node);
-
-  /**
-   * Return a [Future] that completes when the element associated with
-   * the given [statement] in the target compilation unit is available.
-   * It may also complete if the statement cannot be resolved
-   * (e.g. unknown identifier, completion aborted, etc).
-   * Any information obtained from [target] prior to calling this method
-   * should be discarded as it may have changed.
-   */
-  Future resolveContainingStatement(AstNode node);
-
-  /**
-     * Return a [Future] that completes with a list of [ImportElement]s
-     * for the library in which in which the completion is occurring.
-     * The [Future] may return `null` if the library unit cannot be determined
-     * (e.g. unlinked part file).
-     * Any information obtained from [target] prior to calling this method
-     * should be discarded as it may have changed.
-     */
-  Future<List<ImportElement>> resolveImports();
-
-  /**
-   * Return a [Future] that completes with a list of [CompilationUnitElement]s
-   * comprising the library in which in which the completion is occurring.
-   * The [Future] may return `null` if the library unit cannot be determined
-   * (e.g. unlinked part file).
-   * Any information obtained from [target] prior to calling this method
-   * should be discarded as it may have changed.
-   */
-  Future<List<CompilationUnitElement>> resolveUnits();
 }

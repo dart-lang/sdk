@@ -145,18 +145,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    */
   InterfaceType _objectType;
 
-  /**
-   * A list of resolved [ImportElement]s for the imported libraries
-   * or `null` if not computed.
-   */
-  List<ImportElement> _resolvedImports;
-
-  /**
-   * The resolved [CompilationUnitElement]s comprising the library
-   * or `null` if not computed.
-   */
-  List<CompilationUnitElement> _resolvedUnits;
-
   OpType _opType;
 
   final CompletionRequest _originalRequest;
@@ -242,121 +230,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    */
   void checkAborted() {
     _originalRequest.checkAborted();
-  }
-
-  @override
-  Future resolveContainingExpression(AstNode node) async {
-    // TODO When an Expression can be resolved instead of just an entire unit,
-    // this will be revisited with code searching up the parent until an
-    // Expression is found.
-
-    return resolveContainingStatement(node);
-  }
-
-  @override
-  Future resolveContainingStatement(AstNode node) async {
-    // TODO When a Statement can be resolved instead of just an entire unit,
-    // this will be revisited with code searching up the parent until a
-    // Statement is found.
-
-    checkAborted();
-
-    // Return immediately if the expression has already been resolved
-    if (node is Expression && node.propagatedType != null) {
-      return;
-    }
-
-    // Gracefully degrade if librarySource cannot be determined
-    if (librarySource == null) {
-      return;
-    }
-
-    // Resolve declarations in the target unit
-    // TODO(danrubel) resolve the expression or containing method
-    // rather than the entire compilation unit
-    CompilationUnit resolvedUnit;
-    if (result != null) {
-      resolvedUnit = result.unit;
-    } else {
-      resolvedUnit = await _computeAsync(
-          this,
-          new LibrarySpecificUnit(librarySource, source),
-          RESOLVED_UNIT,
-          performance,
-          'resolve expression');
-    }
-
-    // TODO(danrubel) determine if the underlying source has been modified
-    // in a way that invalidates the completion request
-    // and return null
-
-    // Gracefully degrade if unit cannot be resolved
-    if (resolvedUnit == null) {
-      return;
-    }
-
-    // Recompute the target for the newly resolved unit
-    _updateTargets(resolvedUnit);
-  }
-
-  @override
-  Future<List<ImportElement>> resolveImports() async {
-    checkAborted();
-    if (_resolvedImports != null) {
-      return _resolvedImports;
-    }
-    LibraryElement libElem = libraryElement;
-    if (libElem == null) {
-      return null;
-    }
-    if (result != null) {
-      _resolvedImports = libElem.imports;
-    } else {
-      _resolvedImports = <ImportElement>[];
-      for (ImportElement importElem in libElem.imports) {
-        if (importElem.importedLibrary?.exportNamespace == null) {
-          await _computeAsync(this, importElem.importedLibrary.source,
-              LIBRARY_ELEMENT4, performance, 'resolve imported library');
-          checkAborted();
-        }
-        _resolvedImports.add(importElem);
-      }
-    }
-    return _resolvedImports;
-  }
-
-  @override
-  Future<List<CompilationUnitElement>> resolveUnits() async {
-    checkAborted();
-    if (_resolvedUnits != null) {
-      return _resolvedUnits;
-    }
-    if (result != null) {
-      _resolvedUnits = resolutionMap
-          .elementDeclaredByCompilationUnit(result.unit)
-          .library
-          .units;
-      return _resolvedUnits;
-    }
-    LibraryElement libElem = libraryElement;
-    if (libElem == null) {
-      return null;
-    }
-    _resolvedUnits = <CompilationUnitElement>[];
-    for (CompilationUnitElement unresolvedUnit in libElem.units) {
-      CompilationUnit unit = await _computeAsync(
-          this,
-          new LibrarySpecificUnit(libElem.source, unresolvedUnit.source),
-          RESOLVED_UNIT5,
-          performance,
-          'resolve library unit');
-      checkAborted();
-      CompilationUnitElement resolvedUnit = unit?.element;
-      if (resolvedUnit != null) {
-        _resolvedUnits.add(resolvedUnit);
-      }
-    }
-    return _resolvedUnits;
   }
 
   /**
@@ -447,20 +320,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request,
         performance,
         request.ideOptions);
-
-    // Resolve the expression in which the completion occurs
-    // to properly determine if identifiers should be suggested
-    // rather than invocations.
-    if (dartRequest.target.maybeFunctionalArgument()) {
-      AstNode node = dartRequest.target.containingNode.parent;
-      if (node is Expression) {
-        const FUNCTIONAL_ARG_TAG = 'resolve expression for isFunctionalArg';
-        performance.logStartTime(FUNCTIONAL_ARG_TAG);
-        await dartRequest.resolveContainingExpression(node);
-        performance.logElapseTime(FUNCTIONAL_ARG_TAG);
-        dartRequest.checkAborted();
-      }
-    }
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;

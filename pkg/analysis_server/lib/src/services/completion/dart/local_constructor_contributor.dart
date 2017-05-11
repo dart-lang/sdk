@@ -37,16 +37,8 @@ class LocalConstructorContributor extends DartCompletionContributor {
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     if (!optype.isPrefixed) {
       if (optype.includeConstructorSuggestions) {
-        AstNode node = request.target.containingNode;
-
-        await request.resolveContainingStatement(node);
-
-        // Discard any cached target information
-        // because it may have changed as a result of the resolution
-        node = request.target.containingNode;
-
-        _Visitor visitor = new _Visitor(request, suggestions, optype);
-        visitor.visit(node);
+        new _Visitor(request, suggestions, optype)
+            .visit(request.target.containingNode);
       }
     }
     return suggestions;

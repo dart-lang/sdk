@@ -23,24 +23,18 @@ class LibraryMemberContributor extends DartCompletionContributor {
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
     // Determine if the target looks like a library prefix
-    if (request.dotTarget is! SimpleIdentifier) {
-      return EMPTY_LIST;
-    }
-
-    // Resolve the expression and the containing library
-    await request.resolveContainingExpression(request.dotTarget);
-
-    // Recompute the target since resolution may have changed it
     Expression targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       Element elem = targetId.bestElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
-        List<ImportElement> imports = await request.resolveImports();
         LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library or directives
         // could not be determined (e.g. detached part file or source change)
-        if (containingLibrary != null && imports != null) {
-          return _buildSuggestions(request, elem, containingLibrary, imports);
+        if (containingLibrary != null) {
+          List<ImportElement> imports = containingLibrary.imports;
+          if (imports != null) {
+            return _buildSuggestions(request, elem, containingLibrary, imports);
+          }
         }
       }
     }
