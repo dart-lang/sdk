@@ -2563,8 +2563,8 @@ testAsyncReturn(MockCompiler compiler) {
     check("""
     Future<int> foo() async => new Future<Future<int>>.value();
     """),
-    check("void foo() async => 0;", MessageKind.RETURN_VALUE_IN_VOID),
-    check("void foo() async => new Future.value();",
+    check("void foo() async { return 0; }", MessageKind.RETURN_VALUE_IN_VOID),
+    check("void foo() async { return new Future.value(); }",
         MessageKind.RETURN_VALUE_IN_VOID),
     check("int foo() async => 0;", NOT_ASSIGNABLE),
     check("int foo() async => new Future<int>.value();", NOT_ASSIGNABLE),
