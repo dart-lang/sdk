@@ -543,7 +543,7 @@ class ConstructorInvocationApplication extends ApplicationContinuation {
     }
 
     var cont = new InstanceFieldsApplication(
-        newObject, constructor, expressionContinuation);
+        newObject, constructor, ctrEnv, expressionContinuation);
     var fieldExpressions = _createInstanceInitializers(constructor);
 
     return new ExpressionListConfiguration(fieldExpressions, ctrEnv, cont);
@@ -611,17 +611,62 @@ class RedirectingConstructorInvocationApplication
 class InstanceFieldsApplication extends ApplicationContinuation {
   final ObjectValue newObject;
   final Constructor constructor;
+  final Environment environment;
   final ExpressionContinuation expressionContinuation;
 
   final Class _currentClass;
 
-  InstanceFieldsApplication(
-      this.newObject, this.constructor, this.expressionContinuation)
+  InstanceFieldsApplication(this.newObject, this.constructor, this.environment,
+      this.expressionContinuation)
       : _currentClass = new Class(constructor.enclosingClass.reference);
 
   Configuration call(List<InterpreterValue> fieldValues) {
     for (FieldInitializerValue current in fieldValues.reversed) {
       _currentClass.setProperty(newObject, current.field, current.value);
+    }
+
+    var es = _createInitializerListExpressions(constructor.initializers);
+    List<Initializer> initializers = constructor.initializers.skip(es.length);
+
+    ApplicationContinuation cont = new InitializerListApplication(newObject,
+        constructor, environment, initializers, expressionContinuation);
+
+    return new ExpressionListConfiguration(es, environment, cont);
+  }
+}
+
+/// Represents the application continuation applied on the list of evaluated
+/// initializer expressions preceding a super call in the list.
+class InitializerListApplication extends ApplicationContinuation {
+  final ObjectValue newObject;
+  final Constructor constructor;
+  final Environment environment;
+  final List<Initializer> remainingInitializers;
+  final ExpressionContinuation expressionContinuation;
+
+  final Class _currentClass;
+
+  InitializerListApplication(this.newObject, this.constructor, this.environment,
+      this.remainingInitializers, this.expressionContinuation)
+      : _currentClass = new Class(constructor.enclosingClass.reference);
+
+  Configuration call(List<InterpreterValue> values) {
+    var initEnv = new Environment(environment);
+
+    // Apply values from evaluation to object or/and initializer environment.
+    for (InterpreterValue current in values.reversed) {
+      if (current is LocalInitializerValue) {
+        initEnv.expand(current.variable, current.value);
+      } else if (current is FieldInitializerValue) {
+        _currentClass.setProperty(newObject, current.field, current.value);
+      } else {
+        throw '${current.runtimeType} in InitializerListApplication';
+      }
+    }
+
+    if (remainingInitializers.isNotEmpty) {
+      assert(remainingInitializers.first is SuperInitializer);
+      // todo: Evaluate arguments for super invocation.
     }
 
     return new ContinuationConfiguration(expressionContinuation, newObject);
@@ -1328,4 +1373,22 @@ List<InterpreterExpression> _createArgumentExpressionList(
   args.addAll(namedFormals.values);
 
   return args;
+}
+
+List<InterpreterExpression> _createInitializerListExpressions(
+    List<Initializer> initializers) {
+  List<InterpreterExpression> es = <InterpreterExpression>[];
+
+  for (Initializer current in initializers) {
+    if (current is FieldInitializer) {
+      es.add(new FieldInitializerExpression(current.field, current.value));
+    } else if (current is LocalInitializer) {
+      es.add(new LocalInitializerExpression(current.variable));
+    } else {
+      assert(current is SuperInitializer);
+      return es;
+    }
+  }
+
+  return es;
 }
