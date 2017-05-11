@@ -142,49 +142,40 @@ bool Value::Equals(Value* other) const {
 }
 
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
+static int OrderById(CidRange* const* a, CidRange* const* b) {
+  // Negative if 'a' should sort before 'b'.
+  ASSERT((*a)->cid_start == (*a)->cid_end);
+  ASSERT((*b)->cid_start == (*b)->cid_end);
+  return (*a)->cid_start - (*b)->cid_start;
 }
 
 
-CheckClassInstr::CheckClassInstr(Value* value,
-                                 intptr_t deopt_id,
-                                 const ICData& unary_checks,
-                                 TokenPosition token_pos)
-    : TemplateInstruction(deopt_id),
-      unary_checks_(unary_checks),
-      cids_(unary_checks.NumberOfChecks()),
-      licm_hoisted_(false),
-      is_dense_switch_(IsDenseCidRange(unary_checks)),
-      token_pos_(token_pos) {
-  ASSERT(unary_checks.IsZoneHandle());
-  // Expected useful check data.
-  ASSERT(!unary_checks_.IsNull());
-  const intptr_t number_of_checks = unary_checks_.NumberOfChecks();
-  ASSERT(number_of_checks > 0);
-  ASSERT(unary_checks_.NumArgsTested() == 1);
-  SetInputAt(0, value);
-  // Otherwise use CheckSmiInstr.
-  ASSERT(number_of_checks != 1 ||
-         (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
-  for (intptr_t i = 0; i < number_of_checks; ++i) {
-    cids_.Add(unary_checks.GetReceiverClassIdAt(i));
-  }
-  cids_.Sort(LowestFirst);
+static int OrderByFrequency(CidRange* const* a, CidRange* const* b) {
+  const TargetInfo* target_info_a = static_cast<const TargetInfo*>(*a);
+  const TargetInfo* target_info_b = static_cast<const TargetInfo*>(*b);
+  // Negative if 'a' should sort before 'b'.
+  return target_info_b->count - target_info_a->count;
 }
 
 
-bool CheckClassInstr::AttributesEqual(Instruction* other) const {
-  CheckClassInstr* other_check = other->AsCheckClass();
-  ASSERT(other_check != NULL);
-  const intptr_t number_of_checks = unary_checks_.NumberOfChecks();
-  if (number_of_checks != other_check->unary_checks().NumberOfChecks()) {
-    return false;
+bool Cids::ContainsExternalizableCids() const {
+  for (intptr_t i = 0; i < length(); i++) {
+    for (intptr_t cid = cid_ranges_[i]->cid_start;
+         cid <= cid_ranges_[i]->cid_end; cid++) {
+      if (Field::IsExternalizableCid(cid)) {
+        return true;
+      }
+    }
   }
-  for (intptr_t i = 0; i < number_of_checks; ++i) {
-    // TODO(fschneider): Make sure ic_data are sorted to hit more cases.
-    if (unary_checks().GetReceiverClassIdAt(i) !=
-        other_check->unary_checks().GetReceiverClassIdAt(i)) {
+  return false;
+}
+
+
+bool Cids::Equals(const Cids& other) const {
+  if (length() != other.length()) return false;
+  for (int i = 0; i < length(); i++) {
+    if (cid_ranges_[i]->cid_start != other.cid_ranges_[i]->cid_start ||
+        cid_ranges_[i]->cid_end != other.cid_ranges_[i]->cid_end) {
       return false;
     }
   }
@@ -192,23 +183,140 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-static bool AreAllChecksImmutable(const ICData& checks) {
-  const intptr_t len = checks.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (checks.IsUsedAt(i)) {
-      if (Field::IsExternalizableCid(checks.GetReceiverClassIdAt(i))) {
-        return false;
-      }
+intptr_t Cids::ComputeLowestCid() const {
+  intptr_t min = kIntptrMax;
+  for (intptr_t i = 0; i < cid_ranges_.length(); ++i) {
+    min = Utils::Minimum(min, cid_ranges_[i]->cid_start);
+  }
+  return min;
+}
+
+
+intptr_t Cids::ComputeHighestCid() const {
+  intptr_t max = -1;
+  for (intptr_t i = 0; i < cid_ranges_.length(); ++i) {
+    max = Utils::Maximum(max, cid_ranges_[i]->cid_end);
+  }
+  return max;
+}
+
+
+bool Cids::HasClassId(intptr_t cid) const {
+  for (int i = 0; i < length(); i++) {
+    if (cid_ranges_[i]->cid_start <= cid && cid <= cid_ranges_[i]->cid_end) {
+      return true;
     }
   }
-  return true;
+  return false;
+}
+
+
+Cids* Cids::CreateMonomorphic(Zone* zone, intptr_t cid) {
+  Cids* cids = new (zone) Cids(zone);
+  cids->Add(new (zone) CidRange(cid, cid));
+  return cids;
+}
+
+
+Cids* Cids::Create(Zone* zone, const ICData& ic_data, int argument_number) {
+  Cids* cids = new (zone) Cids(zone);
+  cids->CreateHelper(zone, ic_data, argument_number,
+                     /* include_targets = */ false);
+  cids->Sort(OrderById);
+
+  // Merge adjacent class id ranges.
+  int dest = 0;
+  for (int src = 1; src < cids->length(); src++) {
+    if (cids->cid_ranges_[dest]->cid_end + 1 >=
+        cids->cid_ranges_[src]->cid_start) {
+      cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+    } else {
+      dest++;
+      if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+    }
+  }
+  cids->SetLength(dest + 1);
+
+  return cids;
+}
+
+
+void Cids::CreateHelper(Zone* zone,
+                        const ICData& ic_data,
+                        int argument_number,
+                        bool include_targets) {
+  ASSERT(argument_number < ic_data.NumArgsTested());
+
+  if (ic_data.NumberOfChecks() == 0) return;
+
+  Function& dummy = Function::Handle(zone);
+
+  bool check_one_arg = ic_data.NumArgsTested() == 1;
+
+  int checks = ic_data.NumberOfChecks();
+  for (int i = 0; i < checks; i++) {
+    if (ic_data.GetCountAt(i) == 0) continue;
+    intptr_t id = 0;
+    if (check_one_arg) {
+      ic_data.GetOneClassCheckAt(i, &id, &dummy);
+    } else {
+      GrowableArray<intptr_t> arg_ids;
+      ic_data.GetCheckAt(i, &arg_ids, &dummy);
+      id = arg_ids[argument_number];
+    }
+    if (include_targets) {
+      Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
+      cid_ranges_.Add(new (zone)
+                          TargetInfo(id, id, &function, ic_data.GetCountAt(i)));
+    } else {
+      cid_ranges_.Add(new (zone) CidRange(id, id));
+    }
+  }
+}
+
+
+bool Cids::IsMonomorphic() const {
+  if (length() != 1) return false;
+  return cid_ranges_[0]->cid_start == cid_ranges_[0]->cid_end;
+}
+
+
+intptr_t Cids::MonomorphicReceiverCid() const {
+  ASSERT(IsMonomorphic());
+  return cid_ranges_[0]->cid_start;
+}
+
+
+CheckClassInstr::CheckClassInstr(Value* value,
+                                 intptr_t deopt_id,
+                                 const Cids& cids,
+                                 TokenPosition token_pos)
+    : TemplateInstruction(deopt_id),
+      cids_(cids),
+      licm_hoisted_(false),
+      is_bit_test_(IsCompactCidRange(cids)),
+      token_pos_(token_pos) {
+  // Expected useful check data.
+  const intptr_t number_of_checks = cids.length();
+  ASSERT(number_of_checks > 0);
+  SetInputAt(0, value);
+  // Otherwise use CheckSmiInstr.
+  ASSERT(number_of_checks != 1 || cids[0].cid_start != cids[0].cid_end ||
+         cids[0].cid_start != kSmiCid);
+}
+
+
+bool CheckClassInstr::AttributesEqual(Instruction* other) const {
+  CheckClassInstr* other_check = other->AsCheckClass();
+  ASSERT(other_check != NULL);
+  return cids().Equals(other_check->cids());
 }
 
 
 EffectSet CheckClassInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  return !AreAllChecksImmutable(unary_checks()) ? EffectSet::Externalization()
-                                                : EffectSet::None();
+  return cids_.ContainsExternalizableCids() ? EffectSet::Externalization()
+                                            : EffectSet::None();
 }
 
 
@@ -219,12 +327,12 @@ EffectSet CheckClassIdInstr::Dependencies() const {
 }
 
 
-bool CheckClassInstr::DeoptIfNull() const {
-  if (!unary_checks().NumberOfChecksIs(1)) {
+bool CheckClassInstr::IsDeoptIfNull() const {
+  if (!cids().IsMonomorphic()) {
     return false;
   }
   CompileType* in_type = value()->Type();
-  const intptr_t cid = unary_checks().GetCidAt(0);
+  const intptr_t cid = cids().MonomorphicReceiverCid();
   // Performance check: use CheckSmiInstr instead.
   ASSERT(cid != kSmiCid);
   return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
@@ -234,51 +342,52 @@ bool CheckClassInstr::DeoptIfNull() const {
 // Null object is a singleton of null-class (except for some sentinel,
 // transitional temporaries). Instead of checking against the null class only
 // we can check against null instance instead.
-bool CheckClassInstr::DeoptIfNotNull() const {
-  if (!unary_checks().NumberOfChecksIs(1)) {
+bool CheckClassInstr::IsDeoptIfNotNull() const {
+  if (!cids().IsMonomorphic()) {
     return false;
   }
-  const intptr_t cid = unary_checks().GetCidAt(0);
+  const intptr_t cid = cids().MonomorphicReceiverCid();
   return cid == kNullCid;
 }
 
 
-bool CheckClassInstr::IsDenseCidRange(const ICData& unary_checks) {
-  ASSERT(unary_checks.NumArgsTested() == 1);
-  // TODO(fschneider): Support smis in dense cid checks.
-  if (unary_checks.GetReceiverClassIdAt(0) == kSmiCid) return false;
-  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+bool CheckClassInstr::IsCompactCidRange(const Cids& cids) {
+  const intptr_t number_of_checks = cids.length();
+  // If there are only two checks, the extra register pressure needed for the
+  // dense-cid-range code is not justified.
   if (number_of_checks <= 2) return false;
-  intptr_t max = 0;
-  intptr_t min = kIntptrMax;
-  for (intptr_t i = 0; i < number_of_checks; ++i) {
-    intptr_t cid = unary_checks.GetCidAt(i);
-    if (cid < min) min = cid;
-    if (cid > max) max = cid;
-  }
+
+  // TODO(fschneider): Support smis in dense cid checks.
+  if (cids.HasClassId(kSmiCid)) return false;
+
+  intptr_t min = cids.ComputeLowestCid();
+  intptr_t max = cids.ComputeHighestCid();
   return (max - min) < kBitsPerWord;
 }
 
 
-bool CheckClassInstr::IsDenseSwitch() const {
-  return is_dense_switch_;
+bool CheckClassInstr::IsBitTest() const {
+  return is_bit_test_;
 }
 
 
 intptr_t CheckClassInstr::ComputeCidMask() const {
-  ASSERT(IsDenseSwitch());
+  ASSERT(IsBitTest());
+  intptr_t min = cids_.ComputeLowestCid();
   intptr_t mask = 0;
   for (intptr_t i = 0; i < cids_.length(); ++i) {
-    mask |= static_cast<intptr_t>(1) << (cids_[i] - cids_[0]);
+    intptr_t cid_start = cids_[i].cid_start;
+    intptr_t cid_end = cids_[i].cid_end;
+    intptr_t run;
+    uintptr_t range = 1ul + cid_end - cid_start;
+    if (range >= kBitsPerWord) {
+      run = -1;
+    } else {
+      run = (1 << range) - 1;
+    }
+    mask |= run << (cid_start - min);
   }
   return mask;
-}
-
-
-bool CheckClassInstr::IsDenseMask(intptr_t mask) {
-  // Returns true if the mask is a continuous sequence of ones in its binary
-  // representation (i.e. no holes)
-  return mask == -1 || Utils::IsPowerOfTwo(mask + 1);
 }
 
 
@@ -2572,7 +2681,7 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  return unary_checks().HasReceiverClassId(value_cid) ? NULL : this;
+  return cids().HasClassId(value_cid) ? NULL : this;
 }
 
 
@@ -2741,46 +2850,21 @@ bool UnboxInstr::CanConvertSmi() const {
 }
 
 
-static int OrderById(const CidRangeTarget* a, const CidRangeTarget* b) {
-  // Negative if 'a' should sort before 'b'.
-  ASSERT(a->cid_start == a->cid_end);
-  ASSERT(b->cid_start == b->cid_end);
-  return a->cid_start - b->cid_start;
-}
-
-
-static int OrderByFrequency(const CidRangeTarget* a, const CidRangeTarget* b) {
-  // Negative if 'a' should sort before 'b'.
-  return b->count - a->count;
-}
-
-
 CallTargets* CallTargets::Create(Zone* zone, const ICData& ic_data) {
-  CallTargets* targets = new (zone) CallTargets();
-  if (ic_data.NumberOfChecks() == 0) return targets;
-
-  Function& dummy = Function::Handle(zone);
-
-  bool check_one_arg = ic_data.NumArgsTested() == 1;
-
-  int checks = ic_data.NumberOfChecks();
-  for (int i = 0; i < checks; i++) {
-    intptr_t id = 0;
-    if (check_one_arg) {
-      ic_data.GetOneClassCheckAt(i, &id, &dummy);
-    } else {
-      // The API works for multi dispatch ICs that check more than one
-      // argument, but we know we will only check one arg here, so only the 0th
-      // element of id will be used.
-      GrowableArray<intptr_t> arg_ids;
-      ic_data.GetCheckAt(i, &arg_ids, &dummy);
-      id = arg_ids[0];
-    }
-    Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
-    targets->Add(CidRangeTarget(id, id, &function, ic_data.GetCountAt(i)));
-  }
-
+  CallTargets* targets = new (zone) CallTargets(zone);
+  targets->CreateHelper(zone, ic_data, /* argument_number = */ 0,
+                        /* include_targets = */ true);
   targets->Sort(OrderById);
+  targets->MergeIntoRanges();
+  return targets;
+}
+
+
+CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
+  CallTargets& targets = *new (zone) CallTargets(zone);
+  targets.CreateHelper(zone, ic_data, /* argument_number = */ 0,
+                       /* include_targets = */ true);
+  targets.Sort(OrderById);
 
   Array& args_desc_array = Array::Handle(zone, ic_data.arguments_descriptor());
   ArgumentsDescriptor args_desc(args_desc_array);
@@ -2788,19 +2872,17 @@ CallTargets* CallTargets::Create(Zone* zone, const ICData& ic_data) {
 
   Function& fn = Function::Handle(zone);
 
-  intptr_t length = targets->length();
+  intptr_t length = targets.length();
 
   // Spread class-ids to preceding classes where a lookup yields the same
   // method.
   for (int idx = 0; idx < length; idx++) {
-    int lower_limit_cid = (idx == 0) ? -1 : targets->At(idx - 1).cid_end;
-    const Function& target = *targets->At(idx).target;
-    for (int i = targets->At(idx).cid_start - 1; i > lower_limit_cid; i--) {
+    int lower_limit_cid = (idx == 0) ? -1 : targets[idx - 1].cid_end;
+    const Function& target = *targets.TargetAt(idx)->target;
+    for (int i = targets[idx].cid_start - 1; i > lower_limit_cid; i--) {
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
           fn.raw() == target.raw()) {
-        CidRangeTarget t = targets->At(idx);
-        t.cid_start = i;
-        (*targets)[idx] = t;
+        targets[idx].cid_start = i;
       } else {
         break;
       }
@@ -2810,32 +2892,40 @@ CallTargets* CallTargets::Create(Zone* zone, const ICData& ic_data) {
   // method.
   for (int idx = 0; idx < length; idx++) {
     int upper_limit_cid =
-        (idx == length - 1) ? 1000000000 : targets->At(idx + 1).cid_start;
-    const Function& target = *targets->At(idx).target;
-    for (int i = targets->At(idx).cid_end + 1; i < upper_limit_cid; i++) {
+        (idx == length - 1) ? 1000000000 : targets[idx + 1].cid_start;
+    const Function& target = *targets.TargetAt(idx)->target;
+    for (int i = targets[idx].cid_end + 1; i < upper_limit_cid; i++) {
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
           fn.raw() == target.raw()) {
-        (*targets)[idx].cid_end = i;
+        targets[idx].cid_end = i;
       } else {
         break;
       }
     }
   }
+  targets.MergeIntoRanges();
+  return &targets;
+}
+
+
+void CallTargets::MergeIntoRanges() {
   // Merge adjacent class id ranges.
   int dest = 0;
-  for (int src = 1; src < length; src++) {
-    if (targets->At(dest).cid_end + 1 == targets->At(src).cid_start &&
-        targets->At(dest).target->raw() == targets->At(src).target->raw()) {
-      (*targets)[dest].cid_end = targets->At(src).cid_end;
-      (*targets)[dest].count += targets->At(src).count;
+  for (int src = 1; src < length(); src++) {
+    if (TargetAt(dest)->cid_end + 1 >= TargetAt(src)->cid_start &&
+        TargetAt(dest)->target->raw() == TargetAt(src)->target->raw()) {
+      TargetAt(dest)->cid_end = TargetAt(src)->cid_end;
+      TargetAt(dest)->count += TargetAt(src)->count;
     } else {
       dest++;
-      if (src != dest) (*targets)[dest] = targets->At(src);
+      if (src != dest) {
+        // Use cid_ranges_ instead of TargetAt when updating the pointer.
+        cid_ranges_[dest] = TargetAt(src);
+      }
     }
   }
-  targets->SetLength(dest + 1);
-  targets->Sort(OrderByFrequency);
-  return targets;
+  SetLength(dest + 1);
+  Sort(OrderByFrequency);
 }
 
 
@@ -3277,46 +3367,33 @@ bool CallTargets::HasSingleRecognizedTarget() const {
 bool CallTargets::HasSingleTarget() const {
   ASSERT(length() != 0);
   for (int i = 0; i < length(); i++) {
-    if (cid_ranges_[i].target->raw() != cid_ranges_[0].target->raw())
-      return false;
+    if (TargetAt(i)->target->raw() != TargetAt(0)->target->raw()) return false;
   }
   return true;
 }
 
 
-bool CallTargets::IsMonomorphic() const {
-  if (length() != 1) return false;
-  return cid_ranges_[0].cid_start == cid_ranges_[0].cid_end;
-}
-
-
-intptr_t CallTargets::MonomorphicReceiverCid() const {
-  ASSERT(IsMonomorphic());
-  return cid_ranges_[0].cid_start;
-}
-
-
-Function& CallTargets::FirstTarget() const {
+const Function& CallTargets::FirstTarget() const {
   ASSERT(length() != 0);
-  ASSERT(cid_ranges_[0].target->IsZoneHandle());
-  return *cid_ranges_[0].target;
+  ASSERT(TargetAt(0)->target->IsZoneHandle());
+  return *TargetAt(0)->target;
 }
 
 
-Function& CallTargets::MostPopularTarget() const {
+const Function& CallTargets::MostPopularTarget() const {
   ASSERT(length() != 0);
-  ASSERT(cid_ranges_[0].target->IsZoneHandle());
+  ASSERT(TargetAt(0)->target->IsZoneHandle());
   for (int i = 1; i < length(); i++) {
-    ASSERT(cid_ranges_[i].count <= cid_ranges_[0].count);
+    ASSERT(TargetAt(i)->count <= TargetAt(0)->count);
   }
-  return *cid_ranges_[0].target;
+  return *TargetAt(0)->target;
 }
 
 
 intptr_t CallTargets::AggregateCallCount() const {
   intptr_t sum = 0;
   for (int i = 0; i < length(); i++) {
-    sum += cid_ranges_[i].count;
+    sum += TargetAt(i)->count;
   }
   return sum;
 }
@@ -3327,7 +3404,7 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherOrImplicitAccessorTargets()
   const intptr_t len = targets_.length();
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    target ^= targets_[i].target->raw();
+    target ^= targets_.TargetAt(i)->target->raw();
     if (!target.IsDispatcherOrImplicitAccessor()) {
       return false;
     }
@@ -3371,7 +3448,8 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 
   const intptr_t num_checks = targets.length();
   for (intptr_t i = 0; i < num_checks; i++) {
-    ASSERT(targets[i].target->raw() == targets[0].target->raw());
+    ASSERT(targets.TargetAt(i)->target->raw() ==
+           targets.TargetAt(0)->target->raw());
     const intptr_t start = targets[i].cid_start;
     const intptr_t end = targets[i].cid_end;
     for (intptr_t cid = start; cid <= end; cid++) {
@@ -3551,6 +3629,53 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitDeopt(deopt_id(), deopt_reason_);
 #endif
 }
+
+
+#if !defined(TARGET_ARCH_DBC)
+void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
+                                        licm_hoisted_ ? ICData::kHoisted : 0);
+  if (IsNullCheck()) {
+    EmitNullCheck(compiler, deopt);
+    return;
+  }
+
+  ASSERT(!cids_.IsMonomorphic() || !cids_.HasClassId(kSmiCid));
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Label is_ok;
+
+  __ BranchIfSmi(value, cids_.HasClassId(kSmiCid) ? &is_ok : deopt);
+
+  __ LoadClassId(temp, value);
+
+  if (IsBitTest()) {
+    intptr_t min = cids_.ComputeLowestCid();
+    intptr_t max = cids_.ComputeHighestCid();
+    EmitBitTest(compiler, min, max, ComputeCidMask(), deopt);
+  } else {
+    const intptr_t num_checks = cids_.length();
+    const bool use_near_jump = num_checks < 5;
+    int bias = 0;
+    for (intptr_t i = 0; i < num_checks; i++) {
+      intptr_t cid_start = cids_[i].cid_start;
+      intptr_t cid_end = cids_[i].cid_end;
+      if (cid_start == kSmiCid && cid_end == kSmiCid) {
+        continue;  // We already handled Smi above.
+      }
+      if (cid_start == kSmiCid) cid_start++;
+      if (cid_end == kSmiCid) cid_end--;
+      const bool is_last =
+          (i == num_checks - 1) ||
+          (i == num_checks - 2 && cids_[i + 1].cid_start == kSmiCid &&
+           cids_[i + 1].cid_end == kSmiCid);
+      bias = EmitCheckCid(compiler, bias, cid_start, cid_end, is_last, &is_ok,
+                          deopt, use_near_jump);
+    }
+  }
+  __ Bind(&is_ok);
+}
+#endif
 
 
 Environment* Environment::From(Zone* zone,

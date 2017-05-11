@@ -53,7 +53,8 @@ class AotOptimizer : public FlowGraphVisitor {
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
 
-  bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
+  bool TryReplaceWithIndexedOp(InstanceCallInstr* call,
+                               const ICData* unary_checks);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -78,14 +79,10 @@ class AotOptimizer : public FlowGraphVisitor {
   // environment 'deopt_environment'.  The check is inserted immediately
   // before 'insert_before'.
   void AddCheckClass(Definition* to_check,
-                     const ICData& unary_checks,
+                     const Cids& cids,
                      intptr_t deopt_id,
                      Environment* deopt_environment,
                      Instruction* insert_before);
-  Instruction* GetCheckClass(Definition* to_check,
-                             const ICData& unary_checks,
-                             intptr_t deopt_id,
-                             TokenPosition token_pos);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
@@ -93,10 +90,18 @@ class AotOptimizer : public FlowGraphVisitor {
                    Environment* deopt_environment,
                    Instruction* insert_before);
 
-  // Add a class check for a call's first argument immediately before the
+  // Add a class check for a call's nth argument immediately before the
   // call, using the call's IC data to determine the check, and the call's
   // deopt ID and deoptimization environment if the check fails.
-  void AddReceiverCheck(InstanceCallInstr* call);
+  void AddChecksForArgNr(InstanceCallInstr* call,
+                         Definition* instr,
+                         int argument_number);
+
+  // Convenience version of AddChecksForArgNr that works on the 0th argument
+  // (receiver).
+  void AddReceiverCheck(InstanceCallInstr* call) {
+    AddChecksForArgNr(call, call->ArgumentAt(0), /* arg_number = */ 0);
+  }
 
   void ReplaceCall(Definition* call, Definition* replacement);
 

@@ -206,9 +206,9 @@ static void PrintTargetsHelper(BufferFormatter* f,
     num_checks_to_print = targets.length();
   }
   for (intptr_t i = 0; i < num_checks_to_print; i++) {
-    const CidRangeTarget& range = targets[i];
-    const intptr_t count = range.count;
-    target ^= range.target->raw();
+    const CidRange& range = targets[i];
+    const intptr_t count = targets.TargetAt(i)->count;
+    target ^= targets.TargetAt(i)->target->raw();
     if (i > 0) {
       f->Print(" | ");
     }
@@ -216,12 +216,43 @@ static void PrintTargetsHelper(BufferFormatter* f,
       const Class& cls =
           Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
       f->Print("%s", String::Handle(cls.Name()).ToCString());
-      f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+      f->Print(" cid %" Pd " cnt:%" Pd " trgt:'%s'", range.cid_start, count,
+               target.ToQualifiedCString());
     } else {
-      const Class& cls = Class::Handle(range.target->Owner());
+      const Class& cls = Class::Handle(target.Owner());
       f->Print("cid %" Pd "-%" Pd " %s", range.cid_start, range.cid_end,
                String::Handle(cls.Name()).ToCString());
       f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    }
+  }
+  if (num_checks_to_print < targets.length()) {
+    f->Print("...");
+  }
+  f->Print("]");
+}
+
+
+static void PrintCidsHelper(BufferFormatter* f,
+                            const Cids& targets,
+                            intptr_t num_checks_to_print) {
+  f->Print(" Cids[");
+  f->Print("%" Pd ": ", targets.length());
+  if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
+      (num_checks_to_print > targets.length())) {
+    num_checks_to_print = targets.length();
+  }
+  for (intptr_t i = 0; i < num_checks_to_print; i++) {
+    const CidRange& range = targets[i];
+    if (i > 0) {
+      f->Print(" | ");
+    }
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+    f->Print("%s etc. ", String::Handle(cls.Name()).ToCString());
+    if (range.cid_start == range.cid_end) {
+      f->Print(" cid %" Pd, range.cid_start);
+    } else {
+      f->Print(" cid %" Pd "-%" Pd, range.cid_start, range.cid_end);
     }
   }
   if (num_checks_to_print < targets.length()) {
@@ -1031,11 +1062,7 @@ void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  if (FLAG_display_sorted_ic_data) {
-    PrintICDataSortedHelper(f, unary_checks());
-  } else {
-    PrintICDataHelper(f, unary_checks(), FlowGraphPrinter::kPrintAll);
-  }
+  PrintCidsHelper(f, cids_, FlowGraphPrinter::kPrintAll);
   if (IsNullCheck()) {
     f->Print(" nullcheck");
   }

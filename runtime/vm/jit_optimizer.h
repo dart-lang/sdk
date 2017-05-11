@@ -74,14 +74,10 @@ class JitOptimizer : public FlowGraphVisitor {
   // environment 'deopt_environment'.  The check is inserted immediately
   // before 'insert_before'.
   void AddCheckClass(Definition* to_check,
-                     const ICData& unary_checks,
+                     const Cids& cids,
                      intptr_t deopt_id,
                      Environment* deopt_environment,
                      Instruction* insert_before);
-  Instruction* GetCheckClass(Definition* to_check,
-                             const ICData& unary_checks,
-                             intptr_t deopt_id,
-                             TokenPosition token_pos);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
@@ -89,10 +85,17 @@ class JitOptimizer : public FlowGraphVisitor {
                    Environment* deopt_environment,
                    Instruction* insert_before);
 
-  // Add a class check for a call's first argument immediately before the
+  // Add a class check for a call's nth argument immediately before the
   // call, using the call's IC data to determine the check, and the call's
   // deopt ID and deoptimization environment if the check fails.
-  void AddReceiverCheck(InstanceCallInstr* call);
+  void AddChecksForArgNr(InstanceCallInstr* call,
+                         Definition* instr,
+                         int argument_number);
+
+  // Add a class check for the call's first argument (receiver).
+  void AddReceiverCheck(InstanceCallInstr* call) {
+    AddChecksForArgNr(call, call->ArgumentAt(0), /* argument_number = */ 0);
+  }
 
   void ReplaceCall(Definition* call, Definition* replacement);
 

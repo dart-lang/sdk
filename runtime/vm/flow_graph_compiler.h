@@ -573,11 +573,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  // Returns 'sorted' array in decreasing count order.
-  static void SortICDataByCount(const ICData& ic_data,
-                                GrowableArray<CidRangeTarget>* sorted,
-                                bool drop_smi);
-
   // Use in unoptimized compilation to preserve/reuse ICData.
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
@@ -674,7 +669,7 @@ class FlowGraphCompiler : public ValueObject {
 
   // Returns new class-id bias.
   int EmitTestAndCallCheckCid(Label* next_label,
-                              const CidRangeTarget& target,
+                              const CidRange& range,
                               int bias);
 
 // DBC handles type tests differently from all other architectures due

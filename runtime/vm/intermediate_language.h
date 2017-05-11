@@ -20,6 +20,7 @@ class BitVector;
 class BlockEntryInstr;
 class BoxIntegerInstr;
 class BufferFormatter;
+class CallTargets;
 class CatchBlockEntryInstr;
 class ComparisonInstr;
 class Definition;
@@ -549,42 +550,56 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #endif  // !PRODUCT
 
 
-// Represents a mapping from a range of class-ids to a method for a given
-// selector (method name).  Also can contain an indication of how frequently a
-// given method has been called at a call site.  This information can be
-// harvested from the inline caches (ICs).
-struct CidRangeTarget {
+// Represents a range of class-ids for use in class checks and polymorphic
+// dispatches.
+struct CidRange : public ZoneAllocated {
+  CidRange(const CidRange& o)
+      : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
+  CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
+      : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
   intptr_t cid_start;
   intptr_t cid_end;
-  Function* target;
-  intptr_t count;
-  CidRangeTarget(intptr_t cid_start_arg,
-                 intptr_t cid_end_arg,
-                 Function* target_arg,
-                 intptr_t count_arg)
-      : cid_start(cid_start_arg),
-        cid_end(cid_end_arg),
+};
+
+
+// Together with CidRange, this represents a mapping from a range of class-ids
+// to a method for a given selector (method name).  Also can contain an
+// indication of how frequently a given method has been called at a call site.
+// This information can be harvested from the inline caches (ICs).
+struct TargetInfo : public CidRange {
+  TargetInfo(intptr_t cid_start_arg,
+             intptr_t cid_end_arg,
+             const Function* target_arg,
+             intptr_t count_arg)
+      : CidRange(cid_start_arg, cid_end_arg),
         target(target_arg),
         count(count_arg) {
     ASSERT(target->IsZoneHandle());
   }
+  const Function* target;
+  intptr_t count;
 };
 
 
-class CallTargets : public ZoneAllocated {
+// A set of class-ids, arranged in ranges. Used for the CheckClass
+// and PolymorphicInstanceCall instructions.
+class Cids : public ZoneAllocated {
  public:
-  // Creates the off-heap CallTargets object that reflects the contents
-  // of the on-VM-heap IC data. Also expands the class-ids to neighbouring
-  // classes that inherit the same method.
-  static CallTargets* Create(Zone* zone, const ICData& ic_data);
+  explicit Cids(Zone* zone) : zone_(zone) {}
+  // Creates the off-heap Cids object that reflects the contents
+  // of the on-VM-heap IC data.
+  static Cids* Create(Zone* zone, const ICData& ic_data, int argument_number);
+  static Cids* CreateMonomorphic(Zone* zone, intptr_t cid);
 
-  void Add(const CidRangeTarget& target) { cid_ranges_.Add(target); }
+  bool Equals(const Cids& other) const;
 
-  CidRangeTarget& operator[](intptr_t index) const {
-    return cid_ranges_[index];
-  }
+  bool HasClassId(intptr_t cid) const;
 
-  CidRangeTarget At(int index) { return cid_ranges_.At(index); }
+  void Add(CidRange* target) { cid_ranges_.Add(target); }
+
+  CidRange& operator[](intptr_t index) const { return *cid_ranges_[index]; }
+
+  CidRange* At(int index) const { return cid_ranges_[index]; }
 
   intptr_t length() const { return cid_ranges_.length(); }
 
@@ -592,21 +607,51 @@ class CallTargets : public ZoneAllocated {
 
   bool is_empty() const { return cid_ranges_.is_empty(); }
 
-  void Sort(int compare(const CidRangeTarget* a, const CidRangeTarget* b)) {
+  void Sort(int compare(CidRange* const* a, CidRange* const* b)) {
     cid_ranges_.Sort(compare);
   }
+
+  bool IsMonomorphic() const;
+  intptr_t MonomorphicReceiverCid() const;
+  bool ContainsExternalizableCids() const;
+  intptr_t ComputeLowestCid() const;
+  intptr_t ComputeHighestCid() const;
+
+ protected:
+  void CreateHelper(Zone* zone,
+                    const ICData& ic_data,
+                    int argument_number,
+                    bool include_targets);
+  GrowableArray<CidRange*> cid_ranges_;
+  Zone* zone_;
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Cids);
+};
+
+
+class CallTargets : public Cids {
+ public:
+  explicit CallTargets(Zone* zone) : Cids(zone) {}
+  // Creates the off-heap CallTargets object that reflects the contents
+  // of the on-VM-heap IC data.
+  static CallTargets* Create(Zone* zone, const ICData& ic_data);
+
+  // This variant also expands the class-ids to neighbouring classes that
+  // inherit the same method.
+  static CallTargets* CreateAndExpand(Zone* zone, const ICData& ic_data);
+
+  TargetInfo* TargetAt(int i) const { return static_cast<TargetInfo*>(At(i)); }
 
   intptr_t AggregateCallCount() const;
 
   bool HasSingleTarget() const;
   bool HasSingleRecognizedTarget() const;
-  Function& FirstTarget() const;
-  Function& MostPopularTarget() const;
-  bool IsMonomorphic() const;
-  intptr_t MonomorphicReceiverCid() const;
+  const Function& FirstTarget() const;
+  const Function& MostPopularTarget() const;
 
  private:
-  GrowableArray<CidRangeTarget> cid_ranges_;
+  void MergeIntoRanges();
 };
 
 
@@ -7591,7 +7636,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
  public:
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
-                  const ICData& unary_checks,
+                  const Cids& cids,
                   TokenPosition token_pos);
 
   DECLARE_INSTRUCTION(CheckClass)
@@ -7602,21 +7647,18 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   Value* value() const { return inputs_[0]; }
 
-  const ICData& unary_checks() const { return unary_checks_; }
-
-  const GrowableArray<intptr_t>& cids() const { return cids_; }
+  const Cids& cids() const { return cids_; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  bool IsNullCheck() const { return DeoptIfNull() || DeoptIfNotNull(); }
+  bool IsNullCheck() const { return IsDeoptIfNull() || IsDeoptIfNotNull(); }
 
-  bool DeoptIfNull() const;
-  bool DeoptIfNotNull() const;
+  bool IsDeoptIfNull() const;
+  bool IsDeoptIfNotNull() const;
 
-  bool IsDenseSwitch() const;
-  static bool IsDenseCidRange(const ICData& unary_checks);
+  bool IsBitTest() const;
+  static bool IsCompactCidRange(const Cids& cids);
   intptr_t ComputeCidMask() const;
-  static bool IsDenseMask(intptr_t mask);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const;
@@ -7629,11 +7671,25 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const ICData& unary_checks_;
-  GrowableArray<intptr_t> cids_;  // Sorted, lowest first.
+  const Cids& cids_;
   bool licm_hoisted_;
-  bool is_dense_switch_;
+  bool is_bit_test_;
   const TokenPosition token_pos_;
+
+  int EmitCheckCid(FlowGraphCompiler* compiler,
+                   int bias,
+                   intptr_t cid_start,
+                   intptr_t cid_end,
+                   bool is_last,
+                   Label* is_ok,
+                   Label* deopt,
+                   bool use_near_jump);
+  void EmitBitTest(FlowGraphCompiler* compiler,
+                   intptr_t min,
+                   intptr_t max,
+                   intptr_t mask,
+                   Label* deopt);
+  void EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt);
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };

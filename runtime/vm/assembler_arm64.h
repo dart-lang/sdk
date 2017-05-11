@@ -1144,6 +1144,11 @@ class Assembler : public ValueObject {
     b(label, NE);
   }
 
+  void BranchIfSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, EQ);
+  }
+
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);

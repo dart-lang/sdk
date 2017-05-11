@@ -1634,56 +1634,6 @@ ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
 }
 
 
-template <typename T>
-static int HighestCountFirst(const T* a, const T* b) {
-  // Negative if 'a' should sort before 'b'.
-  return b->count - a->count;
-}
-
-
-static int LowestCidFirst(const CidRangeTarget* a, const CidRangeTarget* b) {
-  // Negative if 'a' should sort before 'b'.
-  return a->cid_start - b->cid_start;
-}
-
-
-// Returns 'sorted' array in decreasing count order.
-// The expected number of elements to sort is less than 10.
-void FlowGraphCompiler::SortICDataByCount(
-    const ICData& ic_data,
-    GrowableArray<CidRangeTarget>* sorted_arg,
-    bool drop_smi) {
-  GrowableArray<CidRangeTarget>& sorted = *sorted_arg;
-  ASSERT(ic_data.NumArgsTested() == 1);
-  const intptr_t len = ic_data.NumberOfChecks();
-  sorted.Clear();
-
-  for (int i = 0; i < len; i++) {
-    intptr_t receiver_cid = ic_data.GetReceiverClassIdAt(i);
-    if (drop_smi && (receiver_cid == kSmiCid)) continue;
-    Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    sorted.Add(CidRangeTarget(receiver_cid, receiver_cid, &target,
-                              ic_data.GetCountAt(i)));
-  }
-  sorted.Sort(LowestCidFirst);
-  int dest = 0;
-
-  // Merge adjacent ranges.
-  for (int src = 0; src < sorted.length(); src++) {
-    if (src > 0 && sorted[src - 1].cid_end + 1 == sorted[src].cid_start &&
-        sorted[src - 1].target->raw() == sorted[src].target->raw()) {
-      sorted[dest - 1].cid_end++;
-      sorted[dest - 1].count += sorted[dest].count;
-    } else {
-      sorted[dest++] = sorted[src];
-    }
-  }
-
-  sorted.SetLength(dest);
-  sorted.Sort(HighestCountFirst);
-}
-
-
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t deopt_id,
     const String& target_name,
@@ -1803,8 +1753,8 @@ const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
   Function& fn = Function::ZoneHandle(zone);
   if (!LookupMethodFor(cid, selector, args_desc, &fn)) return NULL;
 
-  CallTargets* targets = new (zone) CallTargets();
-  targets->Add(CidRangeTarget(cid, cid, &fn, /* count = */ 1));
+  CallTargets* targets = new (zone) CallTargets(zone);
+  targets->Add(new (zone) TargetInfo(cid, cid, &fn, /* count = */ 1));
 
   return targets;
 }
@@ -1931,7 +1881,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
 
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
-    const Function& function = *targets[smi_case].target;
+    const Function& function = *targets.TargetAt(smi_case)->target;
     GenerateStaticDartCall(deopt_id, token_index,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
@@ -1964,7 +1914,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   for (intptr_t i = 0; i < length; i++) {
     if (i == which_case_to_skip) continue;
     const bool is_last_check = (i == last_check);
-    const int count = targets[i].count;
+    const int count = targets.TargetAt(i)->count;
     if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
       // This case is hit too rarely to be worth writing class-id checks inline
       // for.  Note that we can't do this for calls with only one target because
@@ -1980,7 +1930,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
-    const Function& function = *targets[i].target;
+    const Function& function = *targets.TargetAt(i)->target;
     GenerateStaticDartCall(deopt_id, token_index,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);

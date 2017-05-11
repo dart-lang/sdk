@@ -468,6 +468,19 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
 }
 
 
+Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
+                                         const Cids& cids,
+                                         intptr_t deopt_id,
+                                         TokenPosition token_pos) {
+  if (cids.IsMonomorphic() && cids.MonomorphicReceiverCid() == kSmiCid) {
+    return new (zone())
+        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, token_pos);
+  }
+  return new (zone())
+      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
+}
+
+
 bool FlowGraph::VerifyUseLists() {
   // Verify the initial definitions.
   for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {

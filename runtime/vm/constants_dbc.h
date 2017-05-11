@@ -590,7 +590,7 @@ namespace dart {
 //    If the class id in FP[rA] matches the class id D, then skip the
 //    following instruction.
 //
-//  - CheckDenseSwitch rA, D
+//  - CheckBitTest rA, D
 //
 //    Skips the next 3 instructions if the object at FP[rA] is a valid class for
 //    a dense switch with low cid encoded in the following Nop instruction, and
@@ -841,7 +841,7 @@ namespace dart {
   V(CheckSmi,                              A, reg, ___, ___) \
   V(CheckEitherNonSmi,                   A_D, reg, reg, ___) \
   V(CheckClassId,                        A_D, reg, num, ___) \
-  V(CheckDenseSwitch,                    A_D, reg, num, ___) \
+  V(CheckBitTest,                        A_D, reg, num, ___) \
   V(CheckCids,                         A_B_C, reg, num, num) \
   V(CheckCidsByRange,                  A_B_C, reg, num, num) \
   V(CheckStack,                            0, ___, ___, ___) \

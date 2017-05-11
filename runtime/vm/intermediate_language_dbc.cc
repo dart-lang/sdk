@@ -242,18 +242,17 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
   const Array& arguments_descriptor = Array::Handle(ArgumentsDescriptor::New(
       instance_call()->ArgumentCount(), instance_call()->argument_names()));
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
-  const CallTargets& ic_data = targets();
 
   // Push the target onto the stack.
   if (with_checks()) {
-    const intptr_t length = ic_data.length();
+    const intptr_t length = targets_.length();
     if (!Utils::IsUint(8, length)) {
       Unsupported(compiler);
       UNREACHABLE();
     }
     bool using_ranges = false;
     for (intptr_t i = 0; i < length; i++) {
-      if (ic_data[i].cid_start != ic_data[i].cid_end) {
+      if (targets_[i].cid_start != targets_[i].cid_end) {
         using_ranges = true;
         break;
       }
@@ -266,9 +265,9 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
       __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(), length);
     }
     for (intptr_t i = 0; i < length; i++) {
-      const Function& target = *ic_data[i].target;
-      intptr_t cid_start = ic_data[i].cid_start;
-      intptr_t cid_end = ic_data[i].cid_end;
+      const Function& target = *targets_.TargetAt(i)->target;
+      intptr_t cid_start = targets_[i].cid_start;
+      intptr_t cid_end = targets_[i].cid_end;
 
       __ Nop(compiler->ToEmbeddableCid(cid_start, this));
       if (using_ranges) {
@@ -1499,55 +1498,56 @@ EMIT_NATIVE_CODE(CheckClassId, 1) {
 EMIT_NATIVE_CODE(CheckClass, 1) {
   const Register value = locs()->in(0).reg();
   if (IsNullCheck()) {
-    ASSERT(DeoptIfNull() || DeoptIfNotNull());
-    if (DeoptIfNull()) {
+    ASSERT(IsDeoptIfNull() || IsDeoptIfNotNull());
+    if (IsDeoptIfNull()) {
       __ IfEqNull(value);
     } else {
       __ IfNeNull(value);
     }
   } else {
-    ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
-           (unary_checks().NumberOfChecks() > 1));
-    const intptr_t may_be_smi =
-        (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
-    bool is_dense_switch = false;
+    ASSERT(!cids_.IsMonomorphic() || !cids_.HasClassId(kSmiCid));
+    const intptr_t may_be_smi = cids_.HasClassId(kSmiCid) ? 1 : 0;
+    bool is_bit_test = false;
     intptr_t cid_mask = 0;
-    if (IsDenseSwitch()) {
-      ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+    if (IsBitTest()) {
       cid_mask = ComputeCidMask();
-      is_dense_switch = Smi::IsValid(cid_mask);
+      is_bit_test = Smi::IsValid(cid_mask);
     }
-    if (is_dense_switch) {
-      const intptr_t low_cid = cids_[0];
-      __ CheckDenseSwitch(value, may_be_smi);
-      __ Nop(compiler->ToEmbeddableCid(low_cid, this));
+    if (is_bit_test) {
+      intptr_t min = cids_.ComputeLowestCid();
+      __ CheckBitTest(value, may_be_smi);
+      __ Nop(compiler->ToEmbeddableCid(min, this));
       __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
     } else {
-      GrowableArray<CidRangeTarget> sorted_ic_data;
-      FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                           /* drop_smi = */ true);
-      const intptr_t sorted_length = sorted_ic_data.length();
-
       bool using_ranges = false;
-      for (intptr_t i = 0; i < sorted_length; i++) {
-        if (sorted_ic_data[i].cid_start != sorted_ic_data[i].cid_end) {
+      int smi_adjustment = 0;
+      int length = cids_.length();
+      for (intptr_t i = 0; i < length; i++) {
+        if (cids_[i].cid_start != cids_[i].cid_end) {
           using_ranges = true;
-          break;
+        } else if (cids_[i].cid_start == kSmiCid) {
+          ASSERT(cids_[i].cid_end == kSmiCid);  // We are in the else clause.
+          ASSERT(smi_adjustment == 0);
+          smi_adjustment = 1;
         }
       }
 
-      if (!Utils::IsUint(8, sorted_length)) {
+      if (!Utils::IsUint(8, length)) {
         Unsupported(compiler);
         UNREACHABLE();
       }
       if (using_ranges) {
-        __ CheckCidsByRange(value, may_be_smi, sorted_length * 2);
+        __ CheckCidsByRange(value, may_be_smi, (length - smi_adjustment) * 2);
       } else {
-        __ CheckCids(value, may_be_smi, sorted_length);
+        __ CheckCids(value, may_be_smi, length - smi_adjustment);
       }
-      for (intptr_t i = 0; i < sorted_length; i++) {
-        intptr_t cid_start = sorted_ic_data[i].cid_start;
-        intptr_t cid_end = sorted_ic_data[i].cid_end;
+      for (intptr_t i = 0; i < length; i++) {
+        intptr_t cid_start = cids_[i].cid_start;
+        intptr_t cid_end = cids_[i].cid_end;
+        if (cid_start == kSmiCid && cid_end == kSmiCid) {
+          ASSERT(smi_adjustment == 1);
+          continue;
+        }
         __ Nop(compiler->ToEmbeddableCid(cid_start, this));
         if (using_ranges) {
           __ Nop(compiler->ToEmbeddableCid(1 + cid_end - cid_start, this));

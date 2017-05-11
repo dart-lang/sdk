@@ -1424,6 +1424,11 @@ class Assembler : public ValueObject {
     bne(CMPRES1, ZR, label);
   }
 
+  void BranchIfSmi(Register reg, Label* label) {
+    andi(CMPRES1, reg, Immediate(kSmiTagMask));
+    beq(CMPRES1, ZR, label);
+  }
+
   void LoadFromOffset(Register reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {

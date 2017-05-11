@@ -1453,10 +1453,10 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid() {
 
 
 int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
-                                               const CidRangeTarget& target,
+                                               const CidRange& range,
                                                int bias) {
-  intptr_t cid_start = target.cid_start;
-  intptr_t cid_end = target.cid_end;
+  intptr_t cid_start = range.cid_start;
+  intptr_t cid_end = range.cid_end;
   if (cid_start == cid_end) {
     __ cmpl(EDI, Immediate(cid_start - bias));
     __ j(NOT_EQUAL, next_label);

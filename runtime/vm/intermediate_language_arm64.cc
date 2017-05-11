@@ -5481,7 +5481,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const bool need_mask_temp = IsDenseSwitch() && !IsDenseMask(ComputeCidMask());
+  const bool need_mask_temp = IsBitTest();
   const intptr_t kNumTemps = !IsNullCheck() ? (need_mask_temp ? 2 : 1) : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -5496,82 +5496,61 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
-  if (IsNullCheck()) {
-    __ CompareObject(locs()->in(0).reg(), Object::null_object());
-    ASSERT(DeoptIfNull() || DeoptIfNotNull());
-    Condition cond = DeoptIfNull() ? EQ : NE;
-    __ b(deopt, cond);
-    return;
-  }
+void CheckClassInstr::EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt) {
+  __ CompareObject(locs()->in(0).reg(), Object::null_object());
+  ASSERT(IsDeoptIfNull() || IsDeoptIfNotNull());
+  Condition cond = IsDeoptIfNull() ? EQ : NE;
+  __ b(deopt, cond);
+}
 
-  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
-         (unary_checks().NumberOfChecks() > 1));
-  const Register value = locs()->in(0).reg();
-  const Register temp = locs()->temp(0).reg();
-  Label is_ok;
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) {
-    __ tsti(value, Immediate(kSmiTagMask));
-    __ b(&is_ok, EQ);
+
+void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
+                                  intptr_t min,
+                                  intptr_t max,
+                                  intptr_t mask,
+                                  Label* deopt) {
+  Register biased_cid = locs()->temp(0).reg();
+  __ AddImmediate(biased_cid, biased_cid, -min);
+  __ CompareImmediate(biased_cid, max - min);
+  __ b(deopt, HI);
+
+  Register bit_reg = locs()->temp(1).reg();
+  __ LoadImmediate(bit_reg, 1);
+  __ lslv(bit_reg, bit_reg, biased_cid);
+  __ TestImmediate(bit_reg, mask);
+  __ b(deopt, EQ);
+}
+
+
+int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
+                                  int bias,
+                                  intptr_t cid_start,
+                                  intptr_t cid_end,
+                                  bool is_last,
+                                  Label* is_ok,
+                                  Label* deopt,
+                                  bool use_near_jump) {
+  Register biased_cid = locs()->temp(0).reg();
+  Condition no_match, match;
+  if (cid_start == cid_end) {
+    __ CompareImmediate(biased_cid, cid_start - bias);
+    no_match = NE;
+    match = EQ;
   } else {
-    __ tsti(value, Immediate(kSmiTagMask));
-    __ b(deopt, EQ);
+    // For class ID ranges use a subtract followed by an unsigned
+    // comparison to check both ends of the ranges with one comparison.
+    __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
+    bias = cid_start;
+    __ CompareImmediate(biased_cid, cid_end - cid_start);
+    no_match = HI;  // Unsigned higher.
+    match = LS;     // Unsigned lower or same.
   }
-  Register biased_cid = temp;
-  __ LoadClassId(biased_cid, value);
-
-  GrowableArray<CidRangeTarget> sorted_ic_data;
-  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                       /* drop_smi = */ true);
-
-  if (IsDenseSwitch()) {
-    ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ AddImmediate(biased_cid, biased_cid, -cids_[0]);
-    __ CompareImmediate(biased_cid, cids_[cids_.length() - 1] - cids_[0]);
-    __ b(deopt, HI);
-
-    intptr_t mask = ComputeCidMask();
-    if (!IsDenseMask(mask)) {
-      // Only need mask if there are missing numbers in the range.
-      ASSERT(cids_.length() > 2);
-      Register mask_reg = locs()->temp(1).reg();
-      __ LoadImmediate(mask_reg, 1);
-      __ lslv(mask_reg, mask_reg, biased_cid);
-      __ TestImmediate(mask_reg, mask);
-      __ b(deopt, EQ);
-    }
-
+  if (is_last) {
+    __ b(deopt, no_match);
   } else {
-    const intptr_t num_checks = sorted_ic_data.length();
-    int bias = 0;
-    for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid_start = sorted_ic_data[i].cid_start;
-      const intptr_t cid_end = sorted_ic_data[i].cid_end;
-      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
-      Condition no_match, match;
-      if (cid_start == cid_end) {
-        __ CompareImmediate(biased_cid, cid_start - bias);
-        no_match = NE;
-        match = EQ;
-      } else {
-        // For class ID ranges use a subtract followed by an unsigned
-        // comparison to check both ends of the ranges with one comparison.
-        __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
-        bias = cid_start;
-        __ CompareImmediate(biased_cid, cid_end - cid_start);
-        no_match = HI;  // Unsigned higher.
-        match = LS;     // Unsigned lower or same.
-      }
-      if (i == (num_checks - 1)) {
-        __ b(deopt, no_match);
-      } else {
-        __ b(&is_ok, match);
-      }
-    }
+    __ b(is_ok, match);
   }
-  __ Bind(&is_ok);
+  return bias;
 }
 
 

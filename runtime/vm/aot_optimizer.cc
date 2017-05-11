@@ -448,35 +448,23 @@ void AotOptimizer::AddCheckSmi(Definition* to_check,
 }
 
 
-Instruction* AotOptimizer::GetCheckClass(Definition* to_check,
-                                         const ICData& unary_checks,
-                                         intptr_t deopt_id,
-                                         TokenPosition token_pos) {
-  if ((unary_checks.NumberOfUsedChecks() == 1) &&
-      unary_checks.HasReceiverClassId(kSmiCid)) {
-    return new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id, token_pos);
-  }
-  return new (Z) CheckClassInstr(new (Z) Value(to_check), deopt_id,
-                                 unary_checks, token_pos);
-}
-
-
 void AotOptimizer::AddCheckClass(Definition* to_check,
-                                 const ICData& unary_checks,
+                                 const Cids& cids,
                                  intptr_t deopt_id,
                                  Environment* deopt_environment,
                                  Instruction* insert_before) {
   // Type propagation has not run yet, we cannot eliminate the check.
-  Instruction* check = GetCheckClass(to_check, unary_checks, deopt_id,
-                                     insert_before->token_pos());
+  Instruction* check = flow_graph_->CreateCheckClass(
+      to_check, cids, deopt_id, insert_before->token_pos());
   InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
 
-void AotOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
-                call->deopt_id(), call->env(), call);
+void AotOptimizer::AddChecksForArgNr(InstanceCallInstr* call,
+                                     Definition* instr,
+                                     int argument_number) {
+  const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
+  AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
 }
 
 
@@ -497,12 +485,11 @@ static bool ArgIsAlways(intptr_t cid,
 }
 
 
-bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
+bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call,
+                                           const ICData* unary_checks) {
   // Check for monomorphic IC data.
-  if (!call->HasICData()) return false;
-  const ICData& ic_data =
-      ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (!ic_data.NumberOfChecksIs(1)) {
+  ASSERT(unary_checks->NumberOfChecks() > 0);
+  if (unary_checks->NumberOfChecksIs(1)) {
     return false;
   }
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
@@ -575,9 +562,7 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       right_val = new (Z) Value(right_instr->char_code()->definition());
       to_remove_right = right_instr;
     } else {
-      const ICData& unary_checks_1 =
-          ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecksForArgNr(1));
-      AddCheckClass(right, unary_checks_1, call->deopt_id(), call->env(), call);
+      AddChecksForArgNr(call, right, /* arg_number = */ 1);
       // String-to-char-code instructions returns -1 (illegal charcode) if
       // string is not of length one.
       StringToCharCodeInstr* char_code_right = new (Z)
@@ -668,8 +653,8 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   ASSERT(ic_data.NumArgsTested() == 2);
 
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
 
   intptr_t cid = kIllegalCid;
   if (HasOnlyTwoOf(ic_data, kOneByteStringCid)) {
@@ -713,13 +698,9 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     smi_or_null.Add(kNullCid);
     if (ICDataHasOnlyReceiverArgumentClassIds(ic_data, smi_or_null,
                                               smi_or_null)) {
-      const ICData& unary_checks_0 =
-          ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-      AddCheckClass(left, unary_checks_0, call->deopt_id(), call->env(), call);
+      AddChecksForArgNr(call, left, /* arg_number = */ 0);
+      AddChecksForArgNr(call, right, /* arg_number = */ 1);
 
-      const ICData& unary_checks_1 =
-          ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecksForArgNr(1));
-      AddCheckClass(right, unary_checks_1, call->deopt_id(), call->env(), call);
       cid = kSmiCid;
     } else {
       // Shortcut for equality with null.
@@ -1077,16 +1058,11 @@ bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
     return false;
   }
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
-  // Type check left.
-  AddCheckClass(left, ICData::ZoneHandle(
-                          Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(), call->env(), call);
-  // Type check right.
-  AddCheckClass(right, ICData::ZoneHandle(
-                           Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(), call->env(), call);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
+  // Type check left and right.
+  AddChecksForArgNr(call, left, /* arg_number = */ 0);
+  AddChecksForArgNr(call, right, /* arg_number = */ 1);
   // Replace call.
   BinaryFloat32x4OpInstr* float32x4_bin_op = new (Z) BinaryFloat32x4OpInstr(
       op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -1102,16 +1078,11 @@ bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
     return false;
   }
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
-  // Type check left.
-  AddCheckClass(left, ICData::ZoneHandle(
-                          Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(), call->env(), call);
-  // Type check right.
-  AddCheckClass(right, ICData::ZoneHandle(
-                           Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(), call->env(), call);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
+  // Type check left and right.
+  AddChecksForArgNr(call, left, /* arg_number = */ 0);
+  AddChecksForArgNr(call, right, /* arg_number = */ 1);
   // Replace call.
   BinaryInt32x4OpInstr* int32x4_bin_op = new (Z) BinaryInt32x4OpInstr(
       op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -1126,16 +1097,11 @@ bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
     return false;
   }
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
-  // Type check left.
-  AddCheckClass(
-      left, ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-      call->deopt_id(), call->env(), call);
-  // Type check right.
-  AddCheckClass(
-      right, ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-      call->deopt_id(), call->env(), call);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
+  // Type check left and right.
+  AddChecksForArgNr(call, left, /* arg_number = */ 0);
+  AddChecksForArgNr(call, right, /* arg_number = */ 1);
   // Replace call.
   BinaryFloat64x2OpInstr* float64x2_bin_op = new (Z) BinaryFloat64x2OpInstr(
       op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -1800,10 +1766,12 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
   if (IsAllowedForInlining(instr->deopt_id()) && number_of_checks > 0) {
-    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
+    if ((op_kind == Token::kINDEX) &&
+        TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;
     }
-    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
+    if ((op_kind == Token::kASSIGN_INDEX) &&
+        TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;
     }
     if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
@@ -1909,10 +1877,10 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         Z, Resolver::ResolveDynamicForReceiverClass(
                receiver_class, instr->function_name(), args_desc));
     if (!function.IsNull()) {
-      CallTargets* targets = new (Z) CallTargets();
+      CallTargets* targets = new (Z) CallTargets(Z);
       Function& target = Function::ZoneHandle(Z, function.raw());
-      targets->Add(CidRangeTarget(receiver_class.id(), receiver_class.id(),
-                                  &target, /*count = */ 1));
+      targets->Add(new (Z) TargetInfo(receiver_class.id(), receiver_class.id(),
+                                      &target, /*count = */ 1));
       PolymorphicInstanceCallInstr* call =
           new (Z) PolymorphicInstanceCallInstr(instr, *targets,
                                                /* with_checks = */ false,
@@ -2141,12 +2109,11 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
           MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
               recognized_kind, new (Z) Value(call->ArgumentAt(0)),
               new (Z) Value(call->ArgumentAt(1)), call->deopt_id(), result_cid);
-          const ICData& unary_checks =
-              ICData::ZoneHandle(Z, ic_data.AsUnaryClassChecks());
-          AddCheckClass(min_max->left()->definition(), unary_checks,
-                        call->deopt_id(), call->env(), call);
-          AddCheckClass(min_max->right()->definition(), unary_checks,
-                        call->deopt_id(), call->env(), call);
+          const Cids* cids = Cids::Create(Z, ic_data, /* argument_number =*/0);
+          AddCheckClass(min_max->left()->definition(), *cids, call->deopt_id(),
+                        call->env(), call);
+          AddCheckClass(min_max->right()->definition(), *cids, call->deopt_id(),
+                        call->env(), call);
           ReplaceCall(call, min_max);
         }
       }

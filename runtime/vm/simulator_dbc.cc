@@ -3254,7 +3254,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(CheckDenseSwitch, A_D);
+    BYTECODE(CheckBitTest, A_D);
     const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
     const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
     const intptr_t cid_min = Bytecode::DecodeD(*pc);
