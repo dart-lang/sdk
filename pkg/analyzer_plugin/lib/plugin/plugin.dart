@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
@@ -179,8 +181,8 @@ abstract class ServerPlugin {
   /**
    * Handle an 'analysis.handleWatchEvents' request.
    */
-  AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
-      AnalysisHandleWatchEventsParams parameters) {
+  Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
+      AnalysisHandleWatchEventsParams parameters) async {
     for (WatchEvent event in parameters.events) {
       switch (event.type) {
         case WatchEventType.ADD:
@@ -203,9 +205,9 @@ abstract class ServerPlugin {
   /**
    * Handle an 'analysis.reanalyze' request.
    */
-  AnalysisReanalyzeResult handleAnalysisReanalyze(
-      AnalysisReanalyzeParams parameters) {
-    var rootPaths = parameters.roots;
+  Future<AnalysisReanalyzeResult> handleAnalysisReanalyze(
+      AnalysisReanalyzeParams parameters) async {
+    List<String> rootPaths = parameters.roots;
     if (rootPaths == null) {
       //
       // Reanalyze everything.
@@ -236,15 +238,16 @@ abstract class ServerPlugin {
   /**
    * Handle an 'analysis.setContextBuilderOptions' request.
    */
-  AnalysisSetContextBuilderOptionsResult handleAnalysisSetContextBuilderOptions(
-          AnalysisSetContextBuilderOptionsParams parameters) =>
-      null;
+  Future<AnalysisSetContextBuilderOptionsResult>
+      handleAnalysisSetContextBuilderOptions(
+              AnalysisSetContextBuilderOptionsParams parameters) async =>
+          null;
 
   /**
    * Handle an 'analysis.setContextRoots' request.
    */
-  AnalysisSetContextRootsResult handleAnalysisSetContextRoots(
-      AnalysisSetContextRootsParams parameters) {
+  Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
+      AnalysisSetContextRootsParams parameters) async {
     List<ContextRoot> contextRoots = parameters.roots;
     List<ContextRoot> oldRoots = driverMap.keys.toList();
     for (ContextRoot contextRoot in contextRoots) {
@@ -268,8 +271,8 @@ abstract class ServerPlugin {
   /**
    * Handle an 'analysis.setPriorityFiles' request.
    */
-  AnalysisSetPriorityFilesResult handleAnalysisSetPriorityFiles(
-      AnalysisSetPriorityFilesParams parameters) {
+  Future<AnalysisSetPriorityFilesResult> handleAnalysisSetPriorityFiles(
+      AnalysisSetPriorityFilesParams parameters) async {
     List<String> files = parameters.files;
     Map<AnalysisDriverGeneric, List<String>> filesByDriver =
         <AnalysisDriverGeneric, List<String>>{};
@@ -292,8 +295,8 @@ abstract class ServerPlugin {
    * override this method, but should instead use the [subscriptionManager] to
    * access the list of subscriptions for any given file.
    */
-  AnalysisSetSubscriptionsResult handleAnalysisSetSubscriptions(
-      AnalysisSetSubscriptionsParams parameters) {
+  Future<AnalysisSetSubscriptionsResult> handleAnalysisSetSubscriptions(
+      AnalysisSetSubscriptionsParams parameters) async {
     Map<AnalysisService, List<String>> subscriptions = parameters.subscriptions;
     Map<String, List<AnalysisService>> newSubscriptions =
         subscriptionManager.setSubscriptions(subscriptions);
@@ -306,8 +309,8 @@ abstract class ServerPlugin {
    * override this method, but should instead use the [contentCache] to access
    * the current content of overlaid files.
    */
-  AnalysisUpdateContentResult handleAnalysisUpdateContent(
-      AnalysisUpdateContentParams parameters) {
+  Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
+      AnalysisUpdateContentParams parameters) async {
     Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
       // We don't need to get the correct URI because only the full path is
@@ -343,15 +346,16 @@ abstract class ServerPlugin {
   /**
    * Handle a 'completion.getSuggestions' request.
    */
-  CompletionGetSuggestionsResult handleCompletionGetSuggestions(
-          CompletionGetSuggestionsParams parameters) =>
+  Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
+          CompletionGetSuggestionsParams parameters) async =>
       new CompletionGetSuggestionsResult(
           -1, -1, const <CompletionSuggestion>[]);
 
   /**
    * Handle an 'edit.getAssists' request.
    */
-  EditGetAssistsResult handleEditGetAssists(EditGetAssistsParams parameters) =>
+  Future<EditGetAssistsResult> handleEditGetAssists(
+          EditGetAssistsParams parameters) async =>
       new EditGetAssistsResult(const <PrioritizedSourceChange>[]);
 
   /**
@@ -359,21 +363,22 @@ abstract class ServerPlugin {
    * this method in order to participate in refactorings must also override the
    * method [handleEditGetRefactoring].
    */
-  EditGetAvailableRefactoringsResult handleEditGetAvailableRefactorings(
-          EditGetAvailableRefactoringsParams parameters) =>
+  Future<EditGetAvailableRefactoringsResult> handleEditGetAvailableRefactorings(
+          EditGetAvailableRefactoringsParams parameters) async =>
       new EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
 
   /**
    * Handle an 'edit.getFixes' request.
    */
-  EditGetFixesResult handleEditGetFixes(EditGetFixesParams parameters) =>
+  Future<EditGetFixesResult> handleEditGetFixes(
+          EditGetFixesParams parameters) async =>
       new EditGetFixesResult(const <AnalysisErrorFixes>[]);
 
   /**
    * Handle an 'edit.getRefactoring' request.
    */
-  EditGetRefactoringResult handleEditGetRefactoring(
-          EditGetRefactoringParams parameters) =>
+  Future<EditGetRefactoringResult> handleEditGetRefactoring(
+          EditGetRefactoringParams parameters) async =>
       null;
 
   /**
@@ -381,14 +386,15 @@ abstract class ServerPlugin {
    * perform any required clean-up, but cannot prevent the plugin from shutting
    * down.
    */
-  PluginShutdownResult handlePluginShutdown(PluginShutdownParams parameters) =>
+  Future<PluginShutdownResult> handlePluginShutdown(
+          PluginShutdownParams parameters) async =>
       new PluginShutdownResult();
 
   /**
    * Handle a 'plugin.versionCheck' request.
    */
-  PluginVersionCheckResult handlePluginVersionCheck(
-      PluginVersionCheckParams parameters) {
+  Future<PluginVersionCheckResult> handlePluginVersionCheck(
+      PluginVersionCheckParams parameters) async {
     String byteStorePath = parameters.byteStorePath;
     String versionString = parameters.version;
     Version serverVersion = new Version.parse(versionString);
@@ -441,68 +447,68 @@ abstract class ServerPlugin {
    * Compute the response that should be returned for the given [request], or
    * `null` if the response has already been sent.
    */
-  Response _getResponse(Request request) {
+  Future<Response> _getResponse(Request request) async {
     ResponseResult result = null;
     switch (request.method) {
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
         var params = new AnalysisHandleWatchEventsParams.fromRequest(request);
-        result = handleAnalysisHandleWatchEvents(params);
+        result = await handleAnalysisHandleWatchEvents(params);
         break;
       case ANALYSIS_REQUEST_REANALYZE:
         var params = new AnalysisReanalyzeParams.fromRequest(request);
-        result = handleAnalysisReanalyze(params);
+        result = await handleAnalysisReanalyze(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_BUILDER_OPTIONS:
         var params =
             new AnalysisSetContextBuilderOptionsParams.fromRequest(request);
-        result = handleAnalysisSetContextBuilderOptions(params);
+        result = await handleAnalysisSetContextBuilderOptions(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params = new AnalysisSetContextRootsParams.fromRequest(request);
-        result = handleAnalysisSetContextRoots(params);
+        result = await handleAnalysisSetContextRoots(params);
         break;
       case ANALYSIS_REQUEST_SET_PRIORITY_FILES:
         var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
-        result = handleAnalysisSetPriorityFiles(params);
+        result = await handleAnalysisSetPriorityFiles(params);
         break;
       case ANALYSIS_REQUEST_SET_SUBSCRIPTIONS:
         var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
-        result = handleAnalysisSetSubscriptions(params);
+        result = await handleAnalysisSetSubscriptions(params);
         break;
       case ANALYSIS_REQUEST_UPDATE_CONTENT:
         var params = new AnalysisUpdateContentParams.fromRequest(request);
-        result = handleAnalysisUpdateContent(params);
+        result = await handleAnalysisUpdateContent(params);
         break;
       case COMPLETION_REQUEST_GET_SUGGESTIONS:
         var params = new CompletionGetSuggestionsParams.fromRequest(request);
-        result = handleCompletionGetSuggestions(params);
+        result = await handleCompletionGetSuggestions(params);
         break;
       case EDIT_REQUEST_GET_ASSISTS:
         var params = new EditGetAssistsParams.fromRequest(request);
-        result = handleEditGetAssists(params);
+        result = await handleEditGetAssists(params);
         break;
       case EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
         var params =
             new EditGetAvailableRefactoringsParams.fromRequest(request);
-        result = handleEditGetAvailableRefactorings(params);
+        result = await handleEditGetAvailableRefactorings(params);
         break;
       case EDIT_REQUEST_GET_FIXES:
         var params = new EditGetFixesParams.fromRequest(request);
-        result = handleEditGetFixes(params);
+        result = await handleEditGetFixes(params);
         break;
       case EDIT_REQUEST_GET_REFACTORING:
         var params = new EditGetRefactoringParams.fromRequest(request);
-        result = handleEditGetRefactoring(params);
+        result = await handleEditGetRefactoring(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
         var params = new PluginShutdownParams();
-        result = handlePluginShutdown(params);
+        result = await handlePluginShutdown(params);
         _channel.sendResponse(result.toResponse(request.id));
         _channel.close();
         return null;
       case PLUGIN_REQUEST_VERSION_CHECK:
         var params = new PluginVersionCheckParams.fromRequest(request);
-        result = handlePluginVersionCheck(params);
+        result = await handlePluginVersionCheck(params);
         break;
     }
     if (result == null) {
@@ -516,13 +522,13 @@ abstract class ServerPlugin {
    * The method that is called when a [request] is received from the analysis
    * server.
    */
-  void _onRequest(Request request) {
+  Future<Null> _onRequest(Request request) async {
     String id = request.id;
     Response response;
     try {
-      response = _getResponse(request);
+      response = await _getResponse(request);
     } on RequestFailure catch (exception) {
-      _channel.sendResponse(new Response(id, error: exception.error));
+      response = new Response(id, error: exception.error);
     } catch (exception, stackTrace) {
       response = new Response(id,
           error: new RequestError(
