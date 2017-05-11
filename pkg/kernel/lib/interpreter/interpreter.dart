@@ -86,13 +86,14 @@ class Evaluator
   Configuration eval(Expression expr, ExpressionConfiguration config) =>
       expr.accept1(this, config);
 
-  Configuration evalArgs(List<ArgumentExpression> args, Environment env,
+  Configuration evalList(List<InterpreterExpression> list, Environment env,
       ApplicationContinuation cont) {
-    if (args.isNotEmpty) {
-      return new ExpressionConfiguration(args.first.expression, env,
-          new ActualArgumentsContinuation(args.first, args.skip(1), env, cont));
+    if (list.isNotEmpty) {
+      return new ExpressionConfiguration(list.first.expression, env,
+          new ExpressionListContinuation(list.first, list.skip(1), env, cont));
     }
-    return new ArgumentContinuationConfiguration(cont, <ArgumentValue>[]);
+    return new ExpressionListContinuationConfiguration(
+        cont, <InterpreterValue>[]);
   }
 
   Configuration defaultExpression(
@@ -148,11 +149,11 @@ class Evaluator
     } else {
       log.info('static-invocation-${node.target.name.toString()}\n');
 
-      List<ArgumentExpression> args =
+      List<InterpreterExpression> args =
           _createArgumentExpressionList(node.arguments, node.target.function);
       ApplicationContinuation cont = new StaticInvocationApplication(
           node.target.function, config.continuation);
-      return new ArgumentsConfiguration(args, config.environment, cont);
+      return new ExpressionListConfiguration(args, config.environment, cont);
     }
   }
 
@@ -168,16 +169,23 @@ class Evaluator
 
   Configuration visitConstructorInvocation(
       ConstructorInvocation node, ExpressionConfiguration config) {
-    Class class_ = new Class(node.target.enclosingClass.reference);
+    // Currently, the bodies of the constructors are not executed.
+    // Currently initializer list is executed only for redirecting
+    // constructors.
+    if (node.target.function.body is! EmptyStatement) {
+      throw 'Execution for body of constructor is not implemented.';
+    }
 
-    // Currently we don't support initializers.
-    // TODO: Modify to respect dart semantics for initialization.
-    //  1. Init fields and eval initializers, repeat the same with super.
-    //  2. Eval the Function body of the constructor.
-    List<Value> fields = <Value>[];
+    var class_ = new Class(node.target.enclosingClass.reference);
+    var newObject =
+        new ObjectValue(class_, new List<Value>(class_.instanceSize));
+    ApplicationContinuation cont = new ConstructorInvocationApplication(
+        newObject, node.target, config.continuation);
 
-    return new ContinuationConfiguration(
-        config.continuation, new ObjectValue(class_, fields));
+    var args =
+        _createArgumentExpressionList(node.arguments, node.target.function);
+
+    return new ExpressionListConfiguration(args, config.environment, cont);
   }
 
   Configuration visitNot(Not node, ExpressionConfiguration config) {
@@ -344,13 +352,13 @@ class ContinuationConfiguration extends Configuration {
 }
 
 /// Represents the configuration for applying an [ApplicationContinuation].
-class ArgumentContinuationConfiguration extends Configuration {
+class ExpressionListContinuationConfiguration extends Configuration {
   final ApplicationContinuation continuation;
-  final List<ArgumentValue> argumentValues;
+  final List<InterpreterValue> values;
 
-  ArgumentContinuationConfiguration(this.continuation, this.argumentValues);
+  ExpressionListContinuationConfiguration(this.continuation, this.values);
 
-  Configuration step(StatementExecuter _) => continuation(argumentValues);
+  Configuration step(StatementExecuter _) => continuation(values);
 }
 
 /// Represents the configuration for evaluating an [Expression].
@@ -369,50 +377,90 @@ class ExpressionConfiguration extends Configuration {
       executer.eval(expression, this);
 }
 
-/// Represents the configuration for evaluating a list of argument expressions.
-class ArgumentsConfiguration extends Configuration {
-  final List<ArgumentExpression> arguments;
+/// Represents the configuration for evaluating a list of expressions.
+class ExpressionListConfiguration extends Configuration {
+  final List<InterpreterExpression> expressions;
   final Environment environment;
   final Continuation continuation;
 
-  ArgumentsConfiguration(this.arguments, this.environment, this.continuation);
+  ExpressionListConfiguration(
+      this.expressions, this.environment, this.continuation);
 
   Configuration step(StatementExecuter executer) =>
-      executer.evalArgs(arguments, environment, continuation);
+      executer.evalList(expressions, environment, continuation);
 }
 
-abstract class ArgumentExpression {
+abstract class InterpreterExpression {
   Expression get expression;
+
+  InterpreterValue assignValue(Value v);
 }
 
-class PositionalArgumentExpression extends ArgumentExpression {
+class PositionalArgumentExpression extends InterpreterExpression {
   final Expression expression;
 
   PositionalArgumentExpression(this.expression);
+
+  InterpreterValue assignValue(Value v) => new PositionalArgumentValue(v);
 }
 
-class NamedArgumentExpression extends ArgumentExpression {
+class NamedArgumentExpression extends InterpreterExpression {
   final String name;
   final Expression expression;
 
   NamedArgumentExpression(this.name, this.expression);
+  InterpreterValue assignValue(Value v) => new NamedArgumentValue(name, v);
 }
 
-abstract class ArgumentValue {
+class LocalInitializerExpression extends InterpreterExpression {
+  final VariableDeclaration variable;
+
+  Expression get expression => variable.initializer;
+
+  LocalInitializerExpression(this.variable);
+
+  InterpreterValue assignValue(Value v) =>
+      new LocalInitializerValue(variable, v);
+}
+
+class FieldInitializerExpression extends InterpreterExpression {
+  final Field field;
+  final Expression expression;
+
+  FieldInitializerExpression(this.field, this.expression);
+
+  InterpreterValue assignValue(Value v) => new FieldInitializerValue(field, v);
+}
+
+abstract class InterpreterValue {
   Value get value;
 }
 
-class PositionalArgumentValue extends ArgumentValue {
+class PositionalArgumentValue extends InterpreterValue {
   final Value value;
 
   PositionalArgumentValue(this.value);
 }
 
-class NamedArgumentValue extends ArgumentValue {
+class NamedArgumentValue extends InterpreterValue {
   final String name;
   final Value value;
 
   NamedArgumentValue(this.name, this.value);
+}
+
+class LocalInitializerValue extends InterpreterValue {
+  final VariableDeclaration variable;
+  final Value value;
+
+  LocalInitializerValue(this.variable, this.value);
+}
+
+class FieldInitializerValue extends InterpreterValue {
+  final Field field;
+  final Value value;
+
+  FieldInitializerValue(this.field, this.value);
 }
 
 abstract class Continuation {}
@@ -420,16 +468,17 @@ abstract class Continuation {}
 /// Represents the continuation called after the evaluation of argument
 /// expressions.
 abstract class ApplicationContinuation extends Continuation {
-  Configuration call(List<ArgumentValue> args);
+  Configuration call(List<InterpreterValue> values);
 
   /// Creates an environment binding actual argument values to formal parameters
   /// of the function in a new environment, which is used to execute the
   /// body od the function.
+  /// TODO: Add checks for validation of arguments according to spec.
   static Environment createEnvironment(
-      FunctionNode function, List<ArgumentValue> args) {
+      FunctionNode function, List<InterpreterValue> args) {
     Environment newEnv = new Environment.empty();
     List<PositionalArgumentValue> positional = args.reversed
-        .where((ArgumentValue av) => av is PositionalArgumentValue)
+        .where((InterpreterValue av) => av is PositionalArgumentValue)
         .toList();
 
     // Add positional parameters.
@@ -438,7 +487,7 @@ abstract class ApplicationContinuation extends Continuation {
     }
 
     Map<String, Value> named = new Map.fromIterable(
-        args.where((ArgumentValue av) => av is NamedArgumentValue),
+        args.where((InterpreterValue av) => av is NamedArgumentValue),
         key: (NamedArgumentValue av) => av.name,
         value: (NamedArgumentValue av) => av.value);
 
@@ -458,9 +507,9 @@ class StaticInvocationApplication extends ApplicationContinuation {
 
   StaticInvocationApplication(this.function, this.continuation);
 
-  Configuration call(List<ArgumentValue> args) {
+  Configuration call(List<InterpreterValue> argValues) {
     Environment functionEnv =
-        ApplicationContinuation.createEnvironment(function, args);
+        ApplicationContinuation.createEnvironment(function, argValues);
 
     State bodyState = new State.initial()
         .withExpressionContinuation(continuation)
@@ -470,17 +519,127 @@ class StaticInvocationApplication extends ApplicationContinuation {
   }
 }
 
+/// Represents the application continuation for constructor invocation applied
+/// on the list of evaluated arguments.
+class ConstructorInvocationApplication extends ApplicationContinuation {
+  final ObjectValue newObject;
+  final Constructor constructor;
+  final ExpressionContinuation expressionContinuation;
+
+  ConstructorInvocationApplication(
+      this.newObject, this.constructor, this.expressionContinuation);
+
+  Configuration call(List<InterpreterValue> argValues) {
+    Environment ctrEnv = ApplicationContinuation.createEnvironment(
+        constructor.function, argValues);
+
+    if (constructor.initializers.isNotEmpty &&
+        constructor.initializers.last is RedirectingInitializer) {
+      var cont = new RedirectingConstructorInvocationApplication(newObject,
+          constructor.initializers.last, ctrEnv, expressionContinuation);
+      var es = _createLocalInitializerExpressionList(
+          constructor.initializers.take(constructor.initializers.length - 1));
+      return new ExpressionListConfiguration(es, ctrEnv, cont);
+    }
+
+    var cont = new InstanceFieldsApplication(
+        newObject, constructor, expressionContinuation);
+    var fieldExpressions = _createInstanceInitializers(constructor);
+
+    return new ExpressionListConfiguration(fieldExpressions, ctrEnv, cont);
+  }
+
+  /// Creates a list of expressions for local initializers.
+  static List<InterpreterExpression> _createLocalInitializerExpressionList(
+      List<LocalInitializer> initializers) {
+    List<InterpreterExpression> es = <InterpreterExpression>[];
+
+    for (int i = 0; i < initializers.length; i++) {
+      var current = initializers[i];
+      es.add(new LocalInitializerExpression(current.variable));
+    }
+    return es;
+  }
+
+  /// Creates a list of expressions for instance field initializers in
+  /// immediately enclosing class.
+  static List<InterpreterExpression> _createInstanceInitializers(
+      Constructor ctr) {
+    Class currentClass = new Class(ctr.enclosingClass.reference);
+    List<InterpreterExpression> es = <InterpreterExpression>[];
+
+    for (int i = currentClass.superclass?.instanceSize ?? 0;
+        i < currentClass.instanceSize;
+        i++) {
+      Field current = currentClass.instanceFields[i];
+      if (current.initializer != null) {
+        es.add(new FieldInitializerExpression(current, current.initializer));
+      }
+    }
+
+    return es;
+  }
+}
+
+/// Represents the application continuation applied on the list of evaluated
+/// local initializer expressions.
+class RedirectingConstructorInvocationApplication
+    extends ApplicationContinuation {
+  final ObjectValue newObject;
+  final RedirectingInitializer initializer;
+  final Environment environment;
+  final ExpressionContinuation expressionContinuation;
+
+  RedirectingConstructorInvocationApplication(this.newObject, this.initializer,
+      this.environment, this.expressionContinuation);
+
+  Configuration call(List<InterpreterValue> localValues) {
+    for (LocalInitializerValue current in localValues.reversed) {
+      environment.expand(current.variable, current.value);
+    }
+    var cont = new ConstructorInvocationApplication(
+        newObject, initializer.target, expressionContinuation);
+    var args = _createArgumentExpressionList(
+        initializer.arguments, initializer.target.function);
+
+    return new ExpressionListConfiguration(args, environment, cont);
+  }
+}
+
+/// Represents the application continuation applied on the list of evaluated
+/// field initializer expressions.
+class InstanceFieldsApplication extends ApplicationContinuation {
+  final ObjectValue newObject;
+  final Constructor constructor;
+  final ExpressionContinuation expressionContinuation;
+
+  final Class _currentClass;
+
+  InstanceFieldsApplication(
+      this.newObject, this.constructor, this.expressionContinuation)
+      : _currentClass = new Class(constructor.enclosingClass.reference);
+
+  Configuration call(List<InterpreterValue> fieldValues) {
+    for (FieldInitializerValue current in fieldValues.reversed) {
+      _currentClass.setProperty(newObject, current.field, current.value);
+    }
+
+    return new ContinuationConfiguration(expressionContinuation, newObject);
+  }
+}
+
 /// Represents the application continuation called after the evaluation of all
 /// argument expressions for an invocation.
-class ArgumentValueApplication extends ApplicationContinuation {
-  final ArgumentValue value;
+class ValueApplication extends ApplicationContinuation {
+  final InterpreterValue value;
   final ApplicationContinuation applicationContinuation;
 
-  ArgumentValueApplication(this.value, this.applicationContinuation);
+  ValueApplication(this.value, this.applicationContinuation);
 
-  Configuration call(List<ArgumentValue> args) {
+  Configuration call(List<InterpreterValue> args) {
     args.add(value);
-    return new ArgumentContinuationConfiguration(applicationContinuation, args);
+    return new ExpressionListContinuationConfiguration(
+        applicationContinuation, args);
   }
 }
 
@@ -557,28 +716,19 @@ class SetterContinuation extends ExpressionContinuation {
 
 /// Represents a continuation to be called after the evaluation of an actual
 /// argument for function invocation.
-/// TODO: Add checks for validation of arguments according to spec.
-class ActualArgumentsContinuation extends ExpressionContinuation {
-  final ArgumentExpression currentArgument;
-  final List<ArgumentExpression> arguments;
+class ExpressionListContinuation extends ExpressionContinuation {
+  final InterpreterExpression currentExpression;
+  final List<InterpreterExpression> expressions;
   final Environment environment;
   final ApplicationContinuation applicationContinuation;
 
-  ActualArgumentsContinuation(this.currentArgument, this.arguments,
+  ExpressionListContinuation(this.currentExpression, this.expressions,
       this.environment, this.applicationContinuation);
 
   Configuration call(Value v) {
-    ArgumentValue argumentValue;
-    if (currentArgument is NamedArgumentExpression) {
-      argumentValue = new NamedArgumentValue(
-          (currentArgument as NamedArgumentExpression).name, v);
-    } else {
-      assert(currentArgument is PositionalArgumentExpression);
-      argumentValue = new PositionalArgumentValue(v);
-    }
-
-    return new ArgumentsConfiguration(arguments, environment,
-        new ArgumentValueApplication(argumentValue, applicationContinuation));
+    ValueApplication app = new ValueApplication(
+        currentExpression.assignValue(v), applicationContinuation);
+    return new ExpressionListConfiguration(expressions, environment, app);
   }
 }
 
@@ -814,9 +964,9 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
       statement.accept1(this, state);
   Configuration eval(Expression expression, ExpressionConfiguration config) =>
       evaluator.eval(expression, config);
-  Configuration evalArgs(
-          List<ArgumentExpression> args, Environment env, Continuation cont) =>
-      evaluator.evalArgs(args, env, cont);
+  Configuration evalList(
+          List<InterpreterExpression> es, Environment env, Continuation cont) =>
+      evaluator.evalList(es, env, cont);
 
   Configuration defaultStatement(Statement node, State state) {
     throw notImplemented(
@@ -1146,9 +1296,9 @@ notImplemented({String m, Object obj}) {
 /// Creates a list of all argument expressions to be evaluated for the
 /// invocation of the provided [FunctionNode] containing the actual arguments
 /// and the optional argument initializers.
-List<ArgumentExpression> _createArgumentExpressionList(
+List<InterpreterExpression> _createArgumentExpressionList(
     Arguments providedArgs, FunctionNode fun) {
-  List<ArgumentExpression> args = <ArgumentExpression>[];
+  List<InterpreterExpression> args = <InterpreterExpression>[];
   // Add positional arguments expressions.
   args.addAll(providedArgs.positional
       .map((Expression e) => new PositionalArgumentExpression(e)));
