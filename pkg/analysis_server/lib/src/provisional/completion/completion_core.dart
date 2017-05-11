@@ -10,7 +10,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -55,11 +54,6 @@ abstract class CompletionContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class CompletionRequest {
-  /**
-   * Return the analysis context in which the completion is being requested.
-   */
-  AnalysisContext get context;
-
   /**
    * IDE options for this server instance.
    */

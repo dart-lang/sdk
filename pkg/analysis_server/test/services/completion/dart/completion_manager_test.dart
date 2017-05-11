@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
@@ -52,15 +51,9 @@ part '$testFile';
 ''');
     addTestSource('part of libB; main() {^}');
 
-    // Associate part with library
-    if (!enableNewAnalysisDriver) {
-      context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
-    }
-
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        enableNewAnalysisDriver ? await driver.getResult(testFile) : null,
-        enableNewAnalysisDriver ? null : context,
+        await driver.getResult(testFile),
         provider,
         testSource,
         completionOffset,

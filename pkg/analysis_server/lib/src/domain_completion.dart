@@ -17,7 +17,6 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -170,62 +169,36 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     CompletionGetSuggestionsParams params =
         new CompletionGetSuggestionsParams.fromRequest(request);
 
-    AnalysisResult result;
-    AnalysisContext context;
-    Source source;
-    if (server.options.enableNewAnalysisDriver) {
-      result = await server.getAnalysisResult(params.file);
+    AnalysisResult result = await server.getAnalysisResult(params.file);
 
-      if (result == null || !result.exists) {
-        if (server.onNoAnalysisCompletion != null) {
-          String completionId = (_nextCompletionId++).toString();
-          await server.onNoAnalysisCompletion(
-              request, this, params, performance, completionId);
-          return;
-        } else {
-          server.sendResponse(new Response.unknownSource(request));
-          return;
-        }
-      }
-
-      if (params.offset < 0 || params.offset > result.content.length) {
-        server.sendResponse(new Response.invalidParameter(
-            request,
-            'params.offset',
-            'Expected offset between 0 and source length inclusive,'
-            ' but found ${params.offset}'));
+    if (result == null || !result.exists) {
+      if (server.onNoAnalysisCompletion != null) {
+        String completionId = (_nextCompletionId++).toString();
+        await server.onNoAnalysisCompletion(
+            request, this, params, performance, completionId);
         return;
-      }
-
-      source = new FileSource(
-          server.resourceProvider.getFile(result.path), result.uri);
-    } else {
-      ContextSourcePair contextSource =
-          server.getContextSourcePair(params.file);
-
-      context = contextSource.context;
-      source = contextSource.source;
-      if (context == null || !context.exists(source)) {
+      } else {
         server.sendResponse(new Response.unknownSource(request));
-        return;
-      }
-
-      TimestampedData<String> contents = context.getContents(source);
-      if (params.offset < 0 || params.offset > contents.data.length) {
-        server.sendResponse(new Response.invalidParameter(
-            request,
-            'params.offset',
-            'Expected offset between 0 and source length inclusive,'
-            ' but found ${params.offset}'));
         return;
       }
     }
 
-    recordRequest(performance, context, source, params.offset);
+    if (params.offset < 0 || params.offset > result.content.length) {
+      server.sendResponse(new Response.invalidParameter(
+          request,
+          'params.offset',
+          'Expected offset between 0 and source length inclusive,'
+          ' but found ${params.offset}'));
+      return;
+    }
+
+    Source source =
+        server.resourceProvider.getFile(result.path).createSource(result.uri);
+
+    recordRequest(performance, source, result.content, params.offset);
 
     CompletionRequestImpl completionRequest = new CompletionRequestImpl(
         result,
-        context,
         server.resourceProvider,
         source,
         params.offset,
@@ -262,17 +235,13 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * If tracking code completion performance over time, then
    * record addition information about the request in the performance record.
    */
-  void recordRequest(CompletionPerformance performance, AnalysisContext context,
-      Source source, int offset) {
+  void recordRequest(CompletionPerformance performance, Source source,
+      String content, int offset) {
     performance.source = source;
-    if (performanceListMaxLength == 0 || context == null || source == null) {
+    if (performanceListMaxLength == 0 || source == null) {
       return;
     }
-    TimestampedData<String> data = context.getContents(source);
-    if (data == null) {
-      return;
-    }
-    performance.setContentsAndOffset(data.data, offset);
+    performance.setContentsAndOffset(content, offset);
     while (performanceList.length >= performanceListMaxLength) {
       performanceList.removeAt(0);
     }

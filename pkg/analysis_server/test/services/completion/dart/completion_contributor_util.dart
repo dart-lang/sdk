@@ -474,16 +474,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions({int times = 200, IdeOptions options}) async {
-    AnalysisResult analysisResult = null;
-    if (enableNewAnalysisDriver) {
-      analysisResult = await driver.getResult(testFile);
-      testSource = analysisResult.unit.element.source;
-    } else {
-      context.analysisPriorityOrder = [testSource];
-    }
+    AnalysisResult analysisResult = await driver.getResult(testFile);
+    testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,
-        enableNewAnalysisDriver ? null : context,
         provider,
         testSource,
         completionOffset,

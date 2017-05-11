@@ -60,6 +60,8 @@ void f(Derived d) {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
+    assertSuggestMethod('toString', 'Object', 'String');
+    // fails this assertion because type of const is not properly inferred
     assertSuggestGetter('length', 'int');
   }
 

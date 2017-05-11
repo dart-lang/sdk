@@ -275,12 +275,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     });
   }
 
-  @failingTest
   test_imports_aborted_new_request() async {
-    // TODO(brianwilkerson) Figure out whether this test makes sense when
-    // running the new driver. It waits for an initial empty notification then
-    // waits for a new notification. But I think that under the driver we only
-    // ever send one notification.
     addTestFile('''
         class foo { }
         c^''');
@@ -401,6 +396,12 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     completionId = response.id;
     assertValidId(completionId);
     await waitForTasksFinished();
+    // wait for response to arrive
+    // because although the analysis is complete (waitForTasksFinished)
+    // the response may not yet have been processed
+    while (replacementOffset == null) {
+      await new Future.delayed(new Duration(milliseconds: 5));
+    }
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',

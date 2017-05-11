@@ -24,15 +24,11 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart' show AnalysisFutureHelper;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -112,10 +108,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final AnalysisResult result;
 
   @override
-  final AnalysisContext context;
+  IdeOptions ideOptions;
 
   @override
-  IdeOptions ideOptions;
+  final LibraryElement coreLib;
 
   @override
   final Source source;
@@ -136,11 +132,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   CompletionTarget target;
 
   /**
-   * The [LibraryElement] representing dart:core
-   */
-  LibraryElement _coreLib;
-
-  /**
    * The [DartType] for Object in dart:core
    */
   InterfaceType _objectType;
@@ -153,8 +144,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   DartCompletionRequestImpl._(
       this.result,
-      this.context,
       this.resourceProvider,
+      this.coreLib,
       this.librarySource,
       this.source,
       this.offset,
@@ -163,19 +154,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.performance,
       this.ideOptions) {
     _updateTargets(unit);
-  }
-
-  @override
-  LibraryElement get coreLib {
-    if (result != null) {
-      AnalysisContext context =
-          resolutionMap.elementDeclaredByCompilationUnit(result.unit).context;
-      _coreLib = context.typeProvider.objectType.element.library;
-    } else {
-      Source coreUri = sourceFactory.forUri('dart:core');
-      _coreLib = context.computeLibraryElement(coreUri);
-    }
-    return _coreLib;
   }
 
   @override
@@ -212,18 +190,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  String get sourceContents {
-    if (result != null) {
-      return result.content;
-    } else {
-      return context.getContents(source)?.data;
-    }
-  }
+  String get sourceContents => result.content;
 
   @override
-  SourceFactory get sourceFactory {
-    return context?.sourceFactory ?? result.sourceFactory;
-  }
+  SourceFactory get sourceFactory => result.sourceFactory;
 
   /**
    * Throw [AbortCompletion] if the completion request has been aborted.
@@ -276,43 +246,17 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     Source libSource;
     CompilationUnit unit;
-    if (request.context == null) {
-      unit = request.result.unit;
-      // TODO(scheglov) support for parts
-      libSource = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
-    } else {
-      Source source = request.source;
-      AnalysisContext context = request.context;
+    unit = request.result.unit;
+    // TODO(scheglov) support for parts
+    libSource = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
 
-      const PARSE_TAG = 'parse unit';
-      performance.logStartTime(PARSE_TAG);
-      unit = request.context.computeResult(source, PARSED_UNIT);
-      performance.logElapseTime(PARSE_TAG);
-
-      if (unit.directives.any((d) => d is PartOfDirective)) {
-        List<Source> libraries = context.getLibrariesContaining(source);
-        if (libraries.isNotEmpty) {
-          libSource = libraries[0];
-        }
-      } else {
-        libSource = source;
-      }
-
-      // Most (all?) contributors need declarations in scope to be resolved
-      if (libSource != null) {
-        unit = await _computeAsync(
-            request,
-            new LibrarySpecificUnit(libSource, source),
-            resultDescriptor ?? RESOLVED_UNIT5,
-            performance,
-            'resolve declarations');
-      }
-    }
+    LibraryElement coreLib =
+        await request.result.driver.getLibraryByUri('dart:core');
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
         request.result,
-        request.context,
         request.resourceProvider,
+        coreLib,
         libSource,
         request.source,
         request.offset,
@@ -323,30 +267,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;
-  }
-
-  static Future _computeAsync(
-      CompletionRequest request,
-      AnalysisTarget target,
-      ResultDescriptor descriptor,
-      CompletionPerformance performance,
-      String perfTag) async {
-    request.checkAborted();
-    performance.logStartTime(perfTag);
-    var result;
-    try {
-      result =
-          await new AnalysisFutureHelper(request.context, target, descriptor)
-              .computeAsync();
-    } catch (e, s) {
-      if (e is AnalysisNotScheduledError) {
-        request.checkAborted();
-      }
-      throw new AnalysisException(
-          'failed to $perfTag', new CaughtException(e, s));
-    }
-    request.checkAborted();
-    return result;
   }
 }
 
