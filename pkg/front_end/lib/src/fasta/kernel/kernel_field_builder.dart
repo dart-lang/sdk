@@ -19,6 +19,9 @@ import 'package:front_end/src/fasta/builder/class_builder.dart'
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;
 
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
+
 import 'package:kernel/ast.dart' show Expression, Field, Name;
 
 import 'kernel_builder.dart'
@@ -70,7 +73,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       // should it be the part URI?
       var typeInferenceEngine = library.loader.typeInferenceEngine;
       var astFactory = library.loader.astFactory;
-      var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(field);
+      var listener = new TypeInferenceListener();
+      var typeInferrer =
+          typeInferenceEngine.createTopLevelTypeInferrer(field, listener);
       var bodyBuilder = new BodyBuilder(
           library,
           this,

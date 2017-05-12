@@ -19,6 +19,7 @@
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
@@ -697,14 +698,16 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl<KernelField> {
   }
 
   @override
-  KernelTypeInferrer createLocalTypeInferrer(Uri uri) {
-    return new KernelTypeInferrer._(this, uri.toString());
+  KernelTypeInferrer createLocalTypeInferrer(
+      Uri uri, TypeInferenceListener listener) {
+    return new KernelTypeInferrer._(this, uri.toString(), listener);
   }
 
   @override
-  KernelTypeInferrer createTopLevelTypeInferrer(KernelField field) {
+  KernelTypeInferrer createTopLevelTypeInferrer(
+      KernelField field, TypeInferenceListener listener) {
     return field._typeInferrer =
-        new KernelTypeInferrer._(this, getFieldUri(field));
+        new KernelTypeInferrer._(this, getFieldUri(field), listener);
   }
 
   @override
@@ -755,8 +758,9 @@ class KernelTypeInferrer extends TypeInferrerImpl<Statement, Expression,
   @override
   final typePromoter = new KernelTypePromoter();
 
-  KernelTypeInferrer._(KernelTypeInferenceEngine engine, String uri)
-      : super(engine, uri);
+  KernelTypeInferrer._(KernelTypeInferenceEngine engine, String uri,
+      TypeInferenceListener listener)
+      : super(engine, uri, listener);
 
   @override
   Expression getFieldInitializer(KernelField field) {

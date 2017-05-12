@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart' show DartType, DynamicType;
@@ -54,12 +55,13 @@ abstract class TypeInferenceEngine<F> {
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer<dynamic, dynamic, dynamic, F> createLocalTypeInferrer(Uri uri);
+  TypeInferrer<dynamic, dynamic, dynamic, F> createLocalTypeInferrer(
+      Uri uri, TypeInferenceListener listener);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer<dynamic, dynamic, dynamic, F> createTopLevelTypeInferrer(
-      F field);
+      F field, TypeInferenceListener listener);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all fields and top level variables that were passed to [recordField]
