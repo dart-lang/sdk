@@ -11,8 +11,8 @@ Future<int> make(int x) => (new /*@typeArgs=int*/ Future(
     /*@returnType=int*/ () => x));
 
 main() {
-  Iterable<Future<int>> list =
-      <int>[1, 2, 3]. /*@typeArgs=Future<int>*/ /*@target=List::map*/ map(make);
+  Iterable<Future<int>> list = <int>[1, 2, 3]
+      . /*@typeArgs=Future<int>*/ /*@target=Iterable::map*/ map(make);
   Future<List<int>> results =
       Future. /*@typeArgs=int*/ /*@target=Future::wait*/ wait(list);
   Future<String> results2 =

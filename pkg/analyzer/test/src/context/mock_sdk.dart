@@ -284,8 +284,6 @@ class List<E> implements Iterable<E> {
   E get first => null;
   E get last => null;
 
-  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
-
   /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
       /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 
