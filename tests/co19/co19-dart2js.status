@@ -393,18 +393,8 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime != drt && $runtime != d8]
-#LayoutTests/fast/forms/change-form-element-document-crash_t01: RuntimeError # Please triage this failure
-#LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
-#WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
-#WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: RuntimeError # Please triage this failure
-
-[ $compiler == dart2js && $runtime != drt && $runtime != d8 && $runtime != jsshell && $runtime != chrome]
-#WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: RuntimeError # Please triage this failure
-
-[ $compiler == dart2js && $checked && $runtime != ff && $runtime != d8 && $runtime != drt]
-#LayoutTests/fast/dom/clone-node-load-event-crash_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $fast_startup ]
 Language/Classes/Instance_Methods/Operators/unary_minus: Fail # mirrors not supported
