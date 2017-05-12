@@ -5365,6 +5365,8 @@ class Element implements HasToJson {
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
+ *   UNIT_TEST_GROUP
+ *   UNIT_TEST_TEST
  *   UNKNOWN
  * }
  *
@@ -5417,6 +5419,18 @@ class ElementKind implements Enum {
   static const ElementKind TYPE_PARAMETER =
       const ElementKind._("TYPE_PARAMETER");
 
+  /**
+   * Deprecated: support for tests was removed.
+   */
+  static const ElementKind UNIT_TEST_GROUP =
+      const ElementKind._("UNIT_TEST_GROUP");
+
+  /**
+   * Deprecated: support for tests was removed.
+   */
+  static const ElementKind UNIT_TEST_TEST =
+      const ElementKind._("UNIT_TEST_TEST");
+
   static const ElementKind UNKNOWN = const ElementKind._("UNKNOWN");
 
   /**
@@ -5443,6 +5457,8 @@ class ElementKind implements Enum {
     SETTER,
     TOP_LEVEL_VARIABLE,
     TYPE_PARAMETER,
+    UNIT_TEST_GROUP,
+    UNIT_TEST_TEST,
     UNKNOWN
   ];
 
@@ -5493,6 +5509,10 @@ class ElementKind implements Enum {
         return TOP_LEVEL_VARIABLE;
       case "TYPE_PARAMETER":
         return TYPE_PARAMETER;
+      case "UNIT_TEST_GROUP":
+        return UNIT_TEST_GROUP;
+      case "UNIT_TEST_TEST":
+        return UNIT_TEST_TEST;
       case "UNKNOWN":
         return UNKNOWN;
     }
