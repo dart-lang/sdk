@@ -16,3 +16,5 @@ test5() {
   A a2 = new A();
   a2.x = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
+
+main() {}

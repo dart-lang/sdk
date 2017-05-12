@@ -9,7 +9,7 @@ class A {
   int x = 2;
 }
 
-test() {
+main() {
   dynamic a = new A();
   A b = /*info:DYNAMIC_CAST*/ a;
   print(/*info:DYNAMIC_INVOKE*/ a.x);

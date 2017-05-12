@@ -10,5 +10,5 @@ class Foo<T extends core::Pattern> extends core::Object {
     return u;
 }
 static method main() → dynamic {
-  new self::Foo::•<core::String>().method(42);
+  new self::Foo::•<core::String>().{self::Foo::method}(42);
 }
