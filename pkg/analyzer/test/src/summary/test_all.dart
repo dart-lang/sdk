@@ -6,8 +6,6 @@ library test.src.serialization.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'api_signature_test.dart' as api_signature_test;
-import 'flat_buffers_test.dart' as flat_buffers_test;
 import 'in_summary_source_test.dart' as in_summary_source_test;
 import 'linker_test.dart' as linker_test;
 import 'name_filter_test.dart' as name_filter_test;
@@ -21,8 +19,6 @@ import 'top_level_inference_test.dart' as top_level_inference_test;
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
-    api_signature_test.main();
-    flat_buffers_test.main();
     in_summary_source_test.main();
     linker_test.main();
     name_filter_test.main();

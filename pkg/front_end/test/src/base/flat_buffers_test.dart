@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.summary.flat_buffers_test;
-
 import 'dart:typed_data';
 
-import 'package:analyzer/src/summary/flat_buffers.dart';
+import 'package:front_end/src/base/flat_buffers.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
