@@ -76,6 +76,7 @@ class FastaCompile extends Step<TestDescription, Program, InterpreterContext> {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
+    platform.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platform);
     KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
         dillTarget, context.uriTranslator, context.strongMode);

@@ -269,6 +269,7 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
 void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var bytes = new File.fromUri(uri).readAsBytesSync();
   var platformProgram = loadProgramFromBytes(bytes);
+  platformProgram.unbindCanonicalNames();
   dillTarget.loader.appendLibraries(platformProgram);
 }
 

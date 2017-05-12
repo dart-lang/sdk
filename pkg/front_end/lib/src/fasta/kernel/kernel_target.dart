@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsyncMarker,
+        CanonicalName,
         Class,
         Constructor,
         DartType,
@@ -230,7 +231,7 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
-  Future<Program> writeOutline(Uri uri) async {
+  Future<Program> writeOutline(Uri uri, {CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
     try {
       loader.createTypeInferenceEngine();
@@ -248,7 +249,8 @@ class KernelTarget extends TargetImplementation {
       installDefaultConstructors(sourceClasses);
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
-      program = link(new List<Library>.from(loader.libraries));
+      program =
+          link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
@@ -368,21 +370,20 @@ class KernelTarget extends TargetImplementation {
 
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
-  Program link(List<Library> libraries) {
+  Program link(List<Library> libraries, {CanonicalName nameRoot}) {
     Map<String, Source> uriToSource =
         new Map<String, Source>.from(this.uriToSource);
 
-    final Program binary = dillTarget.loader.program;
-    if (binary != null) {
-      libraries.addAll(binary.libraries);
-      uriToSource.addAll(binary.uriToSource);
-    }
+    libraries.addAll(dillTarget.loader.libraries);
+    // TODO(scheglov) Should we also somehow update `uriToSource`?
+//    uriToSource.addAll(binary.uriToSource);
 
     // TODO(ahe): Remove this line. Kernel seems to generate a default line map
     // that used when there's no fileUri on an element. Instead, ensure all
     // elements have a fileUri.
     uriToSource[""] = new Source(<int>[0], const <int>[]);
-    Program program = new Program(libraries, uriToSource);
+    Program program = new Program(
+        nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {
       Builder builder = loader.first.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {

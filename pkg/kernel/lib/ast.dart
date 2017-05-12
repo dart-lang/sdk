@@ -4237,7 +4237,7 @@ class Supertype extends Node {
 
 /// A way to bundle up all the libraries in a program.
 class Program extends TreeNode {
-  final CanonicalName root = new CanonicalName.root();
+  final CanonicalName root;
 
   final List<Library> libraries;
 
@@ -4249,8 +4249,12 @@ class Program extends TreeNode {
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
-  Program([List<Library> libraries, Map<String, Source> uriToSource])
-      : libraries = libraries ?? <Library>[],
+  Program(
+      {CanonicalName nameRoot,
+      List<Library> libraries,
+      Map<String, Source> uriToSource})
+      : root = nameRoot ?? new CanonicalName.root(),
+        libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
     setParents(this.libraries, this);
   }

@@ -13,18 +13,17 @@ import '../target_implementation.dart' show TargetImplementation;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillLoader extends Loader<Library> {
-  Program program;
+  /// Source targets are compiled against these binary libraries.
+  final libraries = <Library>[];
 
   DillLoader(TargetImplementation target) : super(target);
 
   /// Append compiled libraries from the given [program]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].
   void appendLibraries(Program program, [bool filter(Uri uri)]) {
-    this.program ??= new Program();
-    program.unbindCanonicalNames();
     for (Library library in program.libraries) {
       if (filter == null || filter(library.importUri)) {
-        this.program.libraries.add(library);
+        libraries.add(library);
         read(library.importUri).library = library;
       }
     }
