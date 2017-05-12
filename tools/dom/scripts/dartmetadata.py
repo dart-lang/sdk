@@ -158,6 +158,21 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('EventTarget|=Object')",
     ],
 
+    # TODO(sra): Investigate how ExtendableMessageEvent.data is different from
+    # MessageEvent.data. It might be necessary to put in a method to translate
+    # the JavaScript wire type into a Dart type.
+    'ExtendableMessageEvent.data': [
+      "@annotation_Creates_SerializedScriptValue",
+      "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    # TODO(sra): We could determine the following by parsing the compound IDL
+    # type.
+    'ExtendableMessageEvent.source': [
+      "@Creates('Client|_ServiceWorker|MessagePort')",
+      "@Returns('Client|_ServiceWorker|MessagePort|Null')",
+    ],
+
     'File.lastModifiedDate': [
       "@Creates('Null')", # JS date object.
     ],

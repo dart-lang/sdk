@@ -16928,6 +16928,8 @@ class ExtendableMessageEvent extends ExtendableEvent {
   @DomName('ExtendableMessageEvent.data')
   @DocsEditable()
   @Experimental() // untriaged
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
   final Object data;
 
   @DomName('ExtendableMessageEvent.lastEventId')
@@ -16948,6 +16950,8 @@ class ExtendableMessageEvent extends ExtendableEvent {
   @DomName('ExtendableMessageEvent.source')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Client|_ServiceWorker|MessagePort')
+  @Returns('Client|_ServiceWorker|MessagePort|Null')
   final Object source;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
