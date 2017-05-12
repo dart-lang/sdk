@@ -271,32 +271,95 @@ void checkBackendUsage(BackendUsageImpl usage1, BackendUsageImpl usage2,
 
 checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
     KernelEquivalence equivalence) {
+  checkMembers(MemberEntity member1, MemberEntity member2) {
+    Expect.equals(env1.isDeferredLoadLibraryGetter(member1),
+        env2.isDeferredLoadLibraryGetter(member2));
+
+    checkListEquivalence(
+        member1,
+        member2,
+        'metadata',
+        env1.getMemberMetadata(member1),
+        env2.getMemberMetadata(member2),
+        equivalence.defaultStrategy.testConstantValues);
+  }
+
   checkSetEquivalence(env1, env2, 'libraries', env1.libraries, env2.libraries,
       equivalence.entityEquivalence,
       onSameElement: (LibraryEntity lib1, LibraryEntity lib2) {
+    Expect.identical(lib1, env1.lookupLibrary(lib1.canonicalUri));
+    Expect.identical(lib2, env2.lookupLibrary(lib2.canonicalUri));
+
     List<ClassEntity> classes2 = <ClassEntity>[];
     env1.forEachClass(lib1, (ClassEntity cls1) {
+      Expect.identical(cls1, env1.lookupClass(lib1, cls1.name));
+
       String className = cls1.name;
       ClassEntity cls2 = env2.lookupClass(lib2, className);
       Expect.isNotNull(cls2, 'Missing class $className in $lib2');
+      Expect.identical(cls2, env2.lookupClass(lib2, cls2.name));
+
       check(lib1, lib2, 'class:${className}', cls1, cls2,
           equivalence.entityEquivalence);
 
-      check(cls1, cls2, 'superclass', env1.getSuperClass(cls1),
-          env2.getSuperClass(cls2), equivalence.entityEquivalence);
+      Expect.equals(env1.isGenericClass(cls1), env2.isGenericClass(cls2));
+
+      check(
+          cls1,
+          cls2,
+          'superclass',
+          env1.getSuperClass(cls1, skipUnnamedMixinApplications: false),
+          env2.getSuperClass(cls2, skipUnnamedMixinApplications: false),
+          equivalence.entityEquivalence);
+      check(
+          cls1,
+          cls2,
+          'superclass',
+          env1.getSuperClass(cls1, skipUnnamedMixinApplications: true),
+          env2.getSuperClass(cls2, skipUnnamedMixinApplications: true),
+          equivalence.entityEquivalence);
+
+      List<InterfaceType> supertypes1 = <InterfaceType>[];
+      env1.forEachSupertype(cls1, supertypes1.add);
+      List<InterfaceType> supertypes2 = <InterfaceType>[];
+      env2.forEachSupertype(cls2, supertypes1.add);
+      equivalence.defaultStrategy
+          .testTypeLists(cls1, cls2, 'supertypes', supertypes1, supertypes2);
+
+      List<ClassEntity> mixins1 = <ClassEntity>[];
+      env1.forEachMixin(cls1, mixins1.add);
+      List<ClassEntity> mixins2 = <ClassEntity>[];
+      env2.forEachMixin(cls2, mixins2.add);
+      equivalence.defaultStrategy.testLists(cls1, cls2, 'mixins', mixins1,
+          mixins2, equivalence.entityEquivalence);
 
       Map<MemberEntity, ClassEntity> members1 = <MemberEntity, ClassEntity>{};
       Map<MemberEntity, ClassEntity> members2 = <MemberEntity, ClassEntity>{};
       env1.forEachClassMember(cls1,
           (ClassEntity declarer1, MemberEntity member1) {
+        if (cls1 == declarer1) {
+          Expect.identical(
+              member1,
+              env1.lookupClassMember(cls1, member1.name,
+                  setter: member1.isSetter));
+        }
         members1[member1] = declarer1;
       });
       env2.forEachClassMember(cls2,
           (ClassEntity declarer2, MemberEntity member2) {
+        if (cls2 == declarer2) {
+          Expect.identical(
+              member2,
+              env2.lookupClassMember(cls2, member2.name,
+                  setter: member2.isSetter));
+        }
         members2[member2] = declarer2;
       });
-      checkMapEquivalence(cls1, cls2, 'members', members1, members2,
-          equivalence.entityEquivalence, equivalence.entityEquivalence);
+      checkMapEquivalence(cls1, cls2, 'members', members1, members2, (a, b) {
+        bool result = equivalence.entityEquivalence(a, b);
+        if (result) checkMembers(a, b);
+        return result;
+      }, equivalence.entityEquivalence);
 
       classes2.add(cls2);
     });
@@ -304,6 +367,5 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
       Expect.isTrue(classes2.contains(cls2), "Extra class $cls2 in $lib2");
     });
   });
-
   // TODO(johnniwinther): Test the remaining properties of [ElementEnvironment].
 }

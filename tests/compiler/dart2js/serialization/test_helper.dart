@@ -650,7 +650,10 @@ class KernelEquivalence {
       : testing = new WorldDeconstructionForTesting(builder);
 
   TestStrategy get defaultStrategy => new TestStrategy(
-      elementEquivalence: entityEquivalence, typeEquivalence: typeEquivalence);
+      elementEquivalence: entityEquivalence,
+      typeEquivalence: typeEquivalence,
+      constantEquivalence: constantEquivalence,
+      constantValueEquivalence: constantValueEquivalence);
 
   bool entityEquivalence(Element a, Entity b, {TestStrategy strategy}) {
     if (identical(a, b)) return true;
@@ -815,5 +818,17 @@ class KernelEquivalence {
         throw new UnsupportedError('Unsupported equivalence: '
             '$a (${a.runtimeType}) vs $b (${b.runtimeType})');
     }
+  }
+
+  bool constantEquivalence(ConstantExpression exp1, ConstantExpression exp2,
+      {TestStrategy strategy}) {
+    strategy ??= defaultStrategy;
+    return areConstantsEquivalent(exp1, exp2, strategy: strategy);
+  }
+
+  bool constantValueEquivalence(ConstantValue value1, ConstantValue value2,
+      {TestStrategy strategy}) {
+    strategy ??= defaultStrategy;
+    return areConstantValuesEquivalent(value1, value2, strategy: strategy);
   }
 }

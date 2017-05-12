@@ -791,6 +791,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
     if (!isRedirecting) {
       for (ir.Field field in cls.fields) {
+        if (field.isStatic) continue;
         if (field.initializer != null) {
           registerField(field, field.initializer.accept(this));
         }
