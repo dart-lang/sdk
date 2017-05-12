@@ -69,3 +69,23 @@ void bar() {
     buffer += 'a'; // LINT
   }
 }
+
+class B {
+  operator +(B other) => this;
+
+  B m1() {
+    B b = new B();
+    for (int i = 0; i < 10; i++) {
+      b = b + this; // OK
+    }
+    return b;
+  }
+
+  B m2() {
+    B b = new B();
+    for (int i = 0; i < 10; i++) {
+      b += this; // OK
+    }
+    return b;
+  }
+}
