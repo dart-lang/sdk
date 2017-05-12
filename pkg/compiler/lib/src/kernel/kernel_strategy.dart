@@ -66,6 +66,8 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
   @override
   ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
+  DartTypes get dartTypes => elementMap.types;
+
   @override
   AnnotationProcessor get annotationProcesser =>
       _annotationProcesser ??= new KernelAnnotationProcessor(elementMap);

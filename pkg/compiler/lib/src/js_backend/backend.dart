@@ -828,6 +828,7 @@ class JavaScriptBackend {
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
+        compiler.frontEndStrategy.dartTypes,
         backendUsageBuilder,
         compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
@@ -901,6 +902,7 @@ class JavaScriptBackend {
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
+        compiler.frontEndStrategy.dartTypes,
         emitter,
         _nativeResolutionEnqueuer,
         closedWorld.nativeData);

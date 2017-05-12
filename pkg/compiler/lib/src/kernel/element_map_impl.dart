@@ -953,11 +953,6 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isSubtype(DartType a, DartType b) {
-    return elementMap.types.isSubtype(a, b);
-  }
-
-  @override
   FunctionType getFunctionType(KFunction function) {
     return elementMap._getFunctionType(function);
   }

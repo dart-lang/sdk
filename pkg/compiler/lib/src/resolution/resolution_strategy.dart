@@ -17,6 +17,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../environment.dart';
 import '../enqueue.dart';
 import '../frontend_strategy.dart';
@@ -48,6 +49,8 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
 
   ResolutionFrontEndStrategy(this._compiler)
       : elementEnvironment = new _CompilerElementEnvironment(_compiler);
+
+  DartTypes get dartTypes => _compiler.types;
 
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
@@ -256,11 +259,6 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       ClassElement cls, List<ResolutionDartType> typeArguments) {
     cls.ensureResolved(_resolution);
     return cls.thisType.createInstantiation(typeArguments);
-  }
-
-  @override
-  bool isSubtype(ResolutionDartType a, ResolutionDartType b) {
-    return _compiler.types.isSubtype(a, b);
   }
 
   @override

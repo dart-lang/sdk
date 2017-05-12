@@ -1246,9 +1246,6 @@ abstract class ElementEnvironment {
   /// `Object`.
   DartType getTypeVariableBound(TypeVariableEntity typeVariable);
 
-  /// Returns `true` if [a] is a subtype of [b].
-  bool isSubtype(DartType a, DartType b);
-
   /// Returns the type if [function].
   FunctionType getFunctionType(FunctionEntity function);
 

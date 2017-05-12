@@ -9,6 +9,7 @@ import 'common_elements.dart';
 import 'common/backend_api.dart';
 import 'common/tasks.dart';
 import 'elements/entities.dart';
+import 'elements/types.dart';
 import 'environment.dart';
 import 'enqueue.dart';
 import 'js_backend/backend.dart';
@@ -45,6 +46,9 @@ abstract class FrontEndStrategy {
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
   ElementEnvironment get elementEnvironment;
+
+  /// Returns the [DartTypes] for the element model used in this strategy.
+  DartTypes get dartTypes;
 
   /// Returns the [AnnotationProcessor] for this strategy.
   AnnotationProcessor get annotationProcesser;
