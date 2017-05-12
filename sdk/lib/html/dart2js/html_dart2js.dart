@@ -22074,7 +22074,7 @@ class KeyboardEvent extends UIEvent {
       {Window view,
       bool canBubble: true,
       bool cancelable: true,
-      int keyLocation: 1,
+      int location: 1,
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -22083,7 +22083,7 @@ class KeyboardEvent extends UIEvent {
       view = window;
     }
     KeyboardEvent e = document._createEvent("KeyboardEvent");
-    e._initKeyboardEvent(type, canBubble, cancelable, view, "", keyLocation,
+    e._initKeyboardEvent(type, canBubble, cancelable, view, "", location,
         ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
@@ -22095,7 +22095,7 @@ class KeyboardEvent extends UIEvent {
       bool cancelable,
       Window view,
       String keyIdentifier,
-      int keyLocation,
+      int location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -22118,7 +22118,7 @@ class KeyboardEvent extends UIEvent {
           cancelable,
           view,
           keyIdentifier,
-          keyLocation,
+          location,
           ctrlKey,
           altKey,
           shiftKey,
@@ -22173,6 +22173,12 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   final bool altKey;
 
+  @JSName('charCode')
+  @DomName('KeyboardEvent.charCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _charCode;
+
   @DomName('KeyboardEvent.code')
   @DocsEditable()
   @Experimental() // untriaged
@@ -22186,6 +22192,12 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   final String key;
+
+  @JSName('keyCode')
+  @DomName('KeyboardEvent.keyCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _keyCode;
 
   @JSName('keyIdentifier')
   @DomName('KeyboardEvent.keyIdentifier')
@@ -22210,6 +22222,9 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.shiftKey')
   @DocsEditable()
   final bool shiftKey;
+
+  // Use implementation from UIEvent.
+  // final int _which;
 
   @DomName('KeyboardEvent.getModifierState')
   @DocsEditable()
@@ -44624,7 +44639,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * keypress events.
    */
   int _findCharCodeKeyDown(KeyboardEvent event) {
-    if (event.keyLocation == 3) {
+    if (event.location == 3) {
       // Numpad keys.
       switch (event.keyCode) {
         case KeyCode.NUM_ZERO:
@@ -46009,7 +46024,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool cancelable: true,
       int keyCode: 0,
       int charCode: 0,
-      int keyLocation: 1,
+      int location: 1,
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -46035,7 +46050,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       JS('void', '#.which = #', eventObj, keyCode);
       JS('void', '#.charCode = #', eventObj, charCode);
 
-      JS('void', '#.keyLocation = #', eventObj, keyLocation);
+      JS('void', '#.location = #', eventObj, location);
       JS('void', '#.ctrlKey = #', eventObj, ctrlKey);
       JS('void', '#.altKey = #', eventObj, altKey);
       JS('void', '#.shiftKey = #', eventObj, shiftKey);
@@ -46071,7 +46086,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
       var keyIdentifier = _convertToHexString(charCode, keyCode);
       eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
-          keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey);
+          keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey);
       JS('void', '#.keyCodeVal = #', eventObj, keyCode);
       JS('void', '#.charCodeVal = #', eventObj, charCode);
     }
@@ -46129,7 +46144,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
-  int get keyLocation => _parent.keyLocation;
+  int get location => _parent.location;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
@@ -46156,7 +46171,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool cancelable,
       Window view,
       String keyIdentifier,
-      int keyLocation,
+      int location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -46167,8 +46182,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
-  @Experimental() // untriaged
-  int get location => throw new UnimplementedError();
+
   @Experimental() // untriaged
   bool get repeat => throw new UnimplementedError();
   dynamic get _get_view => throw new UnimplementedError();

@@ -24964,7 +24964,7 @@ class KeyboardEvent extends UIEvent {
       {Window view,
       bool canBubble: true,
       bool cancelable: true,
-      int keyLocation: 1,
+      int location: 1,
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -24973,7 +24973,7 @@ class KeyboardEvent extends UIEvent {
       view = window;
     }
     final e = document._createEvent("KeyboardEvent");
-    e._initKeyboardEvent(type, canBubble, cancelable, view, "", keyLocation,
+    e._initKeyboardEvent(type, canBubble, cancelable, view, "", location,
         ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
@@ -25028,6 +25028,12 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   bool get altKey => _blink.BlinkKeyboardEvent.instance.altKey_Getter_(this);
 
+  @DomName('KeyboardEvent.charCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get _charCode =>
+      _blink.BlinkKeyboardEvent.instance.charCode_Getter_(this);
+
   @DomName('KeyboardEvent.code')
   @DocsEditable()
   @Experimental() // untriaged
@@ -25041,6 +25047,11 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   String get key => _blink.BlinkKeyboardEvent.instance.key_Getter_(this);
+
+  @DomName('KeyboardEvent.keyCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get _keyCode => _blink.BlinkKeyboardEvent.instance.keyCode_Getter_(this);
 
   @DomName('KeyboardEvent.keyIdentifier')
   @DocsEditable()
@@ -25066,6 +25077,11 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   bool get shiftKey =>
       _blink.BlinkKeyboardEvent.instance.shiftKey_Getter_(this);
+
+  @DomName('KeyboardEvent.which')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get _which => _blink.BlinkKeyboardEvent.instance.which_Getter_(this);
 
   @DomName('KeyboardEvent.getModifierState')
   @DocsEditable()
@@ -50773,7 +50789,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * keypress events.
    */
   int _findCharCodeKeyDown(KeyboardEvent event) {
-    if (event.keyLocation == 3) {
+    if (event.location == 3) {
       // Numpad keys.
       switch (event.keyCode) {
         case KeyCode.NUM_ZERO:

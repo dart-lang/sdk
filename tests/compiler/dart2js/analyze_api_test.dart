@@ -19,14 +19,7 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List<String>> WHITE_LIST = const {
-  'html_dart2js.dart': const <String>[
-    // Issue 29597
-    "The getter '_charCode' is not defined for the class 'KeyboardEvent'.",
-    "The getter '_keyCode' is not defined for the class 'KeyboardEvent'.",
-    "The getter 'keyLocation' is not defined for the class 'KeyboardEvent'.",
-  ],
-};
+const Map<String, List<String>> WHITE_LIST = const {};
 
 void main() {
   var uriList = new List<Uri>();
