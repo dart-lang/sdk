@@ -69,7 +69,8 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
       KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
       KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
       ir.Program program = new ir.Program(
-          compiler.backend.kernelTask.kernel.libraryDependencies(uri));
+          libraries:
+              compiler.backend.kernelTask.kernel.libraryDependencies(uri));
       LibraryElement library = compiler.libraryLoader.lookupLibrary(uri);
       Expect.isNotNull(library, 'No library found for $uri');
       program.mainMethod = compiler.backend.kernelTask.kernel
