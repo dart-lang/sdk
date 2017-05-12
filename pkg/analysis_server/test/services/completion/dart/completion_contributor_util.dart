@@ -15,7 +15,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
@@ -454,23 +453,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * after it is accessible via [context.getLibrariesContaining].
    */
   Future<Null> computeLibrariesContaining([int times = 200]) {
-    if (enableNewAnalysisDriver) {
-      return driver.getResult(testFile).then((result) => null);
-    }
-    List<Source> libraries = context.getLibrariesContaining(testSource);
-    if (libraries.isNotEmpty) {
-      return new Future.value(null);
-    }
-    if (times == 0) {
-      fail('failed to determine libraries containing $testSource');
-    }
-    context.performAnalysisTask();
-    // We use a delayed future to allow microtask events to finish. The
-    // Future.value or Future() constructors use scheduleMicrotask themselves and
-    // would therefore not wait for microtask callbacks that are scheduled after
-    // invoking this method.
-    return new Future.delayed(
-        Duration.ZERO, () => computeLibrariesContaining(times - 1));
+    return driver.getResult(testFile).then((result) => null);
   }
 
   Future computeSuggestions({int times = 200, IdeOptions options}) async {
@@ -528,11 +511,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-    } else {
-      context.sourceFactory = sourceFactory;
-    }
+    driver.configure(sourceFactory: sourceFactory);
     // force 'flutter' resolution
     addSource(
         '/tmp/other.dart',
@@ -592,14 +571,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (completer.isCompleted) {
       return completer.future;
     }
-    if (enableNewAnalysisDriver) {
-      // Just wait.
-    } else {
-      if (times == 0 || context == null) {
-        return new Future.value();
-      }
-      context.performAnalysisTask();
-    }
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and
     // would therefore not wait for microtask callbacks that are scheduled after
@@ -610,10 +581,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void resolveSource(String path, String content) {
     Source libSource = addSource(path, content);
-    if (!enableNewAnalysisDriver) {
-      var target = new LibrarySpecificUnit(libSource, libSource);
-      context.computeResult(target, RESOLVED_UNIT);
-    }
   }
 
   @override

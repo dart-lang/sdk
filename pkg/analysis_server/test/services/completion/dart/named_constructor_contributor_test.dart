@@ -57,10 +57,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         import "/testB.dart";
         var m;
         main() {new X.^}''');
-    // Assume that imported libraries are resolved
-    if (!enableNewAnalysisDriver) {
-      await resolveLibraryUnit(libSource);
-    }
+
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -113,10 +110,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         import "/testB.dart";
         var m;
         main() {new X.^}''');
-    // Assume that imported libraries are resolved
-    if (!enableNewAnalysisDriver) {
-      await resolveLibraryUnit(libSource);
-    }
+
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

@@ -61,11 +61,6 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       import "/testCD.dart";
       class X {}''');
 
-    // Assume that imported libraries have been resolved
-    if (!enableNewAnalysisDriver) {
-      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
-    }
-
     await computeSuggestions();
     assertSuggestClass('A',
         relevance: DART_RELEVANCE_DEFAULT,
@@ -114,11 +109,6 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       import "/testAB.dart" show ^;
       import "/testCD.dart";
       class X {}''');
-
-    // Assume that imported libraries have been resolved
-    if (!enableNewAnalysisDriver) {
-      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
-    }
 
     await computeSuggestions();
     assertSuggestClass('A',
