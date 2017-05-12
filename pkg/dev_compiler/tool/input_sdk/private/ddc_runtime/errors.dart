@@ -3,17 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 part of dart._runtime;
 
-bool _trapRuntimeErrors = true;
-bool _ignoreWhitelistedErrors = true;
-bool _failForWeakModeIsChecks = true;
+// We need to set these properties while the sdk is only partially initialized
+// so we cannot use regular Dart fields.
+// The default values for these properties are set when the global_ final field
+// in runtime.dart is initialized.
+bool get _trapRuntimeErrors => JS('bool', 'dart.__trapRuntimeErrors');
+bool get _ignoreWhitelistedErrors =>
+    JS('bool', 'dart.__ignoreWhitelistedErrors');
+bool get _failForWeakModeIsChecks =>
+    JS('bool', 'dart.__failForWeakModeIsChecks');
 
 // Override, e.g., for testing
 void trapRuntimeErrors(bool flag) {
-  _trapRuntimeErrors = flag;
+  JS('', 'dart.__trapRuntimeErrors = #', flag);
 }
 
 void ignoreWhitelistedErrors(bool flag) {
-  _ignoreWhitelistedErrors = flag;
+  JS('', 'dart.__ignoreWhitelistedErrors = #', flag);
 }
 
 /// Throw an exception on `is` checks that would return an unsound answer in
@@ -32,7 +38,7 @@ void ignoreWhitelistedErrors(bool flag) {
 /// well as generic types when the type parameter was inferred. Setting this
 /// flag to `true` will not catch these differences in behavior..)
 void failForWeakModeIsChecks(bool flag) {
-  _failForWeakModeIsChecks = flag;
+  JS('', 'dart.__failForWeakModeIsChecks = #', flag);
 }
 
 throwCastError(object, actual, type) => JS(

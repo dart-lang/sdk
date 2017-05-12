@@ -96,21 +96,17 @@ final global_ = JS(
 
     // These settings must be configured before the application starts so that
     // user code runs with the correct configuration.
-    if ('ddcSettings' in globalState) {
-      let settings = globalState.ddcSettings;
-      if ('trapRuntimeErrors' in settings) {
-        $trapRuntimeErrors(settings.trapRuntimeErrors);
-      }
-      if ('ignoreWhitelistedErrors' in settings) {
-        $ignoreWhitelistedErrors(settings.ignoreWhitelistedErrors);
-      }
-      if ('failForWeakModeIsChecks' in settings) {
-        $failForWeakModeIsChecks(settings.failForWeakModeIsChecks);
-      }
-      if ('trackProfile' in settings) {
-        $trackProfile(settings.trackProfile);
-      }
-    }
+    let settings = 'ddcSettings' in globalState ? globalState.ddcSettings : {};
+    $trapRuntimeErrors(
+        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : true);
+    $ignoreWhitelistedErrors(
+        'ignoreWhitelistedErrors' in settings ?
+            settings.ignoreWhitelistedErrors : true);
+    $failForWeakModeIsChecks(
+        'failForWeakModeIsChecks' in settings ?
+            settings.failForWeakModeIsChecks : true);
+    $trackProfile(
+        'trackProfile' in settings ? settings.trackProfile : false);
 
     return globalState;
   }()
