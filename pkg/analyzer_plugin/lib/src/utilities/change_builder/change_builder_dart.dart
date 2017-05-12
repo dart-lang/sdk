@@ -4,10 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide Element, ElementKind;
-import 'package:analysis_server/src/services/correction/name_suggestion.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,10 +13,15 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart'
+    hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:charcode/ascii.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -49,6 +50,8 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
  * An [EditBuilder] used to build edits in Dart files.
  */
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
+  List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
+
   /**
    * Initialize a newly created builder to build a source edit.
    */
@@ -543,6 +546,45 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
+  /**
+   * Adds [toAdd] items which are not excluded.
+   */
+  void _addAll(
+      Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
+    for (String item in toAdd) {
+      // add name based on "item", but not "excluded"
+      for (int suffix = 1;; suffix++) {
+        // prepare name, just "item" or "item2", "item3", etc
+        String name = item;
+        if (suffix > 1) {
+          name += suffix.toString();
+        }
+        // add once found not excluded
+        if (!excluded.contains(name)) {
+          result.add(name);
+          break;
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds to [result] either [c] or the first ASCII character after it.
+   */
+  void _addSingleCharacterName(
+      Set<String> excluded, Set<String> result, int c) {
+    while (c < $z) {
+      String name = new String.fromCharCode(c);
+      // may be done
+      if (!excluded.contains(name)) {
+        result.add(name);
+        break;
+      }
+      // next character
+      c = c + 1;
+    }
+  }
+
   void _addSuperTypeProposals(
       LinkedEditBuilder builder, DartType type, Set<DartType> alreadyAdded) {
     if (type != null &&
@@ -557,19 +599,122 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
+  String _getBaseNameFromExpression(Expression expression) {
+    String name = null;
+    // e as Type
+    if (expression is AsExpression) {
+      AsExpression asExpression = expression as AsExpression;
+      expression = asExpression.expression;
+    }
+    // analyze expressions
+    if (expression is SimpleIdentifier) {
+      SimpleIdentifier node = expression;
+      return node.name;
+    } else if (expression is PrefixedIdentifier) {
+      PrefixedIdentifier node = expression;
+      return node.identifier.name;
+    } else if (expression is PropertyAccess) {
+      PropertyAccess node = expression;
+      return node.propertyName.name;
+    } else if (expression is MethodInvocation) {
+      name = expression.methodName.name;
+    } else if (expression is InstanceCreationExpression) {
+      InstanceCreationExpression creation = expression;
+      ConstructorName constructorName = creation.constructorName;
+      TypeName typeName = constructorName.type;
+      if (typeName != null) {
+        Identifier typeNameIdentifier = typeName.name;
+        // new ClassName()
+        if (typeNameIdentifier is SimpleIdentifier) {
+          return typeNameIdentifier.name;
+        }
+        // new prefix.name();
+        if (typeNameIdentifier is PrefixedIdentifier) {
+          PrefixedIdentifier prefixed = typeNameIdentifier;
+          // new prefix.ClassName()
+          if (prefixed.prefix.staticElement is PrefixElement) {
+            return prefixed.identifier.name;
+          }
+          // new ClassName.constructorName()
+          return prefixed.prefix.name;
+        }
+      }
+    }
+    // strip known prefixes
+    if (name != null) {
+      for (int i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
+        String prefix = _KNOWN_METHOD_NAME_PREFIXES[i];
+        if (name.startsWith(prefix)) {
+          if (name == prefix) {
+            return null;
+          } else if (isUpperCase(name.codeUnitAt(prefix.length))) {
+            return name.substring(prefix.length);
+          }
+        }
+      }
+    }
+    // done
+    return name;
+  }
+
+  String _getBaseNameFromLocationInParent(Expression expression) {
+    // value in named expression
+    if (expression.parent is NamedExpression) {
+      NamedExpression namedExpression = expression.parent as NamedExpression;
+      if (namedExpression.expression == expression) {
+        return namedExpression.name.label.name;
+      }
+    }
+    // positional argument
+    ParameterElement parameter = expression.propagatedParameterElement;
+    if (parameter == null) {
+      parameter = expression.staticParameterElement;
+    }
+    if (parameter != null) {
+      return parameter.displayName;
+    }
+
+    // unknown
+    return null;
+  }
+
+  /**
+   * Returns all variants of names by removing leading words one by one.
+   */
+  List<String> _getCamelWordCombinations(String name) {
+    List<String> result = [];
+    List<String> parts = getCamelWords(name);
+    for (int i = 0; i < parts.length; i++) {
+      String s1 = parts[i].toLowerCase();
+      String s2 = parts.skip(i + 1).join();
+      String suggestion = '$s1$s2';
+      result.add(suggestion);
+    }
+    return result;
+  }
+
   /**
    * Return the import element used to import the given [element] into the given
    * [library], or `null` if the element was not imported, such as when the
    * element is declared in the same library.
    */
   ImportElement _getImportElement(Element element, LibraryElement library) {
-    for (ImportElement imp in library.imports) {
-      Map<String, Element> definedNames = getImportNamespace(imp);
+    for (ImportElement importElement in library.imports) {
+      Map<String, Element> definedNames = _getImportNamespace(importElement);
       if (definedNames.containsValue(element)) {
-        return imp;
+        return importElement;
       }
     }
     return null;
+  }
+
+  /**
+   * Return the namespace added by the given import [element].
+   */
+  Map<String, Element> _getImportNamespace(ImportElement element) {
+    NamespaceBuilder builder = new NamespaceBuilder();
+    Namespace namespace = builder.createImportNamespaceForDirective(element);
+    return namespace.definedNames;
   }
 
   /**
@@ -582,7 +727,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   List<String> _getParameterNameSuggestions(
       Set<String> usedNames, DartType type, Expression expression, int index) {
     List<String> suggestions =
-        getVariableNameSuggestionsForExpression(type, expression, usedNames);
+        _getVariableNameSuggestionsForExpression(type, expression, usedNames);
     if (suggestions.length != 0) {
       return suggestions;
     }
@@ -738,6 +883,45 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
+   * Returns possible names for a variable with the given expected type and
+   * expression assigned.
+   */
+  List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
+      Expression assignedExpression, Set<String> excluded) {
+    Set<String> res = new Set();
+    // use expression
+    if (assignedExpression != null) {
+      String nameFromExpression =
+          _getBaseNameFromExpression(assignedExpression);
+      if (nameFromExpression != null) {
+        nameFromExpression = removeStart(nameFromExpression, '_');
+        _addAll(excluded, res, _getCamelWordCombinations(nameFromExpression));
+      }
+      String nameFromParent =
+          _getBaseNameFromLocationInParent(assignedExpression);
+      if (nameFromParent != null) {
+        _addAll(excluded, res, _getCamelWordCombinations(nameFromParent));
+      }
+    }
+    // use type
+    if (expectedType != null && !expectedType.isDynamic) {
+      String typeName = expectedType.name;
+      if ('int' == typeName) {
+        _addSingleCharacterName(excluded, res, $i);
+      } else if ('double' == typeName) {
+        _addSingleCharacterName(excluded, res, $d);
+      } else if ('String' == typeName) {
+        _addSingleCharacterName(excluded, res, $s);
+      } else {
+        _addAll(excluded, res, _getCamelWordCombinations(typeName));
+      }
+      res.remove(typeName);
+    }
+    // done
+    return new List.from(res);
+  }
+
+  /**
    * Checks if [type] is visible in either the [enclosingExecutable] or
    * [enclosingClass].
    */
@@ -806,24 +990,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    addLibraryImports(
+    _addLibraryImports(
         changeBuilder.sourceChange, unit.element.library, librariesToImport);
   }
-
-//  /**
-//   * Return the content of the file being edited.
-//   */
-//  String getContent() {
-//    if (_content == null) {
-//      CompilationUnitElement unitElement = unit.element;
-//      AnalysisContext context = unitElement.context;
-//      if (context == null) {
-//        throw new CancelCorrectionException();
-//      }
-//      _content = context.getContents(unitElement.source).data;
-//    }
-//    return _content;
-//  }
 
   @override
   void importLibraries(Iterable<Source> libraries) {
@@ -850,6 +1019,203 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.write('void');
       }
     });
+  }
+
+  /**
+   * Adds edits to the given [change] that ensure that all the [libraries] are
+   * imported into the given [targetLibrary].
+   */
+  void _addLibraryImports(SourceChange change, LibraryElement targetLibrary,
+      Set<Source> libraries) {
+    // Prepare information about existing imports.
+    LibraryDirective libraryDirective;
+    List<ImportDirective> importDirectives = <ImportDirective>[];
+    for (Directive directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        libraryDirective = directive;
+      } else if (directive is ImportDirective) {
+        importDirectives.add(directive);
+      }
+    }
+
+    // Prepare all URIs to import.
+    List<String> uriList = libraries
+        .map((library) => _getLibrarySourceUri(targetLibrary, library))
+        .toList();
+    uriList.sort((a, b) => a.compareTo(b));
+
+    // Insert imports: between existing imports.
+    if (importDirectives.isNotEmpty) {
+      bool isFirstPackage = true;
+      for (String importUri in uriList) {
+        bool inserted = false;
+        bool isPackage = importUri.startsWith('package:');
+        bool isAfterDart = false;
+        for (ImportDirective existingImport in importDirectives) {
+          if (existingImport.uriContent.startsWith('dart:')) {
+            isAfterDart = true;
+          }
+          if (existingImport.uriContent.startsWith('package:')) {
+            isFirstPackage = false;
+          }
+          if (importUri.compareTo(existingImport.uriContent) < 0) {
+            addInsertion(existingImport.offset, (EditBuilder builder) {
+              builder.write("import '");
+              builder.write(importUri);
+              builder.writeln("';");
+            });
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) {
+          addInsertion(importDirectives.last.end, (EditBuilder builder) {
+            if (isPackage && isFirstPackage && isAfterDart) {
+              builder.writeln();
+            }
+            builder.writeln();
+            builder.write("import '");
+            builder.write(importUri);
+            builder.write("';");
+          });
+        }
+        if (isPackage) {
+          isFirstPackage = false;
+        }
+      }
+      return;
+    }
+
+    // Insert imports: after the library directive.
+    if (libraryDirective != null) {
+      for (int i = 0; i < uriList.length; i++) {
+        String importUri = uriList[i];
+        addInsertion(libraryDirective.end, (EditBuilder builder) {
+          if (i == 0) {
+            builder.writeln();
+          }
+          builder.writeln();
+          builder.write("import '");
+          builder.write(importUri);
+          builder.writeln("';");
+        });
+      }
+      return;
+    }
+
+    // If still at the beginning of the file, skip shebang and line comments.
+    _InsertionDescription desc = _getInsertDescTop();
+    int offset = desc.offset;
+    for (int i = 0; i < uriList.length; i++) {
+      String importUri = uriList[i];
+      addInsertion(offset, (EditBuilder builder) {
+        if (i == 0 && desc.insertEmptyLineBefore) {
+          builder.writeln();
+        }
+        builder.write("import '");
+        builder.write(importUri);
+        builder.writeln("';");
+        if (i == uriList.length - 1 && desc.insertEmptyLineAfter) {
+          builder.writeln();
+        }
+      });
+    }
+  }
+
+  /**
+   * Returns a [InsertDesc] describing where to insert a new directive or a
+   * top-level declaration at the top of the file.
+   */
+  _InsertionDescription _getInsertDescTop() {
+    // skip leading line comments
+    int offset = 0;
+    bool insertEmptyLineBefore = false;
+    bool insertEmptyLineAfter = false;
+    String source = unit.element.context.getContents(unit.element.source).data;
+    var lineInfo = unit.lineInfo;
+    // skip hash-bang
+    if (offset < source.length - 2) {
+      String linePrefix = _getText(source, offset, 2);
+      if (linePrefix == "#!") {
+        insertEmptyLineBefore = true;
+        offset = lineInfo.getOffsetOfLineAfter(offset);
+        // skip empty lines to first line comment
+        int emptyOffset = offset;
+        while (emptyOffset < source.length - 2) {
+          int nextLineOffset = lineInfo.getOffsetOfLineAfter(emptyOffset);
+          String line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith("//")) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    // skip line comments
+    while (offset < source.length - 2) {
+      String linePrefix = _getText(source, offset, 2);
+      if (linePrefix == "//") {
+        insertEmptyLineBefore = true;
+        offset = lineInfo.getOffsetOfLineAfter(offset);
+      } else {
+        break;
+      }
+    }
+    // determine if empty line is required after
+    int currentLine = lineInfo.getLocation(offset).lineNumber;
+    if (currentLine < lineInfo.lineCount) {
+      int nextLineOffset = lineInfo.getOffsetOfLine(currentLine + 1);
+      String insertLine = source.substring(offset, nextLineOffset);
+      if (!insertLine.trim().isEmpty) {
+        insertEmptyLineAfter = true;
+      }
+    }
+    return new _InsertionDescription(
+        offset, insertEmptyLineBefore, insertEmptyLineAfter);
+  }
+
+//  /**
+//   * Return the content of the file being edited.
+//   */
+//  String getContent() {
+//    if (_content == null) {
+//      CompilationUnitElement unitElement = unit.element;
+//      AnalysisContext context = unitElement.context;
+//      if (context == null) {
+//        throw new CancelCorrectionException();
+//      }
+//      _content = context.getContents(unitElement.source).data;
+//    }
+//    return _content;
+//  }
+
+  /**
+   * Computes the best URI to import [what] into [from].
+   */
+  String _getLibrarySourceUri(LibraryElement from, Source what) {
+    String whatPath = what.fullName;
+    // check if an absolute URI (such as 'dart:' or 'package:')
+    Uri whatUri = what.uri;
+    String whatUriScheme = whatUri.scheme;
+    if (whatUriScheme != '' && whatUriScheme != 'file') {
+      return whatUri.toString();
+    }
+    // compute a relative URI
+    String fromFolder = path.dirname(from.source.fullName);
+    String relativeFile = path.relative(whatPath, from: fromFolder);
+    return path.split(relativeFile).join('/');
+  }
+
+  /**
+   * Returns the text of the given range in the unit.
+   */
+  String _getText(String content, int offset, int length) {
+    return content.substring(offset, offset + length);
   }
 
 //  /**
@@ -939,4 +1305,12 @@ class _EnclosingElementFinder {
       node = node.parent;
     }
   }
+}
+
+class _InsertionDescription {
+  final int offset;
+  final bool insertEmptyLineBefore;
+  final bool insertEmptyLineAfter;
+  _InsertionDescription(
+      this.offset, this.insertEmptyLineBefore, this.insertEmptyLineAfter);
 }

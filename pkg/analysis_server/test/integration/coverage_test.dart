@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

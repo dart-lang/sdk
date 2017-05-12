@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.correction.strings;
-
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:test/test.dart' hide isEmpty;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -75,13 +73,6 @@ class StringsTest {
     expect(findCommonSuffix('123', 'xyz123'), 3);
   }
 
-  void test_getCamelWords() {
-    expect(getCamelWords(null), []);
-    expect(getCamelWords(''), []);
-    expect(getCamelWords('getCamelWords'), ['get', 'Camel', 'Words']);
-    expect(getCamelWords('getHTMLText'), ['get', 'HTML', 'Text']);
-  }
-
   void test_isBlank() {
     expect(isBlank(null), isTrue);
     expect(isBlank(''), isTrue);
@@ -97,13 +88,6 @@ class StringsTest {
     }
     expect(isDigit(' '.codeUnitAt(0)), isFalse);
     expect(isDigit('A'.codeUnitAt(0)), isFalse);
-  }
-
-  void test_isEmpty() {
-    expect(isEmpty(null), isTrue);
-    expect(isEmpty(''), isTrue);
-    expect(isEmpty('X'), isFalse);
-    expect(isEmpty(' '), isFalse);
   }
 
   void test_isLetter() {
@@ -131,17 +115,6 @@ class StringsTest {
     expect(isLetterOrDigit('.'.codeUnitAt(0)), isFalse);
   }
 
-  void test_isLowerCase() {
-    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
-      expect(isLowerCase(c), isTrue);
-    }
-    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
-      expect(isLowerCase(c), isFalse);
-    }
-    expect(isLowerCase(' '.codeUnitAt(0)), isFalse);
-    expect(isLowerCase('0'.codeUnitAt(0)), isFalse);
-  }
-
   void test_isSpace() {
     expect(isSpace(' '.codeUnitAt(0)), isTrue);
     expect(isSpace('\t'.codeUnitAt(0)), isTrue);
@@ -149,17 +122,6 @@ class StringsTest {
     expect(isSpace('\n'.codeUnitAt(0)), isFalse);
     expect(isSpace('0'.codeUnitAt(0)), isFalse);
     expect(isSpace('A'.codeUnitAt(0)), isFalse);
-  }
-
-  void test_isUpperCase() {
-    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
-      expect(isUpperCase(c), isFalse);
-    }
-    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
-      expect(isUpperCase(c), isTrue);
-    }
-    expect(isUpperCase(' '.codeUnitAt(0)), isFalse);
-    expect(isUpperCase('0'.codeUnitAt(0)), isFalse);
   }
 
   void test_isWhitespace() {
@@ -184,13 +146,6 @@ class StringsTest {
     expect(removeEnd('www.domain.com', '.com.'), 'www.domain.com');
     expect(removeEnd('www.domain.com', 'domain'), 'www.domain.com');
     expect(removeEnd('www.domain.com', '.com'), 'www.domain');
-  }
-
-  void test_removeStart() {
-    expect(removeStart(null, 'x'), null);
-    expect(removeStart('abc', null), 'abc');
-    expect(removeStart('abcTest', 'abc'), 'Test');
-    expect(removeStart('my abcTest', 'abc'), 'my abcTest');
   }
 
   void test_repeat() {
