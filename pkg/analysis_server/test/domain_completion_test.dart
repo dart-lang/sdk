@@ -284,31 +284,33 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     Request request1 =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('7');
-    Response response1 = await waitResponse(request1);
-    var result1 = new CompletionGetSuggestionsResult.fromResponse(response1);
-    var completionId1 = result1.id;
-    assertValidId(completionId1);
-
-    // Perform some analysis but assert that no suggestions have yet been made
-    completionId = completionId1;
-    await pumpEventQueue(25);
-    expect(suggestionsDone, isFalse);
-    expect(suggestions, hasLength(0));
+    Future<Response> responseFuture1 = waitResponse(request1);
 
     // Make another request before the first request completes
     Request request2 =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('8');
-    Response response2 = await waitResponse(request2);
-    var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
-    var completionId2 = result2.id;
-    assertValidId(completionId2);
+    Future<Response> responseFuture2 = waitResponse(request2);
 
-    // Wait for both sets of suggestions
-    completionId = completionId2;
+    // Await first response
+    Response response1 = await responseFuture1;
+    var result1 = new CompletionGetSuggestionsResult.fromResponse(response1);
+    assertValidId(result1.id);
+
+    // Await second response
+    Response response2 = await responseFuture2;
+    var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
+    assertValidId(result2.id);
+
+    // Wait for all processing to be complete
+    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
     await pumpEventQueue();
-    expect(allSuggestions[completionId1], hasLength(0));
-    expect(allSuggestions[completionId2], same(suggestions));
+
+    // Assert that first request has been aborted
+    expect(allSuggestions[result1.id], hasLength(0));
+
+    // Assert valid results for the second request
+    expect(allSuggestions[result2.id], same(suggestions));
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -327,14 +329,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     Request request =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0');
-    Response response = await waitResponse(request);
-    completionId = response.id;
-    assertValidId(completionId);
-
-    // Perform some analysis but assert that no suggestions have yet been made
-    await pumpEventQueue(25);
-    expect(suggestionsDone, isFalse);
-    expect(suggestions, hasLength(0));
+    Future<Response> responseFuture = waitResponse(request);
 
     // Simulate user deleting text after request but before suggestions returned
     server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
@@ -343,10 +338,17 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
           [new SourceEdit(completionOffset - 1, 1, '')])
     });
 
-    // Expect the completion domain to discard request because source changed
-    await pumpEventQueue().then((_) {
-      expect(suggestionsDone, isTrue);
-    });
+    // Await a response
+    Response response = await responseFuture;
+    completionId = response.id;
+    assertValidId(completionId);
+
+    // Wait for all processing to be complete
+    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
+    await pumpEventQueue();
+
+    // Assert that request has been aborted
+    expect(suggestionsDone, isTrue);
     expect(suggestions, hasLength(0));
   }
 
