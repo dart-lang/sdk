@@ -125,13 +125,3 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _invalidatedFiles.clear();
   }
 }
-
-///// Clears canonical names of [NamedNode] references.
-//class _ClearCanonicalNamesVisitor extends Visitor {
-//  defaultNode(Node node) {
-//    if (node is NamedNode) {
-//      node.reference.canonicalName = null;
-//    }
-//    node.visitChildren(this);
-//  }
-//}

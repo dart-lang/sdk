@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:front_end/file_system.dart';
+import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/parser/top_level_parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/source/directive_listener.dart';
@@ -27,37 +28,40 @@ class FileState {
   bool _exists;
   List<int> _content;
 
-  List<FileState> _importedFiles;
-  List<FileState> _exportedFiles;
+  List<FileState> _importedLibraries;
+  List<FileState> _exportedLibraries;
   List<FileState> _partFiles;
 
-  Set<FileState> _directReferencedFiles = new Set<FileState>();
+  List<FileState> _directReferencedLibraries = <FileState>[];
 
   FileState._(this._fsState, this.fileUri);
 
   /// The content of the file.
   List<int> get content => _content;
 
+  /// Libraries that this library file directly imports or exports.
+  List<FileState> get directReferencedLibraries => _directReferencedLibraries;
+
   /// Whether the file exists.
   bool get exists => _exists;
+
+  /// The list of the libraries exported by this library.
+  List<FileState> get exportedLibraries => _exportedLibraries;
 
   @override
   int get hashCode => fileUri.hashCode;
 
-  /// Return the set of transitive files - the file itself and all of the
-  /// directly or indirectly referenced files.
-  Set<FileState> get transitiveFiles {
-    // TODO(scheglov) add caching.
-    var transitiveFiles = new Set<FileState>();
+  /// The list of the libraries imported by this library.
+  List<FileState> get importedLibraries => _importedLibraries;
 
-    void appendReferenced(FileState file) {
-      if (transitiveFiles.add(file)) {
-        file._directReferencedFiles.forEach(appendReferenced);
-      }
-    }
+  /// The list of files this library file references as parts.
+  List<FileState> get partFiles => _partFiles;
 
-    appendReferenced(this);
-    return transitiveFiles;
+  /// Return topologically sorted cycles of dependencies for this library.
+  List<LibraryCycle> get topologicalOrder {
+    var libraryWalker = new _LibraryWalker();
+    libraryWalker.walk(libraryWalker.getNode(this));
+    return libraryWalker.topologicallySortedCycles;
   }
 
   @override
@@ -84,25 +88,31 @@ class FileState {
     new TopLevelParser(listener).parseUnit(scannerResults.tokens);
 
     // Build the graph.
-    _importedFiles = <FileState>[];
-    _exportedFiles = <FileState>[];
+    _importedLibraries = <FileState>[];
+    _exportedLibraries = <FileState>[];
     _partFiles = <FileState>[];
-    await _addFileForRelativeUri(_importedFiles, 'dart:core');
+    await _addFileForRelativeUri(_importedLibraries, 'dart:core');
     for (String uri in listener.imports) {
-      await _addFileForRelativeUri(_importedFiles, uri);
+      await _addFileForRelativeUri(_importedLibraries, uri);
     }
     for (String uri in listener.exports) {
-      await _addFileForRelativeUri(_exportedFiles, uri);
+      await _addFileForRelativeUri(_exportedLibraries, uri);
     }
     for (String uri in listener.parts) {
       await _addFileForRelativeUri(_partFiles, uri);
     }
 
-    // Compute referenced files.
-    _directReferencedFiles = new Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles)
-      ..addAll(_partFiles);
+    // Compute referenced libraries.
+    _directReferencedLibraries = (new Set<FileState>()
+          ..addAll(_importedLibraries)
+          ..addAll(_exportedLibraries))
+        .toList();
+  }
+
+  @override
+  String toString() {
+    if (fileUri.scheme == 'file') return fileUri.path;
+    return fileUri.toString();
   }
 
   /// Add the [FileState] for the given [relativeUri] to the [files].
@@ -178,6 +188,14 @@ class FileSystemState {
   }
 }
 
+/// List of libraries that reference each other, so form a cycle.
+class LibraryCycle {
+  final List<FileState> libraries = <FileState>[];
+
+  @override
+  String toString() => '[' + libraries.join(', ') + ']';
+}
+
 /// [FileSystemState] based implementation of [FileSystem].
 /// It provides a consistent view on the known file system state.
 class _FileSystemView implements FileSystem {
@@ -224,5 +242,47 @@ class _FileSystemViewEntry implements FileSystemEntity {
   /// file contents.
   dynamic _shouldNotBeQueried() {
     throw new StateError('The method should not be invoked.');
+  }
+}
+
+/// Node in [_LibraryWalker].
+class _LibraryNode extends graph.Node<_LibraryNode> {
+  final _LibraryWalker walker;
+  final FileState file;
+
+  @override
+  bool isEvaluated = false;
+
+  _LibraryNode(this.walker, this.file);
+
+  @override
+  List<_LibraryNode> computeDependencies() {
+    return file.directReferencedLibraries.map(walker.getNode).toList();
+  }
+}
+
+/// Helper that organizes dependencies of a library into topologically
+/// sorted [LibraryCycle]s.
+class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
+  final nodesOfFiles = <FileState, _LibraryNode>{};
+  final topologicallySortedCycles = <LibraryCycle>[];
+
+  @override
+  void evaluate(_LibraryNode v) {
+    evaluateScc([v]);
+  }
+
+  @override
+  void evaluateScc(List<_LibraryNode> scc) {
+    var cycle = new LibraryCycle();
+    for (var node in scc) {
+      node.isEvaluated = true;
+      cycle.libraries.add(node.file);
+    }
+    topologicallySortedCycles.add(cycle);
+  }
+
+  _LibraryNode getNode(FileState file) {
+    return nodesOfFiles.putIfAbsent(file, () => new _LibraryNode(this, file));
   }
 }
