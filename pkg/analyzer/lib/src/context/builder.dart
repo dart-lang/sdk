@@ -19,7 +19,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler, PerformanceLog;
+    show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
@@ -32,6 +32,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:args/args.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';

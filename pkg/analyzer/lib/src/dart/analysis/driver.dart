@@ -31,6 +31,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/base/api_signature.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
 
@@ -1800,82 +1801,6 @@ class ParseResult {
 
   ParseResult(this.path, this.uri, this.content, this.contentHash,
       this.lineInfo, this.unit, this.errors);
-}
-
-/**
- * This class is used to gather and print performance information.
- */
-class PerformanceLog {
-  final StringSink sink;
-  int _level = 0;
-
-  PerformanceLog(this.sink);
-
-  /**
-   * Enter a new execution section, which starts at one point of code, runs
-   * some time, and then ends at the other point of code.
-   *
-   * The client must call [PerformanceLogSection.exit] for every [enter].
-   */
-  PerformanceLogSection enter(String msg) {
-    writeln('+++ $msg.');
-    _level++;
-    return new PerformanceLogSection(this, msg);
-  }
-
-  /**
-   * Return the result of the function [f] invocation and log the elapsed time.
-   *
-   * Each invocation of [run] creates a new enclosed section in the log,
-   * which begins with printing [msg], then any log output produced during
-   * [f] invocation, and ends with printing [msg] with the elapsed time.
-   */
-  /*=T*/ run/*<T>*/(String msg, /*=T*/ f()) {
-    Stopwatch timer = new Stopwatch()..start();
-    try {
-      writeln('+++ $msg.');
-      _level++;
-      return f();
-    } finally {
-      _level--;
-      int ms = timer.elapsedMilliseconds;
-      writeln('--- $msg in $ms ms.');
-    }
-  }
-
-  /**
-   * Write a new line into the log.
-   */
-  void writeln(String msg) {
-    if (sink != null) {
-      String indent = '\t' * _level;
-      sink.writeln('$indent$msg');
-    }
-  }
-}
-
-/**
- * The performance measurement section for operations that start and end
- * at different place in code, so cannot be run using [PerformanceLog.run].
- *
- * The client must call [exit] for every [PerformanceLog.enter].
- */
-class PerformanceLogSection {
-  final PerformanceLog _logger;
-  final String _msg;
-  final Stopwatch _timer = new Stopwatch()..start();
-
-  PerformanceLogSection(this._logger, this._msg);
-
-  /**
-   * Stop the timer, log the time.
-   */
-  void exit() {
-    _timer.stop();
-    _logger._level--;
-    int ms = _timer.elapsedMilliseconds;
-    _logger.writeln('--- $_msg in $ms ms.');
-  }
 }
 
 /**

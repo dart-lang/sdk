@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/file_repository.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/base/source.dart';
@@ -108,7 +109,7 @@ class IncrementalResolvedAstGeneratorImpl
 
   Future<Null> init() async {
     // TODO(paulberry): can we just use null?
-    var performanceLog = new driver.PerformanceLog(new _NullStringSink());
+    var performanceLog = new PerformanceLog(new _NullStringSink());
     _scheduler = new driver.AnalysisDriverScheduler(performanceLog);
     _resourceProvider = new _ResourceProviderProxy(_fileRepository);
     // TODO(paulberry): MemoryByteStore leaks memory (it never discards data).

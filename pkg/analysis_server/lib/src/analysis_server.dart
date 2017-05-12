@@ -67,6 +67,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_byte_store.dart';
 import 'package:plugin/plugin.dart';
@@ -347,7 +348,7 @@ class AnalysisServer {
    */
   ResolverProvider packageResolverProvider;
 
-  nd.PerformanceLog _analysisPerformanceLogger;
+  PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
 
@@ -444,7 +445,7 @@ class AnalysisServer {
           sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
         }
       }
-      _analysisPerformanceLogger = new nd.PerformanceLog(sink);
+      _analysisPerformanceLogger = new PerformanceLog(sink);
     }
     byteStore = _createByteStore();
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(

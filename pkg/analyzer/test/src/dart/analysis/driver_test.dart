@@ -29,6 +29,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

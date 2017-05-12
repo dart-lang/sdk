@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 
 import 'mock_sdk.dart';
