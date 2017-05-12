@@ -88,6 +88,7 @@ front_end/tool/perf_test: Slow, Pass
 
 [ $runtime == vm && $use_sdk ]
 front_end/test/fasta/*: Skip # Issue 28629
+compiler/tool/generate_kernel_test*: Skip # Issue 28629
 
 [ $runtime == vm && $use_sdk == false ]
 front_end/test/incremental_kernel_generator_test: Skip # Issue 28698
