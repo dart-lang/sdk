@@ -925,10 +925,11 @@ class OfflineAudioContext extends AudioContext {
   @Experimental() // untriaged
   Future startRendering() native;
 
+  @JSName('suspend')
   @DomName('OfflineAudioContext.suspend')
   @DocsEditable()
   @Experimental() // untriaged
-  Future suspend(num suspendTime) native;
+  Future suspendFor(num suspendTime) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -1397,7 +1397,7 @@ class OfflineAudioContext extends AudioContext {
   @DomName('OfflineAudioContext.suspend')
   @DocsEditable()
   @Experimental() // untriaged
-  Future suspend(num suspendTime) =>
+  Future suspendFor(num suspendTime) =>
       convertNativePromiseToDartFuture(_blink.BlinkOfflineAudioContext.instance
           .suspend_Callback_1_(this, suspendTime));
 }

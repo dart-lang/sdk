@@ -432,29 +432,25 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'ConsoleBase.assert': 'assertCondition',
-    'CSSKeyframesRule.insertRule': 'appendRule',
-    'DirectoryEntry.getDirectory': '_getDirectory',
-    'DirectoryEntry.getFile': '_getFile',
-    'Document.createCDATASection': 'createCDataSection',
-    'Document.defaultView': 'window',
-    'Window.CSS': 'css',
+    'ConsoleBase.assert': 'assertCondition', 'CSSKeyframesRule.insertRule':
+    'appendRule', 'DirectoryEntry.getDirectory': '_getDirectory',
+    'DirectoryEntry.getFile': '_getFile', 'Document.createCDATASection':
+    'createCDataSection', 'Document.defaultView': 'window', 'Window.CSS': 'css',
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Navigator.webkitGetUserMedia': '_getUserMedia',
-    'Node.appendChild': 'append',
-    'Node.cloneNode': 'clone',
-    'Node.nextSibling': 'nextNode',
-    'Node.parentElement': 'parent',
-    'Node.previousSibling': 'previousNode',
-    'Node.textContent': 'text',
-    'SVGElement.className': '_svgClassName',
-    'SVGStopElement.offset': 'gradientOffset',
-    'URL.createObjectURL': 'createObjectUrl',
-    'URL.revokeObjectURL': 'revokeObjectUrl',
+    'Navigator.webkitGetUserMedia': '_getUserMedia', 'Node.appendChild':
+    'append', 'Node.cloneNode': 'clone', 'Node.nextSibling': 'nextNode',
+    'Node.parentElement': 'parent', 'Node.previousSibling': 'previousNode',
+    'Node.textContent': 'text', 'SVGElement.className': '_svgClassName',
+    'SVGStopElement.offset': 'gradientOffset', 'URL.createObjectURL':
+    'createObjectUrl', 'URL.revokeObjectURL': 'revokeObjectUrl',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
+
+    # OfflineAudioContext.suspend has an signature incompatible with shadowed
+    # base class method AudioContext.suspend.
+    'OfflineAudioContext.suspend': 'suspendFor',
 })
 
 # Members that have multiple definitions, but their types are vary, so we rename
