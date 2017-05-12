@@ -133,7 +133,7 @@ class CompileTask {
     }
     Uri platform = c.options.platform;
     if (platform != null) {
-      dillTarget.read(platform);
+      _appendDillForUri(dillTarget, platform);
     }
     String argument = c.options.arguments.first;
     Uri uri = Uri.base.resolve(argument);
