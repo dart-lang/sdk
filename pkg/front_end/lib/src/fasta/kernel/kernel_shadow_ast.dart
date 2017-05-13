@@ -274,6 +274,19 @@ class KernelField extends Field {
   }
 }
 
+/// Concrete shadow object representing a local function declaration in kernel
+/// form.
+class KernelFunctionDeclaration extends FunctionDeclaration
+    implements KernelStatement {
+  KernelFunctionDeclaration(VariableDeclaration variable, FunctionNode function)
+      : super(variable, function);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.inferFunctionDeclaration(function.body);
+  }
+}
+
 /// Concrete shadow object representing a function expression in kernel form.
 class KernelFunctionExpression extends FunctionExpression
     implements KernelExpression {
@@ -854,6 +867,19 @@ class KernelTypePromoter
   }
 
   @override
+  bool isPromotionCandidate(VariableDeclaration variable) {
+    if (variable is KernelVariableDeclaration) {
+      return !variable._isLocalFunction;
+    } else {
+      // Hack to deal with the fact that BodyBuilder still creates raw
+      // VariableDeclaration objects sometimes.
+      // TODO(paulberry): get rid of this once the type parameter is
+      // KernelVariableDeclaration.
+      return true;
+    }
+  }
+
+  @override
   bool sameExpressions(Expression a, Expression b) {
     return identical(a, b);
   }
@@ -907,12 +933,16 @@ class KernelVariableDeclaration extends VariableDeclaration
 
   bool _mutatedAnywhere = false;
 
+  final bool _isLocalFunction;
+
   KernelVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
       bool isFinal: false,
-      bool isConst: false})
+      bool isConst: false,
+      bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
+        _isLocalFunction = isLocalFunction,
         super(name,
             initializer: initializer,
             type: type ?? const DynamicType(),

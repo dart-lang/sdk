@@ -286,6 +286,17 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldInitializer(F field, DartType type, bool typeNeeded);
 
+  /// Performs the core type inference algorithm for local function
+  /// declarations.
+  ///
+  /// [body] is the body of the function.
+  void inferFunctionDeclaration(S body) {
+    var oldClosureContext = _closureContext;
+    _closureContext = null;
+    inferStatement(body);
+    _closureContext = oldClosureContext;
+  }
+
   /// Performs the core type inference algorithm for function expressions.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in

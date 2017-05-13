@@ -241,12 +241,14 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
       Expression initializer,
       Token equalsToken,
       bool isFinal: false,
-      bool isConst: false}) {
+      bool isConst: false,
+      bool isLocalFunction: false}) {
     return new KernelVariableDeclaration(name, functionNestingLevel,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
-        isConst: isConst)
+        isConst: isConst,
+        isLocalFunction: isLocalFunction)
       ..fileOffset = offsetForToken(token)
       ..fileEqualsOffset = offsetForToken(equalsToken);
   }

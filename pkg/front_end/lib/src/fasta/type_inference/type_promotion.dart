@@ -198,6 +198,7 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   void handleIsCheck(E isExpression, bool isInverted, V variable, DartType type,
       int functionNestingLevel) {
     debugEvent('handleIsCheck');
+    if (!isPromotionCandidate(variable)) return;
     var isCheck = new _IsCheck<V>(
         ++_lastFactSequenceNumber,
         variable,
@@ -211,6 +212,14 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
       _recordPromotionExpression(isExpression, isCheck, _currentFacts);
     }
   }
+
+  /// Determines whether the given variable should be considered for promotion
+  /// at all.
+  ///
+  /// This is needed because in kernel, [VariableDeclaration] objects are
+  /// sometimes used to represent local functions, which are not subject to
+  /// promotion.
+  bool isPromotionCandidate(V variable);
 
   /// Updates the state to reflect the fact that the given [variable] was
   /// mutated.

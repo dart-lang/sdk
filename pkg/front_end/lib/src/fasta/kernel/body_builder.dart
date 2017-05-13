@@ -14,7 +14,7 @@ import '../parser/identifier_context.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelArguments, KernelField;
+    show KernelArguments, KernelField, KernelFunctionDeclaration;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -2042,8 +2042,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Identifier name = pop();
     VariableDeclaration variable = astFactory.variableDeclaration(
         name.name, name.token, functionNestingLevel,
-        isFinal: true);
-    push(new FunctionDeclaration(
+        isFinal: true, isLocalFunction: true);
+    push(new KernelFunctionDeclaration(
         variable, new FunctionNode(new InvalidStatement()))
       ..fileOffset = beginToken.charOffset);
     scope[variable.name] = new KernelVariableBuilder(
@@ -2102,6 +2102,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     FunctionDeclaration declaration = pop();
     function.returnType = pop() ?? const DynamicType();
+    declaration.variable.type = function.functionType;
     pop(); // Modifiers.
     exitFunction();
     declaration.function = function;
