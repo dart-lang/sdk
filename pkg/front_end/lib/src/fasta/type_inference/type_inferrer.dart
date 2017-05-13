@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
@@ -21,7 +22,8 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         TypeParameter,
-        TypeParameterType;
+        TypeParameterType,
+        VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -238,9 +240,9 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return inferredType;
   }
 
-  /// Maps the type of a variable's initializer expression to the correct
-  /// inferred type for the variable.
-  DartType inferDeclarationType(DartType initializerType) {
+  /// Modifies a type as appropriate when inferring a variable's type or a
+  /// closure return type.
+  DartType inferDeclarationOrReturnType(DartType initializerType) {
     if (initializerType is BottomType ||
         (initializerType is InterfaceType &&
             initializerType.classNode == coreTypes.nullClass)) {
@@ -325,16 +327,26 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     // TODO(paulberry): do we also need to visit default parameter values?
     // TODO(paulberry): infer argument types and type parameters.
     // TODO(paulberry): full support for generators.
-    // TODO(paulberry): Dart 1.0 rules say we only need to set the function
-    // node's return type if it uses expression syntax.  Does that make sense
-    // for Dart 2.0?
-    bool needToSetReturnType = isExpressionFunction;
+    DartType returnContext =
+        typeContext is FunctionType ? typeContext.returnType : null;
+    bool needToSetReturnType = isExpressionFunction || strongMode;
     _ClosureContext oldClosureContext = _closureContext;
-    _closureContext = new _ClosureContext(isAsync, isGenerator);
+    _closureContext = new _ClosureContext(isAsync, isGenerator, returnContext);
     inferStatement(body);
     DartType inferredReturnType;
     if (needToSetReturnType || typeNeeded) {
-      inferredReturnType = _closureContext.inferredReturnType;
+      inferredReturnType =
+          inferDeclarationOrReturnType(_closureContext.inferredReturnType);
+      if (!isExpressionFunction &&
+          returnContext != null &&
+          !typeSchemaEnvironment.isSubtypeOf(
+              inferredReturnType, returnContext)) {
+        // For block-bodied functions, if the inferred return type isn't a
+        // subtype of the context, we use the context.  TODO(paulberry): this is
+        // inherited from analyzer; it's not part of the spec.  See also
+        // dartbug.com/29606.
+        inferredReturnType = greatestClosure(coreTypes, returnContext);
+      }
       if (isAsync) {
         inferredReturnType = new InterfaceType(
             coreTypes.futureClass, <DartType>[inferredReturnType]);
@@ -549,6 +561,21 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return inferredType;
   }
 
+  /// Performs the core type inference algorithm for return statements.
+  ///
+  /// [body] is the expression being returned, or `null` for a bare return
+  /// statement.
+  void inferReturnStatement(E expression) {
+    var closureContext = _closureContext;
+    var typeContext = closureContext != null && !closureContext.isGenerator
+        ? closureContext.returnContext
+        : null;
+    var inferredType = expression != null
+        ? inferExpression(expression, typeContext, closureContext != null)
+        : const VoidType();
+    closureContext?.updateInferredReturnType(this, inferredType);
+  }
+
   /// Performs the core type inference algorithm for static variable getters.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
@@ -600,7 +627,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   void inferVariableDeclaration(DartType declaredType, E initializer,
       int offset, void setType(DartType type)) {
     if (initializer == null) return;
-    var inferredType = inferDeclarationType(
+    var inferredType = inferDeclarationOrReturnType(
         inferExpression(initializer, declaredType, declaredType == null));
     if (strongMode && declaredType == null) {
       instrumentation?.record(Uri.parse(uri), offset, 'type',
@@ -704,17 +731,29 @@ class _ClosureContext {
 
   final bool isGenerator;
 
+  final DartType returnContext;
+
   DartType _inferredReturnType;
 
-  _ClosureContext(this.isAsync, this.isGenerator);
+  _ClosureContext(this.isAsync, this.isGenerator, this.returnContext);
 
   /// Gets the return type that was inferred for the current closure.
   get inferredReturnType {
     if (_inferredReturnType == null) {
       // No return statement found.
-      // TODO(paulberry): is it correct to infer `dynamic`?
-      return const DynamicType();
+      return const VoidType();
     }
     return _inferredReturnType;
+  }
+
+  /// Updates the inferred return type based on the presence of a return
+  /// statement returning the given [type].
+  void updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
+    if (_inferredReturnType == null) {
+      _inferredReturnType = type;
+    } else {
+      _inferredReturnType = inferrer.typeSchemaEnvironment
+          .getLeastUpperBound(_inferredReturnType, type);
+    }
   }
 }

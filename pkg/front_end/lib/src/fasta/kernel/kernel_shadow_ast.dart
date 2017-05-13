@@ -517,11 +517,11 @@ class KernelRethrow extends Rethrow implements KernelExpression {
 
 /// Concrete shadow object representing a return statement in kernel form.
 class KernelReturnStatement extends ReturnStatement implements KernelStatement {
-  KernelReturnStatement([KernelExpression expression]) : super(expression);
+  KernelReturnStatement([Expression expression]) : super(expression);
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    // TODO(paulberry): implement.
+    inferrer.inferReturnStatement(expression);
   }
 }
 

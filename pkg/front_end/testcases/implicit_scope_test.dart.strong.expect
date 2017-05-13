@@ -8,7 +8,7 @@ class ImplicitScopeTest extends core::Object {
     : super core::Object::•()
     ;
   static method alwaysTrue() → core::bool {
-    return 1.+(1).==(2);
+    return 1.{core::num::+}(1).{core::num::==}(2);
   }
   static method testMain() → dynamic {
     core::String a = "foo";

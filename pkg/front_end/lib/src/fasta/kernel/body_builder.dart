@@ -14,7 +14,11 @@ import '../parser/identifier_context.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelArguments, KernelField, KernelFunctionDeclaration;
+    show
+        KernelArguments,
+        KernelField,
+        KernelFunctionDeclaration,
+        KernelReturnStatement;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -1057,7 +1061,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(buildCompileTimeErrorStatement(
           "Can't return from a constructor.", beginToken.charOffset));
     } else {
-      push(new ReturnStatement(expression)..fileOffset = beginToken.charOffset);
+      push(new KernelReturnStatement(expression)
+        ..fileOffset = beginToken.charOffset);
     }
   }
 
