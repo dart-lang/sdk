@@ -452,3 +452,7 @@ void test337_5() {
   }
 }
 
+void bug658() {
+  String text;
+  if ((text?.length ?? 0) != 0) {}
+}
