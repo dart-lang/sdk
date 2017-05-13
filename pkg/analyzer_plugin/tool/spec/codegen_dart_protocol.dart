@@ -119,12 +119,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
-   * Translate each type implied by the API to a class.
+   * Translate each of the given [types] implied by the API to a class.
    */
-  void emitClasses() {
-    List<ImpliedType> types = impliedTypes.values.toList();
-    types.sort((first, second) =>
-        capitalize(first.camelName).compareTo(capitalize(second.camelName)));
+  void emitClasses(List<ImpliedType> types) {
     for (ImpliedType impliedType in types) {
       TypeDecl type = impliedType.type;
       String dartTypeName = capitalize(impliedType.camelName);
@@ -393,6 +390,20 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString, json);');
     });
     writeln('}');
+  }
+
+  void emitImports() {
+    writeln("import 'dart:convert' hide JsonDecoder;");
+    writeln();
+    writeln("import 'package:analyzer/src/generated/utilities_general.dart';");
+    writeln("import 'package:$packageName/protocol/protocol.dart';");
+    writeln(
+        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+    for (String uri in api.types.importUris) {
+      write("import '");
+      write(uri);
+      writeln("';");
+    }
   }
 
   /**
@@ -1052,6 +1063,19 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
+   * Return a list of the classes to be emitted.
+   */
+  List<ImpliedType> getClassesToEmit() {
+    List<ImpliedType> types = impliedTypes.values.where((ImpliedType type) {
+      ApiNode node = type.apiNode;
+      return !(node is TypeDefinition && node.isExternal);
+    }).toList();
+    types.sort((first, second) =>
+        capitalize(first.camelName).compareTo(capitalize(second.camelName)));
+    return types;
+  }
+
+  /**
    * True if the constructor argument for the given field should be optional.
    */
   bool isOptionalConstructorArg(String className, TypeObjectField field) {
@@ -1131,13 +1155,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln("import 'dart:convert' hide JsonDecoder;");
-    writeln();
-    writeln("import 'package:analyzer/src/generated/utilities_general.dart';");
-    writeln("import 'package:$packageName/protocol/protocol.dart';");
-    writeln(
-        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
-    emitClasses();
+    emitImports();
+    emitClasses(getClassesToEmit());
   }
 }
 

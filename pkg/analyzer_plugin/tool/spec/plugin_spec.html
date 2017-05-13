@@ -793,7 +793,8 @@
     This section contains descriptions of the data types referenced in the API’s
     of the various domains.
   </p>
-  <include path="common_types_spec.html"></include>
+  <include path="common_types_spec.html"
+           import="package:analyzer_plugin/protocol/protocol_common.dart"></include>
   <type name="AnalysisErrorFixes">
     <p>
       A list of fixes associated with a specific error
@@ -1216,34 +1217,44 @@
     </p>
     <feedback>
       <field name="coveringExpressionOffsets" optional="true">
-        <list><ref>int</ref></list>
+        <list>
+          <ref>int</ref>
+        </list>
         <p>
           The offsets of the expressions that cover the specified selection,
           from the down most to the up most.
         </p>
       </field>
       <field name="coveringExpressionLengths" optional="true">
-        <list><ref>int</ref></list>
+        <list>
+          <ref>int</ref>
+        </list>
         <p>
           The lengths of the expressions that cover the specified selection,
           from the down most to the up most.
         </p>
       </field>
       <field name="names">
-        <list><ref>String</ref></list>
+        <list>
+          <ref>String</ref>
+        </list>
         <p>
           The proposed names for the local variable.
         </p>
       </field>
       <field name="offsets">
-        <list><ref>int</ref></list>
+        <list>
+          <ref>int</ref>
+        </list>
         <p>
           The offsets of the expressions that would be replaced by a reference
           to the variable.
         </p>
       </field>
       <field name="lengths">
-        <list><ref>int</ref></list>
+        <list>
+          <ref>int</ref>
+        </list>
         <p>
           The lengths of the expressions that would be replaced by a reference
           to the variable. The lengths correspond to the offsets. In other
@@ -1303,7 +1314,9 @@
         </p>
       </field>
       <field name="names">
-        <list><ref>String</ref></list>
+        <list>
+          <ref>String</ref>
+        </list>
         <p>
           The proposed names for the method.
         </p>
@@ -1315,20 +1328,26 @@
         </p>
       </field>
       <field name="parameters">
-        <list><ref>RefactoringMethodParameter</ref></list>
+        <list>
+          <ref>RefactoringMethodParameter</ref>
+        </list>
         <p>
           The proposed parameters for the method.
         </p>
       </field>
       <field name="offsets">
-        <list><ref>int</ref></list>
+        <list>
+          <ref>int</ref>
+        </list>
         <p>
           The offsets of the expressions or statements that would be replaced by
           an invocation of the method.
         </p>
       </field>
       <field name="lengths">
-        <list><ref>int</ref></list>
+        <list>
+          <ref>int</ref>
+        </list>
         <p>
           The lengths of the expressions or statements that would be replaced by
           an invocation of the method. The lengths correspond to the offsets. In
@@ -1359,7 +1378,9 @@
         </p>
       </field>
       <field name="parameters">
-        <list><ref>RefactoringMethodParameter</ref></list>
+        <list>
+          <ref>RefactoringMethodParameter</ref>
+        </list>
         <p>
           The parameters that should be defined for the method.
         </p>

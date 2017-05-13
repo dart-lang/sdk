@@ -572,27 +572,35 @@ class ApiReader {
     checkName(html, 'types');
     String context = 'types';
     checkAttributes(html, [], context);
-    Map<String, TypeDefinition> types = <String, TypeDefinition>{};
+    List<String> importUris = <String>[];
+    Map<String, TypeDefinition> typeMap = <String, TypeDefinition>{};
     List<dom.Element> childElements = <dom.Element>[];
     recurse(html, context, {
       'include': (dom.Element child) {
+        String importUri = child.attributes['import'];
+        if (importUri != null) {
+          importUris.add(importUri);
+        }
         String relativePath = child.attributes['path'];
         String path = normalize(join(dirname(filePath), relativePath));
         ApiReader reader = new ApiReader(path);
         Api api = reader.readApi();
         for (TypeDefinition typeDefinition in api.types) {
+          typeDefinition.isExternal = true;
           childElements.add(typeDefinition.html);
-          types[typeDefinition.name] = typeDefinition;
+          typeMap[typeDefinition.name] = typeDefinition;
         }
       },
       'type': (dom.Element child) {
         TypeDefinition typeDefinition = typeDefinitionFromHtml(child);
-        types[typeDefinition.name] = typeDefinition;
+        typeMap[typeDefinition.name] = typeDefinition;
       }
     });
     for (dom.Element element in childElements) {
       html.append(element);
     }
-    return new Types(types, html);
+    Types types = new Types(typeMap, html);
+    types.importUris.addAll(importUris);
+    return types;
   }
 }
