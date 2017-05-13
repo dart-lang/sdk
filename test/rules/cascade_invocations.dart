@@ -161,3 +161,14 @@ void otherDependencies3() {
   resource = (entry.resource as Practitioner339);
   resource.bar(resource); // OK
 }
+
+class Bug661 {
+  Bug661 parent;
+  Practitioner339 practicioner;
+
+  void bar() {
+    practicioner.bar(1);
+    practicioner.bar(2); // LINT
+    parent.practicioner.bar(3);
+  }
+}

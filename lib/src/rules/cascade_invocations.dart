@@ -196,9 +196,12 @@ class _CascadableExpression {
     final executableElement = _getExecutableElementFromMethodInvocation(node);
     bool isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
+      final isSimpleIdentifier = node.target is SimpleIdentifier;
       return new _CascadableExpression._internal(
           _getTargetElementFromMethodInvocation(node), [node.argumentList],
-          canJoin: true, canReceive: true, canBeCascaded: true);
+          canJoin: isSimpleIdentifier,
+          canReceive: isSimpleIdentifier,
+          canBeCascaded: true);
     }
     return NULL_CASCADABLE_EXPRESSION;
   }
