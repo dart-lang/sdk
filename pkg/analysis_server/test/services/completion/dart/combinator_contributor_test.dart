@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
@@ -37,7 +36,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    Source importedLibSource = addSource(
+    addSource(
         '/testAB.dart',
         '''
       library libAB;
@@ -83,7 +82,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    Source importedLibSource = addSource(
+    addSource(
         '/testAB.dart',
         '''
       library libAB;

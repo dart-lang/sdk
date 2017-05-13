@@ -42,7 +42,7 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    var libSource = addSource(
+    addSource(
         '/libB.dart',
         '''
 library libB;

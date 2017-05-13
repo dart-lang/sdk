@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,7 +45,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    Source libSource = addSource(
+    addSource(
         '/testB.dart',
         '''
         lib B;
@@ -99,7 +98,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    Source libSource = addSource(
+    addSource(
         '/testB.dart',
         '''
         lib B;

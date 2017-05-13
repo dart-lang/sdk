@@ -580,7 +580,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   void resolveSource(String path, String content) {
-    Source libSource = addSource(path, content);
+    addSource(path, content);
   }
 
   @override
