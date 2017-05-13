@@ -3,22 +3,37 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
+import 'package:front_end/src/base/api_signature.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
+import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
-import 'package:kernel/target/vm.dart';
 
 dynamic unimplemented() {
   // TODO(paulberry): get rid of this.
   throw new UnimplementedError();
+}
+
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  void close() {}
 }
 
 /// Implementation of [IncrementalKernelGenerator].
@@ -36,8 +51,14 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   final TranslateUri _uriTranslator;
 
+  /// The logger to report compilation progress.
+  final PerformanceLog _logger;
+
   /// The current file system state.
   final FileSystemState _fsState;
+
+  /// The byte storage to get and put serialized data.
+  final ByteStore _byteStore;
 
   /// The URI of the program entry point.
   final Uri _entryPoint;
@@ -46,38 +67,47 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// and not checked for actual changes yet.
   final Set<Uri> _invalidatedFiles = new Set<Uri>();
 
-  /// The cached SDK kernel.
-  DillTarget _sdkDillTarget;
-
   IncrementalKernelGeneratorImpl(
       this._options, this._uriTranslator, this._entryPoint)
-      : _fsState = new FileSystemState(_options.fileSystem, _uriTranslator);
+      : _logger = _options.logger,
+        _fsState = new FileSystemState(_options.fileSystem, _uriTranslator),
+        _byteStore = _options.byteStore;
 
   @override
   Future<DeltaProgram> computeDelta(
       {Future<Null> watch(Uri uri, bool used)}) async {
-    await _ensureVmLibrariesLoaded();
-    await _refreshInvalidatedFiles();
+    return await _logger.runAsync('Compute delta', () async {
+      await _refreshInvalidatedFiles();
 
-    // Ensure that the graph starting at the entry point is ready.
-    await _fsState.getFile(_entryPoint);
+      // Ensure that the graph starting at the entry point is ready.
+      FileState entryLibrary = await _fsState.getFile(_entryPoint);
 
-    DillTarget sdkTarget = await _getSdkDillTarget();
-    // TODO(scheglov) Use it to also serve other package kernels.
+      List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
+        List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
+        _logger.writeln('Computed ${cycles.length} cycles.');
+        return cycles;
+      });
 
-    KernelTarget kernelTarget = new KernelTarget(_fsState.fileSystemView,
-        sdkTarget, _uriTranslator, _options.strongMode, null);
-    kernelTarget.read(_entryPoint);
+      CanonicalName nameRoot = new CanonicalName.root();
+      DillTarget dillTarget =
+          new DillTarget(new Ticker(isVerbose: false), _uriTranslator);
 
-    // TODO(scheglov) Replace with a better API.
-    // Firstly, we don't "write" anything here.
-    // Secondly, it catches all the exceptions and write them to `stderr`.
-    // This is too interactive and not API-clients friendly.
-    await kernelTarget.writeOutline(null);
+      List<_LibraryCycleResult> results = [];
+      await _logger.runAsync('Compute results for cycles', () async {
+        for (LibraryCycle cycle in cycles) {
+          _LibraryCycleResult result =
+              await _compileCycle(nameRoot, dillTarget, cycle);
+          results.add(result);
+        }
+      });
 
-    // TODO(scheglov) Replace with a better API.
-    Program program = await kernelTarget.writeProgram(null);
-    return new DeltaProgram(program);
+      Program program = new Program(nameRoot: nameRoot);
+      for (_LibraryCycleResult result in results) {
+        program.libraries.addAll(result.kernelLibraries);
+      }
+
+      return new DeltaProgram(program);
+    });
   }
 
   @override
@@ -88,40 +118,122 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   @override
   void invalidateAll() => unimplemented();
 
-  /// Fasta unconditionally loads all VM libraries.  In order to be able to
-  /// serve them using the file system view, we need to ask [_fsState] for
-  /// the corresponding files.
-  Future<Null> _ensureVmLibrariesLoaded() async {
-    List<String> extraLibraries = new VmTarget(null).extraRequiredLibraries;
-    for (String absoluteUriStr in extraLibraries) {
-      Uri absoluteUri = Uri.parse(absoluteUriStr);
-      Uri fileUri = _uriTranslator.translate(absoluteUri);
-      await _fsState.getFile(fileUri);
-    }
-  }
+  /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
+  /// contains all the libraries that sorted before the given [cycle] in
+  /// topological order.  Return the result with the cycle libraries.
+  Future<_LibraryCycleResult> _compileCycle(
+      CanonicalName nameRoot, DillTarget dillTarget, LibraryCycle cycle) async {
+    return _logger.runAsync('Compile cycle $cycle', () async {
+      String signature;
+      {
+        var signatureBuilder = new ApiSignature();
+        // TODO(scheglov) add salt
+        //    signature.addUint32List(_fsState._salt);
+        Set<FileState> transitiveFiles = cycle.libraries
+            .map((library) => library.transitiveFiles)
+            .expand((files) => files)
+            .toSet();
+        signatureBuilder.addInt(transitiveFiles.length);
+        for (FileState file in transitiveFiles) {
+          signatureBuilder.addString(file.uri.toString());
+          // TODO(scheglov) use API signature
+          signatureBuilder.addBytes(file.contentHash);
+        }
+        signature = signatureBuilder.toHex();
+      }
 
-  /// Return the [DillTarget] that is used inside of [KernelTarget] to
-  /// resynthesize SDK libraries.
-  Future<DillTarget> _getSdkDillTarget() async {
-    if (_sdkDillTarget == null) {
-      _sdkDillTarget =
-          new DillTarget(new Ticker(isVerbose: false), _uriTranslator);
-      // TODO(scheglov) Read the SDK kernel.
-//      _sdkDillTarget.read(options.sdkSummary);
-//      await _sdkDillTarget.writeOutline(null);
-    } else {
-//      Program sdkProgram = _sdkDillTarget.loader.program;
-//      sdkProgram.visitChildren(new _ClearCanonicalNamesVisitor());
-    }
-    return _sdkDillTarget;
+      _logger.writeln('Signature: $signature.');
+      String kernelKey = '$signature.kernel';
+
+      /// We need kernel libraries for these URIs.
+      Set<Uri> libraryUris = new Set<Uri>();
+      for (FileState library in cycle.libraries) {
+        libraryUris.add(library.uri);
+      }
+
+      /// Check if there is already a bundle with these libraries.
+      List<int> bytes = _byteStore.get(kernelKey);
+      if (bytes != null) {
+        return _logger.run('Read serialized libraries', () {
+          var program = new Program(nameRoot: nameRoot);
+          var reader = new BinaryBuilder(bytes);
+          reader.readProgram(program);
+          dillTarget.loader
+              .appendLibraries(program, (uri) => libraryUris.contains(uri));
+          return new _LibraryCycleResult(cycle, signature, program.libraries);
+        });
+      }
+
+      // Ask DILL to fill outlines using loaded libraries.
+      await dillTarget.writeOutline(null);
+
+      // Create KernelTarget and configure it for compiling the cycle URIs.
+      KernelTarget kernelTarget = new KernelTarget(_fsState.fileSystemView,
+          dillTarget, _uriTranslator, _options.strongMode);
+      for (FileState library in cycle.libraries) {
+        kernelTarget.read(library.uri);
+      }
+
+      // Compile the cycle libraries into a new full program.
+      Program program = await _logger.runAsync(
+          'Compile ${cycle.libraries.length} cycle libraries', () async {
+        await kernelTarget.writeOutline(null, nameRoot: nameRoot);
+        return await kernelTarget.writeProgram(null);
+      });
+
+      // Add newly compiled libraries into DILL.
+      List<Library> kernelLibraries = program.libraries
+          .where((library) => libraryUris.contains(library.importUri))
+          .toList();
+      dillTarget.loader
+          .appendLibraries(program, (uri) => libraryUris.contains(uri));
+
+      _logger.run('Serialize ${kernelLibraries.length} libraries', () {
+        program.unbindCanonicalNames();
+        List<int> bytes = _writeProgramBytes(program, kernelLibraries.contains);
+        _byteStore.put(kernelKey, bytes);
+        _logger.writeln('Stored ${bytes.length} bytes.');
+      });
+
+      return new _LibraryCycleResult(cycle, signature, kernelLibraries);
+    });
   }
 
   /// Refresh all the invalidated files and update dependencies.
   Future<Null> _refreshInvalidatedFiles() async {
-    for (Uri fileUri in _invalidatedFiles) {
-      FileState file = await _fsState.getFile(fileUri);
-      await file.refresh();
-    }
-    _invalidatedFiles.clear();
+    await _logger.runAsync('Refresh invalidated files', () async {
+      for (Uri fileUri in _invalidatedFiles) {
+        FileState file = await _fsState.getFile(fileUri);
+        await file.refresh();
+      }
+      _invalidatedFiles.clear();
+    });
   }
+
+  List<int> _writeProgramBytes(Program program, bool filter(Library library)) {
+    ByteSink byteSink = new ByteSink();
+    new LibraryFilteringBinaryPrinter(byteSink, filter)
+        .writeProgramFile(program);
+    return byteSink.builder.takeBytes();
+  }
+}
+
+/// Compilation result for a library cycle.
+class _LibraryCycleResult {
+  final LibraryCycle cycle;
+
+  /// The signature of the result.
+  ///
+  /// Currently it is based on the full content of the transitive closure of
+  /// the [cycle] files and all its dependencies.
+  /// TODO(scheglov) Not used yet.
+  /// TODO(scheglov) Use API signatures.
+  /// TODO(scheglov) Or use tree shaking and compute signatures of outlines.
+  final String signature;
+
+  /// Kernel libraries for libraries in the [cycle].  Dependencies are not
+  /// included, they were returned as results for preceding cycles.
+  final List<Library> kernelLibraries;
+
+  _LibraryCycleResult(this.cycle, this.signature, this.kernelLibraries);
 }

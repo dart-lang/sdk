@@ -8,6 +8,8 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:package_config/packages_file.dart' as package_config;
 
 /// Wrapper around [CompilerOptions] which exposes the options in a form useful
@@ -39,6 +41,16 @@ class ProcessedOptions {
 
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions(CompilerOptions rawOptions) : this._raw = rawOptions;
+
+  /// The logger to report compilation progress.
+  PerformanceLog get logger {
+    return _raw.logger;
+  }
+
+  /// The byte storage to get and put serialized data.
+  ByteStore get byteStore {
+    return _raw.byteStore;
+  }
 
   /// Determine whether to generate code for the SDK when compiling a
   /// whole-program.

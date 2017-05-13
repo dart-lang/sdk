@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';
@@ -37,6 +38,8 @@ class IncrementalKernelGeneratorTest {
 
     var compilerOptions = new CompilerOptions()
       ..fileSystem = fileSystem
+      ..byteStore = new MemoryByteStore()
+//      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
       ..dartLibraries = dartLibraries
@@ -44,6 +47,77 @@ class IncrementalKernelGeneratorTest {
     incrementalKernelGenerator = await IncrementalKernelGenerator.newInstance(
         compilerOptions, entryPoint);
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
+  }
+
+  test_analyze_chain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+var b = a;
+''');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b;
+''');
+
+    {
+      Program program = await getInitialState(cUri);
+      Library library = _getLibrary(program, cUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::int c2 = b::b;
+''');
+      // TODO(scheglov) Check that the program contains all libraries.
+    }
+
+    // Update b.dart and recompile c.dart
+    writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+var b = 1.2;
+''');
+    incrementalKernelGenerator.invalidate(bUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      var program = delta.newProgram;
+      var library = _getLibrary(program, cUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::double c2 = b::b;
+''');
+      // TODO(scheglov) Check that the delta contains b.dart and c.dart,
+      // but not a.dart or SDK.
+//      print(_getLibraryText(_getLibrary(program, aUri)));
+//      print(_getLibraryText(_getLibrary(program, bUri)));
+//      print(_getLibraryText(_getLibrary(program, cUri)));
+    }
   }
 
   test_updateEntryPoint() async {

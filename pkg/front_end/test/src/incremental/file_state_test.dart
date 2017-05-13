@@ -27,7 +27,7 @@ class FileSystemStateTest {
   void setUp() {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     uriTranslator.dartLibraries.addAll(dartLibraries);
-    _coreUri = uriTranslator.dartLibraries['core'];
+    _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
     fsState = new FileSystemState(fileSystem, uriTranslator);
   }
@@ -135,12 +135,12 @@ part "c.dart";
   }
 
   void _assertImportedUris(FileState file, List<Uri> expectedUris) {
-    Iterable<Uri> importedUris = _toFileUris(file.importedLibraries);
+    Iterable<Uri> importedUris = _toUris(file.importedLibraries);
     expect(importedUris, unorderedEquals(expectedUris));
   }
 
-  Iterable<Uri> _toFileUris(List<FileState> files) {
-    return files.map((f) => f.fileUri);
+  Iterable<Uri> _toUris(List<FileState> files) {
+    return files.map((f) => f.uri);
   }
 
   Uri _writeFileDirectives(String path,

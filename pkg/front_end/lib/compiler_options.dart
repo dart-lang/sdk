@@ -5,6 +5,10 @@
 library front_end.compiler_options;
 
 import 'dart:async';
+
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
+
 import 'compilation_error.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
@@ -102,6 +106,12 @@ class CompilerOptions {
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = PhysicalFileSystem.instance;
+
+  /// The byte storage to get and put serialized data.
+  ByteStore byteStore = new NullByteStore();
+
+  /// The logger to report compilation progress.
+  PerformanceLog logger = new PerformanceLog(new StringBuffer());
 
   /// Whether to generate code for the SDK when compiling a whole-program.
   bool compileSdk = false;

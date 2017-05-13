@@ -5,12 +5,14 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/parser/top_level_parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:kernel/target/vm.dart';
 
 /// Information about a file being compiled, explicitly or implicitly.
 ///
@@ -22,22 +24,32 @@ import 'package:front_end/src/fasta/translate_uri.dart';
 class FileState {
   final FileSystemState _fsState;
 
+  /// The absolute URI of the file.
+  final Uri uri;
+
   /// The resolved URI of the file in the file system.
   final Uri fileUri;
 
   bool _exists;
   List<int> _content;
+  List<int> _contentHash;
 
   List<FileState> _importedLibraries;
   List<FileState> _exportedLibraries;
   List<FileState> _partFiles;
 
+  Set<FileState> _directReferencedFiles = new Set<FileState>();
   List<FileState> _directReferencedLibraries = <FileState>[];
 
-  FileState._(this._fsState, this.fileUri);
+  FileState._(this._fsState, this.uri, this.fileUri);
 
   /// The content of the file.
   List<int> get content => _content;
+
+  /**
+   * The MD5 hash of the [content].
+   */
+  List<int> get contentHash => _contentHash;
 
   /// Libraries that this library file directly imports or exports.
   List<FileState> get directReferencedLibraries => _directReferencedLibraries;
@@ -49,7 +61,7 @@ class FileState {
   List<FileState> get exportedLibraries => _exportedLibraries;
 
   @override
-  int get hashCode => fileUri.hashCode;
+  int get hashCode => uri.hashCode;
 
   /// The list of the libraries imported by this library.
   List<FileState> get importedLibraries => _importedLibraries;
@@ -64,9 +76,25 @@ class FileState {
     return libraryWalker.topologicallySortedCycles;
   }
 
+  /// Return the set of transitive files - the file itself and all of the
+  /// directly or indirectly referenced files.
+  Set<FileState> get transitiveFiles {
+    // TODO(scheglov) add caching.
+    var transitiveFiles = new Set<FileState>();
+
+    void appendReferenced(FileState file) {
+      if (transitiveFiles.add(file)) {
+        file._directReferencedFiles.forEach(appendReferenced);
+      }
+    }
+
+    appendReferenced(this);
+    return transitiveFiles;
+  }
+
   @override
   bool operator ==(Object other) {
-    return other is FileState && other.fileUri == fileUri;
+    return other is FileState && other.uri == uri;
   }
 
   /// Read the file content and ensure that all of the file properties are
@@ -82,6 +110,9 @@ class FileState {
       _exists = false;
     }
 
+    // Compute the content hash.
+    _contentHash = md5.convert(_content).bytes;
+
     // Parse directives.
     ScannerResult scannerResults = _scan();
     var listener = new DirectiveListener();
@@ -95,6 +126,7 @@ class FileState {
     for (String uri in listener.imports) {
       await _addFileForRelativeUri(_importedLibraries, uri);
     }
+    await _addVmTargetImportsForCore();
     for (String uri in listener.exports) {
       await _addFileForRelativeUri(_exportedLibraries, uri);
     }
@@ -102,7 +134,11 @@ class FileState {
       await _addFileForRelativeUri(_partFiles, uri);
     }
 
-    // Compute referenced libraries.
+    // Compute referenced files.
+    _directReferencedFiles = new Set<FileState>()
+      ..addAll(_importedLibraries)
+      ..addAll(_exportedLibraries)
+      ..addAll(_partFiles);
     _directReferencedLibraries = (new Set<FileState>()
           ..addAll(_importedLibraries)
           ..addAll(_exportedLibraries))
@@ -132,17 +168,20 @@ class FileState {
       return;
     }
 
-    // Resolve the absolute URI into the absolute file URI.
-    Uri resolvedUri;
-    if (absoluteUri.isScheme('file')) {
-      resolvedUri = absoluteUri;
-    } else {
-      resolvedUri = _fsState.uriTranslator.translate(absoluteUri);
-      if (resolvedUri == null) return;
-    }
-
-    FileState file = await _fsState.getFile(resolvedUri);
+    FileState file = await _fsState.getFile(absoluteUri);
+    if (file == null) return;
     files.add(file);
+  }
+
+  /// Fasta unconditionally loads all VM libraries.  In order to be able to
+  /// serve them using the file system view, pretend that all of them were
+  /// imported into `dart:core`.
+  /// TODO(scheglov) Ask VM people whether all these libraries are required.
+  Future<Null> _addVmTargetImportsForCore() async {
+    if (uri.toString() != 'dart:core') return;
+    for (String uri in new VmTarget(null).extraRequiredLibraries) {
+      await _addFileForRelativeUri(_importedLibraries, uri);
+    }
   }
 
   /// Scan the content of the file.
@@ -173,12 +212,24 @@ class FileSystemState {
     return _fileSystemView ??= new _FileSystemView(this);
   }
 
-  /// Return the [FileState] for the given resolved file [fileUri].
+  /// Return the [FileState] for the given [absoluteUri], or `null` if the
+  /// [absoluteUri] cannot be resolved into a file URI.
+  ///
   /// The returned file has the last known state since it was last refreshed.
-  Future<FileState> getFile(Uri fileUri) async {
-    FileState file = _fileUriToFile[fileUri];
+  Future<FileState> getFile(Uri absoluteUri) async {
+    // Resolve the absolute URI into the absolute file URI.
+    Uri fileUri;
+    if (absoluteUri.isScheme('file')) {
+      fileUri = absoluteUri;
+    } else {
+      fileUri = uriTranslator.translate(absoluteUri);
+      if (fileUri == null) return null;
+    }
+
+    FileState file = _fileUriToFile[absoluteUri];
     if (file == null) {
-      file = new FileState._(this, fileUri);
+      file = new FileState._(this, absoluteUri, fileUri);
+      _fileUriToFile[absoluteUri] = file;
       _fileUriToFile[fileUri] = file;
 
       // Build the sub-graph of the file.
@@ -192,8 +243,17 @@ class FileSystemState {
 class LibraryCycle {
   final List<FileState> libraries = <FileState>[];
 
+  bool get _isForVm {
+    return libraries.any((l) => l.uri.toString().endsWith('dart:_vmservice'));
+  }
+
   @override
-  String toString() => '[' + libraries.join(', ') + ']';
+  String toString() {
+    if (_isForVm) {
+      return '[core + vm]';
+    }
+    return '[' + libraries.join(', ') + ']';
+  }
 }
 
 /// [FileSystemState] based implementation of [FileSystem].
