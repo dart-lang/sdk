@@ -20,3 +20,8 @@ void bad() {
 }
 
 bool m() => true;
+
+void bug658() {
+  String text;
+  if ((text?.length ?? 0) != 0) {}
+}

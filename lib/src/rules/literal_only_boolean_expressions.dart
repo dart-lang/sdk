@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc =
-    r'Conditions should not unconditionally evaluate to "TRUE" or to "FALSE"';
+    r'Boolean expression composed only with literals';
 
 const _details = r'''
 
@@ -90,8 +90,7 @@ bool _onlyLiterals(Expression rawExpression) {
   }
   if (expression is BinaryExpression) {
     if (expression.operator.type == TokenType.QUESTION_QUESTION) {
-      return _onlyLiterals(expression.leftOperand) ||
-          _onlyLiterals(expression.rightOperand);
+      return _onlyLiterals(expression.leftOperand);
     }
     return _onlyLiterals(expression.leftOperand) &&
         _onlyLiterals(expression.rightOperand);
