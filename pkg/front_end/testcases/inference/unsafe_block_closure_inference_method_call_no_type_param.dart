@@ -12,3 +12,7 @@ class C {
 var /*@topType=double*/ v = new C(). /*@target=C::f*/ f(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

@@ -301,13 +301,8 @@ class KernelFunctionExpression extends FunctionExpression
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
         asyncMarker == AsyncMarker.AsyncStar;
     return inferrer.inferFunctionExpression(
-        typeContext,
-        typeNeeded,
-        function.body,
-        function.body is ReturnStatement,
-        isAsync,
-        isGenerator,
-        fileOffset, (type) {
+        typeContext, typeNeeded, function, isAsync, isGenerator, fileOffset,
+        (type) {
       function.returnType = type;
     }, () => function.functionType);
   }
@@ -958,6 +953,14 @@ class KernelVariableDeclaration extends VariableDeclaration
       this.type = type;
     });
   }
+
+  /// Determine whether the given [KernelVariableDeclaration] had an implicit
+  /// type.
+  ///
+  /// This is static to avoid introducing a method that would be visible to
+  /// the kernel.
+  static bool isImplicitlyTyped(KernelVariableDeclaration variable) =>
+      variable._implicitlyTyped;
 }
 
 /// Concrete shadow object representing a read from a variable in kernel form.

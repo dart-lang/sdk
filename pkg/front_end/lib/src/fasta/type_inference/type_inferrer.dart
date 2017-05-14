@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
@@ -12,17 +13,21 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart'
     show
         BottomType,
+        Class,
         Constructor,
         DartType,
         DynamicType,
         Field,
+        FunctionNode,
         FunctionType,
         InterfaceType,
         Member,
         Name,
         Procedure,
+        ReturnStatement,
         TypeParameter,
         TypeParameterType,
+        VariableDeclaration,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -316,8 +321,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   DartType inferFunctionExpression(
       DartType typeContext,
       bool typeNeeded,
-      S body,
-      bool isExpressionFunction,
+      FunctionNode function,
       bool isAsync,
       bool isGenerator,
       int offset,
@@ -325,14 +329,107 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       DartType getFunctionType()) {
     typeNeeded = listener.functionExpressionEnter(typeContext) || typeNeeded;
     // TODO(paulberry): do we also need to visit default parameter values?
-    // TODO(paulberry): infer argument types and type parameters.
-    // TODO(paulberry): full support for generators.
-    DartType returnContext =
-        typeContext is FunctionType ? typeContext.returnType : null;
+
+    // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
+    // `n`=0 if there are no type parameters).
+    List<TypeParameter> typeParameters = function.typeParameters;
+
+    // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
+    // (including required, positional optional, and named optional parameters).
+    // If any type `Pi` is missing, denote it as `_`.
+    List<VariableDeclaration> formals = function.positionalParameters.toList()
+      ..addAll(function.namedParameters);
+
+    // Let `B` denote the closure body.  If `B` is an expression function body
+    // (`=> e`), treat it as equivalent to a block function body containing a
+    // single `return` statement (`{ return e; }`).
+
+    // Attempt to match `K` as a function type compatible with the closure (that
+    // is, one having n type parameters and a compatible set of formal
+    // parameters).  If there is a successful match, let `<S0, ..., Sn>` be the
+    // set of matched type parameters and `(Q0, ..., Qm)` be the set of matched
+    // formal parameter types, and let `N` be the return type.
+    Substitution substitution;
+    List<DartType> formalTypesFromContext =
+        new List<DartType>.filled(formals.length, null);
+    DartType returnContext;
+    if (typeContext is FunctionType) {
+      for (int i = 0; i < formals.length; i++) {
+        if (i < function.positionalParameters.length) {
+          formalTypesFromContext[i] =
+              _getPositionalParameterType(typeContext, i);
+        } else {
+          formalTypesFromContext[i] =
+              _getNamedParameterType(typeContext, formals[i].name);
+        }
+      }
+      returnContext = typeContext.returnType;
+
+      // Let `[T/S]` denote the type substitution where each `Si` is replaced with
+      // the corresponding `Ti`.
+      var substitutionMap = <TypeParameter, DartType>{};
+      for (int i = 0; i < typeContext.typeParameters.length; i++) {
+        substitutionMap[typeContext.typeParameters[i]] =
+            i < typeParameters.length
+                ? new TypeParameterType(typeParameters[i])
+                : const DynamicType();
+      }
+      substitution = Substitution.fromMap(substitutionMap);
+    } else {
+      // If the match is not successful because  `K` is `_`, let all `Si`, all
+      // `Qi`, and `N` all be `_`.
+
+      // If the match is not successful for any other reason, this will result in
+      // a type error, so the implementation is free to choose the best error
+      // recovery path.
+      substitution = Substitution.empty;
+    }
+
+    // Define `Ri` as follows: if `Pi` is not `_`, let `Ri` be `Pi`.
+    // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
+    // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
+    for (int i = 0; i < formals.length; i++) {
+      KernelVariableDeclaration formal = formals[i];
+      if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+        if (formalTypesFromContext[i] != null) {
+          formal.type = greatestClosure(coreTypes,
+              substitution.substituteType(formalTypesFromContext[i]));
+        }
+      }
+    }
+
+    // Let `N’` be `N[T/S]`, adjusted accordingly if the closure is declared
+    // with `async`, `async*`, or `sync*`.
+    if (returnContext != null) {
+      returnContext = substitution.substituteType(returnContext);
+    }
+    if (isGenerator) {
+      if (isAsync) {
+        returnContext =
+            _getTypeArgumentOf(returnContext, coreTypes.streamClass);
+      } else {
+        returnContext =
+            _getTypeArgumentOf(returnContext, coreTypes.iterableClass);
+      }
+    } else if (isAsync) {
+      // TODO(paulberry): do we have to handle FutureOr<> here?
+      returnContext = _getTypeArgumentOf(returnContext, coreTypes.futureClass);
+    }
+
+    // Apply type inference to `B` in return context `N’`, with any references
+    // to `xi` in `B` having type `Pi`.  This produces `B’`.
+    bool isExpressionFunction = function.body is ReturnStatement;
     bool needToSetReturnType = isExpressionFunction || strongMode;
     _ClosureContext oldClosureContext = _closureContext;
     _closureContext = new _ClosureContext(isAsync, isGenerator, returnContext);
-    inferStatement(body);
+    // TODO(paulberry): de-genericize this class.
+    inferStatement(function.body as S);
+
+    // If the closure is declared with `async*` or `sync*`, let `M` be the least
+    // upper bound of the types of the `yield` expressions in `B’`, or `void` if
+    // `B’` contains no `yield` expressions.  Otherwise, let `M` be the least
+    // upper bound of the types of the `return` expressions in `B’`, or `void`
+    // if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType || typeNeeded) {
       inferredReturnType =
@@ -347,11 +444,26 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
         // dartbug.com/29606.
         inferredReturnType = greatestClosure(coreTypes, returnContext);
       }
-      if (isAsync) {
-        inferredReturnType = new InterfaceType(
-            coreTypes.futureClass, <DartType>[inferredReturnType]);
+
+      // Let `M’` be `M`, adjusted accordingly if the closure is declared with
+      // `async`, `async*`, or `sync*`.
+      if (isGenerator) {
+        if (isAsync) {
+          inferredReturnType =
+              _wrapType(inferredReturnType, coreTypes.streamClass);
+        } else {
+          inferredReturnType =
+              _wrapType(inferredReturnType, coreTypes.iterableClass);
+        }
+      } else if (isAsync) {
+        inferredReturnType =
+            _wrapType(inferredReturnType, coreTypes.futureClass);
       }
     }
+
+    // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
+    // type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and `xi`
+    // denoted as optional or named parameters, if appropriate).
     if (needToSetReturnType) {
       instrumentation?.record(Uri.parse(uri), offset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
@@ -721,6 +833,18 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     } else {
       return const DynamicType();
     }
+  }
+
+  DartType _getTypeArgumentOf(DartType type, Class class_) {
+    if (type is InterfaceType && identical(type.classNode, class_)) {
+      return type.typeArguments[0];
+    } else {
+      return null;
+    }
+  }
+
+  DartType _wrapType(DartType type, Class class_) {
+    return new InterfaceType(class_, <DartType>[type]);
   }
 }
 

@@ -9,3 +9,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var /*@topType=dynamic*/ v = (f)(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}
