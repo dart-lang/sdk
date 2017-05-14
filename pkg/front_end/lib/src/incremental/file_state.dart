@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
+import 'package:front_end/src/fasta/parser/dart_vm_native.dart';
 import 'package:front_end/src/fasta/parser/top_level_parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/source/directive_listener.dart';
@@ -115,7 +116,7 @@ class FileState {
 
     // Parse directives.
     ScannerResult scannerResults = _scan();
-    var listener = new DirectiveListener();
+    var listener = new _DirectiveListenerWithNative();
     new TopLevelParser(listener).parseUnit(scannerResults.tokens);
 
     // Build the graph.
@@ -254,6 +255,12 @@ class LibraryCycle {
     }
     return '[' + libraries.join(', ') + ']';
   }
+}
+
+/// [DirectiveListener] that skips native clauses.
+class _DirectiveListenerWithNative extends DirectiveListener {
+  @override
+  Token handleNativeClause(Token token) => skipNativeClause(token);
 }
 
 /// [FileSystemState] based implementation of [FileSystem].
