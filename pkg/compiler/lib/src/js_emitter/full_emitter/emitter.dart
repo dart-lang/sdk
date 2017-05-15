@@ -797,9 +797,10 @@ class Emitter implements js_emitter.Emitter {
 
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+    if (NativeGenerator
+        .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       parts.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-          backend,
+          _closedWorld.backendUsage,
           generateEmbeddedGlobalAccess,
           js(
               """
@@ -1095,7 +1096,7 @@ class Emitter implements js_emitter.Emitter {
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = backend.backendUsage.isIsolateInUse;
+    bool hasIsolateSupport = _closedWorld.backendUsage.isIsolateInUse;
     jsAst.Node fieldNamesArray;
     if (hasIsolateSupport) {
       fieldNamesArray =
@@ -1495,8 +1496,8 @@ class Emitter implements js_emitter.Emitter {
           "initName": initName,
           "functionThatReturnsNull": buildFunctionThatReturnsNull(),
           "mangledNames": buildMangledNames(),
-          "setupProgram":
-              buildSetupProgram(program, compiler, backend, namer, this),
+          "setupProgram": buildSetupProgram(
+              program, compiler, backend, namer, this, _closedWorld),
           "setupProgramName": setupProgramName,
           "descriptors": descriptorsAst,
           "cspPrecompiledFunctions":
@@ -1647,7 +1648,8 @@ class Emitter implements js_emitter.Emitter {
     });
     emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
-    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (_closedWorld.backendUsage.requiresPreamble &&
+        !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.

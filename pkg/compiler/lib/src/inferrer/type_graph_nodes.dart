@@ -18,7 +18,6 @@ import '../elements/resolution_types.dart'
         ResolutionFunctionType,
         ResolutionInterfaceType,
         ResolutionTypeKind;
-import '../js_backend/backend.dart';
 import '../tree/tree.dart' as ast show Node, Send;
 import '../types/masks.dart'
     show
@@ -462,7 +461,8 @@ class MemberTypeInformation extends ElementTypeInformation
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (element.isField &&
-        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(element) ||
+        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
+                element, inferrer.closedWorld) ||
             inferrer.assumeDynamic(element))) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
@@ -616,7 +616,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration) ||
+            element.functionDeclaration, inferrer.closedWorld) ||
         inferrer.assumeDynamic(declaration)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
@@ -975,12 +975,10 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     TypeMask typeMask = computeTypedSelector(inferrer);
     inferrer.updateSelectorInTree(caller, call, selector, typeMask);
 
-    Compiler compiler = inferrer.compiler;
-    JavaScriptBackend backend = compiler.backend;
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
-    bool canReachAll =
-        backend.backendUsage.isInvokeOnUsed && (maskToUse != typeMask);
+    bool canReachAll = inferrer.closedWorld.backendUsage.isInvokeOnUsed &&
+        (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`

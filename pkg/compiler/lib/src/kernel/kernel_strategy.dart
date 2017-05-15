@@ -113,9 +113,15 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelResolutionWorldBuilder(elementMap, nativeBasicData,
-        nativeDataBuilder, interceptorDataBuilder, selectorConstraintsStrategy);
+    return new KernelResolutionWorldBuilder(
+        elementMap,
+        nativeBasicData,
+        nativeDataBuilder,
+        interceptorDataBuilder,
+        backendUsageBuilder,
+        selectorConstraintsStrategy);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(

@@ -108,6 +108,7 @@ main(List<String> args) {
             backend.nativeBasicData,
             backend.nativeDataBuilder,
             interceptorDataBuilder,
+            backendUsageBuilder,
             const OpenWorldStrategy()),
         new KernelTestWorkItemBuilder(compiler),
         'enqueuer from kernel');

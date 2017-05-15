@@ -75,7 +75,7 @@ abstract class GraphBuilder {
 
   InterceptorData get interceptorData => closedWorld.interceptorData;
 
-  BackendUsage get backendUsage => backend.backendUsage;
+  BackendUsage get backendUsage => closedWorld.backendUsage;
 
   Namer get namer => backend.namer;
 

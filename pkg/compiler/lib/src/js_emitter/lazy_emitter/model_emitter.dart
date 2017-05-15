@@ -253,10 +253,11 @@ class ModelEmitter {
     Map<String, dynamic> nativeHoles = <String, dynamic>{};
 
     js.Statement nativeIsolateAffinityTagInitialization;
-    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+    if (NativeGenerator
+        .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       nativeIsolateAffinityTagInitialization =
           NativeGenerator.generateIsolateAffinityTagInitialization(
-              backend,
+              _closedWorld.backendUsage,
               generateEmbeddedGlobalAccess,
               // TODO(floitsch): internStringFunction.
               js.js("(function(x) { return x; })", []));

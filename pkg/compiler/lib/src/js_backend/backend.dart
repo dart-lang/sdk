@@ -442,7 +442,6 @@ class JavaScriptBackend {
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
   OneShotInterceptorData _oneShotInterceptorData;
-  BackendUsage _backendUsage;
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
@@ -508,7 +507,7 @@ class JavaScriptBackend {
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
 
     _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
-        compiler.elementEnvironment, impacts, backendUsageBuilder);
+        compiler.elementEnvironment, impacts, _backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
         compiler.frontEndStrategy.createMirrorsResolutionAnalysis(this);
@@ -606,18 +605,6 @@ class JavaScriptBackend {
     return _oneShotInterceptorData;
   }
 
-  BackendUsage get backendUsage {
-    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage != null,
-        message: "BackendUsage has not been computed yet."));
-    return _backendUsage;
-  }
-
-  BackendUsageBuilder get backendUsageBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage == null,
-        message: "BackendUsage has already been computed."));
-    return _backendUsageBuilder;
-  }
-
   RuntimeTypesNeed get rtiNeed {
     assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed != null,
         message: "RuntimeTypesNeed has not been computed yet."));
@@ -691,8 +678,9 @@ class JavaScriptBackend {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
-  bool canFieldBeUsedForGlobalOptimizations(FieldElement element) {
-    return !backendUsage.isFieldUsedByBackend(element) &&
+  bool canFieldBeUsedForGlobalOptimizations(
+      FieldElement element, ClosedWorld closedWorld) {
+    return !closedWorld.backendUsage.isFieldUsedByBackend(element) &&
         !mirrorsData.invokedReflectively(element);
   }
 
@@ -702,10 +690,10 @@ class JavaScriptBackend {
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
-      FunctionElement element) {
+      FunctionElement element, ClosedWorld closedWorld) {
     if (element.isLocal) return true;
     MethodElement method = element;
-    return !backendUsage.isFunctionUsedByBackend(method) &&
+    return !closedWorld.backendUsage.isFunctionUsedByBackend(method) &&
         !mirrorsData.invokedReflectively(method);
   }
 
@@ -762,7 +750,6 @@ class JavaScriptBackend {
   void onResolutionEnd() {
     compiler.frontEndStrategy.annotationProcesser
         .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
-    _backendUsage = backendUsageBuilder.close();
   }
 
   /// Called when the closed world from resolution has been computed.
@@ -775,11 +762,7 @@ class JavaScriptBackend {
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
-        compiler.enqueuer.resolution.worldBuilder,
-        closedWorld,
-        compiler.types,
-        commonElements,
-        _backendUsage,
+        compiler.enqueuer.resolution.worldBuilder, closedWorld, compiler.types,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
@@ -829,12 +812,12 @@ class JavaScriptBackend {
         compiler.elementEnvironment,
         commonElements,
         compiler.frontEndStrategy.dartTypes,
-        backendUsageBuilder,
+        _backendUsageBuilder,
         compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = compiler.frontEndStrategy
         .createCustomElementsResolutionAnalysis(
-            nativeBasicData, backendUsageBuilder);
+            nativeBasicData, _backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
@@ -842,7 +825,7 @@ class JavaScriptBackend {
         impacts,
         nativeBasicData,
         _nativeResolutionEnqueuer,
-        backendUsageBuilder,
+        _backendUsageBuilder,
         mirrorsDataBuilder,
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
@@ -863,7 +846,7 @@ class JavaScriptBackend {
             impacts,
             nativeBasicData,
             interceptorDataBuilder,
-            backendUsageBuilder,
+            _backendUsageBuilder,
             rtiNeedBuilder,
             mirrorsDataBuilder,
             noSuchMethodRegistry,
@@ -878,6 +861,7 @@ class JavaScriptBackend {
             nativeBasicData,
             _nativeDataBuilder,
             interceptorDataBuilder,
+            _backendUsageBuilder,
             const OpenWorldStrategy()),
         compiler.frontEndStrategy.createResolutionWorkItemBuilder(
             nativeBasicData, _nativeDataBuilder, impactTransformer));
@@ -917,7 +901,7 @@ class JavaScriptBackend {
             compiler.elementEnvironment,
             commonElements,
             impacts,
-            backendUsage,
+            closedWorld.backendUsage,
             rtiNeed,
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
@@ -1133,7 +1117,7 @@ class JavaScriptBackend {
         impacts,
         checkedModeHelpers,
         closedWorld.nativeData,
-        backendUsage,
+        closedWorld.backendUsage,
         rtiNeed,
         nativeCodegenEnqueuer,
         namer,

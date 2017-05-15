@@ -640,7 +640,7 @@ abstract class Compiler {
     // require the information computed in [world.closeWorld].)
     backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
 
-    deferredLoadTask.onResolutionComplete(mainFunction);
+    deferredLoadTask.onResolutionComplete(mainFunction, closedWorld);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.

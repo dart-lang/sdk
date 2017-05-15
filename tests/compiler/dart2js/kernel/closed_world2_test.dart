@@ -117,8 +117,8 @@ Future<ResultKind> mainInternal(List<String> args,
   }
   Expect.isFalse(compiler1.compilationFailed);
   ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
-  BackendUsage backendUsage1 = compiler1.backend.backendUsage;
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
+  BackendUsage backendUsage1 = closedWorld1.backendUsage;
 
   Pair<Compiler, Compiler> compilers =
       await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
@@ -138,8 +138,8 @@ Future<ResultKind> mainInternal(List<String> args,
   checkElementEnvironment(environment1, environment2, strategy);
 
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
-  BackendUsage backendUsage2 = compiler2.backend.backendUsage;
   ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+  BackendUsage backendUsage2 = closedWorld2.backendUsage;
 
   checkNativeClasses(compiler1, compiler2, strategy);
 

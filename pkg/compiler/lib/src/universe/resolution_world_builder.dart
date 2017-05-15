@@ -335,6 +335,7 @@ abstract class ResolutionWorldBuilderBase
   final NativeBasicData _nativeBasicData;
   final NativeDataBuilder _nativeDataBuilder;
   final InterceptorDataBuilder _interceptorDataBuilder;
+  final BackendUsageBuilder _backendUsageBuilder;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -367,6 +368,7 @@ abstract class ResolutionWorldBuilderBase
       this._nativeBasicData,
       this._nativeDataBuilder,
       this._interceptorDataBuilder,
+      this._backendUsageBuilder,
       this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
@@ -924,6 +926,7 @@ abstract class KernelResolutionWorldBuilderBase
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             elementEnvironment,
@@ -931,6 +934,7 @@ abstract class KernelResolutionWorldBuilderBase
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
+            backendUsageBuilder,
             selectorConstraintsStrategy);
 
   @override
@@ -942,9 +946,9 @@ abstract class KernelResolutionWorldBuilderBase
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
+        backendUsage: _backendUsageBuilder.close(),
         // TODO(johnniwinther): Compute these.
         constantSystem: null,
-        backendUsage: null,
         resolutionWorldBuilder: this,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,

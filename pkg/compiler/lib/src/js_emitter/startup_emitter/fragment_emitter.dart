@@ -487,10 +487,12 @@ class FragmentEmitter {
   final JavaScriptBackend backend;
   final ConstantEmitter constantEmitter;
   final ModelEmitter modelEmitter;
-  final InterceptorData _interceptorData;
+  final ClosedWorld _closedWorld;
 
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
-      this.modelEmitter, this._interceptorData);
+      this.modelEmitter, this._closedWorld);
+
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       modelEmitter.generateEmbeddedGlobalAccess(global);
@@ -1510,9 +1512,10 @@ class FragmentEmitter {
 
     // The isolate-affinity tag must only be initialized once per program.
     if (fragment.isMainFragment &&
-        NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+        NativeGenerator
+            .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-          backend,
+          _closedWorld.backendUsage,
           generateEmbeddedGlobalAccess,
           js.js(
               """

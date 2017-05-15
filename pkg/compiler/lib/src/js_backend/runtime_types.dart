@@ -51,8 +51,6 @@ abstract class RuntimeTypesNeedBuilder {
       ResolutionWorldBuilder resolutionWorldBuilder,
       ClosedWorld closedWorld,
       DartTypes types,
-      CommonElements commonElements,
-      BackendUsage backendUsage,
       {bool enableTypeAssertions});
 }
 
@@ -305,9 +303,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       ResolutionWorldBuilder resolutionWorldBuilder,
       ClosedWorld closedWorld,
       DartTypes types,
-      CommonElements commonElements,
-      BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
+    CommonElements commonElements = closedWorld.commonElements;
+
     Set<ClassEntity> classesNeedingRti = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingRti = new Set<FunctionEntity>();
     Set<Local> localFunctionsNeedingRti = new Set<Local>();
@@ -422,7 +420,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
     return _createRuntimeTypesNeed(
         _elementEnvironment,
-        backendUsage,
+        closedWorld.backendUsage,
         classesNeedingRti,
         methodsNeedingRti,
         localFunctionsNeedingRti,

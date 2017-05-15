@@ -19,6 +19,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             _backend.compiler.elementEnvironment,
@@ -26,6 +27,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
+            backendUsageBuilder,
             selectorConstraintsStrategy);
 
   bool isImplemented(ClassElement cls) {
@@ -175,7 +177,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         constantSystem: _backend.constantSystem,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
-        backendUsage: _backend.backendUsage,
+        backendUsage: _backendUsageBuilder.close(),
         resolutionWorldBuilder: this,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,

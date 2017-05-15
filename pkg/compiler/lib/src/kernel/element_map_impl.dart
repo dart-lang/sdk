@@ -22,6 +22,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
@@ -1282,6 +1283,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             elementMap.elementEnvironment,
@@ -1289,6 +1291,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
+            backendUsageBuilder,
             selectorConstraintsStrategy);
 
   @override

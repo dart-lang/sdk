@@ -66,6 +66,7 @@ abstract class FrontEndStrategy {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] corresponding to how a resolved model for

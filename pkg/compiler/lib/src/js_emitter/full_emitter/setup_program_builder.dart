@@ -26,8 +26,13 @@ const String setupProgramName = 'setupProgram';
 //   unlikely since it lives on types, but still.
 const String typeNameProperty = r'builtin$cls';
 
-jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
-    JavaScriptBackend backend, Namer namer, Emitter emitter) {
+jsAst.Statement buildSetupProgram(
+    Program program,
+    Compiler compiler,
+    JavaScriptBackend backend,
+    Namer namer,
+    Emitter emitter,
+    ClosedWorld closedWorld) {
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
   jsAst.Expression globalFunctionsAccess =
@@ -103,7 +108,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
     'typeInformation': typeInformationAccess,
     'globalFunctions': globalFunctionsAccess,
-    'enabledInvokeOn': backend.backendUsage.isInvokeOnUsed,
+    'enabledInvokeOn': closedWorld.backendUsage.isInvokeOnUsed,
     'interceptedNames': interceptedNamesAccess,
     'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
     'notInCspMode': !compiler.options.useContentSecurityPolicy,
@@ -138,9 +143,9 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
         compiler.commonElements.objectClass as Entity)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
     'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
-        backend.backendUsage.isFunctionApplyUsed,
-    'tearOffCode': buildTearOffCode(compiler.options, backend.emitter.emitter,
-        backend.namer, compiler.commonElements),
+        closedWorld.backendUsage.isFunctionApplyUsed,
+    'tearOffCode': buildTearOffCode(
+        compiler.options, emitter, namer, compiler.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
     'deferredActionString': js.string(namer.deferredAction)

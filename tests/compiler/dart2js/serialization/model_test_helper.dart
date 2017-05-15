@@ -17,6 +17,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
+import 'package:compiler/src/world.dart';
 import '../memory_compiler.dart';
 import '../equivalence/check_helpers.dart';
 import '../equivalence/check_functions.dart';
@@ -88,15 +89,17 @@ Future checkModels(Uri entryPoint,
 
   return measure(title, 'check models', () async {
     checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);
+    ClosedWorld closedWorld1 =
+        compilerNormal.resolutionWorldBuilder.closedWorldForTesting;
+    ClosedWorld closedWorld2 =
+        compilerNormal.resolutionWorldBuilder.closedWorldForTesting;
     checkResolutionEnqueuers(
-        compilerNormal.backend.backendUsage,
-        compilerDeserialized.backend.backendUsage,
+        closedWorld1.backendUsage,
+        closedWorld2.backendUsage,
         compilerNormal.enqueuer.resolution,
         compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
-    checkClosedWorlds(
-        compilerNormal.resolutionWorldBuilder.closedWorldForTesting,
-        compilerDeserialized.resolutionWorldBuilder.closedWorldForTesting,
+    checkClosedWorlds(closedWorld1, closedWorld2,
         // Serialized native data include non-live members.
         allowExtra: true,
         verbose: verbose);
