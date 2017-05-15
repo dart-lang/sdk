@@ -14,9 +14,9 @@ import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/world.dart';
+import '../equivalence/check_helpers.dart';
 import '../memory_compiler.dart';
 import 'helper.dart';
-import 'test_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {

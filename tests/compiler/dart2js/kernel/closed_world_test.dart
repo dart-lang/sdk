@@ -32,6 +32,8 @@ import 'impact_test.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
 import '../serialization/model_test_helper.dart';
+import '../equivalence/check_functions.dart';
+import 'test_helpers.dart';
 
 const SOURCE = const {
   'main.dart': '''
@@ -107,7 +109,7 @@ main(List<String> args) {
             backend.nativeDataBuilder,
             interceptorDataBuilder,
             const OpenWorldStrategy()),
-        new KernelWorkItemBuilder(compiler),
+        new KernelTestWorkItemBuilder(compiler),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(
         compiler.reporter, enqueuer, compiler.elementEnvironment);
@@ -121,23 +123,6 @@ main(List<String> args) {
         compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);
   });
-}
-
-bool elementFilter(Entity element) {
-  if (element is ConstructorElement && element.isRedirectingFactory) {
-    // Redirecting factory constructors are skipped in kernel.
-    return false;
-  }
-  if (element is ClassElement) {
-    for (ConstructorElement constructor in element.constructors) {
-      if (!constructor.isRedirectingFactory) {
-        return true;
-      }
-    }
-    // The class cannot itself be instantiated.
-    return false;
-  }
-  return true;
 }
 
 List createResolutionEnqueuerListener(Compiler compiler) {
@@ -177,30 +162,4 @@ ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
     enqueuer.applyImpact(work.run(), impactSource: work.element);
   });
   return enqueuer.worldBuilder.closeWorld();
-}
-
-class KernelWorkItemBuilder implements WorkItemBuilder {
-  final Compiler _compiler;
-
-  KernelWorkItemBuilder(this._compiler);
-
-  @override
-  WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(
-        _compiler, _compiler.backend.impactTransformer, entity);
-  }
-}
-
-class KernelWorkItem implements ResolutionWorkItem {
-  final Compiler _compiler;
-  final ImpactTransformer _impactTransformer;
-  final MemberElement element;
-
-  KernelWorkItem(this._compiler, this._impactTransformer, this.element);
-
-  @override
-  WorldImpact run() {
-    ResolutionImpact resolutionImpact = build(_compiler, element.resolvedAst);
-    return _impactTransformer.transformResolutionImpact(resolutionImpact);
-  }
 }

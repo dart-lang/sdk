@@ -10,8 +10,8 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:expect/expect.dart';
+import '../equivalence/check_functions.dart';
 import 'helper.dart';
-import 'test_helper.dart';
 import 'equivalence_test.dart';
 
 main(List<String> args) {

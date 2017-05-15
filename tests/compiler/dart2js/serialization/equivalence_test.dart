@@ -24,7 +24,7 @@ import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:expect/expect.dart';
-import 'test_helper.dart';
+import '../equivalence/check_helpers.dart';
 
 const TEST_SOURCES = const <String, String>{
   'main.dart': '''

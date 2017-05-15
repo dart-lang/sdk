@@ -5,35 +5,23 @@
 library dart2js.serialization_model_test;
 
 import 'dart:async';
-import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
-import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
-import 'package:compiler/src/js_backend/backend_usage.dart';
-import 'package:compiler/src/js_backend/native_data.dart';
-import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
-import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/util/enumset.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
 import '../memory_compiler.dart';
+import '../equivalence/check_helpers.dart';
+import '../equivalence/check_functions.dart';
 import 'helper.dart';
 import 'test_data.dart';
-import 'test_helper.dart';
 
 /// Number of tests that are not part of the automatic test grouping.
 int SKIP_COUNT = 2;
@@ -114,187 +102,6 @@ Future checkModels(Uri entryPoint,
         verbose: verbose);
     checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
   });
-}
-
-void checkResolutionEnqueuers(
-    BackendUsage backendUsage1,
-    BackendUsage backendUsage2,
-    ResolutionEnqueuer enqueuer1,
-    ResolutionEnqueuer enqueuer2,
-    {bool elementEquivalence(Entity a, Entity b): areElementsEquivalent,
-    bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
-    bool elementFilter(Element element),
-    bool verbose: false}) {
-  ResolutionWorldBuilderBase worldBuilder1 = enqueuer1.worldBuilder;
-  ResolutionWorldBuilderBase worldBuilder2 = enqueuer2.worldBuilder;
-
-  checkSets(
-      enqueuer1.worldBuilder.instantiatedTypes,
-      enqueuer2.worldBuilder.instantiatedTypes,
-      "Instantiated types mismatch",
-      typeEquivalence,
-      verbose: verbose);
-
-  checkSets(
-      enqueuer1.worldBuilder.directlyInstantiatedClasses,
-      enqueuer2.worldBuilder.directlyInstantiatedClasses,
-      "Directly instantiated classes mismatch",
-      elementEquivalence,
-      verbose: verbose);
-
-  checkMaps(
-      worldBuilder1.getInstantiationMap(),
-      worldBuilder2.getInstantiationMap(),
-      "Instantiated classes mismatch",
-      elementEquivalence,
-      (a, b) => areInstantiationInfosEquivalent(
-          a, b, elementEquivalence, typeEquivalence),
-      verbose: verbose);
-
-  checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
-      "Processed element mismatch", elementEquivalence, elementFilter: (e) {
-    return elementFilter != null ? elementFilter(e) : true;
-  }, verbose: verbose);
-
-  checkSets(enqueuer1.worldBuilder.isChecks, enqueuer2.worldBuilder.isChecks,
-      "Is-check mismatch", typeEquivalence,
-      verbose: verbose);
-
-  Expect.equals(backendUsage1.isInvokeOnUsed, backendUsage2.isInvokeOnUsed,
-      "JavaScriptBackend.hasInvokeOnSupport mismatch");
-  Expect.equals(
-      backendUsage1.isFunctionApplyUsed,
-      backendUsage1.isFunctionApplyUsed,
-      "JavaScriptBackend.hasFunctionApplySupport mismatch");
-  Expect.equals(
-      backendUsage1.isRuntimeTypeUsed,
-      backendUsage2.isRuntimeTypeUsed,
-      "JavaScriptBackend.hasRuntimeTypeSupport mismatch");
-  Expect.equals(backendUsage1.isIsolateInUse, backendUsage2.isIsolateInUse,
-      "JavaScriptBackend.hasIsolateSupport mismatch");
-}
-
-void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
-    {TestStrategy strategy: const TestStrategy(),
-    bool allowExtra: false,
-    bool verbose: false}) {
-  if (verbose) {
-    print(closedWorld1.dump());
-    print(closedWorld2.dump());
-  }
-  checkClassHierarchyNodes(
-      closedWorld1,
-      closedWorld2,
-      closedWorld1
-          .getClassHierarchyNode(closedWorld1.commonElements.objectClass),
-      closedWorld2
-          .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
-      strategy.elementEquivalence,
-      verbose: verbose);
-
-  checkNativeData(closedWorld1.nativeData, closedWorld2.nativeData,
-      strategy: strategy, allowExtra: allowExtra, verbose: verbose);
-  checkInterceptorData(closedWorld1.interceptorData,
-      closedWorld2.interceptorData, strategy.elementEquivalence,
-      verbose: verbose);
-}
-
-void checkNativeData(NativeDataImpl data1, NativeDataImpl data2,
-    {TestStrategy strategy: const TestStrategy(),
-    bool allowExtra: false,
-    bool verbose: false}) {
-  checkMapEquivalence(data1, data2, 'nativeMemberName', data1.nativeMemberName,
-      data2.nativeMemberName, strategy.elementEquivalence, equality,
-      allowExtra: allowExtra);
-
-  checkMapEquivalence(
-      data1,
-      data2,
-      'nativeMethodBehavior',
-      data1.nativeMethodBehavior,
-      data2.nativeMethodBehavior,
-      strategy.elementEquivalence,
-      (a, b) => testNativeBehavior(a, b, strategy: strategy),
-      allowExtra: allowExtra);
-
-  checkMapEquivalence(
-      data1,
-      data2,
-      'nativeFieldLoadBehavior',
-      data1.nativeFieldLoadBehavior,
-      data2.nativeFieldLoadBehavior,
-      strategy.elementEquivalence,
-      (a, b) => testNativeBehavior(a, b, strategy: strategy),
-      allowExtra: allowExtra);
-
-  checkMapEquivalence(
-      data1,
-      data2,
-      'nativeFieldStoreBehavior',
-      data1.nativeFieldStoreBehavior,
-      data2.nativeFieldStoreBehavior,
-      strategy.elementEquivalence,
-      (a, b) => testNativeBehavior(a, b, strategy: strategy),
-      allowExtra: allowExtra);
-
-  checkMapEquivalence(
-      data1,
-      data2,
-      'jsInteropLibraryNames',
-      data1.jsInteropLibraryNames,
-      data2.jsInteropLibraryNames,
-      strategy.elementEquivalence,
-      equality);
-
-  checkSetEquivalence(
-      data1,
-      data2,
-      'anonymousJsInteropClasses',
-      data1.anonymousJsInteropClasses,
-      data2.anonymousJsInteropClasses,
-      strategy.elementEquivalence);
-
-  checkMapEquivalence(
-      data1,
-      data2,
-      'jsInteropClassNames',
-      data1.jsInteropClassNames,
-      data2.jsInteropClassNames,
-      strategy.elementEquivalence,
-      equality);
-
-  checkMapEquivalence(
-      data1,
-      data2,
-      'jsInteropMemberNames',
-      data1.jsInteropMemberNames,
-      data2.jsInteropMemberNames,
-      strategy.elementEquivalence,
-      equality);
-}
-
-void checkInterceptorData(InterceptorDataImpl data1, InterceptorDataImpl data2,
-    bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false}) {
-  checkMapEquivalence(
-      data1,
-      data2,
-      'interceptedElements',
-      data1.interceptedElementsForTesting,
-      data2.interceptedElementsForTesting,
-      equality,
-      (a, b) => areSetsEquivalent(a, b, elementEquivalence));
-
-  checkSetEquivalence(data1, data2, 'interceptedClasses',
-      data1.interceptedClasses, data2.interceptedClasses, elementEquivalence);
-
-  checkSetEquivalence(
-      data1,
-      data2,
-      'classesMixedIntoInterceptedClasses',
-      data1.classesMixedIntoInterceptedClassesForTesting,
-      data2.classesMixedIntoInterceptedClassesForTesting,
-      elementEquivalence);
 }
 
 void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
@@ -421,77 +228,6 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-void checkMixinUses(
-    ClosedWorld closedWorld1,
-    ClosedWorld closedWorld2,
-    ClassEntity class1,
-    ClassEntity class2,
-    bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false}) {
-  checkSets(closedWorld1.mixinUsesOf(class1), closedWorld2.mixinUsesOf(class2),
-      "Mixin uses of $class1 vs $class2", elementEquivalence,
-      verbose: verbose);
-}
-
-void checkClassHierarchyNodes(
-    ClosedWorld closedWorld1,
-    ClosedWorld closedWorld2,
-    ClassHierarchyNode node1,
-    ClassHierarchyNode node2,
-    bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false}) {
-  if (verbose) {
-    print('Checking $node1 vs $node2');
-  }
-  ClassEntity cls1 = node1.cls;
-  ClassEntity cls2 = node2.cls;
-  Expect.isTrue(elementEquivalence(cls1, cls2),
-      "Element identity mismatch for ${cls1} vs ${cls2}.");
-  Expect.equals(
-      node1.isDirectlyInstantiated,
-      node2.isDirectlyInstantiated,
-      "Value mismatch for 'isDirectlyInstantiated' "
-      "for ${cls1} vs ${cls2}.");
-  Expect.equals(
-      node1.isIndirectlyInstantiated,
-      node2.isIndirectlyInstantiated,
-      "Value mismatch for 'isIndirectlyInstantiated' "
-      "for ${node1.cls} vs ${node2.cls}.");
-  // TODO(johnniwinther): Enforce a canonical and stable order on direct
-  // subclasses.
-  for (ClassHierarchyNode child in node1.directSubclasses) {
-    bool found = false;
-    for (ClassHierarchyNode other in node2.directSubclasses) {
-      ClassEntity child1 = child.cls;
-      ClassEntity child2 = other.cls;
-      if (elementEquivalence(child1, child2)) {
-        checkClassHierarchyNodes(
-            closedWorld1, closedWorld2, child, other, elementEquivalence,
-            verbose: verbose);
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      if (child.isInstantiated) {
-        print('Missing subclass ${child.cls} of ${node1.cls} '
-            'in ${node2.directSubclasses}');
-        print(closedWorld1.dump(
-            verbose ? closedWorld1.commonElements.objectClass : node1.cls));
-        print(closedWorld2.dump(
-            verbose ? closedWorld2.commonElements.objectClass : node2.cls));
-      }
-      Expect.isFalse(
-          child.isInstantiated,
-          'Missing subclass ${child.cls} of ${node1.cls} in '
-          '${node2.directSubclasses}');
-    }
-  }
-  checkMixinUses(
-      closedWorld1, closedWorld2, node1.cls, node2.cls, elementEquivalence,
-      verbose: verbose);
-}
-
 bool areLocalsEquivalent(Local a, Local b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
@@ -563,29 +299,4 @@ void checkOutputUnits(
       outputUnit1.imports,
       outputUnit2.imports,
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
-}
-
-bool areInstantiationInfosEquivalent(
-    InstantiationInfo info1,
-    InstantiationInfo info2,
-    bool elementEquivalence(Entity a, Entity b),
-    bool typeEquivalence(DartType a, DartType b)) {
-  checkMaps(
-      info1.instantiationMap,
-      info2.instantiationMap,
-      'instantiationMap of\n   '
-      '${info1.instantiationMap}\nvs ${info2.instantiationMap}',
-      elementEquivalence,
-      (a, b) => areSetsEquivalent(
-          a, b, (a, b) => areInstancesEquivalent(a, b, typeEquivalence)));
-  return true;
-}
-
-bool areInstancesEquivalent(Instance instance1, Instance instance2,
-    bool typeEquivalence(DartType a, DartType b)) {
-  InterfaceType type1 = instance1.type;
-  InterfaceType type2 = instance2.type;
-  return typeEquivalence(type1, type2) &&
-      instance1.kind == instance2.kind &&
-      instance1.isRedirection == instance2.isRedirection;
 }

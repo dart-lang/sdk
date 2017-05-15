@@ -14,9 +14,10 @@ import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/resolution/class_members.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
+import '../equivalence/check_helpers.dart';
+import '../equivalence/check_functions.dart';
 import '../memory_compiler.dart';
 import 'helper.dart';
-import 'test_helper.dart';
 
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);
