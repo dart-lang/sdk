@@ -481,7 +481,10 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
     return true;
   }
   if (result === false) return false;
-  if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
+  if (!dart.__ignoreWhitelistedErrors ||
+      ($ignoreFromWhiteList == void 0)) {
+    return result;
+  }
   if ($_ignoreTypeFailure(actual, $type)) return true;
   return result;
 })()''');
@@ -506,7 +509,7 @@ instanceOf(obj, type) => JS(
   }
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
-  if (!$_failForWeakModeIsChecks) return false;
+  if (!dart.__failForWeakModeIsChecks) return false;
   let actual = $getReifiedType($obj);
   $throwStrongModeError('Strong mode is-check failure: ' +
     $typeName(actual) + ' does not soundly subtype ' +

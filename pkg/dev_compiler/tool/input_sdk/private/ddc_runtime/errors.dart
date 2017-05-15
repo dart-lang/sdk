@@ -7,11 +7,6 @@ part of dart._runtime;
 // so we cannot use regular Dart fields.
 // The default values for these properties are set when the global_ final field
 // in runtime.dart is initialized.
-bool get _trapRuntimeErrors => JS('bool', 'dart.__trapRuntimeErrors');
-bool get _ignoreWhitelistedErrors =>
-    JS('bool', 'dart.__ignoreWhitelistedErrors');
-bool get _failForWeakModeIsChecks =>
-    JS('bool', 'dart.__failForWeakModeIsChecks');
 
 // Override, e.g., for testing
 void trapRuntimeErrors(bool flag) {
@@ -46,7 +41,7 @@ throwCastError(object, actual, type) => JS(
     '''(() => {
   var found = $typeName($actual);
   var expected = $typeName($type);
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $CastErrorImplementation($object, found, expected));
 })()''');
 
@@ -55,7 +50,7 @@ throwTypeError(object, actual, type) => JS(
     '''(() => {
   var found = $typeName($actual);
   var expected = $typeName($type);
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $TypeErrorImplementation($object, found, expected));
 })()''');
 
@@ -64,7 +59,7 @@ throwStrongModeCastError(object, actual, type) => JS(
     '''(() => {
   var found = $typeName($actual);
   var expected = $typeName($type);
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $StrongModeCastError($object, found, expected));
 })()''');
 
@@ -73,21 +68,21 @@ throwStrongModeTypeError(object, actual, type) => JS(
     '''(() => {
   var found = $typeName($actual);
   var expected = $typeName($type);
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $StrongModeTypeError($object, found, expected));
 })()''');
 
 throwUnimplementedError(message) => JS(
     '',
     '''(() => {
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $UnimplementedError($message));
 })()''');
 
 throwAssertionError([message]) => JS(
     '',
     '''(() => {
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   let error = $message != null
         ? new $AssertionErrorWithMessage($message())
         : new $AssertionError();
@@ -95,7 +90,7 @@ throwAssertionError([message]) => JS(
 })()''');
 
 throwCyclicInitializationError([String message]) {
-  if (_trapRuntimeErrors) JS('', 'debugger');
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new CyclicInitializationError(message);
 }
 
@@ -105,7 +100,7 @@ throwNullValueError() => JS(
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $NoSuchMethodError(null,
       new $Symbol('<Unexpected Null Value>'), null, null, null));
 })()''');
@@ -115,6 +110,6 @@ throwNoSuchMethodError(
     JS(
         '',
         '''(() => {
-  if ($_trapRuntimeErrors) debugger;
+  if (dart.__trapRuntimeErrors) debugger;
   $throw_(new $NoSuchMethodError($receiver, $memberName, $positionalArguments, $namedArguments));
 })()''');
