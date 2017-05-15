@@ -1492,6 +1492,8 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
+    'AudioTrackList': TypeData(clazz='Interface', item_type='AudioTrack',
+        suppress_interface=False, dart_type='List<AudioTrack>'),
     'ClientRectList': TypeData(clazz='Interface',
         item_type='ClientRect', dart_type='List<Rectangle>',
         suppress_interface=True),

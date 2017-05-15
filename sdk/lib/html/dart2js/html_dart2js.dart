@@ -1010,7 +1010,9 @@ class AudioTrack extends Interceptor {
 @DomName('AudioTrackList')
 @Experimental() // untriaged
 @Native("AudioTrackList")
-class AudioTrackList extends EventTarget {
+class AudioTrackList extends EventTarget
+    with ListMixin<AudioTrack>, ImmutableListMixin<AudioTrack>
+    implements JavaScriptIndexingBehavior<AudioTrack>, List<AudioTrack> {
   // To suppress missing implicit constructor warnings.
   factory AudioTrackList._() {
     throw new UnsupportedError("Not supported");
@@ -1025,7 +1027,50 @@ class AudioTrackList extends EventTarget {
   @DomName('AudioTrackList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  final int length;
+  int get length => JS("int", "#.length", this);
+
+  AudioTrack operator [](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
+      throw new RangeError.index(index, this);
+    return JS("AudioTrack", "#[#]", this, index);
+  }
+
+  void operator []=(int index, AudioTrack value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<AudioTrack> mixins.
+  // AudioTrack is the element type.
+
+  set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  AudioTrack get first {
+    if (this.length > 0) {
+      return JS('AudioTrack', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  AudioTrack get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('AudioTrack', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  AudioTrack get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('AudioTrack', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  AudioTrack elementAt(int index) => this[index];
+  // -- end List<AudioTrack> mixins.
 
   @DomName('AudioTrackList.__getter__')
   @DocsEditable()
@@ -23080,7 +23125,9 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.audioTracks')
   @DocsEditable()
   @Experimental() // untriaged
-  final AudioTrackList audioTracks;
+  @Returns('AudioTrackList|Null')
+  @Creates('AudioTrackList')
+  final List<AudioTrack> audioTracks;
 
   @DomName('HTMLMediaElement.autoplay')
   @DocsEditable()

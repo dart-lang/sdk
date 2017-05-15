@@ -2127,7 +2127,9 @@ class AudioTrack extends DartHtmlDomObject {
 @DocsEditable()
 @DomName('AudioTrackList')
 @Experimental() // untriaged
-class AudioTrackList extends EventTarget {
+class AudioTrackList extends EventTarget
+    with ListMixin<AudioTrack>, ImmutableListMixin<AudioTrack>
+    implements List<AudioTrack> {
   // To suppress missing implicit constructor warnings.
   factory AudioTrackList._() {
     throw new UnsupportedError("Not supported");
@@ -2149,6 +2151,51 @@ class AudioTrackList extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   int get length => _blink.BlinkAudioTrackList.instance.length_Getter_(this);
+
+  AudioTrack operator [](int index) {
+    if (index < 0 || index >= length) throw new RangeError.index(index, this);
+    return _nativeIndexedGetter(index);
+  }
+
+  AudioTrack _nativeIndexedGetter(int index) =>
+      (_blink.BlinkAudioTrackList.instance.item_Callback_1_(this, index));
+
+  void operator []=(int index, AudioTrack value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<AudioTrack> mixins.
+  // AudioTrack is the element type.
+
+  set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  AudioTrack get first {
+    if (this.length > 0) {
+      return _nativeIndexedGetter(0);
+    }
+    throw new StateError("No elements");
+  }
+
+  AudioTrack get last {
+    int len = this.length;
+    if (len > 0) {
+      return _nativeIndexedGetter(len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  AudioTrack get single {
+    int len = this.length;
+    if (len == 1) {
+      return _nativeIndexedGetter(0);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  AudioTrack elementAt(int index) => this[index];
+  // -- end List<AudioTrack> mixins.
 
   @DomName('AudioTrackList.__getter__')
   @DocsEditable()
@@ -26178,8 +26225,8 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.audioTracks')
   @DocsEditable()
   @Experimental() // untriaged
-  AudioTrackList get audioTracks =>
-      _blink.BlinkHTMLMediaElement.instance.audioTracks_Getter_(this);
+  List<AudioTrack> get audioTracks =>
+      (_blink.BlinkHTMLMediaElement.instance.audioTracks_Getter_(this));
 
   @DomName('HTMLMediaElement.autoplay')
   @DocsEditable()
