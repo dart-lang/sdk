@@ -1345,7 +1345,7 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsMethodName() {
         ReadCanonicalNameReference();  // read library index.
     return H.DartMethodName(library_reference, name_index);
   } else {
-    return H.DartMethodName(NameIndex(NULL), name_index);
+    return H.DartMethodName(NameIndex(), name_index);
   }
 }
 
@@ -1356,7 +1356,7 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsSetterName() {
         ReadCanonicalNameReference();  // read library index.
     return H.DartSetterName(library_reference, name_index);
   } else {
-    return H.DartSetterName(NameIndex(NULL), name_index);
+    return H.DartSetterName(NameIndex(), name_index);
   }
 }
 
@@ -1367,7 +1367,7 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsGetterName() {
         ReadCanonicalNameReference();  // read library index.
     return H.DartGetterName(library_reference, name_index);
   } else {
-    return H.DartGetterName(NameIndex(NULL), name_index);
+    return H.DartGetterName(NameIndex(), name_index);
   }
 }
 
