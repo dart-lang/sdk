@@ -43,8 +43,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_errors() {
     manager.setAnalysisRoots([testDir], []);
-    AnalysisError error1 = pluginAnalysisError(0, 0, file: fileA);
-    AnalysisError error2 = pluginAnalysisError(3, 4, file: fileA);
+    AnalysisError error1 = analysisError(0, 0, file: fileA);
+    AnalysisError error2 = analysisError(3, 4, file: fileA);
     plugin.AnalysisErrorsParams params =
         new plugin.AnalysisErrorsParams(fileA, [error1, error2]);
     manager.handlePluginNotification('a', params.toNotification());
@@ -55,8 +55,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     manager.setSubscriptions({
       server.AnalysisService.FOLDING: new Set.from([fileA, fileB])
     });
-    FoldingRegion region1 = pluginFoldingRegion(10, 3);
-    FoldingRegion region2 = pluginFoldingRegion(20, 6);
+    FoldingRegion region1 = foldingRegion(10, 3);
+    FoldingRegion region2 = foldingRegion(20, 6);
     plugin.AnalysisFoldingParams params =
         new plugin.AnalysisFoldingParams(fileA, [region1, region2]);
     manager.handlePluginNotification('a', params.toNotification());
@@ -67,8 +67,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     manager.setSubscriptions({
       server.AnalysisService.HIGHLIGHTS: new Set.from([fileA, fileB])
     });
-    HighlightRegion region1 = pluginHighlightRegion(10, 3);
-    HighlightRegion region2 = pluginHighlightRegion(20, 6);
+    HighlightRegion region1 = highlightRegion(10, 3);
+    HighlightRegion region2 = highlightRegion(20, 6);
     plugin.AnalysisHighlightsParams params =
         new plugin.AnalysisHighlightsParams(fileA, [region1, region2]);
     manager.handlePluginNotification('a', params.toNotification());
@@ -92,8 +92,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     manager.setSubscriptions({
       server.AnalysisService.OCCURRENCES: new Set.from([fileA, fileB])
     });
-    Occurrences occurrences1 = pluginOccurrences(0, 0);
-    Occurrences occurrences2 = pluginOccurrences(5, 7);
+    Occurrences occurrences1 = occurrences(0, 0);
+    Occurrences occurrences2 = occurrences(5, 7);
     plugin.AnalysisOccurrencesParams params =
         new plugin.AnalysisOccurrencesParams(
             fileA, [occurrences1, occurrences2]);
@@ -106,7 +106,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     manager.setSubscriptions({
       server.AnalysisService.OUTLINE: new Set.from([fileA, fileB])
     });
-    Outline outline1 = pluginOutline(0, 0);
+    Outline outline1 = outline(0, 0);
     plugin.AnalysisOutlineParams params =
         new plugin.AnalysisOutlineParams(fileA, [outline1]);
     manager.handlePluginNotification('a', params.toNotification());
@@ -125,7 +125,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void test_recordAnalysisErrors_noSubscription() {
-    AnalysisError error = serverAnalysisError(0, 0, file: fileA);
+    AnalysisError error = analysisError(0, 0, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error]);
     expect(channel.sentNotification, isNull);
   }
@@ -135,34 +135,34 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Errors should be reported when they are recorded.
     //
-    AnalysisError error1 = serverAnalysisError(0, 0, file: fileA);
-    AnalysisError error2 = serverAnalysisError(3, 4, file: fileA);
+    AnalysisError error1 = analysisError(0, 0, file: fileA);
+    AnalysisError error2 = analysisError(3, 4, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error1, error2]);
     _verifyErrors(fileA, [error1, error2]);
     //
     // Errors from different plugins should be cumulative.
     //
-    AnalysisError error3 = serverAnalysisError(6, 8, file: fileA);
+    AnalysisError error3 = analysisError(6, 8, file: fileA);
     manager.recordAnalysisErrors('b', fileA, [error3]);
     _verifyErrors(fileA, [error1, error2, error3]);
     //
     // Overwriting errors from one plugin should not affect errors from other
     // plugins.
     //
-    AnalysisError error4 = serverAnalysisError(9, 12, file: fileA);
+    AnalysisError error4 = analysisError(9, 12, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error4]);
     _verifyErrors(fileA, [error4, error3]);
     //
     // Recording errors against a file should not affect the errors for other
     // files.
     //
-    AnalysisError error5 = serverAnalysisError(12, 16, file: fileB);
+    AnalysisError error5 = analysisError(12, 16, file: fileB);
     manager.recordAnalysisErrors('a', fileB, [error5]);
     _verifyErrors(fileB, [error5]);
   }
 
   void test_recordFoldingRegions_noSubscription() {
-    FoldingRegion region = serverFoldingRegion(10, 5);
+    FoldingRegion region = foldingRegion(10, 5);
     manager.recordFoldingRegions('a', fileA, [region]);
     expect(channel.sentNotification, isNull);
   }
@@ -174,34 +174,34 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Regions should be reported when they are recorded.
     //
-    FoldingRegion region1 = serverFoldingRegion(10, 3);
-    FoldingRegion region2 = serverFoldingRegion(20, 6);
+    FoldingRegion region1 = foldingRegion(10, 3);
+    FoldingRegion region2 = foldingRegion(20, 6);
     manager.recordFoldingRegions('a', fileA, [region1, region2]);
     _verifyFoldingRegions(fileA, [region1, region2]);
     //
     // Regions from different plugins should be cumulative.
     //
-    FoldingRegion region3 = serverFoldingRegion(30, 5);
+    FoldingRegion region3 = foldingRegion(30, 5);
     manager.recordFoldingRegions('b', fileA, [region3]);
     _verifyFoldingRegions(fileA, [region1, region2, region3]);
     //
     // Overwriting regions from one plugin should not affect regions from other
     // plugins.
     //
-    FoldingRegion region4 = serverFoldingRegion(40, 2);
+    FoldingRegion region4 = foldingRegion(40, 2);
     manager.recordFoldingRegions('a', fileA, [region4]);
     _verifyFoldingRegions(fileA, [region4, region3]);
     //
     // Recording regions against a file should not affect the regions for other
     // files.
     //
-    FoldingRegion region5 = serverFoldingRegion(50, 7);
+    FoldingRegion region5 = foldingRegion(50, 7);
     manager.recordFoldingRegions('a', fileB, [region5]);
     _verifyFoldingRegions(fileB, [region5]);
   }
 
   void test_recordHighlightRegions_noSubscription() {
-    HighlightRegion region = serverHighlightRegion(10, 5);
+    HighlightRegion region = highlightRegion(10, 5);
     manager.recordHighlightRegions('a', fileA, [region]);
     expect(channel.sentNotification, isNull);
   }
@@ -213,28 +213,28 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Regions should be reported when they are recorded.
     //
-    HighlightRegion region1 = serverHighlightRegion(10, 3);
-    HighlightRegion region2 = serverHighlightRegion(20, 6);
+    HighlightRegion region1 = highlightRegion(10, 3);
+    HighlightRegion region2 = highlightRegion(20, 6);
     manager.recordHighlightRegions('a', fileA, [region1, region2]);
     _verifyHighlightRegions(fileA, [region1, region2]);
     //
     // Regions from different plugins should be cumulative.
     //
-    HighlightRegion region3 = serverHighlightRegion(30, 5);
+    HighlightRegion region3 = highlightRegion(30, 5);
     manager.recordHighlightRegions('b', fileA, [region3]);
     _verifyHighlightRegions(fileA, [region1, region2, region3]);
     //
     // Overwriting regions from one plugin should not affect regions from other
     // plugins.
     //
-    HighlightRegion region4 = serverHighlightRegion(40, 2);
+    HighlightRegion region4 = highlightRegion(40, 2);
     manager.recordHighlightRegions('a', fileA, [region4]);
     _verifyHighlightRegions(fileA, [region4, region3]);
     //
     // Recording regions against a file should not affect the regions for other
     // files.
     //
-    HighlightRegion region5 = serverHighlightRegion(50, 7);
+    HighlightRegion region5 = highlightRegion(50, 7);
     manager.recordHighlightRegions('a', fileB, [region5]);
     _verifyHighlightRegions(fileB, [region5]);
   }
@@ -309,8 +309,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void test_recordOccurrences_noSubscription() {
-    Occurrences occurrences = serverOccurrences(0, 0);
-    manager.recordOccurrences('a', fileA, [occurrences]);
+    Occurrences occurrences1 = occurrences(0, 0);
+    manager.recordOccurrences('a', fileA, [occurrences1]);
     expect(channel.sentNotification, isNull);
   }
 
@@ -321,35 +321,35 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Occurrences should be reported when they are recorded.
     //
-    Occurrences occurrences1 = serverOccurrences(0, 0);
-    Occurrences occurrences2 = serverOccurrences(5, 7);
+    Occurrences occurrences1 = occurrences(0, 0);
+    Occurrences occurrences2 = occurrences(5, 7);
     manager.recordOccurrences('a', fileA, [occurrences1, occurrences2]);
     _verifyOccurrences(fileA, [occurrences1, occurrences2]);
     //
     // Occurrences from different plugins should be cumulative.
     //
-    Occurrences occurrences3 = serverOccurrences(10, 14);
+    Occurrences occurrences3 = occurrences(10, 14);
     manager.recordOccurrences('b', fileA, [occurrences3]);
     _verifyOccurrences(fileA, [occurrences1, occurrences2, occurrences3]);
     //
     // Overwriting occurrences from one plugin should not affect occurrences
     // from other plugins.
     //
-    Occurrences occurrences4 = serverOccurrences(15, 21);
+    Occurrences occurrences4 = occurrences(15, 21);
     manager.recordOccurrences('a', fileA, [occurrences4]);
     _verifyOccurrences(fileA, [occurrences4, occurrences3]);
     //
     // Recording occurrences against a file should not affect the occurrences
     // for other files.
     //
-    Occurrences occurrences5 = serverOccurrences(20, 28);
+    Occurrences occurrences5 = occurrences(20, 28);
     manager.recordOccurrences('a', fileB, [occurrences5]);
     _verifyOccurrences(fileB, [occurrences5]);
   }
 
   void test_recordOutlines_noSubscription() {
-    Outline outline = serverOutline(0, 0);
-    manager.recordOutlines('a', fileA, [outline]);
+    Outline outline1 = outline(0, 0);
+    manager.recordOutlines('a', fileA, [outline1]);
     expect(channel.sentNotification, isNull);
   }
 
@@ -364,15 +364,15 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Outlines should be reported when they are recorded.
     //
-    Outline outline1 = serverOutline(0, 0);
-    Outline outline2 = serverOutline(5, 7);
+    Outline outline1 = outline(0, 0);
+    Outline outline2 = outline(5, 7);
     manager.recordOutlines('a', fileA, [outline1, outline2]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileA, [outline1, outline2]);
     //
     // Outlines from different plugins should be cumulative.
     //
-    Outline outline3 = serverOutline(10, 14);
+    Outline outline3 = outline(10, 14);
     manager.recordOutlines('b', fileA, [outline3]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileA, [outline1, outline2, outline3]);
@@ -380,7 +380,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     // Overwriting outlines from one plugin should not affect outlines from
     // other plugins.
     //
-    Outline outline4 = serverOutline(15, 21);
+    Outline outline4 = outline(15, 21);
     manager.recordOutlines('a', fileA, [outline4]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileA, [outline4, outline3]);
@@ -388,7 +388,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     // Recording outlines against a file should not affect the outlines for
     // other files.
     //
-    Outline outline5 = serverOutline(20, 28);
+    Outline outline5 = outline(20, 28);
     manager.recordOutlines('a', fileB, [outline5]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileB, [outline5]);

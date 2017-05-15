@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 class ProtocolTestUtilities {
@@ -64,19 +62,15 @@ class ProtocolTestUtilities {
     'bz',
   ];
 
-  String fileName(int stringIndex) => '${strings[stringIndex]}.dart';
-
   /**
    * On return, increment [stringIndex] by 3 (or 4 if no [file] name is
    * provided) and [intIndex] by 4.
    */
-  AnalysisError pluginAnalysisError(int stringIndex, int intIndex,
-      {String file}) {
-    // TODO(brianwilkerson) Unify the "plugin" and "server" methods when the return type is common.
+  AnalysisError analysisError(int stringIndex, int intIndex, {String file}) {
     return new AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.COMPILE_TIME_ERROR,
-        pluginLocation(stringIndex, intIndex, file: file),
+        location(stringIndex, intIndex, file: file),
         strings[stringIndex++],
         strings[stringIndex++],
         correction: strings[stringIndex++],
@@ -86,7 +80,7 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 5 and [intIndex] by 5.
    */
-  Element pluginElement(int stringIndex, int intIndex, {ElementKind kind}) =>
+  Element element(int stringIndex, int intIndex, {ElementKind kind}) =>
       new Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
           location: new Location(fileName(stringIndex++), intIndex++,
               intIndex++, intIndex++, intIndex++),
@@ -94,18 +88,42 @@ class ProtocolTestUtilities {
           returnType: strings[stringIndex++],
           typeParameters: strings[stringIndex++]);
 
-  FoldingRegion pluginFoldingRegion(int offset, int length) =>
+  String fileName(int stringIndex) => '${strings[stringIndex]}.dart';
+
+  FoldingRegion foldingRegion(int offset, int length) =>
       new FoldingRegion(FoldingKind.COMMENT, offset, length);
 
-  HighlightRegion pluginHighlightRegion(int offset, int length) =>
+  HighlightRegion highlightRegion(int offset, int length) =>
       new HighlightRegion(HighlightRegionType.FIELD, offset, length);
 
   /**
    * On return, increment [stringIndex] by 1 and [intIndex] by 4.
    */
-  Location pluginLocation(int stringIndex, int intIndex, {String file}) =>
+  Location location(int stringIndex, int intIndex, {String file}) =>
       new Location(file ?? fileName(stringIndex), intIndex++, intIndex++,
           intIndex++, intIndex++);
+
+  /**
+   * On return, increment [stringIndex] by 5 and [intIndex] by 7.
+   */
+  Occurrences occurrences(int stringIndex, int intIndex) {
+    Element referencedElement = element(stringIndex, intIndex);
+    return new Occurrences(referencedElement, <int>[intIndex + 5, intIndex + 6],
+        referencedElement.name.length);
+  }
+
+  /**
+   * On return, increment [stringIndex] by 10 and [intIndex] by 14.
+   */
+  Outline outline(int stringIndex, int intIndex) =>
+      new Outline(element(stringIndex, intIndex), intIndex + 5, intIndex + 6,
+          children: <Outline>[
+            new Outline(
+                element(stringIndex + 5, intIndex + 7,
+                    kind: ElementKind.METHOD),
+                intIndex + 12,
+                intIndex + 13)
+          ]);
 
   /**
    * On return, increment [stringIndex] by 2 (or 3 if no [file] name is
@@ -125,97 +143,13 @@ class ProtocolTestUtilities {
       ]);
 
   /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 7.
-   */
-  Occurrences pluginOccurrences(int stringIndex, int intIndex) {
-    Element element = pluginElement(stringIndex, intIndex);
-    return new Occurrences(
-        element, <int>[intIndex + 5, intIndex + 6], element.name.length);
-  }
-
-  /**
-   * On return, increment [stringIndex] by 10 and [intIndex] by 14.
-   */
-  Outline pluginOutline(int stringIndex, int intIndex) => new Outline(
-          pluginElement(stringIndex, intIndex), intIndex + 5, intIndex + 6,
-          children: <Outline>[
-            new Outline(
-                pluginElement(stringIndex + 5, intIndex + 7,
-                    kind: ElementKind.METHOD),
-                intIndex + 12,
-                intIndex + 13)
-          ]);
-
-  /**
    * On return, increment [stringIndex] by 2 and [intIndex] by 4.
    */
-  RefactoringProblem pluginRefactoringProblem(int stringIndex, int intIndex) {
+  RefactoringProblem refactoringProblem(int stringIndex, int intIndex) {
     return new RefactoringProblem(
         RefactoringProblemSeverity.FATAL, strings[stringIndex++],
-        location: pluginLocation(stringIndex, intIndex));
+        location: location(stringIndex, intIndex));
   }
-
-  /**
-   * On return, increment [stringIndex] by 6 and [intIndex] by 6.
-   */
-  SourceChange pluginSourceChange(int stringIndex, int intIndex) =>
-      new SourceChange(strings[stringIndex++],
-          edits: <SourceFileEdit>[
-            new SourceFileEdit(fileName(stringIndex), intIndex++,
-                edits: <SourceEdit>[
-                  new SourceEdit(intIndex++, intIndex++, strings[stringIndex++])
-                ])
-          ],
-          linkedEditGroups: <LinkedEditGroup>[
-            new LinkedEditGroup(
-                <Position>[new Position(fileName(stringIndex), intIndex++)],
-                intIndex++,
-                <LinkedEditSuggestion>[
-                  new LinkedEditSuggestion(
-                      strings[stringIndex++], LinkedEditSuggestionKind.METHOD)
-                ])
-          ],
-          selection: new Position(fileName(stringIndex), intIndex++));
-
-  /**
-   * On return, increment [stringIndex] by 3 (or 4 if no [file] name is
-   * provided) and [intIndex] by 4.
-   */
-  AnalysisError serverAnalysisError(int stringIndex, int intIndex,
-      {String file}) {
-    return new AnalysisError(
-        AnalysisErrorSeverity.ERROR,
-        AnalysisErrorType.COMPILE_TIME_ERROR,
-        serverLocation(stringIndex, intIndex, file: file),
-        strings[stringIndex++],
-        strings[stringIndex++],
-        correction: strings[stringIndex++],
-        hasFix: true);
-  }
-
-  /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 5.
-   */
-  Element serverElement(int stringIndex, int intIndex, {ElementKind kind}) =>
-      new Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
-          location: new Location(fileName(stringIndex++), intIndex++,
-              intIndex++, intIndex++, intIndex++),
-          parameters: strings[stringIndex++],
-          returnType: strings[stringIndex++],
-          typeParameters: strings[stringIndex++]);
-
-  FoldingRegion serverFoldingRegion(int offset, int length) =>
-      new FoldingRegion(FoldingKind.COMMENT, offset, length);
-
-  HighlightRegion serverHighlightRegion(int offset, int length) =>
-      new HighlightRegion(HighlightRegionType.FIELD, offset, length);
-
-  /**
-   * On return, increment [stringIndex] by 1 and [intIndex] by 4.
-   */
-  Location serverLocation(int stringIndex, int intIndex, {String file}) =>
-      new Location(file ?? fileName(stringIndex), intIndex++, intIndex++,
-          intIndex++, intIndex++);
 
   /**
    * On return, increment [stringIndex] by 2 (or 3 if no [file] name is
@@ -235,39 +169,9 @@ class ProtocolTestUtilities {
       ]);
 
   /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 7.
-   */
-  Occurrences serverOccurrences(int stringIndex, int intIndex) {
-    Element element = serverElement(stringIndex, intIndex);
-    return new Occurrences(
-        element, <int>[intIndex + 5, intIndex + 6], element.name.length);
-  }
-
-  /**
-   * On return, increment [stringIndex] by 10 and [intIndex] by 14.
-   */
-  Outline serverOutline(int stringIndex, int intIndex) => new Outline(
-          serverElement(stringIndex, intIndex), intIndex + 5, intIndex + 6,
-          children: <Outline>[
-            new Outline(
-                serverElement(stringIndex + 5, intIndex + 7,
-                    kind: ElementKind.METHOD),
-                intIndex + 12,
-                intIndex + 13)
-          ]);
-
-  /**
-   * On return, increment [stringIndex] by 2 and [intIndex] by 4.
-   */
-  RefactoringProblem serverRefactoringProblem(int stringIndex, int intIndex) =>
-      new RefactoringProblem(
-          RefactoringProblemSeverity.FATAL, strings[stringIndex++],
-          location: serverLocation(stringIndex, intIndex));
-
-  /**
    * On return, increment [stringIndex] by 6 and [intIndex] by 6.
    */
-  SourceChange serverSourceChange(int stringIndex, int intIndex) =>
+  SourceChange sourceChange(int stringIndex, int intIndex) =>
       new SourceChange(strings[stringIndex++],
           edits: <SourceFileEdit>[
             new SourceFileEdit(fileName(stringIndex), intIndex++,

@@ -46,11 +46,6 @@ class RequestConverter {
 
   plugin.AnalysisUpdateContentParams convertAnalysisUpdateContentParams(
       server.AnalysisUpdateContentParams params) {
-    Map<String, dynamic> serverOverlays = params.files;
-    Map<String, dynamic> pluginOverlays = <String, dynamic>{};
-    for (String file in serverOverlays.keys) {
-      pluginOverlays[file] = serverOverlays[file];
-    }
-    return new plugin.AnalysisUpdateContentParams(pluginOverlays);
+    return new plugin.AnalysisUpdateContentParams(params.files);
   }
 }
