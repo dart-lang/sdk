@@ -26,9 +26,10 @@ main() {
   setUpCompilerInBrowser = allowInterop((String sdkUrl,
       JSMap<String, String> summaryMap,
       Function onCompileReady,
-      Function onError) async {
+      Function onError,
+      [Function onProgress]) async {
     (await _setUpCompilerInBrowser)(
-        sdkUrl, summaryMap, onCompileReady, onError);
+        sdkUrl, summaryMap, onCompileReady, onError, onProgress);
   });
   _runCommand(args);
 }
