@@ -652,9 +652,8 @@ class KernelLibraryBuilder
       library.addMember(builder.build(this)..isStatic = true);
     } else if (builder is KernelProcedureBuilder) {
       library.addMember(builder.build(this)..isStatic = true);
-    } else if (builder is FunctionTypeAliasBuilder) {
-      // Kernel discard typedefs and use their corresponding function types
-      // directly.
+    } else if (builder is KernelFunctionTypeAliasBuilder) {
+      library.addTypedef(builder.build(this));
     } else if (builder is KernelEnumBuilder) {
       library.addClass(builder.build(this, coreLibrary));
     } else if (builder is PrefixBuilder) {

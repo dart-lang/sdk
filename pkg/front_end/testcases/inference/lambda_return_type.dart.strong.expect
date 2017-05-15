@@ -2,6 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
+typedef FunctionReturningNum = () → core::num;
 static method main() → dynamic {
   core::int i = 1;
   core::Object o = 1;

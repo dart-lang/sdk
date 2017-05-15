@@ -184,6 +184,31 @@ static method main() → dynamic {
     }
   }
 
+  test_compile_typedef() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(aPath, 'typedef int F<T>(T x);');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+F<String> f;
+''');
+
+    Program program = await getInitialState(bUri);
+    Library library = _getLibrary(program, bUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static field (core::String) → core::int f;
+''');
+  }
+
   test_updatePart() async {
     writeFile('/test/.packages', 'test:lib/');
     String libPath = '/test/lib/test.dart';

@@ -36,6 +36,7 @@ class DillLoader extends Loader<Library> {
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     builder.library.classes.forEach(builder.addClass);
     builder.library.procedures.forEach(builder.addMember);
+    builder.library.typedefs.forEach(builder.addTypedef);
     builder.library.fields.forEach(builder.addMember);
   }
 

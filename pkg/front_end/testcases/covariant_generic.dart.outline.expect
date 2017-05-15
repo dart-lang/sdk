@@ -2,6 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
+typedef Callback = <T extends core::Object>(T) → void;
 class Foo<T extends core::Object> extends core::Object {
   final field self::Foo::T finalField;
   final field (self::Foo::T) → void callbackField;
