@@ -23,6 +23,9 @@ class ReanalyzeTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   @override
+  bool get enableNewAnalysisDriver => false;
+
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
