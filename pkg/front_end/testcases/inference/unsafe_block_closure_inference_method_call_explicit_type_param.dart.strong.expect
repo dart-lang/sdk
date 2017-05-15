@@ -6,7 +6,7 @@ class C extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method f(dynamic g) → core::List<dynamic>
+  method f(() → dynamic g) → core::List<dynamic>
     return <dynamic>[g.call()];
 }
 static method main() → dynamic {

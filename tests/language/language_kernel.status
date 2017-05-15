@@ -103,8 +103,6 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-function_subtype0_test: RuntimeError
-function_subtype1_test: RuntimeError
 function_syntax_test/00: MissingCompileTimeError
 function_syntax_test/01: MissingCompileTimeError
 function_syntax_test/22: MissingCompileTimeError
@@ -368,6 +366,8 @@ generic_metadata_test/02: MissingCompileTimeError # Fasta bug: Type arguments ar
 generic_metadata_test/03: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
 
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
+
+generic_function_typedef_test: RuntimeError
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
