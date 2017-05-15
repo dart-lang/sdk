@@ -1177,6 +1177,9 @@ abstract class ElementEnvironment {
   ClassEntity lookupClass(LibraryEntity library, String name,
       {bool required: false});
 
+  /// Calls [f] for every top level member in [library].
+  void forEachLibraryMember(LibraryEntity library, void f(MemberEntity member));
+
   /// Lookup the member [name] in [library], fail if the class is missing and
   /// [required].
   MemberEntity lookupLibraryMember(LibraryEntity library, String name,
@@ -1199,6 +1202,10 @@ abstract class ElementEnvironment {
   /// superclasses.
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
+
+  /// Calls [f] for every constructor declared in [cls].
+  void forEachConstructor(
+      ClassEntity cls, void f(ConstructorEntity constructor));
 
   /// Returns the superclass of [cls].
   ///

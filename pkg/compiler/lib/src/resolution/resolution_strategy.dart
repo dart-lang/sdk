@@ -294,6 +294,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     cls.ensureResolved(_resolution);
     ConstructorElement constructor = cls.implementation.lookupConstructor(name);
+    // TODO(johnniwinther): Skip redirecting factories.
     if (constructor == null && required) {
       throw new SpannableAssertionFailure(
           cls,
@@ -313,6 +314,17 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       if (member.isConstructor) return;
       f(declarer, member);
     }, includeSuperAndInjectedMembers: true);
+  }
+
+  @override
+  void forEachConstructor(
+      ClassElement cls, void f(ConstructorEntity constructor)) {
+    cls.ensureResolved(_resolution);
+    for (ConstructorElement constructor in cls.implementation.constructors) {
+      _resolution.ensureResolved(constructor.declaration);
+      if (constructor.isRedirectingFactory) continue;
+      f(constructor);
+    }
   }
 
   @override
@@ -370,6 +382,17 @@ class _CompilerElementEnvironment implements ElementEnvironment {
           "contain required member: '$name'.");
     }
     return member?.declaration;
+  }
+
+  @override
+  void forEachLibraryMember(
+      LibraryElement library, void f(MemberEntity member)) {
+    library.implementation.forEachLocalMember((Element element) {
+      if (!element.isClass && !element.isTypedef) {
+        MemberElement member = element;
+        f(member);
+      }
+    });
   }
 
   @override

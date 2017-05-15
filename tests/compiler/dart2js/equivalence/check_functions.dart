@@ -429,6 +429,11 @@ void checkBackendUsage(
 
 checkElementEnvironment(
     ElementEnvironment env1, ElementEnvironment env2, TestStrategy strategy) {
+  strategy.testElements(
+      env1, env2, 'mainLibrary', env1.mainLibrary, env2.mainLibrary);
+  strategy.testElements(
+      env1, env2, 'mainFunction', env1.mainFunction, env2.mainFunction);
+
   checkMembers(MemberEntity member1, MemberEntity member2) {
     Expect.equals(env1.isDeferredLoadLibraryGetter(member1),
         env2.isDeferredLoadLibraryGetter(member2));
@@ -519,10 +524,63 @@ checkElementEnvironment(
         return result;
       }, strategy.elementEquivalence);
 
+      Set<ConstructorEntity> constructors2 = new Set<ConstructorEntity>();
+      env1.forEachConstructor(cls1, (ConstructorEntity constructor1) {
+        Expect.identical(
+            constructor1, env1.lookupConstructor(cls1, constructor1.name));
+
+        String constructorName = constructor1.name;
+        ConstructorEntity constructor2 =
+            env2.lookupConstructor(cls2, constructorName);
+        Expect.isNotNull(
+            constructor2, "Missing constructor for $constructor1 in $cls2 ");
+        Expect.identical(
+            constructor2, env2.lookupConstructor(cls2, constructor2.name));
+
+        constructors2.add(constructor2);
+
+        check(cls1, cls2, 'constructor:${constructorName}', constructor1,
+            constructor2, strategy.elementEquivalence);
+
+        checkMembers(constructor1, constructor2);
+      });
+      env2.forEachConstructor(cls2, (ConstructorEntity constructor2) {
+        Expect.isTrue(constructors2.contains(constructor2),
+            "Extra constructor $constructor2 in $cls2");
+      });
+
       classes2.add(cls2);
     });
     env2.forEachClass(lib2, (ClassEntity cls2) {
       Expect.isTrue(classes2.contains(cls2), "Extra class $cls2 in $lib2");
+    });
+
+    Set<MemberEntity> members2 = new Set<MemberEntity>();
+    env1.forEachLibraryMember(lib1, (MemberEntity member1) {
+      Expect.identical(
+          member1,
+          env1.lookupLibraryMember(lib1, member1.name,
+              setter: member1.isSetter));
+
+      String memberName = member1.name;
+      MemberEntity member2 =
+          env2.lookupLibraryMember(lib2, memberName, setter: member1.isSetter);
+      Expect.isNotNull(member2, 'Missing member for $member1 in $lib2');
+      Expect.identical(
+          member2,
+          env2.lookupLibraryMember(lib2, member2.name,
+              setter: member2.isSetter));
+
+      members2.add(member2);
+
+      check(lib1, lib2, 'member:${memberName}', member1, member2,
+          strategy.elementEquivalence);
+
+      checkMembers(member1, member2);
+    });
+    env2.forEachLibraryMember(lib2, (MemberEntity member2) {
+      Expect.isTrue(
+          members2.contains(member2), "Extra member $member2 in $lib2");
     });
   });
   // TODO(johnniwinther): Test the remaining properties of [ElementEnvironment].

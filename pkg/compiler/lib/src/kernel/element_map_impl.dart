@@ -159,6 +159,13 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     return member != null ? getMember(member) : null;
   }
 
+  void _forEachLibraryMember(KLibrary library, void f(MemberEntity member)) {
+    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    libraryEnv.forEachMember((ir.Member node) {
+      f(getMember(node));
+    });
+  }
+
   ClassEntity lookupClass(KLibrary library, String name) {
     _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     _KClassEnv classEnv = libraryEnv.lookupClass(name);
@@ -530,6 +537,13 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     }
   }
 
+  void _forEachConstructor(KClass cls, void f(ConstructorEntity member)) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    env.forEachConstructor((ir.Member member) {
+      f(getConstructor(member));
+    });
+  }
+
   void _forEachClassMember(
       KClass cls, void f(ClassEntity cls, MemberEntity member)) {
     _KClassEnv env = _classEnvs[cls.classIndex];
@@ -709,8 +723,7 @@ class _KLibraryEnv {
     _classMap.values.forEach(f);
   }
 
-  /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupMember(String name, {bool setter: false}) {
+  void _ensureMemberMaps() {
     if (_memberMap == null) {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
@@ -732,7 +745,24 @@ class _KLibraryEnv {
         }
       }
     }
-    return _memberMap[name];
+  }
+
+  /// Return the [ir.Member] for the member [name] in [library].
+  ir.Member lookupMember(String name, {bool setter: false}) {
+    _ensureMemberMaps();
+    return setter ? _setterMap[name] : _memberMap[name];
+  }
+
+  void forEachMember(void f(ir.Member member)) {
+    _ensureMemberMaps();
+    _memberMap.values.forEach(f);
+    for (ir.Member member in _setterMap.values) {
+      if (member is ir.Procedure) {
+        f(member);
+      } else {
+        // Skip fields; these are also in _memberMap.
+      }
+    }
   }
 }
 
@@ -811,7 +841,7 @@ class _KClassEnv {
     return _constructorMap[name];
   }
 
-  void forEachMember(f(ir.Member member)) {
+  void forEachMember(void f(ir.Member member)) {
     _ensureMaps();
     _memberMap.values.forEach(f);
     for (ir.Member member in _setterMap.values) {
@@ -821,6 +851,11 @@ class _KClassEnv {
         // Skip fields; these are also in _memberMap.
       }
     }
+  }
+
+  void forEachConstructor(void f(ir.Member member)) {
+    _ensureMaps();
+    _constructorMap.values.forEach(f);
   }
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapImpl elementMap) {
@@ -1017,6 +1052,18 @@ class KernelElementEnvironment implements ElementEnvironment {
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
     elementMap._forEachClassMember(cls, f);
+  }
+
+  @override
+  void forEachConstructor(
+      ClassEntity cls, void f(ConstructorEntity constructor)) {
+    elementMap._forEachConstructor(cls, f);
+  }
+
+  @override
+  void forEachLibraryMember(
+      LibraryEntity library, void f(MemberEntity member)) {
+    elementMap._forEachLibraryMember(library, f);
   }
 
   @override
