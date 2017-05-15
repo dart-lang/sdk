@@ -910,6 +910,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
 
 {\bf methodSignature:}constructorSignature initializers?;
       factoryConstructorSignature;
+% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
       \STATIC{}? functionSignature;
       \STATIC{}? getterSignature;
       \STATIC{}? setterSignature;
@@ -923,6 +924,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
       ((\EXTERNAL{} \STATIC{}?))? getterSignature;
       ((\EXTERNAL{} \STATIC{}?))? setterSignature;
       \EXTERNAL{}? operatorSignature;
+% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
       ((\EXTERNAL{} \STATIC{}?))? functionSignature;
       \STATIC{} (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList;
 %      \CONST{} type? staticFinalDeclarationList;
