@@ -11,6 +11,8 @@ import "dart:io";
 
 import "test_suite.dart";
 
+typedef void Action();
+
 class _DartiumUpdater {
   String name;
   String script;
@@ -18,7 +20,7 @@ class _DartiumUpdater {
 
   bool isActive = false;
   bool updated = false;
-  List onUpdated;
+  List<Action> onUpdated;
 
   Future<ProcessResult> _updatingProcess;
 

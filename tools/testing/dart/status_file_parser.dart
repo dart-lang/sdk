@@ -11,6 +11,8 @@ import "dart:io";
 import "path.dart";
 import "status_expression.dart";
 
+typedef void Action();
+
 class Expectation {
   // Possible outcomes of running a test.
   static Expectation PASS = byName('Pass');
@@ -65,7 +67,8 @@ class Expectation {
     if (_AllExpectations == null) {
       _AllExpectations = new Map<String, Expectation>();
 
-      Expectation build(prettyName, {group: null, isMetaExpectation: false}) {
+      Expectation build(String prettyName,
+          {Expectation group, bool isMetaExpectation: false}) {
         var expectation = new Expectation._(prettyName,
             group: group, isMetaExpectation: isMetaExpectation);
         assert(!_AllExpectations.containsKey(expectation.name));
@@ -109,10 +112,9 @@ class Expectation {
   // "meta marker").
   final bool isMetaExpectation;
 
-  Expectation._(prettyName,
+  Expectation._(this.prettyName,
       {Expectation this.group: null, bool this.isMetaExpectation: false})
-      : prettyName = prettyName,
-        name = prettyName.toLowerCase();
+      : name = prettyName.toLowerCase();
 
   bool canBeOutcomeOf(Expectation expectation) {
     Expectation outcome = this;
@@ -164,17 +166,17 @@ class Section {
 }
 
 Future<TestExpectations> ReadTestExpectations(
-    List<String> statusFilePaths, Map environment) {
+    List<String> statusFilePaths, Map<String, String> environment) {
   var testExpectations = new TestExpectations();
   return Future.wait(statusFilePaths.map((String statusFile) {
     return ReadTestExpectationsInto(testExpectations, statusFile, environment);
   })).then((_) => testExpectations);
 }
 
-Future ReadTestExpectationsInto(
-    TestExpectations expectations, String statusFilePath, environment) {
-  var completer = new Completer();
-  List<Section> sections = new List<Section>();
+Future ReadTestExpectationsInto(TestExpectations expectations,
+    String statusFilePath, Map<String, String> environment) {
+  var completer = new Completer<Null>();
+  var sections = <Section>[];
 
   void sectionsRead() {
     for (Section section in sections) {
@@ -191,7 +193,7 @@ Future ReadTestExpectationsInto(
   return completer.future;
 }
 
-void ReadConfigurationInto(Path path, sections, onDone) {
+void ReadConfigurationInto(Path path, List<Section> sections, Action onDone) {
   StatusFile statusFile = new StatusFile(path);
   File file = new File(path.toNativePath());
   if (!file.existsSync()) {
@@ -268,23 +270,23 @@ class TestExpectations {
   // Only create one copy of each Set<Expectation>.
   // We just use .toString as a key, so we may make a few
   // sets that only differ in their toString element order.
-  static Map _cachedSets = new Map();
+  static Map<String, Set<Expectation>> _cachedSets = {};
 
-  Map _map;
+  Map<String, Set<Expectation>> _map;
   bool _preprocessed = false;
-  Map _regExpCache;
-  Map _keyToRegExps;
+  Map<String, RegExp> _regExpCache;
+  Map<String, List<RegExp>> _keyToRegExps;
 
   /**
    * Create a TestExpectations object. See the [expectations] method
    * for an explanation of matching.
    */
-  TestExpectations() : _map = new Map();
+  TestExpectations() : _map = {};
 
   /**
    * Add a rule to the expectations.
    */
-  void addRule(testRule, environment) {
+  void addRule(TestRule testRule, environment) {
     // Once we have started using the expectations we cannot add more
     // rules.
     if (_preprocessed) {
@@ -292,7 +294,9 @@ class TestExpectations {
     }
     var names = testRule.expression.evaluate(environment);
     var expectations = names.map((name) => Expectation.byName(name));
-    _map.putIfAbsent(testRule.name, () => new Set()).addAll(expectations);
+    _map
+        .putIfAbsent(testRule.name, () => new Set<Expectation>())
+        .addAll(expectations);
   }
 
   /**
@@ -307,21 +311,21 @@ class TestExpectations {
    * "^$keyComponent\$" matches the corresponding filename component.
    */
   Set<Expectation> expectations(String filename) {
-    var result = new Set();
+    var result = new Set<Expectation>();
     var splitFilename = filename.split('/');
 
     // Create mapping from keys to list of RegExps once and for all.
     _preprocessForMatching();
 
-    _map.forEach((key, expectation) {
-      List regExps = _keyToRegExps[key];
+    _map.forEach((key, Set<Expectation> expectations) {
+      List<RegExp> regExps = _keyToRegExps[key];
       if (regExps.length > splitFilename.length) return;
       for (var i = 0; i < regExps.length; i++) {
         if (!regExps[i].hasMatch(splitFilename[i])) return;
       }
       // If all components of the status file key matches the filename
       // add the expectations to the result.
-      result.addAll(expectation);
+      result.addAll(expectations);
     });
 
     // If no expectations were found the expectation is that the test
@@ -338,13 +342,13 @@ class TestExpectations {
   void _preprocessForMatching() {
     if (_preprocessed) return;
 
-    _keyToRegExps = new Map();
-    _regExpCache = new Map();
+    _keyToRegExps = {};
+    _regExpCache = {};
 
     _map.forEach((key, expectations) {
       if (_keyToRegExps[key] != null) return;
       var splitKey = key.split('/');
-      var regExps = new List(splitKey.length);
+      var regExps = new List<RegExp>(splitKey.length);
       for (var i = 0; i < splitKey.length; i++) {
         var component = splitKey[i];
         var regExp = _regExpCache[component];

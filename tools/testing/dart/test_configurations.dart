@@ -102,7 +102,7 @@ Future testConfigurations(List<Map> configurations) async {
   // test.dart. However, don't do it if the silent progress indicator
   // is used. This is only needed because of the junit tests.
   if (progressIndicator != 'silent') {
-    List output_words = configurations.length > 1
+    var outputWords = configurations.length > 1
         ? ['Test configurations:']
         : ['Test configuration:'];
     for (Map conf in configurations) {
@@ -111,9 +111,9 @@ Future testConfigurations(List<Map> configurations) async {
           .toList();
       if (conf['checked']) settings.add('checked');
       if (conf['strong']) settings.add('strong');
-      output_words.add(settings.join('_'));
+      outputWords.add(settings.join('_'));
     }
-    print(output_words.join(' '));
+    print(outputWords.join(' '));
   }
 
   var runningBrowserTests = configurations.any((config) {
@@ -121,7 +121,7 @@ Future testConfigurations(List<Map> configurations) async {
   });
 
   List<Future> serverFutures = [];
-  var testSuites = new List<TestSuite>();
+  var testSuites = <TestSuite>[];
   var maxBrowserProcesses = maxProcesses;
   if (configurations.length > 1 &&
       (configurations[0]['test_server_port'] != 0 ||

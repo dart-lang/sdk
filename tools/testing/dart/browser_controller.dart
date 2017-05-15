@@ -16,6 +16,10 @@ import 'utils.dart';
 
 import 'reset_safari.dart' show killAndResetSafari;
 
+typedef void BrowserDoneCallback(BrowserTestOutput output);
+typedef void TestChangedCallback(String browserId, String output, int testId);
+typedef BrowserTest NextTestCallback(String browserId);
+
 class BrowserOutput {
   final StringBuffer stdout = new StringBuffer();
   final StringBuffer stderr = new StringBuffer();
@@ -71,7 +75,7 @@ abstract class Browser {
 
   factory Browser.byName(String name, String executablePath,
       [bool checkedMode = false]) {
-    var browser;
+    Browser browser;
     if (name == 'firefox') {
       browser = new Firefox();
     } else if (name == 'chrome') {
@@ -172,11 +176,11 @@ abstract class Browser {
       process = startedProcess;
       // Used to notify when exiting, and as a return value on calls to
       // close().
-      var doneCompleter = new Completer();
+      var doneCompleter = new Completer<bool>();
       done = doneCompleter.future;
 
-      Completer stdoutDone = new Completer();
-      Completer stderrDone = new Completer();
+      Completer stdoutDone = new Completer<Null>();
+      Completer stderrDone = new Completer<Null>();
 
       bool stdoutIsDone = false;
       bool stderrIsDone = false;
@@ -303,7 +307,7 @@ class Safari extends Browser {
   Future<bool> resetConfiguration() async {
     if (!Browser.resetBrowserConfiguration) return true;
 
-    Completer completer = new Completer();
+    var completer = new Completer<Null>();
     handleUncaughtError(error, StackTrace stackTrace) {
       if (!completer.isCompleted) {
         completer.completeError(error, stackTrace);
@@ -373,8 +377,8 @@ class Safari extends Browser {
     });
   }
 
-  Future<Null> _createLaunchHTML(var path, var url) async {
-    var file = new File("${path}/launch.html");
+  Future<Null> _createLaunchHTML(String path, String url) async {
+    var file = new File("$path/launch.html");
     var randomFile = await file.open(mode: FileMode.WRITE);
     var content = '<script language="JavaScript">location = "$url"</script>';
     await randomFile.writeString(content);
@@ -669,7 +673,8 @@ class AndroidBrowser extends Browser {
   AdbDevice _adbDevice;
   AndroidBrowserConfig _config;
 
-  AndroidBrowser(this._adbDevice, this._config, this.checkedMode, apkPath) {
+  AndroidBrowser(
+      this._adbDevice, this._config, this.checkedMode, String apkPath) {
     _binary = apkPath;
   }
 
@@ -794,8 +799,8 @@ class Firefox extends Browser {
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
 
-  void _createPreferenceFile(var path) {
-    var file = new File("${path.toString()}/user.js");
+  void _createPreferenceFile(String path) {
+    var file = new File("$path/user.js");
     var randomFile = file.openSync(mode: FileMode.WRITE);
     randomFile.writeStringSync(enablePopUp);
     randomFile.writeStringSync(disableDefaultCheck);
@@ -863,7 +868,7 @@ class BrowserStatus {
  */
 class BrowserTest {
   // TODO(ricow): Add timeout callback instead of the string passing hack.
-  Function doneCallback;
+  BrowserDoneCallback doneCallback;
   String url;
   int timeout;
   String lastKnownMessage = '';
@@ -894,7 +899,8 @@ class BrowserTest {
 class HtmlTest extends BrowserTest {
   List<String> expectedMessages;
 
-  HtmlTest(url, doneCallback, timeout, this.expectedMessages)
+  HtmlTest(String url, BrowserDoneCallback doneCallback, int timeout,
+      this.expectedMessages)
       : super(url, doneCallback, timeout) {}
 
   String toJSON() => JSON.encode({
@@ -937,7 +943,7 @@ class BrowserTestRunner {
   /// If the queue was recently empty, don't start another browser.
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
-  final Map configuration;
+  final Map<String, String> configuration;
   final BrowserTestingServer testingServer;
 
   final String localIp;
@@ -1267,7 +1273,7 @@ class BrowserTestRunner {
     });
   }
 
-  void handleNextTestTimeout(status) {
+  void handleNextTestTimeout(BrowserStatus status) {
     DebugLogger
         .warning("Browser timed out before getting next test. Restarting");
     if (status.timeout) return;
@@ -1313,7 +1319,7 @@ class BrowserTestRunner {
   // TODO(26191): Call a unified fatalError(), that shuts down all subprocesses.
   // This just kills the browsers in this BrowserTestRunner instance.
   Future terminate() async {
-    var browsers = [];
+    var browsers = <Browser>[];
     underTermination = true;
     testingServer.underTermination = true;
     for (BrowserStatus status in browserStatus.values) {
@@ -1323,9 +1329,11 @@ class BrowserTestRunner {
         status.nextTestTimeout = null;
       }
     }
-    for (Browser b in browsers) {
-      await b.close();
+
+    for (var browser in browsers) {
+      await browser.close();
     }
+
     testingServer.errorReportingServer.close();
     printDoubleReportingTests();
   }
@@ -1360,21 +1368,21 @@ class BrowserTestingServer {
   static const String terminateSignal = "TERMINATE";
 
   var testCount = 0;
-  var errorReportingServer;
+  HttpServer errorReportingServer;
   bool underTermination = false;
 
-  Function testDoneCallBack;
-  Function testStatusUpdateCallBack;
-  Function testStartedCallBack;
-  Function nextTestCallBack;
+  TestChangedCallback testDoneCallBack;
+  TestChangedCallback testStatusUpdateCallBack;
+  TestChangedCallback testStartedCallBack;
+  NextTestCallback nextTestCallBack;
 
   BrowserTestingServer(
       this.configuration, this.localIp, this.useIframe, this.requiresFocus);
 
   Future start() {
-    var test_driver_error_port = configuration['test_driver_error_port'];
+    var testDriverErrorPort = configuration['test_driver_error_port'];
     return HttpServer
-        .bind(localIp, test_driver_error_port)
+        .bind(localIp, testDriverErrorPort)
         .then(setupErrorServer)
         .then(setupDispatchingServer);
   }
@@ -1409,13 +1417,14 @@ class BrowserTestingServer {
 
   void setupDispatchingServer(_) {
     DispatchingServer server = configuration['_servers_'].server;
-    void noCache(request) {
+    void noCache(HttpRequest request) {
       request.response.headers
           .set("Cache-Control", "no-cache, no-store, must-revalidate");
     }
 
-    int testId(request) => int.parse(request.uri.queryParameters["id"]);
-    String browserId(request, prefix) =>
+    int testId(HttpRequest request) =>
+        int.parse(request.uri.queryParameters["id"]);
+    String browserId(HttpRequest request, String prefix) =>
         request.uri.path.substring(prefix.length + 1);
 
     server.addHandler(reportPath, (HttpRequest request) {
@@ -1471,7 +1480,7 @@ class BrowserTestingServer {
     server.addHandler(nextTestPath, sendPageHandler);
   }
 
-  void handleReport(HttpRequest request, String browserId, var testId,
+  void handleReport(HttpRequest request, String browserId, int testId,
       {bool isStatusUpdate}) {
     StringBuffer buffer = new StringBuffer();
     request.transform(UTF8.decoder).listen((data) {
@@ -1490,7 +1499,7 @@ class BrowserTestingServer {
     });
   }
 
-  void handleStarted(HttpRequest request, String browserId, var testId) {
+  void handleStarted(HttpRequest request, String browserId, int testId) {
     StringBuffer buffer = new StringBuffer();
     // If an error occurs while receiving the data from the request stream,
     // we don't handle it specially. We can safely ignore it, since the started

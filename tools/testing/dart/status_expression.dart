@@ -172,7 +172,7 @@ class SetConstant implements SetExpression {
 
   SetConstant(String v) : value = v.toLowerCase();
 
-  Set<String> evaluate(environment) => new Set<String>.from([value]);
+  Set<String> evaluate(environment) => [value].toSet();
   String toString() => value;
 }
 

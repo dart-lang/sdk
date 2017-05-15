@@ -233,7 +233,7 @@ class UnexpectedCrashLogger extends EventListener {
 
       if (archivedBinaries.containsKey(binName)) {
         // We have found and copied the binary.
-        var unexpectedCrashesFile;
+        RandomAccessFile unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
               new File('unexpected-crashes').openSync(mode: FileMode.APPEND);

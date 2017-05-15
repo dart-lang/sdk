@@ -28,14 +28,17 @@ import 'utils.dart';
  */
 class Graph {
   final _nodes = new Set<Node>();
-  final _eventController = new StreamController<GraphEvent>();
-  final _stateCounts = new Map<NodeState, int>();
-  var _eventStream;
+  final StreamController<GraphEvent> _eventController;
+  final _stateCounts = <NodeState, int>{};
+  final Stream<GraphEvent> _eventStream;
   bool _isSealed = false;
 
-  Graph() {
-    _eventStream = _eventController.stream.asBroadcastStream();
+  factory Graph() {
+    var controller = new StreamController<GraphEvent>();
+    return new Graph._(controller, controller.stream.asBroadcastStream());
   }
+
+  Graph._(this._eventController, this._eventStream);
 
   Iterable<Node> get nodes => _nodes;
   Stream<GraphEvent> get events => _eventStream;
@@ -88,7 +91,7 @@ class Graph {
     _emitEvent(new StateChangedEvent(node, fromState, newState));
   }
 
-  _emitEvent(GraphEvent event) {
+  void _emitEvent(GraphEvent event) {
     // We emit events asynchronously so the graph can be build up in small
     // batches and the events are delivered in small batches.
     Timer.run(() {

@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:convert';
 
-List<Map> LINUX_COMBINATIONS = [
+final LINUX_COMBINATIONS = [
   {
     'runtimes': ['none'],
     'modes': ['release'],
@@ -38,7 +38,7 @@ List<Map> LINUX_COMBINATIONS = [
   },
 ];
 
-List<Map> MACOS_COMBINATIONS = [
+final MACOS_COMBINATIONS = [
   {
     'runtimes': ['vm'],
     'modes': ['debug', 'release'],
@@ -59,7 +59,7 @@ List<Map> MACOS_COMBINATIONS = [
   },
 ];
 
-List<Map> WINDOWS_COMBINATIONS = [
+final WINDOWS_COMBINATIONS = [
   {
     'runtimes': ['vm'],
     'modes': ['debug', 'release'],
@@ -80,7 +80,7 @@ List<Map> WINDOWS_COMBINATIONS = [
   },
 ];
 
-Map<String, List<Map>> COMBINATIONS = {
+final COMBINATIONS = {
   'linux': LINUX_COMBINATIONS,
   'windows': WINDOWS_COMBINATIONS,
   'macos': MACOS_COMBINATIONS
@@ -193,7 +193,7 @@ void main(List<String> args) {
           var totalIndex = result.stdout.indexOf('JSON:');
           var report = result.stdout.substring(totalIndex + 5);
 
-          var map = JSON.decode(report) as Map;
+          var map = JSON.decode(report) as Map<String, int>;
 
           if (keys == null) {
             keys = map.keys.toList();

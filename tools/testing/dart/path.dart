@@ -174,7 +174,7 @@ class Path {
     // All '..' segments of a relative path are at the beginning.
     if (isEmpty) return false; // The canonical form of '' is '.'.
     if (_path == '.') return true;
-    List segs = _path.split('/'); // Don't mask the getter 'segments'.
+    var segs = _path.split('/'); // Don't mask the getter 'segments'.
     if (segs[0] == '') {
       // Absolute path
       segs[0] = null; // Faster than removeRange().
@@ -190,15 +190,15 @@ class Path {
   }
 
   Path makeCanonical() {
-    bool isAbs = isAbsolute;
-    List segs = segments();
+    var isAbs = isAbsolute;
+    var segs = segments();
     String drive;
     if (isAbs && !segs.isEmpty && segs[0].length == 2 && segs[0][1] == ':') {
       drive = segs[0];
       segs.removeRange(0, 1);
     }
-    List newSegs = [];
-    for (String segment in segs) {
+    var newSegs = <String>[];
+    for (var segment in segs) {
       switch (segment) {
         case '..':
           // Absolute paths drop leading .. markers, including after a drive.
@@ -224,7 +224,7 @@ class Path {
       }
     }
 
-    List segmentsToJoin = [];
+    var segmentsToJoin = <String>[];
     if (isAbs) {
       segmentsToJoin.add('');
       if (drive != null) {
@@ -267,7 +267,7 @@ class Path {
   }
 
   List<String> segments() {
-    List result = _path.split('/');
+    var result = _path.split('/');
     if (isAbsolute) result.removeRange(0, 1);
     if (hasTrailingSeparator) result.removeLast();
     return result;

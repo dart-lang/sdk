@@ -62,7 +62,7 @@ class DispatchingServer {
 const PREFIX_BUILDDIR = 'root_build';
 const PREFIX_DARTDIR = 'root_dart';
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   // This script is in [dart]/tools/testing/dart.
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
@@ -121,9 +121,9 @@ class TestingServers {
     "IntentionallyMissingFile",
   ];
 
-  List _serverList = [];
-  Uri _buildDirectory = null;
-  Uri _dartDirectory = null;
+  final List<HttpServer> _serverList = [];
+  Uri _buildDirectory;
+  Uri _dartDirectory;
   Uri _packageRoot;
   Uri _packages;
   final bool useContentSecurityPolicy;
@@ -217,7 +217,7 @@ class TestingServers {
       var server = new DispatchingServer(httpServer, _onError, _sendNotFound);
       server.addHandler('/echo', _handleEchoRequest);
       server.addHandler('/ws', _handleWebSocketRequest);
-      fileHandler(request) {
+      fileHandler(HttpRequest request) {
         _handleFileOrDirectoryRequest(request, allowedPort);
       }
 
@@ -229,7 +229,8 @@ class TestingServers {
     });
   }
 
-  _handleFileOrDirectoryRequest(HttpRequest request, int allowedPort) async {
+  Future _handleFileOrDirectoryRequest(
+      HttpRequest request, int allowedPort) async {
     // Enable browsers to cache file/directory responses.
     var response = request.response;
     response.headers
@@ -312,8 +313,8 @@ class TestingServers {
   }
 
   Future<List<_Entry>> _listDirectory(Directory directory) {
-    var completer = new Completer();
-    var entries = [];
+    var completer = new Completer<List<_Entry>>();
+    var entries = <_Entry>[];
 
     directory.list().listen((FileSystemEntity fse) {
       var segments = fse.uri.pathSegments;
@@ -367,7 +368,7 @@ class TestingServers {
       HttpRequest request, HttpResponse response, int allowedPort, File file) {
     if (allowedPort != -1) {
       var headerOrigin = request.headers.value('Origin');
-      var allowedOrigin;
+      String allowedOrigin;
       if (headerOrigin != null) {
         var origin = Uri.parse(headerOrigin);
         // Allow loading from http://*:$allowedPort in browsers.
