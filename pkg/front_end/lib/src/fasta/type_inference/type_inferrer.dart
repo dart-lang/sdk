@@ -593,8 +593,19 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     var receiverType = inferExpression(receiver, null, true);
     // TODO(paulberry): can we share some of the code below with
     // inferConstructorInvocation?
+    bool isOverloadedArithmeticOperator = false;
+    Member interfaceMember;
+    if (receiverType is InterfaceType) {
+      interfaceMember =
+          classHierarchy.getInterfaceMember(receiverType.classNode, methodName);
+      if (interfaceMember is Procedure) {
+        setInterfaceTarget(interfaceMember);
+        isOverloadedArithmeticOperator = typeSchemaEnvironment
+            .isOverloadedArithmeticOperator(interfaceMember);
+      }
+    }
     var memberFunctionType = _getCalleeFunctionType(
-        receiverType, methodName, offset, setInterfaceTarget);
+        interfaceMember, receiverType, methodName, offset);
     List<TypeParameter> memberTypeParameters =
         memberFunctionType.typeParameters;
     bool inferenceNeeded = explicitTypeArguments == null &&
@@ -623,6 +634,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       substitution =
           Substitution.fromPairs(memberTypeParameters, explicitTypeArguments);
     }
+    DartType returnType = memberFunctionType.returnType;
     int i = 0;
     forEachArgument((name, expression) {
       DartType formalType = name != null
@@ -631,16 +643,20 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       DartType inferredFormalType = substitution != null
           ? substitution.substituteType(formalType)
           : formalType;
-      var expressionType =
-          inferExpression(expression, inferredFormalType, inferenceNeeded);
+      var expressionType = inferExpression(expression, inferredFormalType,
+          inferenceNeeded || isOverloadedArithmeticOperator);
       if (inferenceNeeded) {
         formalTypes.add(formalType);
         actualTypes.add(expressionType);
       }
+      if (isOverloadedArithmeticOperator) {
+        returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
+            receiverType, expressionType);
+      }
     });
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
-          memberFunctionType.returnType,
+          returnType,
           memberTypeParameters,
           formalTypes,
           actualTypes,
@@ -655,8 +671,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     DartType inferredType;
     if (typeNeeded) {
       inferredType = substitution == null
-          ? memberFunctionType.returnType
-          : substitution.substituteType(memberFunctionType.returnType);
+          ? returnType
+          : substitution.substituteType(returnType);
     }
     listener.methodInvocationExit(inferredType);
     return inferredType;
@@ -779,18 +795,15 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return inferredType;
   }
 
-  FunctionType _getCalleeFunctionType(DartType receiverType, Name methodName,
-      int offset, void setInterfaceTarget(Procedure procedure)) {
+  FunctionType _getCalleeFunctionType(Member interfaceMember,
+      DartType receiverType, Name methodName, int offset) {
     if (receiverType is InterfaceType) {
-      var member =
-          classHierarchy.getInterfaceMember(receiverType.classNode, methodName);
-      if (member == null) return _functionReturningDynamic;
-      var memberClass = member.enclosingClass;
-      if (member is Procedure) {
+      if (interfaceMember == null) return _functionReturningDynamic;
+      var memberClass = interfaceMember.enclosingClass;
+      if (interfaceMember is Procedure) {
         instrumentation?.record(Uri.parse(uri), offset, 'target',
-            new InstrumentationValueForProcedure(member));
-        setInterfaceTarget(member);
-        var memberFunctionType = member.function.functionType;
+            new InstrumentationValueForProcedure(interfaceMember));
+        var memberFunctionType = interfaceMember.function.functionType;
         if (memberClass.typeParameters.isNotEmpty) {
           var castedType = classHierarchy.getClassAsInstanceOf(
               receiverType.classNode, memberClass);
@@ -801,7 +814,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
               .substituteType(memberFunctionType);
         }
         return memberFunctionType;
-      } else if (member is Field) {
+      } else if (interfaceMember is Field) {
         // TODO(paulberry): handle this case
         return _functionReturningDynamic;
       } else {

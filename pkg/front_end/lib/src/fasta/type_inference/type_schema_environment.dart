@@ -158,6 +158,18 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     return const DynamicType();
   }
 
+  @override
+  DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
+    // TODO(paulberry): this matches what is defined in the spec.  It would be
+    // nice if we could change kernel to match the spec and not have to
+    // override.
+    if (type1 == intType) {
+      if (type2 == intType) return type2;
+      if (type2 == doubleType) return type2;
+    }
+    return numType;
+  }
+
   /// Infers a generic type, function, method, or list/map literal
   /// instantiation, using the downward context type as well as the argument
   /// types if available.
