@@ -223,17 +223,13 @@ class ArgListContributor extends DartCompletionContributor {
     for (ParameterElement parameter in parameters) {
       if (parameter.parameterKind == ParameterKind.NAMED) {
         _addNamedParameterSuggestion(
-            request, namedArgs, parameter, appendColon, appendComma);
+            namedArgs, parameter, appendColon, appendComma);
       }
     }
   }
 
-  void _addNamedParameterSuggestion(
-      DartCompletionRequest request,
-      List<String> namedArgs,
-      ParameterElement parameter,
-      bool appendColon,
-      bool appendComma) {
+  void _addNamedParameterSuggestion(List<String> namedArgs,
+      ParameterElement parameter, bool appendColon, bool appendComma) {
     String name = parameter.name;
     String type = parameter.type?.displayName;
     if (name != null && name.length > 0 && !namedArgs.contains(name)) {

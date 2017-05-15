@@ -340,7 +340,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       EnumDeclaration enumDeclaration,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     String completion =
         '${enumDeclaration.name.name}.${constantDeclaration.name.name}';
