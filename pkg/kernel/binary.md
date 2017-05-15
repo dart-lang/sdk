@@ -46,6 +46,12 @@ type List<T> {
   UInt length;
   T[length] items;
 }
+
+// Untagged pairs.
+type Pair<T0, T1> {
+  T0 first;
+  T1 second;
+}
 ```
 
 A string table consists of an array of end offsets and a payload array of
@@ -346,6 +352,7 @@ type InvalidExpression extends Expression {
 type VariableGet extends Expression {
   Byte tag = 20;
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
   VariableReference variable;
 }
 
@@ -353,11 +360,13 @@ type SpecializedVariableGet extends Expression {
   Byte tag = 128 + N; // Where 0 <= N < 8.
   // Equivalent to a VariableGet with index N.
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
 }
 
 type VariableSet extends Expression {
   Byte tag = 21;
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
   VariableReference variable;
   Expression value;
 }
@@ -365,6 +374,7 @@ type VariableSet extends Expression {
 type SpecializedVariableSet extends Expression {
   Byte tag = 136 + N; // Where 0 <= N < 8.
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
   Expression value;
   // Equivalent to VariableSet with index N.
 }
@@ -429,6 +439,7 @@ type StaticSet extends Expression {
 
 type Arguments {
   // Note: there is no tag on Arguments.
+  UInt numArguments; // equals positional.length + named.length
   List<DartType> types;
   List<Expression> positional;
   List<NamedExpression> named;
@@ -782,8 +793,7 @@ type SwitchStatement extends Statement {
 
 type SwitchCase {
   // Note: there is no tag on SwitchCase
-  List<Expression> expressions;
-  FileOffset[expressions.length] expressionOffsets; // 1-to-1 with expressions.
+  List<Pair<FileOffset, Expression>> expressions;
   Byte isDefault; // 1 if default, 0 is not default.
   Statement body;
 }
@@ -819,6 +829,7 @@ type ReturnStatement extends Statement {
 type TryCatch extends Statement {
   Byte tag = 75;
   Statement body;
+  Byte anyCatchNeedsStackTrace; // 1 if any catch needs a stacktrace (have a stacktrace variable).
   List<Catch> catches;
 }
 
@@ -910,6 +921,7 @@ type FunctionType extends DartType {
   Byte tag = 94;
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
+  UInt totalParameterCount; // positionalParameters.length + namedParameters.length
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
   DartType returnType;
@@ -949,7 +961,10 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-  
+
+  // Byte offset in the binary for the type declaration.
+  // Note: This can also be 0, which is a 'forward reference' and is not to be used.
+  UInt typeParameterPosition;
   Option<DartType> bound;
 }
 

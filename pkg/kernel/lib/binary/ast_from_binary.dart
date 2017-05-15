@@ -665,19 +665,23 @@ class BinaryBuilder {
         return new InvalidExpression();
       case Tag.VariableGet:
         int offset = readOffset();
+        readUInt(); // offset of the variable declaration in the binary.
         return new VariableGet(readVariableReference(), readDartTypeOption())
           ..fileOffset = offset;
       case Tag.SpecializedVariableGet:
         int index = tagByte & Tag.SpecializedPayloadMask;
         int offset = readOffset();
+        readUInt(); // offset of the variable declaration in the binary.
         return new VariableGet(variableStack[index])..fileOffset = offset;
       case Tag.VariableSet:
         int offset = readOffset();
+        readUInt(); // offset of the variable declaration in the binary.
         return new VariableSet(readVariableReference(), readExpression())
           ..fileOffset = offset;
       case Tag.SpecializedVariableSet:
         int index = tagByte & Tag.SpecializedPayloadMask;
         int offset = readOffset();
+        readUInt(); // offset of the variable declaration in the binary.
         return new VariableSet(variableStack[index], readExpression())
           ..fileOffset = offset;
       case Tag.PropertyGet:
@@ -949,10 +953,12 @@ class BinaryBuilder {
         switchCaseStack.addAll(cases);
         for (int i = 0; i < cases.length; ++i) {
           var caseNode = cases[i];
-          _fillTreeNodeList(caseNode.expressions, readExpression, caseNode);
-          caseNode.expressionOffsets.length = caseNode.expressions.length;
-          for (int i = 0; i < caseNode.expressionOffsets.length; ++i) {
+          int length = readUInt();
+          caseNode.expressions.length = length;
+          caseNode.expressionOffsets.length = length;
+          for (int i = 0; i < length; ++i) {
             caseNode.expressionOffsets[i] = readOffset();
+            caseNode.expressions[i] = readExpression()..parent = caseNode;
           }
           caseNode.isDefault = readByte() == 1;
           caseNode.body = readStatement()..parent = caseNode;
@@ -969,7 +975,9 @@ class BinaryBuilder {
         int offset = readOffset();
         return new ReturnStatement(readExpressionOption())..fileOffset = offset;
       case Tag.TryCatch:
-        return new TryCatch(readStatement(), readCatchList());
+        Statement body = readStatement();
+        readByte(); // whether any catch needs a stacktrace.
+        return new TryCatch(body, readCatchList());
       case Tag.TryFinally:
         return new TryFinally(readStatement(), readStatement());
       case Tag.YieldStatement:
@@ -1070,8 +1078,10 @@ class BinaryBuilder {
         int typeParameterStackHeight = typeParameterStack.length;
         var typeParameters = readAndPushTypeParameterList();
         var requiredParameterCount = readUInt();
+        var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
+        assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
         return new FunctionType(positional, returnType,
@@ -1084,6 +1094,7 @@ class BinaryBuilder {
         return new FunctionType(positional, returnType);
       case Tag.TypeParameterType:
         int index = readUInt();
+        readUInt(); // offset of the TypeParameter declaration in the binary.
         var bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index], bound);
       default:
@@ -1117,9 +1128,11 @@ class BinaryBuilder {
   }
 
   Arguments readArguments() {
+    var numArguments = readUInt();
     var typeArguments = readDartTypeList();
     var positional = readExpressionList();
     var named = readNamedExpressionList();
+    assert(numArguments == positional.length + named.length);
     return new Arguments(positional, types: typeArguments, named: named);
   }
 

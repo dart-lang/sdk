@@ -230,6 +230,13 @@ class List {
 
   T** raw_array() { return array_; }
 
+  bool CanStream() {
+    for (intptr_t i = 0; i < length_; ++i) {
+      if (!array_[i]->can_stream()) return false;
+    }
+    return true;
+  }
+
  private:
   T** array_;
   int length_;
@@ -387,13 +394,16 @@ class TreeNode : public Node {
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
   intptr_t kernel_offset() const { return kernel_offset_; }
+  bool can_stream() { return can_stream_; }
 
  protected:
-  TreeNode() : kernel_offset_(-1) {}
+  TreeNode() : kernel_offset_(-1), can_stream_(true) {}
 
   // Offset for this node in the kernel-binary. If this node has a tag the
   // offset includes the tag. Can be -1 to indicate "unknown" or invalid offset.
   intptr_t kernel_offset_;
+
+  bool can_stream_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TreeNode);
@@ -1018,6 +1028,7 @@ class VariableGet : public Expression {
   VariableGet() {}
 
   Ref<VariableDeclaration> variable_;
+  intptr_t variable_kernel_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableGet);
 };
@@ -1042,6 +1053,7 @@ class VariableSet : public Expression {
   VariableSet() {}
 
   Ref<VariableDeclaration> variable_;
+  intptr_t variable_kernel_offset_;
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableSet);
@@ -1152,7 +1164,9 @@ class DirectPropertySet : public Expression {
 
 class StaticGet : public Expression {
  public:
-  explicit StaticGet(NameIndex target) : target_reference_(target) {}
+  StaticGet(NameIndex target, bool can_stream) : target_reference_(target) {
+    can_stream_ = can_stream;
+  }
 
   static StaticGet* ReadFrom(Reader* reader);
 
@@ -2174,12 +2188,12 @@ class BreakStatement : public Statement {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  LabeledStatement* target() { return target_; }
+  intptr_t target_index() { return target_index_; }
 
  private:
   BreakStatement() {}
 
-  Ref<LabeledStatement> target_;
+  intptr_t target_index_;
 
   DISALLOW_COPY_AND_ASSIGN(BreakStatement);
 };
@@ -2365,12 +2379,12 @@ class ContinueSwitchStatement : public Statement {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  SwitchCase* target() { return target_; }
+  intptr_t target_index() { return target_index_; }
 
  private:
   ContinueSwitchStatement() {}
 
-  Ref<SwitchCase> target_;
+  intptr_t target_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ContinueSwitchStatement);
 };
@@ -2404,7 +2418,10 @@ class IfStatement : public Statement {
 
 class ReturnStatement : public Statement {
  public:
-  explicit ReturnStatement(Expression* expression) : expression_(expression) {}
+  ReturnStatement(Expression* expression, bool can_stream)
+      : expression_(expression) {
+    can_stream_ = can_stream;
+  }
 
   static ReturnStatement* ReadFrom(Reader* reader);
 

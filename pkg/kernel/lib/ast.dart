@@ -3586,6 +3586,9 @@ class VariableDeclaration extends Statement {
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
 
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = -1;
+
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
   ///
@@ -4168,6 +4171,9 @@ class TypeParameter extends TreeNode {
   /// Should not be null except temporarily during IR construction.  Should
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
+
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = 0;
 
   TypeParameter([this.name, this.bound]);
 
