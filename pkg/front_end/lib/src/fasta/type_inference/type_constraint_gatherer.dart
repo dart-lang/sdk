@@ -5,6 +5,7 @@
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
@@ -51,6 +52,143 @@ class TypeConstraintGatherer {
       _protoConstraints.length = oldProtoConstraintsLength;
     }
     return isMatch;
+  }
+
+  void _constrainLower(TypeParameter parameter, DartType lower) {
+    _protoConstraints.add(new _ProtoConstraint.lower(parameter, lower));
+  }
+
+  void _constrainUpper(TypeParameter parameter, DartType upper) {
+    _protoConstraints.add(new _ProtoConstraint.upper(parameter, upper));
+  }
+
+  bool _isFunctionSubtypeMatch(FunctionType subtype, FunctionType supertype) {
+    // A function type `(M0,..., Mn, [M{n+1}, ..., Mm]) -> R0` is a subtype
+    // match for a function type `(N0,..., Nk, [N{k+1}, ..., Nr]) -> R1` with
+    // respect to `L` under constraints `C0 + ... + Cr + C`
+    // - If `R0` is a subtype match for a type `R1` with respect to `L` under
+    //   constraints `C`:
+    // - If `n <= k` and `r <= m`.
+    // - And for `i` in `0...r`, `Ni` is a subtype match for `Mi` with respect
+    //   to `L` under constraints `Ci`.
+    // Function types with named parameters are treated analogously to the
+    // positional parameter case above.
+    // A generic function type `<T0 extends B0, ..., Tn extends Bn>F0` is a
+    // subtype match for a generic function type `<S0 extends B0, ..., Sn
+    // extends Bn>F1` with respect to `L` under constraints `Cl`:
+    // - If `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for `F0[Z0/S0, ...,
+    //   Zn/Sn]` with respect to `L` under constraints `C`, where each `Zi` is a
+    //   fresh type variable with bound `Bi`.
+    // - And `Cl` is `C` with each constraint replaced with its closure with
+    //   respect to `[Z0, ..., Zn]`.
+    if (subtype.requiredParameterCount > supertype.requiredParameterCount) {
+      return false;
+    }
+    if (subtype.positionalParameters.length <
+        supertype.positionalParameters.length) {
+      return false;
+    }
+    if (subtype.typeParameters.isNotEmpty ||
+        supertype.typeParameters.isNotEmpty) {
+      var subtypeSubstitution = <TypeParameter, DartType>{};
+      var supertypeSubstitution = <TypeParameter, DartType>{};
+      if (!_matchTypeFormals(subtype.typeParameters, supertype.typeParameters,
+          subtypeSubstitution, supertypeSubstitution)) {
+        return false;
+      }
+
+      // TODO(paulberry): try to push this functionality into kernel.
+      FunctionType substituteTypeParams(
+          FunctionType type, Map<TypeParameter, DartType> substitutionMap) {
+        var substitution = Substitution.fromMap(substitutionMap);
+        return new FunctionType(
+            type.positionalParameters.map(substitution.substituteType).toList(),
+            substitution.substituteType(type.returnType),
+            namedParameters: type.namedParameters
+                .map((named) => new NamedType(
+                    named.name, substitution.substituteType(named.type)))
+                .toList(),
+            typeParameters: substitutionMap.keys.toList(),
+            requiredParameterCount: type.requiredParameterCount);
+      }
+
+      subtype = substituteTypeParams(subtype, subtypeSubstitution);
+      supertype = substituteTypeParams(supertype, supertypeSubstitution);
+    }
+
+    // Test the return types.
+    if (supertype.returnType is! VoidType &&
+        !_isSubtypeMatch(subtype.returnType, supertype.returnType)) {
+      return false;
+    }
+
+    // Test the parameter types.
+    for (int i = 0; i < supertype.positionalParameters.length; ++i) {
+      var supertypeParameter = supertype.positionalParameters[i];
+      var subtypeParameter = subtype.positionalParameters[i];
+      // Termination: Both types shrink in size.
+      if (!_isSubtypeMatch(supertypeParameter, subtypeParameter)) {
+        return false;
+      }
+    }
+    int subtypeNameIndex = 0;
+    for (NamedType supertypeParameter in supertype.namedParameters) {
+      while (subtypeNameIndex < subtype.namedParameters.length &&
+          subtype.namedParameters[subtypeNameIndex].name !=
+              supertypeParameter.name) {
+        ++subtypeNameIndex;
+      }
+      if (subtypeNameIndex == subtype.namedParameters.length) return false;
+      NamedType subtypeParameter = subtype.namedParameters[subtypeNameIndex];
+      // Termination: Both types shrink in size.
+      if (!_isSubtypeMatch(supertypeParameter.type, subtypeParameter.type)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _isInterfaceSubtypeMatch(
+      InterfaceType subtype, InterfaceType supertype) {
+    // A type `P<M0, ..., Mk>` is a subtype match for `P<N0, ..., Nk>` with
+    // respect to `L` under constraints `C0 + ... + Ck`:
+    // - If `Mi` is a subtype match for `Ni` with respect to `L` under
+    //   constraints `Ci`.
+    // A type `P<M0, ..., Mk>` is a subtype match for `Q<N0, ..., Nj>` with
+    // respect to `L` under constraints `C`:
+    // - If `R<B0, ..., Bj>` is the superclass of `P<M0, ..., Mk>` and `R<B0,
+    //   ..., Bj>` is a subtype match for `Q<N0, ..., Nj>` with respect to `L`
+    //   under constraints `C`.
+    // - Or `R<B0, ..., Bj>` is one of the interfaces implemented by `P<M0, ...,
+    //   Mk>` (considered in lexical order) and `R<B0, ..., Bj>` is a subtype
+    //   match for `Q<N0, ..., Nj>` with respect to `L` under constraints `C`.
+    // - Or `R<B0, ..., Bj>` is a mixin into `P<M0, ..., Mk>` (considered in
+    //   lexical order) and `R<B0, ..., Bj>` is a subtype match for `Q<N0, ...,
+    //   Nj>` with respect to `L` under constraints `C`.
+
+    // Note that since kernel requires that no class may only appear in the set
+    // of supertypes of a given type more than once, the order of the checks
+    // above is irrelevant; we just need to find the matched superclass,
+    // substitute, and then iterate through type variables.
+    var matchingSupertypeOfSubtype =
+        environment.hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
+    if (matchingSupertypeOfSubtype == null) return false;
+    for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
+      if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
+          supertype.typeArguments[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _isNull(DartType type) {
+    // TODO(paulberry): would it be better to call this "_isBottom", and to have
+    // it return `true` for both Null and bottom types?  Revisit this once
+    // enough functionality is implemented that we can compare the behavior with
+    // the old analyzer-based implementation.
+    return type is InterfaceType &&
+        identical(type.classNode, environment.coreTypes.nullClass);
   }
 
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
@@ -150,78 +288,21 @@ class TypeConstraintGatherer {
     //   and `F` is a subtype match for a type `Q` with respect to `L` under
     //   constraints `C`.
     // TODO(paulberry): implement this case.
-    // A function type `(M0,..., Mn, [M{n+1}, ..., Mm]) -> R0` is a subtype
-    // match for a function type `(N0,..., Nk, [N{k+1}, ..., Nr]) -> R1` with
-    // respect to `L` under constraints `C0 + ... + Cr + C`
-    // - If `R0` is a subtype match for a type `R1` with respect to `L` under
-    //   constraints `C`:
-    // - If `n <= k` and `r <= m`.
-    // - And for `i` in `0...r`, `Ni` is a subtype match for `Mi` with respect
-    //   to `L` under constraints `Ci`.
-    // Function types with named parameters are treated analogously to the
-    // positional parameter case above.
-    // TODO(paulberry): implement this case.
-    // A generic function type `<T0 extends B0, ..., Tn extends Bn>F0` is a
-    // subtype match for a generic function type `<S0 extends B0, ..., Sn
-    // extends Bn>F1` with respect to `L` under constraints `Cl`:
-    // - If `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for `F0[Z0/S0, ...,
-    //   Zn/Sn]` with respect to `L` under constraints `C`, where each `Zi` is a
-    //   fresh type variable with bound `Bi`.
-    // - And `Cl` is `C` with each constraint replaced with its closure with
-    //   respect to `[Z0, ..., Zn]`.
-    // TODO(paulberry): implement this case.
-    return false;
-  }
-
-  void _constrainLower(TypeParameter parameter, DartType lower) {
-    _protoConstraints.add(new _ProtoConstraint.lower(parameter, lower));
-  }
-
-  void _constrainUpper(TypeParameter parameter, DartType upper) {
-    _protoConstraints.add(new _ProtoConstraint.upper(parameter, upper));
-  }
-
-  bool _isInterfaceSubtypeMatch(
-      InterfaceType subtype, InterfaceType supertype) {
-    // A type `P<M0, ..., Mk>` is a subtype match for `P<N0, ..., Nk>` with
-    // respect to `L` under constraints `C0 + ... + Ck`:
-    // - If `Mi` is a subtype match for `Ni` with respect to `L` under
-    //   constraints `Ci`.
-    // A type `P<M0, ..., Mk>` is a subtype match for `Q<N0, ..., Nj>` with
-    // respect to `L` under constraints `C`:
-    // - If `R<B0, ..., Bj>` is the superclass of `P<M0, ..., Mk>` and `R<B0,
-    //   ..., Bj>` is a subtype match for `Q<N0, ..., Nj>` with respect to `L`
-    //   under constraints `C`.
-    // - Or `R<B0, ..., Bj>` is one of the interfaces implemented by `P<M0, ...,
-    //   Mk>` (considered in lexical order) and `R<B0, ..., Bj>` is a subtype
-    //   match for `Q<N0, ..., Nj>` with respect to `L` under constraints `C`.
-    // - Or `R<B0, ..., Bj>` is a mixin into `P<M0, ..., Mk>` (considered in
-    //   lexical order) and `R<B0, ..., Bj>` is a subtype match for `Q<N0, ...,
-    //   Nj>` with respect to `L` under constraints `C`.
-
-    // Note that since kernel requires that no class may only appear in the set
-    // of supertypes of a given type more than once, the order of the checks
-    // above is irrelevant; we just need to find the matched superclass,
-    // substitute, and then iterate through type variables.
-    var matchingSupertypeOfSubtype =
-        environment.hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
-    if (matchingSupertypeOfSubtype == null) return false;
-    for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
-      if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
-          supertype.typeArguments[i])) {
-        return false;
+    if (subtype is FunctionType) {
+      if (supertype is InterfaceType) {
+        if (identical(
+                supertype.classNode, environment.coreTypes.functionClass) ||
+            identical(supertype.classNode, environment.coreTypes.objectClass)) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      if (supertype is FunctionType) {
+        return _isFunctionSubtypeMatch(subtype, supertype);
       }
     }
-    return true;
-  }
-
-  bool _isNull(DartType type) {
-    // TODO(paulberry): would it be better to call this "_isBottom", and to have
-    // it return `true` for both Null and bottom types?  Revisit this once
-    // enough functionality is implemented that we can compare the behavior with
-    // the old analyzer-based implementation.
-    return type is InterfaceType &&
-        identical(type.classNode, environment.coreTypes.nullClass);
+    return false;
   }
 
   bool _isTop(DartType type) =>
@@ -229,6 +310,37 @@ class TypeConstraintGatherer {
       type is VoidType ||
       (type is InterfaceType &&
           identical(type.classNode, environment.coreTypes.objectClass));
+
+  /// Given two lists of function type formal parameters, checks that their
+  /// bounds are compatible.
+  ///
+  /// The return value indicates whether a match was found.  If it was, entries
+  /// are added to [substitution1] and [substitution2] which substitute a fresh
+  /// set of type variables for the type parameters [params1] and [params2],
+  /// respectively, allowing further comparison.
+  bool _matchTypeFormals(
+      List<TypeParameter> params1,
+      List<TypeParameter> params2,
+      Map<TypeParameter, DartType> substitution1,
+      Map<TypeParameter, DartType> substitution2) {
+    int count = params1.length;
+    if (count != params2.length) return false;
+    // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
+    // we build up the substitutions.  But I don't think that's correct--I think
+    // we should build up both substitutions completely before checking any
+    // bounds.
+    for (int i = 0; i < count; i++) {
+      TypeParameter pFresh = new TypeParameter(params2[i].name);
+      DartType variableFresh = new TypeParameterType(pFresh);
+      substitution1[params1[i]] = variableFresh;
+      substitution2[params2[i]] = variableFresh;
+      DartType bound1 = substitute(params1[i].bound, substitution1);
+      DartType bound2 = substitute(params2[i].bound, substitution2);
+      pFresh.bound = bound2;
+      if (!_isSubtypeMatch(bound2, bound1)) return false;
+    }
+    return true;
+  }
 }
 
 /// Tracks a single constraint on a single type variable.
