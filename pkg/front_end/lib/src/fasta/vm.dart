@@ -13,6 +13,7 @@ import 'dart:io' show File, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 
 import 'fasta.dart' as fasta;

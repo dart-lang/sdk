@@ -10,6 +10,7 @@ import 'dart:convert' show JSON;
 
 import 'dart:io' show BytesBuilder, Directory, File, exitCode;
 
+import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;

@@ -24,6 +24,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:front_end/file_system.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/vm.dart'
@@ -100,8 +101,8 @@ Future _processLoadRequest(request) async {
 // raw file content Uint8List this function builds up and returns
 // MemoryFileSystem instance that can be used instead of
 // PhysicalFileSystem.instance by the frontend.
-FileSystem _buildMemoryFileSystem(List namedSources) {
-  FileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+MemoryFileSystem _buildMemoryFileSystem(List namedSources) {
+  MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
   for (int i = 0; i < namedSources.length ~/ 2; i++) {
     fileSystem
         .entityForUri(Uri.parse(namedSources[i * 2]))
