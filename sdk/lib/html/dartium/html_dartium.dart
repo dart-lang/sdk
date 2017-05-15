@@ -24964,7 +24964,8 @@ class KeyboardEvent extends UIEvent {
       {Window view,
       bool canBubble: true,
       bool cancelable: true,
-      int location: 1,
+      int location,
+      int keyLocation, // Legacy alias for location
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -24972,6 +24973,7 @@ class KeyboardEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
+    location ??= keyLocation ?? 1;
     final e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "", location,
         ctrlKey, altKey, shiftKey, metaKey);
