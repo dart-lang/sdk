@@ -931,7 +931,7 @@ class BrowserTestOutput {
 /// requests back from the browsers.
 class BrowserTestRunner {
   static const int MAX_NEXT_TEST_TIMEOUTS = 10;
-  static const Duration NEXT_TEST_TIMEOUT = const Duration(seconds: 60);
+  static const Duration NEXT_TEST_TIMEOUT = const Duration(seconds: 120);
   static const Duration RESTART_BROWSER_INTERVAL = const Duration(seconds: 60);
 
   /// If the queue was recently empty, don't start another browser.
