@@ -666,7 +666,7 @@ class InitializerContinuation extends ExpressionContinuation {
     }
 
     var cont = new InitializerContinuation(newObject, currentClass,
-        initializerEnvironment, initializers.skip(1), continuation);
+        initializerEnvironment, initializers.skip(1).toList(), continuation);
     return new ExpressionConfiguration(
         _getExpression(next), initializerEnvironment, cont);
   }
