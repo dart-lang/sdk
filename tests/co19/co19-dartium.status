@@ -1062,7 +1062,6 @@ WebPlatformTest/DOMEvents/approved/EventObject.multiple.dispatchEvent_t01: Runti
 WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Skip # Times out. co19-roll r738: Please triage this failure.
 WebPlatformTest/html-imports/link-import_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html-imports/link-import_t02: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/html-imports/link-import-null_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html-imports/loading-import_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -1072,20 +1071,14 @@ WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Ru
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: Skip # accesses window.document from a cross-frame window
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # co19-roll r738: Please triage this failure.
-WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-case_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # co19-roll r738: Please triage this failure.
-WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-newelements_t01: RuntimeError # co19 issue 11.
-WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-param_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t05: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t07: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t02: RuntimeError # co19-roll r738: Please triage this failure.
-WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # co19 issue 11.
-WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t05: RuntimeError # co19 issue 11.
 WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeError # co19-roll r738: Please triage this failure.
-WebPlatformTest/html/semantics/disabled-elements/disabledElement_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Skip # Times out and fails. # co19-roll r738: Please triage this failure.

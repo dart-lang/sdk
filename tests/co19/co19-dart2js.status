@@ -393,8 +393,18 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime != drt && $runtime != d8]
+#LayoutTests/fast/forms/change-form-element-document-crash_t01: RuntimeError # Please triage this failure
+#LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
+#WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
+#WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime != drt && $runtime != d8 && $runtime != jsshell && $runtime != chrome]
+#WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $checked && $runtime != ff && $runtime != d8 && $runtime != drt]
+#LayoutTests/fast/dom/clone-node-load-event-crash_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $fast_startup ]
 Language/Classes/Instance_Methods/Operators/unary_minus: Fail # mirrors not supported
@@ -779,26 +789,17 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError
 LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError
-WebPlatformTest/html-imports/link-import-null_t01: RuntimeError
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError
 WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError
 WebPlatformTest/html/syntax/parsing/math-parse_t01: RuntimeError
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError
 WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: Skip
-WebPlatformTest/html/semantics/text-level-semantics/the-a-element/a.text-getter_t01: RuntimeError
 WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t11: Skip
 WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: Pass, RuntimeError # Spurious pass
 WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError
 WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: RuntimeError
 WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: RuntimeError
-WebPlatformTest/html/semantics/forms/the-input-element/pattern_attribute_t01: RuntimeError
 WebPlatformTest/html/semantics/forms/the-form-element/form-nameditem_t01: RuntimeError
-WebPlatformTest/html/semantics/disabled-elements/disabledElement_t01: RuntimeError
-WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError
-WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t05: RuntimeError
-WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-param_t01: RuntimeError
-WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-newelements_t01: RuntimeError
-WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-case_t01: RuntimeError
 #
 # End of Issue 747
 #
