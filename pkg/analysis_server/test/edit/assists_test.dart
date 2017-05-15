@@ -9,7 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
@@ -55,9 +55,9 @@ class AssistsTest extends AbstractAnalysisTest {
     String message = 'From a plugin';
     plugin.PrioritizedSourceChange change = new plugin.PrioritizedSourceChange(
         5,
-        new plugin.SourceChange(message, edits: <plugin.SourceFileEdit>[
-          new plugin.SourceFileEdit('', 0,
-              edits: <plugin.SourceEdit>[new plugin.SourceEdit(0, 0, 'x')])
+        new SourceChange(message, edits: <SourceFileEdit>[
+          new SourceFileEdit('', 0,
+              edits: <SourceEdit>[new SourceEdit(0, 0, 'x')])
         ]));
     plugin.EditGetAssistsResult result = new plugin.EditGetAssistsResult(
         <plugin.PrioritizedSourceChange>[change]);

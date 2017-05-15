@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.domain.completion;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -14,7 +12,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -708,16 +706,9 @@ class B extends A {m() {^}}
     ''');
     PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.CompletionGetSuggestionsResult result =
-        new plugin.CompletionGetSuggestionsResult(
-            1, 2, <plugin.CompletionSuggestion>[
-      new plugin.CompletionSuggestion(
-          plugin.CompletionSuggestionKind.IDENTIFIER,
-          DART_RELEVANCE_DEFAULT,
-          'plugin completion',
-          3,
-          0,
-          false,
-          false)
+        new plugin.CompletionGetSuggestionsResult(1, 2, <CompletionSuggestion>[
+      new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
+          DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
       info: new Future.value(result.toResponse('-'))

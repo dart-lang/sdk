@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.services.correction.fix_internal;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
@@ -46,6 +42,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';

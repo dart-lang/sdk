@@ -6,12 +6,10 @@
  * Utilities for converting Dart entities into analysis server's protocol
  * entities.
  */
-library analysis_server.plugin.protocol.protocol_dart;
-
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * Return a protocol [Element] corresponding to the given [engine.Element].

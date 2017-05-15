@@ -68,7 +68,7 @@ public class RefactoringMethodParameter {
   /**
    * The parameter list of the parameter's function type. If the parameter is not of a function type,
    * this field will not be defined. If the function type has zero parameters, this field will have a
-   * value of "()".
+   * value of '()'.
    */
   private String parameters;
 
@@ -143,7 +143,7 @@ public class RefactoringMethodParameter {
   /**
    * The parameter list of the parameter's function type. If the parameter is not of a function type,
    * this field will not be defined. If the function type has zero parameters, this field will have a
-   * value of "()".
+   * value of '()'.
    */
   public String getParameters() {
     return parameters;
@@ -193,7 +193,7 @@ public class RefactoringMethodParameter {
   /**
    * The parameter list of the parameter's function type. If the parameter is not of a function type,
    * this field will not be defined. If the function type has zero parameters, this field will have a
-   * value of "()".
+   * value of '()'.
    */
   public void setParameters(String parameters) {
     this.parameters = parameters;

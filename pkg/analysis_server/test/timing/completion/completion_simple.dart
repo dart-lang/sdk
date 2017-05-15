@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
 
 import '../timing_framework.dart';

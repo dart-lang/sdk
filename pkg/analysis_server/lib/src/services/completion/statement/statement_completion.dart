@@ -7,7 +7,6 @@ library services.src.completion.statement;
 import 'dart:async';
 import 'dart:math';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';

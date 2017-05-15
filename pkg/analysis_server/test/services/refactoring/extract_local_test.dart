@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

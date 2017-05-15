@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.edit.refactoring;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -11,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -362,7 +361,7 @@ main() {
 ''');
   }
 
-  test_names() {
+  test_names() async {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
@@ -370,37 +369,35 @@ main() {
   var a = getSelectedItem();
 }
 ''');
-    return getRefactoringResult(() {
+    EditGetRefactoringResult result = await getRefactoringResult(() {
       return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
-    }).then((result) {
-      ExtractLocalVariableFeedback feedback = result.feedback;
-      expect(feedback.names,
-          unorderedEquals(['treeItem', 'item', 'selectedItem']));
-      expect(result.change, isNull);
     });
+    ExtractLocalVariableFeedback feedback = result.feedback;
+    expect(
+        feedback.names, unorderedEquals(['treeItem', 'item', 'selectedItem']));
+    expect(result.change, isNull);
   }
 
-  test_nameWarning() {
+  test_nameWarning() async {
     addTestFile('''
 main() {
   print(1 + 2);
 }
 ''');
-    return getRefactoringResult(() {
+    EditGetRefactoringResult result = await getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'Name', true);
-    }).then((result) {
-      assertResultProblemsWarning(result.optionsProblems,
-          'Variable name should start with a lowercase letter.');
-      // ...but there is still a change
-      assertTestRefactoringResult(
-          result,
-          '''
+    });
+    assertResultProblemsWarning(result.optionsProblems,
+        'Variable name should start with a lowercase letter.');
+    // ...but there is still a change
+    assertTestRefactoringResult(
+        result,
+        '''
 main() {
   var Name = 1 + 2;
   print(Name);
 }
 ''');
-    });
   }
 
   test_offsetsLengths() {

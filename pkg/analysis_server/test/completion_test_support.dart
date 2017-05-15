@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import 'domain_completion_test.dart';

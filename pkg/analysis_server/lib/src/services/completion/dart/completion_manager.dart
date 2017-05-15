@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.dart.manager;
-
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
@@ -30,6 +27,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific

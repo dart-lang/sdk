@@ -4,13 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    show
-        RefactoringProblem,
-        RefactoringProblemSeverity,
-        SourceChange,
-        SourceEdit,
-        SourceFileEdit;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -24,6 +17,13 @@ import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show
+        RefactoringProblem,
+        RefactoringProblemSeverity,
+        SourceChange,
+        SourceEdit,
+        SourceFileEdit;
 import 'package:test/test.dart';
 
 import '../../abstract_single_unit.dart';

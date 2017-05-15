@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.correction.source_buffer;
-
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * Helper for building Dart source with linked positions.

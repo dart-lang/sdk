@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.plugin.edit.assist.assist_core;
-
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    show SourceChange;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show SourceChange;
 
 /**
  * A description of a single proposed assist.

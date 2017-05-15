@@ -90,7 +90,7 @@ public class CompletionSuggestion {
   private final String docSummary;
 
   /**
-   * The Dartdoc associated with the element being suggested, This field is omitted if there is no
+   * The Dartdoc associated with the element being suggested. This field is omitted if there is no
    * Dartdoc associated with the element.
    */
   private final String docComplete;
@@ -298,7 +298,7 @@ public class CompletionSuggestion {
   }
 
   /**
-   * The Dartdoc associated with the element being suggested, This field is omitted if there is no
+   * The Dartdoc associated with the element being suggested. This field is omitted if there is no
    * Dartdoc associated with the element.
    */
   public String getDocComplete() {

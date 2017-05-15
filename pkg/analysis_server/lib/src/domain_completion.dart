@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library domain.completion;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -12,13 +10,13 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -118,12 +116,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     if (pluginFutures != null) {
       List<plugin.Response> responses = await waitForResponses(pluginFutures,
           requestParameters: requestParams);
-      ResultConverter converter = new ResultConverter();
       for (plugin.Response response in responses) {
         plugin.CompletionGetSuggestionsResult result =
             new plugin.CompletionGetSuggestionsResult.fromResponse(response);
-        suggestions
-            .addAll(result.results.map(converter.convertCompletionSuggestion));
+        suggestions.addAll(result.results);
       }
     }
     //

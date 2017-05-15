@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../../test/integration/support/integration_tests.dart';

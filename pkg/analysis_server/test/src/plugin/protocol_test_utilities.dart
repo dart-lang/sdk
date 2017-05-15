@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -70,11 +70,12 @@ class ProtocolTestUtilities {
    * On return, increment [stringIndex] by 3 (or 4 if no [file] name is
    * provided) and [intIndex] by 4.
    */
-  plugin.AnalysisError pluginAnalysisError(int stringIndex, int intIndex,
+  AnalysisError pluginAnalysisError(int stringIndex, int intIndex,
       {String file}) {
-    return new plugin.AnalysisError(
-        plugin.AnalysisErrorSeverity.ERROR,
-        plugin.AnalysisErrorType.COMPILE_TIME_ERROR,
+    // TODO(brianwilkerson) Unify the "plugin" and "server" methods when the return type is common.
+    return new AnalysisError(
+        AnalysisErrorSeverity.ERROR,
+        AnalysisErrorType.COMPILE_TIME_ERROR,
         pluginLocation(stringIndex, intIndex, file: file),
         strings[stringIndex++],
         strings[stringIndex++],
@@ -85,29 +86,25 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 5 and [intIndex] by 5.
    */
-  plugin.Element pluginElement(int stringIndex, int intIndex,
-          {plugin.ElementKind kind}) =>
-      new plugin.Element(
-          kind ?? plugin.ElementKind.CLASS, strings[stringIndex++], intIndex++,
-          location: new plugin.Location(fileName(stringIndex++), intIndex++,
+  Element pluginElement(int stringIndex, int intIndex, {ElementKind kind}) =>
+      new Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
+          location: new Location(fileName(stringIndex++), intIndex++,
               intIndex++, intIndex++, intIndex++),
           parameters: strings[stringIndex++],
           returnType: strings[stringIndex++],
           typeParameters: strings[stringIndex++]);
 
-  plugin.FoldingRegion pluginFoldingRegion(int offset, int length) =>
-      new plugin.FoldingRegion(plugin.FoldingKind.COMMENT, offset, length);
+  FoldingRegion pluginFoldingRegion(int offset, int length) =>
+      new FoldingRegion(FoldingKind.COMMENT, offset, length);
 
-  plugin.HighlightRegion pluginHighlightRegion(int offset, int length) =>
-      new plugin.HighlightRegion(
-          plugin.HighlightRegionType.FIELD, offset, length);
+  HighlightRegion pluginHighlightRegion(int offset, int length) =>
+      new HighlightRegion(HighlightRegionType.FIELD, offset, length);
 
   /**
    * On return, increment [stringIndex] by 1 and [intIndex] by 4.
    */
-  plugin.Location pluginLocation(int stringIndex, int intIndex,
-          {String file}) =>
-      new plugin.Location(file ?? fileName(stringIndex), intIndex++, intIndex++,
+  Location pluginLocation(int stringIndex, int intIndex, {String file}) =>
+      new Location(file ?? fileName(stringIndex), intIndex++, intIndex++,
           intIndex++, intIndex++);
 
   /**
@@ -117,11 +114,11 @@ class ProtocolTestUtilities {
   plugin.AnalysisNavigationParams pluginNavigationParams(
           int stringIndex, int intIndex, {String file}) =>
       new plugin.AnalysisNavigationParams(
-          file ?? fileName(stringIndex++), <plugin.NavigationRegion>[
-        new plugin.NavigationRegion(intIndex++, 2, <int>[0])
-      ], <plugin.NavigationTarget>[
-        new plugin.NavigationTarget(
-            plugin.ElementKind.FIELD, 0, intIndex++, 2, intIndex++, intIndex++)
+          file ?? fileName(stringIndex++), <NavigationRegion>[
+        new NavigationRegion(intIndex++, 2, <int>[0])
+      ], <NavigationTarget>[
+        new NavigationTarget(
+            ElementKind.FIELD, 0, intIndex++, 2, intIndex++, intIndex++)
       ], <String>[
         strings[stringIndex++],
         strings[stringIndex++]
@@ -130,22 +127,21 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 5 and [intIndex] by 7.
    */
-  plugin.Occurrences pluginOccurrences(int stringIndex, int intIndex) {
-    plugin.Element element = pluginElement(stringIndex, intIndex);
-    return new plugin.Occurrences(
+  Occurrences pluginOccurrences(int stringIndex, int intIndex) {
+    Element element = pluginElement(stringIndex, intIndex);
+    return new Occurrences(
         element, <int>[intIndex + 5, intIndex + 6], element.name.length);
   }
 
   /**
    * On return, increment [stringIndex] by 10 and [intIndex] by 14.
    */
-  plugin.Outline pluginOutline(int stringIndex, int intIndex) =>
-      new plugin.Outline(
+  Outline pluginOutline(int stringIndex, int intIndex) => new Outline(
           pluginElement(stringIndex, intIndex), intIndex + 5, intIndex + 6,
-          children: <plugin.Outline>[
-            new plugin.Outline(
+          children: <Outline>[
+            new Outline(
                 pluginElement(stringIndex + 5, intIndex + 7,
-                    kind: plugin.ElementKind.METHOD),
+                    kind: ElementKind.METHOD),
                 intIndex + 12,
                 intIndex + 13)
           ]);
@@ -153,47 +149,43 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 2 and [intIndex] by 4.
    */
-  plugin.RefactoringProblem pluginRefactoringProblem(
-      int stringIndex, int intIndex) {
-    return new plugin.RefactoringProblem(
-        plugin.RefactoringProblemSeverity.FATAL, strings[stringIndex++],
+  RefactoringProblem pluginRefactoringProblem(int stringIndex, int intIndex) {
+    return new RefactoringProblem(
+        RefactoringProblemSeverity.FATAL, strings[stringIndex++],
         location: pluginLocation(stringIndex, intIndex));
   }
 
   /**
    * On return, increment [stringIndex] by 6 and [intIndex] by 6.
    */
-  plugin.SourceChange pluginSourceChange(int stringIndex, int intIndex) =>
-      new plugin.SourceChange(strings[stringIndex++],
-          edits: <plugin.SourceFileEdit>[
-            new plugin.SourceFileEdit(fileName(stringIndex), intIndex++,
-                edits: <plugin.SourceEdit>[
-                  new plugin.SourceEdit(
-                      intIndex++, intIndex++, strings[stringIndex++])
+  SourceChange pluginSourceChange(int stringIndex, int intIndex) =>
+      new SourceChange(strings[stringIndex++],
+          edits: <SourceFileEdit>[
+            new SourceFileEdit(fileName(stringIndex), intIndex++,
+                edits: <SourceEdit>[
+                  new SourceEdit(intIndex++, intIndex++, strings[stringIndex++])
                 ])
           ],
-          linkedEditGroups: <plugin.LinkedEditGroup>[
-            new plugin.LinkedEditGroup(
-                <plugin.Position>[
-                  new plugin.Position(fileName(stringIndex), intIndex++)
-                ],
+          linkedEditGroups: <LinkedEditGroup>[
+            new LinkedEditGroup(
+                <Position>[new Position(fileName(stringIndex), intIndex++)],
                 intIndex++,
-                <plugin.LinkedEditSuggestion>[
-                  new plugin.LinkedEditSuggestion(strings[stringIndex++],
-                      plugin.LinkedEditSuggestionKind.METHOD)
+                <LinkedEditSuggestion>[
+                  new LinkedEditSuggestion(
+                      strings[stringIndex++], LinkedEditSuggestionKind.METHOD)
                 ])
           ],
-          selection: new plugin.Position(fileName(stringIndex), intIndex++));
+          selection: new Position(fileName(stringIndex), intIndex++));
 
   /**
    * On return, increment [stringIndex] by 3 (or 4 if no [file] name is
    * provided) and [intIndex] by 4.
    */
-  server.AnalysisError serverAnalysisError(int stringIndex, int intIndex,
+  AnalysisError serverAnalysisError(int stringIndex, int intIndex,
       {String file}) {
-    return new server.AnalysisError(
-        server.AnalysisErrorSeverity.ERROR,
-        server.AnalysisErrorType.COMPILE_TIME_ERROR,
+    return new AnalysisError(
+        AnalysisErrorSeverity.ERROR,
+        AnalysisErrorType.COMPILE_TIME_ERROR,
         serverLocation(stringIndex, intIndex, file: file),
         strings[stringIndex++],
         strings[stringIndex++],
@@ -204,29 +196,25 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 5 and [intIndex] by 5.
    */
-  server.Element serverElement(int stringIndex, int intIndex,
-          {server.ElementKind kind}) =>
-      new server.Element(
-          kind ?? server.ElementKind.CLASS, strings[stringIndex++], intIndex++,
-          location: new server.Location(fileName(stringIndex++), intIndex++,
+  Element serverElement(int stringIndex, int intIndex, {ElementKind kind}) =>
+      new Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
+          location: new Location(fileName(stringIndex++), intIndex++,
               intIndex++, intIndex++, intIndex++),
           parameters: strings[stringIndex++],
           returnType: strings[stringIndex++],
           typeParameters: strings[stringIndex++]);
 
-  server.FoldingRegion serverFoldingRegion(int offset, int length) =>
-      new server.FoldingRegion(server.FoldingKind.COMMENT, offset, length);
+  FoldingRegion serverFoldingRegion(int offset, int length) =>
+      new FoldingRegion(FoldingKind.COMMENT, offset, length);
 
-  server.HighlightRegion serverHighlightRegion(int offset, int length) =>
-      new server.HighlightRegion(
-          server.HighlightRegionType.FIELD, offset, length);
+  HighlightRegion serverHighlightRegion(int offset, int length) =>
+      new HighlightRegion(HighlightRegionType.FIELD, offset, length);
 
   /**
    * On return, increment [stringIndex] by 1 and [intIndex] by 4.
    */
-  server.Location serverLocation(int stringIndex, int intIndex,
-          {String file}) =>
-      new server.Location(file ?? fileName(stringIndex), intIndex++, intIndex++,
+  Location serverLocation(int stringIndex, int intIndex, {String file}) =>
+      new Location(file ?? fileName(stringIndex), intIndex++, intIndex++,
           intIndex++, intIndex++);
 
   /**
@@ -236,11 +224,11 @@ class ProtocolTestUtilities {
   server.AnalysisNavigationParams serverNavigationParams(
           int stringIndex, int intIndex, {String file}) =>
       new server.AnalysisNavigationParams(
-          file ?? fileName(stringIndex++), <server.NavigationRegion>[
-        new server.NavigationRegion(intIndex++, 2, <int>[0])
-      ], <server.NavigationTarget>[
-        new server.NavigationTarget(
-            server.ElementKind.FIELD, 0, intIndex++, 2, intIndex++, intIndex++)
+          file ?? fileName(stringIndex++), <NavigationRegion>[
+        new NavigationRegion(intIndex++, 2, <int>[0])
+      ], <NavigationTarget>[
+        new NavigationTarget(
+            ElementKind.FIELD, 0, intIndex++, 2, intIndex++, intIndex++)
       ], <String>[
         strings[stringIndex++],
         strings[stringIndex++]
@@ -249,22 +237,21 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 5 and [intIndex] by 7.
    */
-  server.Occurrences serverOccurrences(int stringIndex, int intIndex) {
-    server.Element element = serverElement(stringIndex, intIndex);
-    return new server.Occurrences(
+  Occurrences serverOccurrences(int stringIndex, int intIndex) {
+    Element element = serverElement(stringIndex, intIndex);
+    return new Occurrences(
         element, <int>[intIndex + 5, intIndex + 6], element.name.length);
   }
 
   /**
    * On return, increment [stringIndex] by 10 and [intIndex] by 14.
    */
-  server.Outline serverOutline(int stringIndex, int intIndex) =>
-      new server.Outline(
+  Outline serverOutline(int stringIndex, int intIndex) => new Outline(
           serverElement(stringIndex, intIndex), intIndex + 5, intIndex + 6,
-          children: <server.Outline>[
-            new server.Outline(
+          children: <Outline>[
+            new Outline(
                 serverElement(stringIndex + 5, intIndex + 7,
-                    kind: server.ElementKind.METHOD),
+                    kind: ElementKind.METHOD),
                 intIndex + 12,
                 intIndex + 13)
           ]);
@@ -272,34 +259,30 @@ class ProtocolTestUtilities {
   /**
    * On return, increment [stringIndex] by 2 and [intIndex] by 4.
    */
-  server.RefactoringProblem serverRefactoringProblem(
-          int stringIndex, int intIndex) =>
-      new server.RefactoringProblem(
-          server.RefactoringProblemSeverity.FATAL, strings[stringIndex++],
+  RefactoringProblem serverRefactoringProblem(int stringIndex, int intIndex) =>
+      new RefactoringProblem(
+          RefactoringProblemSeverity.FATAL, strings[stringIndex++],
           location: serverLocation(stringIndex, intIndex));
 
   /**
    * On return, increment [stringIndex] by 6 and [intIndex] by 6.
    */
-  server.SourceChange serverSourceChange(int stringIndex, int intIndex) =>
-      new server.SourceChange(strings[stringIndex++],
-          edits: <server.SourceFileEdit>[
-            new server.SourceFileEdit(fileName(stringIndex), intIndex++,
-                edits: <server.SourceEdit>[
-                  new server.SourceEdit(
-                      intIndex++, intIndex++, strings[stringIndex++])
+  SourceChange serverSourceChange(int stringIndex, int intIndex) =>
+      new SourceChange(strings[stringIndex++],
+          edits: <SourceFileEdit>[
+            new SourceFileEdit(fileName(stringIndex), intIndex++,
+                edits: <SourceEdit>[
+                  new SourceEdit(intIndex++, intIndex++, strings[stringIndex++])
                 ])
           ],
-          linkedEditGroups: <server.LinkedEditGroup>[
-            new server.LinkedEditGroup(
-                <server.Position>[
-                  new server.Position(fileName(stringIndex), intIndex++)
-                ],
+          linkedEditGroups: <LinkedEditGroup>[
+            new LinkedEditGroup(
+                <Position>[new Position(fileName(stringIndex), intIndex++)],
                 intIndex++,
-                <server.LinkedEditSuggestion>[
-                  new server.LinkedEditSuggestion(strings[stringIndex++],
-                      server.LinkedEditSuggestionKind.METHOD)
+                <LinkedEditSuggestion>[
+                  new LinkedEditSuggestion(
+                      strings[stringIndex++], LinkedEditSuggestionKind.METHOD)
                 ])
           ],
-          selection: new server.Position(fileName(stringIndex), intIndex++));
+          selection: new Position(fileName(stringIndex), intIndex++));
 }
