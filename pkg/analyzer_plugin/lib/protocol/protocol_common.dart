@@ -4182,47 +4182,6 @@ class Position implements HasToJson {
 }
 
 /**
- * RefactoringFeedback
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class RefactoringFeedback implements HasToJson {
-  RefactoringFeedback();
-
-  factory RefactoringFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
-    return refactoringFeedbackFromJson(
-        jsonDecoder, jsonPath, json, responseJson);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    return result;
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is RefactoringFeedback) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
  * RefactoringKind
  *
  * enum {
@@ -4576,46 +4535,6 @@ class RefactoringMethodParameterKind implements Enum {
   String toString() => "RefactoringMethodParameterKind.$name";
 
   String toJson() => name;
-}
-
-/**
- * RefactoringOptions
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class RefactoringOptions implements HasToJson {
-  RefactoringOptions();
-
-  factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object json, RefactoringKind kind) {
-    return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    return result;
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is RefactoringOptions) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    return JenkinsSmiHash.finish(hash);
-  }
 }
 
 /**

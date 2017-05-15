@@ -189,7 +189,7 @@ class Request {
    * sent to the server to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = {};
+    Map<String, Object> jsonObject = <String, Object>{};
     jsonObject[ID] = id;
     jsonObject[METHOD] = method;
     if (params.isNotEmpty) {
