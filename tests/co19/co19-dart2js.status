@@ -6011,7 +6011,7 @@ LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError # Please triage
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/float-list-inside_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/inline-block-with-padding_t01: Skip # Issue 747
-LayoutTests/fast/sub-pixel/layout-boxes-with-zoom_t01: Pass RuntimeError # Issue 747
+LayoutTests/fast/sub-pixel/layout-boxes-with-zoom_t01: Pass, RuntimeError # Issue 747
 LayoutTests/fast/sub-pixel/shadows-computed-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/size-of-span-with-different-positions_t01: Skip # Issue 747
 LayoutTests/fast/svg/getbbox_t01: RuntimeError # Please triage this failure
