@@ -163,8 +163,8 @@ Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
   new TopLevelParser(listener).parseUnit(tokenize(contents));
   return new Set<String>()
-    ..addAll(listener.imports)
-    ..addAll(listener.exports)
+    ..addAll(listener.imports.map((d) => d.uri))
+    ..addAll(listener.exports.map((d) => d.uri))
     ..addAll(listener.parts);
 }
 

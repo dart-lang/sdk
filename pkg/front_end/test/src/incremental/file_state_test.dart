@@ -69,6 +69,64 @@ part "c.dart";
     expect(bFile.partFiles, isEmpty);
   }
 
+  test_getFile_exports() async {
+    var a = writeFile('/a.dart', '');
+    var b = writeFile('/b.dart', '');
+    var c = writeFile('/c.dart', '');
+    var d = writeFile(
+        '/d.dart',
+        r'''
+export "a.dart" show A, B;
+export "b.dart" hide C, D;
+export "c.dart" show A, B, C, D hide C show A, D;
+''');
+
+    FileState aFile = await fsState.getFile(a);
+    FileState bFile = await fsState.getFile(b);
+    FileState cFile = await fsState.getFile(c);
+    FileState dFile = await fsState.getFile(d);
+
+    expect(dFile.exports, hasLength(3));
+    {
+      NamespaceExport export_ = dFile.exports[0];
+      expect(export_.library, aFile);
+      expect(export_.combinators, hasLength(1));
+      expect(export_.combinators[0].isShow, isTrue);
+      expect(export_.combinators[0].names, unorderedEquals(['A', 'B']));
+      expect(export_.filter('A'), isTrue);
+      expect(export_.filter('B'), isTrue);
+      expect(export_.filter('C'), isFalse);
+      expect(export_.filter('D'), isFalse);
+    }
+    {
+      NamespaceExport export_ = dFile.exports[1];
+      expect(export_.library, bFile);
+      expect(export_.combinators, hasLength(1));
+      expect(export_.combinators[0].isShow, isFalse);
+      expect(export_.combinators[0].names, unorderedEquals(['C', 'D']));
+      expect(export_.filter('A'), isTrue);
+      expect(export_.filter('B'), isTrue);
+      expect(export_.filter('C'), isFalse);
+      expect(export_.filter('D'), isFalse);
+    }
+    {
+      NamespaceExport export_ = dFile.exports[2];
+      expect(export_.library, cFile);
+      expect(export_.combinators, hasLength(3));
+      expect(export_.combinators[0].isShow, isTrue);
+      expect(
+          export_.combinators[0].names, unorderedEquals(['A', 'B', 'C', 'D']));
+      expect(export_.combinators[1].isShow, isFalse);
+      expect(export_.combinators[1].names, unorderedEquals(['C']));
+      expect(export_.combinators[2].isShow, isTrue);
+      expect(export_.combinators[2].names, unorderedEquals(['A', 'D']));
+      expect(export_.filter('A'), isTrue);
+      expect(export_.filter('B'), isFalse);
+      expect(export_.filter('C'), isFalse);
+      expect(export_.filter('D'), isTrue);
+    }
+  }
+
   test_topologicalOrder_cycleBeforeTarget() async {
     var aUri = _writeFileDirectives('/a.dart');
     var bUri = _writeFileDirectives('/b.dart', imports: ['c.dart']);

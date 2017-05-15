@@ -35,6 +35,7 @@ class FileState {
   List<int> _content;
   List<int> _contentHash;
 
+  List<NamespaceExport> _exports;
   List<FileState> _importedLibraries;
   List<FileState> _exportedLibraries;
   List<FileState> _partFiles;
@@ -60,6 +61,9 @@ class FileState {
 
   /// The list of the libraries exported by this library.
   List<FileState> get exportedLibraries => _exportedLibraries;
+
+  /// The list of the exported files with combinators.
+  List<NamespaceExport> get exports => _exports;
 
   @override
   int get hashCode => uri.hashCode;
@@ -123,16 +127,33 @@ class FileState {
     _importedLibraries = <FileState>[];
     _exportedLibraries = <FileState>[];
     _partFiles = <FileState>[];
-    await _addFileForRelativeUri(_importedLibraries, 'dart:core');
-    for (String uri in listener.imports) {
-      await _addFileForRelativeUri(_importedLibraries, uri);
+    _exports = <NamespaceExport>[];
+    {
+      FileState coreFile = await _getFileForRelativeUri('dart:core');
+      // TODO(scheglov) add error handling
+      if (coreFile != null) {
+        _importedLibraries.add(coreFile);
+      }
+    }
+    for (ImportDirective import_ in listener.imports) {
+      FileState file = await _getFileForRelativeUri(import_.uri);
+      if (file != null) {
+        _importedLibraries.add(file);
+      }
     }
     await _addVmTargetImportsForCore();
-    for (String uri in listener.exports) {
-      await _addFileForRelativeUri(_exportedLibraries, uri);
+    for (ExportDirective export_ in listener.exports) {
+      FileState file = await _getFileForRelativeUri(export_.uri);
+      if (file != null) {
+        _exportedLibraries.add(file);
+        _exports.add(new NamespaceExport(file, export_.combinators));
+      }
     }
     for (String uri in listener.parts) {
-      await _addFileForRelativeUri(_partFiles, uri);
+      FileState file = await _getFileForRelativeUri(uri);
+      if (file != null) {
+        _partFiles.add(file);
+      }
     }
 
     // Compute referenced files.
@@ -152,11 +173,25 @@ class FileState {
     return fileUri.toString();
   }
 
-  /// Add the [FileState] for the given [relativeUri] to the [files].
-  /// Do nothing if the URI cannot be parsed, cannot correspond any file, etc.
-  Future<Null> _addFileForRelativeUri(
-      List<FileState> files, String relativeUri) async {
-    if (relativeUri.isEmpty) return;
+  /// Fasta unconditionally loads all VM libraries.  In order to be able to
+  /// serve them using the file system view, pretend that all of them were
+  /// imported into `dart:core`.
+  /// TODO(scheglov) Ask VM people whether all these libraries are required.
+  Future<Null> _addVmTargetImportsForCore() async {
+    if (uri.toString() != 'dart:core') return;
+    for (String uri in new VmTarget(null).extraRequiredLibraries) {
+      FileState file = await _getFileForRelativeUri(uri);
+      // TODO(scheglov) add error handling
+      if (file != null) {
+        _importedLibraries.add(file);
+      }
+    }
+  }
+
+  /// Return the [FileState] for the given [relativeUri] or `null` if the URI
+  /// cannot be parsed, cannot correspond any file, etc.
+  Future<FileState> _getFileForRelativeUri(String relativeUri) async {
+    if (relativeUri.isEmpty) return null;
 
     // Resolve the relative URI into absolute.
     // The result is either:
@@ -166,23 +201,10 @@ class FileState {
     try {
       absoluteUri = fileUri.resolve(relativeUri);
     } on FormatException {
-      return;
+      return null;
     }
 
-    FileState file = await _fsState.getFile(absoluteUri);
-    if (file == null) return;
-    files.add(file);
-  }
-
-  /// Fasta unconditionally loads all VM libraries.  In order to be able to
-  /// serve them using the file system view, pretend that all of them were
-  /// imported into `dart:core`.
-  /// TODO(scheglov) Ask VM people whether all these libraries are required.
-  Future<Null> _addVmTargetImportsForCore() async {
-    if (uri.toString() != 'dart:core') return;
-    for (String uri in new VmTarget(null).extraRequiredLibraries) {
-      await _addFileForRelativeUri(_importedLibraries, uri);
-    }
+    return await _fsState.getFile(absoluteUri);
   }
 
   /// Scan the content of the file.
@@ -254,6 +276,30 @@ class LibraryCycle {
       return '[core + vm]';
     }
     return '[' + libraries.join(', ') + ']';
+  }
+}
+
+/// Information about a single `export` directive.
+class NamespaceExport {
+  final FileState library;
+  final List<NamespaceCombinator> combinators;
+
+  NamespaceExport(this.library, this.combinators);
+
+  /// Return `true` if the [name] satisfies the sequence of the [combinators].
+  bool filter(String name) {
+    for (NamespaceCombinator combinator in combinators) {
+      if (combinator.isShow) {
+        if (!combinator.names.contains(name)) {
+          return false;
+        }
+      } else {
+        if (combinator.names.contains(name)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
 
