@@ -85,6 +85,16 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   }
 
   @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = precedingComments;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+
+  @override
   Token copy() =>
       new BeginTokenWithComment(type, offset, copyComments(precedingComments));
 }
@@ -480,6 +490,16 @@ class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   }
 
   @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = precedingComments;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+
+  @override
   Token copy() => new KeywordTokenWithComment(
       keyword, offset, copyComments(precedingComments));
 }
@@ -560,6 +580,11 @@ class SimpleToken implements Token {
 
   @override
   String get stringValue => type.stringValue;
+
+  @override
+  void applyDelta(int delta) {
+    offset += delta;
+  }
 
   @override
   Token copy() => new Token(type, offset);
@@ -676,6 +701,16 @@ class StringTokenWithComment extends StringToken implements TokenWithComment {
   void set precedingComments(CommentToken comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
+  }
+
+  @override
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = precedingComments;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
   }
 
   @override
@@ -859,6 +894,11 @@ abstract class Token implements SyntacticEntity {
    * Return the type of the token.
    */
   TokenType get type;
+
+  /**
+   * Apply (add) the given [delta] to this token's offset.
+   */
+  void applyDelta(int delta);
 
   /**
    * Return a newly created token that is a copy of this tokens
