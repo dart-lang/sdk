@@ -179,6 +179,7 @@ class Evaluator
     var class_ = new Class(node.target.enclosingClass.reference);
     var newObject =
         new ObjectValue(class_, new List<Value>(class_.instanceSize));
+
     ApplicationContinuation cont = new ConstructorInvocationApplication(
         newObject, node.target, config.continuation);
 
@@ -603,10 +604,21 @@ class InstanceFieldsApplication extends ApplicationContinuation {
       _currentClass.setProperty(newObject, current.field, current.value);
     }
 
-    if (constructor.initializers.isEmpty ||
-        constructor.initializers.first is SuperInitializer) {
-      // todo: eval super args or constructor body configuration.
+    if (constructor.initializers.isEmpty) {
+      _initializeNullFields(_currentClass, newObject);
       return new ContinuationConfiguration(expressionContinuation, newObject);
+    }
+
+    if (constructor.initializers.first is SuperInitializer) {
+      // SuperInitializer appears last in the initializer list.
+      assert(constructor.initializers.length == 1);
+      SuperInitializer current = constructor.initializers.first;
+      var args = _createArgumentExpressionList(
+          current.arguments, current.target.function);
+      var superApp = new ConstructorInvocationApplication(
+          newObject, current.target, expressionContinuation);
+      _initializeNullFields(_currentClass, newObject);
+      return new ExpressionListConfiguration(args, environment, superApp);
     }
 
     Class class_ = new Class(constructor.enclosingClass.reference);
@@ -643,12 +655,15 @@ class InitializerContinuation extends ExpressionContinuation {
 
     if (initializers.length <= 1) {
       // todo: return configuration for body of ctr.
+      _initializeNullFields(currentClass, newObject);
       return new ContinuationConfiguration(continuation, newObject);
     }
 
     Initializer next = initializers[1];
 
     if (next is RedirectingInitializer) {
+      // RedirectingInitializer appears last in the initializer list.
+      assert(initializers.length == 2);
       var cont = new ConstructorInvocationApplication(
           newObject, next.target, continuation);
       var args =
@@ -658,11 +673,15 @@ class InitializerContinuation extends ExpressionContinuation {
     }
 
     if (next is SuperInitializer) {
-      // todo: eval args for super.
-      if (currentClass.superclass.superclass != null) {
-        throw 'Super initializer invocation is not supported.';
-      }
-      return new ContinuationConfiguration(continuation, newObject);
+      // SuperInitializer appears last in the initializer list.
+      assert(initializers.length == 2);
+      var args =
+          _createArgumentExpressionList(next.arguments, next.target.function);
+      var superApp = new ConstructorInvocationApplication(
+          newObject, next.target, continuation);
+      _initializeNullFields(currentClass, newObject);
+      return new ExpressionListConfiguration(
+          args, initializerEnvironment, superApp);
     }
 
     var cont = new InitializerContinuation(newObject, currentClass,
@@ -1383,4 +1402,17 @@ Expression _getExpression(Initializer initializer) {
   }
 
   throw '${initializer.runtimeType} has no epxression.';
+}
+
+/// Initializes all non initialized fields in given class with
+/// [Value.nullInstance].
+void _initializeNullFields(Class class_, ObjectValue newObject) {
+  int superClassSize = class_.superclass?.instanceSize ?? 0;
+  for (int i = superClassSize; i < class_.instanceSize; i++) {
+    Field field = class_.instanceFields[i];
+    if (class_.getProperty(newObject, field) == null) {
+      assert(field.initializer == null);
+      class_.setProperty(newObject, field, Value.nullInstance);
+    }
+  }
 }

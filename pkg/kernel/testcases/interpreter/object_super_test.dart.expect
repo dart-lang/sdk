@@ -1,0 +1,17 @@
+static-invocation-fieldInitializer
+print(String: A.foo: 0)
+return
+print(String: A.foo: 0)
+static-invocation-fieldInitializer
+print(String: B.bar: 0)
+return
+static-invocation-fieldInitializer
+print(String: A.foo: 1)
+return
+print(String: A.foo: 1)
+print(String: B.bar: 0)
+static-invocation-fieldInitializer
+print(String: A.foo: 0)
+return
+print(String: A.foo: 0)
+print(Null: null)
