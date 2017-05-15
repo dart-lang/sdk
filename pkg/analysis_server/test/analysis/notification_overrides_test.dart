@@ -25,7 +25,6 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
   Override override;
 
-  @override
   bool get enableNewAnalysisDriver => false;
 
   /**
