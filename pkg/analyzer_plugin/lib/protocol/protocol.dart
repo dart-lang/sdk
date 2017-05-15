@@ -289,30 +289,29 @@ class RequestErrorFactory {
       'Invalid overlay change: no content to change');
 
   /**
-   * Return a request error representing an error condition caused by a
-   * [request] that had an invalid parameter. The [path] is the path to the
-   * invalid parameter, in Javascript notation (e.g. "foo.bar" means that the
-   * parameter "foo" contained a key "bar" whose value was the wrong type). The
+   * Return a request error representing an error condition caused by a request
+   * that had an invalid parameter. The [path] is the path to the invalid
+   * parameter, in Javascript notation (e.g. "foo.bar" means that the parameter
+   * "foo" contained a key "bar" whose value was the wrong type). The
    * [expectation] is a description of the type of data that was expected.
    */
-  static RequestError invalidParameter(
-          Request request, String path, String expectation) =>
+  static RequestError invalidParameter(String path, String expectation) =>
       new RequestError(RequestErrorCode.INVALID_PARAMETER,
           "Invalid parameter '$path'. $expectation.");
 
   /**
    * Return a request error representing an error that occurred in the plugin.
    */
-  static RequestError pluginError(Request request, exception, stackTrace) =>
+  static RequestError pluginError(exception, String stackTrace) =>
       new RequestError(RequestErrorCode.PLUGIN_ERROR, exception.toString(),
           stackTrace: stackTrace);
 
   /**
-   * Return a request error representing an error condition caused by a
-   * [request] that cannot be handled by any known handlers.
+   * Return a request error representing an error condition caused by a request
+   * with the given [method] that cannot be handled by any known handlers.
    */
-  static RequestError unknownRequest(Request request) =>
-      new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request');
+  static RequestError unknownRequest(String method) => new RequestError(
+      RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request: $method');
 }
 
 /**

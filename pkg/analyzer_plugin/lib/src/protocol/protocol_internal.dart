@@ -441,9 +441,9 @@ class RequestDecoder extends JsonDecoder {
   /**
    * The request being deserialized.
    */
-  final Request _request;
+  final Request request;
 
-  RequestDecoder(this._request);
+  RequestDecoder(this.request);
 
   @override
   RefactoringKind get refactoringKind {
@@ -461,14 +461,14 @@ class RequestDecoder extends JsonDecoder {
       buffer.write(JSON.encode(actual));
       buffer.write('"');
     }
-    return new RequestFailure(RequestErrorFactory.invalidParameter(
-        _request, jsonPath, buffer.toString()));
+    return new RequestFailure(
+        RequestErrorFactory.invalidParameter(jsonPath, buffer.toString()));
   }
 
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(RequestErrorFactory.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
+        jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
   }
 }
 

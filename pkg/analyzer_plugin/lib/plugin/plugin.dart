@@ -515,7 +515,7 @@ abstract class ServerPlugin {
     }
     if (result == null) {
       return new Response(request.id,
-          error: RequestErrorFactory.unknownRequest(request));
+          error: RequestErrorFactory.unknownRequest(request.method));
     }
     return result.toResponse(request.id);
   }
