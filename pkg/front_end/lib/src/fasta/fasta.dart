@@ -164,8 +164,16 @@ class CompileTask {
 Future<CompilationResult> parseScript(
     Uri fileName, Uri packages, Uri patchedSdk,
     {bool verbose: false, bool strongMode: false}) async {
+  return parseScriptInFileSystem(
+      fileName, PhysicalFileSystem.instance, packages, patchedSdk,
+      verbose: verbose, strongMode: strongMode);
+}
+
+Future<CompilationResult> parseScriptInFileSystem(
+    Uri fileName, FileSystem fileSystem, Uri packages, Uri patchedSdk,
+    {bool verbose: false, bool strongMode: false}) async {
   try {
-    if (!await new File.fromUri(fileName).exists()) {
+    if (!await fileSystem.entityForUri(fileName).exists()) {
       return new CompilationResult.error(
           formatUnexpected(fileName, -1, "No such file."));
     }
@@ -177,12 +185,12 @@ Future<CompilationResult> parseScript(
     Program program;
     try {
       TranslateUri uriTranslator =
-          await TranslateUri.parse(PhysicalFileSystem.instance, null, packages);
+          await TranslateUri.parse(fileSystem, null, packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
       final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
       _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
-      final KernelTarget kernelTarget = new KernelTarget(
-          PhysicalFileSystem.instance, dillTarget, uriTranslator, strongMode);
+      final KernelTarget kernelTarget =
+          new KernelTarget(fileSystem, dillTarget, uriTranslator, strongMode);
       kernelTarget.read(fileName);
       await dillTarget.writeOutline(null);
       program = await kernelTarget.writeOutline(null);
