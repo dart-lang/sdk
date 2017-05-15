@@ -1087,14 +1087,14 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
             compilationSkipped, 0);
 
   Expectation result(TestCase testCase) {
+    if (_infraFailure) {
+      return Expectation.IGNORE;
+    }
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
     if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
-    if (_infraFailure) {
-      return Expectation.IGNORE;
-    }
     var outcome = _getOutcome();
 
     if (testCase.hasRuntimeError) {
