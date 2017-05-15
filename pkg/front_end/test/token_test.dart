@@ -19,16 +19,6 @@ main() {
 /// Assert that fasta PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class TokenTest {
-  void test_applyDelta() {
-    var scanner = new StringScanner('/* 1 */ foo', includeComments: true);
-    var token = scanner.tokenize();
-    expect(token.offset, 8);
-    expect(token.precedingComments.offset, 0);
-    token.applyDelta(12);
-    expect(token.offset, 20);
-    expect(token.precedingComments.offset, 12);
-  }
-
   void test_comments() {
     var source = '''
 /// Single line dartdoc comment
