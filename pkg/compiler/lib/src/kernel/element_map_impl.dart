@@ -30,7 +30,6 @@ import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
-import '../universe/call_structure.dart';
 import '../universe/world_builder.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'element_map.dart';
@@ -881,19 +880,11 @@ class _MemberData {
 class _FunctionData extends _MemberData {
   final ir.FunctionNode functionNode;
   FunctionType _type;
-  CallStructure _callStructure;
 
   _FunctionData(ir.Member node, this.functionNode) : super(node);
 
   FunctionType getFunctionType(KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
-  }
-
-  CallStructure get callStructure {
-    return _callStructure ??= new CallStructure(
-        functionNode.positionalParameters.length +
-            functionNode.namedParameters.length,
-        functionNode.namedParameters.map((d) => d.name).toList());
   }
 }
 
@@ -1102,12 +1093,6 @@ class KernelElementEnvironment implements ElementEnvironment {
           CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
     return library;
-  }
-
-  @override
-  CallStructure getCallStructure(KFunction function) {
-    _FunctionData data = elementMap._memberList[function.memberIndex];
-    return data.callStructure;
   }
 
   @override

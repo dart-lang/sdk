@@ -436,16 +436,6 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  CallStructure getCallStructure(MethodElement method) {
-    ResolutionFunctionType type = method.computeType(_resolution);
-    return new CallStructure(
-        type.parameterTypes.length +
-            type.optionalParameterTypes.length +
-            type.namedParameterTypes.length,
-        type.namedParameters);
-  }
-
-  @override
   bool isDeferredLoadLibraryGetter(MemberElement member) {
     return member.isDeferredLoaderGetter;
   }

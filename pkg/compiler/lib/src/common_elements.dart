@@ -1223,6 +1223,7 @@ abstract class ElementEnvironment {
   ClassEntity getSuperClass(ClassEntity cls,
       {bool skipUnnamedMixinApplications: false});
 
+  /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
   /// Calls [f] for each class that is mixed into [cls] or one of its
@@ -1264,10 +1265,6 @@ abstract class ElementEnvironment {
   /// Use this during resolution to ensure that the alias has been computed.
   // TODO(johnniwinther): Remove this when the resolver is removed.
   DartType getUnaliasedType(DartType type);
-
-  /// Returns the [CallStructure] corresponding to calling [entity] with all
-  /// arguments, both required and optional.
-  CallStructure getCallStructure(FunctionEntity entity);
 
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.
