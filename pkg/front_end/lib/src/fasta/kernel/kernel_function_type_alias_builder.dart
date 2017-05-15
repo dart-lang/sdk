@@ -4,7 +4,6 @@
 
 library fasta.kernel_function_type_alias_builder;
 
-import 'package:front_end/src/fasta/util/relativize.dart';
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -14,15 +13,16 @@ import 'package:kernel/ast.dart'
         NamedType,
         TypeParameter,
         Typedef;
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../messages.dart' show warning;
+
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
         FunctionTypeAliasBuilder,
         KernelFormalParameterBuilder,
-        KernelLibraryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -32,9 +32,9 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelTypeBuilder, DartType> {
-  DartType thisType;
+  final Typedef target;
 
-  DartType type;
+  DartType thisType;
 
   KernelFunctionTypeAliasBuilder(
       List<MetadataBuilder> metadata,
@@ -43,16 +43,17 @@ class KernelFunctionTypeAliasBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       LibraryBuilder parent,
-      int charOffset)
-      : super(metadata, returnType, name, typeVariables, formals, parent,
+      int charOffset,
+      [Typedef target])
+      : target = target ??
+            (new Typedef(name, null, fileUri: parent.target.fileUri)
+              ..fileOffset = charOffset),
+        super(metadata, returnType, name, typeVariables, formals, parent,
             charOffset);
 
-  Typedef build(KernelLibraryBuilder libraryBuilder) {
-    DartType type = buildThisType(libraryBuilder);
-    var typedef_ = new Typedef(name, type);
-    typedef_.fileUri = relativizeUri(parent.fileUri);
-    typedef_.fileOffset = charOffset;
-    return typedef_;
+  Typedef build(LibraryBuilder libraryBuilder) {
+    // TODO(ahe): We need to move type parameters from [thisType] to [target].
+    return target..type ??= buildThisType(libraryBuilder);
   }
 
   DartType buildThisType(LibraryBuilder library) {
@@ -99,22 +100,6 @@ class KernelFunctionTypeAliasBuilder
         requiredParameterCount: requiredParameterCount);
   }
 
-  DartType buildType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
-    var thisType = buildThisType(library);
-    if (thisType is DynamicType) return thisType;
-    FunctionType result = thisType;
-    if (result.typeParameters.isEmpty && arguments == null) return result;
-    // Otherwise, substitute.
-    List<DartType> builtArguments = <DartType>[];
-    if (arguments != null) {
-      for (int i = 0; i < arguments.length; i++) {
-        builtArguments.add(arguments[i].build(library));
-      }
-    }
-    return buildTypesWithBuiltArguments(library, builtArguments);
-  }
-
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
@@ -129,5 +114,22 @@ class KernelFunctionTypeAliasBuilder
       substitution[result.typeParameters[i]] = arguments[i];
     }
     return substitute(result.withoutTypeParameters, substitution);
+  }
+
+  @override
+  DartType buildType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    var thisType = buildThisType(library);
+    if (thisType is DynamicType) return thisType;
+    FunctionType result = thisType;
+    if (result.typeParameters.isEmpty && arguments == null) return result;
+    // Otherwise, substitute.
+    List<DartType> builtArguments = <DartType>[];
+    if (arguments != null) {
+      for (int i = 0; i < arguments.length; i++) {
+        builtArguments.add(arguments[i].build(library));
+      }
+    }
+    return buildTypesWithBuiltArguments(library, builtArguments);
   }
 }

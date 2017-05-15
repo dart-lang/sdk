@@ -18,10 +18,9 @@ import '../kernel/kernel_builder.dart'
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
-  final Typedef typedef;
-
-  DillFunctionTypeAliasBuilder(this.typedef, DillLibraryBuilder parent)
-      : super(null, null, typedef.name, null, null, parent, typedef.fileOffset);
+  DillFunctionTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
+      : super(null, null, typedef.name, null, null, parent, typedef.fileOffset,
+            typedef);
 
   @override
   List<FormalParameterBuilder> get formals {
@@ -43,5 +42,5 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
   }
 
   @override
-  DartType buildThisType(LibraryBuilder library) => typedef.type;
+  DartType buildThisType(LibraryBuilder library) => thisType ??= target.type;
 }
