@@ -21,6 +21,9 @@ main() {
 class ElementReferencesTest extends AbstractSearchDomainTest {
   Element searchElement;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
     assertHasResult(kind, search);
     expect(result.isPotential, isPotential);
@@ -41,12 +44,6 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
       await waitForSearchResults();
     }
     expect(serverErrors, isEmpty);
-  }
-
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = false;
-    super.setUp();
   }
 
   test_constructor_named() async {

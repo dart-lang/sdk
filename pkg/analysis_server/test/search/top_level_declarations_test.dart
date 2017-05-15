@@ -56,12 +56,6 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_invalidRegex() async {
     var result = await findTopLevelDeclarations('[A');
     expect(result, new isInstanceOf<RequestError>());

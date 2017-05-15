@@ -34,12 +34,6 @@ main() {
 
 @reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_function() {
     addTestFile('''
 int get test => 42;
@@ -137,12 +131,6 @@ main(A a, B b, C c, D d) {
 
 @reflectiveTest
 class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_function() {
     addTestFile('''
 int test() => 42;
@@ -257,6 +245,9 @@ main(A a, B b, C c, D d) {
 
 @reflectiveTest
 class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Future<Response> sendExtractRequest(
       int offset, int length, String name, bool extractAll) {
     RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
@@ -525,12 +516,6 @@ class ExtractMethodTest extends _AbstractGetRefactoring_Test {
   String name = 'res';
   ExtractMethodOptions options;
 
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_expression() {
     addTestFile('''
 main() {
@@ -798,7 +783,6 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     super.setUp();
     createProject();
     ExtensionManager manager = new ExtensionManager();
@@ -970,6 +954,9 @@ main() {
 
 @reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     String otherFile = '$testFolder/other.dart';
@@ -1092,12 +1079,6 @@ main() {
 @reflectiveTest
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
   InlineMethodOptions options = new InlineMethodOptions(true, true);
-
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
 
   test_feedback() {
     addTestFile('''
@@ -1228,6 +1209,9 @@ main() {
 class MoveFileTest extends _AbstractGetRefactoring_Test {
   MoveFileOptions options;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_OK() {
     resourceProvider.newFile('/project/bin/lib.dart', '');
     addTestFile('''
@@ -1259,6 +1243,9 @@ import 'bin/lib.dart';
 
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Future<Response> sendRenameRequest(String search, String newName,
       {String id: '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;

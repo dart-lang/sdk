@@ -25,6 +25,9 @@ class GetErrorsTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getError';
 
   @override
+  bool get enableNewAnalysisDriver => false;
+
+  @override
   void setUp() {
     super.setUp();
     server.handlers = [

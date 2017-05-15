@@ -25,6 +25,9 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
   Override override;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   /**
    * Asserts that there is an overridden interface [OverriddenMember] at the
    * offset of [search] in [override].

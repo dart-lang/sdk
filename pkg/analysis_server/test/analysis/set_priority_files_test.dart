@@ -26,6 +26,9 @@ main() {
 @reflectiveTest
 class SetPriorityFilesTest extends AbstractAnalysisTest {
   @override
+  bool get enableNewAnalysisDriver => false;
+
+  @override
   void setUp() {
     super.setUp();
     server.handlers = [

@@ -31,12 +31,6 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_ArgumentList_constructor_named_param_label() async {
     addTestFile('main() { new A(^);}'
         'class A { A({one, two}) {} }');

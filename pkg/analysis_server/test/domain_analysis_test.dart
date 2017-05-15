@@ -393,12 +393,6 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     }
   }
 
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_setRoots_packages() {
     // prepare package
     String pkgFile = '/packages/pkgA/libA.dart';
@@ -653,6 +647,9 @@ class AnalysisTestHelper {
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisTest {
   Map<String, List<HighlightRegion>> filesHighlights = {};
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_HIGHLIGHTS) {

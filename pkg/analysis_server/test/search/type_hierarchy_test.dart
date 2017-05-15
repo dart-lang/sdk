@@ -22,7 +22,6 @@ main() {
 @reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getTypeHierarchy';
-
   @override
   Index createIndex() {
     return createMemoryIndex();
@@ -30,7 +29,6 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     super.setUp();
     createProject();
     server.handlers = [

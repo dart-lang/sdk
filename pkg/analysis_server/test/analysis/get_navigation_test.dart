@@ -23,7 +23,6 @@ class GetNavigationTest extends AbstractNavigationTest {
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     super.setUp();
     server.handlers = [

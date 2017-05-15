@@ -27,6 +27,9 @@ class SortMembersTest extends AbstractAnalysisTest {
   SourceFileEdit fileEdit;
 
   @override
+  bool get enableNewAnalysisDriver => false;
+
+  @override
   void setUp() {
     super.setUp();
     createProject();

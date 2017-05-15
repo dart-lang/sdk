@@ -26,6 +26,9 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   String libraryName;
   Outline outline;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
     return waitForTasksFinished();

@@ -38,6 +38,9 @@ class UpdateContentTest extends AbstractAnalysisTest {
   int serverErrorCount = 0;
   int navigationCount = 0;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Index createIndex() {
     return new _MockIndex();
   }

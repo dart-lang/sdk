@@ -115,7 +115,6 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     super.setUp();
     createProject();
     handler = new CompletionDomainHandler(server);

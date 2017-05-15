@@ -180,6 +180,9 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
 @reflectiveTest
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Future prepareNavigation() async {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
     await waitForTasksFinished();

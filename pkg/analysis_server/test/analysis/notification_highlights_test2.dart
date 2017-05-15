@@ -25,6 +25,9 @@ main() {
 class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
       if (region.offset == offset &&

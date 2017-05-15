@@ -72,7 +72,6 @@ analyzer:
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     registerLintRules();
     super.setUp();

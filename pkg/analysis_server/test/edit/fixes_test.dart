@@ -28,7 +28,6 @@ main() {
 class FixesTest extends AbstractAnalysisTest {
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     super.setUp();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([server.serverPlugin]);

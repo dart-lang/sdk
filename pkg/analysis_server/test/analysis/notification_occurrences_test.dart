@@ -25,6 +25,9 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurrences;
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   /**
    * Asserts that there is an offset of [search] in [testOccurrences].
    */

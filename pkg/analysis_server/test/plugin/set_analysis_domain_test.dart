@@ -41,6 +41,9 @@ class SetAnalysisDomainTest extends AbstractAnalysisTest {
   AnalysisOccurrencesParams occurrencesParams;
 
   @override
+  bool get enableNewAnalysisDriver => false;
+
+  @override
   void addServerPlugins(List<Plugin> plugins) {
     var plugin = new TestSetAnalysisDomainPlugin(this);
     plugins.add(plugin);
