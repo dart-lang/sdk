@@ -686,8 +686,10 @@ class KernelTarget extends TargetImplementation {
 
   void otherTransformations() {
     // TODO(ahe): Don't generate type variables in the first place.
-    program.accept(new Erasure());
-    ticker.logMs("Erased type variables in generic methods");
+    if (!strongMode) {
+      program.accept(new Erasure());
+      ticker.logMs("Erased type variables in generic methods");
+    }
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformProgram(program);
     ticker.logMs("Transformed async methods");

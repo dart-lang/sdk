@@ -14,3 +14,5 @@ test1() {
   });
   Iterable<int> z = y;
 }
+
+main() {}

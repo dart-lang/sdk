@@ -6,7 +6,7 @@ class C extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method f() → self::D<dynamic>
+  method f<T extends core::Object>() → self::D<self::C::f::T>
     return null;
 }
 class D<T extends core::Object> extends core::Object {
@@ -15,5 +15,5 @@ class D<T extends core::Object> extends core::Object {
     ;
 }
 static field self::C c;
-static field self::D<core::int> f = self::c.f();
+static field self::D<core::int> f = self::c.f<core::int>();
 static method main() → dynamic {}

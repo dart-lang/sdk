@@ -13,3 +13,7 @@ List<String> strings() {
   });
   return stuff. /*@target=Iterable::toList*/ toList();
 }
+
+main() {
+  strings();
+}

@@ -62,7 +62,6 @@ inference/block_bodied_lambdas_async_all_returns_are_futures: Fail
 inference/block_bodied_lambdas_async_all_returns_are_values: Fail
 inference/block_bodied_lambdas_async_mix_of_values_and_futures: Fail
 inference/block_bodied_lambdas_async_star: Fail
-inference/block_bodied_lambdas_basic: Fail
 inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Fail
 inference/block_bodied_lambdas_infer_bottom_async: Fail
 inference/block_bodied_lambdas_infer_bottom_async_star: Fail
@@ -133,7 +132,6 @@ inference/generic_methods_dart_math_min_max: Fail
 inference/generic_methods_downwards_inference_affects_arguments: Fail
 inference/generic_methods_downwards_inference_fold: Fail
 inference/generic_methods_infer_js_builtin: Fail
-inference/generic_methods_inference_error: Fail
 inference/generic_methods_iterable_and_future: Fail
 inference/generic_methods_nested_generic_instantiation: Fail
 inference/generic_methods_uses_greatest_lower_bound: Fail
@@ -156,7 +154,6 @@ inference/infer_from_variables_in_non_cycle_imports_with_flag: Fail
 inference/infer_from_variables_in_non_cycle_imports_with_flag2: Fail
 inference/infer_list_literal_nested_in_map_literal: Fail
 inference/infer_prefix_expression: Fail
-inference/infer_return_of_statement_lambda: Fail
 inference/infer_statics_transitively: Fail
 inference/infer_statics_transitively3: Fail
 inference/infer_statics_transitively_a: Fail

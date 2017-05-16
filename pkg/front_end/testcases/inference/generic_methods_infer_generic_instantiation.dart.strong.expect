@@ -7,7 +7,7 @@ class C extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method m(core::num x, core::num y) → core::num
+  method m<T extends core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T
     return null;
 }
 static method main() → dynamic {
