@@ -15383,6 +15383,8 @@ class Element extends Node
    */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
+  @Creates('_ClientRect')
+  @Returns('_ClientRect|Null')
   Rectangle getBoundingClientRect() native;
 
   /**
