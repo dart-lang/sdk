@@ -38,13 +38,13 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     // in unchecked mode, and against `new Array(null)` which creates a single
     // element Array containing `null`.
     if (length is! int) {
-      throw new ArgumentError.value(length, "length", "is not an integer");
+      throw new ArgumentError.value(length, 'length', 'is not an integer');
     }
     // The JavaScript Array constructor with one argument throws if
     // the value is not a UInt32. Give a better error message.
     int maxJSArrayLength = 0xFFFFFFFF;
     if (length < 0 || length > maxJSArrayLength) {
-      throw new RangeError.range(length, 0, maxJSArrayLength, "length");
+      throw new RangeError.range(length, 0, maxJSArrayLength, 'length');
     }
     return new JSArray<E>.markFixed(JS('', 'new Array(#)', length));
   }
@@ -63,7 +63,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     // Explicit type test is necessary to guard against JavaScript conversions
     // in unchecked mode.
     if ((length is! int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
+      throw new ArgumentError('Length must be a non-negative integer: $length');
     }
     return new JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
   }
@@ -144,7 +144,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void insertAll(int index, Iterable<E> iterable) {
     checkGrowable('insertAll');
-    RangeError.checkValueInInterval(index, 0, this.length, "index");
+    RangeError.checkValueInInterval(index, 0, this.length, 'index');
     if (iterable is! EfficientLengthIterable) {
       iterable = iterable.toList();
     }
@@ -157,7 +157,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void setAll(int index, Iterable<E> iterable) {
     checkMutable('setAll');
-    RangeError.checkValueInInterval(index, 0, this.length, "index");
+    RangeError.checkValueInInterval(index, 0, this.length, 'index');
     for (var element in iterable) {
       this[index++] = element;
     }
@@ -216,7 +216,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (retained.length == end) return;
     this.length = retained.length;
     for (int i = 0; i < retained.length; i++) {
-      this[i] = retained[i];
+      // We don't need a bounds check or an element type check.
+      JS('', '#[#] = #', this, i, retained[i]);
     }
   }
 
@@ -257,12 +258,12 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return new MappedListIterable<E, T>(this, f);
   }
 
-  String join([String separator = ""]) {
+  String join([String separator = '']) {
     var list = new List(this.length);
     for (int i = 0; i < this.length; i++) {
-      list[i] = "${this[i]}";
+      list[i] = '${this[i]}';
     }
-    return JS('String', "#.join(#)", list, separator);
+    return JS('String', '#.join(#)', list, separator);
   }
 
   Iterable<E> take(int n) {
@@ -367,14 +368,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
     if (start is! int) throw argumentErrorValue(start);
     if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length, "start");
+      throw new RangeError.range(start, 0, length, 'start');
     }
     if (end == null) {
       end = length;
     } else {
       if (end is! int) throw argumentErrorValue(end);
       if (end < start || end > length) {
-        throw new RangeError.range(end, start, length, "end");
+        throw new RangeError.range(end, start, length, 'end');
       }
     }
     if (start == end) return <E>[];
@@ -411,12 +412,12 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    checkMutable('set range');
+    checkMutable('setRange');
 
     RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
-    RangeError.checkNotNegative(skipCount, "skipCount");
+    RangeError.checkNotNegative(skipCount, 'skipCount');
 
     List otherList;
     int otherStart;
@@ -460,7 +461,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void replaceRange(int start, int end, Iterable<E> replacement) {
-    checkGrowable('replace range');
+    checkGrowable('replaceRange');
     RangeError.checkValidRange(start, end, this.length);
     if (replacement is! EfficientLengthIterable) {
       replacement = replacement.toList();
@@ -581,9 +582,11 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
       growable ? _toListGrowable() : _toListFixed();
 
   List<E> _toListGrowable() =>
-      new JSArray<E>.markGrowable(JS('', '#.slice()', this));
+      // slice(0) is slightly faster than slice()
+      new JSArray<E>.markGrowable(JS('', '#.slice(0)', this));
 
-  List<E> _toListFixed() => new JSArray<E>.markFixed(JS('', '#.slice()', this));
+  List<E> _toListFixed() =>
+      new JSArray<E>.markFixed(JS('', '#.slice(0)', this));
 
   Set<E> toSet() => new Set<E>.from(this);
 
