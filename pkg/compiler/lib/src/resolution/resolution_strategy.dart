@@ -4,6 +4,8 @@
 
 library dart2js.resolution_strategy;
 
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
@@ -31,6 +33,7 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
+import '../tree/tree.dart' show Node;
 import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
@@ -211,6 +214,155 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
       mainMethod = mainFunction;
     }
     return mainMethod;
+  }
+
+  SourceSpan spanFromToken(Element currentElement, Token token) =>
+      _spanFromTokens(currentElement, token, token);
+
+  SourceSpan _spanFromTokens(Element currentElement, Token begin, Token end,
+      [Uri uri]) {
+    if (begin == null || end == null) {
+      // TODO(ahe): We can almost always do better. Often it is only
+      // end that is null. Otherwise, we probably know the current
+      // URI.
+      throw 'Cannot find tokens to produce error message.';
+    }
+    if (uri == null && currentElement != null) {
+      if (currentElement is! Element) {
+        throw 'Can only find tokens from an Element.';
+      }
+      Element element = currentElement;
+      uri = element.compilationUnit.script.resourceUri;
+      assert(invariant(currentElement, () {
+        bool sameToken(Token token, Token sought) {
+          if (token == sought) return true;
+          if (token.stringValue == '>>') {
+            // `>>` is converted to `>` in the parser when needed.
+            return sought.stringValue == '>' &&
+                token.charOffset <= sought.charOffset &&
+                sought.charOffset < token.charEnd;
+          }
+          return false;
+        }
+
+        /// Check that [begin] and [end] can be found between [from] and [to].
+        validateToken(Token from, Token to) {
+          if (from == null || to == null) return true;
+          bool foundBegin = false;
+          bool foundEnd = false;
+          Token token = from;
+          while (true) {
+            if (sameToken(token, begin)) {
+              foundBegin = true;
+            }
+            if (sameToken(token, end)) {
+              foundEnd = true;
+            }
+            if (foundBegin && foundEnd) {
+              return true;
+            }
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+
+          // Create a good message for when the tokens were not found.
+          StringBuffer sb = new StringBuffer();
+          sb.write('Invalid current element: $element. ');
+          sb.write('Looking for ');
+          sb.write('[${begin} (${begin.hashCode}),');
+          sb.write('${end} (${end.hashCode})] in');
+
+          token = from;
+          while (true) {
+            sb.write('\n ${token} (${token.hashCode})');
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+          return sb.toString();
+        }
+
+        if (element.enclosingClass != null &&
+            element.enclosingClass.isEnumClass) {
+          // Enums ASTs are synthesized (and give messed up messages).
+          return true;
+        }
+
+        if (element is AstElement) {
+          AstElement astElement = element;
+          if (astElement.hasNode) {
+            Token from = astElement.node.getBeginToken();
+            Token to = astElement.node.getEndToken();
+            if (astElement.metadata.isNotEmpty) {
+              if (!astElement.metadata.first.hasNode) {
+                // We might try to report an error while parsing the metadata
+                // itself.
+                return true;
+              }
+              from = astElement.metadata.first.node.getBeginToken();
+            }
+            return validateToken(from, to);
+          }
+        }
+        return true;
+      }, message: "Invalid current element: $element [$begin,$end]."));
+    }
+    return new SourceSpan.fromTokens(uri, begin, end);
+  }
+
+  SourceSpan _spanFromNode(Element currentElement, Node node) {
+    return _spanFromTokens(
+        currentElement, node.getBeginToken(), node.getPrefixEndToken());
+  }
+
+  SourceSpan _spanFromElement(Element currentElement, Element element) {
+    if (element != null && element.sourcePosition != null) {
+      return element.sourcePosition;
+    }
+    while (element != null && element.isSynthesized) {
+      element = element.enclosingElement;
+    }
+    if (element != null &&
+        element.sourcePosition == null &&
+        !element.isLibrary &&
+        !element.isCompilationUnit) {
+      // Sometimes, the backend fakes up elements that have no
+      // position. So we use the enclosing element instead. It is
+      // not a good error location, but cancel really is "internal
+      // error" or "not implemented yet", so the vicinity is good
+      // enough for now.
+      element = element.enclosingElement;
+      // TODO(ahe): I plan to overhaul this infrastructure anyways.
+    }
+    if (element == null) {
+      element = currentElement;
+    }
+    if (element == null) {
+      return null;
+    }
+
+    if (element.sourcePosition != null) {
+      return element.sourcePosition;
+    }
+    Token position = element.position;
+    Uri uri = element.compilationUnit.script.resourceUri;
+    return (position == null)
+        ? new SourceSpan(uri, 0, 0)
+        : _spanFromTokens(currentElement, position, position, uri);
+  }
+
+  SourceSpan spanFromSpannable(Spannable node, Entity currentElement) {
+    if (node is Node) {
+      return _spanFromNode(currentElement, node);
+    } else if (node is Element) {
+      return _spanFromElement(currentElement, node);
+    } else if (node is MetadataAnnotation) {
+      return node.sourcePosition;
+    }
+    return null;
   }
 }
 

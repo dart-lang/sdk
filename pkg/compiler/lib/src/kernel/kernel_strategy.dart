@@ -131,6 +131,12 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
     return new KernelWorkItemBuilder(
         elementMap, nativeBasicData, nativeDataBuilder, impactTransformer);
   }
+
+  @override
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+    // TODO(johnniwinther): Compute source spans from kernel elements.
+    return new SourceSpan(null, null, null);
+  }
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {

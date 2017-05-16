@@ -835,7 +835,8 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   // away.
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) {
-    assert(resolvedUri.pathSegments.last.endsWith('.dill'));
+    assert(resolvedUri.pathSegments.last.endsWith('.dill'),
+        'Invalid uri: $resolvedUri');
     Uri readableUri = uriTranslator.translate(null, resolvedUri, null);
     return measure(() async {
       Script script = await scriptLoader.readScript(readableUri, null);

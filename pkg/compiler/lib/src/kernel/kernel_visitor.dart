@@ -257,7 +257,8 @@ class KernelVisitor extends Object
   ir.TreeNode visitWithCurrentContext(Expression node) => node?.accept(this);
 
   withCurrentElement(AstElement element, f()) {
-    assert(element.library == kernel.compiler.currentElement.library);
+    assert(
+        element.library == (kernel.compiler.currentElement as Element).library);
     Element previousElement = currentElement;
     currentElement = element;
     try {

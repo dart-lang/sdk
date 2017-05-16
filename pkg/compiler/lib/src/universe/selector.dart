@@ -9,6 +9,7 @@ import '../common/names.dart' show Names;
 import '../elements/elements.dart' show Element, Elements, FunctionSignature;
 import '../elements/entities.dart';
 import '../elements/names.dart';
+import '../elements/operators.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 
@@ -52,6 +53,18 @@ class Selector {
 
   LibraryEntity get library => memberName.library;
 
+  static bool isOperatorName(String name) {
+    if (name == Names.INDEX_SET_NAME.text) {
+      return true;
+    } else if (name == UnaryOperator.NEGATE.selectorName) {
+      return true;
+    } else if (name == UnaryOperator.COMPLEMENT.selectorName) {
+      return true;
+    } else {
+      return BinaryOperator.parseUserDefinable(name) != null;
+    }
+  }
+
   Selector.internal(
       this.kind, this.memberName, this.callStructure, this.hashCode) {
     assert(invariant(
@@ -65,7 +78,7 @@ class Selector {
         NO_LOCATION_SPANNABLE,
         kind == SelectorKind.OPERATOR ||
             kind == SelectorKind.INDEX ||
-            !Elements.isOperatorName(memberName.text) ||
+            !isOperatorName(memberName.text) ||
             memberName.text == '??',
         message: "kind=$kind,memberName=$memberName,"
             "callStructure:$callStructure"));
@@ -74,7 +87,7 @@ class Selector {
         kind == SelectorKind.CALL ||
             kind == SelectorKind.GETTER ||
             kind == SelectorKind.SETTER ||
-            Elements.isOperatorName(memberName.text) ||
+            isOperatorName(memberName.text) ||
             memberName.text == '??',
         message: "kind=$kind,memberName=$memberName,"
             "callStructure:$callStructure"));

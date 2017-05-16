@@ -286,9 +286,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     for (int depth = 0; depth <= maxDepth; depth++) {
       sb.write('$depth: ');
       LinkEntry<InterfaceType> first = map[depth];
-      if (first != null) {
+      if (first.isNotEmpty) {
         sb.write('${first.head}');
-        while (first.tail != null) {
+        while (first.tail.isNotEmpty) {
           sb.write(', ${first.tail.head}');
           first = first.tail;
         }

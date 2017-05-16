@@ -10,7 +10,6 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -174,7 +173,7 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
   Selector getInvocationSelector(ir.InvocationExpression invocation) {
     Name name = getName(invocation.name);
     SelectorKind kind;
-    if (Elements.isOperatorName(invocation.name.name)) {
+    if (Selector.isOperatorName(name.text)) {
       if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
         kind = SelectorKind.INDEX;
       } else {

@@ -97,6 +97,9 @@ abstract class FrontEndStrategy {
 
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();
+
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 }
 
 /// Class that performs the mechanics to investigate annotations in the code.
