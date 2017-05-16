@@ -11,6 +11,7 @@ import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/ticker.dart';
@@ -160,8 +161,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
       /// We need kernel libraries for these URIs.
       Set<Uri> libraryUris = new Set<Uri>();
+      Map<Uri, FileState> libraryUriToFile = {};
       for (FileState library in cycle.libraries) {
-        libraryUris.add(library.uri);
+        Uri uri = library.uri;
+        libraryUris.add(uri);
+        libraryUriToFile[uri] = library;
       }
 
       /// Check if there is already a bundle with these libraries.
@@ -171,8 +175,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           var program = new Program(nameRoot: nameRoot);
           var reader = new BinaryBuilder(bytes);
           reader.readProgram(program);
-          dillTarget.loader
+
+          List<DillLibraryBuilder> libraryBuilders = dillTarget.loader
               .appendLibraries(program, (uri) => libraryUris.contains(uri));
+          _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
+
           return new _LibraryCycleResult(cycle, signature, program.libraries);
         });
       }
@@ -198,8 +205,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       List<Library> kernelLibraries = program.libraries
           .where((library) => libraryUris.contains(library.importUri))
           .toList();
-      dillTarget.loader
+      List<DillLibraryBuilder> libraryBuilders = dillTarget.loader
           .appendLibraries(program, (uri) => libraryUris.contains(uri));
+      _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
         program.unbindCanonicalNames();
@@ -210,6 +218,34 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
       return new _LibraryCycleResult(cycle, signature, kernelLibraries);
     });
+  }
+
+  /// Compute exports scopes for a new strongly connected cycle of [libraries].
+  /// The [dillTarget] can be used to access libraries from previous cycles.
+  /// TODO(scheglov) Remove/replace this when Kernel has export scopes.
+  void _computeExportScopes(DillTarget dillTarget,
+      Map<Uri, FileState> uriToFile, List<DillLibraryBuilder> libraries) {
+    bool wasChanged = false;
+    do {
+      wasChanged = false;
+      for (DillLibraryBuilder library in libraries) {
+        FileState file = uriToFile[library.uri];
+        for (NamespaceExport export in file.exports) {
+          DillLibraryBuilder exportedLibrary =
+              dillTarget.loader.read(export.library.uri);
+          if (exportedLibrary != null) {
+            exportedLibrary.exports.forEach((name, member) {
+              if (export.filter(name) &&
+                  library.addToExportScope(name, member)) {
+                wasChanged = true;
+              }
+            });
+          } else {
+            // TODO(scheglov) How to handle this?
+          }
+        }
+      }
+    } while (wasChanged);
   }
 
   /// Refresh all the invalidated files and update dependencies.

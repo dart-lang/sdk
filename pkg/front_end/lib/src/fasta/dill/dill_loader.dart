@@ -20,13 +20,18 @@ class DillLoader extends Loader<Library> {
 
   /// Append compiled libraries from the given [program]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].
-  void appendLibraries(Program program, [bool filter(Uri uri)]) {
+  List<DillLibraryBuilder> appendLibraries(Program program,
+      [bool filter(Uri uri)]) {
+    var builders = <DillLibraryBuilder>[];
     for (Library library in program.libraries) {
       if (filter == null || filter(library.importUri)) {
         libraries.add(library);
-        read(library.importUri).library = library;
+        DillLibraryBuilder builder = read(library.importUri);
+        builder.library = library;
+        builders.add(builder);
       }
     }
+    return builders;
   }
 
   Future<Null> buildBody(DillLibraryBuilder builder) {

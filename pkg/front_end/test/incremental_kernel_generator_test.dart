@@ -49,7 +49,7 @@ class IncrementalKernelGeneratorTest {
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
-  test_analyze_chain() async {
+  test_compile_chain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -116,6 +116,33 @@ static field core::int c1 = a::a;
 static field core::double c2 = b::b;
 ''');
     }
+  }
+
+  test_compile_export() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'class A {}');
+    writeFile(bPath, 'export "a.dart";');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'b.dart';
+A a;
+''');
+
+    Program program = await getInitialState(cUri);
+    Library library = _getLibrary(program, cUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library;
+import self as self;
+import "./a.dart" as a;
+
+static field a::A a;
+''');
   }
 
   test_compile_typedef() async {

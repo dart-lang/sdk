@@ -111,10 +111,6 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     addBuilder(typedef.name, typedefBuilder, typedef.fileOffset);
   }
 
-  bool addToExportScope(String name, Builder member) {
-    return internalError("Not implemented yet.");
-  }
-
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
     internalError("Not implemented yet.");
