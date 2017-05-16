@@ -182,64 +182,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       void forEachArgument(void callback(String name, Expression expression)),
       void setInferredTypeArguments(List<DartType> types)) {
     typeNeeded = listener.constructorInvocationEnter(typeContext) || typeNeeded;
-    List<DartType> inferredTypes;
-    FunctionType constructorType = target.function.functionType;
-    Substitution substitution;
-    List<DartType> formalTypes;
-    List<DartType> actualTypes;
-    var targetClass = target.enclosingClass;
-    var targetTypeParameters = targetClass.typeParameters;
-    bool inferenceNeeded = explicitTypeArguments == null &&
-        strongMode &&
-        targetTypeParameters.isNotEmpty;
-    if (inferenceNeeded) {
-      inferredTypes = new List<DartType>.filled(
-          targetTypeParameters.length, const UnknownType());
-      typeSchemaEnvironment.inferGenericFunctionOrType(targetClass.thisType,
-          targetClass.typeParameters, null, null, typeContext, inferredTypes);
-      substitution =
-          Substitution.fromPairs(targetTypeParameters, inferredTypes);
-      formalTypes = [];
-      actualTypes = [];
-    } else if (explicitTypeArguments != null) {
-      substitution =
-          Substitution.fromPairs(targetTypeParameters, explicitTypeArguments);
-    }
-    int i = 0;
-    forEachArgument((name, expression) {
-      DartType formalType = name != null
-          ? _getNamedParameterType(constructorType, name)
-          : _getPositionalParameterType(constructorType, i++);
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
-      var expressionType =
-          inferExpression(expression, inferredFormalType, inferenceNeeded);
-      if (inferenceNeeded) {
-        formalTypes.add(formalType);
-        actualTypes.add(expressionType);
-      }
-    });
-    if (inferenceNeeded) {
-      typeSchemaEnvironment.inferGenericFunctionOrType(
-          targetClass.thisType,
-          targetClass.typeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
-          inferredTypes);
-      substitution =
-          Substitution.fromPairs(targetTypeParameters, inferredTypes);
-      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
-          new InstrumentationValueForTypeArgs(inferredTypes));
-      setInferredTypeArguments(inferredTypes);
-    }
-    DartType inferredType;
-    if (typeNeeded) {
-      inferredType = substitution == null
-          ? targetClass.rawType
-          : substitution.substituteType(targetClass.thisType);
-    }
+    var inferredType = _inferInvocation(
+        typeContext,
+        typeNeeded,
+        offset,
+        target.function.functionType,
+        target.enclosingClass.thisType,
+        explicitTypeArguments,
+        forEachArgument,
+        setInferredTypeArguments);
     listener.constructorInvocationExit(inferredType);
     return inferredType;
   }
@@ -609,76 +560,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             .isOverloadedArithmeticOperator(interfaceMember);
       }
     }
-    var memberFunctionType = _getCalleeFunctionType(
+    var calleeType = _getCalleeFunctionType(
         interfaceMember, receiverType, methodName, offset);
-    List<TypeParameter> memberTypeParameters =
-        memberFunctionType.typeParameters;
-    bool inferenceNeeded = explicitTypeArguments == null &&
-        strongMode &&
-        memberTypeParameters.isNotEmpty;
-    List<DartType> inferredTypes;
-    Substitution substitution;
-    List<DartType> formalTypes;
-    List<DartType> actualTypes;
-    if (inferenceNeeded) {
-      inferredTypes = new List<DartType>.filled(
-          memberTypeParameters.length, const UnknownType());
-      typeSchemaEnvironment.inferGenericFunctionOrType(
-          memberFunctionType.returnType,
-          memberTypeParameters,
-          null,
-          null,
-          typeContext,
-          inferredTypes);
-      substitution =
-          Substitution.fromPairs(memberTypeParameters, inferredTypes);
-      formalTypes = [];
-      actualTypes = [];
-    } else if (explicitTypeArguments != null &&
-        memberTypeParameters.length == explicitTypeArguments.length) {
-      substitution =
-          Substitution.fromPairs(memberTypeParameters, explicitTypeArguments);
-    }
-    DartType returnType = memberFunctionType.returnType;
-    int i = 0;
-    forEachArgument((name, expression) {
-      DartType formalType = name != null
-          ? _getNamedParameterType(memberFunctionType, name)
-          : _getPositionalParameterType(memberFunctionType, i++);
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
-      var expressionType = inferExpression(expression, inferredFormalType,
-          inferenceNeeded || isOverloadedArithmeticOperator);
-      if (inferenceNeeded) {
-        formalTypes.add(formalType);
-        actualTypes.add(expressionType);
-      }
-      if (isOverloadedArithmeticOperator) {
-        returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
-            receiverType, expressionType);
-      }
-    });
-    if (inferenceNeeded) {
-      typeSchemaEnvironment.inferGenericFunctionOrType(
-          returnType,
-          memberTypeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
-          inferredTypes);
-      substitution =
-          Substitution.fromPairs(memberTypeParameters, inferredTypes);
-      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
-          new InstrumentationValueForTypeArgs(inferredTypes));
-      setInferredTypeArguments(inferredTypes);
-    }
-    DartType inferredType;
-    if (typeNeeded) {
-      inferredType = substitution == null
-          ? returnType
-          : substitution.substituteType(returnType);
-    }
+    var inferredType = _inferInvocation(
+        typeContext,
+        typeNeeded,
+        offset,
+        calleeType,
+        calleeType.returnType,
+        explicitTypeArguments,
+        forEachArgument,
+        setInferredTypeArguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType);
     listener.methodInvocationExit(inferredType);
     return inferredType;
   }
@@ -859,6 +753,83 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       return null;
     }
+  }
+
+  /// Performs the type inference steps that are shared by all kinds of
+  /// invocations (constructors, instance methods, and static methods).
+  DartType _inferInvocation(
+      DartType typeContext,
+      bool typeNeeded,
+      int offset,
+      FunctionType calleeType,
+      DartType returnType,
+      List<DartType> explicitTypeArguments,
+      void forEachArgument(void callback(String name, Expression expression)),
+      void setInferredTypeArguments(List<DartType> types),
+      {bool isOverloadedArithmeticOperator: false,
+      DartType receiverType}) {
+    var calleeTypeParameters = calleeType.typeParameters;
+    bool inferenceNeeded = explicitTypeArguments == null &&
+        strongMode &&
+        calleeTypeParameters.isNotEmpty;
+    List<DartType> inferredTypes;
+    Substitution substitution;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    if (inferenceNeeded) {
+      inferredTypes = new List<DartType>.filled(
+          calleeTypeParameters.length, const UnknownType());
+      typeSchemaEnvironment.inferGenericFunctionOrType(returnType,
+          calleeTypeParameters, null, null, typeContext, inferredTypes);
+      substitution =
+          Substitution.fromPairs(calleeTypeParameters, inferredTypes);
+      formalTypes = [];
+      actualTypes = [];
+    } else if (explicitTypeArguments != null &&
+        calleeTypeParameters.length == explicitTypeArguments.length) {
+      substitution =
+          Substitution.fromPairs(calleeTypeParameters, explicitTypeArguments);
+    }
+    int i = 0;
+    forEachArgument((name, expression) {
+      DartType formalType = name != null
+          ? _getNamedParameterType(calleeType, name)
+          : _getPositionalParameterType(calleeType, i++);
+      DartType inferredFormalType = substitution != null
+          ? substitution.substituteType(formalType)
+          : formalType;
+      var expressionType = inferExpression(expression, inferredFormalType,
+          inferenceNeeded || isOverloadedArithmeticOperator);
+      if (inferenceNeeded) {
+        formalTypes.add(formalType);
+        actualTypes.add(expressionType);
+      }
+      if (isOverloadedArithmeticOperator) {
+        returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
+            receiverType, expressionType);
+      }
+    });
+    if (inferenceNeeded) {
+      typeSchemaEnvironment.inferGenericFunctionOrType(
+          returnType,
+          calleeTypeParameters,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          inferredTypes);
+      substitution =
+          Substitution.fromPairs(calleeTypeParameters, inferredTypes);
+      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
+          new InstrumentationValueForTypeArgs(inferredTypes));
+      setInferredTypeArguments(inferredTypes);
+    }
+    DartType inferredType;
+    if (typeNeeded) {
+      inferredType = substitution == null
+          ? returnType
+          : substitution.substituteType(returnType);
+    }
+    return inferredType;
   }
 
   DartType _wrapType(DartType type, Class class_) {
