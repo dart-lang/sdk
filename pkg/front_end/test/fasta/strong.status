@@ -144,7 +144,6 @@ inference/infer_binary_double_double: Fail
 inference/infer_binary_double_int: Fail
 inference/infer_binary_int_double: Fail
 inference/infer_binary_int_int: Fail
-inference/infer_conditional: Fail
 inference/infer_consts_transitively_2: Fail
 inference/infer_consts_transitively_2_a: Fail
 inference/infer_correctly_on_multiple_variables_declared_together: Fail

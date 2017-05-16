@@ -5,10 +5,11 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=num*/ a = 1 /*@target=num::==*/ == 2 ? 1 : 2.0;
-var /*@topType=num*/ b = 1 /*@target=num::==*/ == 2 ? 1.0 : 2;
-
-main() {
-  a;
-  b;
+f() {
+  List<int> o;
+  o. /*@target=Iterable::where*/ where(/*@returnType=bool*/ (/*@type=int*/ i) {
+    return i /*@target=num::==*/ == 0;
+  });
 }
+
+main() {}

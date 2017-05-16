@@ -5,8 +5,8 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=bool*/ a_equal = 1 /*@target=Object::==*/ == 2;
-var /*@topType=bool*/ a_notEqual = 1 /*@target=Object::==*/ != 2;
+var /*@topType=bool*/ a_equal = 1 /*@target=num::==*/ == 2;
+var /*@topType=bool*/ a_notEqual = 1 /*@target=num::==*/ != 2;
 var /*@topType=int*/ a_bitXor = 1 /*@target=int::^*/ ^ 2;
 var /*@topType=int*/ a_bitAnd = 1 /*@target=int::&*/ & 2;
 var /*@topType=int*/ a_bitOr = 1 /*@target=int::|*/ | 2;

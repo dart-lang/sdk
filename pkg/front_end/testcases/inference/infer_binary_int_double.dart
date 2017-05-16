@@ -5,8 +5,8 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=bool*/ a_equal = 1 /*@target=Object::==*/ == 2.0;
-var /*@topType=bool*/ a_notEqual = 1 /*@target=Object::==*/ != 2.0;
+var /*@topType=bool*/ a_equal = 1 /*@target=num::==*/ == 2.0;
+var /*@topType=bool*/ a_notEqual = 1 /*@target=num::==*/ != 2.0;
 var /*@topType=double*/ a_add = 1 /*@target=num::+*/ + 2.0;
 var /*@topType=double*/ a_subtract = 1 /*@target=num::-*/ - 2.0;
 var /*@topType=double*/ a_multiply = 1 /*@target=num::**/ * 2.0;

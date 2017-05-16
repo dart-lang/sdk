@@ -1570,7 +1570,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           nit("Ignoring type on 'this' parameter '${name.name}'.",
               thisKeyword.charOffset);
         }
-        type = field.target.type ?? const DynamicType();
+        type = field.target.type;
         variable = astFactory.variableDeclaration(
             name.name, name.token, functionNestingLevel,
             type: type,
@@ -1584,7 +1584,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     variable ??= astFactory.variableDeclaration(
         name.name, name.token, functionNestingLevel,
-        type: type ?? const DynamicType(),
+        type: type,
         initializer: name.initializer,
         isFinal: isFinal,
         isConst: isConst);

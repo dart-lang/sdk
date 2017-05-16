@@ -167,6 +167,7 @@ class bool extends Object {
 abstract class Invocation {}
 
 abstract class num implements Comparable<num> {
+  bool operator ==(Object other);
   bool operator <(num other);
   bool operator <=(num other);
   bool operator >(num other);
@@ -267,6 +268,8 @@ abstract class Iterable<E> {
       /*=R*/ combine(/*=R*/ previousValue, E element));
 
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
+
+  Iterable<E> where(bool test(E element));
 
   List<E> toList();
 }

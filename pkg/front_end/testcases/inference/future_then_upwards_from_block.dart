@@ -12,12 +12,11 @@ main() {
   var /*@type=Future<bool>*/ f =
       base. /*@typeArgs=bool*/ /*@target=Future::then*/ then(
           /*@returnType=bool*/ (/*@type=int*/ x) {
-    return x /*@target=Object::==*/ == 0;
+    return x /*@target=num::==*/ == 0;
   });
   var /*@type=Future<bool>*/ g =
       base. /*@typeArgs=bool*/ /*@target=Future::then*/ then(
-          /*@returnType=bool*/ (/*@type=int*/ x) =>
-              x /*@target=Object::==*/ == 0);
+          /*@returnType=bool*/ (/*@type=int*/ x) => x /*@target=num::==*/ == 0);
   Future<bool> b = f;
   b = g;
 }

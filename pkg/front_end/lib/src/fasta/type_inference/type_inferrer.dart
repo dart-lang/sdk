@@ -353,7 +353,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     List<DartType> formalTypesFromContext =
         new List<DartType>.filled(formals.length, null);
     DartType returnContext;
-    if (typeContext is FunctionType) {
+    if (strongMode && typeContext is FunctionType) {
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
@@ -392,8 +392,11 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       KernelVariableDeclaration formal = formals[i];
       if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
         if (formalTypesFromContext[i] != null) {
-          formal.type = greatestClosure(coreTypes,
+          var inferredType = greatestClosure(coreTypes,
               substitution.substituteType(formalTypesFromContext[i]));
+          instrumentation?.record(Uri.parse(uri), formal.fileOffset, 'type',
+              new InstrumentationValueForType(inferredType));
+          formal.type = inferredType;
         }
       }
     }
