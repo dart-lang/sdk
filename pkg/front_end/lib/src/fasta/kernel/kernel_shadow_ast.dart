@@ -246,7 +246,7 @@ class KernelExpressionStatement extends ExpressionStatement
 class KernelField extends Field {
   bool _implicitlyTyped = true;
 
-  FieldNode<KernelField> _fieldNode;
+  FieldNode _fieldNode;
 
   bool _isInferred = false;
 
@@ -689,7 +689,7 @@ class KernelThrow extends Throw implements KernelExpression {
 
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
-class KernelTypeInferenceEngine extends TypeInferenceEngineImpl<KernelField> {
+class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   KernelTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
       : super(instrumentation, strongMode);
 
@@ -699,8 +699,8 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl<KernelField> {
   }
 
   @override
-  FieldNode<KernelField> createFieldNode(KernelField field) {
-    FieldNode<KernelField> fieldNode = new FieldNode<KernelField>(this, field);
+  FieldNode createFieldNode(KernelField field) {
+    FieldNode fieldNode = new FieldNode(this, field);
     field._fieldNode = fieldNode;
     return fieldNode;
   }
@@ -729,7 +729,7 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl<KernelField> {
   }
 
   @override
-  List<FieldNode<KernelField>> getFieldDependencies(KernelField field) {
+  List<FieldNode> getFieldDependencies(KernelField field) {
     return field._fieldNode?.dependencies;
   }
 
@@ -761,8 +761,7 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl<KernelField> {
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
 /// objects.
-class KernelTypeInferrer extends TypeInferrerImpl<Statement, Expression,
-    VariableDeclaration, KernelField> {
+class KernelTypeInferrer extends TypeInferrerImpl {
   @override
   final typePromoter = new KernelTypePromoter();
 
@@ -776,7 +775,7 @@ class KernelTypeInferrer extends TypeInferrerImpl<Statement, Expression,
   }
 
   @override
-  FieldNode<KernelField> getFieldNodeForReadTarget(Member readTarget) {
+  FieldNode getFieldNodeForReadTarget(Member readTarget) {
     if (readTarget is KernelField) {
       return readTarget._fieldNode;
     } else {

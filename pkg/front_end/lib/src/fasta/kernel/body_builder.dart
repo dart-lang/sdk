@@ -99,8 +99,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final Uri uri;
 
-  final TypeInferrer<Statement, Expression, VariableDeclaration, KernelField>
-      _typeInferrer;
+  final TypeInferrer _typeInferrer;
 
   @override
   final AstFactory astFactory;
@@ -111,7 +110,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   /// If not `null`, dependencies on fields are accumulated into this list.
   ///
   /// If `null`, no dependency information is recorded.
-  final List<FieldNode<KernelField>> fieldDependencies;
+  final List<FieldNode> fieldDependencies;
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.

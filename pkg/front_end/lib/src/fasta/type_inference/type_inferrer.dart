@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         Constructor,
         DartType,
         DynamicType,
+        Expression,
         Field,
         FunctionNode,
         FunctionType,
@@ -25,6 +26,7 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         ReturnStatement,
+        Statement,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
@@ -36,33 +38,25 @@ import 'package:kernel/type_algebra.dart';
 /// Keeps track of the local state for the type inference that occurs during
 /// compilation of a single method body or top level initializer.
 ///
-/// This class abstracts away the representation of the underlying AST using
-/// generic parameters.  TODO(paulberry): would it make more sense to abstract
-/// away the representation of types as well?
-///
-/// Derived classes should set S, E, V, and F to the class they use to represent
-/// statements, expressions, variable declarations, and field declarations,
-/// respectively.
-///
 /// This class describes the interface for use by clients of type inference
 /// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
-abstract class TypeInferrer<S, E, V, F> {
+abstract class TypeInferrer {
   /// Gets the [TypePromoter] that can be used to perform type promotion within
   /// this method body or initializer.
-  TypePromoter<E, V> get typePromoter;
+  TypePromoter<Expression, VariableDeclaration> get typePromoter;
 
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
   String get uri;
 
   /// Gets the [FieldNode] corresponding to the given [readTarget], if any.
-  FieldNode<F> getFieldNodeForReadTarget(Member readTarget);
+  FieldNode getFieldNodeForReadTarget(Member readTarget);
 
   /// Performs type inference on the given [statement].
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement(S statement);
+  void inferStatement(Statement statement);
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -70,7 +64,7 @@ abstract class TypeInferrer<S, E, V, F> {
 /// This class contains as much of the implementation of type inference as
 /// possible without knowing the identity of the type parameters.  It defers to
 /// abstract methods for everything else.
-abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
+abstract class TypeInferrerImpl extends TypeInferrer {
   static final FunctionType _functionReturningDynamic =
       new FunctionType(const [], const DynamicType());
 
@@ -98,7 +92,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// inside a closure.
   _ClosureContext _closureContext;
 
-  TypeInferrerImpl(TypeInferenceEngineImpl<F> engine, this.uri, this.listener)
+  TypeInferrerImpl(TypeInferenceEngineImpl engine, this.uri, this.listener)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -107,18 +101,18 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
-  TypePromoter<E, V> get typePromoter;
+  TypePromoter<Expression, VariableDeclaration> get typePromoter;
 
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
-  E getFieldInitializer(F field);
+  Expression getFieldInitializer(KernelField field);
 
   /// Performs the core type inference algorithm for type cast expressions.
   ///
   /// [typeContext], [typeNeeded], and the return value behave as described in
   /// [inferExpression].
-  DartType inferAsExpression(
-      DartType typeContext, bool typeNeeded, E operand, DartType type) {
+  DartType inferAsExpression(DartType typeContext, bool typeNeeded,
+      Expression operand, DartType type) {
     typeNeeded = listener.asExpressionEnter(typeContext) || typeNeeded;
     inferExpression(operand, null, false);
     var inferredType = typeNeeded ? type : null;
@@ -144,8 +138,13 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   ///
   /// [condition], [then], and [otherwise] are the subexpressions.  The inferred
   /// type is reported via [setStaticType].
-  DartType inferConditionalExpression(DartType typeContext, bool typeNeeded,
-      E condition, E then, E otherwise, void setStaticType(DartType type)) {
+  DartType inferConditionalExpression(
+      DartType typeContext,
+      bool typeNeeded,
+      Expression condition,
+      Expression then,
+      Expression otherwise,
+      void setStaticType(DartType type)) {
     typeNeeded = listener.conditionalExpressionEnter(typeContext) || typeNeeded;
     inferExpression(condition, coreTypes.boolClass.rawType, false);
     // TODO(paulberry): is it correct to pass the context down?
@@ -180,7 +179,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       int offset,
       Constructor target,
       List<DartType> explicitTypeArguments,
-      void forEachArgument(void callback(String name, E expression)),
+      void forEachArgument(void callback(String name, Expression expression)),
       void setInferredTypeArguments(List<DartType> types)) {
     typeNeeded = listener.constructorInvocationEnter(typeContext) || typeNeeded;
     List<DartType> inferredTypes;
@@ -280,10 +279,11 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  DartType inferExpression(E expression, DartType typeContext, bool typeNeeded);
+  DartType inferExpression(
+      Expression expression, DartType typeContext, bool typeNeeded);
 
   /// Performs the core type inference algorithm for expression statements.
-  void inferExpressionStatement(E expression) {
+  void inferExpressionStatement(Expression expression) {
     inferExpression(expression, null, false);
   }
 
@@ -291,13 +291,14 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldInitializer(F field, DartType type, bool typeNeeded);
+  DartType inferFieldInitializer(
+      KernelField field, DartType type, bool typeNeeded);
 
   /// Performs the core type inference algorithm for local function
   /// declarations.
   ///
   /// [body] is the body of the function.
-  void inferFunctionDeclaration(S body) {
+  void inferFunctionDeclaration(Statement body) {
     var oldClosureContext = _closureContext;
     _closureContext = null;
     inferStatement(body);
@@ -425,8 +426,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     bool needToSetReturnType = isExpressionFunction || strongMode;
     _ClosureContext oldClosureContext = _closureContext;
     _closureContext = new _ClosureContext(isAsync, isGenerator, returnContext);
-    // TODO(paulberry): de-genericize this class.
-    inferStatement(function.body as S);
+    inferStatement(function.body);
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the least
     // upper bound of the types of the `yield` expressions in `B’`, or `void` if
@@ -479,7 +479,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   }
 
   /// Performs the core type inference algorithm for if statements.
-  void inferIfStatement(E condition, S then, S otherwise) {
+  void inferIfStatement(
+      Expression condition, Statement then, Statement otherwise) {
     inferExpression(condition, coreTypes.boolClass.rawType, false);
     inferStatement(then);
     if (otherwise != null) inferStatement(otherwise);
@@ -502,7 +503,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [inferExpression].
   ///
   /// [operand] is the expression appearing to the left of "is".
-  DartType inferIsExpression(DartType typeContext, bool typeNeeded, E operand) {
+  DartType inferIsExpression(
+      DartType typeContext, bool typeNeeded, Expression operand) {
     typeNeeded = listener.isExpressionEnter(typeContext) || typeNeeded;
     inferExpression(operand, null, false);
     var inferredType = typeNeeded ? coreTypes.boolClass.rawType : null;
@@ -519,7 +521,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       bool typeNeeded,
       int offset,
       DartType declaredTypeArgument,
-      Iterable<E> expressions,
+      Iterable<Expression> expressions,
       void setTypeArgument(DartType typeArgument)) {
     typeNeeded = listener.listLiteralEnter(typeContext) || typeNeeded;
     var listClass = coreTypes.listClass;
@@ -585,10 +587,10 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       DartType typeContext,
       bool typeNeeded,
       int offset,
-      E receiver,
+      Expression receiver,
       Name methodName,
       List<DartType> explicitTypeArguments,
-      void forEachArgument(void callback(String name, E expression)),
+      void forEachArgument(void callback(String name, Expression expression)),
       void setInferredTypeArguments(List<DartType> types),
       void setInterfaceTarget(Procedure procedure)) {
     typeNeeded = listener.methodInvocationEnter(typeContext) || typeNeeded;
@@ -696,7 +698,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   ///
   /// [body] is the expression being returned, or `null` for a bare return
   /// statement.
-  void inferReturnStatement(E expression) {
+  void inferReturnStatement(Expression expression) {
     var closureContext = _closureContext;
     var typeContext = closureContext != null && !closureContext.isGenerator
         ? closureContext.returnContext
@@ -727,9 +729,9 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [typeContext], [typeNeeded], and the return value behave as described in
   /// [inferExpression].
   DartType inferStringConcatenation(
-      DartType typeContext, bool typeNeeded, Iterable<E> expressions) {
+      DartType typeContext, bool typeNeeded, Iterable<Expression> expressions) {
     typeNeeded = listener.stringConcatenationEnter(typeContext) || typeNeeded;
-    for (E expression in expressions) {
+    for (Expression expression in expressions) {
       inferExpression(expression, null, false);
     }
     var inferredType = typeNeeded ? coreTypes.stringClass.rawType : null;
@@ -755,7 +757,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
   /// [offset] is the character offset of the variable declaration (for
   /// instrumentation).  [setType] is a callback that will be used to set the
   /// inferred type.
-  void inferVariableDeclaration(DartType declaredType, E initializer,
+  void inferVariableDeclaration(DartType declaredType, Expression initializer,
       int offset, void setType(DartType type)) {
     if (initializer == null) return;
     var inferredType = inferDeclarationOrReturnType(
@@ -771,7 +773,7 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
       DartType typeContext,
       bool typeNeeded,
       bool mutatedInClosure,
-      TypePromotionFact<V> typePromotionFact,
+      TypePromotionFact<VariableDeclaration> typePromotionFact,
       TypePromotionScope typePromotionScope,
       int offset,
       DartType declaredOrInferredType,
@@ -790,8 +792,8 @@ abstract class TypeInferrerImpl<S, E, V, F> extends TypeInferrer<S, E, V, F> {
     return inferredType;
   }
 
-  DartType inferVariableSet(
-      DartType typeContext, bool typeNeeded, DartType declaredType, E value) {
+  DartType inferVariableSet(DartType typeContext, bool typeNeeded,
+      DartType declaredType, Expression value) {
     typeNeeded = listener.variableSetEnter(typeContext) || typeNeeded;
     var inferredType = inferExpression(value, declaredType, typeNeeded);
     listener.variableSetExit(inferredType);
