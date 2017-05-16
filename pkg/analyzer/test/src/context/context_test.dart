@@ -342,6 +342,10 @@ int b = aa;''';
   }
 
   void test_applyChanges_incremental_resetDriver() {
+    // AnalysisContext incremental analysis has been removed
+    if (context != null) return;
+    throw 'is this test used by the new analysis driver?';
+
     context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
     Source source = addSource(
         "/test.dart",
@@ -473,6 +477,10 @@ import 'libB.dart';''';
    * So, we need to try to use incremental resolution for removing overlays too.
    */
   void test_applyChanges_remove_incremental() {
+    // AnalysisContext incremental analysis has been removed
+    if (context != null) return;
+    throw 'is this test used by the new analysis driver?';
+
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     Source source = resourceProvider
         .newFile(
@@ -2770,6 +2778,10 @@ int aa = 0;''';
   }
 
   void test_setContents_null() {
+    // AnalysisContext incremental analysis has been removed
+    if (context != null) return;
+    throw 'is this test used by the new analysis driver?';
+
     Source librarySource = addSource(
         "/lib.dart",
         r'''

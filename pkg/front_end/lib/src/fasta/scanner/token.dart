@@ -77,16 +77,6 @@ abstract class Token implements analyzer.TokenWithComment {
   int get end => charEnd;
 
   @override
-  void applyDelta(int delta) {
-    charOffset += delta;
-    CommentToken token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
-
-  @override
   analyzer.Token copy() {
     return copyWithoutComments()
       ..precedingComments = copyComments(precedingComments);

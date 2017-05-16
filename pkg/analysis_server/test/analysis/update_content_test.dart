@@ -99,6 +99,10 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_indexUnitAfterNopChange() async {
+    // AnalysisContext incremental analysis has been removed
+    if (!enableNewAnalysisDriver) return;
+    throw 'is this test used by the new analysis driver?';
+
     var testUnitMatcher = compilationUnitMatcher(testFile) as dynamic;
     createProject();
     addTestFile('main() { print(1); }');
@@ -220,6 +224,10 @@ f() {}
   }
 
   test_removeOverlay_incrementalChange() async {
+    // AnalysisContext incremental analysis has been removed
+    if (!enableNewAnalysisDriver) return;
+    throw 'is this test used by the new analysis driver?';
+
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;
