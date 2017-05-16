@@ -63,6 +63,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The URI of the program entry point.
   final Uri _entryPoint;
 
+  /// Latest compilation signatures produced by [computeDelta] for libraries.
+  final Map<Uri, String> _uriToLatestSignature = {};
+
   /// The set of absolute file URIs that were reported through [invalidate]
   /// and not checked for actual changes yet.
   final Set<Uri> _invalidatedFiles = new Set<Uri>();
@@ -102,9 +105,19 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       });
 
       Program program = new Program(nameRoot: nameRoot);
+
+      // Add affected libraries (with different signatures).
       for (_LibraryCycleResult result in results) {
-        program.libraries.addAll(result.kernelLibraries);
+        for (Library library in result.kernelLibraries) {
+          Uri uri = library.importUri;
+          if (_uriToLatestSignature[uri] != result.signature) {
+            _uriToLatestSignature[uri] = result.signature;
+            program.libraries.add(library);
+          }
+        }
       }
+
+      // TODO(scheglov) Add libraries which import changed libraries.
 
       return new DeltaProgram(program);
     });

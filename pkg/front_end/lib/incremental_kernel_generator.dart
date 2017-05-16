@@ -20,13 +20,11 @@ class DeltaProgram {
   /// are affected by the transitive change of API in the changed libraries.
   ///
   /// For VM reload purposes we need to provide also full kernels for the
-  /// libraries that are transitively imported by the library with `main()`
-  /// and transitively import a changed library.
-  /// TODO(scheglov) With `main()` or entry point URI?
+  /// libraries that are transitively imported by the entry point and
+  /// transitively import a changed library.
   ///
-  /// Also includes outlines for the transitive closure of libraries that are
-  /// referenced by previously specified changed, affected or VM-required
-  /// libraries.
+  /// Also includes external references to other libraries that were not
+  /// modified or affected.
   final Program newProgram;
 
   DeltaProgram(this.newProgram);
