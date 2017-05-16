@@ -218,10 +218,12 @@ class Evaluator
 
   Configuration visitStringConcatenation(
       StringConcatenation node, ExpressionConfiguration config) {
-    var cont = new StringConcatenationContinuation(
-        node.expressions, config.environment, config.continuation);
-    return new ExpressionConfiguration(
-        node.expressions.first, config.environment, cont);
+    var cont = new StringConcatenationContinuation(config.continuation);
+    var expressions = node.expressions
+        .map((Expression e) => new PositionalExpression(e))
+        .toList();
+    return new ExpressionListConfiguration(
+        expressions, config.environment, cont);
   }
 
   // Evaluation of BasicLiterals.
@@ -397,20 +399,20 @@ abstract class InterpreterExpression {
   InterpreterValue assignValue(Value v);
 }
 
-class PositionalArgumentExpression extends InterpreterExpression {
+class PositionalExpression extends InterpreterExpression {
   final Expression expression;
 
-  PositionalArgumentExpression(this.expression);
+  PositionalExpression(this.expression);
 
-  InterpreterValue assignValue(Value v) => new PositionalArgumentValue(v);
+  InterpreterValue assignValue(Value v) => new PositionalValue(v);
 }
 
-class NamedArgumentExpression extends InterpreterExpression {
+class NamedExpression extends InterpreterExpression {
   final String name;
   final Expression expression;
 
-  NamedArgumentExpression(this.name, this.expression);
-  InterpreterValue assignValue(Value v) => new NamedArgumentValue(name, v);
+  NamedExpression(this.name, this.expression);
+  InterpreterValue assignValue(Value v) => new NamedValue(name, v);
 }
 
 class LocalInitializerExpression extends InterpreterExpression {
@@ -437,17 +439,17 @@ abstract class InterpreterValue {
   Value get value;
 }
 
-class PositionalArgumentValue extends InterpreterValue {
+class PositionalValue extends InterpreterValue {
   final Value value;
 
-  PositionalArgumentValue(this.value);
+  PositionalValue(this.value);
 }
 
-class NamedArgumentValue extends InterpreterValue {
+class NamedValue extends InterpreterValue {
   final String name;
   final Value value;
 
-  NamedArgumentValue(this.name, this.value);
+  NamedValue(this.name, this.value);
 }
 
 class LocalInitializerValue extends InterpreterValue {
@@ -478,8 +480,8 @@ abstract class ApplicationContinuation extends Continuation {
   static Environment createEnvironment(
       FunctionNode function, List<InterpreterValue> args) {
     Environment newEnv = new Environment.empty();
-    List<PositionalArgumentValue> positional = args.reversed
-        .where((InterpreterValue av) => av is PositionalArgumentValue)
+    List<PositionalValue> positional = args.reversed
+        .where((InterpreterValue av) => av is PositionalValue)
         .toList();
 
     // Add positional parameters.
@@ -488,9 +490,9 @@ abstract class ApplicationContinuation extends Continuation {
     }
 
     Map<String, Value> named = new Map.fromIterable(
-        args.where((InterpreterValue av) => av is NamedArgumentValue),
-        key: (NamedArgumentValue av) => av.name,
-        value: (NamedArgumentValue av) => av.value);
+        args.where((InterpreterValue av) => av is NamedValue),
+        key: (NamedValue av) => av.name,
+        value: (NamedValue av) => av.value);
 
     // Add named parameters.
     for (VariableDeclaration v in function.namedParameters) {
@@ -905,31 +907,18 @@ class ConditionalContinuation extends ExpressionContinuation {
   }
 }
 
-class StringConcatenationContinuation extends ExpressionContinuation {
-  final List<Expression> expressions;
-  final Environment environment;
+class StringConcatenationContinuation extends ApplicationContinuation {
   final ExpressionContinuation continuation;
 
-  int _currentPosition = 0;
-  final List<Value> _values = <Value>[];
+  StringConcatenationContinuation(this.continuation);
 
-  StringConcatenationContinuation(
-      this.expressions, this.environment, this.continuation);
-
-  Configuration call(Value value) {
-    _values.add(value);
-    if (_values.length == expressions.length) {
-      StringBuffer res = new StringBuffer();
-
-      for (int i = 0; i < expressions.length; i++) {
-        res.write(_values[i].value);
-      }
-
-      Value value = new StringValue(res.toString());
-      return new ContinuationConfiguration(continuation, value);
+  Configuration call(List<InterpreterValue> values) {
+    StringBuffer result = new StringBuffer();
+    for (InterpreterValue v in values.reversed) {
+      result.write(v.value.value);
     }
-    return new ExpressionConfiguration(
-        expressions[++_currentPosition], environment, this);
+    return new ContinuationConfiguration(
+        continuation, new StringValue(result.toString()));
   }
 }
 
@@ -1364,26 +1353,25 @@ List<InterpreterExpression> _createArgumentExpressionList(
   List<InterpreterExpression> args = <InterpreterExpression>[];
   // Add positional arguments expressions.
   args.addAll(providedArgs.positional
-      .map((Expression e) => new PositionalArgumentExpression(e)));
+      .map((Expression e) => new PositionalExpression(e)));
 
   // Add optional positional argument initializers.
   for (int i = providedArgs.positional.length;
       i < fun.positionalParameters.length;
       i++) {
-    args.add(new PositionalArgumentExpression(
-        fun.positionalParameters[i].initializer));
+    args.add(new PositionalExpression(fun.positionalParameters[i].initializer));
   }
 
-  Map<String, NamedArgumentExpression> namedFormals = new Map.fromIterable(
+  Map<String, NamedExpression> namedFormals = new Map.fromIterable(
       fun.namedParameters,
       key: (VariableDeclaration vd) => vd.name,
       value: (VariableDeclaration vd) =>
-          new NamedArgumentExpression(vd.name, vd.initializer));
+          new NamedExpression(vd.name, vd.initializer));
 
   // Add named expressions.
   for (int i = 0; i < providedArgs.named.length; i++) {
     var current = providedArgs.named[i];
-    args.add(new NamedArgumentExpression(current.name, current.value));
+    args.add(new NamedExpression(current.name, current.value));
     namedFormals.remove(current.name);
   }
 
