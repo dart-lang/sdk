@@ -537,11 +537,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return new ErrorsResult(
-        path,
-        analysisResult.uri,
-        analysisResult.contentHash,
-        analysisResult.lineInfo,
+    return new ErrorsResult(path, analysisResult.uri, analysisResult.lineInfo,
         analysisResult.errors);
   }
 
@@ -736,8 +732,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParseResult(file.path, file.uri, file.content, file.contentHash,
-        unit.lineInfo, unit, listener.errors);
+    return new ParseResult(file.path, file.uri, file.content, unit.lineInfo,
+        unit, listener.errors);
   }
 
   @override
@@ -1068,7 +1064,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
       String signature = library.transitiveSignature;
-      return new UnitElementResult(path, file.contentHash, signature, element);
+      return new UnitElementResult(path, signature, element);
     } finally {
       libraryContext.dispose();
     }
@@ -1140,7 +1136,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.uri,
         file.exists,
         content,
-        file.contentHash,
         file.lineInfo,
         signature,
         resolvedUnit,
@@ -1593,7 +1588,7 @@ class AnalysisDriverTestView {
  */
 class AnalysisResult {
   static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null, null);
+      null, null, null, null, null, null, null, null, null, null, null);
 
   /**
    * The [AnalysisDriver] that produced this result.
@@ -1626,11 +1621,6 @@ class AnalysisResult {
    * The content of the file that was scanned, parsed and resolved.
    */
   final String content;
-
-  /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
 
   /**
    * Information about lines in the [content].
@@ -1666,7 +1656,6 @@ class AnalysisResult {
       this.uri,
       this.exists,
       this.content,
-      this.contentHash,
       this.lineInfo,
       this._signature,
       this.unit,
@@ -1711,11 +1700,6 @@ class ErrorsResult {
   final Uri uri;
 
   /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
    * Information about lines in the [content].
    */
   final LineInfo lineInfo;
@@ -1725,8 +1709,7 @@ class ErrorsResult {
    */
   final List<AnalysisError> errors;
 
-  ErrorsResult(
-      this.path, this.uri, this.contentHash, this.lineInfo, this.errors);
+  ErrorsResult(this.path, this.uri, this.lineInfo, this.errors);
 }
 
 /**
@@ -1780,11 +1763,6 @@ class ParseResult {
   final String content;
 
   /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
    * Information about lines in the [content].
    */
   final LineInfo lineInfo;
@@ -1799,8 +1777,8 @@ class ParseResult {
    */
   final List<AnalysisError> errors;
 
-  ParseResult(this.path, this.uri, this.content, this.contentHash,
-      this.lineInfo, this.unit, this.errors);
+  ParseResult(
+      this.path, this.uri, this.content, this.lineInfo, this.unit, this.errors);
 }
 
 /**
@@ -1821,11 +1799,6 @@ class UnitElementResult {
   final String path;
 
   /**
-   * The MD5 hash of the file content.
-   */
-  final String contentHash;
-
-  /**
    * The signature of the [element] is based the APIs of the files of the
    * library (including the file itself) of the requested file and the
    * transitive closure of files imported and exported by the library.
@@ -1837,7 +1810,7 @@ class UnitElementResult {
    */
   final CompilationUnitElement element;
 
-  UnitElementResult(this.path, this.contentHash, this.signature, this.element);
+  UnitElementResult(this.path, this.signature, this.element);
 }
 
 /**
