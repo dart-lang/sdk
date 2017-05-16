@@ -328,7 +328,7 @@ class TypeConstraintGatherer {
     // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
     // we build up the substitutions.  But I don't think that's correct--I think
     // we should build up both substitutions completely before checking any
-    // bounds.
+    // bounds.  See dartbug.com/29629.
     for (int i = 0; i < count; i++) {
       TypeParameter pFresh = new TypeParameter(params2[i].name);
       DartType variableFresh = new TypeParameterType(pFresh);
