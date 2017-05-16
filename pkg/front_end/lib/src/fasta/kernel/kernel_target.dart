@@ -231,7 +231,8 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
-  Future<Program> writeOutline(Uri uri, {CanonicalName nameRoot}) async {
+  @override
+  Future<Null> computeOutline({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
     try {
       loader.createTypeInferenceEngine();
@@ -255,12 +256,22 @@ class KernelTarget extends TargetImplementation {
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
-      if (uri == null) return program;
-      return await writeLinkedProgram(uri, program, isFullProgram: false);
     } on InputError catch (e) {
-      return handleInputError(uri, e, isFullProgram: false);
+      await handleInputError(null, e, isFullProgram: false);
     } catch (e, s) {
-      return reportCrash(e, s, loader?.currentUriForCrashReporting);
+      await reportCrash(e, s, loader?.currentUriForCrashReporting);
+    }
+  }
+
+  Future<Null> writeOutline(Uri uri) async {
+    try {
+      if (uri != null) {
+        await writeLinkedProgram(uri, program, isFullProgram: false);
+      }
+    } on InputError catch (e) {
+      handleInputError(uri, e, isFullProgram: false);
+    } catch (e, s) {
+      reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
   }
 

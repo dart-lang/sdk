@@ -239,8 +239,8 @@ generateKernel(Uri entryUri,
     dillTarget.read(
         Uri.base.resolve(Platform.resolvedExecutable).resolve('platform.dill'));
   }
-  await dillTarget.writeOutline(null);
-  var program = await kernelTarget.writeOutline(null);
+  await dillTarget.computeOutline();
+  var program = await kernelTarget.computeOutline();
   program = await kernelTarget.writeProgram(null);
   if (kernelTarget.errors.isNotEmpty) {
     throw kernelTarget.errors.first;

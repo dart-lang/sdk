@@ -74,7 +74,8 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
       uriTranslator, c.options.strongMode, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
-  await dillTarget.writeOutline(null);
+  await dillTarget.computeOutline();
+  await kernelTarget.computeOutline();
   await kernelTarget.writeOutline(outlineOutput);
 
   if (exitCode != 0) return null;

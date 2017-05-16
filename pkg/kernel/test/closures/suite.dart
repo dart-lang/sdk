@@ -101,8 +101,8 @@ class FastaCompile
     Program p;
     try {
       sourceTarget.read(description.uri);
-      await dillTarget.writeOutline(null);
-      await sourceTarget.writeOutline(null);
+      await dillTarget.computeOutline();
+      await sourceTarget.computeOutline();
       p = await sourceTarget.writeProgram(null);
     } on InputError catch (e, s) {
       return fail(null, e.error, s);

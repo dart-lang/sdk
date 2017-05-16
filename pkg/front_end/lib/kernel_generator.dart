@@ -62,8 +62,8 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
         options.fileSystem, dillTarget, uriTranslator, options.strongMode);
     kernelTarget.read(source);
 
-    await dillTarget.writeOutline(null);
-    await kernelTarget.writeOutline(null);
+    await dillTarget.computeOutline();
+    await kernelTarget.computeOutline();
     Program program = await kernelTarget.writeProgram(null);
 
     if (kernelTarget.errors.isNotEmpty) {

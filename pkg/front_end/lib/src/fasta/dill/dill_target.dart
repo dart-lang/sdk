@@ -38,7 +38,8 @@ class DillTarget extends TargetImplementation {
     return internalError("not implemented.");
   }
 
-  Future<Null> writeOutline(Uri uri) async {
+  @override
+  Future<Null> computeOutline() async {
     if (loader.libraries.isEmpty) return null;
     await loader.buildOutlines();
     isLoaded = true;

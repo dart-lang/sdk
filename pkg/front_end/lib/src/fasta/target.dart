@@ -10,8 +10,8 @@ import 'ticker.dart' show Ticker;
 
 /// A compilation target.
 ///
-/// A target reads source files with [read] and writes out the resulting
-/// program when [writeOutline] is called.
+/// A target reads source files with [read] and computes outlines when
+/// [computeOutline] is called.
 abstract class Target {
   final Ticker ticker;
 
@@ -20,9 +20,9 @@ abstract class Target {
   /// Instructs this target to include [uri] in its result.
   void read(Uri uri);
 
+  /// Compute outlines for all [read] URIs.
+  Future<Null> computeOutline();
+
   /// Write the resulting program in the file [uri].
   Future writeProgram(Uri uri);
-
-  /// Write the resulting outline in the file [uri].
-  Future writeOutline(Uri uri);
 }
