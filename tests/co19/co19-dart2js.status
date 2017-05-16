@@ -1659,7 +1659,7 @@ WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Ru
 WebPlatformTest/shadow-dom/shadow-trees/custom-pseudo-elements/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: RuntimeError # Please triage this failure
-WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # Please triage this failure
+WebPlatfor mTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: RuntimeError # Please triage this failure.
@@ -5198,6 +5198,9 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ma
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 # ROLL 50 FAILURES START
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # Roll 50 failure
+LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Pass, RuntimeError # Issue 29632
+LayoutTests/fast/dom/icon-size-property_t01: Pass, RuntimeError # Issue 29632
+LayoutTests/fast/events/event-fire-order_t01: Pass, RuntimeError # Issue 29632
 # ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
