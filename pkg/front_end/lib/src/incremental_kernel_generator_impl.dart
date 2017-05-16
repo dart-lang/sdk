@@ -159,7 +159,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       _logger.writeln('Signature: $signature.');
       String kernelKey = '$signature.kernel';
 
-      /// We need kernel libraries for these URIs.
+      // We need kernel libraries for these URIs.
       Set<Uri> libraryUris = new Set<Uri>();
       Map<Uri, FileState> libraryUriToFile = {};
       for (FileState library in cycle.libraries) {
@@ -168,24 +168,30 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         libraryUriToFile[uri] = library;
       }
 
-      /// Check if there is already a bundle with these libraries.
+      Future<Null> appendNewDillLibraries(Program program) async {
+        List<DillLibraryBuilder> libraryBuilders = dillTarget.loader
+            .appendLibraries(program, (uri) => libraryUris.contains(uri));
+
+        // Compute local scopes.
+        await dillTarget.writeOutline(null);
+
+        // Compute export scopes.
+        _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
+      }
+
+      // Check if there is already a bundle with these libraries.
       List<int> bytes = _byteStore.get(kernelKey);
       if (bytes != null) {
-        return _logger.run('Read serialized libraries', () {
+        return _logger.runAsync('Read serialized libraries', () async {
           var program = new Program(nameRoot: nameRoot);
           var reader = new BinaryBuilder(bytes);
           reader.readProgram(program);
 
-          List<DillLibraryBuilder> libraryBuilders = dillTarget.loader
-              .appendLibraries(program, (uri) => libraryUris.contains(uri));
-          _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
+          await appendNewDillLibraries(program);
 
           return new _LibraryCycleResult(cycle, signature, program.libraries);
         });
       }
-
-      // Ask DILL to fill outlines using loaded libraries.
-      await dillTarget.writeOutline(null);
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
       KernelTarget kernelTarget = new KernelTarget(_fsState.fileSystemView,
@@ -195,19 +201,18 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       }
 
       // Compile the cycle libraries into a new full program.
-      Program program = await _logger.runAsync(
-          'Compile ${cycle.libraries.length} cycle libraries', () async {
+      Program program = await _logger
+          .runAsync('Compile ${cycle.libraries.length} libraries', () async {
         await kernelTarget.writeOutline(null, nameRoot: nameRoot);
         return await kernelTarget.writeProgram(null);
       });
 
       // Add newly compiled libraries into DILL.
+      await appendNewDillLibraries(program);
+
       List<Library> kernelLibraries = program.libraries
           .where((library) => libraryUris.contains(library.importUri))
           .toList();
-      List<DillLibraryBuilder> libraryBuilders = dillTarget.loader
-          .appendLibraries(program, (uri) => libraryUris.contains(uri));
-      _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
         program.unbindCanonicalNames();
