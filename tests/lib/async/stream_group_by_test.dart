@@ -18,7 +18,7 @@ void main() {
   test("splits", () async {
     var grouped = stringStream.groupBy<int>(len);
     var byLength = <int, Future<List<String>>>{};
-    await for (StreamGroup<int, String> group in grouped) {
+    await for (GroupedEvents<int, String> group in grouped) {
       byLength[group.key] = group.values.toList();
     }
     Expect.listEquals([1, 2, 4, 3], byLength.keys.toList());
@@ -31,7 +31,7 @@ void main() {
   test("empty", () async {
     var grouped = emptyStream.groupBy<int>(len);
     var byLength = <int, Future<List<String>>>{};
-    await for (StreamGroup<int, String> group in grouped) {
+    await for (GroupedEvents<int, String> group in grouped) {
       byLength[group.key] = group.values.toList();
     }
     Expect.isTrue(byLength.isEmpty);
@@ -40,7 +40,7 @@ void main() {
   test("single group", () async {
     var grouped = repeatStream(5, "x").groupBy<int>(len);
     var byLength = <int, Future<List<String>>>{};
-    await for (StreamGroup<int, String> group in grouped) {
+    await for (GroupedEvents<int, String> group in grouped) {
       byLength[group.key] = group.values.toList();
     }
     Expect.listEquals([1], byLength.keys.toList());
@@ -52,7 +52,7 @@ void main() {
     var byLength = <int, Future<List<String>>>{};
     bool caught = false;
     try {
-      await for (StreamGroup<int, String> group in grouped) {
+      await for (GroupedEvents<int, String> group in grouped) {
         byLength[group.key] = group.values.toList();
       }
     } catch (e) {

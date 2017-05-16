@@ -390,8 +390,8 @@ abstract class Stream<T> {
   ///
   /// A key is extracted from incoming events.
   /// The first time a key is seen, a stream is created for it, and emitted
-  /// on the returned stream, along with the key, as a [StreamGroup] object.
-  /// Then the event is emitted on the stream ([StreamGroup.values])
+  /// on the returned stream, along with the key, as a [GroupedEvents] object.
+  /// Then the event is emitted on the stream ([GroupedEvents.values])
   /// corresponding to the key.
   ///
   /// An error on the source stream, or when calling the `key` functions,
@@ -406,11 +406,11 @@ abstract class Stream<T> {
   /// Pausing or canceling an individual group stream has no effect other than
   /// on that stream. Events will be queued while the group stream
   /// is paused and until it is first listened to.
-  /// If the [StreamGroup.values] stream is never listened to,
+  /// If the [GroupedEvents.values] stream is never listened to,
   /// it will enqueue all the events unnecessarily.
-  Stream<StreamGroup<K, T>> groupBy<K>(K key(T event)) {
+  Stream<GroupedEvents<K, T>> groupBy<K>(K key(T event)) {
     var controller;
-    controller = new StreamController<StreamGroup<K, T>>(
+    controller = new StreamController<GroupedEvents<K, T>>(
         sync: true,
         onListen: () {
           var groupControllers = new HashMap<K, StreamController<T>>();
@@ -436,7 +436,7 @@ abstract class Stream<T> {
                       new StreamController<T>.broadcast(sync: true);
                   groupControllers[theKey] = groupController;
                   controller.add(
-                      new StreamGroup<K, T>(theKey, groupController.stream));
+                      new GroupedEvents<K, T>(theKey, groupController.stream));
                 }
                 groupController.add(data);
               },
@@ -1909,23 +1909,23 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 
 /// A group created by [Stream.groupBy] or [Stream.groupByMapped].
 ///
-/// The stream created by `groupBy` emits a `StreamGroup` for each distinct key
+/// The stream created by `groupBy` emits a `GroupedEvents` for each distinct key
 /// it encounters.
 /// This group contains the [key] itself, along with a stream of the [values]
 /// associated with that key.
-class StreamGroup<K, V> {
+class GroupedEvents<K, V> {
   /// The key that identifiers the values emitted by [values].
   final K key;
 
   /// The [values] that [GroupBy] have grouped by the common [key].
   final Stream<V> values;
 
-  factory StreamGroup(K key, Stream<V> values) = StreamGroup<K, V>._;
+  factory GroupedEvents(K key, Stream<V> values) = GroupedEvents<K, V>._;
 
   // Don't expose a generative constructor.
   // This class is not intended for subclassing, so we don't want to promise
   // it. We can change that in the future.
-  StreamGroup._(this.key, this.values);
+  GroupedEvents._(this.key, this.values);
 
   /// Tells [values] to discard values instead of retaining them.
   ///
