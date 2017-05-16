@@ -4868,7 +4868,7 @@ class CodeGenerator extends Object
         }
 
         var param = _createTemporary('_', nodeTarget.staticType,
-            nullable: false, dynamicInvoke: isDynamicInvoke(node));
+            nullable: false, dynamicInvoke: isDynamicInvoke(nodeTarget));
         var baseNode = _stripNullAwareOp(node, param);
         tail.add(
             new JS.ArrowFun(<JS.Parameter>[_visit(param)], _visit(baseNode)));
