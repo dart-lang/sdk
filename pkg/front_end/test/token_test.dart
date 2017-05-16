@@ -35,7 +35,7 @@ class Foo {
 }
 ''';
     var scanner = new StringScanner(source, includeComments: true);
-    fasta.Token token = scanner.tokenize();
+    Token token = scanner.tokenize();
 
     Token nextComment() {
       while (!token.isEof) {
@@ -46,7 +46,7 @@ class Foo {
       return null;
     }
 
-    fasta.Token comment = nextComment();
+    Token comment = nextComment();
     expect(comment.lexeme, contains('Single line dartdoc comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
     expect(comment, new isInstanceOf<DocumentationCommentToken>());
@@ -102,7 +102,7 @@ class Foo {
 
     while (!token1.isEof) {
       if (token1 is fasta.StringToken) stringTokenFound = true;
-      if (token1 is fasta.KeywordToken) keywordTokenFound = true;
+      if (token1 is KeywordToken) keywordTokenFound = true;
       if (token1 is fasta.SymbolToken) symbolTokenFound = true;
       if (token1 is fasta.BeginGroupToken) beginGroupTokenFound = true;
 

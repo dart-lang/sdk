@@ -4,7 +4,9 @@
 
 library fasta.source_library_builder;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken, Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
+
+import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken;
 
 import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 

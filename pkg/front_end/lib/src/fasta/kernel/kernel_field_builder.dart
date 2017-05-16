@@ -11,7 +11,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
 
 import 'package:front_end/src/fasta/parser/parser.dart' show Parser;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:front_end/src/fasta/builder/class_builder.dart'
     show ClassBuilder;

@@ -8,7 +8,7 @@ export 'frontend_accessors.dart' show wrapInvalid;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'frontend_accessors.dart' show Accessor, buildIsNull, makeLet;
 

@@ -10,7 +10,7 @@ import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
 import 'parser/dart_vm_native.dart' as vm show skipNativeClause;
 
-import 'scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
 import 'loader.dart' show Loader;
 

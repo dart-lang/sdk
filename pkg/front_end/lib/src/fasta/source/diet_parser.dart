@@ -12,7 +12,9 @@ import '../parser/listener.dart' show Listener;
 
 import '../parser/parser.dart' show optional;
 
-import '../scanner/token.dart' show BeginGroupToken, Token;
+import '../scanner/token.dart' show BeginGroupToken;
+
+import '../../scanner/token.dart' show Token;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {

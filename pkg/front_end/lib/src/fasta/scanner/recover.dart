@@ -20,7 +20,9 @@ import '../fasta_codes.dart'
         codeUnterminatedComment,
         codeUnterminatedString;
 
-import 'token.dart' show StringToken, SymbolToken, Token;
+import '../../scanner/token.dart' show Token;
+
+import 'token.dart' show StringToken, SymbolToken;
 
 import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 

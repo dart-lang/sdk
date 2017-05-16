@@ -43,8 +43,10 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
+import '../../scanner/token.dart' show Token;
+
 import '../scanner/token.dart'
-    show BeginGroupToken, Token, isBinaryOperator, isMinusOperator;
+    show BeginGroupToken, isBinaryOperator, isMinusOperator;
 
 import '../errors.dart' show formatUnexpected, internalError;
 

@@ -23,7 +23,9 @@ import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show Parser, optional;
 
-import '../scanner/token.dart' show BeginGroupToken, Token;
+import '../scanner/token.dart' show BeginGroupToken;
+
+import '../../scanner/token.dart' show Token;
 
 import '../parser/dart_vm_native.dart' show removeNativeClause;
 

@@ -6,16 +6,11 @@ library fasta.scanner.array_based_scanner;
 
 import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
-import '../../scanner/token.dart' show Keyword, TokenType;
+import '../../scanner/token.dart'
+    show Keyword, KeywordTokenWithComment, Token, TokenType;
 
 import 'token.dart'
-    show
-        BeginGroupToken,
-        KeywordToken,
-        StringToken,
-        SymbolToken,
-        SyntheticSymbolToken,
-        Token;
+    show BeginGroupToken, StringToken, SymbolToken, SyntheticSymbolToken;
 
 import 'token_constants.dart'
     show
@@ -53,7 +48,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * '=>', etc.
    */
   void appendPrecedenceToken(TokenType type) {
-    appendToken(new SymbolToken(type, tokenStart));
+    appendToken(new SymbolToken(type, tokenStart, comments));
   }
 
   /**
@@ -82,7 +77,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     if (identical(syntax, 'this')) {
       discardOpenLt();
     }
-    appendToken(new KeywordToken(keyword, tokenStart));
+    appendToken(new KeywordTokenWithComment(keyword, tokenStart, comments));
   }
 
   void appendEofToken() {
@@ -92,7 +87,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail;
     }
-    appendToken(new SymbolToken.eof(tokenStart));
+    appendToken(new SymbolToken.eof(tokenStart, comments));
   }
 
   /**
@@ -123,7 +118,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Group begin tokens are '{', '(', '[' and '${'.
    */
   void appendBeginGroup(TokenType type) {
-    Token token = new BeginGroupToken(type, tokenStart);
+    Token token = new BeginGroupToken(type, tokenStart, comments);
     appendToken(token);
 
     // { [ ${ cannot appear inside a type parameters / arguments.
@@ -301,7 +296,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     //      v
     //     EOF
     TokenType type = closeBraceInfoFor(begin);
-    appendToken(new SyntheticSymbolToken(type, tokenStart));
+    appendToken(new SyntheticSymbolToken(type, tokenStart, comments));
     begin.endGroup = tail;
     appendErrorToken(new UnmatchedToken(begin));
   }

@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/errors.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 /// Provides the capability of inserting tokens into a token stream by rewriting
 /// the previous token to point to the inserted token.

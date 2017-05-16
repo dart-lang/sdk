@@ -5,7 +5,7 @@
 import 'package:front_end/src/fasta/errors.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
 import 'package:front_end/src/fasta/parser/parser.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 

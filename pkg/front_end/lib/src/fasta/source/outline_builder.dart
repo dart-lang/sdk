@@ -12,7 +12,7 @@ import '../parser/parser.dart' show FormalParameterType, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import '../util/link.dart' show Link;
 

@@ -11,7 +11,7 @@
 /// term and replace it with annotations as in `dart2js`.
 library fasta.parser.dart_vm_native;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import '../scanner/token_constants.dart' show STRING_TOKEN;
 

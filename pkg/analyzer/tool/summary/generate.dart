@@ -24,7 +24,7 @@ import 'dart:io';
 
 import 'package:front_end/src/codegen/tools.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:path/path.dart';
 
 import 'idl_model.dart' as idlModel;

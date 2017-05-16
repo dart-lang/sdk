@@ -10,7 +10,7 @@ import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 import '../parser/identifier_context.dart';
 import '../parser/listener.dart';
 import '../quote.dart';
-import '../scanner/token.dart';
+import '../../scanner/token.dart' show Token;
 import 'stack_listener.dart';
 
 /// Listener that records imports, exports, and part directives.

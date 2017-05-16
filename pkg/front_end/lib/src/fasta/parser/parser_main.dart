@@ -8,7 +8,7 @@ import 'dart:convert' show LineSplitter, UTF8;
 
 import 'dart:io' show File;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import '../scanner/io.dart' show readBytesFromFileSync;
 

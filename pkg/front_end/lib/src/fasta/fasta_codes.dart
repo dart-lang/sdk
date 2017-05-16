@@ -4,7 +4,7 @@
 
 library fasta.codes;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 part 'fasta_codes_generated.dart';
 

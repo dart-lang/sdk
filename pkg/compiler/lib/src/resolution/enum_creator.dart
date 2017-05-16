@@ -10,7 +10,7 @@ import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/scanner/token.dart' show TokenType;
+import 'package:front_end/src/scanner/token.dart' show KeywordToken, TokenType;
 import '../tree/tree.dart';
 import '../util/util.dart';
 

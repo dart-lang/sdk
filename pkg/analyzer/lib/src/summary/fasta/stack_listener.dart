@@ -9,6 +9,7 @@ import 'dart:collection' show Queue;
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
 import 'package:front_end/src/fasta/parser/listener.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 enum NullValue {
   Arguments,

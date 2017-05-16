@@ -28,7 +28,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/loader.dart' show Loader;
 import 'package:front_end/src/fasta/parser/parser.dart' show optional;
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 

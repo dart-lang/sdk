@@ -4,7 +4,7 @@
 
 library fasta.kernel_library_builder;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
 

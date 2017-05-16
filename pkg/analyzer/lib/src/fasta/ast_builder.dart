@@ -8,13 +8,13 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
-import 'package:analyzer/dart/ast/token.dart' show TokenType;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, CommentToken, Token;
+    show BeginGroupToken, CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;

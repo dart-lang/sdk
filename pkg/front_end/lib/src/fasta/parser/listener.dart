@@ -6,9 +6,9 @@ library fasta.parser.listener;
 
 import '../fasta_codes.dart' show FastaMessage;
 
-import '../../scanner/token.dart' show TokenType;
+import '../../scanner/token.dart' show Token, TokenType;
 
-import '../scanner/token.dart' show BeginGroupToken, SymbolToken, Token;
+import '../scanner/token.dart' show BeginGroupToken, SymbolToken;
 
 import '../util/link.dart' show Link;
 

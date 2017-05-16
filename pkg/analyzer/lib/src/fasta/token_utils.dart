@@ -6,17 +6,10 @@ library fasta.analyzer.token_utils;
 
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 
-import 'package:front_end/src/scanner/token.dart' show Keyword;
+import 'package:front_end/src/scanner/token.dart' show Keyword, Token;
 
 import 'package:front_end/src/fasta/scanner/token.dart'
-    show
-        BeginGroupToken,
-        CommentToken,
-        DartDocToken,
-        KeywordToken,
-        StringToken,
-        SymbolToken,
-        Token;
+    show BeginGroupToken, CommentToken, DartDocToken, StringToken, SymbolToken;
 
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
@@ -232,26 +225,19 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     }
   }
 
-  analyzer.Token translateComments(analyzer.Token token) {
-    if (token == null) {
-      return null;
-    }
-    Token head = fromAnalyzerToken(token);
-    Token tail = head;
-    token = token.next;
-    while (token != null) {
-      tail.next = fromAnalyzerToken(token);
-      tail.next.previous = tail; // ignore: deprecated_member_use
-      tail = tail.next;
-      token = token.next;
-    }
-    return head;
-  }
-
   analyzer.Token translateAndAppend(analyzer.Token analyzerToken) {
     var token = fromAnalyzerToken(analyzerToken);
-    token.precedingComments =
-        translateComments(analyzerToken.precedingComments);
+    // Sanity check
+    if (analyzerToken.precedingComments != null) {
+      if (token.precedingComments == null) {
+        return internalError(
+            'expected translated token $token to have preceedingComments');
+      }
+    } else {
+      if (token.precedingComments != null) {
+        return internalError('token $token has unexpected preceedingComments');
+      }
+    }
     tokenTail.next = token;
     tokenTail.next.previous = tokenTail; // ignore: deprecated_member_use
     tokenTail = token;
@@ -266,7 +252,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
       tokenTail.next = eof;
       eof.previous = tokenTail; // ignore: deprecated_member_use
       eof.precedingComments =
-          translateComments(analyzerToken.precedingComments);
+          _translateComments(analyzerToken.precedingComments);
       eof.next = eof;
       return tokenHead.next;
     }
@@ -276,14 +262,18 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
 
 /// Converts a single analyzer token into a Fasta token.
 Token fromAnalyzerToken(analyzer.Token token) {
-  Token beginGroup(TokenType type) => new BeginGroupToken(type, token.offset);
+  Token comments = _translateComments(token.precedingComments);
+  Token beginGroup(TokenType type) =>
+      new BeginGroupToken(type, token.offset, comments);
   Token string(TokenType type) =>
-      new StringToken.fromString(type, token.lexeme, token.offset);
-  Token symbol(TokenType type) => new SymbolToken(type, token.offset);
+      new StringToken.fromString(type, token.lexeme, token.offset,
+          precedingComments: comments);
+  Token symbol(TokenType type) => new SymbolToken(type, token.offset, comments);
   if (token.type.isKeyword) {
     var keyword = Keyword.keywords[token.lexeme];
     if (keyword != null) {
-      return new KeywordToken(keyword, token.offset);
+      return new analyzer.KeywordTokenWithComment(
+          keyword, token.offset, comments);
     } else {
       return internalError("Unrecognized keyword: '${token.lexeme}'.");
     }
@@ -301,7 +291,8 @@ Token fromAnalyzerToken(analyzer.Token token) {
       var keyword = Keyword.keywords[token.lexeme];
       if (keyword != null) {
         assert(keyword.isPseudo);
-        return new KeywordToken(keyword, token.offset);
+        return new analyzer.KeywordTokenWithComment(
+            keyword, token.offset, comments);
       } else {
         return string(TokenType.IDENTIFIER);
       }
@@ -491,8 +482,7 @@ analyzer.Token toAnalyzerToken(Token token,
       return makeStringToken(TokenType.INT);
 
     case KEYWORD_TOKEN:
-      KeywordToken keywordToken = token;
-      var syntax = keywordToken.keyword.lexeme;
+      var syntax = token.type.lexeme;
       // TODO(paulberry): if the map lookup proves to be too slow, consider
       // using a switch statement, or perhaps a string of
       // "if (identical(syntax, "foo"))" checks.  (Note that identical checks
@@ -529,6 +519,22 @@ analyzer.Token toAnalyzerToken(Token token,
       }
       break;
   }
+}
+
+analyzer.Token _translateComments(analyzer.Token token) {
+  if (token == null) {
+    return null;
+  }
+  Token head = fromAnalyzerToken(token);
+  Token tail = head;
+  token = token.next;
+  while (token != null) {
+    tail.next = fromAnalyzerToken(token);
+    tail.next.previous = tail; // ignore: deprecated_member_use
+    tail = tail.next;
+    token = token.next;
+  }
+  return head;
 }
 
 final _keywordMap = {

@@ -372,6 +372,7 @@ class Keyword extends TokenType {
   /**
    * A flag indicating whether the keyword is "built-in" identifier.
    */
+  @override
   final bool isBuiltIn;
 
   @override
@@ -446,8 +447,6 @@ class KeywordToken extends SimpleToken {
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
-  // Changed return type from Keyword to Object because
-  // fasta considers pseudo-keywords to be keywords rather than identifiers
   Object value() => keyword;
 }
 
@@ -606,7 +605,7 @@ class SimpleToken implements Token {
   String toString() => lexeme;
 
   @override
-  Object value() => type.lexeme;
+  Object value() => lexeme;
 
   /**
    * Sets the `parent` property to `this` for the given [comment] and all the
@@ -890,6 +889,17 @@ abstract class Token implements SyntacticEntity {
    * that was passed in.
    */
   Token setNextWithoutSettingPrevious(Token token);
+
+  /**
+   * Returns a textual representation of this token to be used for debugging
+   * purposes. The resulting string might contain information about the
+   * structure of the token, for example 'StringToken(foo)' for the identifier
+   * token 'foo'.
+   *
+   * Use [lexeme] for the text actually parsed by the token.
+   */
+  @override
+  String toString();
 
   /**
    * Return the value of this token. For keyword tokens, this is the keyword
@@ -1528,6 +1538,11 @@ class TokenType {
       this == TokenType.CARET ||
       this == TokenType.PLUS ||
       this == TokenType.STAR;
+
+  /**
+   * A flag indicating whether the keyword is a "built-in" identifier.
+   */
+  bool get isBuiltIn => false;
 
   /**
    * Return `true` if this type of token represents an equality operator.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 
 /// A null-aware alternative to `token.offset`.  If [token] is `null`, returns

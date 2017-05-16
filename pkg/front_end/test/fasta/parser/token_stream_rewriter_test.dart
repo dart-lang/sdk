@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/fasta/parser/token_stream_rewriter.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
-import 'package:front_end/src/scanner/token.dart' show TokenType;
+import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
