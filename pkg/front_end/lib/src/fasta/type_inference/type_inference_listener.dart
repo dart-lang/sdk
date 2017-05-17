@@ -76,6 +76,12 @@ class TypeInferenceListener {
   void isExpressionExit(DartType inferredType) =>
       debugExpressionExit("isExpression", inferredType);
 
+  bool isNotExpressionEnter(DartType typeContext) =>
+      debugExpressionEnter("isNotExpression", typeContext);
+
+  void isNotExpressionExit(DartType inferredType) =>
+      debugExpressionExit("isNotExpression", inferredType);
+
   bool listLiteralEnter(DartType typeContext) =>
       debugExpressionEnter("listLiteral", typeContext);
 

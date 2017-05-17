@@ -22,7 +22,10 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 _ArgumentForEachFunction _forEachArgument(Arguments arguments) {
   return (void callback(String name, Expression expression)) {
@@ -73,7 +76,11 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferAsExpression(typeContext, typeNeeded, operand, type);
+    typeNeeded = inferrer.listener.asExpressionEnter(typeContext) || typeNeeded;
+    inferrer.inferExpression(operand, null, false);
+    var inferredType = typeNeeded ? type : null;
+    inferrer.listener.asExpressionExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -109,7 +116,10 @@ class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferBoolLiteral(typeContext, typeNeeded);
+    typeNeeded = inferrer.listener.boolLiteralEnter(typeContext) || typeNeeded;
+    var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
+    inferrer.listener.boolLiteralExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -124,8 +134,23 @@ class KernelConditionalExpression extends ConditionalExpression
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferConditionalExpression(typeContext, typeNeeded,
-        condition, then, otherwise, (type) => staticType = type);
+    typeNeeded =
+        inferrer.listener.conditionalExpressionEnter(typeContext) || typeNeeded;
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
+    // TODO(paulberry): is it correct to pass the context down?
+    DartType thenType = inferrer.inferExpression(then, typeContext, true);
+    DartType otherwiseType =
+        inferrer.inferExpression(otherwise, typeContext, true);
+    // TODO(paulberry): the spec proposal says we should only use LUB if the
+    // typeContext is `null`.  If typeContext is non-null, we should use the
+    // greatest closure of the context with respect to `?`
+    DartType type = inferrer.typeSchemaEnvironment
+        .getLeastUpperBound(thenType, otherwiseType);
+    staticType = type;
+    var inferredType = typeNeeded ? type : null;
+    inferrer.listener.conditionalExpressionExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -143,16 +168,21 @@ class KernelConstructorInvocation extends ConstructorInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferConstructorInvocation(
+    typeNeeded =
+        inferrer.listener.constructorInvocationEnter(typeContext) || typeNeeded;
+    var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,
         fileOffset,
-        target,
+        target.function.functionType,
+        target.enclosingClass.thisType,
         _getExplicitTypeArguments(arguments),
         _forEachArgument(arguments), (types) {
       arguments.types.clear();
       arguments.types.addAll(types);
     });
+    inferrer.listener.constructorInvocationExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -218,7 +248,12 @@ class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferDoubleLiteral(typeContext, typeNeeded);
+    typeNeeded =
+        inferrer.listener.doubleLiteralEnter(typeContext) || typeNeeded;
+    var inferredType =
+        typeNeeded ? inferrer.coreTypes.doubleClass.rawType : null;
+    inferrer.listener.doubleLiteralExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -238,7 +273,7 @@ class KernelExpressionStatement extends ExpressionStatement
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    inferrer.inferExpressionStatement(expression);
+    inferrer.inferExpression(expression, null, false);
   }
 }
 
@@ -283,7 +318,10 @@ class KernelFunctionDeclaration extends FunctionDeclaration
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    inferrer.inferFunctionDeclaration(function.body);
+    var oldClosureContext = inferrer.closureContext;
+    inferrer.closureContext = null;
+    inferrer.inferStatement(function.body);
+    inferrer.closureContext = oldClosureContext;
   }
 }
 
@@ -300,11 +338,160 @@ class KernelFunctionExpression extends FunctionExpression
         asyncMarker == AsyncMarker.AsyncStar;
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
         asyncMarker == AsyncMarker.AsyncStar;
-    return inferrer.inferFunctionExpression(
-        typeContext, typeNeeded, function, isAsync, isGenerator, fileOffset,
-        (type) {
-      function.returnType = type;
-    }, () => function.functionType);
+    typeNeeded =
+        inferrer.listener.functionExpressionEnter(typeContext) || typeNeeded;
+    // TODO(paulberry): do we also need to visit default parameter values?
+
+    // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
+    // `n`=0 if there are no type parameters).
+    List<TypeParameter> typeParameters = function.typeParameters;
+
+    // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
+    // (including required, positional optional, and named optional parameters).
+    // If any type `Pi` is missing, denote it as `_`.
+    List<VariableDeclaration> formals = function.positionalParameters.toList()
+      ..addAll(function.namedParameters);
+
+    // Let `B` denote the closure body.  If `B` is an expression function body
+    // (`=> e`), treat it as equivalent to a block function body containing a
+    // single `return` statement (`{ return e; }`).
+
+    // Attempt to match `K` as a function type compatible with the closure (that
+    // is, one having n type parameters and a compatible set of formal
+    // parameters).  If there is a successful match, let `<S0, ..., Sn>` be the
+    // set of matched type parameters and `(Q0, ..., Qm)` be the set of matched
+    // formal parameter types, and let `N` be the return type.
+    Substitution substitution;
+    List<DartType> formalTypesFromContext =
+        new List<DartType>.filled(formals.length, null);
+    DartType returnContext;
+    if (inferrer.strongMode && typeContext is FunctionType) {
+      for (int i = 0; i < formals.length; i++) {
+        if (i < function.positionalParameters.length) {
+          formalTypesFromContext[i] =
+              inferrer.getPositionalParameterType(typeContext, i);
+        } else {
+          formalTypesFromContext[i] =
+              inferrer.getNamedParameterType(typeContext, formals[i].name);
+        }
+      }
+      returnContext = typeContext.returnType;
+
+      // Let `[T/S]` denote the type substitution where each `Si` is replaced with
+      // the corresponding `Ti`.
+      var substitutionMap = <TypeParameter, DartType>{};
+      for (int i = 0; i < typeContext.typeParameters.length; i++) {
+        substitutionMap[typeContext.typeParameters[i]] =
+            i < typeParameters.length
+                ? new TypeParameterType(typeParameters[i])
+                : const DynamicType();
+      }
+      substitution = Substitution.fromMap(substitutionMap);
+    } else {
+      // If the match is not successful because  `K` is `_`, let all `Si`, all
+      // `Qi`, and `N` all be `_`.
+
+      // If the match is not successful for any other reason, this will result in
+      // a type error, so the implementation is free to choose the best error
+      // recovery path.
+      substitution = Substitution.empty;
+    }
+
+    // Define `Ri` as follows: if `Pi` is not `_`, let `Ri` be `Pi`.
+    // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
+    // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
+    for (int i = 0; i < formals.length; i++) {
+      KernelVariableDeclaration formal = formals[i];
+      if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+        if (formalTypesFromContext[i] != null) {
+          var inferredType = greatestClosure(inferrer.coreTypes,
+              substitution.substituteType(formalTypesFromContext[i]));
+          inferrer.instrumentation?.record(
+              Uri.parse(inferrer.uri),
+              formal.fileOffset,
+              'type',
+              new InstrumentationValueForType(inferredType));
+          formal.type = inferredType;
+        }
+      }
+    }
+
+    // Let `N’` be `N[T/S]`, adjusted accordingly if the closure is declared
+    // with `async`, `async*`, or `sync*`.
+    if (returnContext != null) {
+      returnContext = substitution.substituteType(returnContext);
+    }
+    if (isGenerator) {
+      if (isAsync) {
+        returnContext = inferrer.getTypeArgumentOf(
+            returnContext, inferrer.coreTypes.streamClass);
+      } else {
+        returnContext = inferrer.getTypeArgumentOf(
+            returnContext, inferrer.coreTypes.iterableClass);
+      }
+    } else if (isAsync) {
+      // TODO(paulberry): do we have to handle FutureOr<> here?
+      returnContext = inferrer.getTypeArgumentOf(
+          returnContext, inferrer.coreTypes.futureClass);
+    }
+
+    // Apply type inference to `B` in return context `N’`, with any references
+    // to `xi` in `B` having type `Pi`.  This produces `B’`.
+    bool isExpressionFunction = function.body is ReturnStatement;
+    bool needToSetReturnType = isExpressionFunction || inferrer.strongMode;
+    ClosureContext oldClosureContext = inferrer.closureContext;
+    inferrer.closureContext =
+        new ClosureContext(isAsync, isGenerator, returnContext);
+    inferrer.inferStatement(function.body);
+
+    // If the closure is declared with `async*` or `sync*`, let `M` be the least
+    // upper bound of the types of the `yield` expressions in `B’`, or `void` if
+    // `B’` contains no `yield` expressions.  Otherwise, let `M` be the least
+    // upper bound of the types of the `return` expressions in `B’`, or `void`
+    // if `B’` contains no `return` expressions.
+    DartType inferredReturnType;
+    if (needToSetReturnType || typeNeeded) {
+      inferredReturnType = inferrer.inferReturnType(
+          inferrer.closureContext.inferredReturnType, isExpressionFunction);
+      if (!isExpressionFunction &&
+          returnContext != null &&
+          !inferrer.typeSchemaEnvironment
+              .isSubtypeOf(inferredReturnType, returnContext)) {
+        // For block-bodied functions, if the inferred return type isn't a
+        // subtype of the context, we use the context.  TODO(paulberry): this is
+        // inherited from analyzer; it's not part of the spec.  See also
+        // dartbug.com/29606.
+        inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
+      }
+
+      // Let `M’` be `M`, adjusted accordingly if the closure is declared with
+      // `async`, `async*`, or `sync*`.
+      if (isGenerator) {
+        if (isAsync) {
+          inferredReturnType = inferrer.wrapType(
+              inferredReturnType, inferrer.coreTypes.streamClass);
+        } else {
+          inferredReturnType = inferrer.wrapType(
+              inferredReturnType, inferrer.coreTypes.iterableClass);
+        }
+      } else if (isAsync) {
+        inferredReturnType = inferrer.wrapType(
+            inferredReturnType, inferrer.coreTypes.futureClass);
+      }
+    }
+
+    // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
+    // type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and `xi`
+    // denoted as optional or named parameters, if appropriate).
+    if (needToSetReturnType) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'returnType', new InstrumentationValueForType(inferredReturnType));
+      function.returnType = inferredReturnType;
+    }
+    inferrer.closureContext = oldClosureContext;
+    var inferredType = typeNeeded ? function.functionType : null;
+    inferrer.listener.functionExpressionExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -315,7 +502,10 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    inferrer.inferIfStatement(condition, then, otherwise);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
+    inferrer.inferStatement(then);
+    if (otherwise != null) inferrer.inferStatement(otherwise);
   }
 }
 
@@ -326,7 +516,10 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferIntLiteral(typeContext, typeNeeded);
+    typeNeeded = inferrer.listener.intLiteralEnter(typeContext) || typeNeeded;
+    var inferredType = typeNeeded ? inferrer.coreTypes.intClass.rawType : null;
+    inferrer.listener.intLiteralExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -337,7 +530,11 @@ class KernelIsExpression extends IsExpression implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferIsExpression(typeContext, typeNeeded, operand);
+    typeNeeded = inferrer.listener.isExpressionEnter(typeContext) || typeNeeded;
+    inferrer.inferExpression(operand, null, false);
+    var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
+    inferrer.listener.isExpressionExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -350,8 +547,12 @@ class KernelIsNotExpression extends Not implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     IsExpression isExpression = this.operand;
-    return inferrer.inferIsExpression(
-        typeContext, typeNeeded, isExpression.operand);
+    typeNeeded =
+        inferrer.listener.isNotExpressionEnter(typeContext) || typeNeeded;
+    inferrer.inferExpression(isExpression.operand, null, false);
+    var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
+    inferrer.listener.isNotExpressionExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -369,11 +570,53 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferListLiteral(
-        typeContext, typeNeeded, fileOffset, _declaredTypeArgument, expressions,
-        (type) {
-      typeArgument = type;
-    });
+    typeNeeded = inferrer.listener.listLiteralEnter(typeContext) || typeNeeded;
+    var listClass = inferrer.coreTypes.listClass;
+    var listType = listClass.thisType;
+    List<DartType> inferredTypes;
+    DartType inferredTypeArgument;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    bool inferenceNeeded = _declaredTypeArgument == null && inferrer.strongMode;
+    if (inferenceNeeded) {
+      inferredTypes = [const UnknownType()];
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(listType,
+          listClass.typeParameters, null, null, typeContext, inferredTypes);
+      inferredTypeArgument = inferredTypes[0];
+      formalTypes = [];
+      actualTypes = [];
+    } else {
+      inferredTypeArgument = _declaredTypeArgument ?? const DynamicType();
+    }
+    for (var expression in expressions) {
+      var expressionType = inferrer.inferExpression(
+          expression, inferredTypeArgument, inferenceNeeded);
+      if (inferenceNeeded) {
+        formalTypes.add(listType.typeArguments[0]);
+        actualTypes.add(expressionType);
+      }
+    }
+    if (inferenceNeeded) {
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+          listType,
+          listClass.typeParameters,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          inferredTypes);
+      inferredTypeArgument = inferredTypes[0];
+      inferrer.instrumentation?.record(
+          Uri.parse(inferrer.uri),
+          fileOffset,
+          'typeArgs',
+          new InstrumentationValueForTypeArgs([inferredTypeArgument]));
+      typeArgument = inferredTypeArgument;
+    }
+    var inferredType = typeNeeded
+        ? new InterfaceType(listClass, [inferredTypeArgument])
+        : null;
+    inferrer.listener.listLiteralExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -422,25 +665,43 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferMethodInvocation(
+    typeNeeded =
+        inferrer.listener.methodInvocationEnter(typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the method that was invoked.
+    var receiverType = inferrer.inferExpression(receiver, null, true);
+    bool isOverloadedArithmeticOperator = false;
+    Member interfaceMember;
+    if (receiverType is InterfaceType) {
+      interfaceMember = inferrer.classHierarchy
+          .getInterfaceMember(receiverType.classNode, name);
+      if (interfaceMember is Procedure) {
+        // Our non-strong golden files currently don't include interface
+        // targets, so we can't store the interface target without causing tests
+        // to fail.  TODO(paulberry): fix this.
+        if (inferrer.strongMode) {
+          interfaceTarget = interfaceMember;
+        }
+        isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
+            .isOverloadedArithmeticOperator(interfaceMember);
+      }
+    }
+    var calleeType = inferrer.getCalleeFunctionType(
+        interfaceMember, receiverType, name, fileOffset);
+    var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,
         fileOffset,
-        receiver,
-        name,
+        calleeType,
+        calleeType.returnType,
         _getExplicitTypeArguments(arguments),
         _forEachArgument(arguments), (types) {
       arguments.types.clear();
       arguments.types.addAll(types);
-    }, (target) {
-      if (!inferrer.strongMode) {
-        // Our non-strong golden files currently don't include interface
-        // targets, so we can't store the interface target without causing tests
-        // to fail.  TODO(paulberry): fix this.
-        return;
-      }
-      interfaceTarget = target;
-    });
+    },
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType);
+    inferrer.listener.methodInvocationExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -461,7 +722,10 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferNullLiteral(typeContext, typeNeeded);
+    typeNeeded = inferrer.listener.nullLiteralEnter(typeContext) || typeNeeded;
+    var inferredType = typeNeeded ? inferrer.coreTypes.nullClass.rawType : null;
+    inferrer.listener.nullLiteralExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -516,7 +780,21 @@ class KernelReturnStatement extends ReturnStatement implements KernelStatement {
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    inferrer.inferReturnStatement(expression);
+    var closureContext = inferrer.closureContext;
+    var typeContext = closureContext != null && !closureContext.isGenerator
+        ? closureContext.returnContext
+        : null;
+    var inferredType = expression != null
+        ? inferrer.inferExpression(
+            expression, typeContext, closureContext != null)
+        : const VoidType();
+    if (expression == null) {
+      // Analyzer treats bare `return` statements as having no effect on the
+      // inferred type of the closure.  TODO(paulberry): is this what we want
+      // for Fasta?
+      return;
+    }
+    closureContext?.updateInferredReturnType(inferrer, inferredType);
   }
 }
 
@@ -536,7 +814,10 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferStaticGet(typeContext, typeNeeded, target.getterType);
+    typeNeeded = inferrer.listener.staticGetEnter(typeContext) || typeNeeded;
+    var inferredType = typeNeeded ? target.getterType : null;
+    inferrer.listener.staticGetExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -554,17 +835,22 @@ class KernelStaticInvocation extends StaticInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferStaticInvocation(
+    typeNeeded =
+        inferrer.listener.staticInvocationEnter(typeContext) || typeNeeded;
+    var calleeType = target.function.functionType;
+    var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,
         fileOffset,
-        target,
-        name,
+        calleeType,
+        calleeType.returnType,
         _getExplicitTypeArguments(arguments),
         _forEachArgument(arguments), (types) {
       arguments.types.clear();
       arguments.types.addAll(types);
     });
+    inferrer.listener.staticInvocationExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -591,8 +877,15 @@ class KernelStringConcatenation extends StringConcatenation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferStringConcatenation(
-        typeContext, typeNeeded, expressions);
+    typeNeeded =
+        inferrer.listener.stringConcatenationEnter(typeContext) || typeNeeded;
+    for (Expression expression in expressions) {
+      inferrer.inferExpression(expression, null, false);
+    }
+    var inferredType =
+        typeNeeded ? inferrer.coreTypes.stringClass.rawType : null;
+    inferrer.listener.stringConcatenationExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -603,7 +896,12 @@ class KernelStringLiteral extends StringLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferStringLiteral(typeContext, typeNeeded);
+    typeNeeded =
+        inferrer.listener.stringLiteralEnter(typeContext) || typeNeeded;
+    var inferredType =
+        typeNeeded ? inferrer.coreTypes.stringClass.rawType : null;
+    inferrer.listener.stringLiteralExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -956,10 +1254,15 @@ class KernelVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    inferrer.inferVariableDeclaration(
-        _implicitlyTyped ? null : type, initializer, fileOffset, (type) {
-      this.type = type;
-    });
+    var declaredType = _implicitlyTyped ? null : type;
+    if (initializer == null) return;
+    var inferredType = inferrer.inferDeclarationType(
+        inferrer.inferExpression(initializer, declaredType, _implicitlyTyped));
+    if (inferrer.strongMode && _implicitlyTyped) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'type', new InstrumentationValueForType(inferredType));
+      type = inferredType;
+    }
   }
 
   /// Determine whether the given [KernelVariableDeclaration] had an implicit
@@ -986,10 +1289,18 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
     var variable = this.variable as KernelVariableDeclaration;
     bool mutatedInClosure = variable._mutatedInClosure;
     DartType declaredOrInferredType = variable.type;
-    return inferrer.inferVariableGet(typeContext, typeNeeded, mutatedInClosure,
-        _fact, _scope, fileOffset, declaredOrInferredType, (type) {
-      promotedType = type;
-    });
+    typeNeeded = inferrer.listener.variableGetEnter(typeContext) || typeNeeded;
+    DartType promotedType = inferrer.typePromoter
+        .computePromotedType(_fact, _scope, mutatedInClosure);
+    if (promotedType != null) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'promotedType', new InstrumentationValueForType(promotedType));
+    }
+    this.promotedType = promotedType;
+    var inferredType =
+        typeNeeded ? (promotedType ?? declaredOrInferredType) : null;
+    inferrer.listener.variableGetExit(inferredType);
+    return inferredType;
   }
 }
 
@@ -1002,7 +1313,10 @@ class KernelVariableSet extends VariableSet implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var variable = this.variable as KernelVariableDeclaration;
-    return inferrer.inferVariableSet(
-        typeContext, typeNeeded, variable._declaredType, value);
+    typeNeeded = inferrer.listener.variableSetEnter(typeContext) || typeNeeded;
+    var inferredType =
+        inferrer.inferExpression(value, variable._declaredType, typeNeeded);
+    inferrer.listener.variableSetExit(inferredType);
+    return inferredType;
   }
 }
