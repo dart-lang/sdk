@@ -75,25 +75,26 @@ class TranslateUri {
         "convert": sdk.resolve("lib/convert/convert.dart"),
         "core": sdk.resolve("lib/core/core.dart"),
         "developer": sdk.resolve("lib/developer/developer.dart"),
-        "html": sdk.resolve("lib/html/dartium/html_dartium.dart"),
-        "html_common": sdk.resolve("lib/html/html_common/html_common.dart"),
+        "html": sdk.resolve("lib/html/dart2js/html_dart2js.dart"),
+        "html_common":
+            sdk.resolve("lib/html/html_common/html_common_dart2js.dart"),
         "indexed_db":
-            sdk.resolve("lib/indexed_db/dartium/indexed_db_dartium.dart"),
+            sdk.resolve("lib/indexed_db/dart2js/indexed_db_dart2js.dart"),
         "io": sdk.resolve("lib/io/io.dart"),
         "isolate": sdk.resolve("lib/isolate/isolate.dart"),
-        "js": sdk.resolve("lib/js/dartium/js_dartium.dart"),
-        "js_util": sdk.resolve("lib/js_util/dartium/js_util_dartium.dart"),
+        "js": sdk.resolve("lib/js/dart2js/js_dart2js.dart"),
+        "js_util": sdk.resolve("lib/js_util/dart2js/js_util_dart2js.dart"),
         "math": sdk.resolve("lib/math/math.dart"),
         "mirrors": sdk.resolve("lib/mirrors/mirrors.dart"),
         "nativewrappers": sdk.resolve("lib/html/dartium/nativewrappers.dart"),
         "profiler": sdk.resolve("lib/profiler/profiler.dart"),
-        "svg": sdk.resolve("lib/svg/dartium/svg_dartium.dart"),
+        "svg": sdk.resolve("lib/svg/dart2js/svg_dart2js.dart"),
         "typed_data": sdk.resolve("lib/typed_data/typed_data.dart"),
         "vmservice_io": sdk.resolve("lib/vmservice_io/vmservice_io.dart"),
         "web_audio":
-            sdk.resolve("lib/web_audio/dartium/web_audio_dartium.dart"),
-        "web_gl": sdk.resolve("lib/web_gl/dartium/web_gl_dartium.dart"),
-        "web_sql": sdk.resolve("lib/web_sql/dartium/web_sql_dartium.dart"),
+            sdk.resolve("lib/web_audio/dart2js/web_audio_dart2js.dart"),
+        "web_gl": sdk.resolve("lib/web_gl/dart2js/web_gl_dart2js.dart"),
+        "web_sql": sdk.resolve("lib/web_sql/dart2js/web_sql_dart2js.dart"),
       };
     }
     uri ??= Uri.base.resolve(".packages");

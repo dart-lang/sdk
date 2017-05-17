@@ -298,9 +298,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
+  Future<E> asFuture<E>([E futureValue]) {
     // We just need a future that will never succeed or fail.
-    var completer = new Completer/*<E>*/();
+    var completer = new Completer<E>();
     return completer.future;
   }
 }
