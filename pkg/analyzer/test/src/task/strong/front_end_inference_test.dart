@@ -205,6 +205,8 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
       ClassElement element = type.element;
       _appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
+    } else if (type.isBottom) {
+      buffer.write('<BottomType>');
     } else {
       buffer.write(type.toString());
     }

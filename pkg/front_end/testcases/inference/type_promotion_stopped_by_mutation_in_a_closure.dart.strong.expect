@@ -7,7 +7,7 @@ static method main() → dynamic {
   if(n is core::int) {
     core::num i = n;
   }
-  () → dynamic {
+  () → core::Null {
     n = null;
   };
 }

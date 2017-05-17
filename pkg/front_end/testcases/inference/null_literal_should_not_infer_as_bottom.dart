@@ -23,5 +23,6 @@ main() {
   (/*info:DYNAMIC_INVOKE*/ h.foo());
 
   foo(/*@returnType=int*/ (/*@type=Object*/ x) => null);
-  foo(/*@returnType=<bottom>*/ (/*@type=Object*/ x) => throw "not implemented");
+  foo(/*@returnType=<BottomType>*/ (/*@type=Object*/ x) =>
+      throw "not implemented");
 }

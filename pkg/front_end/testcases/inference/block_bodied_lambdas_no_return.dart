@@ -12,3 +12,5 @@ test1() {
           /*@returnType=Null*/ (/*@type=int*/ x) {});
   Iterable<int> z = y;
 }
+
+main() {}

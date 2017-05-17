@@ -691,8 +691,8 @@ class KernelThrow extends Throw implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    inferrer.inferExpression(expression, null, false);
+    return typeNeeded ? const BottomType() : null;
   }
 }
 

@@ -355,6 +355,9 @@ class TypeSchemaEnvironment extends TypeEnvironment {
   bool isBottom(DartType t) {
     if (t is UnknownType) {
       return true;
+    } else if (t is InterfaceType &&
+        identical(t.classNode, coreTypes.nullClass)) {
+      return true;
     } else {
       return super.isBottom(t);
     }

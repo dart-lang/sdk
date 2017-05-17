@@ -195,9 +195,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return inferredType;
   }
 
-  /// Modifies a type as appropriate when inferring a variable's type or a
-  /// closure return type.
-  DartType inferDeclarationOrReturnType(DartType initializerType) {
+  /// Modifies a type as appropriate when inferring a declared variable's type.
+  DartType inferDeclarationType(DartType initializerType) {
     if (initializerType is BottomType ||
         (initializerType is InterfaceType &&
             initializerType.classNode == coreTypes.nullClass)) {
@@ -386,8 +385,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType || typeNeeded) {
-      inferredReturnType =
-          inferDeclarationOrReturnType(_closureContext.inferredReturnType);
+      inferredReturnType = inferReturnType(
+          _closureContext.inferredReturnType, isExpressionFunction);
       if (!isExpressionFunction &&
           returnContext != null &&
           !typeSchemaEnvironment.isSubtypeOf(
@@ -598,7 +597,30 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var inferredType = expression != null
         ? inferExpression(expression, typeContext, closureContext != null)
         : const VoidType();
+    if (expression == null) {
+      // Analyzer treats bare `return` statements as having no effect on the
+      // inferred type of the closure.  TODO(paulberry): is this what we want
+      // for Fasta?
+      return;
+    }
     closureContext?.updateInferredReturnType(this, inferredType);
+  }
+
+  /// Modifies a type as appropriate when inferring a closure return type.
+  DartType inferReturnType(DartType returnType, bool isExpressionFunction) {
+    if (returnType == null) {
+      // Analyzer infers `Null` if there is no `return` expression; the spec
+      // says to return `void`.  TODO(paulberry): resolve this difference.
+      return coreTypes.nullClass.rawType;
+    }
+    if (isExpressionFunction &&
+        returnType is InterfaceType &&
+        identical(returnType.classNode, coreTypes.nullClass)) {
+      // Analyzer coerces `Null` to `dynamic` in expression functions; the spec
+      // doesn't say to do this.  TODO(paulberry): resolve this difference.
+      return const DynamicType();
+    }
+    return returnType;
   }
 
   /// Performs the core type inference algorithm for static variable getters.
@@ -690,7 +712,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferVariableDeclaration(DartType declaredType, Expression initializer,
       int offset, void setType(DartType type)) {
     if (initializer == null) return;
-    var inferredType = inferDeclarationOrReturnType(
+    var inferredType = inferDeclarationType(
         inferExpression(initializer, declaredType, declaredType == null));
     if (strongMode && declaredType == null) {
       instrumentation?.record(Uri.parse(uri), offset, 'type',
@@ -891,12 +913,9 @@ class _ClosureContext {
 
   _ClosureContext(this.isAsync, this.isGenerator, this.returnContext);
 
-  /// Gets the return type that was inferred for the current closure.
+  /// Gets the return type that was inferred for the current closure, or `null`
+  /// if there were no `return` statements.
   get inferredReturnType {
-    if (_inferredReturnType == null) {
-      // No return statement found.
-      return const VoidType();
-    }
     return _inferredReturnType;
   }
 
