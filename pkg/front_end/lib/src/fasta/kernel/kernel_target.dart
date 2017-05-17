@@ -101,7 +101,7 @@ class KernelTarget extends TargetImplementation {
   final Map<String, Source> uriToSource;
 
   SourceLoader<Library> loader;
-  Program program;
+  Program _program;
 
   final List errors = [];
 
@@ -225,14 +225,14 @@ class KernelTarget extends TargetImplementation {
       print(message);
       errors.add(message);
     }
-    program = erroneousProgram(isFullProgram);
+    _program = erroneousProgram(isFullProgram);
     return uri == null
-        ? new Future<Program>.value(program)
-        : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
+        ? new Future<Program>.value(_program)
+        : writeLinkedProgram(uri, _program, isFullProgram: isFullProgram);
   }
 
   @override
-  Future<Null> computeOutline({CanonicalName nameRoot}) async {
+  Future<Program> buildOutlines({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
     try {
       loader.createTypeInferenceEngine();
@@ -250,23 +250,24 @@ class KernelTarget extends TargetImplementation {
       installDefaultConstructors(sourceClasses);
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
-      program =
+      _program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
-      loader.computeHierarchy(program);
+      loader.computeHierarchy(_program);
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
+      return _program;
     } on InputError catch (e) {
-      await handleInputError(null, e, isFullProgram: false);
+      return handleInputError(null, e, isFullProgram: false);
     } catch (e, s) {
-      await reportCrash(e, s, loader?.currentUriForCrashReporting);
+      return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
   }
 
   Future<Null> writeOutline(Uri uri) async {
     try {
       if (uri != null) {
-        await writeLinkedProgram(uri, program, isFullProgram: false);
+        await writeLinkedProgram(uri, _program, isFullProgram: false);
       }
     } on InputError catch (e) {
       handleInputError(uri, e, isFullProgram: false);
@@ -275,11 +276,11 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  Future<Program> writeProgram(Uri uri,
-      {bool dumpIr: false, bool verify: false}) async {
+  @override
+  Future<Program> buildProgram() async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      return handleInputError(uri, null, isFullProgram: true);
+      return handleInputError(null, null, isFullProgram: true);
     }
     try {
       await loader.buildBodies();
@@ -288,14 +289,25 @@ class KernelTarget extends TargetImplementation {
       loader.finishNativeMethods();
       runBuildTransformations();
 
-      if (dumpIr) this.dumpIr();
-      if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
-        return handleInputError(uri, null, isFullProgram: true);
+        return handleInputError(null, null, isFullProgram: true);
       }
-      if (uri == null) return program;
-      return await writeLinkedProgram(uri, program, isFullProgram: true);
+      return _program;
+    } on InputError catch (e) {
+      return handleInputError(null, e, isFullProgram: true);
+    } catch (e, s) {
+      return reportCrash(e, s, loader?.currentUriForCrashReporting);
+    }
+  }
+
+  Future<Null> writeProgram(Uri uri,
+      {bool dumpIr: false, bool verify: false}) async {
+    if (loader.first == null) return null;
+    try {
+      if (dumpIr) this.dumpIr();
+      if (verify) this.verify();
+      await writeLinkedProgram(uri, _program, isFullProgram: true);
     } on InputError catch (e) {
       return handleInputError(uri, e, isFullProgram: true);
     } catch (e, s) {
@@ -691,18 +703,18 @@ class KernelTarget extends TargetImplementation {
   void runLinkTransformations(Program program) {}
 
   void transformMixinApplications() {
-    new MixinFullResolution().transform(program);
+    new MixinFullResolution().transform(_program);
     ticker.logMs("Transformed mixin applications");
   }
 
   void otherTransformations() {
     // TODO(ahe): Don't generate type variables in the first place.
     if (!strongMode) {
-      program.accept(new Erasure());
+      _program.accept(new Erasure());
       ticker.logMs("Erased type variables in generic methods");
     }
     // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformProgram(program);
+    transformAsync.transformProgram(_program);
     ticker.logMs("Transformed async methods");
   }
 
@@ -717,7 +729,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void verify() {
-    errors.addAll(verifyProgram(program));
+    errors.addAll(verifyProgram(_program));
     ticker.logMs("Verified program");
   }
 }

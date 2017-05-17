@@ -6,12 +6,14 @@ library fasta.target;
 
 import 'dart:async' show Future;
 
+import 'package:kernel/ast.dart';
 import 'ticker.dart' show Ticker;
 
 /// A compilation target.
 ///
-/// A target reads source files with [read] and computes outlines when
-/// [computeOutline] is called.
+/// A target reads source files with [read], builds outlines when
+/// [buildOutlines] is called and builds the full program when [buildProgram]
+/// is called.
 abstract class Target {
   final Ticker ticker;
 
@@ -20,9 +22,9 @@ abstract class Target {
   /// Instructs this target to include [uri] in its result.
   void read(Uri uri);
 
-  /// Compute outlines for all [read] URIs.
-  Future<Null> computeOutline();
+  /// Build and return outlines for all libraries.
+  Future<Program> buildOutlines();
 
-  /// Write the resulting program in the file [uri].
-  Future writeProgram(Uri uri);
+  /// Build and return the full program for all libraries.
+  Future<Program> buildProgram();
 }

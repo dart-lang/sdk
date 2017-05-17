@@ -34,16 +34,17 @@ class DillTarget extends TargetImplementation {
     internalError("Unsupported operation.");
   }
 
-  Future<Null> writeProgram(Uri uri) {
+  @override
+  Future<Null> buildProgram() {
     return internalError("not implemented.");
   }
 
   @override
-  Future<Null> computeOutline() async {
-    if (loader.libraries.isEmpty) return null;
-    await loader.buildOutlines();
+  Future<Null> buildOutlines() async {
+    if (loader.libraries.isNotEmpty) {
+      await loader.buildOutlines();
+    }
     isLoaded = true;
-    return null;
   }
 
   DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {

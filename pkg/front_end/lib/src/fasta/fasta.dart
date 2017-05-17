@@ -144,8 +144,8 @@ class CompileTask {
     } else {
       inputError(uri, -1, "Unexpected input: $uri");
     }
-    await dillTarget.computeOutline();
-    await kernelTarget.computeOutline();
+    await dillTarget.buildOutlines();
+    await kernelTarget.buildOutlines();
     await kernelTarget.writeOutline(output);
     if (c.options.dumpIr && output != null) {
       kernelTarget.dumpIr();
@@ -157,6 +157,7 @@ class CompileTask {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
+    await kernelTarget.buildProgram();
     await kernelTarget.writeProgram(uri,
         dumpIr: c.options.dumpIr, verify: c.options.verify);
     return uri;
@@ -194,9 +195,9 @@ Future<CompilationResult> parseScriptInFileSystem(
       final KernelTarget kernelTarget =
           new KernelTarget(fileSystem, dillTarget, uriTranslator, strongMode);
       kernelTarget.read(fileName);
-      await dillTarget.computeOutline();
-      await kernelTarget.computeOutline();
-      program = await kernelTarget.writeProgram(null);
+      await dillTarget.buildOutlines();
+      await kernelTarget.buildOutlines();
+      program = await kernelTarget.buildProgram();
       if (kernelTarget.errors.isNotEmpty) {
         return new CompilationResult.errors(kernelTarget.errors
             .map((err) => err.toString())
@@ -267,7 +268,7 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
         dillTarget, uriTranslator, false, c.uriToSource);
 
     kernelTarget.read(script);
-    await dillTarget.computeOutline();
+    await dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
     await kernelTarget.writeDepsFile(output, depsFile,
         extraDependencies: extraDependencies);

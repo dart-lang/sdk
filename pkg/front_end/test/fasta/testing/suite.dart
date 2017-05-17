@@ -216,17 +216,16 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     Program p;
     try {
       sourceTarget.read(description.uri);
-      await dillTarget.computeOutline();
+      await dillTarget.buildOutlines();
       ValidatingInstrumentation instrumentation;
       if (strongMode) {
         instrumentation = new ValidatingInstrumentation();
         await instrumentation.loadExpectations(description.uri);
         sourceTarget.loader.instrumentation = instrumentation;
       }
-      await sourceTarget.computeOutline();
-      p = sourceTarget.program;
+      p = await sourceTarget.buildOutlines();
       if (fullCompile) {
-        p = await sourceTarget.writeProgram(null);
+        p = await sourceTarget.buildProgram();
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {

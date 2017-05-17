@@ -45,11 +45,12 @@ Future compilePlatform(Uri patchedSdk, Uri fullOutput,
       new KernelTargetForDart2js(dillTarget, uriTranslator, false);
 
   kernelTarget.read(Uri.parse("dart:core"));
-  await dillTarget.computeOutline();
-  await kernelTarget.computeOutline();
+  await dillTarget.buildOutlines();
+  await kernelTarget.buildOutlines();
   await kernelTarget.writeOutline(outlineOutput);
 
   if (exitCode != 0) return null;
+  await kernelTarget.buildProgram();
   await kernelTarget.writeProgram(fullOutput);
   await kernelTarget.writeDepsFile(fullOutput, deps);
 }

@@ -173,7 +173,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
             .appendLibraries(program, (uri) => libraryUris.contains(uri));
 
         // Compute local scopes.
-        await dillTarget.computeOutline();
+        await dillTarget.buildOutlines();
 
         // Compute export scopes.
         _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
@@ -203,8 +203,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       // Compile the cycle libraries into a new full program.
       Program program = await _logger
           .runAsync('Compile ${cycle.libraries.length} libraries', () async {
-        await kernelTarget.computeOutline(nameRoot: nameRoot);
-        return await kernelTarget.writeProgram(null);
+        await kernelTarget.buildOutlines(nameRoot: nameRoot);
+        return await kernelTarget.buildProgram();
       });
 
       // Add newly compiled libraries into DILL.
