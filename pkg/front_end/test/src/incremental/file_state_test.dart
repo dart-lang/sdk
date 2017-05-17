@@ -93,10 +93,10 @@ export "c.dart" show A, B, C, D hide C show A, D;
       expect(export_.combinators, hasLength(1));
       expect(export_.combinators[0].isShow, isTrue);
       expect(export_.combinators[0].names, unorderedEquals(['A', 'B']));
-      expect(export_.filter('A'), isTrue);
-      expect(export_.filter('B'), isTrue);
-      expect(export_.filter('C'), isFalse);
-      expect(export_.filter('D'), isFalse);
+      expect(export_.isExposed('A'), isTrue);
+      expect(export_.isExposed('B'), isTrue);
+      expect(export_.isExposed('C'), isFalse);
+      expect(export_.isExposed('D'), isFalse);
     }
     {
       NamespaceExport export_ = dFile.exports[1];
@@ -104,10 +104,10 @@ export "c.dart" show A, B, C, D hide C show A, D;
       expect(export_.combinators, hasLength(1));
       expect(export_.combinators[0].isShow, isFalse);
       expect(export_.combinators[0].names, unorderedEquals(['C', 'D']));
-      expect(export_.filter('A'), isTrue);
-      expect(export_.filter('B'), isTrue);
-      expect(export_.filter('C'), isFalse);
-      expect(export_.filter('D'), isFalse);
+      expect(export_.isExposed('A'), isTrue);
+      expect(export_.isExposed('B'), isTrue);
+      expect(export_.isExposed('C'), isFalse);
+      expect(export_.isExposed('D'), isFalse);
     }
     {
       NamespaceExport export_ = dFile.exports[2];
@@ -120,10 +120,10 @@ export "c.dart" show A, B, C, D hide C show A, D;
       expect(export_.combinators[1].names, unorderedEquals(['C']));
       expect(export_.combinators[2].isShow, isTrue);
       expect(export_.combinators[2].names, unorderedEquals(['A', 'D']));
-      expect(export_.filter('A'), isTrue);
-      expect(export_.filter('B'), isFalse);
-      expect(export_.filter('C'), isFalse);
-      expect(export_.filter('D'), isTrue);
+      expect(export_.isExposed('A'), isTrue);
+      expect(export_.isExposed('B'), isFalse);
+      expect(export_.isExposed('C'), isFalse);
+      expect(export_.isExposed('D'), isTrue);
     }
   }
 

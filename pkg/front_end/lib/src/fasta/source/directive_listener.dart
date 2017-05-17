@@ -6,12 +6,11 @@
 /// import, part, and export directives.
 library front_end.src.fasta.source.directive_listener;
 
+import '../../scanner/token.dart' show Token;
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 import '../parser/identifier_context.dart';
 import '../parser/listener.dart';
 import '../quote.dart';
-import '../../scanner/token.dart' show Token;
-import 'stack_listener.dart';
 
 /// Listener that records imports, exports, and part directives.
 ///
@@ -21,95 +20,91 @@ import 'stack_listener.dart';
 /// any top-level declaration, but we recommend to continue parsing the entire
 /// file in order to gracefully handle input errors.
 class DirectiveListener extends Listener {
-  final Stack _stack = new Stack();
+  /// Import directives with URIs and combinators.
+  final List<NamespaceDirective> imports = <NamespaceDirective>[];
 
   /// Export directives with URIs and combinators.
-  final List<ImportDirective> imports = <ImportDirective>[];
-
-  /// Export directives with URIs and combinators.
-  final List<ExportDirective> exports = <ExportDirective>[];
+  final List<NamespaceDirective> exports = <NamespaceDirective>[];
 
   /// Collects URIs that occur on any part directive.
   final Set<String> parts = new Set<String>();
 
-  bool _inDirective = false;
+  bool _inPart = false;
+  String _uri;
+  List<NamespaceCombinator> _combinators;
+  List<String> _combinatorNames;
 
   DirectiveListener();
 
   @override
-  beginExport(_) {
-    _inDirective = true;
+  beginExport(Token export) {
+    _combinators = <NamespaceCombinator>[];
   }
 
   @override
-  beginImport(_) {
-    _inDirective = true;
+  void beginHide(Token hide) {
+    _combinatorNames = <String>[];
+  }
+
+  @override
+  beginImport(Token import) {
+    _combinators = <NamespaceCombinator>[];
   }
 
   @override
   void beginLiteralString(Token token) {
-    if (_inDirective) {
-      _push(unescapeString(token.lexeme));
+    if (_combinators != null || _inPart) {
+      _uri = unescapeString(token.lexeme);
     }
   }
 
   @override
-  beginPart(_) {
-    _inDirective = true;
+  beginPart(Token part) {
+    _inPart = true;
   }
 
   @override
-  void endCombinators(int count) {
-    List<String> names = _popList(count);
-    _push(names);
+  void beginShow(Token show) {
+    _combinatorNames = <String>[];
   }
 
   @override
-  endExport(export, semicolon) {
-    List<NamespaceCombinator> combinators = _pop();
-    String uri = _pop();
-    exports.add(new ExportDirective(uri, combinators));
-    _inDirective = false;
+  endExport(Token export, Token semicolon) {
+    exports.add(new NamespaceDirective.export(_uri, _combinators));
+    _uri = null;
+    _combinators = null;
   }
 
   @override
-  void endHide(Token hideKeyword) {
-    List<String> names = _pop();
-    _push(new NamespaceCombinator.hide(names));
+  void endHide(Token hide) {
+    _combinators.add(new NamespaceCombinator.hide(_combinatorNames));
+    _combinatorNames = null;
   }
 
   @override
-  void endIdentifierList(int count) {
-    if (_inDirective) {
-      _push(_popList(count) ?? <String>[]);
-    }
+  endImport(Token import, Token deferred, Token asKeyword, Token semicolon) {
+    imports.add(new NamespaceDirective.import(_uri, _combinators));
+    _uri = null;
+    _combinators = null;
   }
 
   @override
-  endImport(import, deferred, asKeyword, semicolon) {
-    List<NamespaceCombinator> combinators = _pop();
-    String uri = _pop();
-    imports.add(new ImportDirective(uri, combinators));
-    _inDirective = false;
+  endPart(Token part, Token semicolon) {
+    parts.add(_uri);
+    _uri = null;
+    _inPart = false;
   }
 
   @override
-  endPart(part, semicolon) {
-    String uri = _pop();
-    parts.add(uri);
-    _inDirective = false;
-  }
-
-  @override
-  void endShow(Token showKeyword) {
-    List<String> names = _pop();
-    _push(new NamespaceCombinator.show(names));
+  void endShow(Token show) {
+    _combinators.add(new NamespaceCombinator.show(_combinatorNames));
+    _combinatorNames = null;
   }
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
-    if (_inDirective && context == IdentifierContext.combinator) {
-      _push(token.lexeme);
+    if (_combinatorNames != null && context == IdentifierContext.combinator) {
+      _combinatorNames.add(token.lexeme);
     }
   }
 
@@ -125,33 +120,6 @@ class DirectiveListener extends Listener {
     }
     return super.handleUnrecoverableError(token, message);
   }
-
-  T _pop<T>() {
-    var value = _stack.pop() as T;
-    return value;
-  }
-
-  List<T> _popList<T>(int n) {
-    return _stack.popList(n);
-  }
-
-  void _push<T>(T value) {
-    _stack.push(value);
-  }
-}
-
-class ExportDirective {
-  final String uri;
-  final List<NamespaceCombinator> combinators;
-
-  ExportDirective(this.uri, this.combinators);
-}
-
-class ImportDirective {
-  final String uri;
-  final List<NamespaceCombinator> combinators;
-
-  ImportDirective(this.uri, this.combinators);
 }
 
 class NamespaceCombinator {
@@ -165,4 +133,14 @@ class NamespaceCombinator {
   NamespaceCombinator.show(List<String> names)
       : isShow = true,
         names = names.toSet();
+}
+
+class NamespaceDirective {
+  final bool isImport;
+  final String uri;
+  final List<NamespaceCombinator> combinators;
+
+  NamespaceDirective.export(this.uri, this.combinators) : isImport = false;
+
+  NamespaceDirective.import(this.uri, this.combinators) : isImport = true;
 }

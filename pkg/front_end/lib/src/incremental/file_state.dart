@@ -135,14 +135,14 @@ class FileState {
         _importedLibraries.add(coreFile);
       }
     }
-    for (ImportDirective import_ in listener.imports) {
+    for (NamespaceDirective import_ in listener.imports) {
       FileState file = await _getFileForRelativeUri(import_.uri);
       if (file != null) {
         _importedLibraries.add(file);
       }
     }
     await _addVmTargetImportsForCore();
-    for (ExportDirective export_ in listener.exports) {
+    for (NamespaceDirective export_ in listener.exports) {
       FileState file = await _getFileForRelativeUri(export_.uri);
       if (file != null) {
         _exportedLibraries.add(file);
@@ -287,7 +287,7 @@ class NamespaceExport {
   NamespaceExport(this.library, this.combinators);
 
   /// Return `true` if the [name] satisfies the sequence of the [combinators].
-  bool filter(String name) {
+  bool isExposed(String name) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator.isShow) {
         if (!combinator.names.contains(name)) {
