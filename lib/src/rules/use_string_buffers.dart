@@ -113,15 +113,18 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    if (node.operator.type == TokenType.PLUS_EQ) {
-      final identifier = _getSimpleIdentifier(node.leftHandSide);
-      if (identifier != null) {
-        _visitSimpleIdentifier(identifier);
+    if (node.operator.type != TokenType.PLUS_EQ &&
+        node.operator.type != TokenType.EQ) return;
+
+    final identifier = _getSimpleIdentifier(node.leftHandSide);
+    if (identifier != null &&
+        DartTypeUtilities.isClass(identifier.bestType, 'String', 'dart.core')) {
+      if (node.operator.type == TokenType.PLUS_EQ &&
+          !localElements.contains(
+              DartTypeUtilities.getCanonicalElement(identifier.bestElement))) {
+        rule.reportLint(node);
       }
-    }
-    if (node.operator.type == TokenType.EQ) {
-      final identifier = _getSimpleIdentifier(node.leftHandSide);
-      if (identifier != null) {
+      if (node.operator.type == TokenType.EQ) {
         final visitor = new _IdentifierIsPrefixVisitor(rule, identifier);
         node.rightHandSide.accept(visitor);
       }
@@ -147,14 +150,6 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (final variable in node.variables.variables) {
       localElements.add(variable.element);
-    }
-  }
-
-  void _visitSimpleIdentifier(SimpleIdentifier node) {
-    if (DartTypeUtilities.isClass(node.bestType, 'String', 'dart.core') &&
-        !localElements.contains(
-            DartTypeUtilities.getCanonicalElement(node.bestElement))) {
-      rule.reportLint(node);
     }
   }
 }
