@@ -100,6 +100,12 @@ class TypeInferenceListener {
   void staticGetExit(DartType inferredType) =>
       debugExpressionExit("staticGet", inferredType);
 
+  bool staticInvocationEnter(DartType typeContext) =>
+      debugExpressionEnter("staticInvocation", typeContext);
+
+  void staticInvocationExit(DartType inferredType) =>
+      debugExpressionExit("staticInvocation", inferredType);
+
   bool stringConcatenationEnter(DartType typeContext) =>
       debugExpressionEnter("stringConcatenation", typeContext);
 

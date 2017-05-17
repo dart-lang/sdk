@@ -10,3 +10,7 @@ var /*@topType=List<dynamic>*/ v = f<dynamic>(
     /*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

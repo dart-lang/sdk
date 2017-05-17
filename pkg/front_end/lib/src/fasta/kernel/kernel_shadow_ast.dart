@@ -554,8 +554,17 @@ class KernelStaticInvocation extends StaticInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferStaticInvocation(
+        typeContext,
+        typeNeeded,
+        fileOffset,
+        target,
+        name,
+        _getExplicitTypeArguments(arguments),
+        _forEachArgument(arguments), (types) {
+      arguments.types.clear();
+      arguments.types.addAll(types);
+    });
   }
 }
 

@@ -547,8 +547,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     typeNeeded = listener.methodInvocationEnter(typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = inferExpression(receiver, null, true);
-    // TODO(paulberry): can we share some of the code below with
-    // inferConstructorInvocation?
     bool isOverloadedArithmeticOperator = false;
     Member interfaceMember;
     if (receiverType is InterfaceType) {
@@ -615,6 +613,44 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     typeNeeded = listener.staticGetEnter(typeContext) || typeNeeded;
     var inferredType = typeNeeded ? getterType : null;
     listener.staticGetExit(inferredType);
+    return inferredType;
+  }
+
+  /// Performs the core type inference algorithm for method invocations.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  ///
+  /// [offset] is the location of the method invocation in the source file.
+  /// [receiver] is the object whose method is being invoked, and [methodName]
+  /// is the name of the method.  [explicitTypeArguments] is the set of type
+  /// arguments explicitly provided, or `null` if no type arguments were
+  /// provided.  [forEachArgument] is a callback which can be used to iterate
+  /// through all invocation arguments (both named and positional).
+  /// [setInferredTypeArguments] is a callback which can be used to record the
+  /// inferred type arguments.  [setInterfaceTarget] is a callback which can be
+  /// used to record the method being invoked.
+  DartType inferStaticInvocation(
+      DartType typeContext,
+      bool typeNeeded,
+      int offset,
+      Procedure target,
+      Name methodName,
+      List<DartType> explicitTypeArguments,
+      void forEachArgument(void callback(String name, Expression expression)),
+      void setInferredTypeArguments(List<DartType> types)) {
+    typeNeeded = listener.staticInvocationEnter(typeContext) || typeNeeded;
+    var calleeType = target.function.functionType;
+    var inferredType = _inferInvocation(
+        typeContext,
+        typeNeeded,
+        offset,
+        calleeType,
+        calleeType.returnType,
+        explicitTypeArguments,
+        forEachArgument,
+        setInferredTypeArguments);
+    listener.staticInvocationExit(inferredType);
     return inferredType;
   }
 
@@ -789,6 +825,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         calleeTypeParameters.length == explicitTypeArguments.length) {
       substitution =
           Substitution.fromPairs(calleeTypeParameters, explicitTypeArguments);
+    } else if (calleeTypeParameters.length != 0) {
+      substitution = Substitution.fromPairs(
+          calleeTypeParameters,
+          new List<DartType>.filled(
+              calleeTypeParameters.length, const DynamicType()));
     }
     int i = 0;
     forEachArgument((name, expression) {

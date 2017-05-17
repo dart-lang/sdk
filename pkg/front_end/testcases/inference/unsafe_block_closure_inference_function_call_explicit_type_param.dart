@@ -9,3 +9,7 @@ List<T> f<T>(T g()) => <T>[g()];
 var /*@topType=List<int>*/ v = f<int>(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}
