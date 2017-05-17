@@ -158,9 +158,9 @@ class CompileTask {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
-    var program = await kernelTarget.buildProgram();
+    var program = await kernelTarget.buildProgram(verify: c.options.verify);
     if (c.options.dumpIr) printProgramText(program);
-    await kernelTarget.writeProgram(uri, verify: c.options.verify);
+    await kernelTarget.writeProgram(uri);
     return uri;
   }
 }
@@ -200,9 +200,7 @@ Future<CompilationResult> parseScriptInFileSystem(
       await kernelTarget.buildOutlines();
       program = await kernelTarget.buildProgram();
       if (kernelTarget.errors.isNotEmpty) {
-        return new CompilationResult.errors(kernelTarget.errors
-            .map((err) => err.toString())
-            .toList(growable: false));
+        return new CompilationResult.errors(kernelTarget.errors);
       }
     } on InputError catch (e) {
       return new CompilationResult.error(e.format());

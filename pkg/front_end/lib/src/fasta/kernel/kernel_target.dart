@@ -101,7 +101,7 @@ class KernelTarget extends TargetImplementation {
   SourceLoader<Library> loader;
   Program _program;
 
-  final List errors = [];
+  final List<String> errors = <String>[];
 
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
@@ -119,8 +119,9 @@ class KernelTarget extends TargetImplementation {
   void addError(file, int charOffset, String message) {
     Uri uri = file is String ? Uri.parse(file) : file;
     InputError error = new InputError(uri, charOffset, message);
-    print(error.format());
-    errors.add(error);
+    String formatterMessage = error.format();
+    print(formatterMessage);
+    errors.add(formatterMessage);
   }
 
   SourceLoader<Library> createLoader() =>
@@ -275,7 +276,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   @override
-  Future<Program> buildProgram() async {
+  Future<Program> buildProgram({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
       return handleInputError(null, null, isFullProgram: true);
@@ -287,6 +288,7 @@ class KernelTarget extends TargetImplementation {
       loader.finishNativeMethods();
       runBuildTransformations();
 
+      if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         return handleInputError(null, null, isFullProgram: true);
@@ -299,10 +301,9 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  Future<Null> writeProgram(Uri uri, {bool verify: false}) async {
+  Future<Null> writeProgram(Uri uri) async {
     if (loader.first == null) return null;
     try {
-      if (verify) this.verify();
       await writeLinkedProgram(uri, _program, isFullProgram: true);
     } on InputError catch (e) {
       return handleInputError(uri, e, isFullProgram: true);
@@ -715,7 +716,8 @@ class KernelTarget extends TargetImplementation {
   }
 
   void verify() {
-    errors.addAll(verifyProgram(_program));
+    var verifyErrors = verifyProgram(_program);
+    errors.addAll(verifyErrors.map((error) => '$error'));
     ticker.logMs("Verified program");
   }
 }

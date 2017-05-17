@@ -67,7 +67,7 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
     Program program = await kernelTarget.buildProgram();
 
     if (kernelTarget.errors.isNotEmpty) {
-      kernelTarget.errors.forEach((e) => report('$e'));
+      kernelTarget.errors.forEach(report);
       return null;
     }
 

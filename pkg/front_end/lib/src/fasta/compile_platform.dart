@@ -80,8 +80,8 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
   await kernelTarget.writeOutline(outlineOutput);
 
   if (exitCode != 0) return null;
-  var program = await kernelTarget.buildProgram();
+  var program = await kernelTarget.buildProgram(verify: c.options.verify);
   if (c.options.dumpIr) printProgramText(program);
-  await kernelTarget.writeProgram(fullOutput, verify: c.options.verify);
+  await kernelTarget.writeProgram(fullOutput);
   await kernelTarget.writeDepsFile(fullOutput, deps);
 }
