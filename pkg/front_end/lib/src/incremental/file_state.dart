@@ -48,9 +48,7 @@ class FileState {
   /// The content of the file.
   List<int> get content => _content;
 
-  /**
-   * The MD5 hash of the [content].
-   */
+  /// The MD5 hash of the [content].
   List<int> get contentHash => _contentHash;
 
   /// Libraries that this library file directly imports or exports.

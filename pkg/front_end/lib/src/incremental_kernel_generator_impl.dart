@@ -148,7 +148,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
             .expand((files) => files)
             .toSet();
         signatureBuilder.addInt(transitiveFiles.length);
-        for (FileState file in transitiveFiles) {
+        for (var file in transitiveFiles) {
           signatureBuilder.addString(file.uri.toString());
           // TODO(scheglov) use API signature
           signatureBuilder.addBytes(file.contentHash);
@@ -157,11 +157,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       }
 
       _logger.writeln('Signature: $signature.');
-      String kernelKey = '$signature.kernel';
+      var kernelKey = '$signature.kernel';
 
       // We need kernel libraries for these URIs.
-      Set<Uri> libraryUris = new Set<Uri>();
-      Map<Uri, FileState> libraryUriToFile = {};
+      var libraryUris = new Set<Uri>();
+      var libraryUriToFile = <Uri, FileState>{};
       for (FileState library in cycle.libraries) {
         Uri uri = library.uri;
         libraryUris.add(uri);
@@ -256,8 +256,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// Refresh all the invalidated files and update dependencies.
   Future<Null> _refreshInvalidatedFiles() async {
     await _logger.runAsync('Refresh invalidated files', () async {
-      for (Uri fileUri in _invalidatedFiles) {
-        FileState file = await _fsState.getFile(fileUri);
+      for (var fileUri in _invalidatedFiles) {
+        var file = await _fsState.getFile(fileUri);
         await file.refresh();
       }
       _invalidatedFiles.clear();
@@ -285,8 +285,8 @@ class _LibraryCycleResult {
   /// TODO(scheglov) Or use tree shaking and compute signatures of outlines.
   final String signature;
 
-  /// Kernel libraries for libraries in the [cycle].  Dependencies are not
-  /// included, they were returned as results for preceding cycles.
+  /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
+  /// are not included, but but references to those dependencies are included.
   final List<Library> kernelLibraries;
 
   _LibraryCycleResult(this.cycle, this.signature, this.kernelLibraries);
