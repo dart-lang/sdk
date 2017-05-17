@@ -5,8 +5,6 @@
 /**
  * A representation of the contents of an instrumentation log.
  */
-library analysis_server.tool.instrumentation.log.log;
-
 import 'dart:convert';
 import 'dart:math' as math;
 

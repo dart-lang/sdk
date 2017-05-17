@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.optype;
-
 import 'dart:async';
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
@@ -436,46 +435,6 @@ class OpTypeTest extends AbstractContextTest {
     await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_catch_4a1() async {
-    addTestSource('main() {try {} ^ on SomeException {}}');
-    await assertOpType();
-  }
-
-  test_catch_4a2() async {
-    addTestSource('main() {try {} c^ on SomeException {}}');
-    await assertOpType();
-  }
-
-  test_catch_4b1() async {
-    addTestSource('main() {try {} ^ catch (e) {}}');
-    await assertOpType();
-  }
-
-  test_catch_4b2() async {
-    addTestSource('main() {try {} c^ catch (e) {}}');
-    await assertOpType();
-  }
-
-  test_catch_4c1() async {
-    addTestSource('main() {try {} ^ finally {}}');
-    await assertOpType();
-  }
-
-  test_catch_4c2() async {
-    addTestSource('main() {try {} c^ finally {}}');
-    await assertOpType();
-  }
-
-  test_catch_5a() async {
-    addTestSource('main() {try {} on ^ finally {}}');
-    await assertOpType(typeNames: true);
-  }
-
-  test_catch_5b() async {
-    addTestSource('main() {try {} on E^ finally {}}');
-    await assertOpType(typeNames: true);
-  }
-
   test_Block_empty() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('class A extends E implements I with M {a() {^}}');
@@ -568,6 +527,46 @@ class OpTypeTest extends AbstractContextTest {
     // SimpleIdentifier  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a^..b}');
     await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_catch_4a1() async {
+    addTestSource('main() {try {} ^ on SomeException {}}');
+    await assertOpType();
+  }
+
+  test_catch_4a2() async {
+    addTestSource('main() {try {} c^ on SomeException {}}');
+    await assertOpType();
+  }
+
+  test_catch_4b1() async {
+    addTestSource('main() {try {} ^ catch (e) {}}');
+    await assertOpType();
+  }
+
+  test_catch_4b2() async {
+    addTestSource('main() {try {} c^ catch (e) {}}');
+    await assertOpType();
+  }
+
+  test_catch_4c1() async {
+    addTestSource('main() {try {} ^ finally {}}');
+    await assertOpType();
+  }
+
+  test_catch_4c2() async {
+    addTestSource('main() {try {} c^ finally {}}');
+    await assertOpType();
+  }
+
+  test_catch_5a() async {
+    addTestSource('main() {try {} on ^ finally {}}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_catch_5b() async {
+    addTestSource('main() {try {} on E^ finally {}}');
+    await assertOpType(typeNames: true);
   }
 
   test_CatchClause_onType() async {

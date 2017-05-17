@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis_server.src.single_context_manager;
-
 import 'dart:core';
 
 import 'package:analysis_server/src/single_context_manager.dart';

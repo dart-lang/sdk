@@ -5,8 +5,6 @@
 /**
  * Code generation for the file "AnalysisServer.java".
  */
-library java.generator.server;
-
 import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/codegen/tools.dart';
 

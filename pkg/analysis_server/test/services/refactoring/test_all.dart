@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'convert_getter_to_method_test.dart' as convert_getter_to_method_test;
