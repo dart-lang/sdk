@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -79,6 +80,11 @@ abstract class ServerPlugin {
   ByteStore _byteStore;
 
   /**
+   * The SDK manager used to manage SDKs.
+   */
+  DartSdkManager _sdkManager;
+
+  /**
    * The file content overlay used by any analysis drivers that are created.
    */
   final FileContentOverlay fileContentOverlay = new FileContentOverlay();
@@ -123,6 +129,11 @@ abstract class ServerPlugin {
    * Return the user visible name of this plugin.
    */
   String get name;
+
+  /**
+   * Return the SDK manager used to manage SDKs.
+   */
+  DartSdkManager get sdkManager => _sdkManager;
 
   /**
    * Return the version number of this plugin, encoded as a string.
@@ -398,10 +409,12 @@ abstract class ServerPlugin {
   Future<PluginVersionCheckResult> handlePluginVersionCheck(
       PluginVersionCheckParams parameters) async {
     String byteStorePath = parameters.byteStorePath;
+    String sdkPath = parameters.sdkPath;
     String versionString = parameters.version;
     Version serverVersion = new Version.parse(versionString);
     _byteStore =
         new MemoryCachingByteStore(new FileByteStore(byteStorePath), 64 * M);
+    _sdkManager = new DartSdkManager(sdkPath, true);
     return new PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
         contactInfo: contactInfo);

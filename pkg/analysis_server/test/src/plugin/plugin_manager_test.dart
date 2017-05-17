@@ -79,7 +79,7 @@ class BuiltInPluginInfoTest {
   test_start_running() async {
     plugin.currentSession = new PluginSession(plugin);
     try {
-      await plugin.start('');
+      await plugin.start('', '');
       fail('Expected a StateError');
     } on StateError {
       // Expected.
@@ -155,7 +155,7 @@ class DiscoveredPluginInfoTest {
   test_start_running() async {
     plugin.currentSession = new PluginSession(plugin);
     try {
-      await plugin.start('');
+      await plugin.start('', '');
       fail('Expected a StateError');
     } on StateError {
       // Expected.
@@ -185,7 +185,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
   void setUp() {
     super.setUp();
-    manager = new PluginManager(resourceProvider, byteStorePath,
+    manager = new PluginManager(resourceProvider, byteStorePath, '',
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -335,14 +335,16 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 class PluginManagerTest {
   MemoryResourceProvider resourceProvider;
   String byteStorePath;
+  String sdkPath;
   TestNotificationManager notificationManager;
   PluginManager manager;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
-    byteStorePath = '/byteStore';
+    byteStorePath = resourceProvider.convertPath('/byteStore');
+    sdkPath = resourceProvider.convertPath('/sdk');
     notificationManager = new TestNotificationManager();
-    manager = new PluginManager(resourceProvider, byteStorePath,
+    manager = new PluginManager(resourceProvider, byteStorePath, sdkPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -357,6 +359,7 @@ class PluginManagerTest {
   void test_creation() {
     expect(manager.resourceProvider, resourceProvider);
     expect(manager.byteStorePath, byteStorePath);
+    expect(manager.sdkPath, sdkPath);
     expect(manager.notificationManager, notificationManager);
   }
 
@@ -386,7 +389,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
           InstrumentationService.NULL_SERVICE);
       PluginSession session = new PluginSession(plugin);
       plugin.currentSession = session;
-      expect(await session.start(byteStorePath), isTrue);
+      expect(await session.start(byteStorePath, ''), isTrue);
       await session.stop();
     });
   }
@@ -396,15 +399,20 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
 class PluginSessionTest {
   MemoryResourceProvider resourceProvider;
   TestNotificationManager notificationManager;
-  String pluginPath = '/pluginDir';
-  String executionPath = '/pluginDir/bin/plugin.dart';
-  String packagesPath = '/pluginDir/.packages';
+  String pluginPath;
+  String executionPath;
+  String packagesPath;
+  String sdkPath;
   PluginInfo plugin;
   PluginSession session;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
+    pluginPath = resourceProvider.convertPath('/pluginDir');
+    executionPath = resourceProvider.convertPath('/pluginDir/bin/plugin.dart');
+    packagesPath = resourceProvider.convertPath('/pluginDir/.packages');
+    sdkPath = resourceProvider.convertPath('/sdk');
     plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
     session = new PluginSession(plugin);
@@ -441,7 +449,7 @@ class PluginSessionTest {
             contactInfo: 'contactInfo')
         .toResponse('0');
     Future<Response> future =
-        session.sendRequest(new PluginVersionCheckParams('', ''));
+        session.sendRequest(new PluginVersionCheckParams('', '', ''));
     expect(session.pendingRequests, hasLength(1));
     session.handleResponse(response);
     expect(session.pendingRequests, hasLength(0));
@@ -458,20 +466,21 @@ class PluginSessionTest {
   void test_sendRequest() {
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
-    session.sendRequest(new PluginVersionCheckParams('', ''));
+    session.sendRequest(new PluginVersionCheckParams('', '', ''));
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.versionCheck');
   }
 
   test_start_notCompatible() async {
     session.isCompatible = false;
-    expect(await session.start(path.join(pluginPath, 'byteStore')), isFalse);
+    expect(await session.start(path.join(pluginPath, 'byteStore'), sdkPath),
+        isFalse);
   }
 
   test_start_running() async {
     new TestServerCommunicationChannel(session);
     try {
-      await session.start(null);
+      await session.start(null, '');
       fail('Expected a StateError to be thrown');
     } on StateError {
       // Expected behavior

@@ -5144,6 +5144,7 @@ class PluginShutdownResult implements ResponseResult {
  *
  * {
  *   "byteStorePath": String
+ *   "sdkPath": String
  *   "version": String
  * }
  *
@@ -5151,6 +5152,8 @@ class PluginShutdownResult implements ResponseResult {
  */
 class PluginVersionCheckParams implements RequestParams {
   String _byteStorePath;
+
+  String _sdkPath;
 
   String _version;
 
@@ -5170,6 +5173,21 @@ class PluginVersionCheckParams implements RequestParams {
   }
 
   /**
+   * The path to the directory containing the SDK that is to be used by any
+   * analysis drivers that are created.
+   */
+  String get sdkPath => _sdkPath;
+
+  /**
+   * The path to the directory containing the SDK that is to be used by any
+   * analysis drivers that are created.
+   */
+  void set sdkPath(String value) {
+    assert(value != null);
+    this._sdkPath = value;
+  }
+
+  /**
    * The version number of the plugin spec supported by the analysis server
    * that is executing the plugin.
    */
@@ -5184,8 +5202,10 @@ class PluginVersionCheckParams implements RequestParams {
     this._version = value;
   }
 
-  PluginVersionCheckParams(String byteStorePath, String version) {
+  PluginVersionCheckParams(
+      String byteStorePath, String sdkPath, String version) {
     this.byteStorePath = byteStorePath;
+    this.sdkPath = sdkPath;
     this.version = version;
   }
 
@@ -5202,6 +5222,13 @@ class PluginVersionCheckParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "byteStorePath");
       }
+      String sdkPath;
+      if (json.containsKey("sdkPath")) {
+        sdkPath =
+            jsonDecoder.decodeString(jsonPath + ".sdkPath", json["sdkPath"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "sdkPath");
+      }
       String version;
       if (json.containsKey("version")) {
         version =
@@ -5209,7 +5236,7 @@ class PluginVersionCheckParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
-      return new PluginVersionCheckParams(byteStorePath, version);
+      return new PluginVersionCheckParams(byteStorePath, sdkPath, version);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck params", json);
     }
@@ -5224,6 +5251,7 @@ class PluginVersionCheckParams implements RequestParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["byteStorePath"] = byteStorePath;
+    result["sdkPath"] = sdkPath;
     result["version"] = version;
     return result;
   }
@@ -5239,7 +5267,9 @@ class PluginVersionCheckParams implements RequestParams {
   @override
   bool operator ==(other) {
     if (other is PluginVersionCheckParams) {
-      return byteStorePath == other.byteStorePath && version == other.version;
+      return byteStorePath == other.byteStorePath &&
+          sdkPath == other.sdkPath &&
+          version == other.version;
     }
     return false;
   }
@@ -5248,6 +5278,7 @@ class PluginVersionCheckParams implements RequestParams {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, byteStorePath.hashCode);
+    hash = JenkinsSmiHash.combine(hash, sdkPath.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

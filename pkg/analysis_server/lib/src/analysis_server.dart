@@ -422,8 +422,12 @@ class AnalysisServer {
             new NotificationManager(channel, resourceProvider) {
     _performance = performanceDuringStartup;
 
-    pluginManager = new PluginManager(resourceProvider, _getByteStorePath(),
-        notificationManager, instrumentationService);
+    pluginManager = new PluginManager(
+        resourceProvider,
+        _getByteStorePath(),
+        sdkManager.defaultSdkDirectory,
+        notificationManager,
+        instrumentationService);
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 

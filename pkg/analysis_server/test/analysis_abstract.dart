@@ -305,6 +305,12 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
+  String get sdkPath {
+    fail('Unexpected invocation of sdkPath');
+    return null;
+  }
+
+  @override
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     fail('Unexpected invocation of addPluginToContextRoot');

@@ -1410,12 +1410,13 @@ final Matcher isPluginShutdownResult = isNull;
  *
  * {
  *   "byteStorePath": String
+ *   "sdkPath": String
  *   "version": String
  * }
  */
 final Matcher isPluginVersionCheckParams = new LazyMatcher(() =>
     new MatchesJsonObject("plugin.versionCheck params",
-        {"byteStorePath": isString, "version": isString}));
+        {"byteStorePath": isString, "sdkPath": isString, "version": isString}));
 
 /**
  * plugin.versionCheck result

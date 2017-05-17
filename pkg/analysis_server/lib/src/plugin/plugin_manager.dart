@@ -186,12 +186,12 @@ abstract class PluginInfo {
    * Start a new isolate that is running the plugin. Return the state object
    * used to interact with the plugin, or `null` if the plugin could not be run.
    */
-  Future<PluginSession> start(String byteStorePath) async {
+  Future<PluginSession> start(String byteStorePath, String sdkPath) async {
     if (currentSession != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
     currentSession = new PluginSession(this);
-    bool isRunning = await currentSession.start(byteStorePath);
+    bool isRunning = await currentSession.start(byteStorePath, sdkPath);
     if (!isRunning) {
       currentSession = null;
     }
@@ -246,6 +246,11 @@ class PluginManager {
   final String byteStorePath;
 
   /**
+   * The absolute path of the directory containing the SDK.
+   */
+  final String sdkPath;
+
+  /**
    * The object used to manage the receiving and sending of notifications.
    */
   final NotificationManager notificationManager;
@@ -285,7 +290,7 @@ class PluginManager {
    * Initialize a newly created plugin manager. The notifications from the
    * running plugins will be handled by the given [notificationManager].
    */
-  PluginManager(this.resourceProvider, this.byteStorePath,
+  PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
       this.notificationManager, this.instrumentationService);
 
   /**
@@ -306,7 +311,7 @@ class PluginManager {
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
-        PluginSession session = await plugin.start(byteStorePath);
+        PluginSession session = await plugin.start(byteStorePath, sdkPath);
         session?.onDone?.then((_) {
           _pluginMap.remove(path);
         });
@@ -711,7 +716,7 @@ class PluginSession {
    * the given [byteStorePath]. Return `true` if the plugin is compatible and
    * running.
    */
-  Future<bool> start(String byteStorePath) async {
+  Future<bool> start(String byteStorePath, String sdkPath) async {
     if (channel != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
@@ -729,8 +734,8 @@ class PluginSession {
       // handleOnDone, which will cause `channel` to be set to `null`.
       return false;
     }
-    Response response = await sendRequest(
-        new PluginVersionCheckParams(byteStorePath ?? '', '1.0.0-alpha.0'));
+    Response response = await sendRequest(new PluginVersionCheckParams(
+        byteStorePath ?? '', sdkPath, '1.0.0-alpha.0'));
     PluginVersionCheckResult result =
         new PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;

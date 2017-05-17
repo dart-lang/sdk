@@ -221,7 +221,7 @@ class ServerPluginTest {
 
   test_handlePluginVersionCheck() async {
     PluginVersionCheckResult result = await plugin.handlePluginVersionCheck(
-        new PluginVersionCheckParams('path', '0.1.0'));
+        new PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
     expect(result, isNotNull);
     expect(result.interestingFiles, ['*.dart']);
     expect(result.isCompatible, isTrue);
