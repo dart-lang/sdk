@@ -43,8 +43,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
-import 'package:kernel/text/ast_to_text.dart' show Printer;
-
 import 'package:kernel/transformations/erasure.dart' show Erasure;
 
 import 'package:kernel/transformations/continuation.dart' as transformAsync;
@@ -301,11 +299,9 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  Future<Null> writeProgram(Uri uri,
-      {bool dumpIr: false, bool verify: false}) async {
+  Future<Null> writeProgram(Uri uri, {bool verify: false}) async {
     if (loader.first == null) return null;
     try {
-      if (dumpIr) this.dumpIr();
       if (verify) this.verify();
       await writeLinkedProgram(uri, _program, isFullProgram: true);
     } on InputError catch (e) {
@@ -716,16 +712,6 @@ class KernelTarget extends TargetImplementation {
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformProgram(_program);
     ticker.logMs("Transformed async methods");
-  }
-
-  void dumpIr() {
-    StringBuffer sb = new StringBuffer();
-    for (Library library in loader.libraries) {
-      Printer printer = new Printer(sb);
-      printer.writeLibraryFile(library);
-    }
-    print("$sb");
-    ticker.logMs("Dumped IR");
   }
 
   void verify() {

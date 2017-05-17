@@ -12,6 +12,7 @@ import 'dart:io' show BytesBuilder, Directory, File, exitCode;
 
 import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;
 
@@ -145,11 +146,11 @@ class CompileTask {
       inputError(uri, -1, "Unexpected input: $uri");
     }
     await dillTarget.buildOutlines();
-    await kernelTarget.buildOutlines();
-    await kernelTarget.writeOutline(output);
+    var outline = await kernelTarget.buildOutlines();
     if (c.options.dumpIr && output != null) {
-      kernelTarget.dumpIr();
+      printProgramText(outline);
     }
+    await kernelTarget.writeOutline(output);
     return kernelTarget;
   }
 
@@ -157,9 +158,9 @@ class CompileTask {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
-    await kernelTarget.buildProgram();
-    await kernelTarget.writeProgram(uri,
-        dumpIr: c.options.dumpIr, verify: c.options.verify);
+    var program = await kernelTarget.buildProgram();
+    if (c.options.dumpIr) printProgramText(program);
+    await kernelTarget.writeProgram(uri, verify: c.options.verify);
     return uri;
   }
 }

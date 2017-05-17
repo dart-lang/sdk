@@ -6,6 +6,7 @@ library fasta.compile_platform;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'ticker.dart' show Ticker;
 
 import 'dart:io' show exitCode;
@@ -79,8 +80,8 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
   await kernelTarget.writeOutline(outlineOutput);
 
   if (exitCode != 0) return null;
-  await kernelTarget.buildProgram();
-  await kernelTarget.writeProgram(fullOutput,
-      dumpIr: c.options.dumpIr, verify: c.options.verify);
+  var program = await kernelTarget.buildProgram();
+  if (c.options.dumpIr) printProgramText(program);
+  await kernelTarget.writeProgram(fullOutput, verify: c.options.verify);
   await kernelTarget.writeDepsFile(fullOutput, deps);
 }

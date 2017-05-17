@@ -4,8 +4,20 @@
 
 import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
+import 'package:kernel/text/ast_to_text.dart';
 
 /// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
 /// `TreeNode.noOffset`.
 int offsetForToken(Token token) =>
     token == null ? TreeNode.noOffset : token.offset;
+
+/// Print the given [program].  Do nothing if it is `null`.
+void printProgramText(Program program) {
+  if (program == null) return;
+  StringBuffer sb = new StringBuffer();
+  for (Library library in program.libraries) {
+    Printer printer = new Printer(sb);
+    printer.writeLibraryFile(library);
+  }
+  print(sb);
+}
