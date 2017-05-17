@@ -88,7 +88,7 @@ def Main(argv):
   if not ValidateArgs(args):
     return -1
 
-  if os.path.exists(args.to):
+  if os.path.exists(args.to) and not args.dryrun:
     shutil.rmtree(args.to)
   if args.exclude_patterns == None:
     CopyTree(args.copy_from, args.to, dryrun=args.dryrun)
