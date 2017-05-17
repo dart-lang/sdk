@@ -74,6 +74,7 @@ void usage(String mode) {
 }
 
 Future _main(List<String> argv) async {
+  if (argv.isEmpty) usage('[vm|dart2js]');
   var mode = argv.first;
   if (mode != 'vm' && mode != 'dart2js') usage('[vm|dart2js]');
   if (argv.length != 5) usage(mode);
