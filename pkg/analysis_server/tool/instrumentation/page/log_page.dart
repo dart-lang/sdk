@@ -45,10 +45,22 @@ class LogPage extends PageWriter {
   int prefixLength;
 
   /**
+   * A table mapping the ids of plugins to an index for the plugin.
+   */
+  Map<String, int> pluginIdMap = <String, int>{};
+
+  /**
    * Initialize a newly created writer to write the content of the given
    * [instrumentationLog].
    */
   LogPage(this.log);
+
+  /**
+   * Return the encoding for the given [pluginId] that is used to build anchors.
+   */
+  int getPluginId(String pluginId) {
+    return pluginIdMap.putIfAbsent(pluginId, () => pluginIdMap.length);
+  }
 
   @override
   void writeBody(StringSink sink) {
@@ -173,10 +185,43 @@ function selectEntryGroup(pageStart) {
           }
         }
       }
+    } else if (entry is PluginRequestEntry) {
+      String entryId = entry.id;
+      int pluginId = getPluginId(entry.pluginId);
+      id = 'req$pluginId.$entryId';
+      clickHandler =
+          'highlight(\'req$pluginId.$entryId\', \'res$pluginId.$entryId\')';
+      icon = '&rarr;';
+      description = '${entry.method} (${entry.shortPluginId})';
+    } else if (entry is PluginResponseEntry) {
+      String entryId = entry.id;
+      int pluginId = getPluginId(entry.pluginId);
+      PluginRequestEntry request = log.pluginRequestFor(entry);
+      id = 'res$pluginId.$entryId';
+      clickHandler =
+          'highlight(\'req$pluginId.$entryId\', \'res$pluginId.$entryId\')';
+      icon = '&larr;';
+      if (request != null) {
+        int latency = entry.timeStamp - request.timeStamp;
+        description =
+            '${request.method} <span class="gray">($latency ms)</span> (${entry.shortPluginId})';
+      }
+    } else if (entry is PluginNotificationEntry) {
+      id = 'e${entry.index}';
+      LogEntry pairedEntry = log.pairedEntry(entry);
+      if (pairedEntry != null) {
+        String pairedId = 'e${pairedEntry.index}';
+        clickHandler = 'highlight(\'$id\', \'$pairedId\')';
+      }
+      icon = '&larr;';
+      description = '${entry.event} (${entry.shortPluginId})';
     } else if (entry is TaskEntry) {
       description = entry.description;
     } else if (entry is ErrorEntry) {
       description = '<span class="error">$description</span>';
+    } else if (entry is PluginErrorEntry) {
+      description =
+          '<span class="error">$description</span> (${entry.shortPluginId})';
     } else if (entry is ExceptionEntry) {
       description = '<span class="error">$description</span>';
     } else if (entry is MalformedLogEntry) {

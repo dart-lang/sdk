@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * A boolean-valued function of one argument.
@@ -194,10 +195,24 @@ class InstrumentationLog {
   Map<String, RequestEntry> _requestMap = <String, RequestEntry>{};
 
   /**
+   * A table mapping the id's of plugin requests to the entry representing the
+   * request.
+   */
+  Map<String, PluginRequestEntry> _pluginRequestMap =
+      <String, PluginRequestEntry>{};
+
+  /**
    * A table mapping the id's of responses to the entry representing the
    * response.
    */
   Map<String, ResponseEntry> _responseMap = <String, ResponseEntry>{};
+
+  /**
+   * A table mapping the id's of plugin responses to the entry representing the
+   * response.
+   */
+  Map<String, PluginResponseEntry> _pluginResponseMap =
+      <String, PluginResponseEntry>{};
 
   /**
    * A table mapping the ids of completion events to the events with those ids.
@@ -237,6 +252,18 @@ class InstrumentationLog {
    * is no entry paired with it.
    */
   LogEntry pairedEntry(LogEntry entry) => _pairedEntries[entry];
+
+  /**
+   * Return the response that corresponds to the given plugin request.
+   */
+  PluginRequestEntry pluginRequestFor(PluginResponseEntry entry) =>
+      _pluginRequestMap[entry.id];
+
+  /**
+   * Return the response that corresponds to the given request.
+   */
+  PluginResponseEntry pluginResponseFor(PluginRequestEntry entry) =>
+      _pluginResponseMap[entry.id];
 
   /**
    * Return the response that corresponds to the given request.
@@ -406,6 +433,13 @@ class InstrumentationLog {
                   .add(entry);
             }
           }
+        } else if (entry is PluginRequestEntry) {
+          _pluginRequestMap[entry.id] = entry;
+        } else if (entry is PluginResponseEntry) {
+          _pluginResponseMap[entry.id] = entry;
+          PluginRequestEntry request = _pluginRequestMap[entry.id];
+          _pairedEntries[entry] = request;
+          _pairedEntries[request] = entry;
         }
       }
     }
@@ -606,6 +640,27 @@ abstract class LogEntry {
         return new NotificationEntry(index, timeStamp, requestData);
       } else if (entryKind == InstrumentationService.TAG_PERFORMANCE) {
         // Fall through
+      } else if (entryKind == InstrumentationService.TAG_PLUGIN_ERROR) {
+        return new PluginErrorEntry(
+            index, timeStamp, entryKind, components[2], components.sublist(3));
+      } else if (entryKind == InstrumentationService.TAG_PLUGIN_EXCEPTION) {
+        return new PluginExceptionEntry(
+            index, timeStamp, entryKind, components[2], components.sublist(3));
+      } else if (entryKind == InstrumentationService.TAG_PLUGIN_NOTIFICATION) {
+        Map requestData = JSON.decode(components[3]);
+        return new PluginNotificationEntry(
+            index, timeStamp, components[2], requestData);
+      } else if (entryKind == InstrumentationService.TAG_PLUGIN_REQUEST) {
+        Map requestData = JSON.decode(components[3]);
+        return new PluginRequestEntry(
+            index, timeStamp, components[2], requestData);
+      } else if (entryKind == InstrumentationService.TAG_PLUGIN_RESPONSE) {
+        Map responseData = JSON.decode(components[3]);
+        return new PluginResponseEntry(
+            index, timeStamp, components[2], responseData);
+      } else if (entryKind == InstrumentationService.TAG_PLUGIN_TIMEOUT) {
+        return new PluginErrorEntry(
+            index, timeStamp, entryKind, components[2], components.sublist(3));
       } else if (entryKind == InstrumentationService.TAG_REQUEST) {
         Map requestData = JSON.decode(components[2]);
         return new RequestEntry(index, timeStamp, requestData);
@@ -772,6 +827,184 @@ class NotificationEntry extends JsonBasedEntry {
     var parameters = data['params'];
     if (parameters is Map) {
       return parameters[parameterName];
+    }
+    return null;
+  }
+}
+
+/**
+ * A log entry representing a communication between the server and a plugin.
+ */
+abstract class PluginEntry extends JsonBasedEntry with PluginEntryMixin {
+  /**
+   * The id of the plugin being communicated with.
+   */
+  final String pluginId;
+
+  /**
+   * Initialize a newly created entry to have the given [timeStamp] and
+   * [notificationData] and to be associated with the plugin with the given
+   * [pluginId].
+   */
+  PluginEntry(int index, int timeStamp, this.pluginId, Map notificationData)
+      : super(index, timeStamp, notificationData);
+}
+
+/**
+ * A log entry representing a communication between the server and a plugin.
+ */
+abstract class PluginEntryMixin {
+  /**
+   * The id of the plugin being communicated with.
+   */
+  String get pluginId;
+
+  /**
+   * Return a shortened version of the plugin id.
+   */
+  String get shortPluginId {
+    int index = pluginId.lastIndexOf(path.separator);
+    if (index > 0) {
+      return pluginId.substring(index + 1);
+    }
+    return pluginId;
+  }
+}
+
+/**
+ * A log entry representing an PluginErr entry.
+ */
+class PluginErrorEntry extends GenericEntry with PluginEntryMixin {
+  /**
+   * The id of the plugin that generated the error.
+   */
+  final String pluginId;
+
+  /**
+   * Initialize a newly created log entry.
+   */
+  PluginErrorEntry(int index, int timeStamp, String entryKind, this.pluginId,
+      List<String> components)
+      : super(index, timeStamp, entryKind, components);
+}
+
+/**
+ * A log entry representing an PluginEx entry.
+ */
+class PluginExceptionEntry extends GenericEntry with PluginEntryMixin {
+  /**
+   * The id of the plugin that generated the exception.
+   */
+  final String pluginId;
+
+  /**
+   * Initialize a newly created log entry.
+   */
+  PluginExceptionEntry(int index, int timeStamp, String entryKind,
+      this.pluginId, List<String> components)
+      : super(index, timeStamp, entryKind, components);
+}
+
+/**
+ * A log entry representing a notification that was sent from a plugin to the
+ * server.
+ */
+class PluginNotificationEntry extends PluginEntry {
+  /**
+   * Initialize a newly created notification to have the given [timeStamp] and
+   * [notificationData].
+   */
+  PluginNotificationEntry(
+      int index, int timeStamp, String pluginId, Map notificationData)
+      : super(index, timeStamp, pluginId, notificationData);
+
+  /**
+   * Return the event field of the notification.
+   */
+  String get event => data['event'];
+
+  @override
+  String get kind => 'PluginNoti';
+
+  /**
+   * Return the value of the parameter with the given [parameterName], or `null`
+   * if there is no such parameter.
+   */
+  dynamic param(String parameterName) {
+    var parameters = data['params'];
+    if (parameters is Map) {
+      return parameters[parameterName];
+    }
+    return null;
+  }
+}
+
+/**
+ * A log entry representing a request that was sent from the server to a plugin.
+ */
+class PluginRequestEntry extends PluginEntry {
+  /**
+   * Initialize a newly created response to have the given [timeStamp] and
+   * [requestData].
+   */
+  PluginRequestEntry(int index, int timeStamp, String pluginId, Map requestData)
+      : super(index, timeStamp, pluginId, requestData);
+
+  /**
+   * Return the id field of the request.
+   */
+  String get id => data['id'];
+
+  @override
+  String get kind => 'PluginReq';
+
+  /**
+   * Return the method field of the request.
+   */
+  String get method => data['method'];
+
+  /**
+   * Return the value of the parameter with the given [parameterName], or `null`
+   * if there is no such parameter.
+   */
+  dynamic param(String parameterName) {
+    var parameters = data['params'];
+    if (parameters is Map) {
+      return parameters[parameterName];
+    }
+    return null;
+  }
+}
+
+/**
+ * A log entry representing a response that was sent from a plugin to the
+ * server.
+ */
+class PluginResponseEntry extends PluginEntry {
+  /**
+   * Initialize a newly created response to have the given [timeStamp] and
+   * [responseData].
+   */
+  PluginResponseEntry(
+      int index, int timeStamp, String pluginId, Map responseData)
+      : super(index, timeStamp, pluginId, responseData);
+
+  /**
+   * Return the id field of the response.
+   */
+  String get id => data['id'];
+
+  @override
+  String get kind => 'PluginRes';
+
+  /**
+   * Return the value of the result with the given [resultName], or `null`  if
+   * there is no such result.
+   */
+  dynamic result(String resultName) {
+    var results = data['result'];
+    if (results is Map) {
+      return results[resultName];
     }
     return null;
   }
