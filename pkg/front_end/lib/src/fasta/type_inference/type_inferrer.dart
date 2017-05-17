@@ -11,6 +11,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
+        Arguments,
         BottomType,
         Class,
         DartType,
@@ -228,18 +229,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  DartType inferInvocation(
-      DartType typeContext,
-      bool typeNeeded,
-      int offset,
-      FunctionType calleeType,
-      DartType returnType,
-      List<DartType> explicitTypeArguments,
-      void forEachArgument(void callback(String name, Expression expression)),
-      void setInferredTypeArguments(List<DartType> types),
-      {bool isOverloadedArithmeticOperator: false,
-      DartType receiverType}) {
+  DartType inferInvocation(DartType typeContext, bool typeNeeded, int offset,
+      FunctionType calleeType, DartType returnType, Arguments arguments,
+      {bool isOverloadedArithmeticOperator: false, DartType receiverType}) {
     var calleeTypeParameters = calleeType.typeParameters;
+    List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = explicitTypeArguments == null &&
         strongMode &&
         calleeTypeParameters.isNotEmpty;
@@ -267,7 +261,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               calleeTypeParameters.length, const DynamicType()));
     }
     int i = 0;
-    forEachArgument((name, expression) {
+    _forEachArgument(arguments, (name, expression) {
       DartType formalType = name != null
           ? getNamedParameterType(calleeType, name)
           : getPositionalParameterType(calleeType, i++);
@@ -297,7 +291,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
       instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
           new InstrumentationValueForTypeArgs(inferredTypes));
-      setInferredTypeArguments(inferredTypes);
+      arguments.types.clear();
+      arguments.types.addAll(inferredTypes);
     }
     DartType inferredType;
     if (typeNeeded) {
@@ -327,5 +322,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   DartType wrapType(DartType type, Class class_) {
     return new InterfaceType(class_, <DartType>[type]);
+  }
+
+  void _forEachArgument(
+      Arguments arguments, void callback(String name, Expression expression)) {
+    for (var expression in arguments.positional) {
+      callback(null, expression);
+    }
+    for (var namedExpression in arguments.named) {
+      callback(namedExpression.name, namedExpression.value);
+    }
   }
 }

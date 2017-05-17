@@ -27,18 +27,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-_ArgumentForEachFunction _forEachArgument(Arguments arguments) {
-  return (void callback(String name, Expression expression)) {
-    for (var expression in arguments.positional) {
-      callback(null, expression);
-    }
-    for (var namedExpression in arguments.named) {
-      callback(namedExpression.name, namedExpression.value);
-    }
-  };
-}
-
-List<DartType> _getExplicitTypeArguments(Arguments arguments) {
+List<DartType> getExplicitTypeArguments(Arguments arguments) {
   if (arguments is KernelArguments) {
     return arguments._hasExplicitTypeArguments ? arguments.types : null;
   } else {
@@ -48,9 +37,6 @@ List<DartType> _getExplicitTypeArguments(Arguments arguments) {
     return null;
   }
 }
-
-typedef void _ArgumentForEachFunction(
-    void callback(String name, Expression expression));
 
 /// Concrete shadow object representing a set of invocation arguments.
 class KernelArguments extends Arguments {
@@ -176,11 +162,7 @@ class KernelConstructorInvocation extends ConstructorInvocation
         fileOffset,
         target.function.functionType,
         target.enclosingClass.thisType,
-        _getExplicitTypeArguments(arguments),
-        _forEachArgument(arguments), (types) {
-      arguments.types.clear();
-      arguments.types.addAll(types);
-    });
+        arguments);
     inferrer.listener.constructorInvocationExit(inferredType);
     return inferredType;
   }
@@ -688,17 +670,8 @@ class KernelMethodInvocation extends MethodInvocation
     }
     var calleeType = inferrer.getCalleeFunctionType(
         interfaceMember, receiverType, name, fileOffset);
-    var inferredType = inferrer.inferInvocation(
-        typeContext,
-        typeNeeded,
-        fileOffset,
-        calleeType,
-        calleeType.returnType,
-        _getExplicitTypeArguments(arguments),
-        _forEachArgument(arguments), (types) {
-      arguments.types.clear();
-      arguments.types.addAll(types);
-    },
+    var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
+        fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     inferrer.listener.methodInvocationExit(inferredType);
@@ -839,17 +812,8 @@ class KernelStaticInvocation extends StaticInvocation
     typeNeeded =
         inferrer.listener.staticInvocationEnter(typeContext) || typeNeeded;
     var calleeType = target.function.functionType;
-    var inferredType = inferrer.inferInvocation(
-        typeContext,
-        typeNeeded,
-        fileOffset,
-        calleeType,
-        calleeType.returnType,
-        _getExplicitTypeArguments(arguments),
-        _forEachArgument(arguments), (types) {
-      arguments.types.clear();
-      arguments.types.addAll(types);
-    });
+    var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
+        fileOffset, calleeType, calleeType.returnType, arguments);
     inferrer.listener.staticInvocationExit(inferredType);
     return inferredType;
   }
