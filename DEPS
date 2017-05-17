@@ -29,7 +29,7 @@ vars = {
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@3cbe9b49b3414c17904b6ca8a05ac6ab8dbf4569",
+  "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
 
   # Revisions of GN related dependencies. This should match the revision
   # pulled by Flutter.
