@@ -320,6 +320,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return returnType;
   }
 
+  DartType wrapFutureType(DartType type) {
+    return new InterfaceType(coreTypes.futureClass,
+        <DartType>[typeSchemaEnvironment.flattenFutures(type)]);
+  }
+
   DartType wrapType(DartType type, Class class_) {
     return new InterfaceType(class_, <DartType>[type]);
   }
