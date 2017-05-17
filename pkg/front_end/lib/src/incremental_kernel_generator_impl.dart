@@ -240,7 +240,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
               dillTarget.loader.read(export.library.uri);
           if (exportedLibrary != null) {
             exportedLibrary.exports.forEach((name, member) {
-              if (export.filter(name) &&
+              if (export.isExposed(name) &&
                   library.addToExportScope(name, member)) {
                 wasChanged = true;
               }
