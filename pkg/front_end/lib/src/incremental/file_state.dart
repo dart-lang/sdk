@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
+import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/parser/dart_vm_native.dart';
 import 'package:front_end/src/fasta/parser/top_level_parser.dart';
@@ -167,8 +168,8 @@ class FileState {
 
   @override
   String toString() {
-    if (fileUri.scheme == 'file') return fileUri.path;
-    return fileUri.toString();
+    if (uri.scheme == 'file') return uri.path;
+    return uri.toString();
   }
 
   /// Fasta unconditionally loads all VM libraries.  In order to be able to
@@ -197,7 +198,7 @@ class FileState {
     //   2) The absolute non-file URI, e.g. `package:foo/foo.dart`.
     Uri absoluteUri;
     try {
-      absoluteUri = fileUri.resolve(relativeUri);
+      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
       return null;
     }
@@ -219,6 +220,9 @@ class FileSystemState {
   final TranslateUri uriTranslator;
 
   _FileSystemView _fileSystemView;
+
+  /// Mapping from file URIs to corresponding [FileState]s.
+  final Map<Uri, FileState> _uriToFile = {};
 
   /// Mapping from file URIs to corresponding [FileState]s.
   final Map<Uri, FileState> _fileUriToFile = {};
@@ -247,10 +251,10 @@ class FileSystemState {
       if (fileUri == null) return null;
     }
 
-    FileState file = _fileUriToFile[absoluteUri];
+    FileState file = _uriToFile[absoluteUri];
     if (file == null) {
       file = new FileState._(this, absoluteUri, fileUri);
-      _fileUriToFile[absoluteUri] = file;
+      _uriToFile[absoluteUri] = file;
       _fileUriToFile[fileUri] = file;
 
       // Build the sub-graph of the file.

@@ -23,7 +23,18 @@ class TranslateUri {
     return null;
   }
 
-  Uri translateDartUri(Uri uri) => dartLibraries[uri.path];
+  Uri translateDartUri(Uri uri) {
+    if (!uri.isScheme('dart')) return null;
+    String path = uri.path;
+
+    int index = path.indexOf('/');
+    if (index == -1) return dartLibraries[path];
+
+    String libraryName = path.substring(0, index);
+    String relativePath = path.substring(index + 1);
+    Uri libraryFileUri = dartLibraries[libraryName];
+    return libraryFileUri?.resolve(relativePath);
+  }
 
   Uri translatePackageUri(Uri uri) {
     int index = uri.path.indexOf("/");
