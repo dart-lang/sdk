@@ -455,12 +455,13 @@ class KernelFunctionExpression extends FunctionExpression
           inferrer.closureContext.inferredReturnType, isExpressionFunction);
       if (!isExpressionFunction &&
           returnContext != null &&
-          !inferrer.typeSchemaEnvironment
-              .isSubtypeOf(inferredReturnType, returnContext)) {
+          (!inferrer.typeSchemaEnvironment
+                  .isSubtypeOf(inferredReturnType, returnContext) ||
+              returnContext is VoidType)) {
         // For block-bodied functions, if the inferred return type isn't a
-        // subtype of the context, we use the context.  TODO(paulberry): this is
-        // inherited from analyzer; it's not part of the spec.  See also
-        // dartbug.com/29606.
+        // subtype of the context (or the context is void), we use the context.
+        // TODO(paulberry): this is inherited from analyzer; it's not part of
+        // the spec.  See also dartbug.com/29606.
         inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
       }
 

@@ -270,6 +270,8 @@ abstract class Iterable<E> {
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
 
   Iterable<E> where(bool test(E element));
+  
+  void forEach(void f(E element));
 
   List<E> toList();
 }
