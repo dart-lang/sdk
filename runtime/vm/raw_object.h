@@ -266,11 +266,21 @@ class RawObject {
     kVMHeapObjectBit = 2,
     kRememberedBit = 3,
     kReservedTagPos = 4,  // kReservedBit{100K,1M,10M}
+#if defined(ARCH_IS_32_BIT)
     kReservedTagSize = 4,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
+#elif defined(ARCH_IS_64_BIT)
+    kReservedTagSize = 12,
+    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 16
+    kSizeTagSize = 16,
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 32
+    kClassIdTagSize = 32,
+#else
+#error Unexpected architecture word size
+#endif
   };
 
   COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
@@ -604,7 +614,6 @@ class RawObject {
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
-  friend class RawString;
   friend class RawTypedData;
   friend class Scavenger;
   friend class ScavengerVisitor;
@@ -1854,20 +1863,10 @@ class RawString : public RawInstance {
  protected:
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
   RawSmi* length_;
-#if !defined(HASH_IN_OBJECT_HEADER)
   RawSmi* hash_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
-#else
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
-#endif
 
- private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
-  friend class RODataSerializationCluster;
 };
 
 
@@ -2453,7 +2452,6 @@ inline intptr_t RawObject::NumberOfTypedDataClasses() {
   COMPILE_ASSERT(kNullCid == kByteBufferCid + 1);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
-
 
 }  // namespace dart
 

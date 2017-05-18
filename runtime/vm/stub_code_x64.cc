@@ -646,10 +646,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   NOT_IN_PRODUCT(
       __ MaybeTraceAllocation(kArrayCid, &slow_case, Assembler::kFarJump));
 
-  const intptr_t fixed_size_plus_alignment_padding =
-      sizeof(RawArray) + kObjectAlignment - 1;
-  // RDI is a Smi.
-  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size_plus_alignment_padding));
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
   ASSERT(kSmiTagShift == 1);
   __ andq(RDI, Immediate(-kObjectAlignment));
 
@@ -890,9 +888,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // R10: number of context variables.
-    intptr_t fixed_size_plus_alignment_padding =
-        (sizeof(RawContext) + kObjectAlignment - 1);
-    __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
+    intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
+    __ leaq(R13, Address(R10, TIMES_8, fixed_size));
     __ andq(R13, Immediate(-kObjectAlignment));
 
     // Check for allocation tracing.
@@ -936,7 +933,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R10: number of context variables.
     {
       Label size_tag_overflow, done;
-      __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
+      __ leaq(R13, Address(R10, TIMES_8, fixed_size));
       __ andq(R13, Immediate(-kObjectAlignment));
       __ cmpq(R13, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
@@ -2245,8 +2242,8 @@ void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
 void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(RAX, RDI);
-  __ movzxw(R9, FieldAddress(RBX, SingleTargetCache::lower_limit_offset()));
-  __ movzxw(R10, FieldAddress(RBX, SingleTargetCache::upper_limit_offset()));
+  __ movl(R9, FieldAddress(RBX, SingleTargetCache::lower_limit_offset()));
+  __ movl(R10, FieldAddress(RBX, SingleTargetCache::upper_limit_offset()));
   __ cmpq(RAX, R9);
   __ j(LESS, &miss, Assembler::kNearJump);
   __ cmpq(RAX, R10);

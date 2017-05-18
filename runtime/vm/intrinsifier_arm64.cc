@@ -196,9 +196,8 @@ static int GetScaleFactor(intptr_t size) {
   __ CompareImmediate(R2, max_len);                                            \
   __ b(&fall_through, GT);                                                     \
   __ LslImmediate(R2, R2, scale_shift);                                        \
-  const intptr_t fixed_size_plus_alignment_padding =                           \
-      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
-  __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
+  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
+  __ AddImmediate(R2, fixed_size);                                             \
   __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
   Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
@@ -1823,8 +1822,8 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R0, FieldAddress(R0, String::hash_offset()), kUnsignedWord);
-  __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
+  __ ldr(R0, FieldAddress(R0, String::hash_offset()));
+  __ CompareRegisters(R0, ZR);
   __ b(&fall_through, EQ);
   __ ret();
   // Hash not yet computed.
@@ -1996,8 +1995,8 @@ void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
 void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label compute_hash;
   __ ldr(R1, Address(SP, 0 * kWordSize));  // OneByteString object.
-  __ ldr(R0, FieldAddress(R1, String::hash_offset()), kUnsignedWord);
-  __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
+  __ ldr(R0, FieldAddress(R1, String::hash_offset()));
+  __ CompareRegisters(R0, ZR);
   __ b(&compute_hash, EQ);
   __ ret();  // Return if already computed.
 
@@ -2047,8 +2046,8 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   // return hash_ == 0 ? 1 : hash_;
   __ Bind(&done);
   __ csinc(R0, R0, ZR, NE);  // R0 <- (R0 != 0) ? R0 : (ZR + 1).
-  __ str(R0, FieldAddress(R1, String::hash_offset()), kUnsignedWord);
   __ SmiTag(R0);
+  __ str(R0, FieldAddress(R1, String::hash_offset()));
   __ ret();
 }
 
@@ -2065,16 +2064,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
-  __ adds(length_reg, ZR, Operand(length_reg, ASR, kSmiTagSize));  // Smi untag.
-  // If the length is 0 then we have to make the allocated size a bit bigger,
-  // otherwise the string takes up less space than an ExternalOneByteString,
-  // and cannot be externalized.  TODO(erikcorry): We should probably just
-  // return a static zero length string here instead.
-  // length <- (length != 0) ? length : (ZR + 1).
-  __ csinc(length_reg, length_reg, ZR, NE);
-  const intptr_t fixed_size_plus_alignment_padding =
-      sizeof(RawString) + kObjectAlignment - 1;
-  __ AddImmediate(length_reg, fixed_size_plus_alignment_padding);
+  __ SmiUntag(length_reg);
+  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
+  __ AddImmediate(length_reg, fixed_size);
   __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   const intptr_t cid = kOneByteStringCid;
@@ -2114,7 +2106,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
-    // This also clears the hash, which is in the high word of the tags.
     __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
     __ orr(R2, R2, Operand(TMP));
     __ str(R2, FieldAddress(R0, String::tags_offset()));  // Store tags.
@@ -2123,6 +2114,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // Set the length field using the saved length (R6).
   __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, String::length_offset()),
                               R6);
+  // Clear hash.
+  __ mov(TMP, ZR);
+  __ str(TMP, FieldAddress(R0, String::hash_offset()));
   __ b(ok);
 
   __ Bind(&fail);
