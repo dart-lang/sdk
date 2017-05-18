@@ -45,6 +45,9 @@ class ByteSink implements Sink<List<int>> {
 /// used to obtain resolved ASTs, and these are fed into kernel code generation
 /// logic.
 class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
+  /// The version of data format, should be incremented on every format change.
+  static const int DATA_VERSION = 1;
+
   /// The compiler options, such as the [FileSystem], the SDK dill location,
   /// etc.
   final ProcessedOptions _options;
@@ -64,8 +67,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The URI of the program entry point.
   final Uri _entryPoint;
 
+  /// The salt to mix into all hashes used as keys for serialized data.
+  List<int> _salt;
+
   /// Latest compilation signatures produced by [computeDelta] for libraries.
-  final Map<Uri, String> _uriToLatestSignature = {};
+  final Map<Uri, String> _latestSignature = {};
 
   /// The set of absolute file URIs that were reported through [invalidate]
   /// and not checked for actual changes yet.
@@ -75,7 +81,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       this._options, this._uriTranslator, this._entryPoint)
       : _logger = _options.logger,
         _fsState = new FileSystemState(_options.fileSystem, _uriTranslator),
-        _byteStore = _options.byteStore;
+        _byteStore = _options.byteStore {
+    _computeSalt();
+  }
 
   @override
   Future<DeltaProgram> computeDelta(
@@ -111,8 +119,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       for (_LibraryCycleResult result in results) {
         for (Library library in result.kernelLibraries) {
           Uri uri = library.importUri;
-          if (_uriToLatestSignature[uri] != result.signature) {
-            _uriToLatestSignature[uri] = result.signature;
+          if (_latestSignature[uri] != result.signature) {
+            _latestSignature[uri] = result.signature;
             program.libraries.add(library);
           }
         }
@@ -141,8 +149,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       String signature;
       {
         var signatureBuilder = new ApiSignature();
-        // TODO(scheglov) add salt
-        //    signature.addUint32List(_fsState._salt);
+        signatureBuilder.addBytes(_salt);
         Set<FileState> transitiveFiles = cycle.libraries
             .map((library) => library.transitiveFiles)
             .expand((files) => files)
@@ -251,6 +258,15 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         }
       }
     } while (wasChanged);
+  }
+
+  /// Compute salt and put into [_salt].
+  void _computeSalt() {
+    var saltBuilder = new ApiSignature();
+    saltBuilder.addInt(DATA_VERSION);
+    saltBuilder.addBool(_options.strongMode);
+    saltBuilder.addString(_entryPoint.toString());
+    _salt = saltBuilder.toByteList();
   }
 
   /// Refresh all the invalidated files and update dependencies.
