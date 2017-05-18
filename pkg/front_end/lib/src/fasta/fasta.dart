@@ -150,7 +150,10 @@ class CompileTask {
     if (c.options.dumpIr && output != null) {
       printProgramText(outline);
     }
-    await kernelTarget.writeOutline(output);
+    if (output != null) {
+      await writeProgramToFile(outline, output);
+      ticker.logMs("Wrote outline to ${output.toFilePath()}");
+    }
     return kernelTarget;
   }
 
@@ -160,7 +163,8 @@ class CompileTask {
     Uri uri = c.options.output;
     var program = await kernelTarget.buildProgram(verify: c.options.verify);
     if (c.options.dumpIr) printProgramText(program);
-    await kernelTarget.writeProgram(uri);
+    await writeProgramToFile(program, uri);
+    ticker.logMs("Wrote program to ${uri.toFilePath()}");
     return uri;
   }
 }

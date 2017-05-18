@@ -6,7 +6,7 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File, IOSink;
+import 'dart:io' show File;
 
 import 'package:front_end/file_system.dart';
 import 'package:kernel/ast.dart'
@@ -40,8 +40,6 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         VariableGet,
         VoidType;
-
-import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/transformations/erasure.dart' show Erasure;
 
@@ -217,17 +215,13 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  Future<Program> handleInputError(Uri uri, InputError error,
-      {bool isFullProgram}) {
+  void handleInputError(InputError error, {bool isFullProgram}) {
     if (error != null) {
       String message = error.format();
       print(message);
       errors.add(message);
     }
     _program = erroneousProgram(isFullProgram);
-    return uri == null
-        ? new Future<Program>.value(_program)
-        : writeLinkedProgram(uri, _program, isFullProgram: isFullProgram);
   }
 
   @override
@@ -255,31 +249,20 @@ class KernelTarget extends TargetImplementation {
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
-      return _program;
     } on InputError catch (e) {
-      return handleInputError(null, e, isFullProgram: false);
+      handleInputError(e, isFullProgram: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-  }
-
-  Future<Null> writeOutline(Uri uri) async {
-    try {
-      if (uri != null) {
-        await writeLinkedProgram(uri, _program, isFullProgram: false);
-      }
-    } on InputError catch (e) {
-      handleInputError(uri, e, isFullProgram: false);
-    } catch (e, s) {
-      reportCrash(e, s, loader?.currentUriForCrashReporting);
-    }
+    return _program;
   }
 
   @override
   Future<Program> buildProgram({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      return handleInputError(null, null, isFullProgram: true);
+      handleInputError(null, isFullProgram: true);
+      return _program;
     }
     try {
       await loader.buildBodies();
@@ -291,25 +274,14 @@ class KernelTarget extends TargetImplementation {
       if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
-        return handleInputError(null, null, isFullProgram: true);
+        handleInputError(null, isFullProgram: true);
       }
-      return _program;
     } on InputError catch (e) {
-      return handleInputError(null, e, isFullProgram: true);
+      handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-  }
-
-  Future<Null> writeProgram(Uri uri) async {
-    if (loader.first == null) return null;
-    try {
-      await writeLinkedProgram(uri, _program, isFullProgram: true);
-    } on InputError catch (e) {
-      return handleInputError(uri, e, isFullProgram: true);
-    } catch (e, s) {
-      return reportCrash(e, s, loader?.currentUriForCrashReporting);
-    }
+    return _program;
   }
 
   Future writeDepsFile(Uri output, Uri depsFile,
@@ -415,24 +387,6 @@ class KernelTarget extends TargetImplementation {
     }
     ticker.logMs("Linked program");
     return program;
-  }
-
-  Future<Program> writeLinkedProgram(Uri uri, Program program,
-      {bool isFullProgram}) async {
-    File output = new File.fromUri(uri);
-    IOSink sink = output.openWrite();
-    try {
-      new BinaryPrinter(sink).writeProgramFile(program);
-      program.unbindCanonicalNames();
-    } finally {
-      await sink.close();
-    }
-    if (isFullProgram) {
-      ticker.logMs("Wrote program to ${uri.toFilePath()}");
-    } else {
-      ticker.logMs("Wrote outline to ${uri.toFilePath()}");
-    }
-    return null;
   }
 
   void installDefaultSupertypes() {

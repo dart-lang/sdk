@@ -19,6 +19,7 @@ import 'dart:async' show Future;
 import 'dart:io' show exitCode;
 
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' show Source;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
@@ -46,12 +47,14 @@ Future compilePlatform(Uri patchedSdk, Uri fullOutput,
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.buildOutlines();
-  await kernelTarget.buildOutlines();
-  await kernelTarget.writeOutline(outlineOutput);
+  var outline = await kernelTarget.buildOutlines();
+  await writeProgramToFile(outline, outlineOutput);
+  ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (exitCode != 0) return null;
-  await kernelTarget.buildProgram();
-  await kernelTarget.writeProgram(fullOutput);
+  var program = await kernelTarget.buildProgram();
+  await writeProgramToFile(program, fullOutput);
+  ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
   await kernelTarget.writeDepsFile(fullOutput, deps);
 }
 

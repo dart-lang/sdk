@@ -76,12 +76,16 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.buildOutlines();
-  await kernelTarget.buildOutlines();
-  await kernelTarget.writeOutline(outlineOutput);
+  var outline = await kernelTarget.buildOutlines();
+
+  await writeProgramToFile(outline, outlineOutput);
+  ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (exitCode != 0) return null;
+
   var program = await kernelTarget.buildProgram(verify: c.options.verify);
   if (c.options.dumpIr) printProgramText(program);
-  await kernelTarget.writeProgram(fullOutput);
+  await writeProgramToFile(program, fullOutput);
+  ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
   await kernelTarget.writeDepsFile(fullOutput, deps);
 }
