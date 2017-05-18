@@ -30,9 +30,7 @@ class B {
   String foo2 = fieldInitializer(1, 'foo2');
   String foo3 = fieldInitializer(1, 'foo3');
 
-  // TODO: uncomment when support for *this* in initializer list is added.
-  // B(this.foo1, this.foo2) : foo3 = foo2;
-  B(this.foo1, this.foo2) : foo3 = fieldInitializer(2, 'foo3');
+  B(this.foo1, this.foo2) : foo3 = foo2;
 }
 
 String fieldInitializer(int f, String s) {

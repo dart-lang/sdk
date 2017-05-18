@@ -15,9 +15,6 @@ return
 static-invocation-fieldInitializer
 print(String: foo3: 1)
 return
-static-invocation-fieldInitializer
-print(String: foo3: 2)
-return
 print(String: foo1: 0)
 print(String: foo2: 0)
-print(String: foo3: 2)
+print(String: foo2: 0)
