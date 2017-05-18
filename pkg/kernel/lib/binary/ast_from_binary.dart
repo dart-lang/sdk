@@ -127,6 +127,10 @@ class BinaryBuilder {
     return _stringTable[readUInt()];
   }
 
+  List<String> readStringReferenceList() {
+    return new List<String>.generate(readUInt(), (i) => readStringReference());
+  }
+
   String readStringOrNullIfEmpty() {
     var string = readStringReference();
     return string.isEmpty ? null : string;
@@ -292,9 +296,9 @@ class BinaryBuilder {
     return readCanonicalNameReference().getReference();
   }
 
-  DeferredImport readDeferredImportReference() {
+  LibraryDependency readLibraryDependencyReference() {
     int index = readUInt();
-    return _currentLibrary.deferredImports[index];
+    return _currentLibrary.dependencies[index];
   }
 
   Reference readClassReference({bool allowNull: false}) {
@@ -350,7 +354,7 @@ class BinaryBuilder {
       library.fileUri = fileUri;
     }
 
-    _readDeferredImports(library);
+    _readLibraryDependencies(library);
 
     debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
 
@@ -364,18 +368,33 @@ class BinaryBuilder {
     return library;
   }
 
-  void _readDeferredImports(Library library) {
+  void _readLibraryDependencies(Library library) {
     int length = readUInt();
     if (library.isExternal) {
       assert(length == 0);
       return;
     }
-    library.deferredImports.length = length;
+    library.dependencies.length = length;
     for (int i = 0; i < length; ++i) {
-      library.deferredImports[i] = new DeferredImport.byReference(
-          readLibraryReference(), readStringReference())
+      var flags = readByte();
+      var annotations = readExpressionList();
+      var targetLibrary = readLibraryReference();
+      var prefixName = readStringOrNullIfEmpty();
+      var names = readCombinatorList();
+      library.dependencies[i] = new LibraryDependency.byReference(
+          flags, annotations, targetLibrary, prefixName, names)
         ..parent = library;
     }
+  }
+
+  Combinator readCombinator() {
+    var isShow = readUInt() == 1;
+    var names = readStringReferenceList();
+    return new Combinator(isShow, names);
+  }
+
+  List<Combinator> readCombinatorList() {
+    return new List<Combinator>.generate(readUInt(), (i) => readCombinator());
   }
 
   Typedef readTypedef() {
@@ -658,9 +677,9 @@ class BinaryBuilder {
         : (tagByte & Tag.SpecializedTagMask);
     switch (tag) {
       case Tag.LoadLibrary:
-        return new LoadLibrary(readDeferredImportReference());
+        return new LoadLibrary(readLibraryDependencyReference());
       case Tag.CheckLibraryIsLoaded:
-        return new CheckLibraryIsLoaded(readDeferredImportReference());
+        return new CheckLibraryIsLoaded(readLibraryDependencyReference());
       case Tag.InvalidExpression:
         return new InvalidExpression();
       case Tag.VariableGet:

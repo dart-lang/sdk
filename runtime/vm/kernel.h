@@ -190,6 +190,7 @@ class Ref {
 };
 
 
+// A list of pointers that are each deleted when the list is destroyed.
 template <typename T>
 class List {
  public:
@@ -242,6 +243,37 @@ class List {
   int length_;
 
   DISALLOW_COPY_AND_ASSIGN(List);
+};
+
+
+// A list that cannot be resized and which, unlike List<T>, does not enforce
+// its members to be pointers and does not `delete` its members on destruction.
+template <typename T>
+class RawList {
+ public:
+  RawList() : pointer_(NULL) {}
+
+  ~RawList() {
+    if (pointer_ != NULL) {
+      delete[] pointer_;
+    }
+  }
+
+  void Initialize(int length) {
+    ASSERT(pointer_ == NULL);
+    pointer_ = new T[length];
+    length_ = length;
+  }
+
+  T& operator[](int index) { return pointer_[index]; }
+
+  int length() { return length_; }
+
+ private:
+  int length_;
+  T* pointer_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawList);
 };
 
 
@@ -355,6 +387,8 @@ class Class;
 class Constructor;
 class Field;
 class Library;
+class LibraryDependency;
+class Combinator;
 class LinkedNode;
 class Member;
 class Procedure;
@@ -440,6 +474,7 @@ class Library : public LinkedNode {
   StringIndex import_uri() { return import_uri_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   StringIndex name() { return name_index_; }
+  List<LibraryDependency>& dependencies() { return dependency_; }
   List<Typedef>& typedefs() { return typedefs_; }
   List<Class>& classes() { return classes_; }
   List<Field>& fields() { return fields_; }
@@ -457,6 +492,7 @@ class Library : public LinkedNode {
   StringIndex name_index_;
   StringIndex import_uri_index_;
   intptr_t source_uri_index_;
+  List<LibraryDependency> dependency_;
   List<Typedef> typedefs_;
   List<Class> classes_;
   List<Field> fields_;
@@ -465,6 +501,56 @@ class Library : public LinkedNode {
   intptr_t kernel_data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(Library);
+};
+
+
+class LibraryDependency {
+ public:
+  enum Flags {
+    kFlagExport = 1 << 0,
+    kFlagDeferred = 1 << 1,
+  };
+
+  static LibraryDependency* ReadFrom(Reader* reader);
+
+  virtual ~LibraryDependency();
+
+  bool is_export() { return (flags_ & kFlagExport) != 0; }
+  bool is_import() { return (flags_ & kFlagExport) == 0; }
+  bool is_deferred() { return (flags_ & kFlagDeferred) != 0; }
+  List<Expression>& annotations() { return annotations_; }
+  NameIndex target() { return target_reference_; }
+  StringIndex name() { return name_index_; }
+
+ private:
+  LibraryDependency() {}
+
+  word flags_;
+  List<Expression> annotations_;
+  NameIndex target_reference_;
+  StringIndex name_index_;
+  List<Combinator> combinators_;
+
+  DISALLOW_COPY_AND_ASSIGN(LibraryDependency);
+};
+
+
+class Combinator {
+ public:
+  static Combinator* ReadFrom(Reader* reader);
+
+  virtual ~Combinator();
+
+  bool is_show() { return is_show_; }
+  RawList<intptr_t>& names() { return name_indices_; }
+
+ private:
+  Combinator() {}
+
+  bool is_show_;
+  RawList<intptr_t> name_indices_;
+
+  DISALLOW_COPY_AND_ASSIGN(Combinator);
 };
 
 
@@ -2958,6 +3044,7 @@ class Reference : public AllStatic {
   static NameIndex ReadMemberFrom(Reader* reader, bool allow_null = false);
   static NameIndex ReadClassFrom(Reader* reader, bool allow_null = false);
   static NameIndex ReadTypedefFrom(Reader* reader);
+  static NameIndex ReadLibraryFrom(Reader* reader);
 };
 
 

@@ -74,6 +74,7 @@ void List<T>::ReadFromStatic(Reader* reader) {
   }
 }
 
+
 void TypeParameterList::ReadFrom(Reader* reader) {
   // It is possible for the bound of the first type parameter to refer to
   // the second type parameter. This means we need to create [TypeParameter]
@@ -181,10 +182,7 @@ Library* Library::ReadFrom(Reader* reader) {
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
-  int num_imports = reader->ReadUInt();
-  if (num_imports != 0) {
-    FATAL("Deferred imports not implemented in VM");
-  }
+  dependencies().ReadFromStatic<LibraryDependency>(reader);
   int num_typedefs = reader->ReadUInt();
   typedefs().EnsureInitialized(num_typedefs);
   for (intptr_t i = 0; i < num_typedefs; i++) {
@@ -206,6 +204,35 @@ Library* Library::ReadFrom(Reader* reader) {
       classes().CanStream() && fields().CanStream() && procedures().CanStream();
 
   return this;
+}
+
+
+LibraryDependency* LibraryDependency::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  LibraryDependency* node = new LibraryDependency();
+  node->flags_ = reader->ReadFlags();
+  node->annotations_.ReadFromStatic<Expression>(reader);
+  node->target_reference_ = Reference::ReadLibraryFrom(reader);
+  node->name_index_ = StringIndex(reader->ReadUInt());
+  node->combinators_.ReadFromStatic<Combinator>(reader);
+
+  return node;
+}
+
+
+Combinator* Combinator::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  Combinator* node = new Combinator();
+  node->is_show_ = (reader->ReadByte() == 1);
+  int num_names = reader->ReadUInt();
+  node->name_indices_.Initialize(num_names);
+  for (intptr_t i = 0; i < num_names; ++i) {
+    node->name_indices_[i] = reader->ReadUInt();
+  }
+
+  return node;
 }
 
 
@@ -303,6 +330,16 @@ NameIndex Reference::ReadClassFrom(Reader* reader, bool allow_null) {
 
 
 NameIndex Reference::ReadTypedefFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+  NameIndex canonical_name = reader->ReadCanonicalNameReference();
+  if (canonical_name == -1) {
+    FATAL("Expected a valid typedef reference, but got `null`");
+  }
+  return canonical_name;
+}
+
+
+NameIndex Reference::ReadLibraryFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   NameIndex canonical_name = reader->ReadCanonicalNameReference();
   if (canonical_name == -1) {

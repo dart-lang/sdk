@@ -21,7 +21,8 @@ class BinaryPrinter extends Visitor {
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer _stringIndexer = new StringIndexer();
   final StringIndexer _sourceUriIndexer = new StringIndexer();
-  Map<DeferredImport, int> _deferredImportIndexer = <DeferredImport, int>{};
+  Map<LibraryDependency, int> _libraryDependencyIndex =
+      <LibraryDependency, int>{};
 
   final BufferedSink _sink;
 
@@ -90,6 +91,10 @@ class BinaryPrinter extends Visitor {
 
   void writeStringReference(String string) {
     writeUInt30(_stringIndexer[string]);
+  }
+
+  void writeStringReferenceList(List<String> strings) {
+    writeList(strings, writeStringReference);
   }
 
   void writeUriReference(String string) {
@@ -179,10 +184,10 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeDeferredImportReference(DeferredImport node) {
-    int index = _deferredImportIndexer[node];
+  void writeLibraryDependencyReference(LibraryDependency node) {
+    int index = _libraryDependencyIndex[node];
     if (index == null) {
-      throw 'Reference to deferred import $node out of scope';
+      throw 'Reference to library dependency $node out of scope';
     }
     writeUInt30(index);
   }
@@ -250,28 +255,36 @@ class BinaryPrinter extends Visitor {
     writeStringReference(node.name ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
-    writeDeferredImports(node);
+    writeLibraryDependencies(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
     writeNodeList(node.procedures);
   }
 
-  void writeDeferredImports(Library library) {
-    _deferredImportIndexer = library.deferredImports.isEmpty
-        ? const <DeferredImport, int>{}
-        : <DeferredImport, int>{};
-    writeUInt30(library.deferredImports.length);
-    for (int i = 0; i < library.deferredImports.length; ++i) {
-      var importNode = library.deferredImports[i];
-      _deferredImportIndexer[importNode] = i;
-      writeDeferredImport(importNode);
+  void writeLibraryDependencies(Library library) {
+    _libraryDependencyIndex = library.dependencies.isEmpty
+        ? const <LibraryDependency, int>{}
+        : <LibraryDependency, int>{};
+    writeUInt30(library.dependencies.length);
+    for (int i = 0; i < library.dependencies.length; ++i) {
+      var importNode = library.dependencies[i];
+      _libraryDependencyIndex[importNode] = i;
+      writeLibraryDependency(importNode);
     }
   }
 
-  void writeDeferredImport(DeferredImport node) {
-    writeLibraryReference(node.importedLibrary);
-    writeStringReference(node.name);
+  void writeLibraryDependency(LibraryDependency node) {
+    writeByte(node.flags);
+    writeNodeList(node.annotations);
+    writeLibraryReference(node.targetLibrary);
+    writeStringReference(node.name ?? '');
+    writeNodeList(node.combinators);
+  }
+
+  void visitCombinator(Combinator node) {
+    writeByte(node.isShow ? 1 : 0);
+    writeStringReferenceList(node.names);
   }
 
   void visitTypedef(Typedef node) {
@@ -736,12 +749,12 @@ class BinaryPrinter extends Visitor {
 
   visitLoadLibrary(LoadLibrary node) {
     writeByte(Tag.LoadLibrary);
-    writeDeferredImportReference(node.import);
+    writeLibraryDependencyReference(node.import);
   }
 
   visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     writeByte(Tag.CheckLibraryIsLoaded);
-    writeDeferredImportReference(node.import);
+    writeLibraryDependencyReference(node.import);
   }
 
   visitVectorCreation(VectorCreation node) {
@@ -1227,8 +1240,18 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
-  visitDeferredImport(DeferredImport node) {
+  visitLibraryDependency(LibraryDependency node) {
+    putOptional(node.name);
+    node.visitChildren(this);
+  }
+
+  visitCombinator(Combinator node) {
+    node.names.forEach(put);
+  }
+
+  visitTypedef(Typedef node) {
     put(node.name);
+    node.visitChildren(this);
   }
 
   visitClass(Class node) {

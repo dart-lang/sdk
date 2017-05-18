@@ -166,19 +166,27 @@ type Library {
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
-  List<DeferredImport> deferredImports;
+  List<LibraryDependency> libraryDependencies;
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
 }
 
-type DeferredImport {
-  LibraryReference importedLibrary;
+type LibraryDependency {
+  Byte flags (isExport, isDeferred);
+  List<Expression> annotations;
+  LibraryReference targetLibrary;
   StringReference name;
+  List<Combinator> combinators;
 }
 
-type DeferredImportReference {
-  // Index into deferredImports in the enclosing Library.
+type Combinator {
+  Byte flags (isShow);
+  List<String> names;
+}
+
+type LibraryDependencyReference {
+  // Index into libraryDependencies in the enclosing Library.
   UInt index;
 }
 
@@ -669,12 +677,12 @@ type Let extends Expression {
 
 type LoadLibrary extends Expression {
   Byte tag = 14;
-  DeferredImportReference import;
+  LibraryDependencyReference deferredImport;
 }
 
 type CheckLibraryIsLoaded extends Expression {
   Byte tag = 13;
-  DeferredImportReference import;
+  LibraryDependencyReference deferredImport;
 }
 
 type VectorCreation extends Expression {
@@ -893,6 +901,10 @@ type FunctionDeclaration extends Statement {
 
 abstract type DartType extends Node {}
 
+type VectorType extends DartType {
+  Byte tag = 88;
+}
+
 type InvalidType extends DartType {
   Byte tag = 90;
 }
@@ -966,10 +978,6 @@ type TypeParameterType extends DartType {
   // Note: This can also be 0, which is a 'forward reference' and is not to be used.
   UInt typeParameterPosition;
   Option<DartType> bound;
-}
-
-type VectorType extends DartType {
-  Byte tag = 88;
 }
 
 type TypeParameter {

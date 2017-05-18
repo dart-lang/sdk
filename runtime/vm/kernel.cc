@@ -59,6 +59,12 @@ void Library::VisitChildren(Visitor* visitor) {
 }
 
 
+LibraryDependency::~LibraryDependency() {}
+
+
+Combinator::~Combinator() {}
+
+
 Typedef::~Typedef() {}
 
 
