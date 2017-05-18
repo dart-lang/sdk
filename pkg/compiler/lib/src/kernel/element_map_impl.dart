@@ -5,6 +5,8 @@
 library dart2js.kernel.element_map;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/clone.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
@@ -619,7 +621,27 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   }
 
   @override
-  FunctionEntity getConstructor(ir.Member node) => _getConstructor(node);
+  ConstructorEntity getConstructor(ir.Member node) => _getConstructor(node);
+
+  @override
+  ConstructorEntity getSuperConstructor(
+      ir.Constructor sourceNode, ir.Member targetNode) {
+    KConstructor source = getConstructor(sourceNode);
+    KClass sourceClass = source.enclosingClass;
+    KConstructor target = getConstructor(targetNode);
+    KClass targetClass = target.enclosingClass;
+    KClass superClass = _getSuperType(sourceClass)?.element;
+    if (superClass == targetClass) {
+      return target;
+    }
+    _KClassEnv env = _classEnvs[superClass.classIndex];
+    ir.Member member = env.lookupConstructor(target.name);
+    if (member != null) {
+      return getConstructor(member);
+    }
+    throw new SpannableAssertionFailure(
+        source, "Super constructor for $source not found.");
+  }
 
   ConstantConstructor _getConstructorConstant(KConstructor constructor) {
     _ConstructorData data = _memberList[constructor.memberIndex];
@@ -786,7 +808,54 @@ class _KClassEnv {
   _KClassEnv(this.cls)
       // TODO(johnniwinther): Change this to use a property on [cls] when such
       // is added to kernel.
-      : isUnnamedMixinApplication = cls.name.contains('+');
+      : isUnnamedMixinApplication =
+            cls.name.contains('+') || cls.name.contains('&');
+
+  /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
+  ir.Constructor _buildForwardingConstructor(
+      CloneVisitor cloner, ir.Constructor superclassConstructor) {
+    var superFunction = superclassConstructor.function;
+
+    // We keep types and default values for the parameters but always mark the
+    // parameters as final (since we just forward them to the super
+    // constructor).
+    ir.VariableDeclaration cloneVariable(ir.VariableDeclaration variable) {
+      ir.VariableDeclaration clone = cloner.clone(variable);
+      clone.isFinal = true;
+      return clone;
+    }
+
+    // Build a [FunctionNode] which has the same parameters as the one in the
+    // superclass constructor.
+    var positionalParameters =
+        superFunction.positionalParameters.map(cloneVariable).toList();
+    var namedParameters =
+        superFunction.namedParameters.map(cloneVariable).toList();
+    var function = new ir.FunctionNode(new ir.EmptyStatement(),
+        positionalParameters: positionalParameters,
+        namedParameters: namedParameters,
+        requiredParameterCount: superFunction.requiredParameterCount,
+        returnType: const ir.VoidType());
+
+    // Build a [SuperInitializer] which takes all positional/named parameters
+    // and forward them to the super class constructor.
+    var positionalArguments = <ir.Expression>[];
+    for (var variable in positionalParameters) {
+      positionalArguments.add(new ir.VariableGet(variable));
+    }
+    var namedArguments = <ir.NamedExpression>[];
+    for (var variable in namedParameters) {
+      namedArguments.add(
+          new ir.NamedExpression(variable.name, new ir.VariableGet(variable)));
+    }
+    var superInitializer = new ir.SuperInitializer(superclassConstructor,
+        new ir.Arguments(positionalArguments, named: namedArguments));
+
+    // Assemble the constructor.
+    return new ir.Constructor(function,
+        name: superclassConstructor.name,
+        initializers: <ir.Initializer>[superInitializer]);
+  }
 
   void _ensureMaps() {
     if (_memberMap == null) {
@@ -826,6 +895,25 @@ class _KClassEnv {
         addMembers(cls.mixedInClass, includeStatic: false);
       }
       addMembers(cls, includeStatic: true);
+
+      if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
+        // Unnamed mixin applications have no constructors when read from .dill.
+        // For each generative constructor in the superclass we make a
+        // corresponding forwarding constructor in the subclass.
+        //
+        // This code is copied from
+        // 'package:kernel/transformations/mixin_full_resolution.dart'
+        var superclassSubstitution = getSubstitutionMap(cls.supertype);
+        var superclassCloner =
+            new CloneVisitor(typeSubstitution: superclassSubstitution);
+        for (var superclassConstructor in cls.superclass.constructors) {
+          var forwardingConstructor = _buildForwardingConstructor(
+              superclassCloner, superclassConstructor);
+          cls.addMember(forwardingConstructor);
+          _constructorMap[forwardingConstructor.name.name] =
+              forwardingConstructor;
+        }
+      }
     }
   }
 

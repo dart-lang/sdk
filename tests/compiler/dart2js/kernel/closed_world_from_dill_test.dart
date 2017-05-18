@@ -31,8 +31,28 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
+
+class ClassWithSetter {
+  void set setter(_) {}
+}
+
+class Mixin {
+  method1() {}
+  method2() {}
+  method3() {}
+}
+class Class1 = Object with Mixin;
+class Class2 extends Object with Mixin {
+  method3() {}
+}
+
 main() {
   print('Hello World');
+  ''.contains; // Trigger member closurization.
+  new ClassWithSetter().setter = null;
+  new Class1().method1();
+  new Class2().method2();
+  new Class2().method3();
 }
 '''
 };

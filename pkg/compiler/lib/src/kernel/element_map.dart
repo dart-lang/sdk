@@ -53,6 +53,25 @@ abstract class KernelToElementMap {
   /// constructor [node].
   ConstructorEntity getConstructor(ir.Member node);
 
+  /// Returns the [ConstructorEntity] corresponding to a super initializer in
+  /// [constructor].
+  ///
+  /// The IR resolves super initializers to a [target] up in the type hierarchy.
+  /// Most of the time, the result of this function will be the entity
+  /// corresponding to that target. In the presence of unnamed mixins, this
+  /// function returns an entity for an intermediate synthetic constructor that
+  /// kernel doesn't explicitly represent.
+  ///
+  /// For example:
+  ///     class M {}
+  ///     class C extends Object with M {}
+  ///
+  /// Kernel will say that C()'s super initializer resolves to Object(), but
+  /// this function will return an entity representing the unnamed mixin
+  /// application "Object+M"'s constructor.
+  ConstructorEntity getSuperConstructor(
+      ir.Constructor constructor, ir.Member target);
+
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
 

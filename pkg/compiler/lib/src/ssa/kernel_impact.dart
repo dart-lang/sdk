@@ -302,7 +302,12 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitSuperInitializer(ir.SuperInitializer node) {
-    ConstructorEntity target = elementAdapter.getConstructor(node.target);
+    // TODO(johnniwinther): Maybe rewrite `node.target` to point to a
+    // synthesized unnamed mixin constructor when needed. This would require us
+    // to consider impact building a required pre-step for inference and
+    // ssa-building.
+    ConstructorEntity target =
+        elementAdapter.getSuperConstructor(node.parent, node.target);
     _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementAdapter.getCallStructure(node.arguments)));
