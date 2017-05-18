@@ -21337,7 +21337,9 @@ RawOneByteString* OneByteString::New(intptr_t len, Heap::Space space) {
     NoSafepointScope no_safepoint;
     RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
     result->StoreSmi(&(result->ptr()->length_), Smi::New(len));
+#if !defined(HASH_IN_OBJECT_HEADER)
     result->StoreSmi(&(result->ptr()->hash_), Smi::New(0));
+#endif
     return result;
   }
 }

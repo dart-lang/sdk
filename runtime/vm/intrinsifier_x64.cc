@@ -170,8 +170,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     /* only scale by 8. */                                                     \
     scale_factor = TIMES_8;                                                    \
   }                                                                            \
-  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
-  __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
+  const intptr_t fixed_size_plus_alignment_padding =                           \
+      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
+  __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
   Heap::Space space = Heap::kNew;                                              \
   __ movq(R13, Address(THR, Thread::heap_offset()));                           \
@@ -1742,9 +1743,11 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));  // String object.
-  __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
-  __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ movl(RAX, FieldAddress(RAX, String::hash_offset()));
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagShift == 1);
+  __ addq(RAX, RAX);  // Smi tag RAX, setting Z flag.
+  __ j(ZERO, &fall_through, Assembler::kNearJump);
   __ ret();
   __ Bind(&fall_through);
   // Hash not yet computed.
@@ -1911,9 +1914,10 @@ void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
 void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label compute_hash;
   __ movq(RBX, Address(RSP, +1 * kWordSize));  // OneByteString object.
-  __ movq(RAX, FieldAddress(RBX, String::hash_offset()));
+  __ movl(RAX, FieldAddress(RBX, String::hash_offset()));
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &compute_hash, Assembler::kNearJump);
+  __ SmiTag(RAX);
   __ ret();
 
   __ Bind(&compute_hash);
@@ -1971,8 +1975,8 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
   __ incq(RAX);
   __ Bind(&set_hash_code);
+  __ movl(FieldAddress(RBX, String::hash_offset()), RAX);
   __ SmiTag(RAX);
-  __ StoreIntoSmiField(FieldAddress(RBX, String::hash_offset()), RAX);
   __ ret();
 }
 
@@ -1988,11 +1992,19 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
-  Label pop_and_fail;
+  Label pop_and_fail, not_zero_length;
   __ pushq(RDI);  // Preserve length.
-  __ SmiUntag(RDI);
-  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
-  __ leaq(RDI, Address(RDI, TIMES_1, fixed_size));  // RDI is a Smi.
+  __ sarq(RDI, Immediate(kSmiTagShift));  // Untag length.
+  // If the length is 0 then we have to make the allocated size a bit bigger,
+  // otherwise the string takes up less space than an ExternalOneByteString,
+  // and cannot be externalized.  TODO(erikcorry): We should probably just
+  // return a static zero length string here instead.
+  __ j(NOT_ZERO, &not_zero_length);
+  __ addq(RDI, Immediate(1));
+  __ Bind(&not_zero_length);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawString) + kObjectAlignment - 1;
+  __ addq(RDI, Immediate(fixed_size_plus_alignment_padding));
   __ andq(RDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
@@ -2034,6 +2046,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
+    // This also clears the hash, which is in the high bits of the tags.
     __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movq(FieldAddress(RAX, String::tags_offset()), RDI);  // Tags.
   }
@@ -2042,8 +2055,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ popq(RDI);
   __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, String::length_offset()),
                               RDI);
-  // Clear hash.
-  __ ZeroInitSmiField(FieldAddress(RAX, String::hash_offset()));
   __ jmp(ok, Assembler::kNearJump);
 
   __ Bind(&pop_and_fail);

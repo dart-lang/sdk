@@ -599,8 +599,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   NOT_IN_PRODUCT(
       __ MaybeTraceAllocation(kArrayCid, EAX, &slow_case, Assembler::kFarJump));
 
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  // EDX is Smi.
+  __ leal(EBX, Address(EDX, TIMES_2, fixed_size_plus_alignment_padding));
   ASSERT(kSmiTagShift == 1);
   __ andl(EBX, Immediate(-kObjectAlignment));
 
@@ -824,8 +826,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // EDX: number of context variables.
-    intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
-    __ leal(EBX, Address(EDX, TIMES_4, fixed_size));
+    intptr_t fixed_size_plus_alignment_padding =
+        (sizeof(RawContext) + kObjectAlignment - 1);
+    __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
     __ andl(EBX, Immediate(-kObjectAlignment));
 
     NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, EAX, &slow_case,
@@ -871,7 +874,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EDX: number of context variables.
     {
       Label size_tag_overflow, done;
-      __ leal(EBX, Address(EDX, TIMES_4, fixed_size));
+      __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
       __ andl(EBX, Immediate(-kObjectAlignment));
       __ cmpl(EBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);

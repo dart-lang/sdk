@@ -176,8 +176,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ CompareImmediate(R2, max_len);                                            \
   __ b(&fall_through, GT);                                                     \
   __ mov(R2, Operand(R2, LSL, scale_shift));                                   \
-  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
-  __ AddImmediate(R2, fixed_size);                                             \
+  const intptr_t fixed_size_plus_alignment_padding =                           \
+      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
+  __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ bic(R2, R2, Operand(kObjectAlignment - 1));                               \
   Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
@@ -1997,8 +1998,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
-  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
-  __ AddImmediate(length_reg, fixed_size);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawString) + kObjectAlignment - 1;
+  __ AddImmediate(length_reg, fixed_size_plus_alignment_padding);
   __ bic(length_reg, length_reg, Operand(kObjectAlignment - 1));
 
   const intptr_t cid = kOneByteStringCid;

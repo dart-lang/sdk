@@ -2957,9 +2957,11 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(CreateArrayOpt, A_B_C);
     const intptr_t length = Smi::Value(RAW_CAST(Smi, FP[rB]));
     if (LIKELY(static_cast<uintptr_t>(length) <= Array::kMaxElements)) {
-      const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+      const intptr_t fixed_size_plus_alignment_padding =
+          sizeof(RawArray) + kObjectAlignment - 1;
       const intptr_t instance_size =
-          (fixed_size + length * kWordSize) & ~(kObjectAlignment - 1);
+          (fixed_size_plus_alignment_padding + length * kWordSize) &
+          ~(kObjectAlignment - 1);
       const uword start =
           thread->heap()->new_space()->TryAllocate(instance_size);
       if (LIKELY(start != 0)) {

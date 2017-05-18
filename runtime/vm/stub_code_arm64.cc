@@ -723,8 +723,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R2: array length as Smi.
   // R8: heap.
   __ LoadFromOffset(R0, R8, Heap::TopOffset(space));
-  intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R3, fixed_size);
+  intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
   ASSERT(kSmiTagShift == 1);
   __ andi(R3, R3, Immediate(~(kObjectAlignment - 1)));
@@ -969,8 +970,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // R1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(R2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
     __ add(R2, R2, Operand(R1, LSL, 3));
     ASSERT(kSmiTagShift == 1);
     __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));
@@ -2302,9 +2304,9 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldr(R2, FieldAddress(R5, SingleTargetCache::lower_limit_offset()),
-         kUnsignedWord);
+         kUnsignedHalfword);
   __ ldr(R3, FieldAddress(R5, SingleTargetCache::upper_limit_offset()),
-         kUnsignedWord);
+         kUnsignedHalfword);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);
