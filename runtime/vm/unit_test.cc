@@ -28,8 +28,6 @@ using dart::bin::DartUtils;
 
 namespace dart {
 
-DECLARE_FLAG(bool, use_dart_frontend);
-
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
 
@@ -260,10 +258,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
 }
 
-static Dart_Handle LoadTestScriptWithVMParser(const char* script,
-                                              Dart_NativeEntryResolver resolver,
-                                              const char* lib_url,
-                                              bool finalize_classes) {
+
+Dart_Handle TestCase::LoadTestScript(const char* script,
+                                     Dart_NativeEntryResolver resolver,
+                                     const char* lib_url,
+                                     bool finalize_classes) {
   Dart_Handle url = NewString(lib_url);
   Dart_Handle source = NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
@@ -279,49 +278,6 @@ static Dart_Handle LoadTestScriptWithVMParser(const char* script,
   return lib;
 }
 
-Dart_Handle TestCase::LoadTestScript(const char* script,
-                                     Dart_NativeEntryResolver resolver,
-                                     const char* lib_url,
-                                     bool finalize_classes) {
-  if (!FLAG_use_dart_frontend) {
-    return LoadTestScriptWithVMParser(script, resolver, lib_url,
-                                      finalize_classes);
-  }
-
-  Zone* zone = Thread::Current()->zone();
-  char* filename = OS::SCreate(zone, "file:///%s", lib_url);
-  // clang-format off
-  Dart_SourceFile sourcefiles[] = {
-    {
-      filename, script,
-    },
-    {
-      "file:///.packages", "untitled:/"
-    }};
-  // clang-format on
-
-  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
-  Dart_KernelCompilationResult compilation_result =
-      Dart_CompileSourcesToKernel(filename, sourcefiles_count, sourcefiles);
-
-  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    return Dart_NewApiError(OS::SCreate(Thread::Current()->zone(),
-                                        "Compilation failed %s",
-                                        compilation_result.error));
-  }
-  const uint8_t* kernel_file = compilation_result.kernel;
-  intptr_t kernel_length = compilation_result.kernel_size;
-  if (kernel_file == NULL) {
-    return Dart_NewApiError(OS::SCreate(
-        Thread::Current()->zone(), "front end generated a NULL kernel file"));
-  }
-  void* kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
-  if (kernel_program == NULL) {
-    return Dart_NewApiError(OS::SCreate(
-        Thread::Current()->zone(), "Failed to read generated kernel binary"));
-  }
-  return Dart_LoadKernel(kernel_program);
-}
 
 #ifndef PRODUCT
 

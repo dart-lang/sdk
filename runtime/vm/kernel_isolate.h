@@ -27,10 +27,7 @@ class KernelIsolate : public AllStatic {
   static Dart_Port WaitForKernelPort();
   static Dart_Port KernelPort() { return kernel_port_; }
 
-  static Dart_KernelCompilationResult CompileToKernel(
-      const char* script_uri,
-      int source_files_count = 0,
-      Dart_SourceFile source_files[] = NULL);
+  static Dart_KernelCompilationResult CompileToKernel(const char* script_uri);
 
  protected:
   static Monitor* monitor_;
