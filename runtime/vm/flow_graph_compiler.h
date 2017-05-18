@@ -390,8 +390,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateStaticCall(intptr_t deopt_id,
                           TokenPosition token_pos,
                           const Function& function,
-                          intptr_t argument_count,
-                          const Array& argument_names,
+                          ArgumentsInfo args_info,
                           LocationSummary* locs,
                           const ICData& ic_data);
 
@@ -421,8 +420,7 @@ class FlowGraphCompiler : public ValueObject {
   void EmitPolymorphicInstanceCall(
       const CallTargets& targets,
       const InstanceCallInstr& original_instruction,
-      intptr_t argument_count,
-      const Array& argument_names,
+      ArgumentsInfo args_info,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
@@ -447,8 +445,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,
-                       intptr_t arg_count,
-                       const Array& arg_names,
+                       ArgumentsInfo args_info,
                        Label* failed,
                        Label* match_found,
                        intptr_t deopt_id,

@@ -354,9 +354,10 @@ Heap::Space SpaceForExternal(Thread* thread, intptr_t size) {
 
 
 static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -371,9 +372,10 @@ static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
 static RawObject* Send1Arg(const Instance& receiver,
                            const String& selector,
                            const Instance& argument) {
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 2;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -2725,9 +2727,10 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     return Api::NewError("Object does not implement the List interface");
   }
   const String& name = String::Handle(Z, Field::GetterName(Symbols::Length()));
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
   if (function.IsNull()) {
@@ -2831,9 +2834,10 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
+      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 2;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -2889,9 +2893,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
+      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 3;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3075,9 +3080,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z,
         Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
@@ -3162,9 +3168,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 3;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+        Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                     args_desc));
@@ -3792,10 +3799,11 @@ static RawObject* ResolveConstructor(const char* current_func,
       return ApiError::New(message);
     }
   }
-  int extra_args = 1;
+  const int kTypeArgsLen = 0;
+  const int extra_args = 1;
   String& error_message = String::Handle();
-  if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0,
-                                          &error_message)) {
+  if (!constructor.AreValidArgumentCounts(kTypeArgsLen, num_args + extra_args,
+                                          0, &error_message)) {
     const String& message = String::Handle(String::NewFormatted(
         "%s: wrong argument count for "
         "constructor '%s': %s.",
@@ -4108,10 +4116,11 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
       TypeArguments::Handle(Z, type_obj.arguments());
   const Function& constructor =
       Function::Handle(Z, cls.LookupFunctionAllowPrivate(dot_name));
+  const int kTypeArgsLen = 0;
   const int extra_args = 1;
   if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
-      constructor.AreValidArgumentCounts(number_of_arguments + extra_args, 0,
-                                         NULL)) {
+      constructor.AreValidArgumentCounts(
+          kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
     // Create the argument list.
     // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {
@@ -4165,6 +4174,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
   Dart_Handle result;
   Array& args = Array::Handle(Z);
+  const intptr_t kTypeArgsLen = 0;
   if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
@@ -4173,9 +4183,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
 
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveStaticAllowPrivate(
-               cls, function_name, number_of_arguments, Object::empty_array()));
+    const Function& function =
+        Function::Handle(Z, Resolver::ResolveStaticAllowPrivate(
+                                cls, function_name, kTypeArgsLen,
+                                number_of_arguments, Object::empty_array()));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(Z, cls.Name());
       return Api::NewError("%s: did not find static method '%s.%s'.",
@@ -4202,8 +4213,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // to check here.
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.raw();
-    ArgumentsDescriptor args_desc(
-        Array::Handle(Z, ArgumentsDescriptor::New(number_of_arguments + 1)));
+    ArgumentsDescriptor args_desc(Array::Handle(
+        Z, ArgumentsDescriptor::New(kTypeArgsLen, number_of_arguments + 1)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, function_name, args_desc));
     if (function.IsNull()) {
@@ -4211,8 +4222,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
       if (!::Dart_IsError(result)) {
         args.SetAt(0, instance);
-        const Array& args_descriptor =
-            Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+        const Array& args_descriptor = Array::Handle(
+            Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
         result = Api::NewHandle(
             T, DartEntry::InvokeNoSuchMethod(instance, function_name, args,
                                              args_descriptor));
@@ -4265,7 +4276,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // LookupFunctionAllowPrivate does not check argument arity, so we
     // do it here.
     String& error_message = String::Handle(Z);
-    if (!function.AreValidArgumentCounts(number_of_arguments, 0,
+    if (!function.AreValidArgumentCounts(kTypeArgsLen, number_of_arguments, 0,
                                          &error_message)) {
       return Api::NewError("%s: wrong argument count for function '%s': %s.",
                            CURRENT_FUNC, function_name.ToCString(),
@@ -4395,12 +4406,13 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 #endif  // !defined(PRODUCT)
 
     // Invoke the getter and return the result.
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 1;
     const Array& args = Array::Handle(Z, Array::New(kNumArgs));
     args.SetAt(0, instance);
     if (getter.IsNull()) {
-      const Array& args_descriptor =
-          Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+      const Array& args_descriptor = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
       return Api::NewHandle(
           T, DartEntry::InvokeNoSuchMethod(instance, getter_name, args,
                                            args_descriptor));
@@ -4551,13 +4563,14 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     }
 
     // Invoke the setter and return the result.
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     const Array& args = Array::Handle(Z, Array::New(kNumArgs));
     args.SetAt(0, instance);
     args.SetAt(1, value_instance);
     if (setter.IsNull()) {
-      const Array& args_descriptor =
-          Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+      const Array& args_descriptor = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
       return Api::NewHandle(
           T, DartEntry::InvokeNoSuchMethod(instance, setter_name, args,
                                            args_descriptor));

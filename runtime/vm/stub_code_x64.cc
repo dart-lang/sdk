@@ -564,8 +564,17 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ pushq(RAX);           // Receiver.
   __ pushq(RBX);           // ICData/MegamorphicCache.
   __ pushq(R10);           // Arguments descriptor array.
+
+  // Adjust arguments count.
+  __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
   __ movq(R10, RDI);
-  // EDX: Smi-tagged arguments array length.
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addq(R10, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+
+  // R10: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
   __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
@@ -1214,7 +1223,16 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ pushq(RAX);           // Receiver.
   __ pushq(R10);           // Arguments descriptor array.
 
-  __ movq(R10, R13);  // Smi-tagged arguments array length.
+  // Adjust arguments count.
+  __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
+  __ movq(R10, R13);
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addq(R10, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+
+  // R10: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
   const intptr_t kNumArgs = 3;

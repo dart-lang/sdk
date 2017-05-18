@@ -239,8 +239,8 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
                  0,
                  Location::RegisterLocation(0),
                  LocationSummary::kCall) {
-  const Array& arguments_descriptor = Array::Handle(ArgumentsDescriptor::New(
-      instance_call()->ArgumentCount(), instance_call()->argument_names()));
+  const Array& arguments_descriptor =
+      Array::Handle(instance_call()->GetArgumentsDescriptor());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
   // Push the target onto the stack.
@@ -450,12 +450,11 @@ EMIT_NATIVE_CODE(ClosureCall,
     __ Push(locs()->in(0).reg());
   }
 
-  intptr_t argument_count = ArgumentCount();
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      ArgumentsDescriptor::New(argument_count, argument_names()));
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(GetArgumentsDescriptor());
   const intptr_t argdesc_kidx =
       compiler->assembler()->AddConstant(arguments_descriptor);
-  __ StaticCall(argument_count, argdesc_kidx);
+  __ StaticCall(ArgumentCount(), argdesc_kidx);
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
@@ -918,9 +917,10 @@ EMIT_NATIVE_CODE(StringInterpolate,
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());
   }
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kArgumentCount = 1;
-  const Array& arguments_descriptor = Array::Handle(
-      ArgumentsDescriptor::New(kArgumentCount, Object::null_array()));
+  const Array& arguments_descriptor = Array::Handle(ArgumentsDescriptor::New(
+      kTypeArgsLen, kArgumentCount, Object::null_array()));
   __ PushConstant(CallFunction());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
   __ StaticCall(kArgumentCount, argdesc_kidx);

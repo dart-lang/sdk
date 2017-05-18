@@ -2753,38 +2753,98 @@ class CurrentContextInstr : public TemplateDefinition<0, NoThrow> {
 };
 
 
-class ClosureCallInstr : public TemplateDefinition<1, Throws> {
+struct ArgumentsInfo {
+  ArgumentsInfo(intptr_t type_args_len,
+                intptr_t pushed_argc,
+                const Array& argument_names)
+      : type_args_len(type_args_len),
+        pushed_argc(pushed_argc),
+        argument_names(argument_names) {}
+
+  RawArray* ToArgumentsDescriptor() const {
+    return ArgumentsDescriptor::New(type_args_len,
+                                    pushed_argc - (type_args_len > 0 ? 1 : 0),
+                                    argument_names);
+  }
+
+  intptr_t type_args_len;
+  intptr_t pushed_argc;
+  const Array& argument_names;
+};
+
+
+template <intptr_t kInputCount>
+class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
+ public:
+  TemplateDartCall(intptr_t deopt_id,
+                   intptr_t type_args_len,
+                   const Array& argument_names,
+                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   TokenPosition token_pos)
+      : TemplateDefinition<kInputCount, Throws>(deopt_id),
+        type_args_len_(type_args_len),
+        argument_names_(argument_names),
+        arguments_(arguments),
+        token_pos_(token_pos) {
+    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
+  }
+
+  intptr_t FirstParamIndex() const { return type_args_len() > 0 ? 1 : 0; }
+  intptr_t ArgumentCountWithoutTypeArgs() const {
+    return arguments_->length() - FirstParamIndex();
+  }
+  // ArgumentCount() includes the type argument vector if any.
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
+  intptr_t type_args_len() const { return type_args_len_; }
+  const Array& argument_names() const { return argument_names_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  RawArray* GetArgumentsDescriptor() const {
+    return ArgumentsDescriptor::New(
+        type_args_len(), ArgumentCountWithoutTypeArgs(), argument_names());
+  }
+
+ private:
+  intptr_t type_args_len_;
+  const Array& argument_names_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
+  TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
+};
+
+
+class ClosureCallInstr : public TemplateDartCall<1> {
  public:
   ClosureCallInstr(Value* function,
                    ClosureCallNode* node,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        argument_names_(node->arguments()->names()),
-        token_pos_(node->token_pos()),
-        arguments_(arguments) {
+      : TemplateDartCall(Thread::Current()->GetNextDeoptId(),
+                         node->arguments()->type_args_len(),
+                         node->arguments()->names(),
+                         arguments,
+                         node->token_pos()) {
+    ASSERT(!arguments->is_empty());
     SetInputAt(0, function);
   }
 
   ClosureCallInstr(Value* function,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   intptr_t type_args_len,
                    const Array& argument_names,
                    TokenPosition token_pos)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        argument_names_(argument_names),
-        token_pos_(token_pos),
-        arguments_(arguments) {
+      : TemplateDartCall(Thread::Current()->GetNextDeoptId(),
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos) {
+    ASSERT(!arguments->is_empty());
     SetInputAt(0, function);
   }
 
   DECLARE_INSTRUCTION(ClosureCall)
-
-  const Array& argument_names() const { return argument_names_; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
 
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
@@ -2796,36 +2856,33 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const Array& argument_names_;
-  TokenPosition token_pos_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
 };
 
 
-class InstanceCallInstr : public TemplateDefinition<0, Throws> {
+class InstanceCallInstr : public TemplateDartCall<0> {
  public:
   InstanceCallInstr(TokenPosition token_pos,
                     const String& function_name,
                     Token::Kind token_kind,
                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                    intptr_t type_args_len,
                     const Array& argument_names,
                     intptr_t checked_argument_count,
                     const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+      : TemplateDartCall(Thread::Current()->GetNextDeoptId(),
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
         ic_data_(NULL),
-        token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
-        arguments_(arguments),
-        argument_names_(argument_names),
         checked_argument_count_(checked_argument_count),
         has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
            Token::IsRelationalOperator(token_kind) ||
@@ -2844,14 +2901,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   // ICData can be replaced by optimizer.
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
-  virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-  const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
   bool has_unique_selector() const { return has_unique_selector_; }
@@ -2873,17 +2924,16 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   bool MatchesCoreName(const String& name);
 
+  RawFunction* ResolveForReceiverClass(const Class& cls);
+
  protected:
   friend class JitOptimizer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
 
  private:
   const ICData* ic_data_;
-  const TokenPosition token_pos_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
-  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
-  const Array& argument_names_;
   const intptr_t checked_argument_count_;
   bool has_unique_selector_;
 
@@ -2934,9 +2984,9 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual intptr_t CallCount() const;
 
   // If this polymophic call site was created to cover the remaining cids after
-  // inlinng then we need to keep track of the total number of calls including
-  // the ones that wer inlined. This is different from the CallCount above:  Eg
-  // if there  were 100 calls originally, distributed across three class-ids in
+  // inlining then we need to keep track of the total number of calls including
+  // the ones that we inlined. This is different from the CallCount above:  Eg
+  // if there were 100 calls originally, distributed across three class-ids in
   // the ratio 50, 40, 7, 3.  The first two were inlined, so now we have only
   // 10 calls in the CallCount above, but the heuristics need to know that the
   // last two cids cover 7% and 3% of the calls, not 70% and 30%.
@@ -3263,45 +3313,47 @@ class IfThenElseInstr : public Definition {
 };
 
 
-class StaticCallInstr : public TemplateDefinition<0, Throws> {
+class StaticCallInstr : public TemplateDartCall<0> {
  public:
   StaticCallInstr(TokenPosition token_pos,
                   const Function& function,
+                  intptr_t type_args_len,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+      : TemplateDartCall(Thread::Current()->GetNextDeoptId(),
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
         ic_data_(NULL),
-        token_pos_(token_pos),
         function_(function),
-        argument_names_(argument_names),
-        arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
   StaticCallInstr(TokenPosition token_pos,
                   const Function& function,
+                  intptr_t type_args_len,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
         ic_data_(NULL),
-        token_pos_(token_pos),
         function_(function),
-        argument_names_(argument_names),
-        arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
   // ICData for static calls carries call count.
@@ -3316,13 +3368,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
-  const Array& argument_names() const { return argument_names_; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
 
   virtual intptr_t CallCount() const {
     return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
@@ -3354,10 +3399,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
  private:
   const ICData* ic_data_;
-  const TokenPosition token_pos_;
   const Function& function_;
-  const Array& argument_names_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
 
   // 'True' for recognized list constructors.
@@ -6780,6 +6822,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
                     Value* right,
                     InstanceCallInstr* call)
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
+    ASSERT(call->type_args_len() == 0);
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -6815,6 +6858,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
       : TemplateComparison(call->token_pos(), op_kind, call->deopt_id()),
         call_(call),
         is_negated_(false) {
+    ASSERT(call->type_args_len() == 0);
     SetInputAt(0, left);
     SetInputAt(1, right);
   }

@@ -1309,6 +1309,7 @@ class Arguments : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
+  // TODO(regis): Support type arguments of generic functions.
   List<DartType>& types() { return types_; }
   List<Expression>& positional() { return positional_; }
   List<NamedExpression>& named() { return named_; }

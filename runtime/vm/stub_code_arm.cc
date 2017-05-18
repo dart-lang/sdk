@@ -606,6 +606,12 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Push(R8);  // Receiver.
   __ Push(R9);  // ICData/MegamorphicCache.
   __ Push(R4);  // Arguments descriptor.
+
+  // Adjust arguments count.
+  __ ldr(R3, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R2, R2, Smi::RawValue(1), NE);  // Include the type arguments.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -1250,6 +1256,11 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   // Push arguments descriptor array.
   __ LoadImmediate(IP, 0);
   __ PushList((1 << R4) | (1 << R8) | (1 << IP));
+
+  // Adjust arguments count.
+  __ ldr(R3, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R2, R2, Smi::RawValue(1), NE);  // Include the type arguments.
 
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);

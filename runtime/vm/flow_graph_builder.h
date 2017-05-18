@@ -316,6 +316,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                           StoreBarrierType emit_store_barrier);
 
   // Helpers for translating parts of the AST.
+  void BuildPushTypeArguments(const ArgumentListNode& node,
+                              ZoneGrowableArray<PushArgumentInstr*>* values);
   void BuildPushArguments(const ArgumentListNode& node,
                           ZoneGrowableArray<PushArgumentInstr*>* values);
 

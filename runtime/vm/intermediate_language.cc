@@ -3266,8 +3266,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
       (ic_data() == NULL)) {
-    const Array& arguments_descriptor = Array::Handle(
-        zone, ArgumentsDescriptor::New(ArgumentCount(), argument_names()));
+    const Array& arguments_descriptor =
+        Array::Handle(zone, GetArgumentsDescriptor());
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
         checked_argument_count());
@@ -3357,6 +3357,14 @@ bool InstanceCallInstr::MatchesCoreName(const String& name) {
 }
 
 
+RawFunction* InstanceCallInstr::ResolveForReceiverClass(const Class& cls) {
+  const Array& args_desc_array = Array::Handle(GetArgumentsDescriptor());
+  ArgumentsDescriptor args_desc(args_desc_array);
+  return Resolver::ResolveDynamicForReceiverClass(cls, function_name(),
+                                                  args_desc);
+}
+
+
 bool CallTargets::HasSingleRecognizedTarget() const {
   if (!HasSingleTarget()) return false;
   return MethodRecognizer::RecognizeKind(FirstTarget()) !=
@@ -3422,19 +3430,19 @@ intptr_t PolymorphicInstanceCallInstr::CallCount() const {
 // PolymorphicInstanceCallInstr.
 #if !defined(TARGET_ARCH_DBC)
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ArgumentsInfo args_info(instance_call()->type_args_len(),
+                          instance_call()->ArgumentCount(),
+                          instance_call()->argument_names());
   if (!with_checks()) {
     ASSERT(targets().HasSingleTarget());
     const Function& target = targets().FirstTarget();
     compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(),
-                                 target, instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(), locs(),
-                                 ICData::Handle());
+                                 target, args_info, locs(), ICData::Handle());
     return;
   }
 
   compiler->EmitPolymorphicInstanceCall(
-      targets_, *instance_call(), instance_call()->ArgumentCount(),
-      instance_call()->argument_names(), deopt_id(),
+      targets_, *instance_call(), args_info, deopt_id(),
       instance_call()->token_pos(), locs(), complete(), total_call_count());
 }
 #endif
@@ -3550,11 +3558,12 @@ LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Zone* zone = compiler->zone();
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
       (ic_data() == NULL)) {
-    const Array& arguments_descriptor = Array::Handle(
-        ArgumentsDescriptor::New(ArgumentCount(), argument_names()));
+    const Array& arguments_descriptor =
+        Array::Handle(zone, GetArgumentsDescriptor());
     MethodRecognizer::Kind recognized_kind =
         MethodRecognizer::RecognizeKind(function());
     int num_args_checked = 0;
@@ -3574,14 +3583,13 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
 #if !defined(TARGET_ARCH_DBC)
-  compiler->GenerateStaticCall(deopt_id(), token_pos(), function(),
-                               ArgumentCount(), argument_names(), locs(),
-                               *call_ic_data);
+  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+  compiler->GenerateStaticCall(deopt_id(), token_pos(), function(), args_info,
+                               locs(), *call_ic_data);
 #else
-  const Array& arguments_descriptor =
-      (ic_data() == NULL) ? Array::Handle(ArgumentsDescriptor::New(
-                                ArgumentCount(), argument_names()))
-                          : Array::Handle(ic_data()->arguments_descriptor());
+  const Array& arguments_descriptor = Array::Handle(
+      zone, (ic_data() == NULL) ? GetArgumentsDescriptor()
+                                : ic_data()->arguments_descriptor());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
   compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
@@ -3908,13 +3916,14 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
 
 const Function& StringInterpolateInstr::CallFunction() const {
   if (function_.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumberOfArguments = 1;
     const Array& kNoArgumentNames = Object::null_array();
     const Class& cls =
         Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
     ASSERT(!cls.IsNull());
     function_ = Resolver::ResolveStatic(
-        cls, Library::PrivateCoreLibName(Symbols::Interpolate()),
+        cls, Library::PrivateCoreLibName(Symbols::Interpolate()), kTypeArgsLen,
         kNumberOfArguments, kNoArgumentNames);
   }
   ASSERT(!function_.IsNull());

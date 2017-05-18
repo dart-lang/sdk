@@ -1343,8 +1343,10 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(args.Length(), arg_names));
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
@@ -1357,8 +1359,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
       const int kNumArgs = 1;
       const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
       getter_args.SetAt(0, reflectee);
-      const Array& getter_args_descriptor =
-          Array::Handle(zone, ArgumentsDescriptor::New(getter_args.Length()));
+      const Array& getter_args_descriptor = Array::Handle(
+          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
       const Instance& getter_result = Instance::Handle(
           zone, InvokeDynamicFunction(reflectee, function, getter_name,
                                       getter_args, getter_args_descriptor));
@@ -1404,11 +1406,12 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
     }
   }
 
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, reflectee);
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(args.Length()));
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   // InvokeDynamic invokes NoSuchMethod if the provided function is null.
   return InvokeDynamicFunction(reflectee, function, internal_getter_name, args,
@@ -1430,12 +1433,13 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   const Function& setter = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
 
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 2;
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, reflectee);
   args.SetAt(1, value);
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(args.Length()));
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   return InvokeDynamicFunction(reflectee, setter, internal_setter_name, args,
                                args_descriptor);
@@ -1497,6 +1501,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
   const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
@@ -1520,16 +1526,17 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
         UNREACHABLE();
       }
       // Make room for the closure (receiver) in the argument list.
-      intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+      const intptr_t num_args = args.Length();
+      const Array& call_args = Array::Handle(Array::New(num_args + 1));
       Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
+      for (int i = 0; i < num_args; i++) {
         temp = args.At(i);
         call_args.SetAt(i + 1, temp);
       }
       call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array = Array::Handle(
-          ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      const Array& call_args_descriptor_array =
+          Array::Handle(ArgumentsDescriptor::New(
+              kTypeArgsLen, call_args.Length(), arg_names));
       // Call the closure.
       const Object& call_result = Object::Handle(
           DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
@@ -1541,8 +1548,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
     }
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+  const Array& args_descriptor_array = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
@@ -1743,8 +1750,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     args.SetAt(i + num_implicit_args, explicit_argument);
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor_array = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {
@@ -1804,6 +1812,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
   Function& function =
       Function::Handle(library.LookupLocalFunction(function_name));
 
@@ -1821,8 +1831,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
         call_args.SetAt(i + 1, temp);
       }
       call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array = Array::Handle(
-          ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      const Array& call_args_descriptor_array =
+          Array::Handle(ArgumentsDescriptor::New(
+              kTypeArgsLen, call_args.Length(), arg_names));
       // Call closure.
       const Object& call_result = Object::Handle(
           DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
@@ -1834,8 +1845,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
     }
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+  const Array& args_descriptor_array = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||

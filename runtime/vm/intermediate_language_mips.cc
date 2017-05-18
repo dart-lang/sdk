@@ -286,9 +286,9 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load arguments descriptor in S4.
-  int argument_count = ArgumentCount();
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      ArgumentsDescriptor::New(argument_count, argument_names()));
+  const intptr_t argument_count = ArgumentCount();  // Includes type args.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(S4, arguments_descriptor);
 
   // Load closure function code in T2.
@@ -1135,11 +1135,12 @@ LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
 void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   __ Push(array);
+  const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               kNumberOfArguments, kNoArgumentNames, locs(),
-                               ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   ASSERT(locs()->out(0).reg() == V0);
 }
 
@@ -4681,12 +4682,12 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ICData& ic_data = *instance_call()->ic_data();
   ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-
-  const intptr_t kNumberOfArguments = 1;
+  const int kTypeArgsLen = 0;
+  const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
-                               kNumberOfArguments,
-                               Object::null_array(),  // No argument names.
-                               locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   __ Bind(&done);
 }
 

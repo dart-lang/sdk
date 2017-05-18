@@ -14,9 +14,11 @@ namespace dart {
 static RawObject* ExecuteTest(const Code& code) {
   Thread* thread = Thread::Current();
   TransitionToGenerated transition(thread);
-  return Simulator::Current()->Call(code,
-                                    Array::Handle(ArgumentsDescriptor::New(0)),
-                                    Array::Handle(Array::New(0)), thread);
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgs = 0;
+  return Simulator::Current()->Call(
+      code, Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)),
+      Array::Handle(Array::New(0)), thread);
 }
 
 
@@ -79,8 +81,10 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   dummy_instance_function.AttachCode(code);
 
   // Make a dummy ICData.
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgs = 2;
   const Array& dummy_arguments_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(2));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
   const ICData& ic_data = ICData::Handle(ICData::New(
       dummy_instance_function, String::Handle(dummy_instance_function.name()),
       dummy_arguments_descriptor, Thread::kNoDeoptId, 2,

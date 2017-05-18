@@ -1197,20 +1197,18 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            TokenPosition token_pos,
                                            const Function& function,
-                                           intptr_t argument_count,
-                                           const Array& argument_names,
+                                           ArgumentsInfo args_info,
                                            LocationSummary* locs,
                                            const ICData& ic_data_in) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
-  const Array& arguments_descriptor =
-      Array::ZoneHandle(ic_data.IsNull() ? ArgumentsDescriptor::New(
-                                               argument_count, argument_names)
-                                         : ic_data.arguments_descriptor());
+  const Array& arguments_descriptor = Array::ZoneHandle(
+      zone(), ic_data.IsNull() ? args_info.ToArgumentsDescriptor()
+                               : ic_data.arguments_descriptor());
   if (is_optimizing()) {
-    EmitOptimizedStaticCall(function, arguments_descriptor, argument_count,
-                            deopt_id, token_pos, locs);
+    EmitOptimizedStaticCall(function, arguments_descriptor,
+                            args_info.pushed_argc, deopt_id, token_pos, locs);
   } else {
-    ICData& call_ic_data = ICData::ZoneHandle(ic_data.raw());
+    ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.raw());
     if (call_ic_data.IsNull()) {
       const intptr_t kNumArgsChecked = 0;
       call_ic_data =
@@ -1219,7 +1217,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
               ->raw();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
-    EmitUnoptimizedStaticCall(argument_count, deopt_id, token_pos, locs,
+    EmitUnoptimizedStaticCall(args_info.pushed_argc, deopt_id, token_pos, locs,
                               call_ic_data);
   }
 }
@@ -1793,8 +1791,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
 void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const CallTargets& targets,
     const InstanceCallInstr& original_call,
-    intptr_t argument_count,
-    const Array& argument_names,
+    ArgumentsInfo args_info,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
@@ -1804,8 +1801,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     Label* deopt =
         AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
     Label ok;
-    EmitTestAndCall(targets, original_call.function_name(), argument_count,
-                    argument_names,
+    EmitTestAndCall(targets, original_call.function_name(), args_info,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
                     deopt_id, token_pos, locs, complete, total_ic_calls);
@@ -1813,8 +1809,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
   } else {
     if (complete) {
       Label ok;
-      EmitTestAndCall(targets, original_call.function_name(), argument_count,
-                      argument_names,
+      EmitTestAndCall(targets, original_call.function_name(), args_info,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
                       deopt_id, token_pos, locs, true, total_ic_calls);
@@ -1822,7 +1817,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     } else {
       const ICData& unary_checks = ICData::ZoneHandle(
           zone(), original_call.ic_data()->AsUnaryClassChecks());
-      EmitSwitchableInstanceCall(unary_checks, argument_count, deopt_id,
+      EmitSwitchableInstanceCall(unary_checks, args_info.pushed_argc, deopt_id,
                                  token_pos, locs);
     }
   }
@@ -1832,8 +1827,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
 #define __ assembler()->
 void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         const String& function_name,
-                                        intptr_t argument_count,
-                                        const Array& argument_names,
+                                        ArgumentsInfo args_info,
                                         Label* failed,
                                         Label* match_found,
                                         intptr_t deopt_id,
@@ -1843,10 +1837,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         intptr_t total_ic_calls) {
   ASSERT(is_optimizing());
 
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      zone(), ArgumentsDescriptor::New(argument_count, argument_names));
-
-  EmitTestAndCallLoadReceiver(argument_count, arguments_descriptor);
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(zone(), args_info.ToArgumentsDescriptor());
+  EmitTestAndCallLoadReceiver(args_info.pushed_argc, arguments_descriptor);
 
   static const int kNoCase = -1;
   int smi_case = kNoCase;
@@ -1885,7 +1878,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     GenerateStaticDartCall(deopt_id, token_index,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
-    __ Drop(argument_count);
+    __ Drop(args_info.pushed_argc);
     if (match_found != NULL) {
       __ Jump(match_found);
     }
@@ -1934,7 +1927,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     GenerateStaticDartCall(deopt_id, token_index,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
-    __ Drop(argument_count);
+    __ Drop(args_info.pushed_argc);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);
     }
@@ -1943,8 +1936,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   if (add_megamorphic_call) {
     int try_index = CatchClauseNode::kInvalidTryIndex;
     EmitMegamorphicInstanceCall(function_name, arguments_descriptor,
-                                argument_count, deopt_id, token_index, locs,
-                                try_index);
+                                args_info.pushed_argc, deopt_id, token_index,
+                                locs, try_index);
   }
 }
 #undef __

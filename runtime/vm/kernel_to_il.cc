@@ -1561,6 +1561,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
     const Object& argument) {
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   const int kNumExtraArgs = 1;
   const int num_arguments = kNumArgs + kNumExtraArgs;
@@ -1581,8 +1582,9 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
     arg_values.SetAt(0, type_arguments);
   }
   arg_values.SetAt((0 + kNumExtraArgs), argument);
-  const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(num_arguments, Object::empty_array()));
+  const Array& args_descriptor =
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, num_arguments,
+                                                Object::empty_array()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   ASSERT(!result.IsError());
@@ -1995,8 +1997,9 @@ const Object& ConstantEvaluator::RunFunction(const Function& function,
 const Object& ConstantEvaluator::RunFunction(const Function& function,
                                              const Array& arguments,
                                              const Array& names) {
-  const Array& args_descriptor =
-      Array::Handle(Z, ArgumentsDescriptor::New(arguments.Length(), names));
+  const int kTypeArgsLen = 0;  // Generic functions not yet supported.
+  const Array& args_descriptor = Array::Handle(
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
@@ -2532,9 +2535,10 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const Array& argument_names,
                                         intptr_t num_args_checked) {
   ArgumentArray arguments = GetArguments(argument_count);
-  InstanceCallInstr* call =
-      new (Z) InstanceCallInstr(position, name, kind, arguments, argument_names,
-                                num_args_checked, ic_data_array_);
+  const intptr_t kTypeArgsLen = 0;  // Generic instance calls not yet supported.
+  InstanceCallInstr* call = new (Z)
+      InstanceCallInstr(position, name, kind, arguments, kTypeArgsLen,
+                        argument_names, num_args_checked, ic_data_array_);
   Push(call);
   return Fragment(call);
 }
@@ -2544,8 +2548,10 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
                                        const Array& argument_names) {
   Value* function = Pop();
   ArgumentArray arguments = GetArguments(argument_count);
-  ClosureCallInstr* call = new (Z) ClosureCallInstr(
-      function, arguments, argument_names, TokenPosition::kNoSource);
+  const intptr_t kTypeArgsLen = 0;  // Generic closures not yet supported.
+  ClosureCallInstr* call =
+      new (Z) ClosureCallInstr(function, arguments, kTypeArgsLen,
+                               argument_names, TokenPosition::kNoSource);
   Push(call);
   return Fragment(call);
 }
@@ -2758,8 +2764,10 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t argument_count,
                                       const Array& argument_names) {
   ArgumentArray arguments = GetArguments(argument_count);
-  StaticCallInstr* call = new (Z) StaticCallInstr(
-      position, target, argument_names, arguments, ic_data_array_);
+  const intptr_t kTypeArgsLen = 0;  // Generic static calls not yet supported.
+  StaticCallInstr* call =
+      new (Z) StaticCallInstr(position, target, kTypeArgsLen, argument_names,
+                              arguments, ic_data_array_);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -2880,15 +2888,17 @@ Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
 
 
 Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
+  const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
   const dart::Class& cls = dart::Class::Handle(
       dart::Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
   const Function& function = Function::ZoneHandle(
-      Z, Resolver::ResolveStatic(cls, dart::Library::PrivateCoreLibName(
-                                          Symbols::InterpolateSingle()),
-                                 kNumberOfArguments, kNoArgumentNames));
+      Z,
+      Resolver::ResolveStatic(
+          cls, dart::Library::PrivateCoreLibName(Symbols::InterpolateSingle()),
+          kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
   Fragment instructions;
   instructions += PushArgument();
   instructions += StaticCall(position, function, 1);
@@ -4054,6 +4064,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   Fragment body(normal_entry);
   body += CheckStackOverflowInPrologue();
 
+  // TODO(regis): Check if a type argument vector is passed.
+
   // The receiver is the first argument to noSuchMethod, and it is the first
   // argument passed to the dispatcher function.
   LocalScope* scope = parsed_function_->node_sequence()->scope();
@@ -4109,8 +4121,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   body += StaticCall(TokenPosition::kMinSource, allocation_function, 4);
   body += PushArgument();  // For the call to noSuchMethod.
 
+  const int kTypeArgsLen = 0;
   ArgumentsDescriptor two_arguments(
-      Array::Handle(Z, ArgumentsDescriptor::New(2)));
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, 2)));
   Function& no_such_method =
       Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
                                   dart::Class::Handle(Z, function.Owner()),
@@ -5017,7 +5030,9 @@ void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
   const Array& argument_names = H.ArgumentNames(&named);
 
   // The frontend ensures we the [StaticInvocation] has matching arguments.
-  ASSERT(target.AreValidArguments(argument_count, argument_names, NULL));
+  const intptr_t kTypeArgsLen = 0;  // Generic functions not yet supported.
+  ASSERT(target.AreValidArguments(kTypeArgsLen, argument_count, argument_names,
+                                  NULL));
 
   Fragment instructions;
   LocalVariable* instance_variable = NULL;

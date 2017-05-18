@@ -2647,14 +2647,16 @@ class Function : public Object {
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArgumentCounts(intptr_t num_arguments,
+  bool AreValidArgumentCounts(intptr_t num_type_arguments,
+                              intptr_t num_arguments,
                               intptr_t num_named_arguments,
                               String* error_message) const;
 
-  // Returns true if the total argument count and the names of optional
-  // arguments are valid for calling this function.
+  // Returns true if the type argument count, total argument count and the names
+  // of optional arguments are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArguments(intptr_t num_arguments,
+  bool AreValidArguments(intptr_t num_type_arguments,
+                         intptr_t num_arguments,
                          const Array& argument_names,
                          String* error_message) const;
   bool AreValidArguments(const ArgumentsDescriptor& args_desc,

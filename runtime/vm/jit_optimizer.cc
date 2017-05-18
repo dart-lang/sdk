@@ -137,10 +137,8 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
-    const Array& args_desc_array =
-        Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                                  call->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
+    ArgumentsDescriptor args_desc(
+        Array::Handle(Z, call->GetArgumentsDescriptor()));
     bool allow_add = false;
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamicForReceiverClass(
@@ -171,9 +169,11 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     const Class& owner_class = Class::Handle(Z, function().Owner());
     if (!owner_class.is_abstract() && !CHA::HasSubclasses(owner_class) &&
         !CHA::IsImplemented(owner_class)) {
-      const Array& args_desc_array =
-          Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                                    call->argument_names()));
+      const int kTypeArgsLen = 0;
+      ASSERT(call->type_args_len() == kTypeArgsLen);
+      const Array& args_desc_array = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, call->ArgumentCount(),
+                                      call->argument_names()));
       ArgumentsDescriptor args_desc(args_desc_array);
       bool allow_add = false;
       const Function& function = Function::Handle(

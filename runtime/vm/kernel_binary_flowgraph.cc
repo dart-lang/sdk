@@ -995,8 +995,10 @@ const Object& StreamingConstantEvaluator::RunFunction(
 const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
                                                       const Array& arguments,
                                                       const Array& names) {
-  const Array& args_descriptor =
-      Array::Handle(Z, ArgumentsDescriptor::New(arguments.Length(), names));
+  // We do not support generic methods yet.
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor = Array::Handle(
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
@@ -1012,6 +1014,7 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
     const Object& argument) {
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   const int kNumExtraArgs = 1;
   const int num_arguments = kNumArgs + kNumExtraArgs;
@@ -1032,8 +1035,9 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
     arg_values.SetAt(0, type_arguments);
   }
   arg_values.SetAt((0 + kNumExtraArgs), argument);
-  const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(num_arguments, Object::empty_array()));
+  const Array& args_descriptor =
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, num_arguments,
+                                                Object::empty_array()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   ASSERT(!result.IsError());
@@ -2782,7 +2786,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   Array& argument_names = Array::ZoneHandle(Z);
   instructions += BuildArguments(&argument_names, NULL,
                                  special_case_identical);  // read arguments.
-  ASSERT(target.AreValidArguments(argument_count, argument_names, NULL));
+  const int kTypeArgsLen = 0;
+  ASSERT(target.AreValidArguments(kTypeArgsLen, argument_count, argument_names,
+                                  NULL));
 
   // Special case identical(x, y) call.
   // TODO(27590) consider moving this into the inliner and force inline it

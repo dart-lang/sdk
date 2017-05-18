@@ -863,7 +863,16 @@ class CallSiteInliner : public ValueObject {
 
         // After treating optional parameters the actual/formal count must
         // match.
-        ASSERT(arguments->length() == function.NumParameters());
+        // TODO(regis): Consider type arguments in arguments.
+        if (arguments->length() != function.NumParameters()) {
+          ASSERT(function.IsGeneric());
+          ASSERT(arguments->length() == function.NumParameters() + 1);
+          TRACE_INLINING(
+              THR_Print("     Bailout: unsupported type arguments\n"));
+          PRINT_INLINING_TREE("Unsupported type arguments", &call_data->caller,
+                              &function, call_data->call);
+          return false;
+        }
         ASSERT(param_stubs->length() == callee_graph->parameter_count());
 
         // Update try-index of the callee graph.
@@ -1341,6 +1350,7 @@ class CallSiteInliner : public ValueObject {
     ASSERT(!function.HasOptionalPositionalParameters() ||
            !function.HasOptionalNamedParameters());
 
+    // TODO(regis): Consider type arguments in arguments.
     intptr_t arg_count = arguments->length();
     intptr_t param_count = function.NumParameters();
     intptr_t fixed_param_count = function.num_fixed_parameters();
