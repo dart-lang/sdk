@@ -28,12 +28,14 @@ const Map<String, String> specialElementFlags = const {
   'deprecated': '0x20'
 };
 
-final GeneratedFile target =
-    new GeneratedFile('lib/protocol/protocol_generated.dart', (String pkgPath) {
-  CodegenProtocolVisitor visitor =
-      new CodegenProtocolVisitor(path.basename(pkgPath), readApi(pkgPath));
-  return visitor.collectCode(visitor.visitApi);
-});
+GeneratedFile target(bool responseRequiresRequestTime) {
+  return new GeneratedFile('lib/protocol/protocol_generated.dart',
+      (String pkgPath) {
+    CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(
+        path.basename(pkgPath), responseRequiresRequestTime, readApi(pkgPath));
+    return visitor.collectCode(visitor.visitApi);
+  });
+}
 
 /**
  * Callback type used to represent arbitrary code generation.
@@ -73,6 +75,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   final String packageName;
 
   /**
+   * A flag indicating whether the class [Response] requires a `requestTime`
+   * parameter.
+   */
+  final bool responseRequiresRequestTime;
+
+  /**
    * Visitor used to produce doc comments.
    */
   final ToHtmlVisitor toHtmlVisitor;
@@ -84,7 +92,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   final Map<String, ImpliedType> impliedTypes;
 
-  CodegenProtocolVisitor(this.packageName, Api api)
+  CodegenProtocolVisitor(
+      this.packageName, this.responseRequiresRequestTime, Api api)
       : toHtmlVisitor = new ToHtmlVisitor(api),
         impliedTypes = computeImpliedTypes(api),
         super(api) {
@@ -955,10 +964,18 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   bool emitToResponseMember(ImpliedType impliedType) {
     if (impliedType.kind == 'requestResult') {
       writeln('@override');
-      writeln('Response toResponse(String id) {');
+      if (responseRequiresRequestTime) {
+        writeln('Response toResponse(String id, int requestTime) {');
+      } else {
+        writeln('Response toResponse(String id) {');
+      }
       indent(() {
         String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        writeln('return new Response(id, result: $jsonPart);');
+        if (responseRequiresRequestTime) {
+          writeln('return new Response(id, requestTime, result: $jsonPart);');
+        } else {
+          writeln('return new Response(id, result: $jsonPart);');
+        }
       });
       writeln('}');
       return true;

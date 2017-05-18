@@ -453,8 +453,8 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -1089,8 +1089,8 @@ class AnalysisReanalyzeResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -1279,8 +1279,8 @@ class AnalysisSetContextBuilderOptionsResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -1396,8 +1396,8 @@ class AnalysisSetContextRootsResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -1509,8 +1509,8 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -1634,8 +1634,8 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -1761,8 +1761,8 @@ class AnalysisUpdateContentResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -2026,8 +2026,8 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -2670,8 +2670,8 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -2908,8 +2908,8 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -3107,8 +3107,8 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -3604,8 +3604,8 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -5121,8 +5121,8 @@ class PluginShutdownResult implements ResponseResult {
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: null);
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: null);
   }
 
   @override
@@ -5467,8 +5467,8 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
   }
 
   @override

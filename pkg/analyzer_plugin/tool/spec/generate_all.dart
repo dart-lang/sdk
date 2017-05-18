@@ -28,10 +28,10 @@ main() {
  */
 List<GeneratedContent> get allTargets {
   List<GeneratedContent> targets = <GeneratedContent>[];
-  targets.add(codegen_dart_protocol.target);
+  targets.add(codegen_dart_protocol.target(true));
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
-  targets.add(codegen_protocol_common.target);
+  targets.add(codegen_protocol_common.target(true));
   targets.add(codegen_protocol_constants.target);
   targets.add(to_html.target);
   return targets;

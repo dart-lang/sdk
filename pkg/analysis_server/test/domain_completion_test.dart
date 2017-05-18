@@ -711,7 +711,7 @@ class B extends A {m() {^}}
           DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-'))
+      info: new Future.value(result.toResponse('-', 1))
     };
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'plugin completion',

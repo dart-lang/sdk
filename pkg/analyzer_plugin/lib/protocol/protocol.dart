@@ -340,12 +340,6 @@ class RequestFailure implements Exception {
  */
 class Response {
   /**
-   * The [Response] instance that is returned when a real [Response] cannot
-   * be provided at the moment.
-   */
-  static final Response DELAYED_RESPONSE = new Response('DELAYED_RESPONSE');
-
-  /**
    * The name of the JSON attribute containing the id of the request for which
    * this is a response.
    */
@@ -355,6 +349,12 @@ class Response {
    * The name of the JSON attribute containing the error message.
    */
   static const String ERROR = 'error';
+
+  /**
+   * The name of the JSON attribute containing the time at which the request was
+   * handled by the plugin.
+   */
+  static const String REQUEST_TIME = 'requestTime';
 
   /**
    * The name of the JSON attribute containing the result values.
@@ -374,6 +374,11 @@ class Response {
   final RequestError error;
 
   /**
+   * The time at which the request was handled by the plugin.
+   */
+  final int requestTime;
+
+  /**
    * A table mapping the names of result fields to their values.  Should be
    * `null` if there is no result to send.
    */
@@ -385,56 +390,35 @@ class Response {
    * result; otherwise an empty result will be used.  If an [error] is provided
    * then the response will represent an error condition.
    */
-  Response(this.id, {Map<String, Object> result, this.error}) : result = result;
-
-//  /**
-//   * Initialize a newly created instance to represent the FILE_NOT_ANALYZED
-//   * error condition.
-//   */
-//  Response.fileNotAnalyzed(Request request, String file)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.FILE_NOT_ANALYZED,
-//          'File is not analyzed: $file.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent the FORMAT_INVALID_FILE
-//   * error condition.
-//   */
-//  Response.formatInvalidFile(Request request)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
-//          'Error during `edit.format`: invalid file.'));
-//
-//  /**
-//   * Initialize a newly created instance to represent the FORMAT_WITH_ERROR
-//   * error condition.
-//   */
-//  Response.formatWithErrors(Request request)
-//      : this(request.id,
-//      error: new RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
-//          'Error during `edit.format`: source contains syntax errors.'));
+  Response(this.id, this.requestTime, {this.error, Map<String, Object> result})
+      : result = result;
 
   /**
    * Initialize a newly created instance based on the given JSON data.
    */
   factory Response.fromJson(Map json) {
     try {
-      Object id = json[Response.ID];
+      Object id = json[ID];
       if (id is! String) {
         return null;
       }
-      Object error = json[Response.ERROR];
+      Object error = json[ERROR];
       RequestError decodedError;
       if (error is Map) {
         decodedError = new RequestError.fromJson(
             new ResponseDecoder(null), '.error', error);
       }
-      Object result = json[Response.RESULT];
+      Object requestTime = json[REQUEST_TIME];
+      if (requestTime is! int) {
+        return null;
+      }
+      Object result = json[RESULT];
       Map<String, Object> decodedResult;
       if (result is Map) {
         decodedResult = result as Map<String, Object>;
       }
-      return new Response(id, error: decodedError, result: decodedResult);
+      return new Response(id, requestTime,
+          error: decodedError, result: decodedResult);
     } catch (exception) {
       return null;
     }
@@ -450,6 +434,7 @@ class Response {
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
+    jsonObject[REQUEST_TIME] = requestTime;
     if (result != null) {
       jsonObject[RESULT] = result;
     }

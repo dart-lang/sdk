@@ -69,7 +69,7 @@ class PluginIsolateChannelTest {
   }
 
   void test_sendResponse() {
-    Response response = new PluginShutdownResult().toResponse('3');
+    Response response = new PluginShutdownResult().toResponse('3', 1);
     channel.sendResponse(response);
     expect(sendPort.sentMessages, hasLength(1));
     expect(sendPort.sentMessages[0], response.toJson());

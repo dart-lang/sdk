@@ -61,7 +61,7 @@ main() {
     plugin.EditGetFixesResult result =
         new plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-'))
+      info: new Future.value(result.toResponse('-', 1))
     };
 
     createProject();

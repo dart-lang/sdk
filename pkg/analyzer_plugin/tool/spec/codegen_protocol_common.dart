@@ -11,12 +11,14 @@ import 'codegen_dart_protocol.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-final GeneratedFile target =
+GeneratedFile target(bool responseRequiresRequestTime) =>
     new GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) {
-  CodegenCommonVisitor visitor =
-      new CodegenCommonVisitor(path.basename(pkgPath), readApi(pkgPath));
-  return visitor.collectCode(visitor.visitApi);
-});
+      CodegenCommonVisitor visitor = new CodegenCommonVisitor(
+          path.basename(pkgPath),
+          responseRequiresRequestTime,
+          readApi(pkgPath));
+      return visitor.collectCode(visitor.visitApi);
+    });
 
 /**
  * A visitor that produces Dart code defining the common types associated with
@@ -28,7 +30,9 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
    * given [packageName] corresponding to the types in the given [api] that are
    * common to multiple protocols.
    */
-  CodegenCommonVisitor(String packageName, Api api) : super(packageName, api);
+  CodegenCommonVisitor(
+      String packageName, bool responseRequiresRequestTime, Api api)
+      : super(packageName, responseRequiresRequestTime, api);
 
   @override
   void emitImports() {

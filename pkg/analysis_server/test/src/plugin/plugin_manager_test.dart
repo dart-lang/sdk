@@ -447,7 +447,7 @@ class PluginSessionTest {
     Response response = new PluginVersionCheckResult(
             true, 'name', 'version', <String>[],
             contactInfo: 'contactInfo')
-        .toResponse('0');
+        .toResponse('0', 1);
     Future<Response> future =
         session.sendRequest(new PluginVersionCheckParams('', '', ''));
     expect(session.pendingRequests, hasLength(1));

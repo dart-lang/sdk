@@ -517,7 +517,7 @@ class ResponseDecoder extends JsonDecoder {
 abstract class ResponseResult implements HasToJson {
   /**
    * Return a response whose result data is this object for the request with the
-   * given [id].
+   * given [id], where the request was received at the given [requestTime].
    */
-  Response toResponse(String id);
+  Response toResponse(String id, int requestTime);
 }

@@ -62,7 +62,7 @@ class AssistsTest extends AbstractAnalysisTest {
     plugin.EditGetAssistsResult result = new plugin.EditGetAssistsResult(
         <plugin.PrioritizedSourceChange>[change]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-'))
+      info: new Future.value(result.toResponse('-', 1))
     };
 
     addTestFile('main() {}');

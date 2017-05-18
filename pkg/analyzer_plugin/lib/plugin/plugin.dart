@@ -489,7 +489,7 @@ abstract class ServerPlugin {
    * Compute the response that should be returned for the given [request], or
    * `null` if the response has already been sent.
    */
-  Future<Response> _getResponse(Request request) async {
+  Future<Response> _getResponse(Request request, int requestTime) async {
     ResponseResult result = null;
     switch (request.method) {
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
@@ -545,7 +545,7 @@ abstract class ServerPlugin {
       case PLUGIN_REQUEST_SHUTDOWN:
         var params = new PluginShutdownParams();
         result = await handlePluginShutdown(params);
-        _channel.sendResponse(result.toResponse(request.id));
+        _channel.sendResponse(result.toResponse(request.id, requestTime));
         _channel.close();
         return null;
       case PLUGIN_REQUEST_VERSION_CHECK:
@@ -554,10 +554,10 @@ abstract class ServerPlugin {
         break;
     }
     if (result == null) {
-      return new Response(request.id,
+      return new Response(request.id, requestTime,
           error: RequestErrorFactory.unknownRequest(request.method));
     }
-    return result.toResponse(request.id);
+    return result.toResponse(request.id, requestTime);
   }
 
   /**
@@ -565,14 +565,15 @@ abstract class ServerPlugin {
    * server.
    */
   Future<Null> _onRequest(Request request) async {
+    int requestTime = new DateTime.now().millisecondsSinceEpoch;
     String id = request.id;
     Response response;
     try {
-      response = await _getResponse(request);
+      response = await _getResponse(request, requestTime);
     } on RequestFailure catch (exception) {
-      response = new Response(id, error: exception.error);
+      response = new Response(id, requestTime, error: exception.error);
     } catch (exception, stackTrace) {
-      response = new Response(id,
+      response = new Response(id, requestTime,
           error: new RequestError(
               RequestErrorCode.PLUGIN_ERROR, exception.toString(),
               stackTrace: stackTrace.toString()));
