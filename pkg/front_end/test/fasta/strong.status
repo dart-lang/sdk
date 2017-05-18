@@ -56,6 +56,7 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void-methods: Fail
 
+inference/async_closure_return_type_flatten: Fail
 inference/async_closure_return_type_future_or: Fail
 inference/block_bodied_lambdas_async_all_returns_are_futures: Fail
 inference/block_bodied_lambdas_async_all_returns_are_values: Fail

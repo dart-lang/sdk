@@ -462,7 +462,8 @@ class KernelFunctionExpression extends FunctionExpression
               inferredReturnType, inferrer.coreTypes.iterableClass);
         }
       } else if (isAsync) {
-        inferredReturnType = inferrer.wrapFutureType(inferredReturnType);
+        inferredReturnType = inferrer.wrapType(
+            inferredReturnType, inferrer.coreTypes.futureClass);
       }
     }
 
