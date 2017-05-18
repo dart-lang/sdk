@@ -42,7 +42,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.7",
-  "async_tag": "@1.13.0",
+  "async_tag": "@daf66909019d2aaec1721fc39d94ea648a9fdc1d",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
