@@ -229,8 +229,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
       var typeParamElement = astAdapter.getElement(typeParameter);
       HInstruction param;
-      needParameters ??=
-          rtiNeed.classNeedsRti(astAdapter.getElement(enclosing));
+      needParameters ??= rtiNeed.classNeedsRti(astAdapter.getClass(enclosing));
       if (needParameters) {
         param = addParameter(typeParamElement, commonMasks.nonNullType);
       } else {

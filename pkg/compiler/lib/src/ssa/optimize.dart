@@ -14,8 +14,9 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
+import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
+import '../js_backend/runtime_types.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/types.dart';

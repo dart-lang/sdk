@@ -38,13 +38,16 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
   Map<Selector, SelectorConstraints> setterInvocationsByName(String name);
 
-  Iterable<FunctionElement> get staticFunctionsNeedingGetter;
-  Iterable<FunctionElement> get methodsNeedingSuperGetter;
+  Iterable<FunctionEntity> get staticFunctionsNeedingGetter;
+  Iterable<FunctionEntity> get methodsNeedingSuperGetter;
 
   /// The set of all referenced static fields.
   ///
   /// Invariant: Elements are declaration elements.
-  Iterable<FieldElement> get allReferencedStaticFields;
+  Iterable<FieldEntity> get allReferencedStaticFields;
+
+  /// Set of methods in instantiated classes that are potentially closurized.
+  Iterable<FunctionEntity> get closurizedMembers;
 }
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
@@ -81,10 +84,10 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
    *
    * Invariant: Elements are declaration elements.
    */
-  final Set<FunctionElement> staticFunctionsNeedingGetter =
-      new Set<FunctionElement>();
-  final Set<FunctionElement> methodsNeedingSuperGetter =
-      new Set<FunctionElement>();
+  final Set<FunctionEntity> staticFunctionsNeedingGetter =
+      new Set<FunctionEntity>();
+  final Set<FunctionEntity> methodsNeedingSuperGetter =
+      new Set<FunctionEntity>();
   final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =
       <String, Map<Selector, SelectorConstraints>>{};
   final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters =
@@ -118,6 +121,9 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
+
+  /// Set of methods in instantiated classes that are potentially closurized.
+  final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
 
   CodegenWorldBuilderImpl(this._nativeData, this._world, this._constants,
       this.selectorConstraintsStrategy);
@@ -328,10 +334,12 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     }
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        staticFunctionsNeedingGetter.add(element);
+        MethodElement method = element;
+        staticFunctionsNeedingGetter.add(method);
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        methodsNeedingSuperGetter.add(element);
+        MethodElement method = element;
+        methodsNeedingSuperGetter.add(method);
         break;
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.FIELD_SET:
@@ -398,6 +406,11 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     if (useSet.isNotEmpty) {
       memberUsed(usage.entity, useSet);
     }
+  }
+
+  /// Registers that [element] has been closurized.
+  void registerClosurizedMember(MemberEntity element) {
+    closurizedMembers.add(element);
   }
 
   void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {

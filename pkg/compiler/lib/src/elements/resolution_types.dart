@@ -1104,6 +1104,16 @@ class Types implements DartTypes {
     return cls.supertype;
   }
 
+  @override
+  Iterable<InterfaceType> getSupertypes(ClassElement cls) {
+    assert(invariant(cls, cls.allSupertypes != null,
+        message: 'Supertypes have not been computed for $cls.'));
+    return cls.allSupertypes;
+  }
+
+  @override
+  FunctionType getCallType(ResolutionInterfaceType type) => type.callType;
+
   /// Flatten [type] by recursively removing enclosing `Future` annotations.
   ///
   /// Defined in the language specification as:

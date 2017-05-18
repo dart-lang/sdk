@@ -34,13 +34,7 @@ import '../../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
 import '../../elements/types.dart' show DartType, DartTypes;
 import '../../js/js.dart' as js;
-import '../../js_backend/backend.dart'
-    show
-        RuntimeTypesChecks,
-        RuntimeTypesNeed,
-        RuntimeTypesEncoder,
-        RuntimeTypesSubstitutions,
-        SuperMemberData;
+import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
@@ -50,6 +44,12 @@ import '../../js_backend/native_data.dart';
 import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
+import '../../js_backend/runtime_types.dart'
+    show
+        RuntimeTypesChecks,
+        RuntimeTypesNeed,
+        RuntimeTypesEncoder,
+        RuntimeTypesSubstitutions;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;

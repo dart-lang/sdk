@@ -15,14 +15,13 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show CommonElements;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/resolution_types.dart';
-import '../elements/types.dart';
 import '../enqueue.dart'
     show
         DirectEnqueuerStrategy,
@@ -40,7 +39,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, Emitter;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
@@ -78,9 +77,8 @@ import 'native_data.dart';
 import 'no_such_method_registry.dart';
 import 'patch_resolver.dart';
 import 'resolution_listener.dart';
+import 'runtime_types.dart';
 import 'type_variable_handler.dart';
-
-part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
@@ -376,7 +374,7 @@ class JavaScriptBackend {
 
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   RuntimeTypesNeed _rtiNeed;
-  final _RuntimeTypes _rti;
+  final RuntimeTypesImpl _rti;
 
   RuntimeTypesEncoder _rtiEncoder;
 
@@ -487,7 +485,8 @@ class JavaScriptBackend {
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : _rti = new _RuntimeTypes(compiler),
+      : _rti = new RuntimeTypesImpl(
+            compiler.elementEnvironment, compiler.frontEndStrategy.dartTypes),
         optimizerHints = new OptimizerHintsForTests(
             compiler.elementEnvironment, compiler.commonElements),
         this.sourceInformationStrategy = createSourceInformationStrategy(
@@ -1107,8 +1106,8 @@ class JavaScriptBackend {
         new OneShotInterceptorData(closedWorld.interceptorData, commonElements);
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
-    _rtiEncoder =
-        _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, commonElements);
+    _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
+        namer, compiler.elementEnvironment, commonElements);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,

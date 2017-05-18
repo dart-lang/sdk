@@ -30,6 +30,7 @@ import '../world.dart' show ClosedWorld;
 import 'backend.dart';
 import 'constant_system_javascript.dart';
 import 'native_data.dart';
+import 'runtime_types.dart';
 
 part 'field_naming_mixin.dart';
 part 'frequency_namer.dart';
@@ -751,7 +752,7 @@ class Namer {
       // The name is still not guaranteed to be unique, since both the library
       // name and originalName could contain $ symbols and as the library
       // name itself might clash.
-      String libraryName = _proposeNameForGlobal(library);
+      String libraryName = _proposeNameForLibrary(library);
       return "_$libraryName\$$text";
     }
   }
@@ -1269,7 +1270,8 @@ class Namer {
       return element.name.replaceAll('+', '_');
     }
     if (element.isLibrary) {
-      return _proposeNameForLibrary(element);
+      LibraryElement library = element;
+      return _proposeNameForLibrary(library);
     }
     return element.name;
   }
@@ -1280,7 +1282,7 @@ class Namer {
    */
   // TODO(sra): Pre-process libraries to assign [libraryLongNames] in a way that
   // is independent of the order of calls to namer.
-  String _proposeNameForLibrary(LibraryElement library) {
+  String _proposeNameForLibrary(LibraryEntity library) {
     String name = libraryLongNames[library];
     if (name != null) return name;
     // Use the 'file' name, e.g. "package:expect/expect.dart" -> "expect"
@@ -1514,17 +1516,18 @@ class Namer {
     assert(Elements.isStaticOrTopLevelFunction(element));
     String enclosing =
         element.enclosingClass == null ? "" : element.enclosingClass.name;
-    String library = _proposeNameForGlobal(element.library);
+    String library = _proposeNameForLibrary(element.library);
     return _disambiguateInternalGlobal(
         "${library}_${enclosing}_${element.name}\$closure");
   }
 
   // This name is used as part of the name of a TypeConstant
-  String uniqueNameForTypeConstantElement(Element element) {
+  String uniqueNameForTypeConstantElement(
+      LibraryEntity library, Entity element) {
     // TODO(sra): If we replace the period with an identifier character,
     // TypeConstants will have better names in unminified code.
-    String library = _proposeNameForGlobal(element.library);
-    return "${library}.${element.name}";
+    String libraryName = _proposeNameForLibrary(library);
+    return "${libraryName}.${element.name}";
   }
 
   String globalObjectForConstant(ConstantValue constant) => 'C';

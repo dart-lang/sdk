@@ -753,4 +753,11 @@ abstract class DartTypes {
   /// Returns the supertype of [cls], i.e. the type in the `extends` clause of
   /// [cls].
   InterfaceType getSupertype(ClassEntity cls);
+
+  /// Returns all supertypes of [cls].
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls);
+
+  /// Returns the type of the `call` method on [type], or `null` if the class
+  /// of [type] does not have a `call` method.
+  FunctionType getCallType(InterfaceType type);
 }

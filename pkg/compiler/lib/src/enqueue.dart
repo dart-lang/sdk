@@ -113,9 +113,9 @@ abstract class EnqueuerListener {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction();
 
-  /// Called to register that [member] has been closurized. Any backend specific
-  /// [WorldImpact] of this is returned.
-  WorldImpact registerClosurizedMember(MemberEntity member);
+  /// Called to register that [function] has been closurized. Any backend
+  /// specific [WorldImpact] of this is returned.
+  WorldImpact registerClosurizedMember(FunctionEntity function);
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.

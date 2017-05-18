@@ -27,7 +27,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../js_backend/js_backend.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
 import '../resolution/semantic_visitor.dart';
@@ -1378,11 +1378,10 @@ class SsaBuilder extends ast.Visitor
     // Add the type parameters of the class as parameters of this method.  This
     // must be done before adding the normal parameters, because their types
     // may contain references to type variables.
-    var enclosing = element.enclosingElement;
+    ClassElement cls = element.enclosingClass;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
-        rtiNeed.classNeedsRti(enclosing.declaration)) {
-      enclosing.typeVariables
-          .forEach((ResolutionTypeVariableType typeVariable) {
+        rtiNeed.classNeedsRti(cls)) {
+      cls.typeVariables.forEach((ResolutionTypeVariableType typeVariable) {
         HParameterValue param =
             addParameter(typeVariable.element, commonMasks.nonNullType);
         localsHandler.directLocals[

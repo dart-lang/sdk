@@ -23,7 +23,6 @@ import '../universe/use.dart'
     show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
-import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -33,6 +32,7 @@ import 'lookup_map_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
+import 'runtime_types.dart';
 
 class JavaScriptImpactTransformer extends ImpactTransformer {
   final CompilerOptions _options;

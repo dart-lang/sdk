@@ -20,6 +20,7 @@ import 'js_backend/mirrors_analysis.dart';
 import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
+import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
 import 'native/resolver.dart';
 import 'serialization/task.dart';

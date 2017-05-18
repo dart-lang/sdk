@@ -30,6 +30,7 @@ import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
+import 'runtime_types.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
