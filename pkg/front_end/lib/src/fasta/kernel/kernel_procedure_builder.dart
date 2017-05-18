@@ -178,7 +178,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   final Procedure procedure;
   final int charOpenParenOffset;
 
-  AsyncMarker actualAsyncModifier;
+  AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   final ConstructorReferenceBuilder redirectionTarget;
 
@@ -189,7 +189,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      this.actualAsyncModifier,
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
@@ -223,6 +222,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     if (function != null) {
       // No parent, it's an enum.
       function.asyncMarker = actualAsyncModifier;
+      function.dartAsyncMarker = actualAsyncModifier;
     }
   }
 

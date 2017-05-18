@@ -4,7 +4,7 @@
 
 library fasta.outline_builder;
 
-import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
@@ -43,26 +43,6 @@ enum MethodBody {
   Abstract,
   Regular,
   RedirectingFactoryBody,
-}
-
-AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
-  if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
-    if (starToken == null) {
-      return AsyncMarker.Sync;
-    } else {
-      assert(identical(starToken.stringValue, "*"));
-      return AsyncMarker.SyncStar;
-    }
-  } else if (identical(asyncToken.stringValue, "async")) {
-    if (starToken == null) {
-      return AsyncMarker.Async;
-    } else {
-      assert(identical(starToken.stringValue, "*"));
-      return AsyncMarker.AsyncStar;
-    }
-  } else {
-    return internalError("Unknown async modifier: $asyncToken");
-  }
 }
 
 class OutlineBuilder extends UnhandledListener {
@@ -306,7 +286,6 @@ class OutlineBuilder extends UnhandledListener {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
     MethodBody kind = pop();
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -324,7 +303,6 @@ class OutlineBuilder extends UnhandledListener {
         name,
         typeVariables,
         formals,
-        asyncModifier,
         computeProcedureKind(getOrSet),
         charOffset,
         formalsOffset,
@@ -359,7 +337,6 @@ class OutlineBuilder extends UnhandledListener {
       // This will cause an error later.
       pop();
     }
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -404,7 +381,6 @@ class OutlineBuilder extends UnhandledListener {
         name,
         typeVariables,
         formals,
-        asyncModifier,
         kind,
         charOffset,
         formalsOffset,
@@ -720,7 +696,6 @@ class OutlineBuilder extends UnhandledListener {
     if (kind == MethodBody.RedirectingFactoryBody) {
       redirectionTarget = pop();
     }
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     var name = pop();
@@ -731,7 +706,6 @@ class OutlineBuilder extends UnhandledListener {
         modifiers,
         name,
         formals,
-        asyncModifier,
         redirectionTarget,
         factoryKeyword.next.charOffset,
         formalsOffset,
@@ -786,7 +760,6 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
-    push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
   @override

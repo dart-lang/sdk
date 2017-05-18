@@ -8,7 +8,7 @@ import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken;
 
-import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../combinator.dart' show Combinator;
 
@@ -202,7 +202,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
       int charOpenParenOffset,
@@ -232,7 +231,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       ConstructorReferenceBuilder name,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
       int charOpenParenOffset,

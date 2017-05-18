@@ -12,7 +12,6 @@ import 'package:front_end/file_system.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        AsyncMarker,
         CanonicalName,
         Class,
         Constructor,
@@ -339,19 +338,8 @@ class KernelTarget extends TargetImplementation {
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
-          null,
-          0,
-          null,
-          "main",
-          null,
-          null,
-          AsyncMarker.Sync,
-          ProcedureKind.Method,
-          library,
-          -1,
-          -1,
-          -1);
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
+          null, "main", null, null, ProcedureKind.Method, library, -1, -1, -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new ExpressionStatement(
           new Throw(new StringLiteral("${errors.join('\n')}")));

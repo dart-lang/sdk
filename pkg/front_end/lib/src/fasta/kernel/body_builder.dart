@@ -55,8 +55,6 @@ import '../source/scope_listener.dart'
 
 import '../scope.dart' show ProblemBuilder;
 
-import '../source/outline_builder.dart' show asyncMarkerFromTokens;
-
 import 'fasta_accessors.dart';
 
 import '../quote.dart'
@@ -3143,5 +3141,25 @@ String getNodeName(Object node) {
     return node.plainNameForRead;
   } else {
     return internalError("Unhandled: ${node.runtimeType}");
+  }
+}
+
+AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
+  if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
+    if (starToken == null) {
+      return AsyncMarker.Sync;
+    } else {
+      assert(identical(starToken.stringValue, "*"));
+      return AsyncMarker.SyncStar;
+    }
+  } else if (identical(asyncToken.stringValue, "async")) {
+    if (starToken == null) {
+      return AsyncMarker.Async;
+    } else {
+      assert(identical(starToken.stringValue, "*"));
+      return AsyncMarker.AsyncStar;
+    }
+  } else {
+    return internalError("Unknown async modifier: $asyncToken");
   }
 }
