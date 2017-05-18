@@ -450,13 +450,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return AnalysisDriverPriority.nothing;
   }
 
-  /**
-   * Add the file with the given [path] to the set of files to analyze.
-   *
-   * The [path] must be absolute and normalized.
-   *
-   * The results of analysis are eventually produced by the [results] stream.
-   */
+  @override
   void addFile(String path) {
     if (!_fsState.hasUri(path)) {
       return;
@@ -1342,6 +1336,16 @@ abstract class AnalysisDriverGeneric {
    * Return the priority of work that the driver needs to perform.
    */
   AnalysisDriverPriority get workPriority;
+
+  /**
+   * Add the file with the given [path] to the set of files that are explicitly
+   * being analyzed.
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The results of analysis are eventually produced by the [results] stream.
+   */
+  void addFile(String path);
 
   /**
    * Notify the driver that the client is going to stop using it.

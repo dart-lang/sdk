@@ -19,6 +19,11 @@ void main() {
 }
 
 class MockAnalysisDriver extends AnalysisDriverGeneric {
+  /**
+   * The files that have been added to this driver.
+   */
+  List<String> addedFiles = <String>[];
+
   @override
   bool get hasFilesToAnalyze => false;
 
@@ -27,6 +32,11 @@ class MockAnalysisDriver extends AnalysisDriverGeneric {
 
   @override
   AnalysisDriverPriority get workPriority => AnalysisDriverPriority.nothing;
+
+  @override
+  void addFile(String path) {
+    addedFiles.add(path);
+  }
 
   @override
   void dispose() {}
@@ -120,7 +130,9 @@ class ServerPluginTest {
     var result = await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
-    expect(plugin.driverMap[contextRoot1], isNotNull);
+    AnalysisDriverGeneric driver = plugin.driverMap[contextRoot1];
+    expect(driver, isNotNull);
+    expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
 
   test_handleAnalysisSetPriorityFiles() async {

@@ -269,6 +269,10 @@ abstract class ServerPlugin {
         // has the side-effect of adding it to the analysis driver scheduler.
         AnalysisDriverGeneric driver = createAnalysisDriver(contextRoot);
         driverMap[contextRoot] = driver;
+        _addFilesToDriver(
+            driver,
+            resourceProvider.getResource(contextRoot.root),
+            contextRoot.exclude);
       }
     }
     for (ContextRoot contextRoot in oldRoots) {
@@ -456,6 +460,29 @@ abstract class ServerPlugin {
   void start(PluginCommunicationChannel channel) {
     _channel = channel;
     _channel.listen(_onRequest, onError: onError, onDone: onDone);
+  }
+
+  /**
+   * Add all of the files contained in the given [resource] that are not in the
+   * list of [excluded] resources to the given [driver].
+   */
+  void _addFilesToDriver(
+      AnalysisDriverGeneric driver, Resource resource, List<String> excluded) {
+    String path = resource.path;
+    if (excluded.contains(path)) {
+      return;
+    }
+    if (resource is File) {
+      driver.addFile(path);
+    } else if (resource is Folder) {
+      try {
+        for (Resource child in resource.getChildren()) {
+          _addFilesToDriver(driver, child, excluded);
+        }
+      } on FileSystemException {
+        // The folder does not exist, so ignore it.
+      }
+    }
   }
 
   /**
