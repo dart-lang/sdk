@@ -4,6 +4,9 @@
 * During a dynamic type check, `void` is not required to be `null` anymore.
   In practice, this makes overriding `void` functions with non-`void` functions
   safer.
+* During static analysis, a function declared using `=>` with return type `void`
+  now allows the returned expression to have any type. For example, assuming the
+  declaration `int x;`, it is now type correct to have `void f() => ++x;`.
 
 #### Strong Mode
 
@@ -17,6 +20,9 @@ Packages that implement `Future` must either type the `onValue` parameter to
 `.then` as returning `FutureOr<T>`, or else must leave the type of the parameter
 entirely to allow inference to fill in the type.
 
+* The following is also a change in strong mode: During static analysis, a
+  function declared using `=>` with return type `void` now allows the returned
+  expression to have any type.
 
 ### Core library changes
 
