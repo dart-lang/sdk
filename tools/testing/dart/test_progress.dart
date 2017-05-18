@@ -7,8 +7,8 @@ library test_progress;
 import "dart:convert" show JSON;
 import "dart:io";
 
+import "expectation.dart";
 import "path.dart";
-import "status_file_parser.dart";
 import "summary_report.dart";
 import "test_runner.dart";
 import "test_suite.dart";
@@ -67,7 +67,7 @@ class IgnoredTestMonitor extends EventListener {
   int countIgnored = 0;
 
   void done(TestCase test) {
-    if (test.lastCommandOutput.result(test) == Expectation.IGNORE) {
+    if (test.lastCommandOutput.result(test) == Expectation.ignore) {
       countIgnored++;
       if (countIgnored > maxIgnored) {
         print("/nMore than $maxIgnored tests were ignored due to flakes in");
@@ -88,7 +88,7 @@ class IgnoredTestMonitor extends EventListener {
 
 class FlakyLogWriter extends EventListener {
   void done(TestCase test) {
-    if (test.isFlaky && test.result != Expectation.PASS) {
+    if (test.isFlaky && test.result != Expectation.pass) {
       var buf = new StringBuffer();
       for (var l in _buildFailureOutput(test)) {
         buf.write("$l\n");
@@ -207,7 +207,7 @@ class UnexpectedCrashLogger extends EventListener {
 
   void done(TestCase test) {
     if (test.unexpectedOutput &&
-        test.result == Expectation.CRASH &&
+        test.result == Expectation.crash &&
         test.lastCommandExecuted is ProcessCommand) {
       final pid = "${test.lastCommandOutput.pid}";
       final lastCommand = test.lastCommandExecuted as ProcessCommand;

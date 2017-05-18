@@ -25,7 +25,7 @@ class RuntimeConfiguration {
   // TODO(ahe): Remove this constructor and move the switch to
   // test_options.dart.  We probably want to store an instance of
   // [RuntimeConfiguration] in [configuration] there.
-  factory RuntimeConfiguration(Map configuration) {
+  factory RuntimeConfiguration(Map<String, dynamic> configuration) {
     String runtime = configuration['runtime'];
     bool useBlobs = configuration['use_blobs'];
 

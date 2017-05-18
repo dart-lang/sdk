@@ -5,10 +5,11 @@
 import "dart:io";
 import "dart:isolate";
 import "dart:async";
+import "../../../tools/testing/dart/expectation.dart";
+import "../../../tools/testing/dart/status_file.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/test_progress.dart" as progress;
-import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
 import "process_test_util.dart";
 
@@ -74,12 +75,12 @@ class CustomTestSuite extends TestSuite {
       onTest(testCase);
     }
 
-    var testCaseCrash = _makeCrashTestCase("crash", [Expectation.CRASH]);
-    var testCasePass = _makeNormalTestCase("pass", [Expectation.PASS]);
-    var testCaseFail = _makeNormalTestCase("fail", [Expectation.FAIL]);
-    var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.TIMEOUT]);
+    var testCaseCrash = _makeCrashTestCase("crash", [Expectation.crash]);
+    var testCasePass = _makeNormalTestCase("pass", [Expectation.pass]);
+    var testCaseFail = _makeNormalTestCase("fail", [Expectation.fail]);
+    var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.timeout]);
     var testCaseFailUnexpected =
-        _makeNormalTestCase("fail-unexpected", [Expectation.PASS]);
+        _makeNormalTestCase("fail-unexpected", [Expectation.pass]);
 
     enqueueTestCase(testCaseCrash);
     enqueueTestCase(testCasePass);

@@ -21,7 +21,8 @@ import "drt_updater.dart";
 import "html_test.dart" as htmlTest;
 import "path.dart";
 import "multitest.dart";
-import "status_file_parser.dart";
+import "expectation.dart";
+import "expectation_set.dart";
 import "summary_report.dart";
 import "test_runner.dart";
 import "utils.dart";
@@ -118,7 +119,7 @@ class FutureGroup {
  * and a status file containing the expected results when these tests are run.
  */
 abstract class TestSuite {
-  final Map configuration;
+  final Map<String, dynamic> configuration;
   final String suiteName;
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
@@ -307,7 +308,7 @@ abstract class TestSuite {
 
     if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
       // Handle reload special cases.
-      if (expectations.contains(Expectation.COMPILETIME_ERROR) ||
+      if (expectations.contains(Expectation.compileTimeError) ||
           testCase.hasCompileError ||
           testCase.expectCompileError) {
         // Running a test that expects a compilation error with hot reloading
@@ -329,9 +330,9 @@ abstract class TestSuite {
     }
 
     // Handle skipped tests
-    if (expectations.contains(Expectation.SKIP) ||
-        expectations.contains(Expectation.SKIP_BY_DESIGN) ||
-        expectations.contains(Expectation.SKIP_SLOW)) {
+    if (expectations.contains(Expectation.skip) ||
+        expectations.contains(Expectation.skipByDesign) ||
+        expectations.contains(Expectation.skipSlow)) {
       return;
     }
 
@@ -445,8 +446,8 @@ class CCTestSuite extends TestSuite {
   final String dartDir;
   List<String> statusFilePaths;
 
-  CCTestSuite(Map configuration, String suiteName, String runnerName,
-      this.statusFilePaths,
+  CCTestSuite(Map<String, dynamic> configuration, String suiteName,
+      String runnerName, this.statusFilePaths,
       {this.testPrefix: ''})
       : dartDir = TestUtils.dartDir.toNativePath(),
         super(configuration, suiteName) {
@@ -464,7 +465,7 @@ class CCTestSuite extends TestSuite {
     }
   }
 
-  void testNameHandler(TestExpectations testExpectations, String testName) {
+  void testNameHandler(ExpectationSet testExpectations, String testName) {
     // Only run the tests that match the pattern. Use the name
     // "suiteName/testName" for cc tests.
     String constructedName = '$suiteName/$testPrefix$testName';
@@ -480,22 +481,26 @@ class CCTestSuite extends TestSuite {
         new TestCase(constructedName, [command], configuration, expectations));
   }
 
-  void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
+  Future<Null> forEachTest(Function onTest, Map testCache,
+      [VoidFunction onDone]) async {
     doTest = onTest;
     var statusFiles =
         statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
 
-    ReadTestExpectations(statusFiles, configuration)
-        .then((TestExpectations expectations) {
-      ccTestLister(hostRunnerPath).then((Iterable<String> names) {
-        names.forEach((testName) => testNameHandler(expectations, testName));
-        doTest = null;
-        if (onDone != null) onDone();
-      }).catchError((error) {
-        print("Fatal error occured: $error");
-        exit(1);
-      });
-    });
+    var expectations = ExpectationSet.read(statusFiles, configuration);
+
+    try {
+      var names = await ccTestLister(hostRunnerPath);
+      for (var name in names) {
+        testNameHandler(expectations, name);
+      }
+
+      doTest = null;
+      if (onDone != null) onDone();
+    } catch (error) {
+      print("Fatal error occured: $error");
+      exit(1);
+    }
   }
 }
 
@@ -547,7 +552,7 @@ class HtmlTestInformation extends TestInformation {
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
   final List<String> statusFilePaths;
-  TestExpectations testExpectations;
+  ExpectationSet testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
@@ -555,8 +560,8 @@ class StandardTestSuite extends TestSuite {
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
 
-  StandardTestSuite(Map configuration, String suiteName, Path suiteDirectory,
-      this.statusFilePaths,
+  StandardTestSuite(Map<String, dynamic> configuration, String suiteName,
+      Path suiteDirectory, this.statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
       : dartDir = TestUtils.dartDir,
         listRecursively = recursive,
@@ -638,7 +643,7 @@ class StandardTestSuite extends TestSuite {
   forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) async {
     await updateDartium();
     doTest = onTest;
-    testExpectations = await readExpectations();
+    testExpectations = readExpectations();
 
     // Check if we have already found and generated the tests for this suite.
     if (!testCache.containsKey(suiteName)) {
@@ -675,7 +680,7 @@ class StandardTestSuite extends TestSuite {
   /**
    * Reads the status files and completes with the parsed expectations.
    */
-  Future<TestExpectations> readExpectations() {
+  ExpectationSet readExpectations() {
     var statusFiles = statusFilePaths.where((String statusFilePath) {
       var file = new File(dartDir.append(statusFilePath).toNativePath());
       return file.existsSync();
@@ -683,7 +688,7 @@ class StandardTestSuite extends TestSuite {
       return dartDir.append(statusFilePath).toNativePath();
     }).toList();
 
-    return ReadTestExpectations(statusFiles, configuration);
+    return ExpectationSet.read(statusFiles, configuration);
   }
 
   Future enqueueTests() {
