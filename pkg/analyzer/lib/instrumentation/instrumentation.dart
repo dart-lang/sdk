@@ -237,27 +237,30 @@ class InstrumentationService {
 
   void logPluginNotification(String pluginId, String notification) {
     if (_instrumentationServer != null) {
-      _instrumentationServer
-          .log(_join([TAG_PLUGIN_NOTIFICATION, pluginId, notification]));
+      _instrumentationServer.log(
+          _join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
     }
   }
 
   void logPluginRequest(String pluginId, String request) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_REQUEST, pluginId, request]));
+          .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
     }
   }
 
   void logPluginResponse(String pluginId, String response) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_RESPONSE, pluginId, response]));
+          .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
     }
   }
 
   /**
    * Log that the given [plugin] took too long to execute the given [request].
+   * This doesn't necessarily imply that there is a problem with the plugin,
+   * only that this particular response was not included in the data returned
+   * to the client.
    */
   void logPluginTimeout(PluginData plugin, String request) {
     if (_instrumentationServer != null) {
@@ -501,11 +504,7 @@ class PluginData {
    */
   void addToFields(List<String> fields) {
     fields.add(pluginId);
-    if (name != null) {
-      fields.add(name);
-    }
-    if (version != null) {
-      fields.add(version);
-    }
+    fields.add(name ?? '');
+    fields.add(version ?? '');
   }
 }
