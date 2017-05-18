@@ -176,12 +176,8 @@ class Evaluator
       throw 'Execution for body of constructor is not implemented.';
     }
 
-    var class_ = new Class(node.target.enclosingClass.reference);
-    var newObject =
-        new ObjectValue(class_, new List<Value>(class_.instanceSize));
-
-    ApplicationContinuation cont = new ConstructorInvocationApplication(
-        newObject, node.target, config.continuation);
+    ApplicationContinuation cont =
+        new ConstructorInvocationApplication(node.target, config.continuation);
 
     var args =
         _createArgumentExpressionList(node.arguments, node.target.function);
@@ -525,46 +521,106 @@ class StaticInvocationApplication extends ApplicationContinuation {
 /// Represents the application continuation for constructor invocation applied
 /// on the list of evaluated arguments.
 class ConstructorInvocationApplication extends ApplicationContinuation {
-  final ObjectValue newObject;
   final Constructor constructor;
-  final ExpressionContinuation expressionContinuation;
+  final ExpressionContinuation continuation;
 
-  ConstructorInvocationApplication(
-      this.newObject, this.constructor, this.expressionContinuation);
+  ConstructorInvocationApplication(this.constructor, this.continuation);
 
   Configuration call(List<InterpreterValue> argValues) {
     Environment ctrEnv = ApplicationContinuation.createEnvironment(
         constructor.function, argValues);
 
+    var class_ = new Class(constructor.enclosingClass.reference);
+    var newObject =
+        new ObjectValue(class_, new List<Value>(class_.instanceSize));
+
+    var cont =
+        new ObjectInitializationContinuation(constructor, ctrEnv, continuation);
+
+    return new ContinuationConfiguration(cont, newObject);
+  }
+}
+
+/// Represents the application continuation for redirecting constructor
+/// invocation applied on the list of evaluated arguments.
+class RedirectingConstructorApplication extends ApplicationContinuation {
+  final ObjectValue newObject;
+  final Constructor constructor;
+  final ExpressionContinuation continuation;
+
+  RedirectingConstructorApplication(
+      this.newObject, this.constructor, this.continuation);
+
+  Configuration call(List<InterpreterValue> argValues) {
+    Environment ctrEnv = ApplicationContinuation.createEnvironment(
+        constructor.function, argValues);
+    var cont =
+        new ObjectInitializationContinuation(constructor, ctrEnv, continuation);
+    return new ContinuationConfiguration(cont, newObject);
+  }
+}
+
+/// Represents the application continuation for super constructor
+/// invocation applied on the list of evaluated arguments.
+class SuperConstructorApplication extends ApplicationContinuation {
+  final ObjectValue newObject;
+  final Constructor constructor;
+  // TODO: remember to execute body of previous ctr.
+  final ExpressionContinuation continuation;
+
+  SuperConstructorApplication(
+      this.newObject, this.constructor, this.continuation);
+
+  Configuration call(List<InterpreterValue> argValues) {
+    Environment ctrEnv = ApplicationContinuation.createEnvironment(
+        constructor.function, argValues);
+    var cont =
+        new ObjectInitializationContinuation(constructor, ctrEnv, continuation);
+    return new ContinuationConfiguration(cont, newObject);
+  }
+}
+
+class ObjectInitializationContinuation extends ExpressionContinuation {
+  final Constructor constructor;
+  final Environment environment;
+  final ExpressionContinuation continuation;
+
+  ObjectInitializationContinuation(
+      this.constructor, this.environment, this.continuation);
+
+  Configuration call(Value v) {
     if (constructor.initializers.isNotEmpty &&
         constructor.initializers.last is RedirectingInitializer) {
       // Constructor is redirecting.
       Initializer initializer = constructor.initializers.first;
       if (initializer is RedirectingInitializer) {
-        var app = new ConstructorInvocationApplication(
-            newObject, initializer.target, expressionContinuation);
+        var app = new RedirectingConstructorApplication(
+            v, initializer.target, continuation);
         var args = _createArgumentExpressionList(
             initializer.arguments, initializer.target.function);
 
-        return new ExpressionListConfiguration(args, ctrEnv, app);
+        return new ExpressionListConfiguration(args, environment, app);
       }
       // Redirecting initializer is not the only initializer.
       for (Initializer i in constructor.initializers.reversed.skip(1)) {
         assert(i is LocalInitializer);
       }
       var class_ = new Class(constructor.enclosingClass.reference);
-      var cont = new InitializerContinuation(newObject, class_, ctrEnv,
-          constructor.initializers, expressionContinuation);
+      var cont = new InitializerContinuation(
+          v, class_, environment, constructor.initializers, continuation);
       return new ExpressionConfiguration(
-          (initializer as LocalInitializer).variable.initializer, ctrEnv, cont);
+          (initializer as LocalInitializer).variable.initializer,
+          environment,
+          cont);
     }
 
     // Initialize fields in immediately enclosing class.
     var cont = new InstanceFieldsApplication(
-        newObject, constructor, ctrEnv, expressionContinuation);
+        v, constructor, environment, continuation);
     var fieldExpressions = _createInstanceInitializers(constructor);
 
-    return new ExpressionListConfiguration(fieldExpressions, ctrEnv, cont);
+    return new ExpressionListConfiguration(
+        fieldExpressions, new Environment.empty(), cont);
   }
 
   /// Creates a list of expressions for instance field initializers in
@@ -617,7 +673,7 @@ class InstanceFieldsApplication extends ApplicationContinuation {
       SuperInitializer current = constructor.initializers.first;
       var args = _createArgumentExpressionList(
           current.arguments, current.target.function);
-      var superApp = new ConstructorInvocationApplication(
+      var superApp = new SuperConstructorApplication(
           newObject, current.target, expressionContinuation);
       _initializeNullFields(_currentClass, newObject);
       return new ExpressionListConfiguration(args, environment, superApp);
@@ -666,7 +722,7 @@ class InitializerContinuation extends ExpressionContinuation {
     if (next is RedirectingInitializer) {
       // RedirectingInitializer appears last in the initializer list.
       assert(initializers.length == 2);
-      var cont = new ConstructorInvocationApplication(
+      var cont = new RedirectingConstructorApplication(
           newObject, next.target, continuation);
       var args =
           _createArgumentExpressionList(next.arguments, next.target.function);
@@ -679,8 +735,8 @@ class InitializerContinuation extends ExpressionContinuation {
       assert(initializers.length == 2);
       var args =
           _createArgumentExpressionList(next.arguments, next.target.function);
-      var superApp = new ConstructorInvocationApplication(
-          newObject, next.target, continuation);
+      var superApp =
+          new SuperConstructorApplication(newObject, next.target, continuation);
       _initializeNullFields(currentClass, newObject);
       return new ExpressionListConfiguration(
           args, initializerEnvironment, superApp);
