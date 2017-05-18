@@ -6045,6 +6045,21 @@ Dart_CompileToKernel(const char* script_uri) {
 #endif
 }
 
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileSourcesToKernel(const char* script_uri,
+                            int source_files_count,
+                            Dart_SourceFile sources[]) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  Dart_KernelCompilationResult result;
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
+  return result;
+#else
+  return KernelIsolate::CompileToKernel(script_uri, source_files_count,
+                                        sources);
+#endif
+}
+
 // --- Service support ---
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
