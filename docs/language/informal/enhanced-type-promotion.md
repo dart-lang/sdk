@@ -150,7 +150,7 @@ two places that we can do this.
 
 *   A logical or expression `e` like `e1 || e2` shows that `v` has type T if
     either `e1` or `e2` shows that when they are false if `e` itself is false.
-    For example, in `o is String || itsMonday`, we know `o` must be a String if
+    For example, in `o is! String || itsMonday`, we know `o` must be a String if
     the entire `||` expression evaluated to false.
 
 ## Extending Scope
@@ -236,11 +236,18 @@ int stringLength(Object o) {
 
 We say a statement "cannot complete normally" if the statement is one of:
 
-*   A return statement
-*   A rethrow statement
-*   An expression statement whose expression is a throw expression
-*   An if statement with an else where neither statement can complete normally
-*   A block whose last statement cannot complete normally
+*   A return statement.
+
+*   A rethrow statement.
+
+*   An expression statement whose expression is a throw expression.
+
+*   An if statement with an else where neither statement can complete normally.
+
+*   A block that directly contains a statement that cannot complete normally.
+
+We do not allowed *labeled* statements of the above form. Fortunately, labels
+are so vanishingly rare that this is unlikely to affect users in practice.
 
 Then, given an if statement of the form `if (b) s1 else s2` that is contained in
 some block:
@@ -261,10 +268,6 @@ some block:
     after the if statement in the immediately enclosing block.
 
     This is also allowed if the if statement has no else clause at all.
-
-*Optional: We could expand the definition of complete normally for a block to
-allow for returns or throws before the last statement as long as they are
-unconditionally executed.*
 
 ## Promoting More Variables
 
