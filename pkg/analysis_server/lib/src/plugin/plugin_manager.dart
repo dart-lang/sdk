@@ -261,6 +261,11 @@ class PluginManager {
   final InstrumentationService instrumentationService;
 
   /**
+   * The list of globs used to match plugin paths that have been whitelisted.
+   */
+  List<Glob> _whitelistGlobs;
+
+  /**
    * A table mapping the paths of plugins to information about those plugins.
    */
   Map<String, PluginInfo> _pluginMap = <String, PluginInfo>{};
@@ -291,7 +296,13 @@ class PluginManager {
    * running plugins will be handled by the given [notificationManager].
    */
   PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
-      this.notificationManager, this.instrumentationService);
+      this.notificationManager, this.instrumentationService) {
+    // TODO(brianwilkerson) Figure out the right list of plugin paths.
+    _whitelistGlobs = <Glob>[
+      new Glob(resourceProvider.pathContext.separator,
+          '**/analyze_angular/tools/analysis_plugin')
+    ];
+  }
 
   /**
    * Add the plugin with the given [path] to the list of plugins that should be
@@ -300,6 +311,9 @@ class PluginManager {
    */
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
+    if (!_isWhitelisted(path)) {
+      return;
+    }
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
@@ -475,6 +489,16 @@ class PluginManager {
     return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
   }
 
+  /**
+   * Whitelist all plugins.
+   */
+  @visibleForTesting
+  void whitelistEverything() {
+    _whitelistGlobs = <Glob>[
+      new Glob(resourceProvider.pathContext.separator, '**/*')
+    ];
+  }
+
   WatchEventType _convertChangeType(watcher.ChangeType type) {
     switch (type) {
       case watcher.ChangeType.ADD:
@@ -490,6 +514,18 @@ class PluginManager {
 
   WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {
     return new WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
+  }
+
+  /**
+   * Return `true` if the plugin with the given [path] has been whitelisted.
+   */
+  bool _isWhitelisted(String path) {
+    for (Glob glob in _whitelistGlobs) {
+      if (glob.matches(path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
