@@ -287,6 +287,8 @@ executable("gen_snapshot") {
     "address_sanitizer.cc",
     "builtin.cc",
     "builtin.h",
+    "loader.cc",
+    "loader.h",
 
     # Very limited native resolver provided.
     "builtin_common.cc",
@@ -618,7 +620,11 @@ dart_executable("dart") {
     ":dart_snapshot_cc",
     "../observatory:standalone_observatory_archive",
   ]
-  extra_sources = [ "builtin_nolib.cc" ]
+  extra_sources = [
+    "builtin_nolib.cc",
+    "loader.cc",
+    "loader.h",
+  ]
 }
 
 dart_executable("dart_precompiled_runtime") {
@@ -630,6 +636,8 @@ dart_executable("dart_precompiled_runtime") {
   extra_sources = [
     "builtin_nolib.cc",
     "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
   ]
 }
 
@@ -660,6 +668,8 @@ dart_executable("dart_bootstrap") {
   extra_sources = [
     "builtin.cc",
     "builtin.h",
+    "loader.cc",
+    "loader.h",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
 
