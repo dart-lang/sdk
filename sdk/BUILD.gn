@@ -69,15 +69,18 @@ if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
     deps = [
       "//third_party/boringssl:crypto",
       "//third_party/boringssl:ssl",
+      "//third_party/zlib",
     ]
     crypto_out =
         get_label_info("//third_party/boringssl:crypto", "root_out_dir")
     crypto_name = get_label_info("//third_party/boringssl:crypto", "name")
     ssl_out = get_label_info("//third_party/boringssl:ssl", "root_out_dir")
     ssl_name = get_label_info("//third_party/boringssl:ssl", "name")
+    zlib_out = get_label_info("//third_party/zlib", "root_out_dir")
     sources = [
       "$crypto_out/lib${crypto_name}.so",
       "$ssl_out/lib${ssl_name}.so",
+      "$zlib_out/libz.so",
     ]
     outputs = [
       "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
