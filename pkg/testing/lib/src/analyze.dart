@@ -166,8 +166,10 @@ Future<Null> analyzeUris(Uri analysisOptions, Uri packages, List<Uri> uris,
   bool hasOutput = false;
   Set<String> seen = new Set<String>();
   for (AnalyzerDiagnostic diagnostic in diagnostics) {
-    String path = diagnostic.uri?.path ?? "<unknown>";
-    if (exclude.any((RegExp r) => path.contains(r))) continue;
+    String path = diagnostic.uri?.path;
+    if (path != null && exclude.any((RegExp r) => path.contains(r))) {
+      continue;
+    }
     String message = "$diagnostic";
     if (seen.add(message)) {
       hasOutput = true;

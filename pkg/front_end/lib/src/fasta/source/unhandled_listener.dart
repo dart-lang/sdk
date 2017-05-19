@@ -79,4 +79,12 @@ abstract class UnhandledListener extends StackListener {
     popIdentifierList(count);
     push(Unhandled.DottedName);
   }
+
+  @override
+  void handleFunctionType(Token functionToken, Token endToken) {
+    pop(); // Formals.
+    pop(); // Type variables.
+    pop(); // Return type.
+    push(NullValue.Type);
+  }
 }

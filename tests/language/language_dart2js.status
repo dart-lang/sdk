@@ -44,17 +44,6 @@ generic_function_typedef2_test/03: Crash # Issue 28214
 generic_function_typedef2_test/05: Crash # Issue 28214
 generic_function_typedef2_test/06: Crash # Issue 28214
 
-covariant_test/02: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/08: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/12: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/14: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/16: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/22: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/28: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/32: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/34: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/36: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
 
 [ $compiler == dart2js && $fast_startup ]
@@ -251,7 +240,6 @@ external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
 external_test/20: CompileTimeError # Issue 12887
 list_literal4_test: RuntimeError # Issue 12890
-built_in_identifier_test/01: CompileTimeError # Issue 13022
 
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 

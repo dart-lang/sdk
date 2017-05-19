@@ -7,7 +7,7 @@ library fasta.body_builder;
 import '../fasta_codes.dart'
     show FastaMessage, codeExpectedButGot, codeExpectedFunctionBody;
 
-import '../parser/parser.dart' show FormalParameterType, optional;
+import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -335,8 +335,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     doFields(count);
     pop(); // Metadata.
@@ -1477,6 +1476,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleFunctionType(Token functionToken, Token endToken) {
+    FormalParameters formals = pop();
+    ignore(Unhandled.TypeVariables);
+    DartType returnType = pop();
+    push(formals.toFunctionType(returnType));
+  }
+
+  @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     push(const VoidType());
@@ -1528,11 +1535,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
-    // TODO(ahe): Need beginToken here.
-    int charOffset = thisKeyword?.charOffset;
     if (thisKeyword != null) {
       if (!inConstructor) {
         addCompileTimeError(thisKeyword.charOffset,
@@ -1550,8 +1555,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool isFinal = (modifiers & finalMask) != 0;
     ignore(Unhandled.Metadata);
     VariableDeclaration variable;
-    if (!inCatchClause && functionNestingLevel == 0) {
-      dynamic builder = formalParameterScope.lookup(name.name, charOffset, uri);
+    if (!inCatchClause &&
+        functionNestingLevel == 0 &&
+        memberKind != MemberKind.GeneralizedFunctionType) {
+      dynamic builder = formalParameterScope.lookup(
+          name.name, offsetForToken(name.token), uri);
       if (builder == null) {
         if (thisKeyword == null) {
           internalError("Internal error: formal missing for '${name.name}'");
@@ -1608,7 +1616,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
@@ -1636,7 +1644,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     OptionalFormals optional;
     if (count > 0 && peek() is OptionalFormals) {
@@ -2525,7 +2534,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleRecoverableError(Token token, FastaMessage message) {
     bool silent = hasParserError;
-    super.handleRecoverableError(token, message);
     addCompileTimeError(message.charOffset, message.message, silent: silent);
   }
 

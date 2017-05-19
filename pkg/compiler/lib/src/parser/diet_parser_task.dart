@@ -12,13 +12,13 @@ import '../id_generator.dart';
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 import 'package:front_end/src/fasta/parser.dart'
-    show Listener, ParserError, TopLevelParser;
+    show Listener, MemberKind, ParserError, TopLevelParser;
 
 class PartialParser extends TopLevelParser {
   PartialParser(Listener listener) : super(listener);
 
-  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
-    return skipFormalParameters(token);
+  Token parseFormalParameters(Token token, MemberKind kind) {
+    return skipFormalParameters(token, kind);
   }
 }
 

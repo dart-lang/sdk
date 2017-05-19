@@ -11,7 +11,7 @@ part of fasta.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedClassBodyToSkip> codeExpectedClassBodyToSkip =
-    const FastaCode<_ExpectedClassBodyToSkip>(
+    const FastaCode<_ExpectedClassBodyToSkip>("ExpectedClassBodyToSkip",
         template: r"Expected a class body, but got '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatExpectedClassBodyToSkip);
@@ -30,7 +30,7 @@ FastaMessage _formatExpectedClassBodyToSkip(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_StackOverflow> codeStackOverflow =
-    const FastaCode<_StackOverflow>(
+    const FastaCode<_StackOverflow>("StackOverflow",
         template: r"Stack overflow.",
         dart2jsCode: "GENERIC",
         format: _formatStackOverflow);
@@ -45,7 +45,7 @@ FastaMessage _formatStackOverflow(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnexpectedToken> codeUnexpectedToken =
-    const FastaCode<_UnexpectedToken>(
+    const FastaCode<_UnexpectedToken>("UnexpectedToken",
         template: r"Unexpected token '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatUnexpectedToken);
@@ -61,7 +61,7 @@ FastaMessage _formatUnexpectedToken(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_AwaitAsIdentifier> codeAwaitAsIdentifier = const FastaCode<
-        _AwaitAsIdentifier>(
+        _AwaitAsIdentifier>("AwaitAsIdentifier",
     template:
         r"'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
     dart2jsCode: "FASTA_IGNORED",
@@ -79,7 +79,7 @@ FastaMessage _formatAwaitAsIdentifier(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_FactoryNotSync> codeFactoryNotSync =
-    const FastaCode<_FactoryNotSync>(
+    const FastaCode<_FactoryNotSync>("FactoryNotSync",
         template: r"Factories can't use 'async', 'async*', or 'sync*'.",
         dart2jsCode: "FASTA_IGNORED",
         format: _formatFactoryNotSync);
@@ -95,7 +95,7 @@ FastaMessage _formatFactoryNotSync(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_YieldNotGenerator> codeYieldNotGenerator =
-    const FastaCode<_YieldNotGenerator>(
+    const FastaCode<_YieldNotGenerator>("YieldNotGenerator",
         template: r"'yield' can only be used in 'sync*' or 'async*' methods.",
         dart2jsCode: "FASTA_IGNORED",
         format: _formatYieldNotGenerator);
@@ -111,7 +111,7 @@ FastaMessage _formatYieldNotGenerator(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_SetterNotSync> codeSetterNotSync =
-    const FastaCode<_SetterNotSync>(
+    const FastaCode<_SetterNotSync>("SetterNotSync",
         template: r"Setters can't use 'async', 'async*', or 'sync*'.",
         dart2jsCode: "FASTA_IGNORED",
         format: _formatSetterNotSync);
@@ -127,7 +127,7 @@ FastaMessage _formatSetterNotSync(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_NonAsciiWhitespace> codeNonAsciiWhitespace = const FastaCode<
-        _NonAsciiWhitespace>(
+        _NonAsciiWhitespace>("NonAsciiWhitespace",
     template:
         r"The non-ASCII space character #unicode can only be used in strings and comments.",
     analyzerCode: "ILLEGAL_CHARACTER",
@@ -148,7 +148,7 @@ FastaMessage _formatNonAsciiWhitespace(Uri uri, int charOffset, int codePoint) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedIdentifier> codeExpectedIdentifier =
-    const FastaCode<_ExpectedIdentifier>(
+    const FastaCode<_ExpectedIdentifier>("ExpectedIdentifier",
         template: r"'#lexeme' is a reserved word and can't be used here.",
         tip: r"Try using a different name.",
         dart2jsCode: "EXPECTED_IDENTIFIER",
@@ -167,7 +167,7 @@ FastaMessage _formatExpectedIdentifier(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedBlockToSkip> codeExpectedBlockToSkip =
-    const FastaCode<_ExpectedBlockToSkip>(
+    const FastaCode<_ExpectedBlockToSkip>("ExpectedBlockToSkip",
         template: r"Expected a function body or '=>'.",
         tip: r"Try adding {}.",
         dart2jsCode: "NATIVE_OR_BODY_EXPECTED",
@@ -187,6 +187,7 @@ FastaMessage _formatExpectedBlockToSkip(Uri uri, int charOffset) {
 const FastaCode<
         _RequiredParameterWithDefault> codeRequiredParameterWithDefault =
     const FastaCode<_RequiredParameterWithDefault>(
+        "RequiredParameterWithDefault",
         template: r"Non-optional parameters can't have a default value.",
         tip:
             r"Try removing the default value or making the parameter optional.",
@@ -205,7 +206,10 @@ FastaMessage _formatRequiredParameterWithDefault(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_Unspecified> codeUnspecified = const FastaCode<_Unspecified>(
-    template: r"#string", dart2jsCode: "GENERIC", format: _formatUnspecified);
+    "Unspecified",
+    template: r"#string",
+    dart2jsCode: "GENERIC",
+    format: _formatUnspecified);
 
 typedef FastaMessage _Unspecified(Uri uri, int charOffset, String string);
 
@@ -217,7 +221,7 @@ FastaMessage _formatUnspecified(Uri uri, int charOffset, String string) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_MissingExponent> codeMissingExponent = const FastaCode<
-        _MissingExponent>(
+        _MissingExponent>("MissingExponent",
     template:
         r"Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).",
     tip:
@@ -242,6 +246,7 @@ FastaMessage _formatMissingExponent(Uri uri, int charOffset) {
 const FastaCode<_PositionalParameterWithEquals>
     codePositionalParameterWithEquals =
     const FastaCode<_PositionalParameterWithEquals>(
+        "PositionalParameterWithEquals",
         template:
             r"Positional optional parameters can't use ':' to specify a default value.",
         tip: r"Try replacing ':' with '='.",
@@ -262,7 +267,7 @@ FastaMessage _formatPositionalParameterWithEquals(Uri uri, int charOffset) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<
     _UnexpectedDollarInString> codeUnexpectedDollarInString = const FastaCode<
-        _UnexpectedDollarInString>(
+        _UnexpectedDollarInString>("UnexpectedDollarInString",
     template:
         r"A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).",
     tip: r"Try adding a backslash (\) to escape the '$'.",
@@ -282,7 +287,7 @@ FastaMessage _formatUnexpectedDollarInString(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExtraneousModifier> codeExtraneousModifier =
-    const FastaCode<_ExtraneousModifier>(
+    const FastaCode<_ExtraneousModifier>("ExtraneousModifier",
         template: r"Can't have modifier '#lexeme' here.",
         tip: r"Try removing '#lexeme'.",
         dart2jsCode: "EXTRANEOUS_MODIFIER",
@@ -301,7 +306,7 @@ FastaMessage _formatExtraneousModifier(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_EmptyOptionalParameterList> codeEmptyOptionalParameterList =
-    const FastaCode<_EmptyOptionalParameterList>(
+    const FastaCode<_EmptyOptionalParameterList>("EmptyOptionalParameterList",
         template: r"Optional parameter lists cannot be empty.",
         tip: r"Try adding an optional parameter to the list.",
         dart2jsCode: "EMPTY_OPTIONAL_PARAMETER_LIST",
@@ -319,7 +324,7 @@ FastaMessage _formatEmptyOptionalParameterList(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnterminatedString> codeUnterminatedString =
-    const FastaCode<_UnterminatedString>(
+    const FastaCode<_UnterminatedString>("UnterminatedString",
         template: r"String must end with #string.",
         analyzerCode: "UNTERMINATED_STRING_LITERAL",
         dart2jsCode: "UNTERMINATED_STRING",
@@ -336,7 +341,7 @@ FastaMessage _formatUnterminatedString(Uri uri, int charOffset, String string) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_AwaitNotAsync> codeAwaitNotAsync =
-    const FastaCode<_AwaitNotAsync>(
+    const FastaCode<_AwaitNotAsync>("AwaitNotAsync",
         template: r"'await' can only be used in 'async' or 'async*' methods.",
         dart2jsCode: "FASTA_IGNORED",
         format: _formatAwaitNotAsync);
@@ -352,7 +357,7 @@ FastaMessage _formatAwaitNotAsync(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedFunctionBody> codeExpectedFunctionBody =
-    const FastaCode<_ExpectedFunctionBody>(
+    const FastaCode<_ExpectedFunctionBody>("ExpectedFunctionBody",
         template: r"Expected a function body, but got '#lexeme'.",
         dart2jsCode: "NATIVE_OR_FATAL",
         format: _formatExpectedFunctionBody);
@@ -370,7 +375,7 @@ FastaMessage _formatExpectedFunctionBody(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedHexDigit> codeExpectedHexDigit =
-    const FastaCode<_ExpectedHexDigit>(
+    const FastaCode<_ExpectedHexDigit>("ExpectedHexDigit",
         template: r"A hex digit (0-9 or A-F) must follow '0x'.",
         analyzerCode: "MISSING_HEX_DIGIT",
         dart2jsCode: "HEX_DIGIT_EXPECTED",
@@ -386,7 +391,7 @@ FastaMessage _formatExpectedHexDigit(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_EmptyNamedParameterList> codeEmptyNamedParameterList =
-    const FastaCode<_EmptyNamedParameterList>(
+    const FastaCode<_EmptyNamedParameterList>("EmptyNamedParameterList",
         template: r"Named parameter lists cannot be empty.",
         tip: r"Try adding a named parameter to the list.",
         dart2jsCode: "EMPTY_NAMED_PARAMETER_LIST",
@@ -404,7 +409,7 @@ FastaMessage _formatEmptyNamedParameterList(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnsupportedPrefixPlus> codeUnsupportedPrefixPlus =
-    const FastaCode<_UnsupportedPrefixPlus>(
+    const FastaCode<_UnsupportedPrefixPlus>("UnsupportedPrefixPlus",
         template: r"'+' is not a prefix operator. ",
         tip: r"Try removing '+'.",
         dart2jsCode: "UNSUPPORTED_PREFIX_PLUS",
@@ -422,7 +427,7 @@ FastaMessage _formatUnsupportedPrefixPlus(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedString> codeExpectedString =
-    const FastaCode<_ExpectedString>(
+    const FastaCode<_ExpectedString>("ExpectedString",
         template: r"Expected a String, but got '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatExpectedString);
@@ -438,8 +443,26 @@ FastaMessage _formatExpectedString(Uri uri, int charOffset, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_TypeAfterVar> codeTypeAfterVar =
+    const FastaCode<_TypeAfterVar>("TypeAfterVar",
+        template: r"Can't have both a type and 'var'.",
+        tip: r"Try removing 'var.'",
+        dart2jsCode: "EXTRANEOUS_MODIFIER",
+        format: _formatTypeAfterVar);
+
+typedef FastaMessage _TypeAfterVar(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatTypeAfterVar(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeTypeAfterVar,
+      message: "Can't have both a type and 'var'.",
+      tip: "Try removing 'var.'",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_AbstractNotSync> codeAbstractNotSync =
-    const FastaCode<_AbstractNotSync>(
+    const FastaCode<_AbstractNotSync>("AbstractNotSync",
         template: r"Abstract methods can't use 'async', 'async*', or 'sync*'.",
         dart2jsCode: "FASTA_IGNORED",
         format: _formatAbstractNotSync);
@@ -455,7 +478,7 @@ FastaMessage _formatAbstractNotSync(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedDeclaration> codeExpectedDeclaration =
-    const FastaCode<_ExpectedDeclaration>(
+    const FastaCode<_ExpectedDeclaration>("ExpectedDeclaration",
         template: r"Expected a declaration, but got '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatExpectedDeclaration);
@@ -473,7 +496,7 @@ FastaMessage _formatExpectedDeclaration(Uri uri, int charOffset, Token token) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<
     _AsciiControlCharacter> codeAsciiControlCharacter = const FastaCode<
-        _AsciiControlCharacter>(
+        _AsciiControlCharacter>("AsciiControlCharacter",
     template:
         r"The control character #unicode can only be used in strings and comments.",
     dart2jsCode: "BAD_INPUT_CHARACTER",
@@ -494,7 +517,7 @@ FastaMessage _formatAsciiControlCharacter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnmatchedToken> codeUnmatchedToken =
-    const FastaCode<_UnmatchedToken>(
+    const FastaCode<_UnmatchedToken>("UnmatchedToken",
         template: r"Can't find '#string' to match '#lexeme'.",
         dart2jsCode: "UNMATCHED_TOKEN",
         format: _formatUnmatchedToken);
@@ -513,7 +536,7 @@ FastaMessage _formatUnmatchedToken(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_InvalidSyncModifier> codeInvalidSyncModifier =
-    const FastaCode<_InvalidSyncModifier>(
+    const FastaCode<_InvalidSyncModifier>("InvalidSyncModifier",
         template: r"Invalid modifier 'sync'.",
         tip: r"Try replacing 'sync' with 'sync*'.",
         dart2jsCode: "INVALID_SYNC_MODIFIER",
@@ -531,7 +554,7 @@ FastaMessage _formatInvalidSyncModifier(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedOpenParens> codeExpectedOpenParens =
-    const FastaCode<_ExpectedOpenParens>(
+    const FastaCode<_ExpectedOpenParens>("ExpectedOpenParens",
         template: r"Expected '('.",
         dart2jsCode: "GENERIC",
         format: _formatExpectedOpenParens);
@@ -546,7 +569,7 @@ FastaMessage _formatExpectedOpenParens(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnterminatedComment> codeUnterminatedComment =
-    const FastaCode<_UnterminatedComment>(
+    const FastaCode<_UnterminatedComment>("UnterminatedComment",
         template: r"Comment starting with '/*' must end with '*/'.",
         analyzerCode: "UNTERMINATED_MULTI_LINE_COMMENT",
         dart2jsCode: "UNTERMINATED_COMMENT",
@@ -562,7 +585,7 @@ FastaMessage _formatUnterminatedComment(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedClassBody> codeExpectedClassBody =
-    const FastaCode<_ExpectedClassBody>(
+    const FastaCode<_ExpectedClassBody>("ExpectedClassBody",
         template: r"Expected a class body, but got '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatExpectedClassBody);
@@ -579,7 +602,7 @@ FastaMessage _formatExpectedClassBody(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedExpression> codeExpectedExpression =
-    const FastaCode<_ExpectedExpression>(
+    const FastaCode<_ExpectedExpression>("ExpectedExpression",
         template: r"Expected an expression, but got '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatExpectedExpression);
@@ -596,7 +619,7 @@ FastaMessage _formatExpectedExpression(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_InvalidAwaitFor> codeInvalidAwaitFor = const FastaCode<
-        _InvalidAwaitFor>(
+        _InvalidAwaitFor>("InvalidAwaitFor",
     template:
         r"'await' is only supported in methods with an 'async' or 'async*' body modifier.",
     tip:
@@ -618,7 +641,7 @@ FastaMessage _formatInvalidAwaitFor(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedType> codeExpectedType =
-    const FastaCode<_ExpectedType>(
+    const FastaCode<_ExpectedType>("ExpectedType",
         template: r"Expected a type, but got '#lexeme'.",
         dart2jsCode: "FASTA_FATAL",
         format: _formatExpectedType);
@@ -635,7 +658,7 @@ FastaMessage _formatExpectedType(Uri uri, int charOffset, Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnterminatedToken> codeUnterminatedToken =
-    const FastaCode<_UnterminatedToken>(
+    const FastaCode<_UnterminatedToken>("UnterminatedToken",
         template: r"Incomplete token.",
         dart2jsCode: "UNTERMINATED_TOKEN",
         format: _formatUnterminatedToken);
@@ -650,7 +673,7 @@ FastaMessage _formatUnterminatedToken(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedButGot> codeExpectedButGot =
-    const FastaCode<_ExpectedButGot>(
+    const FastaCode<_ExpectedButGot>("ExpectedButGot",
         template: r"Expected '#string' before this.",
         tip: r"DONT_KNOW_HOW_TO_FIX,",
         dart2jsCode: "MISSING_TOKEN_BEFORE_THIS",
@@ -668,7 +691,7 @@ FastaMessage _formatExpectedButGot(Uri uri, int charOffset, String string) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_AwaitForNotAsync> codeAwaitForNotAsync = const FastaCode<
-        _AwaitForNotAsync>(
+        _AwaitForNotAsync>("AwaitForNotAsync",
     template:
         r"Asynchronous for-loop can only be used in 'async' or 'async*' methods.",
     dart2jsCode: "FASTA_IGNORED",
@@ -685,7 +708,7 @@ FastaMessage _formatAwaitForNotAsync(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_Encoding> codeEncoding = const FastaCode<_Encoding>(
+const FastaCode<_Encoding> codeEncoding = const FastaCode<_Encoding>("Encoding",
     template: r"Unable to decode bytes as UTF-8.",
     dart2jsCode: "FASTA_FATAL",
     format: _formatEncoding);
@@ -700,7 +723,7 @@ FastaMessage _formatEncoding(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_AsyncAsIdentifier> codeAsyncAsIdentifier = const FastaCode<
-        _AsyncAsIdentifier>(
+        _AsyncAsIdentifier>("AsyncAsIdentifier",
     template:
         r"'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
     analyzerCode: "ASYNC_KEYWORD_USED_AS_IDENTIFIER",
@@ -719,7 +742,7 @@ FastaMessage _formatAsyncAsIdentifier(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_YieldAsIdentifier> codeYieldAsIdentifier = const FastaCode<
-        _YieldAsIdentifier>(
+        _YieldAsIdentifier>("YieldAsIdentifier",
     template:
         r"'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
     dart2jsCode: "FASTA_IGNORED",
@@ -736,7 +759,7 @@ FastaMessage _formatYieldAsIdentifier(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_OnlyTry> codeOnlyTry = const FastaCode<_OnlyTry>(
+const FastaCode<_OnlyTry> codeOnlyTry = const FastaCode<_OnlyTry>("OnlyTry",
     template:
         r"Try block should be followed by 'on', 'catch', or 'finally' block.",
     tip: r"Did you forget to add a 'finally' block?",
@@ -757,7 +780,7 @@ FastaMessage _formatOnlyTry(Uri uri, int charOffset) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<
     _InvalidInlineFunctionType> codeInvalidInlineFunctionType = const FastaCode<
-        _InvalidInlineFunctionType>(
+        _InvalidInlineFunctionType>("InvalidInlineFunctionType",
     template: r"Invalid inline function type.",
     tip:
         r"Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').",
@@ -777,7 +800,7 @@ FastaMessage _formatInvalidInlineFunctionType(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedBody> codeExpectedBody =
-    const FastaCode<_ExpectedBody>(
+    const FastaCode<_ExpectedBody>("ExpectedBody",
         template: r"Expected a function body or '=>'.",
         tip: r"Try adding {}.",
         dart2jsCode: "BODY_EXPECTED",
@@ -794,7 +817,25 @@ FastaMessage _formatExpectedBody(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_TypeRequired> codeTypeRequired =
+    const FastaCode<_TypeRequired>("TypeRequired",
+        template: r"A type or modifier is required here.",
+        tip: r"Try adding a type, 'var', 'const', or 'final'.",
+        format: _formatTypeRequired);
+
+typedef FastaMessage _TypeRequired(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatTypeRequired(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeTypeRequired,
+      message: "A type or modifier is required here.",
+      tip: "Try adding a type, 'var', 'const', or 'final'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_InvalidVoid> codeInvalidVoid = const FastaCode<_InvalidVoid>(
+    "InvalidVoid",
     template: r"Type 'void' can't be used here because it isn't a return type.",
     tip:
         r"Try removing 'void' keyword or replace it with 'var', 'final', or a type.",
@@ -814,9 +855,9 @@ FastaMessage _formatInvalidVoid(Uri uri, int charOffset) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_BuiltInIdentifierAsType> codeBuiltInIdentifierAsType =
-    const FastaCode<_BuiltInIdentifierAsType>(
+    const FastaCode<_BuiltInIdentifierAsType>("BuiltInIdentifierAsType",
         template: r"Can't use '#lexeme' as a type.",
-        dart2jsCode: "GENERIC",
+        dart2jsCode: "EXTRANEOUS_MODIFIER",
         format: _formatBuiltInIdentifierAsType);
 
 typedef FastaMessage _BuiltInIdentifierAsType(
@@ -832,7 +873,7 @@ FastaMessage _formatBuiltInIdentifierAsType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_GeneratorReturnsValue> codeGeneratorReturnsValue =
-    const FastaCode<_GeneratorReturnsValue>(
+    const FastaCode<_GeneratorReturnsValue>("GeneratorReturnsValue",
         template: r"'sync*' and 'async*' can't return a value.",
         dart2jsCode: "FASTA_IGNORED",
         format: _formatGeneratorReturnsValue);
@@ -849,6 +890,7 @@ FastaMessage _formatGeneratorReturnsValue(Uri uri, int charOffset) {
 const FastaCode<_BuiltInIdentifierInDeclaration>
     codeBuiltInIdentifierInDeclaration =
     const FastaCode<_BuiltInIdentifierInDeclaration>(
+        "BuiltInIdentifierInDeclaration",
         template: r"Can't use '#lexeme' as a name here.",
         dart2jsCode: "GENERIC",
         format: _formatBuiltInIdentifierInDeclaration);
@@ -867,7 +909,7 @@ FastaMessage _formatBuiltInIdentifierInDeclaration(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_NonAsciiIdentifier> codeNonAsciiIdentifier = const FastaCode<
-        _NonAsciiIdentifier>(
+        _NonAsciiIdentifier>("NonAsciiIdentifier",
     template:
         r"The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments.",
     tip:
@@ -888,26 +930,4 @@ FastaMessage _formatNonAsciiIdentifier(
           "The non-ASCII character '$character' ($unicode) can't be used in identifiers, only in strings and comments.",
       tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).",
       arguments: {'character': character, 'codePoint': codePoint});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExtraneousModifierReplace> codeExtraneousModifierReplace =
-    const FastaCode<_ExtraneousModifierReplace>(
-        template: r"Can't have modifier '#lexeme' here.",
-        tip:
-            r"Try replacing modifier '#lexeme' with 'var', 'final', or a type.",
-        dart2jsCode: "EXTRANEOUS_MODIFIER_REPLACE",
-        format: _formatExtraneousModifierReplace);
-
-typedef FastaMessage _ExtraneousModifierReplace(
-    Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExtraneousModifierReplace(
-    Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExtraneousModifierReplace,
-      message: "Can't have modifier '$lexeme' here.",
-      tip: "Try replacing modifier '$lexeme' with 'var', 'final', or a type.",
-      arguments: {'token': token});
 }

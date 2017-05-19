@@ -12,7 +12,7 @@ import 'parser/parser.dart' show Parser;
 
 import 'parser/listener.dart' show ParserError;
 
-export 'parser/parser.dart' show Parser, optional;
+export 'parser/parser.dart' show MemberKind, Parser, optional;
 
 export 'parser/listener.dart' show Listener, ParserError;
 

@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, Parser;
+    show FormalParameterType, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, CommentToken;
@@ -851,8 +851,8 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     _ParameterDefaultValue defaultValue = pop();
 
@@ -868,6 +868,7 @@ class AstBuilder extends ScopeListener {
       TypeAnnotation type = pop();
       _Modifiers modifiers = pop();
       Token keyword = modifiers?.finalConstOrVarKeyword;
+      Token covariantKeyword = modifiers?.covariantKeyword;
       pop(); // TODO(paulberry): Metadata.
       Comment comment = pop();
       if (thisKeyword == null) {
@@ -908,7 +909,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
 
     FormalParameterList formalParameters = pop();
@@ -916,13 +917,8 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
 
-    {
-      _Modifiers modifiers = pop();
-      if (modifiers != null) {
-        // TODO(scheglov): Report error.
-        internalError('Unexpected modifier. Report an error.');
-      }
-    }
+    _Modifiers modifiers = pop();
+    Token covariantKeyword = modifiers?.covariantKeyword;
 
     pop(); // TODO(paulberry): Metadata.
     Comment comment = pop();
@@ -956,7 +952,8 @@ class AstBuilder extends ScopeListener {
     push(node);
   }
 
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     List rawParameters = popList(count) ?? const <Object>[];
     List<FormalParameter> parameters = <FormalParameter>[];
@@ -1834,14 +1831,14 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
     var variableList = ast.variableDeclarationList(null, null,
         toAnalyzerToken(modifiers?.finalConstOrVarKeyword), type, variables);
+    Token covariantKeyword = modifiers?.covariantKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
     push(ast.fieldDeclaration2(
@@ -2069,6 +2066,7 @@ class _Modifiers {
   Token externalKeyword;
   Token finalConstOrVarKeyword;
   Token staticKeyword;
+  Token covariantKeyword;
 
   _Modifiers(List<Token> modifierTokens) {
     // No need to check the order and uniqueness of the modifiers, or that
@@ -2088,6 +2086,8 @@ class _Modifiers {
         staticKeyword = token;
       } else if (identical('var', s)) {
         finalConstOrVarKeyword = token;
+      } else if (identical('covariant', s)) {
+        covariantKeyword = token;
       } else {
         internalError('Unhandled modifier: $s');
       }

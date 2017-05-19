@@ -3,14 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-multiline_newline_test/04: MissingCompileTimeError # Fixed in ahe's dev-branch
-multiline_newline_test/04r: MissingCompileTimeError # Fixed in ahe's dev-branch
-multiline_newline_test/05: MissingCompileTimeError # Fixed in ahe's dev-branch
-multiline_newline_test/05r: MissingCompileTimeError # Fixed in ahe's dev-branch
-multiline_newline_test/06: MissingCompileTimeError # Fixed in ahe's dev-branch
-multiline_newline_test/06r: MissingCompileTimeError # Fixed in ahe's dev-branch
-
-built_in_identifier_test/01: CompileTimeError
 call_nonexistent_static_test/01: CompileTimeError
 call_nonexistent_static_test/04: CompileTimeError
 compile_time_constant_c_test/03: MissingCompileTimeError
@@ -48,21 +40,6 @@ constant_locals_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingRuntimeError
 constructor_duplicate_final_test/02: MissingRuntimeError
 constructor_duplicate_initializers_test/03: MissingCompileTimeError
-covariant_test/02: MissingCompileTimeError
-covariant_test/08: MissingCompileTimeError
-covariant_test/12: MissingCompileTimeError
-covariant_test/14: MissingCompileTimeError
-covariant_test/16: MissingCompileTimeError
-covariant_test/19: MissingCompileTimeError
-covariant_test/22: MissingCompileTimeError
-covariant_test/28: MissingCompileTimeError
-covariant_test/32: MissingCompileTimeError
-covariant_test/34: MissingCompileTimeError
-covariant_test/36: MissingCompileTimeError
-covariant_test/39: MissingCompileTimeError
-covariant_test/46: MissingCompileTimeError
-covariant_test/46b: MissingCompileTimeError
-covariant_test/59: MissingCompileTimeError
 cyclic_typedef_test/01: MissingCompileTimeError
 cyclic_typedef_test/02: MissingCompileTimeError
 cyclic_typedef_test/03: MissingCompileTimeError
@@ -96,7 +73,6 @@ external_test/24: MissingCompileTimeError
 external_test/25: MissingCompileTimeError
 external_test/30: MissingCompileTimeError
 external_test/31: MissingCompileTimeError
-field_decl_missing_var_type_test/01: MissingCompileTimeError
 final_initializer_instance_reference_test/01: MissingCompileTimeError
 final_super_field_set_test/01: RuntimeError
 final_syntax_test/01: MissingCompileTimeError
@@ -113,6 +89,7 @@ function_syntax_test/69: MissingCompileTimeError
 function_syntax_test/71: MissingCompileTimeError
 function_syntax_test/73: MissingCompileTimeError
 function_syntax_test/74: MissingCompileTimeError
+function_type/*: RuntimeError
 function_type_alias5_test/00: MissingCompileTimeError
 function_type_alias5_test/01: MissingCompileTimeError
 function_type_alias5_test/02: MissingCompileTimeError
@@ -120,7 +97,6 @@ function_type_alias6_test/00: MissingCompileTimeError
 function_type_alias7_test/00: MissingCompileTimeError
 function_type_alias7_test/02: MissingCompileTimeError
 function_type_alias9_test/00: MissingCompileTimeError
-function_type/*: DartkCrash
 generic_method_types_test: Pass, RuntimeError
 getter_closure_execution_order_test: RuntimeError
 getter_parameters_test/01: MissingCompileTimeError
@@ -174,22 +150,13 @@ ref_before_declaration_test/06: MissingCompileTimeError
 ref_before_declaration_test/07: MissingCompileTimeError
 regress_13494_test: CompileTimeError
 regress_22438_test: RuntimeError
-regress_29243_test: Crash
+regress_29243_test: DartkCrash
 scope_variable_test/01: MissingCompileTimeError
 static_field3_test/03: CompileTimeError
 static_field3_test/04: CompileTimeError
-static_parameter_test/01: MissingCompileTimeError
-static_parameter_test/02: MissingCompileTimeError
-static_parameter_test/03: MissingCompileTimeError
-static_parameter_test/04: MissingCompileTimeError
 static_parameter_test/05: MissingCompileTimeError
-static_parameter_test/06: MissingCompileTimeError
 static_parameter_test/07: MissingCompileTimeError
 static_parameter_test/08: MissingCompileTimeError
-static_parameter_test/09: MissingCompileTimeError
-static_parameter_test/10: MissingCompileTimeError
-static_parameter_test/11: MissingCompileTimeError
-static_parameter_test/12: MissingCompileTimeError
 super_conditional_operator_test/01: MissingCompileTimeError
 super_conditional_operator_test/02: MissingCompileTimeError
 super_conditional_operator_test/03: MissingCompileTimeError

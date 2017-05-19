@@ -465,8 +465,11 @@ class FastaParserTestCase extends Object
     return _runParser(
         code,
         (parser) => (analyzer.Token token) {
-              return parser.parseFormalParameters(token,
-                  inFunctionType: inFunctionType);
+              return parser.parseFormalParameters(
+                  token,
+                  inFunctionType
+                      ? fasta.MemberKind.GeneralizedFunctionType
+                      : fasta.MemberKind.NonStaticMethod);
             },
         errorCodes) as FormalParameterList;
   }
@@ -927,13 +930,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_typedefAsPrefix() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_typedefAsPrefix();
   }
 
   @override

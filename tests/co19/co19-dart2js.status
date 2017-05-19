@@ -93,8 +93,6 @@ Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompile
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Timeout, Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Timeout, Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError # Issue 26581
-Language/Expressions/Identifier_Reference/syntax_built_in_t01: fail # Issue 21154
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure
 Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Please triage this failure

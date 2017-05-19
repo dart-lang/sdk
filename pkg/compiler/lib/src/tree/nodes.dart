@@ -1977,6 +1977,7 @@ class Modifiers extends Node {
   static const int FLAG_CONST = FLAG_VAR << 1;
   static const int FLAG_FACTORY = FLAG_CONST << 1;
   static const int FLAG_EXTERNAL = FLAG_FACTORY << 1;
+  static const int FLAG_COVARIANT = FLAG_EXTERNAL << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
@@ -2000,6 +2001,8 @@ class Modifiers extends Node {
         flags |= FLAG_FACTORY;
       else if (identical(value, 'external'))
         flags |= FLAG_EXTERNAL;
+      else if (identical(value, 'covariant'))
+        flags |= FLAG_COVARIANT;
       else
         throw 'internal error: ${nodes.head}';
     }
@@ -2036,6 +2039,7 @@ class Modifiers extends Node {
   bool get isConst => (flags & FLAG_CONST) != 0;
   bool get isFactory => (flags & FLAG_FACTORY) != 0;
   bool get isExternal => (flags & FLAG_EXTERNAL) != 0;
+  bool get isCovariant => (flags & FLAG_COVARIANT) != 0;
 
   Node getStatic() => findModifier('static');
 
@@ -2053,7 +2057,8 @@ class Modifiers extends Node {
         isVar: isVar,
         isConst: isConst,
         isFactory: isFactory,
-        isExternal: isExternal);
+        isExternal: isExternal,
+        isCovariant: isCovariant);
   }
 }
 

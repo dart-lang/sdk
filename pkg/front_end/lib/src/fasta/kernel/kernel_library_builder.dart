@@ -617,8 +617,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    return new KernelFunctionTypeBuilder(
-        charOffset, fileUri, returnType, typeVariables, formals);
+    return addType(new KernelFunctionTypeBuilder(
+        charOffset, fileUri, returnType, typeVariables, formals));
   }
 
   KernelFormalParameterBuilder addFormalParameter(

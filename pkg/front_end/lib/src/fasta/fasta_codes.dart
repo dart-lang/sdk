@@ -9,6 +9,8 @@ import 'package:front_end/src/scanner/token.dart' show Token;
 part 'fasta_codes_generated.dart';
 
 class FastaCode<T> {
+  final String name;
+
   final String template;
 
   final String tip;
@@ -19,12 +21,14 @@ class FastaCode<T> {
 
   final T format;
 
-  const FastaCode(
+  const FastaCode(this.name,
       {this.template,
       this.tip,
       this.analyzerCode,
       this.dart2jsCode,
       this.format});
+
+  String toString() => name;
 }
 
 class FastaMessage {

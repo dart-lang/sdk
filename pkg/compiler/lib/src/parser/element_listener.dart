@@ -706,6 +706,9 @@ class ElementListener extends Listener {
 
       case "FASTA_IGNORED":
         return null; // Ignored. This error is already implemented elsewhere.
+
+      default:
+        throw "Unexpected message code: ${message.code}";
     }
     SourceSpan span = reporter.spanFromToken(token);
     reportError(span, errorCode, arguments);

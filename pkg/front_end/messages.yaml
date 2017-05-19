@@ -169,12 +169,6 @@ ExtraneousModifier:
     - "abstract var foo; main(){}"
     - "static var foo; main(){}"
     - "external var foo; main(){}"
-
-ExtraneousModifierReplace:
-  template: "Can't have modifier '#lexeme' here."
-  tip: "Try replacing modifier '#lexeme' with 'var', 'final', or a type."
-  dart2jsCode: EXTRANEOUS_MODIFIER_REPLACE
-  script:
     - "set foo; main(){}"
     - "abstract foo; main(){}"
     - "static foo; main(){}"
@@ -354,7 +348,7 @@ AwaitNotAsync:
 
 BuiltInIdentifierAsType:
   template: "Can't use '#lexeme' as a type."
-  dart2jsCode: GENERIC
+  dart2jsCode: EXTRANEOUS_MODIFIER
 
 BuiltInIdentifierInDeclaration:
   template: "Can't use '#lexeme' as a name here."
@@ -395,3 +389,12 @@ OnlyTry:
   tip: "Did you forget to add a 'finally' block?"
   statement: "try {}"
   dart2jsCode: FASTA_IGNORED
+
+TypeAfterVar:
+  template: "Can't have both a type and 'var'."
+  tip: "Try removing 'var.'"
+  dart2jsCode: EXTRANEOUS_MODIFIER
+
+TypeRequired:
+  template: "A type or modifier is required here."
+  tip: "Try adding a type, 'var', 'const', or 'final'."
