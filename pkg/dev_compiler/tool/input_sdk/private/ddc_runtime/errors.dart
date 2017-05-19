@@ -17,6 +17,10 @@ void ignoreWhitelistedErrors(bool flag) {
   JS('', 'dart.__ignoreWhitelistedErrors = #', flag);
 }
 
+void ignoreAllErrors(bool flag) {
+  JS('', 'dart.__ignoreAllErrors = #', flag);
+}
+
 /// Throw an exception on `is` checks that would return an unsound answer in
 /// non-strong mode Dart.
 ///
