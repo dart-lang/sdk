@@ -78,6 +78,15 @@ abstract class KernelToElementMap {
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);
 
+  /// Returns the super [MemberEntity] for a super invocation, get or set of
+  /// [name] from the member [context].
+  ///
+  /// The IR doesn't always resolve super accesses to the corresponding
+  /// [target]. If not, the target is computed using [name] and [setter] from
+  /// the enclosing class of [context].
+  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+      {bool setter: false});
+
   /// Returns the [FieldEntity] corresponding to the field [node].
   FieldEntity getField(ir.Field node);
 

@@ -64,8 +64,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 
 ResolutionImpact buildKernelImpact(
     ir.Member member, KernelToElementMap elementAdapter) {
-  KernelImpactBuilder builder =
-      new KernelImpactBuilder('${member.name}', elementAdapter);
+  KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
   } else if (member is ir.Constructor) {
@@ -79,9 +78,11 @@ ResolutionImpact buildKernelImpact(
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMap elementAdapter;
+  final ir.Member currentMember;
 
-  KernelImpactBuilder(String name, this.elementAdapter)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(name);
+  KernelImpactBuilder(this.elementAdapter, this.currentMember)
+      : this.impactBuilder =
+            new ResolutionWorldImpactBuilder('${currentMember.name}');
 
   CommonElements get commonElements => elementAdapter.commonElements;
 
@@ -389,8 +390,9 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
   }
 
-  void handleSuperInvocation(ir.Node target, ir.Node arguments) {
-    FunctionEntity method = elementAdapter.getMethod(target);
+  void handleSuperInvocation(ir.Name name, ir.Node target, ir.Node arguments) {
+    FunctionEntity method = elementAdapter
+        .getSuperMember(currentMember, name, target, setter: false);
     _visitArguments(arguments);
     impactBuilder.registerStaticUse(new StaticUse.superInvoke(
         method, elementAdapter.getCallStructure(arguments)));
@@ -398,55 +400,55 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    handleSuperInvocation(node.target, node.arguments);
+    handleSuperInvocation(node.name, node.target, node.arguments);
   }
 
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     // TODO(johnniwinther): Should we support this or always use the
     // [MixinFullResolution] transformer?
-    handleSuperInvocation(node.interfaceTarget, node.arguments);
+    handleSuperInvocation(node.name, node.interfaceTarget, node.arguments);
   }
 
-  void handleSuperGet(ir.Member target) {
-    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      FunctionEntity method = elementAdapter.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.superTearOff(method));
+  void handleSuperGet(ir.Name name, ir.Member target) {
+    MemberEntity member = elementAdapter
+        .getSuperMember(currentMember, name, target, setter: false);
+    if (member.isFunction) {
+      impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
     } else {
-      MemberEntity member = elementAdapter.getMember(target);
       impactBuilder.registerStaticUse(new StaticUse.superGet(member));
     }
   }
 
   @override
   void visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    handleSuperGet(node.target);
+    handleSuperGet(null, node.target);
   }
 
   @override
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
-    handleSuperGet(node.interfaceTarget);
+    handleSuperGet(node.name, node.interfaceTarget);
   }
 
-  void handleSuperSet(ir.Node target, ir.Node value) {
+  void handleSuperSet(ir.Name name, ir.Node target, ir.Node value) {
     visitNode(value);
-    if (target is ir.Field) {
-      FieldEntity field = elementAdapter.getField(target);
-      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(field));
+    MemberEntity member = elementAdapter
+        .getSuperMember(currentMember, name, target, setter: true);
+    if (member.isField) {
+      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
     } else {
-      FunctionEntity method = elementAdapter.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(method));
+      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(member));
     }
   }
 
   @override
   void visitDirectPropertySet(ir.DirectPropertySet node) {
-    handleSuperSet(node.target, node.value);
+    handleSuperSet(null, node.target, node.value);
   }
 
   @override
   void visitSuperPropertySet(ir.SuperPropertySet node) {
-    handleSuperSet(node.interfaceTarget, node.value);
+    handleSuperSet(node.name, node.interfaceTarget, node.value);
   }
 
   @override

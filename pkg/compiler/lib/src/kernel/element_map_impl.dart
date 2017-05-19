@@ -329,6 +329,25 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     });
   }
 
+  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+      {bool setter: false}) {
+    if (target != null) {
+      return getMember(target);
+    }
+    KClass cls = getMember(context).enclosingClass;
+    KClass superclass = _getSuperType(cls)?.element;
+    while (superclass != null) {
+      _KClassEnv env = _classEnvs[superclass.classIndex];
+      ir.Member superMember = env.lookupMember(name.name, setter: setter);
+      if (superMember != null) {
+        return getMember(superMember);
+      }
+      superclass = _getSuperType(superclass)?.element;
+    }
+    throw new SpannableAssertionFailure(
+        cls, "No super method member found for ${name} in $cls.");
+  }
+
   /// Returns the kernel [ir.Procedure] node for the [method].
   ir.Procedure _lookupProcedure(KFunction method) {
     return _memberList[method.memberIndex].node;
