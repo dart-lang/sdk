@@ -4555,6 +4555,13 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   bool IsImmutableLengthLoad() const;
 
+  // Try evaluating this load against the given constant value of
+  // the instance. Returns true if evaluation succeeded and
+  // puts result into result.
+  // Note: we only evaluate loads when we can ensure that
+  // instance has the field.
+  bool Evaluate(const Object& instance_value, Object* result);
+
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);

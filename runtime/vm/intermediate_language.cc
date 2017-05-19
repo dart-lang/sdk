@@ -2121,40 +2121,72 @@ Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
+  if (field() == NULL || !field()->is_final() || !instance.IsInstance()) {
+    return false;
+  }
+
+  // Check that instance really has the field which we
+  // are trying to load from.
+  Class& cls = Class::Handle(instance.clazz());
+  while (cls.raw() != Class::null() && cls.raw() != field()->Owner()) {
+    cls = cls.SuperClass();
+  }
+  if (cls.raw() != field()->Owner()) {
+    // Failed to find the field in class or its superclasses.
+    return false;
+  }
+
+  // Object has the field: execute the load.
+  *result = Instance::Cast(instance).GetField(*field());
+  return true;
+}
+
+
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
-  if (!IsImmutableLengthLoad()) return this;
 
-  // For fixed length arrays if the array is the result of a known constructor
-  // call we can replace the length load with the length argument passed to
-  // the constructor.
-  StaticCallInstr* call =
-      instance()->definition()->OriginalDefinition()->AsStaticCall();
-  if (call != NULL) {
-    if (call->is_known_list_constructor() &&
-        IsFixedLengthArrayCid(call->Type()->ToCid())) {
-      return call->ArgumentAt(1);
+  if (IsImmutableLengthLoad()) {
+    // For fixed length arrays if the array is the result of a known constructor
+    // call we can replace the length load with the length argument passed to
+    // the constructor.
+    StaticCallInstr* call =
+        instance()->definition()->OriginalDefinition()->AsStaticCall();
+    if (call != NULL) {
+      if (call->is_known_list_constructor() &&
+          IsFixedLengthArrayCid(call->Type()->ToCid())) {
+        return call->ArgumentAt(1);
+      }
+    }
+
+    CreateArrayInstr* create_array =
+        instance()->definition()->OriginalDefinition()->AsCreateArray();
+    if ((create_array != NULL) &&
+        (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
+      return create_array->num_elements()->definition();
+    }
+
+    // For arrays with guarded lengths, replace the length load
+    // with a constant.
+    LoadFieldInstr* load_array =
+        instance()->definition()->OriginalDefinition()->AsLoadField();
+    if (load_array != NULL) {
+      const Field* field = load_array->field();
+      if ((field != NULL) && (field->guarded_list_length() >= 0)) {
+        return flow_graph->GetConstant(
+            Smi::Handle(Smi::New(field->guarded_list_length())));
+      }
     }
   }
 
-  CreateArrayInstr* create_array =
-      instance()->definition()->OriginalDefinition()->AsCreateArray();
-  if ((create_array != NULL) &&
-      (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
-    return create_array->num_elements()->definition();
-  }
-
-  // For arrays with guarded lengths, replace the length load
-  // with a constant.
-  LoadFieldInstr* load_array =
-      instance()->definition()->OriginalDefinition()->AsLoadField();
-  if (load_array != NULL) {
-    const Field* field = load_array->field();
-    if ((field != NULL) && (field->guarded_list_length() >= 0)) {
-      return flow_graph->GetConstant(
-          Smi::Handle(Smi::New(field->guarded_list_length())));
+  // Try folding away loads from constant objects.
+  if (instance()->BindsToConstant()) {
+    Object& result = Object::Handle();
+    if (Evaluate(instance()->BoundConstant(), &result)) {
+      return flow_graph->GetConstant(result);
     }
   }
+
   return this;
 }
 
