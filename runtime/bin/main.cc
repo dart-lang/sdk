@@ -114,7 +114,6 @@ static bool trace_loading = false;
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
-static AppSnapshot* app_snapshot = NULL;
 
 
 static Dart_Isolate main_isolate = NULL;
@@ -837,13 +836,16 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     }
   }
 
+  void* kernel_platform = NULL;
+  void* kernel_program = NULL;
+  AppSnapshot* app_snapshot = NULL;
+
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
   bool isolate_run_app_snapshot = true;
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
-  AppSnapshot* app_snapshot = NULL;
 #else
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
@@ -851,7 +853,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
-  AppSnapshot* app_snapshot = NULL;
   if ((app_isolate_snapshot_data != NULL) &&
       (is_main_isolate || ((app_script_uri != NULL) &&
                            (strcmp(script_uri, app_script_uri) == 0)))) {
@@ -869,11 +870,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
           &isolate_snapshot_data, &isolate_snapshot_instructions);
     }
   }
-#endif
-
-  void* kernel_platform = NULL;
-  void* kernel_program = NULL;
-#if !defined(DART_PRECOMPILED_RUNTIME)
   const bool is_service_isolate =
       strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   if (!is_kernel_isolate && !is_service_isolate) {
@@ -1658,7 +1654,7 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-  app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
+  AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
   if (app_snapshot != NULL) {
     vm_run_app_snapshot = true;
     app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,

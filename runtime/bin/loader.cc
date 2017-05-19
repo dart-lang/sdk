@@ -617,7 +617,22 @@ Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
                              payload_length);
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
+                                      Dart_Handle library,
+                                      Dart_Handle url) {
+  return Dart_Null();
+}
 
+
+Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
+                                               Dart_Handle library,
+                                               Dart_Handle url,
+                                               const char* library_url_string,
+                                               const char* url_string) {
+  return Dart_Null();
+}
+#else
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
@@ -803,6 +818,7 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   UNREACHABLE();
   return Dart_Null();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 void Loader::InitOnce() {
