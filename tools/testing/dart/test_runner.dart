@@ -2982,6 +2982,14 @@ bool shouldRetryCommand(CommandOutput output) {
       return true;
     }
 
+    // As long as we use a legacy version of our custom content_shell (which
+    // became quite flaky after chrome-50 roll) we'll re-run tests on it.
+    // The plan is to use chrome's content_shell instead of our own.
+    // See http://dartbug.com/29655 .
+    if (command is ContentShellCommand) {
+      return true;
+    }
+
     if (io.Platform.operatingSystem == 'linux') {
       decodeOutput();
       // No matter which command we ran: If we get failures due to the
