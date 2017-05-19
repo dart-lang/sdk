@@ -16,7 +16,7 @@ ArgParser argParser = new ArgParser()
       defaultsTo: '300');
 
 String usage = """
-Usage: class_hierarchy_membench [options] FILE.dart
+Usage: class_hierarchy_membench [options] FILE.dill
 
 Options:
 ${argParser.usage}
