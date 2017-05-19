@@ -4,6 +4,9 @@
 
 // test w/ `pub run test -N prefer_single_quotes`
 
+import "dart:collection"; // LINT
+import 'dart:async'; // OK
+
 main() {
   String string1 = "no quote"; // LINT
   String string2 = 'uses single'; // OK
