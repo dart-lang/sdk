@@ -1522,7 +1522,6 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
                                                const CidRange& range,
                                                int bias) {
   intptr_t cid_start = range.cid_start;
-  intptr_t cid_end = range.cid_end;
   if (range.IsSingleCid()) {
     __ CompareImmediate(R2, cid_start - bias);
     __ b(next_label, NE);
