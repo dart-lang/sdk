@@ -831,33 +831,30 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
     }
   }
 
-  const Object& constant = instance->definition()->constant_value();
-  if (IsConstant(constant)) {
-    if (instr->IsImmutableLengthLoad()) {
-      if (constant.IsString()) {
+  if (instr->IsImmutableLengthLoad()) {
+    ConstantInstr* constant =
+        instance->definition()->OriginalDefinition()->AsConstant();
+    if (constant != NULL) {
+      if (constant->value().IsString()) {
         SetValue(instr,
-                 Smi::ZoneHandle(Z, Smi::New(String::Cast(constant).Length())));
+                 Smi::ZoneHandle(
+                     Z, Smi::New(String::Cast(constant->value()).Length())));
         return;
       }
-      if (constant.IsArray()) {
+      if (constant->value().IsArray()) {
         SetValue(instr,
-                 Smi::ZoneHandle(Z, Smi::New(Array::Cast(constant).Length())));
+                 Smi::ZoneHandle(
+                     Z, Smi::New(Array::Cast(constant->value()).Length())));
         return;
       }
-      if (constant.IsTypedData()) {
-        SetValue(instr, Smi::ZoneHandle(
-                            Z, Smi::New(TypedData::Cast(constant).Length())));
-        return;
-      }
-    } else {
-      Object& value = Object::Handle();
-      if (instr->Evaluate(constant, &value)) {
-        SetValue(instr, Object::ZoneHandle(Z, value.raw()));
+      if (constant->value().IsTypedData()) {
+        SetValue(instr,
+                 Smi::ZoneHandle(
+                     Z, Smi::New(TypedData::Cast(constant->value()).Length())));
         return;
       }
     }
   }
-
   SetValue(instr, non_constant_);
 }
 
