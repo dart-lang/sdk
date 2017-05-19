@@ -212,11 +212,13 @@ Object& KernelReader::ReadProgram() {
       // to be patched.
       if (procedure != NULL) {
         // We will handle the StaticGet specially and will not use the name.
+        // Note that we pass "true" in cannot_stream to avoid trying to stream
+        // a non-existing part of the binary.
         //
         // TODO(kmillikin): we are leaking the new function body.  Find a way to
         // deallocate it.
         procedure->function()->ReplaceBody(
-            new ReturnStatement(new StaticGet(NameIndex())));
+            new ReturnStatement(new StaticGet(NameIndex(), false), false));
       }
       return library;
     }

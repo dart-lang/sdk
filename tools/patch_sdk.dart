@@ -74,6 +74,7 @@ void usage(String mode) {
 }
 
 Future _main(List<String> argv) async {
+  if (argv.isEmpty) usage('[vm|dart2js]');
   var mode = argv.first;
   if (mode != 'vm' && mode != 'dart2js') usage('[vm|dart2js]');
   if (argv.length != 5) usage(mode);
@@ -104,11 +105,14 @@ Future _main(List<String> argv) async {
   if (forVm) _copyExtraVmLibraries(sdkOut);
 
   Uri platform = outDirUri.resolve('platform.dill.tmp');
+  Uri outline = outDirUri.resolve('outline.dill');
   Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
   if (forVm) {
-    await fasta.compilePlatform(outDirUri, platform, packages: packages);
+    await fasta.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
   } else {
-    await dart2js.compilePlatform(outDirUri, platform, packages: packages);
+    await dart2js.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
   }
 
   Uri platformFinalLocation = outDirUri.resolve('platform.dill');

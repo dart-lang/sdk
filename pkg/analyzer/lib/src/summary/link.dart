@@ -3248,7 +3248,7 @@ class GenericTypeAliasElementForLink extends Object
         TypeParameterizedElementMixin,
         ParameterParentElementForLink,
         ReferenceableElementForLink
-    implements FunctionTypeAliasElement, ElementImpl {
+    implements FunctionTypeAliasElementForLink, ElementImpl {
   @override
   final CompilationUnitElementForLink enclosingElement;
 

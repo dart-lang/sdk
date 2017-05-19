@@ -53,6 +53,10 @@ class DillClassBuilder extends KernelClassBuilder {
   bool get isMixinApplication => cls.isMixinApplication;
 
   KernelTypeBuilder get mixedInType => internalError("Not implemented.");
+
+  void set mixedInType(KernelTypeBuilder mixin) {
+    internalError("Not implemented.");
+  }
 }
 
 int computeModifiers(Class cls) {

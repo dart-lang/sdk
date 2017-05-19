@@ -22,7 +22,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
 
   M.IsolateRef _isolate;
   M.ObjectRef _context;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.EvalRepository _eval;
   final _results = <_ExpressionDescription>[];
   String _expression = '';
@@ -33,13 +33,13 @@ class EvalBoxElement extends HtmlElement implements Renderable {
   M.ObjectRef get context => _context;
 
   factory EvalBoxElement(M.IsolateRef isolate, M.ObjectRef context,
-      M.InstanceRepository instances, M.EvalRepository eval,
+      M.ObjectRepository objects, M.EvalRepository eval,
       {bool multiline: false,
       Iterable<String> quickExpressions: const [],
       RenderingQueue queue}) {
     assert(isolate != null);
     assert(context != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(eval != null);
     assert(multiline != null);
     assert(quickExpressions != null);
@@ -47,7 +47,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._context = context;
-    e._instances = instances;
+    e._objects = objects;
     e._eval = eval;
     e._multiline = multiline;
     e._quickExpressions = new List.unmodifiable(quickExpressions);
@@ -115,7 +115,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
                   ..children = [
                     result.isPending
                         ? (new SpanElement()..text = 'Pending...')
-                        : anyRef(_isolate, result.value, _instances,
+                        : anyRef(_isolate, result.value, _objects,
                             queue: _r.queue)
                   ],
                 new TableCellElement()

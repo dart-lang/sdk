@@ -852,6 +852,11 @@ class Assembler : public ValueObject {
     j(NOT_ZERO, label);
   }
 
+  void BranchIfSmi(Register reg, Label* label) {
+    testq(reg, Immediate(kSmiTagMask));
+    j(ZERO, label);
+  }
+
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }

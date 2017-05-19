@@ -10,7 +10,6 @@ import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../elements/entities.dart';
-import '../tree/dartstring.dart' show DartString, LiteralDartString;
 
 const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();
 
@@ -303,7 +302,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   NumConstantValue createInt32(int i) => new IntConstantValue(i & BITS32);
   NumConstantValue createDouble(double d) =>
       convertToJavaScriptConstant(new DoubleConstantValue(d));
-  StringConstantValue createString(DartString string) {
+  StringConstantValue createString(String string) {
     return new StringConstantValue(string);
   }
 
@@ -391,7 +390,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   ConstantValue createSymbol(CommonElements commonElements, String text) {
     InterfaceType type = commonElements.symbolImplementationType;
     FieldEntity field = commonElements.symbolField;
-    ConstantValue argument = createString(new DartString.literal(text));
+    ConstantValue argument = createString(text);
     // TODO(johnniwinther): Use type arguments when all uses no longer expect
     // a [FieldElement].
     Map<FieldEntity, ConstantValue> fields = /*<FieldElement, ConstantValue>*/ {
@@ -406,8 +405,7 @@ class JavaScriptMapConstant extends MapConstantValue {
    * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
    * object. It would change the prototype chain.
    */
-  static const LiteralDartString PROTO_PROPERTY =
-      const LiteralDartString("__proto__");
+  static const String PROTO_PROPERTY = "__proto__";
 
   /** The dart class implementing constant map literals. */
   static const String DART_CLASS = "ConstantMap";

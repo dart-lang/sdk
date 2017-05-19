@@ -5,7 +5,7 @@
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 /**

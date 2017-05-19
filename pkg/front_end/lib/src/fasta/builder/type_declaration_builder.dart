@@ -32,6 +32,8 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   bool get isTypeDeclaration => true;
 
+  bool get isMixinApplication => false;
+
   R buildType(LibraryBuilder library, List<T> arguments);
 
   /// [arguments] have already been built.

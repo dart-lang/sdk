@@ -15,7 +15,7 @@ main() {
 
   num y;
   C<int> c_int = new /*@typeArgs=int*/ C(
-      /*info:DOWN_CAST_IMPLICIT*/ /*@promotedType=none*/ y);
+      /*info:DOWN_CAST_IMPLICIT*/ y);
 
   C<num> c_num = new /*@typeArgs=num*/ C(123);
 

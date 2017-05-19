@@ -910,6 +910,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
 
 {\bf methodSignature:}constructorSignature initializers?;
       factoryConstructorSignature;
+% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
       \STATIC{}? functionSignature;
       \STATIC{}? getterSignature;
       \STATIC{}? setterSignature;
@@ -923,6 +924,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
       ((\EXTERNAL{} \STATIC{}?))? getterSignature;
       ((\EXTERNAL{} \STATIC{}?))? setterSignature;
       \EXTERNAL{}? operatorSignature;
+% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
       ((\EXTERNAL{} \STATIC{}?))? functionSignature;
       \STATIC{} (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList;
 %      \CONST{} type? staticFinalDeclarationList;
@@ -3594,7 +3596,7 @@ If $e$ is of the form \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots
 \LMHash{}
 In all of the above cases, it is a compile-time error if $a_i,  i\in 1 .. n + k$, is not a compile-time constant expression.
 
-%If $T$ is a parameterized type (\ref{parameterizedTypes}) $S<U_1,  \ldots, U_m>$, let $R = S$.  It is a compile-time error if $T$ is is malformed. If $T$ is not a parameterized type, let $R = T$.
+%If $T$ is a parameterized type (\ref{parameterizedTypes}) $S<U_1,  \ldots, U_m>$, let $R = S$.  It is a compile-time error if $T$ is malformed. If $T$ is not a parameterized type, let $R = T$.
  %Finally,
 % If $T$ is a generic with $l$ retype parameters, then for all $ i \in 1 .. l$, let $V_i =  \DYNAMIC{}$.
 
@@ -3911,7 +3913,7 @@ If $e_f$ is a type literal, then it is equivalent to the expression $(e_f)$.
 The expression $(e_f)$ where $e_f$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a runtime error occurs when trying to call a type literal.
 }
 
-If $e_f$ is a property extraction expression (\ref{propertyExtraction}), then $i$ is is not a function expression invocation and is instead recognized as an ordinary method invocation (\ref{ordinaryInvocation}).
+If $e_f$ is a property extraction expression (\ref{propertyExtraction}), then $i$ isn't a function expression invocation and is instead recognized as an ordinary method invocation (\ref{ordinaryInvocation}).
 
 \commentary{
 \code{$a.b(x)$} is parsed as a method invocation of method \code{$b()$} on object \code{$a$}, not as an invocation of getter \code{$b$} on \code{$a$} followed by a function call \code{$(a.b)(x)$}.  If a method or getter \code{$b$} exists, the two will be equivalent. However, if \code{$b$} is not defined on \code{$a$}, the resulting invocation of \code{noSuchMethod()} would differ.  The \code{Invocation} passed to \code{noSuchMethod()} would describe a call to a method \code{$b$} with argument \code{$x$} in the former case, and a call to a getter \code{$b$} (with no arguments) in the latter.
@@ -6453,8 +6455,17 @@ It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \
 \LMHash{}
 Let $S$ be the runtime type of $o$. In checked mode:
 \begin{itemize}
-\item  If the body of $f$ is marked \ASYNC{} (\ref{functions}) it is a dynamic type error if $o$ is not \NULL{} (\ref{null}) and \code{Future<flatten(S)>} is not a subtype of the actual return type  (\ref{actualTypeOfADeclaration}) of $f$.
-\item Otherwise, it is a dynamic type error if $o$ is not \NULL{} and the runtime type of $o$ is not a subtype of the actual return type of $f$.
+\item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
+it is a dynamic type error if $o$ is not \NULL{} (\ref{null}),
+the actual return type (\ref{actualTypeOfADeclaration}) of $f$ is not \VOID,
+and \code{Future<flatten(S)>} is not a subtype of the actual return type of $f$.
+% TODO(lrn): The "void foo() async { return e }" case is somewhat speculative.
+% When we disallow "return e" in a void function, we might also want to revisit
+% this rule. Currently it also covers the "void foo() async => e;" case, which
+% we might want to allow.
+\item Otherwise, it is a dynamic type error if $o$ is not \NULL{},
+the actual return type of $f$ is not \VOID{},
+and the runtime type of $o$ is not a subtype of the actual return type of $f$.
 \end{itemize}
 
 \LMHash{}
@@ -6886,7 +6897,7 @@ If $I$ is a deferred import, no evaluation takes place. Instead, a mapping of th
 The deferred prefix object has the following methods:
 
 \begin{itemize}
-\item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I'$ executes without error, $f$ completes successfully. If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
+\item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I'$ executes without error, $f$ completes successfully. If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
 \item  For every top level function $f$ named $id$ in the imported library $B$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
 \item For every top level getter $g$ named $id$ in $B$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
 \item For every top level setter $s$ named $id$ in $B$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
@@ -7441,7 +7452,9 @@ A {\em type alias} declares a name for a type expression.
  \end{grammar}
 
 \LMHash{}
- The effect of a type alias of the form  \code{\TYPEDEF{} $T$ $id (T_1$ $p_1, \ldots, T_n$ $p_n, [T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}])$} declared in a library $L$ is is to introduce the name $id$ into the scope of $L$, bound to the function type $(T_1, \ldots, T_n, [T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}])  \rightarrow T$.  The effect of a type alias of the form   \code{\TYPEDEF{} $T$ $id (T_1$ $p_1, \ldots, T_n$ $p_n, \{T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}\})$} declared in a library $L$ is is to introduce the name $id$ into the scope of $L$, bound to the function type $(T_1, \ldots, T_n, \{T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}\})  \rightarrow T$. . In either case, iff no return type is specified, it is taken to be \DYNAMIC{}. Likewise, if a type annotation is omitted on a formal parameter, it is taken to be \DYNAMIC{}.
+ The effect of a type alias of the form  \code{\TYPEDEF{} $T$ $id (T_1$ $p_1, \ldots, T_n$ $p_n, [T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}])$} declared in a library $L$ is to introduce the name $id$ into the scope of $L$, bound to the function type $(T_1, \ldots, T_n, [T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}])  \rightarrow T$.
+The effect of a type alias of the form   \code{\TYPEDEF{} $T$ $id (T_1$ $p_1, \ldots, T_n$ $p_n, \{T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}\})$} declared in a library $L$ is to introduce the name $id$ into the scope of $L$, bound to the function type $(T_1, \ldots, T_n, \{T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $p_{n+k}\})  \rightarrow T$.
+In either case, iff no return type is specified, it is taken to be \DYNAMIC{}. Likewise, if a type annotation is omitted on a formal parameter, it is taken to be \DYNAMIC{}.
 
 \LMHash{}
 It is a compile-time error if any default values are specified in the signature of a function type alias.

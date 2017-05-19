@@ -194,6 +194,7 @@ def main():
             test = os.path.join(DART_TEST_DIR, options.layout_test)
           else:
             test = DART_TEST_DIR
+
           utils.runCommand(['python',
                             test_script,
                             test_mode,

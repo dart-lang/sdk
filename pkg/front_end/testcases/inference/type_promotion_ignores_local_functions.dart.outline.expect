@@ -1,0 +1,7 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef FunctionReturningInt = () → core::int;
+static method main() → dynamic
+  ;

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart'
     show Index, createMemoryIndex;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../analysis_abstract.dart';

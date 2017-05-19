@@ -532,7 +532,13 @@ bool Debugger::HasBreakpoint(const Code& code) {
 
 
 void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
-  BreakpointLocation* sbpt = breakpoint_locations_;
+  PrintBreakpointsListToJSONArray(breakpoint_locations_, jsarr);
+  PrintBreakpointsListToJSONArray(latent_locations_, jsarr);
+}
+
+
+void Debugger::PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
+                                               JSONArray* jsarr) const {
   while (sbpt != NULL) {
     Breakpoint* bpt = sbpt->breakpoints();
     while (bpt != NULL) {
@@ -1284,13 +1290,12 @@ static bool IsPrivateVariableName(const String& var_name) {
 }
 
 
-RawObject* ActivationFrame::Evaluate(const String& expr) {
+RawObject* ActivationFrame::Evaluate(const String& expr,
+                                     const GrowableObjectArray& param_names,
+                                     const GrowableObjectArray& param_values) {
   GetDescIndices();
-  const GrowableObjectArray& param_names =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& param_values =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& name = String::Handle();
+  String& existing_name = String::Handle();
   Object& value = Instance::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
@@ -1300,8 +1305,21 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
-      param_names.Add(name);
-      param_values.Add(value);
+      bool conflict = false;
+      for (intptr_t j = 0; j < param_names.Length(); j++) {
+        existing_name ^= param_names.At(j);
+        if (name.Equals(existing_name)) {
+          conflict = true;
+          break;
+        }
+      }
+      // If local has the same name as a binding in the incoming scope, prefer
+      // the one from the incoming scope, since it is logically a child scope
+      // of the activation's current scope.
+      if (!conflict) {
+        param_names.Add(name);
+        param_values.Add(value);
+      }
     }
   }
 
@@ -1655,8 +1673,7 @@ void Debugger::Shutdown() {
 }
 
 
-void Debugger::OnIsolateRunnable() {
-}
+void Debugger::OnIsolateRunnable() {}
 
 
 static RawFunction* ResolveLibraryFunction(const Library& library,
@@ -4197,8 +4214,20 @@ RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
 void Debugger::RemoveBreakpoint(intptr_t bp_id) {
+  if (RemoveBreakpointFromTheList(bp_id, &breakpoint_locations_)) {
+    return;
+  }
+  RemoveBreakpointFromTheList(bp_id, &latent_locations_);
+}
+
+
+// Remove and delete the source breakpoint bpt and its associated
+// code breakpoints. Returns true, if breakpoint was found and removed,
+// returns false, if breakpoint was not found.
+bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
+                                           BreakpointLocation** list) {
   BreakpointLocation* prev_loc = NULL;
-  BreakpointLocation* curr_loc = breakpoint_locations_;
+  BreakpointLocation* curr_loc = *list;
   while (curr_loc != NULL) {
     Breakpoint* prev_bpt = NULL;
     Breakpoint* curr_bpt = curr_loc->breakpoints();
@@ -4230,14 +4259,17 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
         // breakpoints at that location.
         if (curr_loc->breakpoints() == NULL) {
           if (prev_loc == NULL) {
-            breakpoint_locations_ = curr_loc->next();
+            *list = curr_loc->next();
           } else {
             prev_loc->set_next(curr_loc->next());
           }
 
-          // Remove references from code breakpoints to this breakpoint
-          // location and disable them.
-          UnlinkCodeBreakpoints(curr_loc);
+          if (!curr_loc->IsLatent()) {
+            // Remove references from code breakpoints to this breakpoint
+            // location and disable them.
+            // Latent breakpoint locations won't have code breakpoints.
+            UnlinkCodeBreakpoints(curr_loc);
+          }
           BreakpointLocation* next_loc = curr_loc->next();
           delete curr_loc;
           curr_loc = next_loc;
@@ -4245,7 +4277,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 
         // The code breakpoints will be deleted when the VM resumes
         // after the pause event.
-        return;
+        return true;
       }
 
       prev_bpt = curr_bpt;
@@ -4255,6 +4287,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
     curr_loc = curr_loc->next();
   }
   // breakpoint with bp_id does not exist, nothing to do.
+  return false;
 }
 
 
@@ -4317,7 +4350,17 @@ BreakpointLocation* Debugger::GetBreakpointLocation(const Script& script,
 
 
 Breakpoint* Debugger::GetBreakpointById(intptr_t id) {
-  BreakpointLocation* loc = breakpoint_locations_;
+  Breakpoint* bpt = GetBreakpointByIdInTheList(id, breakpoint_locations_);
+  if (bpt != NULL) {
+    return bpt;
+  }
+  return GetBreakpointByIdInTheList(id, latent_locations_);
+}
+
+
+Breakpoint* Debugger::GetBreakpointByIdInTheList(intptr_t id,
+                                                 BreakpointLocation* list) {
+  BreakpointLocation* loc = list;
   while (loc != NULL) {
     Breakpoint* bpt = loc->breakpoints();
     while (bpt != NULL) {

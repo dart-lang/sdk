@@ -47,7 +47,7 @@ class StringScanner extends ArrayBasedScanner {
       [int extraOffset = 0]) {
     return new StringToken.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
-        canonicalize: true);
+        canonicalize: true, precedingComments: comments);
   }
 
   @override

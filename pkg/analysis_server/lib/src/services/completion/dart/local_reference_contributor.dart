@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.local_ref;
-
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol
-    show Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -25,6 +21,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
+    show Element, ElementKind;
 
 /**
  * A contributor for calculating suggestions for declarations in the local
@@ -48,16 +46,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
           optype.includeTypeNameSuggestions ||
           optype.includeVoidReturnSuggestions ||
           suggestLocalFields) {
-        // If the target is in an expression
-        // then resolve the outermost/entire expression
-        if (node is Expression) {
-          await request.resolveContainingExpression(node);
-
-          // Discard any cached target information
-          // because it may have changed as a result of the resolution
-          node = request.target.containingNode;
-        }
-
         // Do not suggest local vars within the current expression
         while (node is Expression) {
           node = node.parent;
@@ -352,7 +340,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       EnumDeclaration enumDeclaration,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     String completion =
         '${enumDeclaration.name.name}.${constantDeclaration.name.name}';

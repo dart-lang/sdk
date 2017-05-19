@@ -14,12 +14,11 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
-import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
+import '../js_backend/runtime_types.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
-import '../tree/dartstring.dart' as ast;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -53,8 +52,6 @@ class SsaOptimizerTask extends CompilerTask {
   CompilerOptions get _options => _compiler.options;
 
   RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
-
-  InterceptorData get _interceptorData => _backend.interceptorData;
 
   void optimize(CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     void runPhase(OptimizationPhase phase) {
@@ -120,10 +117,7 @@ class SsaOptimizerTask extends CompilerTask {
       // required for implementation correctness because the code generator
       // assumes it is always performed.
       runPhase(new SsaSimplifyInterceptors(
-          closedWorld,
-          closedWorld.commonElements,
-          _interceptorData,
-          work.element.enclosingClass));
+          closedWorld, work.element.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
@@ -139,8 +133,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(
               _results, _options, _rtiSubstitutions, closedWorld, registry),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(closedWorld, closedWorld.commonElements,
-              _interceptorData, work.element.enclosingClass),
+          new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
@@ -1135,8 +1128,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction folded = _graph.addConstant(
-        constantSystem.createString(new ast.DartString.concat(
-            leftString.primitiveValue, rightString.primitiveValue)),
+        constantSystem.createString(
+            leftString.primitiveValue + rightString.primitiveValue),
         _closedWorld);
     if (prefix == null) return folded;
     return new HStringConcat(
@@ -1161,7 +1154,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
       PrimitiveConstantValue primitive = constant.constant;
       return _graph.addConstant(
-          constantSystem.createString(primitive.toDartString()), _closedWorld);
+          constantSystem.createString('${primitive.primitiveValue}'),
+          _closedWorld);
     }
 
     HInstruction tryToString() {

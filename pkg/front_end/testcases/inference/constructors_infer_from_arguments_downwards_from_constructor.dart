@@ -11,7 +11,7 @@ class C<T> {
 
 main() {
   var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(/*@typeArgs=int*/ [123]);
-  C<int> y = /*@promotedType=none*/ x;
+  C<int> y = x;
 
   var /*@type=C<dynamic>*/ a = new C<dynamic>(/*@typeArgs=dynamic*/ [123]);
 

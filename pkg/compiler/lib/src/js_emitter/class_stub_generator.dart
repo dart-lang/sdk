@@ -24,14 +24,15 @@ class ClassStubGenerator {
   final Namer _namer;
   final CodegenWorldBuilder _worldBuilder;
   final ClosedWorld _closedWorld;
-  final InterceptorData _interceptorData;
   final bool enableMinification;
   final Emitter _emitter;
   final CommonElements _commonElements;
 
   ClassStubGenerator(this._emitter, this._commonElements, this._namer,
-      this._worldBuilder, this._interceptorData, this._closedWorld,
+      this._worldBuilder, this._closedWorld,
       {this.enableMinification});
+
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   jsAst.Expression generateClassConstructor(
       ClassEntity classElement, Iterable<jsAst.Name> fields, bool hasRtiField) {

@@ -4,7 +4,7 @@
 
 library fasta.parser;
 
-import 'scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
 import 'parser/listener.dart' show Listener;
 

@@ -5,7 +5,13 @@
 library fasta.modifier_builder;
 
 import '../modifier.dart'
-    show abstractMask, constMask, externalMask, finalMask, staticMask;
+    show
+        abstractMask,
+        constMask,
+        externalMask,
+        finalMask,
+        namedMixinApplicationMask,
+        staticMask;
 
 import 'builder.dart' show Builder;
 
@@ -26,4 +32,8 @@ abstract class ModifierBuilder extends Builder {
   bool get isFinal => (modifiers & finalMask) != 0;
 
   bool get isStatic => (modifiers & staticMask) != 0;
+
+  bool get isNamedMixinApplication {
+    return (modifiers & namedMixinApplicationMask) != 0;
+  }
 }

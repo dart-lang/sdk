@@ -1554,18 +1554,17 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid() {
 
 
 int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
-                                               const CidRangeTarget& target,
+                                               const CidRange& range,
                                                int bias) {
-  intptr_t cid_start = target.cid_start;
-  intptr_t cid_end = target.cid_end;
-  if (cid_start == cid_end) {
+  intptr_t cid_start = range.cid_start;
+  if (range.IsSingleCid()) {
     __ BranchNotEqual(T2, Immediate(cid_start - bias), next_label);
   } else {
     __ AddImmediate(T2, T2, bias - cid_start);
     bias = cid_start;
     // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
     // the range is small enough.
-    __ LoadImmediate(TMP, cid_end - cid_end);
+    __ LoadImmediate(TMP, range.Extent());
     // Reverse comparison so we get 1 if biased cid > tmp ie cid is out of
     // range.
     __ sltu(TMP, TMP, T2);

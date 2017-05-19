@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.computer.element;
-
 import 'dart:mirrors';
 
 import 'package:analysis_server/src/constants.dart';
@@ -15,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
@@ -155,7 +154,7 @@ class EnumTest {
  * Helper class for testing the correspondence between an analysis engine enum
  * and an analysis server API enum.
  */
-class EnumTester<EngineEnum, ApiEnum extends Enum> {
+class EnumTester<EngineEnum, ApiEnum> {
   /**
    * Test that the function [convert] properly converts all possible values of
    * [EngineEnum] to an [ApiEnum] with the same name, with the exceptions noted
@@ -190,7 +189,7 @@ class EnumTester<EngineEnum, ApiEnum extends Enum> {
         }
       } else {
         ApiEnum apiValue = convert(engineValue);
-        expect(apiValue.name, equals(enumName));
+        expect((apiValue as dynamic).name, equals(enumName));
       }
     });
   }

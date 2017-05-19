@@ -12,3 +12,7 @@ class C {
 var /*@topType=C*/ v = new C(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

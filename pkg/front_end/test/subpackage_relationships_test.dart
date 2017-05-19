@@ -28,7 +28,8 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta',
     'lib/src/fasta/dill',
-    'lib/src/fasta/kernel'
+    'lib/src/fasta/kernel',
+    'lib/src/incremental'
   ]),
   'lib/src': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
     'lib',
@@ -37,9 +38,11 @@ final subpackageRules = {
     "lib/src/fasta/dill",
     "lib/src/fasta/kernel",
     'lib/src/fasta/source',
+    'lib/src/incremental',
   ]),
   'lib/src/base': new SubpackageRules(
-      mayImportAnalyzer: true, allowedDependencies: ['lib', "lib/src/fasta"]),
+      mayImportAnalyzer: true,
+      allowedDependencies: ['lib', "lib/src/fasta", 'lib/src/incremental']),
   'lib/src/codegen': new SubpackageRules(),
   'lib/src/fasta': new SubpackageRules(allowedDependencies: [
     'lib',
@@ -61,6 +64,7 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/dill': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
+    'lib/src/fasta/builder',
     'lib/src/fasta/kernel',
   ]),
   'lib/src/fasta/kernel': new SubpackageRules(allowedDependencies: [
@@ -74,6 +78,7 @@ final subpackageRules = {
     'lib/src/fasta/source',
     'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/parser': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
@@ -98,6 +103,7 @@ final subpackageRules = {
     'lib/src/fasta/scanner',
     'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
@@ -110,8 +116,17 @@ final subpackageRules = {
     'lib/src',
     'lib/src/base',
     'lib/src/fasta',
+    'lib/src/fasta/kernel',
   ]),
   'lib/src/fasta/util': new SubpackageRules(),
+  'lib/src/incremental': new SubpackageRules(allowedDependencies: [
+    'lib',
+    'lib/src',
+    'lib/src/base',
+    'lib/src/fasta',
+    'lib/src/fasta/parser',
+    'lib/src/fasta/source',
+  ]),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/base',
     // For error codes.

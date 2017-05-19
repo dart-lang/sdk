@@ -92,7 +92,7 @@ positional_parameters_type_test/02: Fail # Issue 14651.
 type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt)]
 abstract_beats_arguments2_test/01: Skip # Issue 29171
 # Other issues.
 issue13474_test: Pass, Fail # Issue 14651.
@@ -541,7 +541,7 @@ is_not_class2_test: RuntimeError
 
 # No mirrors support in Flutter.
 library_env_test/has_no_mirror_support: Pass
-library_env_test/has_mirror_support: RuntimeError Ok
+library_env_test/has_mirror_support: RuntimeError, Ok
 
 internal_library_test/01: MissingCompileTimeError
 internal_library_test/02: MissingCompileTimeError

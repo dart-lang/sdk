@@ -46,7 +46,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -64,7 +64,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -76,7 +76,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     ICDataViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -89,7 +89,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._references = references;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -129,7 +129,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'ICData',
           new HRElement(),
           new ObjectCommonElement(_isolate, _icdata, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new DivElement()
             ..classes = ['memberList']
@@ -155,7 +155,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                     ..children = [
                       _icdata.dartOwner == null
                           ? (new SpanElement()..text = '<none>')
-                          : anyRef(_isolate, _icdata.dartOwner, _instances,
+                          : anyRef(_isolate, _icdata.dartOwner, _objects,
                               queue: _r.queue)
                     ]
                 ],
@@ -171,7 +171,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                       _icdata.argumentsDescriptor == null
                           ? (new SpanElement()..text = '<none>')
                           : anyRef(
-                              _isolate, _icdata.argumentsDescriptor, _instances,
+                              _isolate, _icdata.argumentsDescriptor, _objects,
                               queue: _r.queue)
                     ]
                 ],
@@ -186,7 +186,7 @@ class ICDataViewElement extends HtmlElement implements Renderable {
                     ..children = [
                       _icdata.entries == null
                           ? (new SpanElement()..text = '<none>')
-                          : anyRef(_isolate, _icdata.entries, _instances,
+                          : anyRef(_isolate, _icdata.entries, _objects,
                               queue: _r.queue)
                     ]
                 ]

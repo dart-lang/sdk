@@ -84,14 +84,29 @@ Future _awaitHelper(
   addSdkLibrary('developer', 'library dart.developer;');
   addSdkLibrary('io', 'library dart.io;');
   addSdkLibrary('isolate', 'library dart.isolate;');
-  addSdkLibrary('math', 'library dart.math;');
+  addSdkLibrary(
+      'math',
+      '''
+library dart.math;
+double sin(num radians) => _sin(radians.toDouble());
+double _sin(double x) native "Math_sin";
+''');
   addSdkLibrary('mirrors', 'library dart.mirrors;');
   addSdkLibrary('nativewrappers', 'library dart.nativewrappers;');
   addSdkLibrary('profiler', 'library dart.profiler;');
   addSdkLibrary('typed_data', 'library dart.typed_data;');
   addSdkLibrary('vmservice_io', 'library dart.vmservice_io;');
   addSdkLibrary('_builtin', 'library dart._builtin;');
-  addSdkLibrary('_internal', 'library dart._internal; class Symbol {}');
+  addSdkLibrary(
+      '_internal',
+      '''
+library dart._internal;
+class Symbol {}
+class ExternalName {
+  final String name;
+  const ExternalName(this.name);
+}
+''');
   addSdkLibrary('_vmservice', 'library dart._vmservice;');
 
   return dartLibraries;

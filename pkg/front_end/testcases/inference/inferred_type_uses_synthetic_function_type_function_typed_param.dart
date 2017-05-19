@@ -11,3 +11,7 @@ var /*@topType=List<((String) -> int) -> Object>*/ v = /*@typeArgs=((String) -> 
   f,
   g
 ];
+
+main() {
+  v;
+}

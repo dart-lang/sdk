@@ -42,10 +42,10 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 
   test_waitForResponses_nonEmpty_noTimeout_immediate() async {
     AbstractRequestHandler handler = new TestAbstractRequestHandler(server);
-    PluginInfo plugin1 = new PluginInfo('p1', '', '', null, null);
-    PluginInfo plugin2 = new PluginInfo('p2', '', '', null, null);
-    plugin.Response response1 = new plugin.Response('1');
-    plugin.Response response2 = new plugin.Response('2');
+    PluginInfo plugin1 = new DiscoveredPluginInfo('p1', '', '', null, null);
+    PluginInfo plugin2 = new DiscoveredPluginInfo('p2', '', '', null, null);
+    plugin.Response response1 = new plugin.Response('1', 1);
+    plugin.Response response2 = new plugin.Response('2', 2);
     Map<PluginInfo, Future<plugin.Response>> futures =
         <PluginInfo, Future<plugin.Response>>{
       plugin1: new Future.value(response1),
@@ -57,10 +57,10 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 
   test_waitForResponses_nonEmpty_noTimeout_withError() async {
     AbstractRequestHandler handler = new TestAbstractRequestHandler(server);
-    PluginInfo plugin1 = new PluginInfo('p1', '', '', null, null);
-    PluginInfo plugin2 = new PluginInfo('p2', '', '', null, null);
-    plugin.Response response1 = new plugin.Response('1');
-    plugin.Response response2 = new plugin.Response('2',
+    PluginInfo plugin1 = new DiscoveredPluginInfo('p1', '', '', null, null);
+    PluginInfo plugin2 = new DiscoveredPluginInfo('p2', '', '', null, null);
+    plugin.Response response1 = new plugin.Response('1', 1);
+    plugin.Response response2 = new plugin.Response('2', 2,
         error: new plugin.RequestError(
             plugin.RequestErrorCode.PLUGIN_ERROR, 'message'));
     Map<PluginInfo, Future<plugin.Response>> futures =
@@ -74,12 +74,12 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 
   test_waitForResponses_nonEmpty_timeout_someDelayed() async {
     AbstractRequestHandler handler = new TestAbstractRequestHandler(server);
-    PluginInfo plugin1 = new PluginInfo('p1', '', '', null, null);
-    PluginInfo plugin2 = new PluginInfo('p2', '', '', null, null);
-    PluginInfo plugin3 = new PluginInfo('p3', '', '', null, null);
-    plugin.Response response1 = new plugin.Response('1');
-    plugin.Response response2 = new plugin.Response('2');
-    plugin.Response response3 = new plugin.Response('3');
+    PluginInfo plugin1 = new DiscoveredPluginInfo('p1', '', '', null, null);
+    PluginInfo plugin2 = new DiscoveredPluginInfo('p2', '', '', null, null);
+    PluginInfo plugin3 = new DiscoveredPluginInfo('p3', '', '', null, null);
+    plugin.Response response1 = new plugin.Response('1', 1);
+    plugin.Response response2 = new plugin.Response('2', 2);
+    plugin.Response response3 = new plugin.Response('3', 3);
     Map<PluginInfo, Future<plugin.Response>> futures =
         <PluginInfo, Future<plugin.Response>>{
       plugin1:

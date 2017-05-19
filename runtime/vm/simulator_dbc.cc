@@ -2965,7 +2965,7 @@ RawObject* Simulator::Call(const Code& code,
       if (LIKELY(start != 0)) {
         const intptr_t cid = kArrayCid;
         uword tags = 0;
-        if (LIKELY(instance_size < RawObject::SizeTag::kMaxSizeTag)) {
+        if (LIKELY(instance_size <= RawObject::SizeTag::kMaxSizeTag)) {
           tags = RawObject::SizeTag::update(instance_size, tags);
         }
         tags = RawObject::ClassIdTag::update(cid, tags);
@@ -3254,7 +3254,19 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(CheckDenseSwitch, A_D);
+    BYTECODE(CheckClassIdRange, A_D);
+    const intptr_t actual_cid =
+        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
+    const uintptr_t cid_start = rD;
+    const uintptr_t cid_range = Bytecode::DecodeD(*pc);
+    // Unsigned comparison.  Skip either just the nop or both the nop and the
+    // following instruction.
+    pc += (actual_cid - cid_start <= cid_range) ? 2 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckBitTest, A_D);
     const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
     const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
     const intptr_t cid_min = Bytecode::DecodeD(*pc);

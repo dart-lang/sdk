@@ -15,14 +15,13 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show CommonElements;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/resolution_types.dart';
-import '../elements/types.dart';
 import '../enqueue.dart'
     show
         DirectEnqueuerStrategy,
@@ -40,7 +39,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, Emitter;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
@@ -78,9 +77,8 @@ import 'native_data.dart';
 import 'no_such_method_registry.dart';
 import 'patch_resolver.dart';
 import 'resolution_listener.dart';
+import 'runtime_types.dart';
 import 'type_variable_handler.dart';
-
-part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
@@ -376,7 +374,7 @@ class JavaScriptBackend {
 
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   RuntimeTypesNeed _rtiNeed;
-  final _RuntimeTypes _rti;
+  final RuntimeTypesImpl _rti;
 
   RuntimeTypesEncoder _rtiEncoder;
 
@@ -439,13 +437,9 @@ class JavaScriptBackend {
   final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
       new NativeBasicDataBuilderImpl();
   NativeBasicDataImpl _nativeBasicData;
-  //NativeData get nativeData => _nativeData;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   final NativeDataResolver _nativeDataResolver;
-  InterceptorDataBuilder _interceptorDataBuilder;
-  InterceptorData _interceptorData;
   OneShotInterceptorData _oneShotInterceptorData;
-  BackendUsage _backendUsage;
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
@@ -491,7 +485,8 @@ class JavaScriptBackend {
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : _rti = new _RuntimeTypes(compiler),
+      : _rti = new RuntimeTypesImpl(
+            compiler.elementEnvironment, compiler.frontEndStrategy.dartTypes),
         optimizerHints = new OptimizerHintsForTests(
             compiler.elementEnvironment, compiler.commonElements),
         this.sourceInformationStrategy = createSourceInformationStrategy(
@@ -511,7 +506,7 @@ class JavaScriptBackend {
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
 
     _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
-        compiler.elementEnvironment, impacts, backendUsageBuilder);
+        compiler.elementEnvironment, impacts, _backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
         compiler.frontEndStrategy.createMirrorsResolutionAnalysis(this);
@@ -603,34 +598,10 @@ class JavaScriptBackend {
     return _lookupMapAnalysis;
   }
 
-  InterceptorData get interceptorData {
-    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
-        message: "InterceptorData has not been computed yet."));
-    return _interceptorData;
-  }
-
-  InterceptorDataBuilder get interceptorDataBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData == null,
-        message: "InterceptorData has already been computed."));
-    return _interceptorDataBuilder;
-  }
-
   OneShotInterceptorData get oneShotInterceptorData {
     assert(invariant(NO_LOCATION_SPANNABLE, _oneShotInterceptorData != null,
         message: "OneShotInterceptorData has not been prepared yet."));
     return _oneShotInterceptorData;
-  }
-
-  BackendUsage get backendUsage {
-    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage != null,
-        message: "BackendUsage has not been computed yet."));
-    return _backendUsage;
-  }
-
-  BackendUsageBuilder get backendUsageBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage == null,
-        message: "BackendUsage has already been computed."));
-    return _backendUsageBuilder;
   }
 
   RuntimeTypesNeed get rtiNeed {
@@ -706,8 +677,9 @@ class JavaScriptBackend {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
-  bool canFieldBeUsedForGlobalOptimizations(FieldElement element) {
-    return !backendUsage.isFieldUsedByBackend(element) &&
+  bool canFieldBeUsedForGlobalOptimizations(
+      FieldElement element, ClosedWorld closedWorld) {
+    return !closedWorld.backendUsage.isFieldUsedByBackend(element) &&
         !mirrorsData.invokedReflectively(element);
   }
 
@@ -717,10 +689,10 @@ class JavaScriptBackend {
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
-      FunctionElement element) {
+      FunctionElement element, ClosedWorld closedWorld) {
     if (element.isLocal) return true;
     MethodElement method = element;
-    return !backendUsage.isFunctionUsedByBackend(method) &&
+    return !closedWorld.backendUsage.isFunctionUsedByBackend(method) &&
         !mirrorsData.invokedReflectively(method);
   }
 
@@ -777,8 +749,6 @@ class JavaScriptBackend {
   void onResolutionEnd() {
     compiler.frontEndStrategy.annotationProcesser
         .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
-    _backendUsage = backendUsageBuilder.close();
-    _interceptorData = interceptorDataBuilder.onResolutionComplete();
   }
 
   /// Called when the closed world from resolution has been computed.
@@ -791,14 +761,8 @@ class JavaScriptBackend {
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
-        compiler.enqueuer.resolution.worldBuilder,
-        closedWorld,
-        compiler.types,
-        commonElements,
-        _backendUsage,
+        compiler.enqueuer.resolution.worldBuilder, closedWorld, compiler.types,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _oneShotInterceptorData =
-        new OneShotInterceptorData(interceptorData, commonElements);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
@@ -846,12 +810,13 @@ class JavaScriptBackend {
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        backendUsageBuilder,
+        compiler.frontEndStrategy.dartTypes,
+        _backendUsageBuilder,
         compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = compiler.frontEndStrategy
         .createCustomElementsResolutionAnalysis(
-            nativeBasicData, backendUsageBuilder);
+            nativeBasicData, _backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
@@ -859,12 +824,13 @@ class JavaScriptBackend {
         impacts,
         nativeBasicData,
         _nativeResolutionEnqueuer,
-        backendUsageBuilder,
+        _backendUsageBuilder,
         mirrorsDataBuilder,
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
-    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBasicData, compiler.elementEnvironment, commonElements);
+    InterceptorDataBuilder interceptorDataBuilder =
+        new InterceptorDataBuilderImpl(
+            nativeBasicData, compiler.elementEnvironment, commonElements);
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -879,7 +845,7 @@ class JavaScriptBackend {
             impacts,
             nativeBasicData,
             interceptorDataBuilder,
-            backendUsageBuilder,
+            _backendUsageBuilder,
             rtiNeedBuilder,
             mirrorsDataBuilder,
             noSuchMethodRegistry,
@@ -891,9 +857,13 @@ class JavaScriptBackend {
             compiler.deferredLoadTask,
             kernelTask),
         compiler.frontEndStrategy.createResolutionWorldBuilder(
-            nativeBasicData, const OpenWorldStrategy()),
-        compiler.frontEndStrategy
-            .createResolutionWorkItemBuilder(impactTransformer));
+            nativeBasicData,
+            _nativeDataBuilder,
+            interceptorDataBuilder,
+            _backendUsageBuilder,
+            const OpenWorldStrategy()),
+        compiler.frontEndStrategy.createResolutionWorkItemBuilder(
+            nativeBasicData, _nativeDataBuilder, impactTransformer));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
@@ -915,6 +885,7 @@ class JavaScriptBackend {
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
+        compiler.frontEndStrategy.dartTypes,
         emitter,
         _nativeResolutionEnqueuer,
         closedWorld.nativeData);
@@ -924,12 +895,12 @@ class JavaScriptBackend {
         const TreeShakingEnqueuerStrategy(),
         new CodegenWorldBuilderImpl(
             nativeBasicData, closedWorld, constants, const TypeMaskStrategy()),
-        new CodegenWorkItemBuilder(this, compiler.options),
+        new CodegenWorkItemBuilder(this, closedWorld, compiler.options),
         new CodegenEnqueuerListener(
             compiler.elementEnvironment,
             commonElements,
             impacts,
-            backendUsage,
+            closedWorld.backendUsage,
             rtiNeed,
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
@@ -938,7 +909,7 @@ class JavaScriptBackend {
             nativeCodegenEnqueuer));
   }
 
-  WorldImpact codegen(CodegenWorkItem work) {
+  WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
     MemberElement element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
@@ -996,7 +967,7 @@ class JavaScriptBackend {
       }
     }
 
-    jsAst.Fun function = functionCompiler.compile(work, _closedWorld);
+    jsAst.Fun function = functionCompiler.compile(work, closedWorld);
     if (function.sourceInformation == null) {
       function = function.withSourceInformation(
           sourceInformationStrategy.buildSourceMappedMarker());
@@ -1127,28 +1098,16 @@ class JavaScriptBackend {
     }
   }
 
-  // TODO(johnniwinther): Create a CodegenPhase object for the backend to hold
-  // data only available during code generation.
-  ClosedWorld _closedWorldCache;
-  ClosedWorld get _closedWorld {
-    assert(invariant(NO_LOCATION_SPANNABLE, _closedWorldCache != null,
-        message: "ClosedWorld has not be set yet."));
-    return _closedWorldCache;
-  }
-
-  void set _closedWorld(ClosedWorld value) {
-    _closedWorldCache = value;
-  }
-
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
-    _closedWorld = closedWorld;
+    _oneShotInterceptorData =
+        new OneShotInterceptorData(closedWorld.interceptorData, commonElements);
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
-    _rtiEncoder =
-        _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, commonElements);
+    _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
+        namer, compiler.elementEnvironment, commonElements);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
@@ -1157,7 +1116,7 @@ class JavaScriptBackend {
         impacts,
         checkedModeHelpers,
         closedWorld.nativeData,
-        backendUsage,
+        closedWorld.backendUsage,
         rtiNeed,
         nativeCodegenEnqueuer,
         namer,

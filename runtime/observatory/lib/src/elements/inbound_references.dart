@@ -23,7 +23,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.ObjectRef _object;
   M.InboundReferencesRepository _references;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.InboundReferences _inbounds;
   bool _expanded = false;
 
@@ -31,18 +31,18 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
   M.ObjectRef get object => _object;
 
   factory InboundReferencesElement(M.IsolateRef isolate, M.ObjectRef object,
-      M.InboundReferencesRepository references, M.InstanceRepository instances,
+      M.InboundReferencesRepository references, M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(references != null);
-    assert(instances != null);
+    assert(objects != null);
     InboundReferencesElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._references = references;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -93,23 +93,22 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
 
     if (reference.parentField != null) {
       content.addAll([
-        new SpanElement()..text = 'from ',
-        anyRef(_isolate, reference.parentField, _instances, queue: _r.queue),
+        new SpanElement()..text = 'referenced by ',
+        anyRef(_isolate, reference.parentField, _objects, queue: _r.queue),
         new SpanElement()..text = ' of '
       ]);
     } else if (reference.parentListIndex != null) {
       content.add(new SpanElement()
-        ..text = 'from [ ${reference.parentListIndex} ] of ');
+        ..text = 'referenced by [ ${reference.parentListIndex} ] of ');
     } else if (reference.parentWordOffset != null) {
       content.add(new SpanElement()
-        ..text = 'from word [ ${reference.parentWordOffset} ] of ');
+        ..text = 'referenced by offset ${reference.parentWordOffset} of ');
     }
 
     content.addAll([
-      anyRef(_isolate, reference.source, _instances, queue: _r.queue),
-      new SpanElement()..text = ' referenced by ',
+      anyRef(_isolate, reference.source, _objects, queue: _r.queue),
       new InboundReferencesElement(
-          _isolate, reference.source, _references, _instances,
+          _isolate, reference.source, _references, _objects,
           queue: _r.queue)
     ]);
 

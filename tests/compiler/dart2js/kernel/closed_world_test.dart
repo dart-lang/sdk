@@ -32,6 +32,8 @@ import 'impact_test.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
 import '../serialization/model_test_helper.dart';
+import '../equivalence/check_functions.dart';
+import 'test_helpers.dart';
 
 const SOURCE = const {
   'main.dart': '''
@@ -93,6 +95,7 @@ main(List<String> args) {
     List list = createResolutionEnqueuerListener(compiler);
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
     BackendUsageBuilder backendUsageBuilder = list[1];
+    InterceptorDataBuilder interceptorDataBuilder = list[2];
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
@@ -100,8 +103,14 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         resolutionEnqueuerListener,
         new ElementResolutionWorldBuilder(
-            backend, compiler.resolution, const OpenWorldStrategy()),
-        new KernelWorkItemBuilder(compiler),
+            backend,
+            compiler.resolution,
+            backend.nativeBasicData,
+            backend.nativeDataBuilder,
+            interceptorDataBuilder,
+            backendUsageBuilder,
+            const OpenWorldStrategy()),
+        new KernelTestWorkItemBuilder(compiler),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(
         compiler.reporter, enqueuer, compiler.elementEnvironment);
@@ -111,41 +120,26 @@ main(List<String> args) {
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: elementFilter, verbose: arguments.verbose);
-    checkClosedWorlds(compiler.resolutionWorldBuilder.closedWorldForTesting,
-        closedWorld, areElementsEquivalent,
+    checkClosedWorlds(
+        compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);
   });
-}
-
-bool elementFilter(Entity element) {
-  if (element is ConstructorElement && element.isRedirectingFactory) {
-    // Redirecting factory constructors are skipped in kernel.
-    return false;
-  }
-  if (element is ClassElement) {
-    for (ConstructorElement constructor in element.constructors) {
-      if (!constructor.isRedirectingFactory) {
-        return true;
-      }
-    }
-    // The class cannot itself be instantiated.
-    return false;
-  }
-  return true;
 }
 
 List createResolutionEnqueuerListener(Compiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   BackendUsageBuilder backendUsageBuilder =
       new BackendUsageBuilderImpl(compiler.commonElements);
+  InterceptorDataBuilder interceptorDataBuilder =
+      new InterceptorDataBuilderImpl(backend.nativeBasicData,
+          compiler.elementEnvironment, compiler.commonElements);
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       compiler.options,
       compiler.elementEnvironment,
       compiler.commonElements,
       backend.impacts,
       backend.nativeBasicData,
-      new InterceptorDataBuilderImpl(backend.nativeBasicData,
-          compiler.elementEnvironment, compiler.commonElements),
+      interceptorDataBuilder,
       backendUsageBuilder,
       backend.rtiNeedBuilder,
       backend.mirrorsDataBuilder,
@@ -158,7 +152,7 @@ List createResolutionEnqueuerListener(Compiler compiler) {
       backend.nativeResolutionEnqueuerForTesting,
       compiler.deferredLoadTask,
       backend.kernelTask);
-  return [listener, backendUsageBuilder];
+  return [listener, backendUsageBuilder, interceptorDataBuilder];
 }
 
 ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
@@ -169,30 +163,4 @@ ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
     enqueuer.applyImpact(work.run(), impactSource: work.element);
   });
   return enqueuer.worldBuilder.closeWorld();
-}
-
-class KernelWorkItemBuilder implements WorkItemBuilder {
-  final Compiler _compiler;
-
-  KernelWorkItemBuilder(this._compiler);
-
-  @override
-  WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(
-        _compiler, _compiler.backend.impactTransformer, entity);
-  }
-}
-
-class KernelWorkItem implements ResolutionWorkItem {
-  final Compiler _compiler;
-  final ImpactTransformer _impactTransformer;
-  final MemberElement element;
-
-  KernelWorkItem(this._compiler, this._impactTransformer, this.element);
-
-  @override
-  WorldImpact run() {
-    ResolutionImpact resolutionImpact = build(_compiler, element.resolvedAst);
-    return _impactTransformer.transformResolutionImpact(resolutionImpact);
-  }
 }

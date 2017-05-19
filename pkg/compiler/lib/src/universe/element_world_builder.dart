@@ -13,10 +13,22 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
   final JavaScriptBackend _backend;
   final Resolution _resolution;
 
-  ElementResolutionWorldBuilder(this._backend, this._resolution,
+  ElementResolutionWorldBuilder(
+      this._backend,
+      this._resolution,
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(_backend.compiler.elementEnvironment, _resolution.commonElements,
-            _backend.nativeBasicData, selectorConstraintsStrategy);
+      : super(
+            _backend.compiler.elementEnvironment,
+            _resolution.commonElements,
+            nativeBasicData,
+            nativeDataBuilder,
+            interceptorDataBuilder,
+            backendUsageBuilder,
+            selectorConstraintsStrategy);
 
   bool isImplemented(ClassElement cls) {
     return super.isImplemented(cls.declaration);
@@ -163,9 +175,9 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     return _closedWorldCache = new ClosedWorldImpl(
         commonElements: _commonElements,
         constantSystem: _backend.constantSystem,
-        nativeData: _backend.nativeDataBuilder.close(),
-        interceptorData: _backend.interceptorData,
-        backendUsage: _backend.backendUsage,
+        nativeData: _nativeDataBuilder.close(),
+        interceptorData: _interceptorDataBuilder.close(),
+        backendUsage: _backendUsageBuilder.close(),
         resolutionWorldBuilder: this,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,

@@ -34,7 +34,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.StronglyReachableInstancesRepository _stronglyReachableInstances;
   M.TopRetainingInstancesRepository _topRetainingInstances;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.Guarded<M.Instance> _retainedSize = null;
   bool _loadingRetainedBytes = false;
   M.Guarded<M.Instance> _reachableSize = null;
@@ -50,7 +50,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.StronglyReachableInstancesRepository stronglyReachableInstances,
       M.TopRetainingInstancesRepository topRetainingInstances,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
@@ -58,7 +58,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(stronglyReachableInstances != null);
     assert(topRetainingInstances != null);
-    assert(instances != null);
+    assert(objects != null);
     ClassInstancesElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
@@ -67,7 +67,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._stronglyReachableInstances = stronglyReachableInstances;
     e._topRetainingInstances = topRetainingInstances;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -92,11 +92,11 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   void render() {
     _strong = _strong ??
         new StronglyReachableInstancesElement(
-            _isolate, _cls, _stronglyReachableInstances, _instances,
+            _isolate, _cls, _stronglyReachableInstances, _objects,
             queue: _r.queue);
     _topRetainig = _topRetainig ??
         new TopRetainingInstancesElement(
-            _isolate, _cls, _topRetainingInstances, _instances,
+            _isolate, _cls, _topRetainingInstances, _objects,
             queue: _r.queue);
     final instanceCount =
         _cls.newSpace.current.instances + _cls.oldSpace.current.instances;

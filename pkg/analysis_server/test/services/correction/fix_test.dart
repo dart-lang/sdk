@@ -6,8 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -21,6 +19,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -431,6 +431,42 @@ class A {
   }
 }
 ''');
+  }
+
+  test_addMissingRequiredArg_cons_flutter_children() async {
+    addPackageSource(
+        'flutter', 'src/widgets/framework.dart', flutter_framework_code);
+
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required List<Widget> children});
+}
+
+build() {
+  return new MyWidget();
+}
+''');
+
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(children: <Widget>[],);
+}
+''',
+        target: '/test.dart');
   }
 
   test_addMissingRequiredArg_cons_single() async {

@@ -20,7 +20,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
   InterceptorEmitter(this.closedWorld);
 
   void recordMangledNameOfMemberMethod(MemberEntity member, jsAst.Name name) {
-    if (backend.interceptorData.isInterceptedMethod(member)) {
+    if (closedWorld.interceptorData.isInterceptedMethod(member)) {
       interceptorInvocationNames.add(name);
     }
   }
@@ -34,7 +34,6 @@ class InterceptorEmitter extends CodeEmitterHelper {
         backend.nativeCodegenEnqueuer,
         backend.constants,
         namer,
-        backend.interceptorData,
         backend.oneShotInterceptorData,
         backend.customElementsCodegenAnalysis,
         compiler.codegenWorldBuilder,
@@ -81,7 +80,6 @@ class InterceptorEmitter extends CodeEmitterHelper {
         backend.nativeCodegenEnqueuer,
         backend.constants,
         namer,
-        backend.interceptorData,
         backend.oneShotInterceptorData,
         backend.customElementsCodegenAnalysis,
         compiler.codegenWorldBuilder,
@@ -108,7 +106,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     // We could also generate the list of intercepted names at
     // runtime, by running through the subclasses of Interceptor
     // (which can easily be identified).
-    if (!backend.backendUsage.isInvokeOnUsed) return null;
+    if (!closedWorld.backendUsage.isInvokeOnUsed) return null;
 
     Iterable<jsAst.Name> invocationNames = interceptorInvocationNames.toList()
       ..sort();

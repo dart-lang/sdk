@@ -47,7 +47,6 @@ class ObjectViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -65,7 +64,6 @@ class ObjectViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -77,7 +75,6 @@ class ObjectViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
     ObjectViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -90,7 +87,6 @@ class ObjectViewElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._references = references;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
     return e;
   }
 
@@ -130,7 +126,7 @@ class ObjectViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Object',
           new HRElement(),
           new ObjectCommonElement(_isolate, _object, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)

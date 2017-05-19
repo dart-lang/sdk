@@ -607,7 +607,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         toJsonDuration:
             new Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: new Duration(milliseconds: this.timing),
-        noSuchMethodEnabled: compiler.backend.backendUsage.isNoSuchMethodUsed,
+        noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(

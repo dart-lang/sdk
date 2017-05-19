@@ -6,6 +6,11 @@
 library test;
 
 List<T> f<T>(T g()) => <T>[g()];
-var /*@topType=List<dynamic>*/ v = f<dynamic>(/*@returnType=int*/ () {
+var /*@topType=List<dynamic>*/ v = f<dynamic>(
+    /*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

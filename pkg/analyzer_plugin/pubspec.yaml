@@ -7,9 +7,11 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  analyzer: 0.30.0-alpha.0
+  analyzer: ^0.30.0
+  charcode: ^1.1.0
   html: any
   path: any
+  pub_semver: any
 
 dev_dependencies:
   test_reflective_loader: ^0.1.0

@@ -9,12 +9,14 @@ import 'dart:async';
 
 main() {
   Future<int> base;
-  var /*@type=Future<bool>*/ f = /*@promotedType=none*/ base
-      .then(/*@returnType=bool*/ (/*@type=int*/ x) {
-    return x == 0;
+  var /*@type=Future<bool>*/ f =
+      base. /*@typeArgs=bool*/ /*@target=Future::then*/ then(
+          /*@returnType=bool*/ (/*@type=int*/ x) {
+    return x /*@target=num::==*/ == 0;
   });
-  var /*@type=Future<bool>*/ g = /*@promotedType=none*/ base
-      .then(/*@returnType=bool*/ (/*@type=int*/ x) => x == 0);
-  Future<bool> b = /*@promotedType=none*/ f;
-  b = /*@promotedType=none*/ g;
+  var /*@type=Future<bool>*/ g =
+      base. /*@typeArgs=bool*/ /*@target=Future::then*/ then(
+          /*@returnType=bool*/ (/*@type=int*/ x) => x /*@target=num::==*/ == 0);
+  Future<bool> b = f;
+  b = g;
 }

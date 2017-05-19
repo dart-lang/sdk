@@ -140,6 +140,9 @@ class Serializer : public StackResource {
   void AssignRef(RawObject* object) {
     ASSERT(next_ref_index_ != 0);
     if (object->IsHeapObject()) {
+      // The object id weak table holds image offsets for Instructions instead
+      // of ref indices.
+      ASSERT(!object->IsInstructions());
       heap_->SetObjectId(object, next_ref_index_);
       ASSERT(heap_->GetObjectId(object) == next_ref_index_);
     } else {
@@ -210,6 +213,9 @@ class Serializer : public StackResource {
       return;
     }
 
+    // The object id weak table holds image offsets for Instructions instead
+    // of ref indices.
+    ASSERT(!object->IsInstructions());
     intptr_t id = heap_->GetObjectId(object);
     if (id == 0) {
       if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
@@ -237,11 +243,17 @@ class Serializer : public StackResource {
   }
 
   int32_t GetTextOffset(RawInstructions* instr, RawCode* code) {
-    return image_writer_->GetOffsetFor(instr, code);
+    intptr_t offset = heap_->GetObjectId(instr);
+    if (offset == 0) {
+      offset = image_writer_->GetTextOffsetFor(instr, code);
+      ASSERT(offset != 0);
+      heap_->SetObjectId(instr, offset);
+    }
+    return offset;
   }
 
-  int32_t GetRODataOffset(RawObject* object) {
-    return image_writer_->GetObjectOffsetFor(object);
+  int32_t GetDataOffset(RawObject* object) {
+    return image_writer_->GetDataOffsetFor(object);
   }
 
   Snapshot::Kind kind() const { return kind_; }

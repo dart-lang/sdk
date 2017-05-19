@@ -31,6 +31,7 @@ import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
+import '../world.dart' show ClosedWorld;
 
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
@@ -215,9 +216,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _worldBuilder.registerIsCheck(type);
   }
 
-  void _registerClosurizedMember(MemberElement element) {
+  void _registerClosurizedMember(FunctionEntity element) {
     assert(element.isInstanceMember);
     applyImpact(listener.registerClosurizedMember(element));
+    _worldBuilder.registerClosurizedMember(element);
   }
 
   void forEach(void f(WorkItem work)) {
@@ -270,10 +272,11 @@ class CodegenEnqueuer extends EnqueuerImpl {
 /// Builder that creates the work item necessary for the code generation of a
 /// [MemberElement].
 class CodegenWorkItemBuilder extends WorkItemBuilder {
-  JavaScriptBackend _backend;
-  CompilerOptions _options;
+  final JavaScriptBackend _backend;
+  final ClosedWorld _closedWorld;
+  final CompilerOptions _options;
 
-  CodegenWorkItemBuilder(this._backend, this._options);
+  CodegenWorkItemBuilder(this._backend, this._closedWorld, this._options);
 
   @override
   WorkItem createWorkItem(MemberElement element) {
@@ -290,6 +293,6 @@ class CodegenWorkItemBuilder extends WorkItemBuilder {
         return null;
       }
     }
-    return new CodegenWorkItem(_backend, element);
+    return new CodegenWorkItem(_backend, _closedWorld, element);
   }
 }

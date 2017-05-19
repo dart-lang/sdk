@@ -168,7 +168,8 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(Namer namer, ClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder) {
     measure(() {
-      _nativeEmitter = new NativeEmitter(this, closedWorld.nativeData);
+      _nativeEmitter = new NativeEmitter(this, closedWorld, codegenWorldBuilder,
+          backend.nativeCodegenEnqueuer);
       _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
       metadataCollector = new MetadataCollector(
           compiler.options,
@@ -179,7 +180,8 @@ class CodeEmitterTask extends CompilerTask {
           backend.typeVariableCodegenAnalysis,
           backend.mirrorsData,
           backend.rtiEncoder);
-      typeTestRegistry = new TypeTestRegistry(codegenWorldBuilder, closedWorld);
+      typeTestRegistry = new TypeTestRegistry(
+          codegenWorldBuilder, closedWorld, compiler.elementEnvironment);
     });
   }
 
@@ -188,6 +190,7 @@ class CodeEmitterTask extends CompilerTask {
       _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
+          compiler.reporter,
           compiler.elementEnvironment,
           compiler.commonElements,
           compiler.types,
@@ -195,12 +198,12 @@ class CodeEmitterTask extends CompilerTask {
           compiler.closureToClassMapper,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,
-          backend.backendUsage,
+          closedWorld.backendUsage,
           backend.constants,
           closedWorld.nativeData,
           backend.rtiNeed,
           backend.mirrorsData,
-          backend.interceptorData,
+          closedWorld.interceptorData,
           backend.superMemberData,
           typeTestRegistry.rtiChecks,
           backend.rtiEncoder,

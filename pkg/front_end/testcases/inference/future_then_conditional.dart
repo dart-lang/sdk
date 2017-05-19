@@ -16,18 +16,18 @@ class MyFuture<T> implements Future<T> {
 
 void main() {
   MyFuture<bool> f;
-  Future<int> t1 = /*@promotedType=none*/ f.then(
+  Future<int> t1 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
           x ? 2 : await new Future<int>.value(3));
-  Future<int> t2 = /*@promotedType=none*/ f
-      .then(/*@returnType=Future<int>*/ (/*@type=bool*/ x) async {
+  Future<int> t2 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
+      /*@returnType=Future<int>*/ (/*@type=bool*/ x) async {
     return /*info:DOWN_CAST_COMPOSITE*/ await x ? 2 : new Future<int>.value(3);
   });
-  Future<int> t5 = /*@promotedType=none*/ f.then(
+  Future<int> t5 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*error:INVALID_CAST_FUNCTION_EXPR*/
       /*@returnType=Object*/ (/*@type=bool*/ x) =>
           x ? 2 : new Future<int>.value(3));
-  Future<int> t6 = /*@promotedType=none*/ f.then(
+  Future<int> t6 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) {
     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new Future<int>.value(3);
   });

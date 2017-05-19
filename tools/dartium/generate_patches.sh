@@ -26,15 +26,29 @@ set -x
 #       build Dartium, run this script and build Dartium again with the newly
 #       generated patches. 
 
+ARG_OPTION="dartGenCachedPatches"
+
+LOCATION_DARTIUM="../../../out/Release"
+DARTIUM="$LOCATION_DARTIUM"
+
 if [[ "$1" != "" ]] ; then
-  DARTIUM="$1"
-else
-  LOCATION_DARTIUM="../../../out/Release"
-  DARTIUM="$LOCATION_DARTIUM"
+  if [[ "$1" =~ ^--roll ]]; then
+      ARG_OPTION="dartGenCachedPatchesForRoll"
+  else
+      DARTIUM="$1"
+  fi
+fi
+
+if [[ "$2" != "" ]] ; then
+  if [[ "$2" =~ ^--roll ]]; then
+      ARG_OPTION="dartGenCachedPatchesForRoll"
+  else
+      DARTIUM="$2"
+  fi
 fi
 
 DART_APP_LOCATION="file://"$PWD"/generate_app/generate_cached_patches.html"
-DARTIUM_ARGS=" --user-data-dir=out --disable-web-security --no-sandbox --enable-blink-features=dartGenCachedPatches"
+DARTIUM_ARGS=" --user-data-dir=out --disable-web-security --no-sandbox --enable-blink-features="$ARG_OPTION""
 CACHED_PATCHES_FILE=""$PWD"/../../sdk/lib/js/dartium/cached_patches.dart"
 
 cmd=""$DARTIUM"/chrome "$DARTIUM_ARGS" "$DART_APP_LOCATION" |

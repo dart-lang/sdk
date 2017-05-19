@@ -13,7 +13,8 @@ class C extends B {
   f() {}
 }
 
-var /*@topType=dynamic*/ x = new C(). /*info:USE_OF_VOID_RESULT*/ f();
+var /*@topType=dynamic*/ x =
+    new C(). /*info:USE_OF_VOID_RESULT*/ /*@target=C::f*/ f();
 
 main() {
   x;

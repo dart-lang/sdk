@@ -63,6 +63,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Shadows on top of the parent's currentTarget. */
   EventTarget _currentTarget;
 
+  final InputDeviceCapabilities sourceCapabilities;
+
   /**
    * The value we want to use for this object's dispatch. Created here so it is
    * only invoked once.
@@ -91,7 +93,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool cancelable: true,
       int keyCode: 0,
       int charCode: 0,
-      int keyLocation: 1,
+      int location: 1,
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -117,7 +119,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       JS('void', '#.which = #', eventObj, keyCode);
       JS('void', '#.charCode = #', eventObj, charCode);
 
-      JS('void', '#.keyLocation = #', eventObj, keyLocation);
+      JS('void', '#.location = #', eventObj, location);
       JS('void', '#.ctrlKey = #', eventObj, ctrlKey);
       JS('void', '#.altKey = #', eventObj, altKey);
       JS('void', '#.shiftKey = #', eventObj, shiftKey);
@@ -153,7 +155,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
       var keyIdentifier = _convertToHexString(charCode, keyCode);
       eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
-          keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey);
+          keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey);
       JS('void', '#.keyCodeVal = #', eventObj, keyCode);
       JS('void', '#.charCodeVal = #', eventObj, charCode);
     }
@@ -211,12 +213,11 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
-  int get keyLocation => _parent.keyLocation;
+  int get location => _parent.location;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
   void _initUIEvent(
       String type, bool canBubble, bool cancelable, Window view, int detail) {
@@ -239,7 +240,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool cancelable,
       Window view,
       String keyIdentifier,
-      int keyLocation,
+      int location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -250,8 +251,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
-  @Experimental() // untriaged
-  int get location => throw new UnimplementedError();
+
   @Experimental() // untriaged
   bool get repeat => throw new UnimplementedError();
   dynamic get _get_view => throw new UnimplementedError();

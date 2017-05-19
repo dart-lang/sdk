@@ -52,7 +52,6 @@ int findIdentifierLength(String search) {
  * An abstract base for all 'analysis' domain tests.
  */
 class AbstractAnalysisTest {
-  bool enableNewAnalysisDriver = false;
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
@@ -79,6 +78,8 @@ class AbstractAnalysisTest {
   AnalysisOptions get analysisOptions => enableNewAnalysisDriver
       ? testDiver.analysisOptions
       : testContext.analysisOptions;
+
+  bool get enableNewAnalysisDriver => true;
 
   AnalysisContext get testContext => server.getAnalysisContext(testFile);
 
@@ -300,6 +301,12 @@ class TestPluginManager implements PluginManager {
   @override
   ResourceProvider get resourceProvider {
     fail('Unexpected invocation of resourceProvider');
+    return null;
+  }
+
+  @override
+  String get sdkPath {
+    fail('Unexpected invocation of sdkPath');
     return null;
   }
 

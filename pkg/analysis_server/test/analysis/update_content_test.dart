@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.updateContent;
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -14,6 +12,8 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -36,6 +36,9 @@ class UpdateContentTest extends AbstractAnalysisTest {
   Map<String, List<String>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   Index createIndex() {
     return new _MockIndex();
@@ -96,6 +99,10 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_indexUnitAfterNopChange() async {
+    // AnalysisContext incremental analysis has been removed
+    if (!enableNewAnalysisDriver) return;
+    throw 'is this test used by the new analysis driver?';
+
     var testUnitMatcher = compilationUnitMatcher(testFile) as dynamic;
     createProject();
     addTestFile('main() { print(1); }');
@@ -217,6 +224,10 @@ f() {}
   }
 
   test_removeOverlay_incrementalChange() async {
+    // AnalysisContext incremental analysis has been removed
+    if (!enableNewAnalysisDriver) return;
+    throw 'is this test used by the new analysis driver?';
+
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;

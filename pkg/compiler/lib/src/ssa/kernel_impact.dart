@@ -123,8 +123,9 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      impactBuilder.registerNativeData(
-          elementAdapter.getNativeBehaviorForFieldLoad(field));
+      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
       impactBuilder.registerNativeData(
           elementAdapter.getNativeBehaviorForFieldStore(field));
     }
@@ -163,8 +164,9 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      impactBuilder.registerNativeData(
-          elementAdapter.getNativeBehaviorForMethod(procedure));
+      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForMethod(procedure, isJsInterop: false));
     }
     return impactBuilder;
   }
@@ -294,14 +296,18 @@ class KernelImpactBuilder extends ir.Visitor {
             "${value.toStructuredText()}");
       }
       StringConstantValue stringValue = value;
-      impactBuilder
-          .registerConstSymbolName(stringValue.primitiveValue.slowToString());
+      impactBuilder.registerConstSymbolName(stringValue.primitiveValue);
     }
   }
 
   @override
   void visitSuperInitializer(ir.SuperInitializer node) {
-    ConstructorEntity target = elementAdapter.getConstructor(node.target);
+    // TODO(johnniwinther): Maybe rewrite `node.target` to point to a
+    // synthesized unnamed mixin constructor when needed. This would require us
+    // to consider impact building a required pre-step for inference and
+    // ssa-building.
+    ConstructorEntity target =
+        elementAdapter.getSuperConstructor(node.parent, node.target);
     _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementAdapter.getCallStructure(node.arguments)));

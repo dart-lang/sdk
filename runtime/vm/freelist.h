@@ -98,6 +98,7 @@ class FreeList {
 
  private:
   static const int kNumLists = 128;
+  static const intptr_t kInitialFreeListSearchBudget = 1000;
 
   static intptr_t IndexForSize(intptr_t size);
 
@@ -119,6 +120,8 @@ class FreeList {
   BitSet<kNumLists> free_map_;
 
   FreeListElement* free_lists_[kNumLists + 1];
+
+  intptr_t freelist_search_budget_;
 
   // The largest available small size in bytes, or negative if there is none.
   intptr_t last_free_small_size_;

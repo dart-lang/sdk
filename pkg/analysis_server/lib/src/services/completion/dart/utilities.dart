@@ -5,8 +5,6 @@
 /**
  * A collection of utility methods used by completion contributors.
  */
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol
-    show Element, ElementKind;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
@@ -19,6 +17,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
+    show Element, ElementKind;
 
 /**
  * The name of the type `dynamic`;

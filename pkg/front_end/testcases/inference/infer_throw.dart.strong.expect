@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool t = true;
+static field dynamic a = throw 0;
+static field core::int b = (throw 0) ? 1 : 2;
+static field core::int c = self::t ? throw 1 : 2;
+static field core::int d = self::t ? 1 : throw 2;
+static method main() → dynamic {}

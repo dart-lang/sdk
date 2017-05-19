@@ -702,6 +702,20 @@ class DartLoader implements ReferenceLevelLoader {
       units.add(context.resolveCompilationUnit(source, element));
       if (reportErrors) _processErrors(source);
     }
+    for (var import in element.imports) {
+      if (import.isDeferred && import.prefix != null) {
+        node.addDependency(new ast.LibraryDependency.deferredImport(
+            getLibraryReference(import.importedLibrary), import.prefix.name));
+      } else {
+        node.addDependency(new ast.LibraryDependency.import(
+            getLibraryReference(import.importedLibrary),
+            name: import.prefix?.name));
+      }
+    }
+    for (var export in element.exports) {
+      node.addDependency(new ast.LibraryDependency.export(
+          getLibraryReference(export.exportedLibrary)));
+    }
     _buildLibraryBody(element, node, units);
   }
 

@@ -67,6 +67,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Shadows on top of the parent's currentTarget. */
   EventTarget _currentTarget;
 
+  final InputDeviceCapabilities sourceCapabilities;
+
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
   KeyEvent.wrap(KeyboardEvent parent) : super(parent) {
     _parent = parent;

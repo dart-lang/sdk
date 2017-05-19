@@ -272,4 +272,10 @@ abstract class KernelClassBuilder
       }
     }
   }
+
+  String get fullNameForErrors {
+    return isMixinApplication
+        ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
+        : name;
+  }
 }

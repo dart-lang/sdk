@@ -140,6 +140,12 @@ interface RTCPeerConnection {
 };
 
 [DartSupplemental]
+interface WebGL2RenderingContextBase {
+    [DartName=readPixels2] void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLintptr offset);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLintptr offset);
+};
+
+[DartSupplemental]
 interface WebGLContextEvent {
   [DartSuppress] void initEvent(optional DOMString eventTypeArg,
                               optional boolean canBubbleArg,
@@ -437,6 +443,30 @@ interface HTMLCollection {
     [DartSuppress] getter Element? namedItem(DOMString name);
 
 };
+
+[DartSupplemental]
+interface Performance {
+    [DartSuppress] void webkitClearResourceTimings();
+    [DartSuppress] void webkitSetResourceTimingBufferSize(unsigned long maxSize);
+    [DartSuppress] attribute EventHandler onwebkitresourcetimingbufferfull;
+};
+
+[DartSupplemental]
+interface CalcLength {
+    [DartName=inch] readonly attribute double? in;
+};
+
+[DartSupplemental]
+interface RTCPeerConnection {
+    [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description);
+    [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description);
+};
+
+[DartSuppress]
+interface DragEvent {};
+
+[DartSuppress]
+interface InputEvent {};
 
 Element implements GlobalEventHandlers;
 

@@ -67,7 +67,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
   M.ScriptRepository _scripts;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -87,7 +87,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ScriptRepository scripts,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -101,7 +101,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(scripts != null);
-    assert(instances != null);
+    assert(objects != null);
     FunctionViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -116,7 +116,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     e._references = references;
     e._retainingPaths = retainingPaths;
     e._scripts = scripts;
-    e._instances = instances;
+    e._objects = objects;
     if (function.dartOwner is M.LibraryRef) {
       e._library = function.dartOwner;
     }
@@ -148,7 +148,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Function ${_function.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _function, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new BRElement(),
           new DivElement()
@@ -160,7 +160,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new SourceInsetElement(_isolate, _function.location,
-                        _scripts, _instances, _events,
+                        _scripts, _objects, _events,
                         queue: _r.queue)
                   ],
           new ViewFooterElement(queue: _r.queue)
@@ -221,7 +221,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
             ..children = [
               _function.dartOwner == null
                   ? (new SpanElement()..text = '...')
-                  : anyRef(_isolate, _function.dartOwner, _instances,
+                  : anyRef(_isolate, _function.dartOwner, _objects,
                       queue: _r.queue)
             ]
         ]
@@ -236,7 +236,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = [
-              new FieldRefElement(_isolate, _function.field, _instances,
+              new FieldRefElement(_isolate, _function.field, _objects,
                   queue: _r.queue)
             ]
         ]);
@@ -302,8 +302,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = [
-              new InstanceRefElement(
-                  _isolate, _function.icDataArray, _instances,
+              new InstanceRefElement(_isolate, _function.icDataArray, _objects,
                   queue: _r.queue)
             ]
         ]);

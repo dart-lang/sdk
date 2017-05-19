@@ -13,6 +13,9 @@ import 'dart:io' show File, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/file_system.dart';
+import 'package:front_end/physical_file_system.dart';
+
 import 'fasta.dart' as fasta;
 
 /// Compilation status codes.
@@ -54,9 +57,16 @@ abstract class CompilationResult {
 
 Future<CompilationResult> parseScript(Uri script,
     {bool verbose: false, bool strongMode: false}) async {
+  return parseScriptInFileSystem(script, PhysicalFileSystem.instance,
+      verbose: verbose, strongMode: strongMode);
+}
+
+Future<CompilationResult> parseScriptInFileSystem(
+    Uri script, FileSystem fileSystem,
+    {bool verbose: false, bool strongMode: false}) async {
   final Uri packagesUri = (Platform.packageConfig != null)
       ? Uri.parse(Platform.packageConfig)
-      : await _findPackagesFile(script);
+      : await _findPackagesFile(fileSystem, script);
   if (packagesUri == null) {
     throw "Could not find .packages";
   }
@@ -74,7 +84,8 @@ Future<CompilationResult> parseScript(Uri script,
   }
 
   try {
-    return await fasta.parseScript(script, packagesUri, patchedSdk,
+    return await fasta.parseScriptInFileSystem(
+        script, fileSystem, packagesUri, patchedSdk,
         verbose: verbose, strongMode: strongMode);
   } catch (err, stack) {
     return new CompilationResult.crash(err, stack);
@@ -135,11 +146,11 @@ class _CompilationCrash extends _CompilationFail {
 
 /// This duplicates functionality from the Loader which we can't easily
 /// access from here.
-Future<Uri> _findPackagesFile(Uri base) async {
+Future<Uri> _findPackagesFile(FileSystem fileSystem, Uri base) async {
   var dir = new File.fromUri(base).parent;
   while (true) {
     final packagesFile = dir.uri.resolve(".packages");
-    if (await new File.fromUri(packagesFile).exists()) {
+    if (await fileSystem.entityForUri(packagesFile).exists()) {
       return packagesFile;
     }
     if (dir.parent.path == dir.path) {

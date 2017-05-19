@@ -11,7 +11,8 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InvalidType,
         NamedType,
-        TypeParameter;
+        TypeParameter,
+        Typedef;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
@@ -31,9 +32,9 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelTypeBuilder, DartType> {
-  DartType thisType;
+  final Typedef target;
 
-  DartType type;
+  DartType thisType;
 
   KernelFunctionTypeAliasBuilder(
       List<MetadataBuilder> metadata,
@@ -42,9 +43,18 @@ class KernelFunctionTypeAliasBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       LibraryBuilder parent,
-      int charOffset)
-      : super(metadata, returnType, name, typeVariables, formals, parent,
+      int charOffset,
+      [Typedef target])
+      : target = target ??
+            (new Typedef(name, null, fileUri: parent.target.fileUri)
+              ..fileOffset = charOffset),
+        super(metadata, returnType, name, typeVariables, formals, parent,
             charOffset);
+
+  Typedef build(LibraryBuilder libraryBuilder) {
+    // TODO(ahe): We need to move type parameters from [thisType] to [target].
+    return target..type ??= buildThisType(libraryBuilder);
+  }
 
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
@@ -106,6 +116,7 @@ class KernelFunctionTypeAliasBuilder
     return substitute(result.withoutTypeParameters, substitution);
   }
 
+  @override
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     var thisType = buildThisType(library);

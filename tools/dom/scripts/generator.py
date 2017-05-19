@@ -401,14 +401,19 @@ class ParamInfo(object):
         self.name, self.type_id, self.is_optional)
     return '<ParamInfo(%s)>' % content
 
-def GetCallbackInfo(interface):
-  """For the given interface, find operations that take callbacks (for use in
-  auto-transforming callbacks into futures)."""
+def GetCallbackHandlers(interface):
+  callback_handlers = []
   callback_handlers = [operation for operation in interface.operations
       if operation.id == 'handleEvent']
   if callback_handlers == []:
     callback_handlers = [operation for operation in interface.operations
                          if operation.id == 'handleItem']
+  return callback_handlers
+
+def GetCallbackInfo(interface):
+  """For the given interface, find operations that take callbacks (for use in
+  auto-transforming callbacks into futures)."""
+  callback_handlers = GetCallbackHandlers(interface)
   return AnalyzeOperation(interface, callback_handlers)
 
 # Given a list of overloaded arguments, render dart arguments.
@@ -504,7 +509,12 @@ def ConvertToFuture(info):
   instead uses futures instead of callbacks."""
   new_info = copy.deepcopy(info)
   def IsNotCallbackType(param):
-    return 'Callback' not in param.type_id
+    type_id = param.type_id
+    if type_id is None:
+      return False
+    else:
+      return 'Callback' not in type_id
+
   # Success callback is the first argument (change if this no longer holds).
   new_info.callback_args = filter(
       lambda x: not IsNotCallbackType(x), new_info.param_infos)
@@ -641,6 +651,9 @@ class OperationInfo(object):
         dart_type = 'dynamic'
       else:
         dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
+      # Special handling for setlike IDL forEach operation.
+      if dart_type is None and param.type_id.endswith('ForEachCallback'):
+        dart_type = param.type_id
       return (TypeOrNothing(dart_type, param.type_id), param.name)
     required = []
     optional = []
@@ -1180,7 +1193,8 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
     self._item_info = item_info
 
   def dart_type(self):
-    return 'List<%s>' % self._item_info.dart_type()
+    darttype = self._item_info.dart_type()
+    return 'List' if darttype is None else 'List<%s>' % darttype
 
   def interface_name(self):
     return self.dart_type()
@@ -1478,6 +1492,8 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
+    'AudioTrackList': TypeData(clazz='Interface', item_type='AudioTrack',
+        suppress_interface=False, dart_type='List<AudioTrack>'),
     'ClientRectList': TypeData(clazz='Interface',
         item_type='ClientRect', dart_type='List<Rectangle>',
         suppress_interface=True),
@@ -1517,6 +1533,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
     'NodeList': TypeData(clazz='Interface', item_type='Node',
                          suppress_interface=False, dart_type='List<Node>'),
+    'NotificationAction': TypedListTypeData(''),
     'SVGElementInstanceList': TypeData(clazz='Interface',
         item_type='SVGElementInstance', suppress_interface=True),
     'SourceBufferList': TypeData(clazz='Interface', item_type='SourceBuffer'),
@@ -1562,6 +1579,9 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGTransform': TypeData(clazz='SVGTearOff', native_type="SVGPropertyTearOff<SVGTransform>"),
     'SVGTransformList': TypeData(clazz='SVGTearOff', item_type='SVGTransform',
         native_type='SVGTransformListPropertyTearOff'),
+
+     # Add any setlike forEach Callback types here.
+    'FontFaceSetForEachCallback': TypeData(clazz='Interface', item_type='FontFaceSetForEachCallback'),
 })
 
 _svg_supplemental_includes = [

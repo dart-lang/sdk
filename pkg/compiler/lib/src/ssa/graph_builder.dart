@@ -12,13 +12,16 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
+import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../resolution/tree_elements.dart';
@@ -73,9 +76,9 @@ abstract class GraphBuilder {
 
   NativeData get nativeData => closedWorld.nativeData;
 
-  InterceptorData get interceptorData => backend.interceptorData;
+  InterceptorData get interceptorData => closedWorld.interceptorData;
 
-  BackendUsage get backendUsage => backend.backendUsage;
+  BackendUsage get backendUsage => closedWorld.backendUsage;
 
   Namer get namer => backend.namer;
 
@@ -250,7 +253,7 @@ abstract class GraphBuilder {
         localsHandler.directLocals[local] != null;
   }
 
-  HInstruction callSetRuntimeTypeInfoWithTypeArguments(ResolutionDartType type,
+  HInstruction callSetRuntimeTypeInfoWithTypeArguments(InterfaceType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
     if (!rtiNeed.classNeedsRti(type.element)) {
       return newObject;

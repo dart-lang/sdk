@@ -146,7 +146,7 @@ class LookupMapAnalysis {
     // when we introduce the next version.
     Version version;
     try {
-      version = new Version.parse(value.primitiveValue.slowToString());
+      version = new Version.parse(value.primitiveValue);
     } catch (e) {}
 
     if (version == null || !_validLookupMapVersionConstraint.allows(version)) {

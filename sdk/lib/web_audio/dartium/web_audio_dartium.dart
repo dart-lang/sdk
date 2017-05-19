@@ -35,6 +35,7 @@ final web_audioBlinkMap = {
   'DelayNode': () => DelayNode.instanceRuntimeType,
   'DynamicsCompressorNode': () => DynamicsCompressorNode.instanceRuntimeType,
   'GainNode': () => GainNode.instanceRuntimeType,
+  'IIRFilterNode': () => IirFilterNode.instanceRuntimeType,
   'MediaElementAudioSourceNode': () =>
       MediaElementAudioSourceNode.instanceRuntimeType,
   'MediaStreamAudioDestinationNode': () =>
@@ -221,7 +222,7 @@ class AudioBuffer extends DartHtmlDomObject {
 @DomName('AudioBufferCallback')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
 @Experimental()
-typedef void AudioBufferCallback(AudioBuffer audioBuffer);
+typedef void AudioBufferCallback(audioBuffer_OR_exception);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -468,6 +469,13 @@ class AudioContext extends EventTarget {
   GainNode createGain() =>
       _blink.BlinkAudioContext.instance.createGain_Callback_0_(this);
 
+  @DomName('AudioContext.createIIRFilter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  IirFilterNode createIirFilter(List<num> feedForward, List<num> feedBack) =>
+      _blink.BlinkAudioContext.instance
+          .createIIRFilter_Callback_2_(this, feedForward, feedBack);
+
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
   MediaElementAudioSourceNode createMediaElementSource(
@@ -497,12 +505,15 @@ class AudioContext extends EventTarget {
   PannerNode createPanner() =>
       _blink.BlinkAudioContext.instance.createPanner_Callback_0_(this);
 
-  @DomName('AudioContext.createPeriodicWave')
-  @DocsEditable()
-  @Experimental() // untriaged
-  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) =>
-      _blink.BlinkAudioContext.instance
-          .createPeriodicWave_Callback_2_(this, real, imag);
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag,
+      [Map options]) {
+    if (options != null) {
+      return _blink.BlinkAudioContext.instance.createPeriodicWave_Callback_3_(
+          this, real, imag, convertDartToNative_Dictionary(options));
+    }
+    return _blink.BlinkAudioContext.instance
+        .createPeriodicWave_Callback_2_(this, real, imag);
+  }
 
   ScriptProcessorNode createScriptProcessor(
       [int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
@@ -535,17 +546,19 @@ class AudioContext extends EventTarget {
   WaveShaperNode createWaveShaper() =>
       _blink.BlinkAudioContext.instance.createWaveShaper_Callback_0_(this);
 
-  void _decodeAudioData(
-      ByteBuffer audioData, AudioBufferCallback successCallback,
-      [AudioBufferCallback errorCallback]) {
+  Future _decodeAudioData(ByteBuffer audioData,
+      [AudioBufferCallback successCallback,
+      AudioBufferCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(
+      return _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(
           this, audioData, successCallback, errorCallback);
-      return;
     }
-    _blink.BlinkAudioContext.instance
-        .decodeAudioData_Callback_2_(this, audioData, successCallback);
-    return;
+    if (successCallback != null) {
+      return _blink.BlinkAudioContext.instance
+          .decodeAudioData_Callback_2_(this, audioData, successCallback);
+    }
+    return _blink.BlinkAudioContext.instance
+        .decodeAudioData_Callback_1_(this, audioData);
   }
 
   @DomName('AudioContext.resume')
@@ -724,35 +737,32 @@ class AudioNode extends EventTarget {
   int get numberOfOutputs =>
       _blink.BlinkAudioNode.instance.numberOfOutputs_Getter_(this);
 
-  void _connect(destination, [int output, int input]) {
+  AudioNode _connect(destination, [int output, int input]) {
     if ((destination is AudioNode) && output == null && input == null) {
-      _blink.BlinkAudioNode.instance.connect_Callback_1_(this, destination);
-      return;
+      return _blink.BlinkAudioNode.instance
+          .connect_Callback_1_(this, destination);
     }
     if ((output is int || output == null) &&
         (destination is AudioNode) &&
         input == null) {
-      _blink.BlinkAudioNode.instance
+      return _blink.BlinkAudioNode.instance
           .connect_Callback_2_(this, destination, output);
-      return;
     }
     if ((input is int || input == null) &&
         (output is int || output == null) &&
         (destination is AudioNode)) {
-      _blink.BlinkAudioNode.instance
+      return _blink.BlinkAudioNode.instance
           .connect_Callback_3_(this, destination, output, input);
-      return;
     }
     if ((destination is AudioParam) && output == null && input == null) {
-      _blink.BlinkAudioNode.instance.connect_Callback_1_(this, destination);
-      return;
+      return _blink.BlinkAudioNode.instance
+          .connect_Callback_1_(this, destination);
     }
     if ((output is int || output == null) &&
         (destination is AudioParam) &&
         input == null) {
-      _blink.BlinkAudioNode.instance
+      return _blink.BlinkAudioNode.instance
           .connect_Callback_2_(this, destination, output);
-      return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -853,35 +863,43 @@ class AudioParam extends DartHtmlDomObject {
 
   @DomName('AudioParam.cancelScheduledValues')
   @DocsEditable()
-  void cancelScheduledValues(num startTime) => _blink.BlinkAudioParam.instance
-      .cancelScheduledValues_Callback_1_(this, startTime);
+  AudioParam cancelScheduledValues(num startTime) =>
+      _blink.BlinkAudioParam.instance
+          .cancelScheduledValues_Callback_1_(this, startTime);
 
   @DomName('AudioParam.exponentialRampToValueAtTime')
   @DocsEditable()
-  void exponentialRampToValueAtTime(num value, num time) =>
+  AudioParam exponentialRampToValueAtTime(num value, num time) =>
       _blink.BlinkAudioParam.instance
           .exponentialRampToValueAtTime_Callback_2_(this, value, time);
 
   @DomName('AudioParam.linearRampToValueAtTime')
   @DocsEditable()
-  void linearRampToValueAtTime(num value, num time) =>
+  AudioParam linearRampToValueAtTime(num value, num time) =>
       _blink.BlinkAudioParam.instance
           .linearRampToValueAtTime_Callback_2_(this, value, time);
 
-  @DomName('AudioParam.setTargetAtTime')
-  @DocsEditable()
-  void setTargetAtTime(num target, num time, num timeConstant) =>
-      _blink.BlinkAudioParam.instance
+  AudioParam setTargetAtTime(num target, num time, num timeConstant) {
+    if ((timeConstant is num) && (time is num) && (target is num)) {
+      return _blink.BlinkAudioParam.instance
           .setTargetAtTime_Callback_3_(this, target, time, timeConstant);
+    }
+    if ((timeConstant is num) && (time is num) && (target is num)) {
+      return _blink.BlinkAudioParam.instance
+          .setTargetAtTime_Callback_3_(this, target, time, timeConstant);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable()
-  void setValueAtTime(num value, num time) => _blink.BlinkAudioParam.instance
-      .setValueAtTime_Callback_2_(this, value, time);
+  AudioParam setValueAtTime(num value, num time) =>
+      _blink.BlinkAudioParam.instance
+          .setValueAtTime_Callback_2_(this, value, time);
 
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable()
-  void setValueCurveAtTime(Float32List values, num time, num duration) =>
+  AudioParam setValueCurveAtTime(Float32List values, num time, num duration) =>
       _blink.BlinkAudioParam.instance
           .setValueCurveAtTime_Callback_3_(this, values, time, duration);
 }
@@ -1200,6 +1218,35 @@ class GainNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 @DocsEditable()
+@DomName('IIRFilterNode')
+@Experimental() // untriaged
+class IirFilterNode extends AudioNode {
+  // To suppress missing implicit constructor warnings.
+  factory IirFilterNode._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
+
+  @Deprecated("Internal Use Only")
+  IirFilterNode.internal_() : super.internal_();
+
+  @DomName('IIRFilterNode.getFrequencyResponse')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse,
+          Float32List phaseResponse) =>
+      _blink.BlinkIIRFilterNode.instance.getFrequencyResponse_Callback_3_(
+          this, frequencyHz, magResponse, phaseResponse);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+@DocsEditable()
 @DomName('MediaElementAudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaElementAudioSourceNode
 @Experimental()
@@ -1334,12 +1381,25 @@ class OfflineAudioContext extends AudioContext {
   @Deprecated("Internal Use Only")
   OfflineAudioContext.internal_() : super.internal_();
 
+  @DomName('OfflineAudioContext.resume')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future resume() => convertNativePromiseToDartFuture(
+      _blink.BlinkOfflineAudioContext.instance.resume_Callback_0_(this));
+
   @DomName('OfflineAudioContext.startRendering')
   @DocsEditable()
   @Experimental() // untriaged
   Future startRendering() =>
       convertNativePromiseToDartFuture(_blink.BlinkOfflineAudioContext.instance
           .startRendering_Callback_0_(this));
+
+  @DomName('OfflineAudioContext.suspend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future suspendFor(num suspendTime) =>
+      convertNativePromiseToDartFuture(_blink.BlinkOfflineAudioContext.instance
+          .suspend_Callback_1_(this, suspendTime));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

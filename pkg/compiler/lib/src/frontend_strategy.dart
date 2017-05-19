@@ -9,15 +9,18 @@ import 'common_elements.dart';
 import 'common/backend_api.dart';
 import 'common/tasks.dart';
 import 'elements/entities.dart';
+import 'elements/types.dart';
 import 'environment.dart';
 import 'enqueue.dart';
 import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
 import 'js_backend/custom_elements_analysis.dart';
+import 'js_backend/interceptor_data.dart';
 import 'js_backend/mirrors_analysis.dart';
 import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
+import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
 import 'native/resolver.dart';
 import 'serialization/task.dart';
@@ -45,6 +48,9 @@ abstract class FrontEndStrategy {
   /// strategy.
   ElementEnvironment get elementEnvironment;
 
+  /// Returns the [DartTypes] for the element model used in this strategy.
+  DartTypes get dartTypes;
+
   /// Returns the [AnnotationProcessor] for this strategy.
   AnnotationProcessor get annotationProcesser;
 
@@ -59,11 +65,16 @@ abstract class FrontEndStrategy {
   /// used in this strategy.
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] corresponding to how a resolved model for
   /// a single member is obtained in this strategy.
   WorkItemBuilder createResolutionWorkItemBuilder(
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer);
 
   /// Computes the main function from [mainLibrary] adding additional world
@@ -87,6 +98,9 @@ abstract class FrontEndStrategy {
 
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();
+
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 }
 
 /// Class that performs the mechanics to investigate annotations in the code.

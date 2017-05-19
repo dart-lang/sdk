@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 

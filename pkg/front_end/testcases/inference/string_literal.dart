@@ -13,6 +13,6 @@ var /*@topType=String*/ c = 'c ${x} cc' 'ccc';
 main() {
   var /*@type=int*/ x = 1;
   var /*@type=String*/ a = 'aaa';
-  var /*@type=String*/ b = 'b ${/*@promotedType=none*/x} bb';
-  var /*@type=String*/ c = 'c ${/*@promotedType=none*/x} cc' 'ccc';
+  var /*@type=String*/ b = 'b ${x} bb';
+  var /*@type=String*/ c = 'c ${x} cc' 'ccc';
 }

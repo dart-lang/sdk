@@ -4,9 +4,11 @@
 
 library fasta.source_library_builder;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken, Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
+import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken;
+
+import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../combinator.dart' show Combinator;
 
@@ -200,7 +202,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
       int charOpenParenOffset,
@@ -230,7 +231,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       ConstructorReferenceBuilder name,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
       int charOpenParenOffset,
@@ -434,25 +434,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     } else {
       map[name] = member;
     }
-  }
-
-  /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member) {
-    if (name.startsWith("_")) return false;
-    if (member is PrefixBuilder) return false;
-    Map<String, Builder> map =
-        member.isSetter ? exports.setters : exports.local;
-    Builder existing = map[name];
-    if (existing == member) return false;
-    if (existing != null) {
-      Builder result =
-          buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
-      map[name] = result;
-      return result != existing;
-    } else {
-      map[name] = member;
-    }
-    return true;
   }
 
   int resolveTypes(_) {

@@ -7,6 +7,7 @@
 library dart2js.kernel.compiler_helper;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
@@ -22,6 +23,7 @@ import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
+import '../../../../pkg/compiler/tool/generate_kernel.dart' as generate;
 
 typedef Future<Compiler> CompileFunction();
 
@@ -69,7 +71,8 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
       KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
       KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
       ir.Program program = new ir.Program(
-          compiler.backend.kernelTask.kernel.libraryDependencies(uri));
+          libraries:
+              compiler.backend.kernelTask.kernel.libraryDependencies(uri));
       LibraryElement library = compiler.libraryLoader.lookupLibrary(uri);
       Expect.isNotNull(library, 'No library found for $uri');
       program.mainMethod = compiler.backend.kernelTask.kernel
@@ -133,4 +136,41 @@ class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
       {bool skipFileWithPartOfTag: false}) async {
     return createLoadedLibraries(program);
   }
+}
+
+Future<Compiler> compileWithDill(
+    Uri entryPoint, Map<String, String> memorySourceFiles,
+    {bool printSteps: false}) async {
+  if (memorySourceFiles.isNotEmpty) {
+    Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
+    if (printSteps) {
+      print('--- create temp directory $dir -------------------------------');
+    }
+    memorySourceFiles.forEach((String name, String source) {
+      new File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
+    });
+    entryPoint = dir.uri.resolve(entryPoint.path);
+  }
+  if (printSteps) {
+    print('---- generate dill -----------------------------------------------');
+  }
+
+  Uri dillFile = Uri.parse('$entryPoint.dill');
+  await generate.main([
+    '--platform=out/ReleaseX64/patched_dart2js_sdk/platform.dill',
+    '$entryPoint'
+  ]);
+
+  if (printSteps) {
+    print('---- closed world from dill $dillFile ----------------------------');
+  }
+  Compiler compiler = compilerFor(entryPoint: dillFile, options: [
+    Flags.analyzeOnly,
+    Flags.enableAssertMessage,
+    Flags.loadFromDill
+  ]);
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  compiler.resolution.retainCachesForTesting = true;
+  await compiler.run(dillFile);
+  return compiler;
 }

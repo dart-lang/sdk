@@ -14,7 +14,10 @@ import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MixinApplicationElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/backend.dart'
+import '../js_backend/js_interop_analysis.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/namer.dart' show Namer;
+import '../js_backend/runtime_types.dart'
     show
         RuntimeTypesChecks,
         RuntimeTypesNeed,
@@ -23,9 +26,6 @@ import '../js_backend/backend.dart'
         Substitution,
         TypeCheck,
         TypeChecks;
-import '../js_backend/js_interop_analysis.dart';
-import '../js_backend/native_data.dart';
-import '../js_backend/namer.dart' show Namer;
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -202,7 +202,7 @@ class RuntimeTypeGenerator {
       FunctionTypeSignatureEmitter generateFunctionTypeSignature,
       SubstitutionEmitter generateSubstitution,
       void emitTypeCheck(TypeCheck check)) {
-    Setlet<Element> generated = new Setlet<Element>();
+    Setlet<ClassElement> generated = new Setlet<ClassElement>();
 
     if (checkedClasses.contains(cls)) {
       generateIsTest(cls);

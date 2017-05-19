@@ -9,7 +9,7 @@ import 'package:front_end/src/fasta/builder/ast_factory.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:front_end/src/fasta/kernel/fasta_accessors.dart'
     show BuilderHelper;

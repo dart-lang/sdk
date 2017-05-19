@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 

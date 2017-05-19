@@ -11,7 +11,7 @@ main() async {
   var /*@type=() -> Future<Null>*/ f = /*@returnType=Future<Null>*/ () async {
     return null;
   };
-  Future y = /*@promotedType=none*/ f();
-  Future<String> z = /*@promotedType=none*/ f();
-  String s = await /*@promotedType=none*/ f();
+  Future y = f();
+  Future<String> z = f();
+  String s = await f();
 }

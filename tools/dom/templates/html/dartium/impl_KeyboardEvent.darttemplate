@@ -6,16 +6,23 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  factory $CLASSNAME(String type,
-      {Window view, bool canBubble: true, bool cancelable: true,
-      int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false}) {
+  factory $CLASSNAME(String type, {
+      Window view,
+      bool canBubble: true,
+      bool cancelable: true,
+      int location,
+      int keyLocation, // Legacy alias for location
+      bool ctrlKey: false,
+      bool altKey: false,
+      bool shiftKey: false,
+      bool metaKey: false}) {
     if (view == null) {
       view = window;
     }
+    location ??= keyLocation ?? 1;
     final e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
-        keyLocation, ctrlKey, altKey, shiftKey, metaKey);
+        location, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
 

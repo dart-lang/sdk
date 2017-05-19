@@ -20,10 +20,10 @@ main() {
   final events = new EventRepositoryMock();
   final notifs = new NotificationRepositoryMock();
   final snapshots = new HeapSnapshotRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
     final e = new HeapSnapshotElement(
-        vm, isolate, events, notifs, snapshots, instances);
+        vm, isolate, events, notifs, snapshots, objects);
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
@@ -36,7 +36,7 @@ main() {
       return controller.stream;
     });
     final e = new HeapSnapshotElement(
-        vm, isolate, events, notifs, snapshots, instances);
+        vm, isolate, events, notifs, snapshots, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

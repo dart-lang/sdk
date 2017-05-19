@@ -739,6 +739,10 @@ class CommonElements {
   FunctionEntity get jsStringOperatorAdd =>
       _jsStringOperatorAdd ??= _findClassMember(jsStringClass, '+');
 
+  ClassEntity _jsConstClass;
+  ClassEntity get jsConstClass =>
+      _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
+
   // From package:js
   ClassEntity _jsAnnotationClass;
   ClassEntity get jsAnnotationClass {
@@ -1173,6 +1177,9 @@ abstract class ElementEnvironment {
   ClassEntity lookupClass(LibraryEntity library, String name,
       {bool required: false});
 
+  /// Calls [f] for every top level member in [library].
+  void forEachLibraryMember(LibraryEntity library, void f(MemberEntity member));
+
   /// Lookup the member [name] in [library], fail if the class is missing and
   /// [required].
   MemberEntity lookupLibraryMember(LibraryEntity library, String name,
@@ -1196,6 +1203,10 @@ abstract class ElementEnvironment {
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
 
+  /// Calls [f] for every constructor declared in [cls].
+  void forEachConstructor(
+      ClassEntity cls, void f(ConstructorEntity constructor));
+
   /// Returns the superclass of [cls].
   ///
   /// If [skipUnnamedMixinApplications] is `true`, unnamed mixin applications
@@ -1212,6 +1223,7 @@ abstract class ElementEnvironment {
   ClassEntity getSuperClass(ClassEntity cls,
       {bool skipUnnamedMixinApplications: false});
 
+  /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
   /// Calls [f] for each class that is mixed into [cls] or one of its
@@ -1242,9 +1254,6 @@ abstract class ElementEnvironment {
   /// `Object`.
   DartType getTypeVariableBound(TypeVariableEntity typeVariable);
 
-  /// Returns `true` if [a] is a subtype of [b].
-  bool isSubtype(DartType a, DartType b);
-
   /// Returns the type if [function].
   FunctionType getFunctionType(FunctionEntity function);
 
@@ -1256,10 +1265,6 @@ abstract class ElementEnvironment {
   /// Use this during resolution to ensure that the alias has been computed.
   // TODO(johnniwinther): Remove this when the resolver is removed.
   DartType getUnaliasedType(DartType type);
-
-  /// Returns the [CallStructure] corresponding to calling [entity] with all
-  /// arguments, both required and optional.
-  CallStructure getCallStructure(FunctionEntity entity);
 
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.

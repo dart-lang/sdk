@@ -37,15 +37,16 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
   final ClosedWorld closedWorld;
-  final InterceptorData interceptorData;
-  final CommonElements _commonElements;
   final ClassEntity enclosingClass;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.closedWorld, this._commonElements,
-      this.interceptorData, this.enclosingClass);
+  SsaSimplifyInterceptors(this.closedWorld, this.enclosingClass);
+
+  CommonElements get _commonElements => closedWorld.commonElements;
 
   ConstantSystem get constantSystem => closedWorld.constantSystem;
+
+  InterceptorData get interceptorData => closedWorld.interceptorData;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;

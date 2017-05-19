@@ -10,7 +10,6 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -54,6 +53,25 @@ abstract class KernelToElementMap {
   /// constructor [node].
   ConstructorEntity getConstructor(ir.Member node);
 
+  /// Returns the [ConstructorEntity] corresponding to a super initializer in
+  /// [constructor].
+  ///
+  /// The IR resolves super initializers to a [target] up in the type hierarchy.
+  /// Most of the time, the result of this function will be the entity
+  /// corresponding to that target. In the presence of unnamed mixins, this
+  /// function returns an entity for an intermediate synthetic constructor that
+  /// kernel doesn't explicitly represent.
+  ///
+  /// For example:
+  ///     class M {}
+  ///     class C extends Object with M {}
+  ///
+  /// Kernel will say that C()'s super initializer resolves to Object(), but
+  /// this function will return an entity representing the unnamed mixin
+  /// application "Object+M"'s constructor.
+  ConstructorEntity getSuperConstructor(
+      ir.Constructor constructor, ir.Member target);
+
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
 
@@ -83,13 +101,15 @@ abstract class KernelToElementMap {
   bool isForeignLibrary(ir.Library node);
 
   /// Computes the native behavior for reading the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field);
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
   native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
   /// Computes the native behavior for calling [procedure].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure);
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+      {bool isJsInterop});
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
@@ -172,7 +192,7 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
   Selector getInvocationSelector(ir.InvocationExpression invocation) {
     Name name = getName(invocation.name);
     SelectorKind kind;
-    if (Elements.isOperatorName(invocation.name.name)) {
+    if (Selector.isOperatorName(name.text)) {
       if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
         kind = SelectorKind.INDEX;
       } else {
@@ -417,13 +437,13 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      {bool isJsInterop}) {
     DartType type = getDartType(field.type);
     List<ConstantValue> metadata = getMetadata(field.annotations);
-    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
     return nativeBehaviorBuilder.buildFieldLoadBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
-        isJsInterop: false);
+        isJsInterop: isJsInterop);
   }
 
   /// Computes the native behavior for writing to the native [field].
@@ -435,13 +455,13 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
 
   /// Computes the native behavior for calling [procedure].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+      {bool isJsInterop}) {
     DartType type = getFunctionType(procedure.function);
     List<ConstantValue> metadata = getMetadata(procedure.annotations);
-    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
-        isJsInterop: false);
+        isJsInterop: isJsInterop);
   }
 }
 
@@ -721,22 +741,26 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitLet(ir.Let node) {
-    if (node.body is ir.ConditionalExpression) {
-      ir.ConditionalExpression conditional = node.body;
-      if (conditional.condition is ir.MethodInvocation) {
-        ir.MethodInvocation methodInvocation = conditional.condition;
-        if (methodInvocation.name.name == BinaryOperator.EQ.name &&
-            methodInvocation.receiver is ir.VariableGet &&
-            methodInvocation.arguments.positional.single is ir.NullLiteral &&
-            conditional.otherwise is ir.VariableGet) {
-          ir.VariableGet variableGet1 = methodInvocation.receiver;
-          ir.VariableGet variableGet2 = conditional.otherwise;
-          if (variableGet1.variable == node.variable &&
-              variableGet2.variable == node.variable) {
+    ir.Expression body = node.body;
+    if (body is ir.ConditionalExpression) {
+      ir.Expression condition = body.condition;
+      if (condition is ir.MethodInvocation) {
+        ir.Expression receiver = condition.receiver;
+        ir.Expression otherwise = body.otherwise;
+        if (condition.name.name == BinaryOperator.EQ.name &&
+            receiver is ir.VariableGet &&
+            condition.arguments.positional.single is ir.NullLiteral &&
+            otherwise is ir.VariableGet) {
+          if (receiver.variable == node.variable &&
+              otherwise.variable == node.variable) {
             // We have <left> ?? <right> encoded as:
             //    let #1 = <left> in #1 == null ? <right> : #1
             ConstantExpression left = visit(node.variable.initializer);
-            ConstantExpression right = visit(conditional.then);
+            ConstantExpression right = visit(body.then);
+            // TODO(johnniwinther): Remove [IF_NULL] binary constant expression
+            // when the resolver is removed; then we no longer need the
+            // expressions to be structurally equivalence for equivalence
+            // testing.
             return new BinaryConstantExpression(
                 left, BinaryOperator.IF_NULL, right);
           }
@@ -785,6 +809,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
     if (!isRedirecting) {
       for (ir.Field field in cls.fields) {
+        if (field.isStatic) continue;
         if (field.initializer != null) {
           registerField(field, field.initializer.accept(this));
         }

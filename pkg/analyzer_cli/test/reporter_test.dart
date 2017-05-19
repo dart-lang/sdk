@@ -28,7 +28,7 @@ main() {
 
       options = new MockCommandLineOptions();
       when(options.enableTypeChecks).thenReturn(false);
-      when(options.hintsAreFatal).thenReturn(false);
+      when(options.infosAreFatal).thenReturn(false);
       when(options.machineFormat).thenReturn(false);
       when(options.verbose).thenReturn(false);
       when(options.color).thenReturn(false);

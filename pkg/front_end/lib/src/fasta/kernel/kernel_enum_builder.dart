@@ -9,7 +9,6 @@ import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        AsyncMarker,
         Class,
         Constructor,
         ConstructorInvocation,
@@ -152,7 +151,6 @@ class KernelEnumBuilder extends SourceClassBuilder
         "toString",
         null,
         null,
-        AsyncMarker.Sync,
         ProcedureKind.Method,
         parent,
         charOffset,

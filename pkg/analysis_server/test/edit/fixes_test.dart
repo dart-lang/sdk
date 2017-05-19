@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
@@ -27,7 +28,6 @@ main() {
 class FixesTest extends AbstractAnalysisTest {
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     super.setUp();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([server.serverPlugin]);
@@ -54,18 +54,14 @@ main() {
   }
 
   test_fromPlugins() async {
-    PluginInfo info = new PluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.AnalysisErrorFixes fixes = new plugin.AnalysisErrorFixes(
-        new plugin.AnalysisError(
-            plugin.AnalysisErrorSeverity.ERROR,
-            plugin.AnalysisErrorType.HINT,
-            new plugin.Location('', 0, 0, 0, 0),
-            'message',
-            'code'));
+        new AnalysisError(AnalysisErrorSeverity.ERROR, AnalysisErrorType.HINT,
+            new Location('', 0, 0, 0, 0), 'message', 'code'));
     plugin.EditGetFixesResult result =
         new plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-'))
+      info: new Future.value(result.toResponse('-', 1))
     };
 
     createProject();

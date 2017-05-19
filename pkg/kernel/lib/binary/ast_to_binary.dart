@@ -21,7 +21,8 @@ class BinaryPrinter extends Visitor {
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer _stringIndexer = new StringIndexer();
   final StringIndexer _sourceUriIndexer = new StringIndexer();
-  Map<DeferredImport, int> _deferredImportIndexer = <DeferredImport, int>{};
+  Map<LibraryDependency, int> _libraryDependencyIndex =
+      <LibraryDependency, int>{};
 
   final BufferedSink _sink;
 
@@ -90,6 +91,10 @@ class BinaryPrinter extends Visitor {
 
   void writeStringReference(String string) {
     writeUInt30(_stringIndexer[string]);
+  }
+
+  void writeStringReferenceList(List<String> strings) {
+    writeList(strings, writeStringReference);
   }
 
   void writeUriReference(String string) {
@@ -179,10 +184,10 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeDeferredImportReference(DeferredImport node) {
-    int index = _deferredImportIndexer[node];
+  void writeLibraryDependencyReference(LibraryDependency node) {
+    int index = _libraryDependencyIndex[node];
     if (index == null) {
-      throw 'Reference to deferred import $node out of scope';
+      throw 'Reference to library dependency $node out of scope';
     }
     writeUInt30(index);
   }
@@ -250,28 +255,36 @@ class BinaryPrinter extends Visitor {
     writeStringReference(node.name ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
-    writeDeferredImports(node);
+    writeLibraryDependencies(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
     writeNodeList(node.procedures);
   }
 
-  void writeDeferredImports(Library library) {
-    _deferredImportIndexer = library.deferredImports.isEmpty
-        ? const <DeferredImport, int>{}
-        : <DeferredImport, int>{};
-    writeUInt30(library.deferredImports.length);
-    for (int i = 0; i < library.deferredImports.length; ++i) {
-      var importNode = library.deferredImports[i];
-      _deferredImportIndexer[importNode] = i;
-      writeDeferredImport(importNode);
+  void writeLibraryDependencies(Library library) {
+    _libraryDependencyIndex = library.dependencies.isEmpty
+        ? const <LibraryDependency, int>{}
+        : <LibraryDependency, int>{};
+    writeUInt30(library.dependencies.length);
+    for (int i = 0; i < library.dependencies.length; ++i) {
+      var importNode = library.dependencies[i];
+      _libraryDependencyIndex[importNode] = i;
+      writeLibraryDependency(importNode);
     }
   }
 
-  void writeDeferredImport(DeferredImport node) {
-    writeLibraryReference(node.importedLibrary);
-    writeStringReference(node.name);
+  void writeLibraryDependency(LibraryDependency node) {
+    writeByte(node.flags);
+    writeNodeList(node.annotations);
+    writeLibraryReference(node.targetLibrary);
+    writeStringReference(node.name ?? '');
+    writeNodeList(node.combinators);
+  }
+
+  void visitCombinator(Combinator node) {
+    writeByte(node.isShow ? 1 : 0);
+    writeStringReferenceList(node.names);
   }
 
   void visitTypedef(Typedef node) {
@@ -404,7 +417,7 @@ class BinaryPrinter extends Visitor {
 
   visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
-    writeVariableDeclaration(node.variable);
+    writeVariableDeclaration(node.variable, false);
   }
 
   visitFunctionNode(FunctionNode node) {
@@ -444,9 +457,11 @@ class BinaryPrinter extends Visitor {
         node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
       writeOffset(node.fileOffset);
+      writeUInt30(node.variable.binaryOffset);
     } else {
       writeByte(Tag.VariableGet);
       writeOffset(node.fileOffset);
+      writeUInt30(node.variable.binaryOffset);
       writeUInt30(_variableIndexer[node.variable]);
       writeOptionalNode(node.promotedType);
     }
@@ -458,10 +473,12 @@ class BinaryPrinter extends Visitor {
     if (index & Tag.SpecializedPayloadMask == index) {
       writeByte(Tag.SpecializedVariableSet + index);
       writeOffset(node.fileOffset);
+      writeUInt30(node.variable.binaryOffset);
       writeNode(node.value);
     } else {
       writeByte(Tag.VariableSet);
       writeOffset(node.fileOffset);
+      writeUInt30(node.variable.binaryOffset);
       writeUInt30(_variableIndexer[node.variable]);
       writeNode(node.value);
     }
@@ -566,6 +583,7 @@ class BinaryPrinter extends Visitor {
   }
 
   visitArguments(Arguments node) {
+    writeUInt30(node.positional.length + node.named.length);
     writeNodeList(node.types);
     writeNodeList(node.positional);
     writeNodeList(node.named);
@@ -724,19 +742,19 @@ class BinaryPrinter extends Visitor {
 
   visitLet(Let node) {
     writeByte(Tag.Let);
-    writeVariableDeclaration(node.variable);
+    writeVariableDeclaration(node.variable, false);
     writeNode(node.body);
     --_variableIndexer.stackHeight;
   }
 
   visitLoadLibrary(LoadLibrary node) {
     writeByte(Tag.LoadLibrary);
-    writeDeferredImportReference(node.import);
+    writeLibraryDependencyReference(node.import);
   }
 
   visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     writeByte(Tag.CheckLibraryIsLoaded);
-    writeDeferredImportReference(node.import);
+    writeLibraryDependencyReference(node.import);
   }
 
   visitVectorCreation(VectorCreation node) {
@@ -842,7 +860,7 @@ class BinaryPrinter extends Visitor {
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariableDeclaration(node.variable, false);
     writeNode(node.iterable);
     writeNode(node.body);
     _variableIndexer.popScope();
@@ -858,8 +876,12 @@ class BinaryPrinter extends Visitor {
 
   visitSwitchCase(SwitchCase node) {
     // Note: there is no tag on SwitchCase.
-    writeNodeList(node.expressions);
-    node.expressionOffsets.forEach(writeOffset);
+    int length = node.expressions.length;
+    writeUInt30(length);
+    for (int i = 0; i < length; ++i) {
+      writeOffset(node.expressionOffsets[i]);
+      writeNode(node.expressions[i]);
+    }
     writeByte(node.isDefault ? 1 : 0);
     writeNode(node.body);
   }
@@ -885,6 +907,13 @@ class BinaryPrinter extends Visitor {
   visitTryCatch(TryCatch node) {
     writeByte(Tag.TryCatch);
     writeNode(node.body);
+    if (node.catches.any((Catch c) => c.stackTrace != null)) {
+      // at least one catch needs the stack trace.
+      writeByte(1);
+    } else {
+      // no catch needs the stack trace.
+      writeByte(0);
+    }
     writeNodeList(node.catches);
   }
 
@@ -912,11 +941,13 @@ class BinaryPrinter extends Visitor {
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
-    writeByte(Tag.VariableDeclaration);
-    writeVariableDeclaration(node);
+    writeVariableDeclaration(node, true);
   }
 
-  void writeVariableDeclaration(VariableDeclaration node) {
+  void writeVariableDeclaration(VariableDeclaration node,
+      [bool hasTag = false]) {
+    node.binaryOffset = _sink.flushedLength + _sink.length;
+    if (hasTag) writeByte(Tag.VariableDeclaration);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
     writeByte(node.flags);
@@ -937,14 +968,14 @@ class BinaryPrinter extends Visitor {
       writeByte(Tag.Nothing);
     } else {
       writeByte(Tag.Something);
-      writeVariableDeclaration(node);
+      writeVariableDeclaration(node, false);
     }
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariableDeclaration(node.variable, false);
     writeNode(node.function);
   }
 
@@ -998,6 +1029,8 @@ class BinaryPrinter extends Visitor {
       _typeParameterIndexer.enter(node.typeParameters);
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
+      writeUInt30(
+          node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
       writeNode(node.returnType);
@@ -1013,6 +1046,7 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
+    writeUInt30(node.parameter.binaryOffset);
     writeOptionalNode(node.bound);
   }
 
@@ -1027,6 +1061,7 @@ class BinaryPrinter extends Visitor {
   }
 
   visitTypeParameter(TypeParameter node) {
+    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
   }
@@ -1205,8 +1240,18 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
-  visitDeferredImport(DeferredImport node) {
+  visitLibraryDependency(LibraryDependency node) {
+    putOptional(node.name);
+    node.visitChildren(this);
+  }
+
+  visitCombinator(Combinator node) {
+    node.names.forEach(put);
+  }
+
+  visitTypedef(Typedef node) {
     put(node.name);
+    node.visitChildren(this);
   }
 
   visitClass(Class node) {
@@ -1307,6 +1352,7 @@ class BufferedSink {
   final Sink<List<int>> _sink;
   Uint8List _buffer = new Uint8List(SIZE);
   int length = 0;
+  int flushedLength = 0;
 
   BufferedSink(this._sink);
 
@@ -1316,6 +1362,7 @@ class BufferedSink {
       _sink.add(_buffer);
       _buffer = new Uint8List(SIZE);
       length = 0;
+      flushedLength += SIZE;
     }
   }
 
@@ -1326,6 +1373,7 @@ class BufferedSink {
         (bytes.length < SMALL || length < SMALL)) {
       if (length == 0) {
         _sink.add(bytes);
+        flushedLength += bytes.length;
       } else {
         _buffer.setRange(length, length + bytes.length, bytes);
         length += bytes.length;
@@ -1341,10 +1389,13 @@ class BufferedSink {
       _buffer = new Uint8List(SIZE);
       _buffer.setRange(0, remainder, bytes, alreadyEmitted);
       length = remainder;
+      flushedLength += SIZE;
     } else {
       _sink.add(_buffer.sublist(0, length));
       _sink.add(bytes);
       _buffer = new Uint8List(SIZE);
+      flushedLength += length;
+      flushedLength += bytes.length;
       length = 0;
     }
   }
@@ -1352,6 +1403,7 @@ class BufferedSink {
   void flush() {
     _sink.add(_buffer.sublist(0, length));
     _buffer = new Uint8List(SIZE);
+    flushedLength += length;
     length = 0;
   }
 

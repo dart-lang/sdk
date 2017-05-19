@@ -7,7 +7,6 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../tree/dartstring.dart';
 import '../tree/nodes.dart' as ast;
 import '../types/masks.dart';
 import '../universe/selector.dart';
@@ -210,11 +209,11 @@ class TypeSystem {
 
   TypeInformation nonNullEmptyType;
 
-  TypeInformation stringLiteralType(DartString value) {
+  TypeInformation stringLiteralType(String value) {
     return new StringLiteralTypeInformation(value, commonMasks.stringType);
   }
 
-  TypeInformation boolLiteralType(ast.LiteralBool value) {
+  TypeInformation boolLiteralType(bool value) {
     return new BoolLiteralTypeInformation(value, commonMasks.boolType);
   }
 

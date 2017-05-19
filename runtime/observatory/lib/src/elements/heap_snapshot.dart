@@ -48,7 +48,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   M.EventRepository _events;
   M.NotificationRepository _notifications;
   M.HeapSnapshotRepository _snapshots;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.HeapSnapshot _snapshot;
   Stream<M.HeapSnapshotLoadingProgressEvent> _progressStream;
   M.HeapSnapshotLoadingProgress _progress;
@@ -66,14 +66,14 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.HeapSnapshotRepository snapshots,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
     assert(snapshots != null);
-    assert(instances != null);
+    assert(objects != null);
     HeapSnapshotElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -81,7 +81,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     e._events = events;
     e._notifications = notifications;
     e._snapshots = snapshots;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -418,7 +418,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       node.object.then((object) {
         wrapper
           ..text = ''
-          ..children = [anyRef(_isolate, object, _instances, queue: _r.queue)];
+          ..children = [anyRef(_isolate, object, _objects, queue: _r.queue)];
       });
     }
   }
@@ -450,7 +450,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           ..text = ''
           ..children = [
             new SpanElement()..text = '${node.instanceCount} instances of ',
-            anyRef(_isolate, klass, _instances, queue: _r.queue)
+            anyRef(_isolate, klass, _objects, queue: _r.queue)
           ];
       });
     }

@@ -73,6 +73,9 @@ class _ElementCssClassSet extends CssClassSetImpl {
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
     var classname = _element.className;
+    if (classname is svg.AnimatedString) {
+      classname = classname.baseVal;
+    }
 
     for (String name in classname.split(' ')) {
       String trimmed = name.trim();

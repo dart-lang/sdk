@@ -816,186 +816,6 @@ void ScopeBuilder::VisitConstructor(Constructor* node) {
 }
 
 
-class BreakableBlock {
- public:
-  BreakableBlock(FlowGraphBuilder* builder, LabeledStatement* statement)
-      : builder_(builder),
-        labeled_statement_(statement),
-        outer_(builder->breakable_block_),
-        destination_(NULL),
-        outer_finally_(builder->try_finally_block_),
-        context_depth_(builder->context_depth_),
-        try_index_(builder->CurrentTryIndex()) {
-    builder_->breakable_block_ = this;
-  }
-  ~BreakableBlock() { builder_->breakable_block_ = outer_; }
-
-  bool HadJumper() { return destination_ != NULL; }
-
-  JoinEntryInstr* destination() { return destination_; }
-
-  JoinEntryInstr* BreakDestination(LabeledStatement* label,
-                                   TryFinallyBlock** outer_finally,
-                                   intptr_t* context_depth) {
-    BreakableBlock* block = builder_->breakable_block_;
-    while (block->labeled_statement_ != label) {
-      block = block->outer_;
-    }
-    ASSERT(block != NULL);
-    *outer_finally = block->outer_finally_;
-    *context_depth = block->context_depth_;
-    return block->EnsureDestination();
-  }
-
- private:
-  JoinEntryInstr* EnsureDestination() {
-    if (destination_ == NULL) {
-      destination_ = builder_->BuildJoinEntry(try_index_);
-    }
-    return destination_;
-  }
-
-  FlowGraphBuilder* builder_;
-  LabeledStatement* labeled_statement_;
-  BreakableBlock* outer_;
-  JoinEntryInstr* destination_;
-  TryFinallyBlock* outer_finally_;
-  intptr_t context_depth_;
-  intptr_t try_index_;
-};
-
-
-class SwitchBlock {
- public:
-  SwitchBlock(FlowGraphBuilder* builder, SwitchStatement* switch_stmt)
-      : builder_(builder),
-        outer_(builder->switch_block_),
-        outer_finally_(builder->try_finally_block_),
-        switch_statement_(switch_stmt),
-        context_depth_(builder->context_depth_),
-        try_index_(builder->CurrentTryIndex()) {
-    builder_->switch_block_ = this;
-  }
-  ~SwitchBlock() { builder_->switch_block_ = outer_; }
-
-  bool HadJumper(SwitchCase* switch_case) {
-    return destinations_.Lookup(switch_case) != NULL;
-  }
-
-  JoinEntryInstr* Destination(SwitchCase* label,
-                              TryFinallyBlock** outer_finally = NULL,
-                              intptr_t* context_depth = NULL) {
-    // Find corresponding [SwitchStatement].
-    SwitchBlock* block = this;
-    while (true) {
-      block->EnsureSwitchCaseMapping();
-      if (block->Contains(label)) break;
-      block = block->outer_;
-    }
-
-    // Set the outer finally block.
-    if (outer_finally != NULL) {
-      *outer_finally = block->outer_finally_;
-      *context_depth = block->context_depth_;
-    }
-
-    // Ensure there's [JoinEntryInstr] for that [SwitchCase].
-    return block->EnsureDestination(label);
-  }
-
- private:
-  typedef std::set<SwitchCase*> DestinationSwitches;
-
-  JoinEntryInstr* EnsureDestination(SwitchCase* switch_case) {
-    JoinEntryInstr* cached_inst = destinations_.Lookup(switch_case);
-    if (cached_inst == NULL) {
-      JoinEntryInstr* inst = builder_->BuildJoinEntry(try_index_);
-      destinations_.Insert(switch_case, inst);
-      return inst;
-    }
-    return cached_inst;
-  }
-
-  void EnsureSwitchCaseMapping() {
-    if (destination_switches_.begin() == destination_switches_.end()) {
-      List<SwitchCase>& cases = switch_statement_->cases();
-      for (intptr_t i = 0; i < cases.length(); i++) {
-        destination_switches_.insert(cases[i]);
-      }
-    }
-  }
-
-  bool Contains(SwitchCase* sc) {
-    return destination_switches_.find(sc) != destination_switches_.end();
-  }
-
-  FlowGraphBuilder* builder_;
-  SwitchBlock* outer_;
-
-  Map<SwitchCase, JoinEntryInstr*> destinations_;
-  DestinationSwitches destination_switches_;
-
-  TryFinallyBlock* outer_finally_;
-  SwitchStatement* switch_statement_;
-  intptr_t context_depth_;
-  intptr_t try_index_;
-};
-
-
-class TryFinallyBlock {
- public:
-  TryFinallyBlock(FlowGraphBuilder* builder, Statement* finalizer)
-      : builder_(builder),
-        outer_(builder->try_finally_block_),
-        finalizer_(finalizer),
-        context_depth_(builder->context_depth_),
-        // Finalizers are executed outside of the try block hence
-        // try depth of finalizers are one less than current try
-        // depth.
-        try_depth_(builder->try_depth_ - 1),
-        try_index_(builder_->CurrentTryIndex()) {
-    builder_->try_finally_block_ = this;
-  }
-  ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }
-
-  Statement* finalizer() const { return finalizer_; }
-  intptr_t context_depth() const { return context_depth_; }
-  intptr_t try_depth() const { return try_depth_; }
-  intptr_t try_index() const { return try_index_; }
-  TryFinallyBlock* outer() const { return outer_; }
-
- private:
-  FlowGraphBuilder* const builder_;
-  TryFinallyBlock* const outer_;
-  Statement* const finalizer_;
-  const intptr_t context_depth_;
-  const intptr_t try_depth_;
-  const intptr_t try_index_;
-};
-
-
-class TryCatchBlock {
- public:
-  explicit TryCatchBlock(FlowGraphBuilder* builder,
-                         intptr_t try_handler_index = -1)
-      : builder_(builder),
-        outer_(builder->try_catch_block_),
-        try_index_(try_handler_index) {
-    if (try_index_ == -1) try_index_ = builder->AllocateTryIndex();
-    builder->try_catch_block_ = this;
-  }
-  ~TryCatchBlock() { builder_->try_catch_block_ = outer_; }
-
-  intptr_t try_index() { return try_index_; }
-  TryCatchBlock* outer() const { return outer_; }
-
- private:
-  FlowGraphBuilder* builder_;
-  TryCatchBlock* outer_;
-  intptr_t try_index_;
-};
-
-
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
     entry = other.entry;
@@ -1741,6 +1561,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
     const Object& argument) {
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   const int kNumExtraArgs = 1;
   const int num_arguments = kNumArgs + kNumExtraArgs;
@@ -1761,8 +1582,9 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
     arg_values.SetAt(0, type_arguments);
   }
   arg_values.SetAt((0 + kNumExtraArgs), argument);
-  const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(num_arguments, Object::empty_array()));
+  const Array& args_descriptor =
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, num_arguments,
+                                                Object::empty_array()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   ASSERT(!result.IsError());
@@ -2175,8 +1997,9 @@ const Object& ConstantEvaluator::RunFunction(const Function& function,
 const Object& ConstantEvaluator::RunFunction(const Function& function,
                                              const Array& arguments,
                                              const Array& names) {
-  const Array& args_descriptor =
-      Array::Handle(Z, ArgumentsDescriptor::New(arguments.Length(), names));
+  const int kTypeArgsLen = 0;  // Generic functions not yet supported.
+  const Array& args_descriptor = Array::Handle(
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
@@ -2271,11 +2094,17 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
     }
 
     Statement* finalizer = try_finally_block_->finalizer();
+    intptr_t finalizer_kernel_offset =
+        try_finally_block_->finalizer_kernel_offset();
     try_finally_block_ = try_finally_block_->outer();
-
-    // This will potentially have exceptional cases as described in
-    // [VisitTryFinally] and will handle them.
-    instructions += TranslateStatement(finalizer);
+    if (finalizer != NULL) {
+      // This will potentially have exceptional cases as described in
+      // [VisitTryFinally] and will handle them.
+      instructions += TranslateStatement(finalizer);
+    } else {
+      instructions += streaming_flow_graph_builder_->BuildStatementAt(
+          finalizer_kernel_offset);
+    }
 
     // We only need to make sure that if the finalizer ended normally, we
     // continue towards the next outer try-finally.
@@ -2299,9 +2128,15 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
 
 
 Fragment FlowGraphBuilder::EnterScope(TreeNode* node, bool* new_context) {
+  return EnterScope(node->kernel_offset(), new_context);
+}
+
+
+Fragment FlowGraphBuilder::EnterScope(intptr_t kernel_offset,
+                                      bool* new_context) {
   Fragment instructions;
   const intptr_t context_size =
-      scopes_->scopes.Lookup(node->kernel_offset())->num_context_variables();
+      scopes_->scopes.Lookup(kernel_offset)->num_context_variables();
   if (context_size > 0) {
     instructions += PushContext(context_size);
     instructions += Drop();
@@ -2314,9 +2149,14 @@ Fragment FlowGraphBuilder::EnterScope(TreeNode* node, bool* new_context) {
 
 
 Fragment FlowGraphBuilder::ExitScope(TreeNode* node) {
+  return ExitScope(node->kernel_offset());
+}
+
+
+Fragment FlowGraphBuilder::ExitScope(intptr_t kernel_offset) {
   Fragment instructions;
   const intptr_t context_size =
-      scopes_->scopes.Lookup(node->kernel_offset())->num_context_variables();
+      scopes_->scopes.Lookup(kernel_offset)->num_context_variables();
   if (context_size > 0) {
     instructions += PopContext();
   }
@@ -2695,9 +2535,10 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const Array& argument_names,
                                         intptr_t num_args_checked) {
   ArgumentArray arguments = GetArguments(argument_count);
-  InstanceCallInstr* call =
-      new (Z) InstanceCallInstr(position, name, kind, arguments, argument_names,
-                                num_args_checked, ic_data_array_);
+  const intptr_t kTypeArgsLen = 0;  // Generic instance calls not yet supported.
+  InstanceCallInstr* call = new (Z)
+      InstanceCallInstr(position, name, kind, arguments, kTypeArgsLen,
+                        argument_names, num_args_checked, ic_data_array_);
   Push(call);
   return Fragment(call);
 }
@@ -2707,8 +2548,10 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
                                        const Array& argument_names) {
   Value* function = Pop();
   ArgumentArray arguments = GetArguments(argument_count);
-  ClosureCallInstr* call = new (Z) ClosureCallInstr(
-      function, arguments, argument_names, TokenPosition::kNoSource);
+  const intptr_t kTypeArgsLen = 0;  // Generic closures not yet supported.
+  ClosureCallInstr* call =
+      new (Z) ClosureCallInstr(function, arguments, kTypeArgsLen,
+                               argument_names, TokenPosition::kNoSource);
   Push(call);
   return Fragment(call);
 }
@@ -2921,8 +2764,10 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t argument_count,
                                       const Array& argument_names) {
   ArgumentArray arguments = GetArguments(argument_count);
-  StaticCallInstr* call = new (Z) StaticCallInstr(
-      position, target, argument_names, arguments, ic_data_array_);
+  const intptr_t kTypeArgsLen = 0;  // Generic static calls not yet supported.
+  StaticCallInstr* call =
+      new (Z) StaticCallInstr(position, target, kTypeArgsLen, argument_names,
+                              arguments, ic_data_array_);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -3043,15 +2888,17 @@ Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
 
 
 Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
+  const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
   const dart::Class& cls = dart::Class::Handle(
       dart::Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
   const Function& function = Function::ZoneHandle(
-      Z, Resolver::ResolveStatic(cls, dart::Library::PrivateCoreLibName(
-                                          Symbols::InterpolateSingle()),
-                                 kNumberOfArguments, kNoArgumentNames));
+      Z,
+      Resolver::ResolveStatic(
+          cls, dart::Library::PrivateCoreLibName(Symbols::InterpolateSingle()),
+          kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
   Fragment instructions;
   instructions += PushArgument();
   instructions += StaticCall(position, function, 1);
@@ -3188,6 +3035,13 @@ intptr_t FlowGraphBuilder::CurrentTryIndex() {
 
 LocalVariable* FlowGraphBuilder::LookupVariable(VariableDeclaration* var) {
   LocalVariable* local = scopes_->locals.Lookup(var->kernel_offset());
+  ASSERT(local != NULL);
+  return local;
+}
+
+
+dart::LocalVariable* FlowGraphBuilder::LookupVariable(intptr_t kernel_offset) {
+  LocalVariable* local = scopes_->locals.Lookup(kernel_offset);
   ASSERT(local != NULL);
   return local;
 }
@@ -3988,6 +3842,18 @@ Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
   return Fragment();
 }
 
+Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
+    const AbstractType& dst_type,
+    const dart::String& name_symbol) {
+  if (I->type_checks()) {
+    if (dst_type.IsMalformed()) {
+      return ThrowTypeError();
+    }
+    return CheckAssignableInCheckedMode(dst_type, name_symbol);
+  }
+  return Fragment();
+}
+
 
 bool FlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
                                            TokenPosition position) {
@@ -4198,6 +4064,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   Fragment body(normal_entry);
   body += CheckStackOverflowInPrologue();
 
+  // TODO(regis): Check if a type argument vector is passed.
+
   // The receiver is the first argument to noSuchMethod, and it is the first
   // argument passed to the dispatcher function.
   LocalScope* scope = parsed_function_->node_sequence()->scope();
@@ -4253,8 +4121,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   body += StaticCall(TokenPosition::kMinSource, allocation_function, 4);
   body += PushArgument();  // For the call to noSuchMethod.
 
+  const int kTypeArgsLen = 0;
   ArgumentsDescriptor two_arguments(
-      Array::Handle(Z, ArgumentsDescriptor::New(2)));
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, 2)));
   Function& no_such_method =
       Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
                                   dart::Class::Handle(Z, function.Owner()),
@@ -4541,7 +4410,15 @@ Fragment FlowGraphBuilder::TranslateStatement(Statement* statement) {
 #ifdef DEBUG
   intptr_t original_context_depth = context_depth_;
 #endif
-  statement->AcceptStatementVisitor(this);
+
+  // TODO(jensj): VariableDeclaration doesn't necessarily have a tag.
+  if (statement->can_stream() &&
+      statement->Type() != Node::kTypeVariableDeclaration) {
+    fragment_ = streaming_flow_graph_builder_->BuildStatementAt(
+        statement->kernel_offset());
+  } else {
+    statement->AcceptStatementVisitor(this);
+  }
   DEBUG_ASSERT(context_depth_ == original_context_depth);
   return fragment_;
 }
@@ -4562,7 +4439,12 @@ Fragment FlowGraphBuilder::TranslateCondition(Expression* expression,
 
 
 Fragment FlowGraphBuilder::TranslateExpression(Expression* expression) {
-  expression->AcceptExpressionVisitor(this);
+  if (expression->can_stream()) {
+    fragment_ = streaming_flow_graph_builder_->BuildExpressionAt(
+        expression->kernel_offset());
+  } else {
+    expression->AcceptExpressionVisitor(this);
+  }
   return fragment_;
 }
 
@@ -4583,43 +4465,59 @@ ArgumentArray FlowGraphBuilder::GetArguments(int count) {
 }
 
 
+#define STREAM_EXPRESSION_IF_POSSIBLE(node)                                    \
+  if (node->can_stream()) {                                                    \
+    fragment_ = streaming_flow_graph_builder_->BuildExpressionAt(              \
+        node->kernel_offset());                                                \
+    return;                                                                    \
+  }
+
+
 void FlowGraphBuilder::VisitInvalidExpression(InvalidExpression* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitNullLiteral(NullLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitBoolLiteral(BoolLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitIntLiteral(IntLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitBigintLiteral(BigintLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitDoubleLiteral(DoubleLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitStringLiteral(StringLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitSymbolLiteral(SymbolLiteral* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
@@ -4922,8 +4820,9 @@ const Type& DartTypeTranslator::ReceiverType(const dart::Class& klass) {
   return type;
 }
 
-
 void FlowGraphBuilder::VisitTypeLiteral(TypeLiteral* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   const AbstractType& type = T.TranslateType(node->type());
   if (type.IsMalformed()) H.ReportError("Malformed type literal");
 
@@ -4948,11 +4847,14 @@ void FlowGraphBuilder::VisitTypeLiteral(TypeLiteral* node) {
 
 
 void FlowGraphBuilder::VisitVariableGet(VariableGet* node) {
-  fragment_ = LoadLocal(LookupVariable(node->variable()));
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->expression());
   if (NeedsDebugStepCheck(stack_, node->position())) {
     instructions = DebugStepCheck(node->position()) + instructions;
@@ -4965,10 +4867,8 @@ void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
 
 
 void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
-  if (node->kernel_offset() != -1) {
-    fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
-    return;
-  }
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   // A StaticGet will always have a kernel_offset, except for the StaticGet that
   // was manually created for _getMainClosure in dart:_builtin.  Compile that
   // one specially here.
@@ -4998,6 +4898,8 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
 
 
 void FlowGraphBuilder::VisitStaticSet(StaticSet* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   NameIndex target = node->target();
   if (H.IsField(target)) {
     const dart::Field& field =
@@ -5035,6 +4937,8 @@ void FlowGraphBuilder::VisitStaticSet(StaticSet* node) {
 
 
 void FlowGraphBuilder::VisitPropertyGet(PropertyGet* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->receiver());
   instructions += PushArgument();
   const dart::String& getter_name = H.DartGetterName(node->name());
@@ -5044,6 +4948,8 @@ void FlowGraphBuilder::VisitPropertyGet(PropertyGet* node) {
 
 
 void FlowGraphBuilder::VisitPropertySet(PropertySet* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions(NullConstant());
   LocalVariable* variable = MakeTemporary();
   instructions += TranslateExpression(node->receiver());
@@ -5059,6 +4965,8 @@ void FlowGraphBuilder::VisitPropertySet(PropertySet* node) {
 
 
 void FlowGraphBuilder::VisitDirectPropertyGet(DirectPropertyGet* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Function& target = Function::ZoneHandle(Z);
   NameIndex kernel_name = node->target();
   if (H.IsProcedure(kernel_name)) {
@@ -5085,6 +4993,8 @@ void FlowGraphBuilder::VisitDirectPropertyGet(DirectPropertyGet* node) {
 
 
 void FlowGraphBuilder::VisitDirectPropertySet(DirectPropertySet* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   const dart::String& method_name = H.DartSetterName(node->target());
   const Function& target = Function::ZoneHandle(
       Z, LookupMethodByMember(node->target(), method_name));
@@ -5104,6 +5014,8 @@ void FlowGraphBuilder::VisitDirectPropertySet(DirectPropertySet* node) {
 
 
 void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   const Function& target = Function::ZoneHandle(
       Z, H.LookupStaticMethodByKernelProcedure(node->procedure()));
   const dart::Class& klass = dart::Class::ZoneHandle(Z, target.Owner());
@@ -5118,7 +5030,9 @@ void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
   const Array& argument_names = H.ArgumentNames(&named);
 
   // The frontend ensures we the [StaticInvocation] has matching arguments.
-  ASSERT(target.AreValidArguments(argument_count, argument_names, NULL));
+  const intptr_t kTypeArgsLen = 0;  // Generic functions not yet supported.
+  ASSERT(target.AreValidArguments(kTypeArgsLen, argument_count, argument_names,
+                                  NULL));
 
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
@@ -5223,6 +5137,8 @@ bool FlowGraphBuilder::RecognizeComparisonWithNull(Token::Kind token_kind,
 
 
 void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   const dart::String& name = H.DartMethodName(node->name());
   const intptr_t argument_count = node->arguments()->count() + 1;
   const Token::Kind token_kind = MethodKind(name);
@@ -5277,6 +5193,8 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
 
 void FlowGraphBuilder::VisitDirectMethodInvocation(
     DirectMethodInvocation* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   const dart::String& method_name = H.DartProcedureName(node->target());
   const Token::Kind token_kind = MethodKind(method_name);
 
@@ -5298,6 +5216,8 @@ void FlowGraphBuilder::VisitDirectMethodInvocation(
 
 
 void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   if (node->is_const()) {
     fragment_ =
         Constant(constant_evaluator_.EvaluateConstructorInvocation(node));
@@ -5386,6 +5306,8 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
 
 
 void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->operand());
 
   // The VM does not like an instanceOf call with a dynamic type. We need to
@@ -5449,6 +5371,8 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
 
 
 void FlowGraphBuilder::VisitAsExpression(AsExpression* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->operand());
 
   // The VM does not like an Object_as call with a dynamic type. We need to
@@ -5496,6 +5420,8 @@ void FlowGraphBuilder::VisitAsExpression(AsExpression* node) {
 
 
 void FlowGraphBuilder::VisitConditionalExpression(ConditionalExpression* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   bool negate;
   Fragment instructions = TranslateCondition(node->condition(), &negate);
 
@@ -5528,6 +5454,8 @@ void FlowGraphBuilder::VisitConditionalExpression(ConditionalExpression* node) {
 
 
 void FlowGraphBuilder::VisitLogicalExpression(LogicalExpression* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   bool negate;
   Fragment instructions = TranslateCondition(node->left(), &negate);
   TargetEntryInstr* right_entry;
@@ -5567,6 +5495,8 @@ void FlowGraphBuilder::VisitLogicalExpression(LogicalExpression* node) {
 
 
 void FlowGraphBuilder::VisitNot(Not* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->expression());
   instructions += CheckBooleanInCheckedMode();
   instructions += BooleanNegate();
@@ -5575,11 +5505,14 @@ void FlowGraphBuilder::VisitNot(Not* node) {
 
 
 void FlowGraphBuilder::VisitThisExpression(ThisExpression* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitStringConcatenation(StringConcatenation* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   List<Expression>& expressions = node->expressions();
 
   Fragment instructions;
@@ -5609,6 +5542,8 @@ void FlowGraphBuilder::VisitStringConcatenation(StringConcatenation* node) {
 
 
 void FlowGraphBuilder::VisitListLiteral(ListLiteral* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   if (node->is_const()) {
     fragment_ = Constant(constant_evaluator_.EvaluateListLiteral(node));
     return;
@@ -5650,6 +5585,8 @@ void FlowGraphBuilder::VisitListLiteral(ListLiteral* node) {
 
 
 void FlowGraphBuilder::VisitMapLiteral(MapLiteral* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   if (node->is_const()) {
     fragment_ = Constant(constant_evaluator_.EvaluateMapLiteral(node));
     return;
@@ -5706,6 +5643,8 @@ void FlowGraphBuilder::VisitFunctionExpression(FunctionExpression* node) {
 
 
 void FlowGraphBuilder::VisitLet(Let* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateStatement(node->variable());
   instructions += TranslateExpression(node->body());
   fragment_ = instructions;
@@ -5713,6 +5652,8 @@ void FlowGraphBuilder::VisitLet(Let* node) {
 
 
 void FlowGraphBuilder::VisitThrow(Throw* node) {
+  STREAM_EXPRESSION_IF_POSSIBLE(node);
+
   Fragment instructions;
 
   instructions += TranslateExpression(node->expression());
@@ -5728,7 +5669,8 @@ void FlowGraphBuilder::VisitThrow(Throw* node) {
 
 
 void FlowGraphBuilder::VisitRethrow(Rethrow* node) {
-  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
+  fragment_ =
+      streaming_flow_graph_builder_->BuildExpressionAt(node->kernel_offset());
 }
 
 
@@ -5754,18 +5696,29 @@ Fragment FlowGraphBuilder::TranslateArguments(Arguments* node,
   return instructions;
 }
 
+#define STREAM_STATEMENT_IF_POSSIBLE(node)                                     \
+  if (node->can_stream()) {                                                    \
+    fragment_ = streaming_flow_graph_builder_->BuildStatementAt(               \
+        node->kernel_offset());                                                \
+    return;                                                                    \
+  }
+
 
 void FlowGraphBuilder::VisitInvalidStatement(InvalidStatement* node) {
-  H.ReportError("Invalid statements not implemented yet!");
+  fragment_ =
+      streaming_flow_graph_builder_->BuildStatementAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitEmptyStatement(EmptyStatement* node) {
-  fragment_ = Fragment();
+  fragment_ =
+      streaming_flow_graph_builder_->BuildStatementAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitBlock(Block* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   Fragment instructions;
 
   instructions += EnterScope(node);
@@ -5781,6 +5734,8 @@ void FlowGraphBuilder::VisitBlock(Block* node) {
 
 
 void FlowGraphBuilder::VisitReturnStatement(ReturnStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   bool inside_try_finally = try_finally_block_ != NULL;
 
   Fragment instructions = node->expression() == NULL
@@ -5812,6 +5767,8 @@ void FlowGraphBuilder::VisitReturnStatement(ReturnStatement* node) {
 
 
 void FlowGraphBuilder::VisitExpressionStatement(ExpressionStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->expression());
   instructions += Drop();
   fragment_ = instructions;
@@ -5860,6 +5817,8 @@ void FlowGraphBuilder::VisitFunctionDeclaration(FunctionDeclaration* node) {
 
 
 void FlowGraphBuilder::VisitIfStatement(IfStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   bool negate;
   Fragment instructions = TranslateCondition(node->condition(), &negate);
   TargetEntryInstr* then_entry;
@@ -5890,6 +5849,8 @@ void FlowGraphBuilder::VisitIfStatement(IfStatement* node) {
 
 
 void FlowGraphBuilder::VisitWhileStatement(WhileStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   ++loop_depth_;
   bool negate;
   Fragment condition = TranslateCondition(node->condition(), &negate);
@@ -5920,6 +5881,8 @@ void FlowGraphBuilder::VisitWhileStatement(WhileStatement* node) {
 
 
 void FlowGraphBuilder::VisitDoStatement(DoStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   ++loop_depth_;
   Fragment body = TranslateStatement(node->body());
 
@@ -5948,6 +5911,8 @@ void FlowGraphBuilder::VisitDoStatement(DoStatement* node) {
 
 
 void FlowGraphBuilder::VisitForStatement(ForStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   Fragment declarations;
 
   bool new_context = false;
@@ -6004,6 +5969,8 @@ void FlowGraphBuilder::VisitForStatement(ForStatement* node) {
 
 
 void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   Fragment instructions = TranslateExpression(node->iterable());
   instructions += PushArgument();
 
@@ -6057,6 +6024,8 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
 
 
 void FlowGraphBuilder::VisitLabeledStatement(LabeledStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   // There can be serveral cases:
   //
   //   * the body contains a break
@@ -6068,7 +6037,7 @@ void FlowGraphBuilder::VisitLabeledStatement(LabeledStatement* node) {
   // => We will only know which case we are in after the body has been
   //    traversed.
 
-  BreakableBlock block(this, node);
+  BreakableBlock block(this);
   Fragment instructions = TranslateStatement(node->body());
   if (block.HadJumper()) {
     if (instructions.is_open()) {
@@ -6082,26 +6051,15 @@ void FlowGraphBuilder::VisitLabeledStatement(LabeledStatement* node) {
 
 
 void FlowGraphBuilder::VisitBreakStatement(BreakStatement* node) {
-  TryFinallyBlock* outer_finally = NULL;
-  intptr_t target_context_depth = -1;
-  JoinEntryInstr* destination = breakable_block_->BreakDestination(
-      node->target(), &outer_finally, &target_context_depth);
-
-  Fragment instructions;
-  instructions +=
-      TranslateFinallyFinalizers(outer_finally, target_context_depth);
-  if (instructions.is_open()) {
-    if (NeedsDebugStepCheck(parsed_function_->function(), node->position())) {
-      instructions += DebugStepCheck(node->position());
-    }
-    instructions += Goto(destination);
-  }
-  fragment_ = instructions;
+  fragment_ =
+      streaming_flow_graph_builder_->BuildStatementAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
-  SwitchBlock block(this, node);
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
+  SwitchBlock block(this, node->cases().length());
 
   // Instead of using a variable we should reuse the expression on the stack,
   // since it won't be assigned again, we don't need phi nodes.
@@ -6179,7 +6137,7 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
     // from `a == expr` and one from `a != expr && b == expr`). The
     // `block.Destination()` records the additional jump.
     if (switch_case->expressions().length() > 1) {
-      block.Destination(switch_case);
+      block.DestinationDirect(i);
     }
   }
 
@@ -6199,10 +6157,10 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
         constant_evaluator_.EvaluateExpression(switch_case->expressions()[k]);
       }
 
-      if (block.HadJumper(switch_case)) {
+      if (block.HadJumper(i)) {
         // There are several branches to the body, so we will make a goto to
         // the join block (and prepend a join instruction to the real body).
-        JoinEntryInstr* join = block.Destination(switch_case);
+        JoinEntryInstr* join = block.DestinationDirect(i);
         current_instructions += Goto(join);
 
         current_instructions = Fragment(current_instructions.entry, join);
@@ -6212,8 +6170,8 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
       }
     } else {
       JoinEntryInstr* body_join = NULL;
-      if (block.HadJumper(switch_case)) {
-        body_join = block.Destination(switch_case);
+      if (block.HadJumper(i)) {
+        body_join = block.DestinationDirect(i);
         body_fragments[i] = Fragment(body_join) + body_fragments[i];
       }
 
@@ -6285,22 +6243,14 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
 
 void FlowGraphBuilder::VisitContinueSwitchStatement(
     ContinueSwitchStatement* node) {
-  TryFinallyBlock* outer_finally = NULL;
-  intptr_t target_context_depth = -1;
-  JoinEntryInstr* entry = switch_block_->Destination(
-      node->target(), &outer_finally, &target_context_depth);
-
-  Fragment instructions;
-  instructions +=
-      TranslateFinallyFinalizers(outer_finally, target_context_depth);
-  if (instructions.is_open()) {
-    instructions += Goto(entry);
-  }
-  fragment_ = instructions;
+  fragment_ =
+      streaming_flow_graph_builder_->BuildStatementAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   if (!I->asserts()) {
     fragment_ = Fragment();
     return;
@@ -6376,6 +6326,8 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
 
 
 void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   InlineBailout("kernel::FlowgraphBuilder::VisitTryFinally");
 
   // There are 5 different cases where we need to execute the finally block:
@@ -6407,7 +6359,7 @@ void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
   // Fill in the body of the try.
   ++try_depth_;
   {
-    TryFinallyBlock tfb(this, node->finalizer());
+    TryFinallyBlock tfb(this, node->finalizer(), -1);
     TryCatchBlock tcb(this, try_handler_index);
     try_body += TranslateStatement(node->body());
   }
@@ -6450,6 +6402,8 @@ void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
 
 
 void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   InlineBailout("kernel::FlowgraphBuilder::VisitTryCatch");
 
   intptr_t try_handler_index = AllocateTryIndex();
@@ -6569,6 +6523,8 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
 
 
 void FlowGraphBuilder::VisitYieldStatement(YieldStatement* node) {
+  STREAM_STATEMENT_IF_POSSIBLE(node);
+
   ASSERT(node->is_native());  // Must have been desugared.
   // Setup yield/continue point:
   //

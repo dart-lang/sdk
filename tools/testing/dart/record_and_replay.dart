@@ -34,7 +34,7 @@ import 'test_runner.dart';
  */
 
 List<String> makePathsRelativeToDart(String cwd, List<String> arguments) {
-  var relativeArguments = [];
+  var relativeArguments = <String>[];
   for (var rawArgument in arguments) {
     if (rawArgument.startsWith(cwd)) {
       var relative = new Path(rawArgument).relativeTo(new Path(cwd));
@@ -49,7 +49,7 @@ List<String> makePathsRelativeToDart(String cwd, List<String> arguments) {
 class TestCaseRecorder {
   Path _outputPath;
   List<Map> _recordedCommandInvocations = [];
-  var _cwd;
+  String _cwd;
 
   TestCaseRecorder(this._outputPath) {
     _cwd = Directory.current.path;
@@ -83,7 +83,7 @@ class TestCaseRecorder {
 
 class TestCaseOutputArchive {
   Map<String, Map> _commandOutputRecordings;
-  var _cwd;
+  String _cwd;
 
   TestCaseOutputArchive() {
     _cwd = Directory.current.path;

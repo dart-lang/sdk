@@ -12,7 +12,7 @@ import 'dart:math' show max;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisOptions, Element;
+    hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
@@ -54,9 +54,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -69,6 +67,10 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/incremental/file_byte_store.dart';
 import 'package:plugin/plugin.dart';
 import 'package:watcher/watcher.dart';
 
@@ -347,7 +349,7 @@ class AnalysisServer {
    */
   ResolverProvider packageResolverProvider;
 
-  nd.PerformanceLog _analysisPerformanceLogger;
+  PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
 
@@ -420,8 +422,12 @@ class AnalysisServer {
             new NotificationManager(channel, resourceProvider) {
     _performance = performanceDuringStartup;
 
-    pluginManager = new PluginManager(resourceProvider, _getByteStorePath(),
-        notificationManager, instrumentationService);
+    pluginManager = new PluginManager(
+        resourceProvider,
+        _getByteStorePath(),
+        sdkManager.defaultSdkDirectory,
+        notificationManager,
+        instrumentationService);
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
@@ -444,7 +450,7 @@ class AnalysisServer {
           sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
         }
       }
-      _analysisPerformanceLogger = new nd.PerformanceLog(sink);
+      _analysisPerformanceLogger = new PerformanceLog(sink);
     }
     byteStore = _createByteStore();
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(
@@ -1900,7 +1906,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
@@ -2188,7 +2193,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
-  List<server.HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
+  List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
     if (analysisServer.options.useAnalysisHighlight2) {
       return new DartUnitHighlightsComputer2(unit).compute();
     } else {

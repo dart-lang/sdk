@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:path/src/context.dart';
 import 'package:test/test.dart';
@@ -18,6 +19,11 @@ void main() {
 }
 
 class MockAnalysisDriver extends AnalysisDriverGeneric {
+  /**
+   * The files that have been added to this driver.
+   */
+  List<String> addedFiles = <String>[];
+
   @override
   bool get hasFilesToAnalyze => false;
 
@@ -26,6 +32,11 @@ class MockAnalysisDriver extends AnalysisDriverGeneric {
 
   @override
   AnalysisDriverPriority get workPriority => AnalysisDriverPriority.nothing;
+
+  @override
+  void addFile(String path) {
+    addedFiles.add(path);
+  }
 
   @override
   void dispose() {}
@@ -64,8 +75,8 @@ class ServerPluginTest {
     plugin = new TestServerPlugin(resourceProvider);
   }
 
-  void test_contextRootContaining_insideRoot() {
-    plugin.handleAnalysisSetContextRoots(
+  test_contextRootContaining_insideRoot() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
     expect(plugin.contextRootContaining(filePath1), isNotNull);
@@ -75,67 +86,70 @@ class ServerPluginTest {
     expect(plugin.contextRootContaining(filePath1), isNull);
   }
 
-  void test_contextRootContaining_outsideRoot() {
-    plugin.handleAnalysisSetContextRoots(
+  test_contextRootContaining_outsideRoot() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
     expect(plugin.contextRootContaining(filePath2), isNull);
   }
 
-  void test_handleAnalysisHandleWatchEvents() {
-    var result = plugin.handleAnalysisHandleWatchEvents(
+  test_handleAnalysisHandleWatchEvents() async {
+    var result = await plugin.handleAnalysisHandleWatchEvents(
         new AnalysisHandleWatchEventsParams([]));
     expect(result, isNotNull);
   }
 
-  void test_handleAnalysisReanalyze_all() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleAnalysisReanalyze_all() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
-    var result = plugin.handleAnalysisReanalyze(new AnalysisReanalyzeParams());
+    var result =
+        await plugin.handleAnalysisReanalyze(new AnalysisReanalyzeParams());
     expect(result, isNotNull);
   }
 
   @failingTest
-  void test_handleAnalysisReanalyze_subset() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleAnalysisReanalyze_subset() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
-    plugin.handleAnalysisSetContextRoots(
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot2]));
-    var result = plugin.handleAnalysisReanalyze(
+    var result = await plugin.handleAnalysisReanalyze(
         new AnalysisReanalyzeParams(roots: [packagePath2]));
     expect(result, isNotNull);
   }
 
   @failingTest
-  void test_handleAnalysisSetContextBuilderOptions() {
-    var result = plugin.handleAnalysisSetContextBuilderOptions(
+  test_handleAnalysisSetContextBuilderOptions() async {
+    var result = await plugin.handleAnalysisSetContextBuilderOptions(
         new AnalysisSetContextBuilderOptionsParams(
             new ContextBuilderOptions()));
     expect(result, isNotNull);
   }
 
-  void test_handleAnalysisSetContextRoots() {
-    var result = plugin.handleAnalysisSetContextRoots(
+  test_handleAnalysisSetContextRoots() async {
+    var result = await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
-    expect(plugin.driverMap[contextRoot1], isNotNull);
+    AnalysisDriverGeneric driver = plugin.driverMap[contextRoot1];
+    expect(driver, isNotNull);
+    expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
 
-  void test_handleAnalysisSetPriorityFiles() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleAnalysisSetPriorityFiles() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    var result = plugin.handleAnalysisSetPriorityFiles(
+    var result = await plugin.handleAnalysisSetPriorityFiles(
         new AnalysisSetPriorityFilesParams([filePath1]));
     expect(result, isNotNull);
   }
 
-  void test_handleAnalysisSetSubscriptions() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleAnalysisSetSubscriptions() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
     expect(plugin.subscriptionManager.servicesForFile(filePath1), isEmpty);
 
-    AnalysisSetSubscriptionsResult result = plugin
+    AnalysisSetSubscriptionsResult result = await plugin
         .handleAnalysisSetSubscriptions(new AnalysisSetSubscriptionsParams({
       AnalysisService.OUTLINE: [filePath1]
     }));
@@ -144,82 +158,82 @@ class ServerPluginTest {
         [AnalysisService.OUTLINE]);
   }
 
-  void test_handleAnalysisUpdateContent() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleAnalysisUpdateContent() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
-    var addResult = plugin.handleAnalysisUpdateContent(
+    var addResult = await plugin.handleAnalysisUpdateContent(
         new AnalysisUpdateContentParams(
             {filePath1: new AddContentOverlay('class C {}')}));
     expect(addResult, isNotNull);
-    var changeResult =
-        plugin.handleAnalysisUpdateContent(new AnalysisUpdateContentParams({
+    var changeResult = await plugin
+        .handleAnalysisUpdateContent(new AnalysisUpdateContentParams({
       filePath1:
           new ChangeContentOverlay([new SourceEdit(7, 0, ' extends Object')])
     }));
     expect(changeResult, isNotNull);
-    var removeResult = plugin.handleAnalysisUpdateContent(
+    var removeResult = await plugin.handleAnalysisUpdateContent(
         new AnalysisUpdateContentParams(
             {filePath1: new RemoveContentOverlay()}));
     expect(removeResult, isNotNull);
   }
 
-  void test_handleCompletionGetSuggestions() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleCompletionGetSuggestions() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
     CompletionGetSuggestionsResult result =
-        plugin.handleCompletionGetSuggestions(
+        await plugin.handleCompletionGetSuggestions(
             new CompletionGetSuggestionsParams(filePath1, 12));
     expect(result, isNotNull);
   }
 
-  void test_handleEditGetAssists() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleEditGetAssists() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetAssistsResult result =
-        plugin.handleEditGetAssists(new EditGetAssistsParams(filePath1, 10, 0));
+    EditGetAssistsResult result = await plugin
+        .handleEditGetAssists(new EditGetAssistsParams(filePath1, 10, 0));
     expect(result, isNotNull);
   }
 
-  void test_handleEditGetAvailableRefactorings() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleEditGetAvailableRefactorings() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
     EditGetAvailableRefactoringsResult result =
-        plugin.handleEditGetAvailableRefactorings(
+        await plugin.handleEditGetAvailableRefactorings(
             new EditGetAvailableRefactoringsParams(filePath1, 10, 0));
     expect(result, isNotNull);
   }
 
-  void test_handleEditGetFixes() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleEditGetFixes() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
     EditGetFixesResult result =
-        plugin.handleEditGetFixes(new EditGetFixesParams(filePath1, 13));
+        await plugin.handleEditGetFixes(new EditGetFixesParams(filePath1, 13));
     expect(result, isNotNull);
   }
 
   @failingTest
-  void test_handleEditGetRefactoring() {
-    plugin.handleAnalysisSetContextRoots(
+  test_handleEditGetRefactoring() async {
+    await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetRefactoringResult result = plugin.handleEditGetRefactoring(
+    EditGetRefactoringResult result = await plugin.handleEditGetRefactoring(
         new EditGetRefactoringParams(
             RefactoringKind.RENAME, filePath1, 7, 0, false));
     expect(result, isNotNull);
   }
 
-  void test_handlePluginShutdown() {
-    var result = plugin.handlePluginShutdown(new PluginShutdownParams());
+  test_handlePluginShutdown() async {
+    var result = await plugin.handlePluginShutdown(new PluginShutdownParams());
     expect(result, isNotNull);
   }
 
-  void test_handlePluginVersionCheck() {
-    PluginVersionCheckResult result = plugin.handlePluginVersionCheck(
-        new PluginVersionCheckParams('path', '0.1.0'));
+  test_handlePluginVersionCheck() async {
+    PluginVersionCheckResult result = await plugin.handlePluginVersionCheck(
+        new PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
     expect(result, isNotNull);
     expect(result.interestingFiles, ['*.dart']);
     expect(result.isCompatible, isTrue);

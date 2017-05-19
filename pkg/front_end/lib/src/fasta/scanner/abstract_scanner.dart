@@ -8,7 +8,7 @@ import 'dart:collection' show ListMixin;
 
 import 'dart:typed_data' show Uint16List, Uint32List;
 
-import '../../scanner/token.dart' show TokenType;
+import '../../scanner/token.dart' show Token, TokenType;
 
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
@@ -18,7 +18,7 @@ import 'error_token.dart' show UnterminatedToken;
 import 'keyword_state.dart' show KeywordState;
 
 import 'token.dart'
-    show BeginGroupToken, CommentToken, DartDocToken, SymbolToken, Token;
+    show BeginGroupToken, CommentToken, DartDocToken, SymbolToken;
 
 import 'token_constants.dart';
 
@@ -870,10 +870,9 @@ abstract class AbstractScanner implements Scanner {
     tail.next.previous = tail;
     tail = tail.next;
     if (comments != null) {
-      for (CommentToken c = comments; c != null; c = c.next) {
-        c.parent = tail;
-      }
-      tail.precedingComments = comments;
+      // It is the responsibility of the caller to construct the token
+      // being appended with preceeding comments if any
+      assert(identical(token.precedingComments, comments));
       comments = null;
       commentsTail = null;
     }

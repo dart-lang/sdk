@@ -44,7 +44,6 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   }
 
   void setUp() {
-    enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     super.setUp();
     createProject();

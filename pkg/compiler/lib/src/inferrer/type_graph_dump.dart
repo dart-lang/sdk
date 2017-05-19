@@ -364,7 +364,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void visitStringLiteralTypeInformation(StringLiteralTypeInformation info) {
-    String text = shorten(info.value.slowToString()).replaceAll('\n', '\\n');
+    String text = shorten(info.value).replaceAll('\n', '\\n');
     addNode(info, 'StringLiteral\n"$text"');
   }
 

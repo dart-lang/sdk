@@ -6,6 +6,7 @@ library fasta.compile_platform;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'ticker.dart' show Ticker;
 
 import 'dart:io' show exitCode;
@@ -44,21 +45,25 @@ Future compilePlatform(List<String> arguments) async {
   await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
       (CompilerContext c) {
     Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
-    Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
-    return compilePlatformInternal(c, ticker, patchedSdk, output);
+    Uri fullOutput = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
+    Uri outlineOutput =
+        Uri.base.resolveUri(new Uri.file(c.options.arguments[2]));
+    return compilePlatformInternal(
+        c, ticker, patchedSdk, fullOutput, outlineOutput);
   });
 }
 
-Future compilePlatformInternal(
-    CompilerContext c, Ticker ticker, Uri patchedSdk, Uri output) async {
+Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
+    Uri fullOutput, Uri outlineOutput) async {
   if (c.options.strongMode) {
     print("Note: strong mode support is preliminary and may not work.");
   }
   ticker.isVerbose = c.options.verbose;
-  Uri deps = Uri.base.resolveUri(new Uri.file("${output.toFilePath()}.d"));
+  Uri deps = Uri.base.resolveUri(new Uri.file("${fullOutput.toFilePath()}.d"));
   ticker.logMs("Parsed arguments");
   if (ticker.isVerbose) {
-    print("Compiling $patchedSdk to $output");
+    print("Generating outline of $patchedSdk into $outlineOutput");
+    print("Compiling $patchedSdk to $fullOutput");
   }
 
   TranslateUri uriTranslator =
@@ -70,11 +75,17 @@ Future compilePlatformInternal(
       uriTranslator, c.options.strongMode, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
-  await dillTarget.writeOutline(null);
-  await kernelTarget.writeOutline(output);
+  await dillTarget.buildOutlines();
+  var outline = await kernelTarget.buildOutlines();
+
+  await writeProgramToFile(outline, outlineOutput);
+  ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output,
-      dumpIr: c.options.dumpIr, verify: c.options.verify);
-  await kernelTarget.writeDepsFile(output, deps);
+
+  var program = await kernelTarget.buildProgram(verify: c.options.verify);
+  if (c.options.dumpIr) printProgramText(program);
+  await writeProgramToFile(program, fullOutput);
+  ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
+  await kernelTarget.writeDepsFile(fullOutput, deps);
 }

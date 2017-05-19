@@ -519,7 +519,16 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ pushl(EAX);           // Receiver.
   __ pushl(ECX);           // ICData/MegamorphicCache.
   __ pushl(EDX);           // Arguments descriptor array.
+
+  // Adjust arguments count.
+  __ cmpl(FieldAddress(EDX, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
   __ movl(EDX, EDI);
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addl(EDX, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+
   // EDX: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -1158,7 +1167,15 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ pushl(EAX);           // Receiver.
   __ pushl(EDX);           // Arguments descriptor array.
 
+  // Adjust arguments count.
+  __ cmpl(FieldAddress(EDX, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
   __ movl(EDX, EDI);
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addl(EDX, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+
   // EDX: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 

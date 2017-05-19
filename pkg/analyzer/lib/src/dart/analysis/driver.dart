@@ -15,7 +15,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -28,10 +27,12 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
-import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:front_end/src/base/api_signature.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -449,13 +450,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return AnalysisDriverPriority.nothing;
   }
 
-  /**
-   * Add the file with the given [path] to the set of files to analyze.
-   *
-   * The [path] must be absolute and normalized.
-   *
-   * The results of analysis are eventually produced by the [results] stream.
-   */
+  @override
   void addFile(String path) {
     if (!_fsState.hasUri(path)) {
       return;
@@ -536,11 +531,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return new ErrorsResult(
-        path,
-        analysisResult.uri,
-        analysisResult.contentHash,
-        analysisResult.lineInfo,
+    return new ErrorsResult(path, analysisResult.uri, analysisResult.lineInfo,
         analysisResult.errors);
   }
 
@@ -735,8 +726,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParseResult(file.path, file.uri, file.content, file.contentHash,
-        unit.lineInfo, unit, listener.errors);
+    return new ParseResult(file.path, file.uri, file.content, unit.lineInfo,
+        unit, listener.errors);
   }
 
   @override
@@ -1067,7 +1058,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
       String signature = library.transitiveSignature;
-      return new UnitElementResult(path, file.contentHash, signature, element);
+      return new UnitElementResult(path, signature, element);
     } finally {
       libraryContext.dispose();
     }
@@ -1139,7 +1130,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.uri,
         file.exists,
         content,
-        file.contentHash,
         file.lineInfo,
         signature,
         resolvedUnit,
@@ -1346,6 +1336,16 @@ abstract class AnalysisDriverGeneric {
    * Return the priority of work that the driver needs to perform.
    */
   AnalysisDriverPriority get workPriority;
+
+  /**
+   * Add the file with the given [path] to the set of files that are explicitly
+   * being analyzed.
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The results of analysis are eventually produced by the [results] stream.
+   */
+  void addFile(String path);
 
   /**
    * Notify the driver that the client is going to stop using it.
@@ -1592,7 +1592,7 @@ class AnalysisDriverTestView {
  */
 class AnalysisResult {
   static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null, null);
+      null, null, null, null, null, null, null, null, null, null, null);
 
   /**
    * The [AnalysisDriver] that produced this result.
@@ -1625,11 +1625,6 @@ class AnalysisResult {
    * The content of the file that was scanned, parsed and resolved.
    */
   final String content;
-
-  /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
 
   /**
    * Information about lines in the [content].
@@ -1665,7 +1660,6 @@ class AnalysisResult {
       this.uri,
       this.exists,
       this.content,
-      this.contentHash,
       this.lineInfo,
       this._signature,
       this.unit,
@@ -1710,11 +1704,6 @@ class ErrorsResult {
   final Uri uri;
 
   /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
    * Information about lines in the [content].
    */
   final LineInfo lineInfo;
@@ -1724,8 +1713,7 @@ class ErrorsResult {
    */
   final List<AnalysisError> errors;
 
-  ErrorsResult(
-      this.path, this.uri, this.contentHash, this.lineInfo, this.errors);
+  ErrorsResult(this.path, this.uri, this.lineInfo, this.errors);
 }
 
 /**
@@ -1779,11 +1767,6 @@ class ParseResult {
   final String content;
 
   /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
    * Information about lines in the [content].
    */
   final LineInfo lineInfo;
@@ -1798,84 +1781,8 @@ class ParseResult {
    */
   final List<AnalysisError> errors;
 
-  ParseResult(this.path, this.uri, this.content, this.contentHash,
-      this.lineInfo, this.unit, this.errors);
-}
-
-/**
- * This class is used to gather and print performance information.
- */
-class PerformanceLog {
-  final StringSink sink;
-  int _level = 0;
-
-  PerformanceLog(this.sink);
-
-  /**
-   * Enter a new execution section, which starts at one point of code, runs
-   * some time, and then ends at the other point of code.
-   *
-   * The client must call [PerformanceLogSection.exit] for every [enter].
-   */
-  PerformanceLogSection enter(String msg) {
-    writeln('+++ $msg.');
-    _level++;
-    return new PerformanceLogSection(this, msg);
-  }
-
-  /**
-   * Return the result of the function [f] invocation and log the elapsed time.
-   *
-   * Each invocation of [run] creates a new enclosed section in the log,
-   * which begins with printing [msg], then any log output produced during
-   * [f] invocation, and ends with printing [msg] with the elapsed time.
-   */
-  /*=T*/ run/*<T>*/(String msg, /*=T*/ f()) {
-    Stopwatch timer = new Stopwatch()..start();
-    try {
-      writeln('+++ $msg.');
-      _level++;
-      return f();
-    } finally {
-      _level--;
-      int ms = timer.elapsedMilliseconds;
-      writeln('--- $msg in $ms ms.');
-    }
-  }
-
-  /**
-   * Write a new line into the log.
-   */
-  void writeln(String msg) {
-    if (sink != null) {
-      String indent = '\t' * _level;
-      sink.writeln('$indent$msg');
-    }
-  }
-}
-
-/**
- * The performance measurement section for operations that start and end
- * at different place in code, so cannot be run using [PerformanceLog.run].
- *
- * The client must call [exit] for every [PerformanceLog.enter].
- */
-class PerformanceLogSection {
-  final PerformanceLog _logger;
-  final String _msg;
-  final Stopwatch _timer = new Stopwatch()..start();
-
-  PerformanceLogSection(this._logger, this._msg);
-
-  /**
-   * Stop the timer, log the time.
-   */
-  void exit() {
-    _timer.stop();
-    _logger._level--;
-    int ms = _timer.elapsedMilliseconds;
-    _logger.writeln('--- $_msg in $ms ms.');
-  }
+  ParseResult(
+      this.path, this.uri, this.content, this.lineInfo, this.unit, this.errors);
 }
 
 /**
@@ -1896,11 +1803,6 @@ class UnitElementResult {
   final String path;
 
   /**
-   * The MD5 hash of the file content.
-   */
-  final String contentHash;
-
-  /**
    * The signature of the [element] is based the APIs of the files of the
    * library (including the file itself) of the requested file and the
    * transitive closure of files imported and exported by the library.
@@ -1912,7 +1814,7 @@ class UnitElementResult {
    */
   final CompilationUnitElement element;
 
-  UnitElementResult(this.path, this.contentHash, this.signature, this.element);
+  UnitElementResult(this.path, this.signature, this.element);
 }
 
 /**

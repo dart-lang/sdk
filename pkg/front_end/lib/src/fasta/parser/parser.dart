@@ -54,7 +54,7 @@ import '../fasta_codes.dart'
         codeYieldAsIdentifier,
         codeYieldNotGenerator;
 
-import '../scanner.dart' show ErrorToken;
+import '../scanner.dart' show ErrorToken, Token;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
@@ -63,18 +63,12 @@ import '../../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
-        Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         TokenType;
 
 import '../scanner/token.dart'
-    show
-        BeginGroupToken,
-        KeywordToken,
-        SymbolToken,
-        Token,
-        isUserDefinableOperator;
+    show BeginGroupToken, SymbolToken, isUserDefinableOperator;
 
 import '../scanner/token_constants.dart'
     show
@@ -805,9 +799,8 @@ class Parser {
     final kind = token.kind;
     if (identical(kind, IDENTIFIER_TOKEN)) return true;
     if (identical(kind, KEYWORD_TOKEN)) {
-      Keyword keyword = (token as KeywordToken).keyword;
-      String value = keyword.lexeme;
-      return keyword.isPseudo ||
+      String value = token.type.lexeme;
+      return token.type.isPseudo ||
           (identical(value, 'dynamic')) ||
           (identical(value, 'void'));
     }
@@ -1043,8 +1036,7 @@ class Parser {
       token =
           reportUnrecoverableErrorCodeWithToken(token, codeExpectedIdentifier)
               .next;
-    } else if (token.isBuiltInIdentifier &&
-        !context.isBuiltInIdentifierAllowed) {
+    } else if (token.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
       if (context.inDeclaration) {
         reportRecoverableErrorCodeWithToken(
             token, codeBuiltInIdentifierInDeclaration);

@@ -133,6 +133,11 @@ class FlowGraph : public ZoneAllocated {
                                  Instruction* current,
                                  Instruction* replacement);
 
+  Instruction* CreateCheckClass(Definition* to_check,
+                                const Cids& cids,
+                                intptr_t deopt_id,
+                                TokenPosition token_pos);
+
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
   void set_current_ssa_temp_index(intptr_t index) {
     current_ssa_temp_index_ = index;

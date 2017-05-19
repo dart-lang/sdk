@@ -5,6 +5,7 @@
 library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
+import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
@@ -43,6 +44,9 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
+import '../../js_backend/interceptor_data.dart';
+import '../../world.dart';
+import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;
@@ -58,6 +62,7 @@ class ModelEmitter {
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
+  final ClosedWorld _closedWorld;
 
   // The full code that is written to each hunk part-file.
   final Map<Fragment, CodeOutput> outputBuffers = <Fragment, CodeOutput>{};
@@ -73,12 +78,17 @@ class ModelEmitter {
 
   static const String typeNameProperty = r"builtin$cls";
 
-  ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter,
-      this.shouldGenerateSourceMap)
-      : this.compiler = compiler,
-        this.namer = namer {
+  ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
+      CodeEmitterTask task, this.shouldGenerateSourceMap) {
     this.constantEmitter = new ConstantEmitter(
-        compiler, namer, this.generateConstantReference, constantListGenerator);
+        compiler.options,
+        _closedWorld.commonElements,
+        compiler.backend.rtiNeed,
+        compiler.backend.rtiEncoder,
+        namer,
+        task,
+        this.generateConstantReference,
+        constantListGenerator);
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -152,8 +162,8 @@ class ModelEmitter {
     List<DeferredFragment> deferredFragments =
         new List<DeferredFragment>.from(program.deferredFragments);
 
-    FragmentEmitter fragmentEmitter =
-        new FragmentEmitter(compiler, namer, backend, constantEmitter, this);
+    FragmentEmitter fragmentEmitter = new FragmentEmitter(
+        compiler, namer, backend, constantEmitter, this, _closedWorld);
 
     Map<DeferredFragment, _DeferredFragmentHash> deferredHashTokens =
         new Map<DeferredFragment, _DeferredFragmentHash>();
@@ -191,9 +201,12 @@ class ModelEmitter {
     });
 
     writeMainFragment(mainFragment, mainCode,
-        isSplit: program.deferredFragments.isNotEmpty);
+        isSplit: program.deferredFragments.isNotEmpty ||
+            program.hasSoftDeferredClasses ||
+            compiler.options.experimentalTrackAllocations);
 
-    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (_closedWorld.backendUsage.requiresPreamble &&
+        !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 

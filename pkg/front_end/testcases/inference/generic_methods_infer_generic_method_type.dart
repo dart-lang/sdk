@@ -14,6 +14,6 @@ class D extends C {
 }
 
 main() {
-  int y = new D().m<int>(42);
-  print(/*@promotedType=none*/ y);
+  int y = new D(). /*@target=D::m*/ m<int>(42);
+  print(y);
 }

@@ -7,10 +7,12 @@
 
 library analyzer.src.summary.format;
 
-import 'flat_buffers.dart' as fb;
-import 'idl.dart' as idl;
 import 'dart:convert' as convert;
-import 'api_signature.dart' as api_sig;
+
+import 'package:front_end/src/base/api_signature.dart' as api_sig;
+import 'package:front_end/src/base/flat_buffers.dart' as fb;
+
+import 'idl.dart' as idl;
 
 class _EntityRefKindReader extends fb.Reader<idl.EntityRefKind> {
   const _EntityRefKindReader() : super();

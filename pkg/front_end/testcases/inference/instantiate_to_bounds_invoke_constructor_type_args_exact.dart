@@ -8,3 +8,7 @@ library test;
 class C<T extends num> {}
 
 var /*@topType=C<int>*/ x = new C<int>();
+
+main() {
+  x;
+}

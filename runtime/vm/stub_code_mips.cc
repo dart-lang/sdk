@@ -623,6 +623,14 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
+
+  // Adjust arguments count.
+  __ lw(TMP, FieldAddress(S4, ArgumentsDescriptor::type_args_len_offset()));
+  Label args_count_ok;
+  __ BranchEqual(TMP, Immediate(0), &args_count_ok);
+  __ AddImmediate(A1, A1, Smi::RawValue(1));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+
   // A1: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -1307,6 +1315,13 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ sw(ZR, Address(SP, 2 * kWordSize));
   __ sw(T6, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
+
+  // Adjust arguments count.
+  __ lw(TMP, FieldAddress(S4, ArgumentsDescriptor::type_args_len_offset()));
+  Label args_count_ok;
+  __ BranchEqual(TMP, Immediate(0), &args_count_ok);
+  __ AddImmediate(A1, A1, Smi::RawValue(1));  // Include the type arguments.
+  __ Bind(&args_count_ok);
 
   // A1: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);

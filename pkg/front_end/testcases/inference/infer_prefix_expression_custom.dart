@@ -12,5 +12,11 @@ class A {
 }
 
 var /*@topType=A*/ a = new A();
-var /*@topType=int*/ v_complement = ~a;
-var /*@topType=double*/ v_negate = -a;
+var /*@topType=int*/ v_complement = /*@target=A::~*/ ~a;
+var /*@topType=double*/ v_negate = /*@target=A::unary-*/ -a;
+
+main() {
+  a;
+  v_complement;
+  v_negate;
+}

@@ -50,7 +50,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -68,7 +68,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
@@ -80,7 +80,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     ObjectPoolViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -93,7 +93,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._references = references;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -133,7 +133,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'ObjectPool',
           new HRElement(),
           new ObjectCommonElement(_isolate, _pool, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new HRElement(),
           new HeadingElement.h3()..text = 'entries (${_pool.entries.length})',
@@ -160,7 +160,7 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
   List<Element> _createEntry(M.ObjectPoolEntry entry) {
     switch (entry.kind) {
       case M.ObjectPoolEntryKind.object:
-        return [anyRef(_isolate, entry.asObject, _instances, queue: _r.queue)];
+        return [anyRef(_isolate, entry.asObject, _objects, queue: _r.queue)];
       case M.ObjectPoolEntryKind.immediate:
         return [
           new SpanElement()
@@ -172,6 +172,6 @@ class ObjectPoolViewElement extends HtmlElement implements Renderable {
             ..text = 'NativeEntry 0x${entry.asInteger.toRadixString(16)}'
         ];
     }
-    throw new Exception('Unkown ObjectPoolEntryKind (${entry.kind})');
+    throw new Exception('Unknown ObjectPoolEntryKind (${entry.kind})');
   }
 }

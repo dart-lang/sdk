@@ -71,13 +71,13 @@ class ScannerTest_Fasta extends ScannerTestBase {
        } // EOF comment
     ''';
 
-    fasta.Token scanSource({bool includeComments}) {
+    Token scanSource({bool includeComments}) {
       return new fasta.StringScanner(source, includeComments: includeComments)
           .tokenize();
     }
 
     int tokenCount = 0;
-    fasta.Token token = scanSource(includeComments: false);
+    Token token = scanSource(includeComments: false);
     while (!token.isEof) {
       ++tokenCount;
       // Assert no comments
@@ -143,7 +143,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
 main() {}
 ''';
 
-    fasta.Token token;
+    Token token;
     fasta.CommentToken c1;
     fasta.CommentToken c2;
     fasta.CommentToken c3;
@@ -245,7 +245,7 @@ main() {}
 
   void test_next_previous() {
     const source = 'int a; /*1*/ /*2*/ /*3*/ B f(){if (a < 2) {}}';
-    fasta.Token token =
+    Token token =
         new fasta.StringScanner(source, includeComments: true).tokenize();
     while (!token.isEof) {
       expect(token.next.previous, token);
@@ -358,7 +358,7 @@ main() {}
 
 /// Base class for scanner tests that examine the token stream in Fasta format.
 abstract class ScannerTest_Fasta_Base {
-  fasta.Token scan(String source);
+  Token scan(String source);
 
   void test_match_angle_brackets() {
     var x = scan('x<y>');
@@ -517,7 +517,7 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
   @override
-  fasta.Token scan(String source) {
+  Token scan(String source) {
     var scanner = new fasta.StringScanner(source, includeComments: true);
     return scanner.tokenize();
   }
@@ -529,7 +529,7 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Roundtrip extends ScannerTest_Fasta_Base {
   @override
-  fasta.Token scan(String source) {
+  Token scan(String source) {
     var scanner = new fasta.StringScanner(source, includeComments: true);
     var fastaTokenStream = scanner.tokenize();
     var analyzerTokenStream = new ToAnalyzerTokenStreamConverter_NoErrors()

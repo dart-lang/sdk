@@ -282,11 +282,12 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
-    for (var import in library.deferredImports) {
+    for (var import in library.dependencies) {
       import.accept(this);
     }
     endLine();
     var inner = new Printer._inner(this, imports);
+    library.dependencies.forEach(inner.writeNode);
     library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
@@ -320,6 +321,7 @@ class Printer extends Visitor<Null> {
       writeWord(prefix);
       endLine(' {');
       ++inner.indentation;
+      library.dependencies.forEach(inner.writeNode);
       library.typedefs.forEach(inner.writeNode);
       library.classes.forEach(inner.writeNode);
       library.fields.forEach(inner.writeNode);
@@ -1065,11 +1067,18 @@ class Printer extends Visitor<Null> {
     writeSymbol(')');
   }
 
-  visitDeferredImport(DeferredImport node) {
-    write('import "');
-    write('${node.importedLibrary.importUri}');
-    write('" deferred as ');
-    write(node.name);
+  visitLibraryDependency(LibraryDependency node) {
+    writeIndentation();
+    writeWord(node.isImport ? 'import' : 'export');
+    var uriString = '${node.targetLibrary.importUri}';
+    writeWord('"$uriString"');
+    if (node.isDeferred) {
+      writeWord('deferred');
+    }
+    if (node.name != null) {
+      writeWord('as');
+      writeWord(node.name);
+    }
     endLine(';');
   }
 

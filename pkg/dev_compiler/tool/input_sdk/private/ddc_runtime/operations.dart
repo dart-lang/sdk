@@ -29,6 +29,57 @@ class InvocationImpl extends Invocation {
   }
 }
 
+/// Given an object and a method name, tear off the method.
+/// Sets the runtime type of the torn off method appropriately,
+/// and also binds the object.
+///
+/// If the optional `f` argument is passed in, it will be used as the method.
+/// This supports cases like `super.foo` where we need to tear off the method
+/// from the superclass, not from the `obj` directly.
+/// TODO(leafp): Consider caching the tearoff on the object?
+bind(obj, name, f) {
+  if (f == null) f = JS('', '#[#]', obj, name);
+
+  // TODO(jmesserly): it would be nice to do this lazily, but JS interop seems
+  // to require us to be eager (the test below).
+  var sig = getMethodType(getType(obj), name);
+
+  // JS interop case: do not bind this for compatibility with the dart2js
+  // implementation where we cannot bind this reliably here until we trust
+  // types more.
+  if (sig == null) return f;
+
+  f = JS('', '#.bind(#)', f, obj);
+  JS(
+      '',
+      r'''#[dartx["=="]] = function boundMethodEquals(other) {
+    return other[#] === this[#] && other[#] === this[#];
+  }''',
+      f,
+      _boundMethodTarget,
+      _boundMethodTarget,
+      _boundMethodName,
+      _boundMethodName);
+  JS('', '#[#] = #', f, _boundMethodTarget, obj);
+  JS('', '#[#] = #', f, _boundMethodName, name);
+  tag(f, sig);
+  return f;
+}
+
+final _boundMethodTarget = JS('', 'Symbol("_boundMethodTarget")');
+final _boundMethodName = JS('', 'Symbol("_boundMethodName")');
+
+/// Instantiate a generic method.
+///
+/// We need to apply the type arguments both to the function, as well as its
+/// associated function type.
+gbind(f, @rest typeArgs) {
+  var result = JS('', '#.apply(null, #)', f, typeArgs);
+  var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
+  tag(result, sig);
+  return result;
+}
+
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
@@ -246,9 +297,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     let formalCount = $ftype.formalCount;
     
     if ($typeArgs == null) {
-      // TODO(jmesserly): this should use instantiate to bounds logic.
-      // See https://github.com/dart-lang/sdk/issues/27256
-      $typeArgs = Array(formalCount).fill($dynamic);
+      $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
       // TODO(jmesserly): is this the right error?
       $throwStrongModeError(
@@ -256,7 +305,6 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
     }
-    // Instantiate the function type.
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
     $throwStrongModeError(
@@ -433,7 +481,10 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
     return true;
   }
   if (result === false) return false;
-  if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
+  if (!dart.__ignoreWhitelistedErrors ||
+      ($ignoreFromWhiteList == void 0)) {
+    return result;
+  }
   if ($_ignoreTypeFailure(actual, $type)) return true;
   return result;
 })()''');
@@ -458,7 +509,7 @@ instanceOf(obj, type) => JS(
   }
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
-  if (!$_failForWeakModeIsChecks) return false;
+  if (!dart.__failForWeakModeIsChecks) return false;
   let actual = $getReifiedType($obj);
   $throwStrongModeError('Strong mode is-check failure: ' +
     $typeName(actual) + ' does not soundly subtype ' +
@@ -617,37 +668,70 @@ assert_(condition, [message]) => JS(
   if (!$condition) $throwAssertionError(message);
 })()''');
 
-var _stack = null;
-@JSExportName('throw')
-throw_(obj) => JS(
-    '',
-    '''(() => {
-    $_stack = new Error();
-    throw $obj;
-})()''');
+/// Store a JS error for an exception.  For non-primitives, we store as an
+/// expando.  For primitive, we use a side cache.  To limit memory leakage, we
+/// only keep the last [_maxTraceCache] entries.
+final _error = JS('', 'Symbol("_error")');
+Map _primitiveErrorCache;
+const _maxErrorCache = 10;
 
-getError(exception) => JS(
-    '',
-    '''(() => {
-  var stack = $_stack;
-  return stack !== null ? stack : $exception;
-})()''');
+bool _isJsError(exception) {
+  return JS('bool', '#.Error != null && # instanceof #.Error', global_,
+      exception, global_);
+}
+
+// Record/return the JS error for an exception.  If an error was already
+// recorded, prefer that to [newError].
+recordJsError(exception, [newError]) {
+  if (_isJsError(exception)) return exception;
+
+  var useExpando =
+      exception != null && JS('bool', 'typeof # == "object"', exception);
+  var error;
+  if (useExpando) {
+    error = JS('', '#[#]', exception, _error);
+  } else {
+    if (_primitiveErrorCache == null) _primitiveErrorCache = {};
+    error = _primitiveErrorCache[exception];
+  }
+  if (error != null) return error;
+  if (newError != null) {
+    error = newError;
+  } else {
+    // We should only hit this path when a non-Error was thrown from JS.  In
+    // case, there is no stack trace on the exception, so we create one:
+    error = JS('', 'new Error()');
+  }
+  if (useExpando) {
+    JS('', '#[#] = #', exception, _error, error);
+  } else {
+    _primitiveErrorCache[exception] = error;
+    if (_primitiveErrorCache.length > _maxErrorCache) {
+      _primitiveErrorCache.remove(_primitiveErrorCache.keys.first);
+    }
+  }
+  return error;
+}
+
+@JSExportName('throw')
+throw_(obj) {
+  // Note, we create the error here to avoid the extra frame.
+  // package:stack_trace and tests appear to assume this.  We could fix use
+  // cases instead, but we're already on the exceptional path here.
+  recordJsError(obj, JS('', 'new Error()'));
+  JS('', 'throw #', obj);
+}
 
 // This is a utility function: it is only intended to be called from dev
 // tools.
-stackPrint(exception) => JS(
-    '',
-    '''(() => {
-  var error = $getError($exception);
-  console.log(error.stack ? error.stack : 'No stack trace for: ' + error);
-})()''');
+stackPrint(exception) {
+  var error = recordJsError(exception);
+  JS('', 'console.log(#.stack ? #.stack : "No stack trace for: " + #)', error,
+      error, error);
+}
 
-stackTrace(exception) => JS(
-    '',
-    '''(() => {
-  var error = $getError($exception);
-  return $getTraceFromException(error);
-})()''');
+// Forward to dart:_js_helper to create a _StackTrace object.
+stackTrace(exception) => getTraceFromException(exception);
 
 ///
 /// Implements a sequence of .? operations.

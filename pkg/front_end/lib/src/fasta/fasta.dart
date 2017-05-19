@@ -10,11 +10,13 @@ import 'dart:convert' show JSON;
 
 import 'dart:io' show BytesBuilder, Directory, File, exitCode;
 
+import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;
 
-import 'package:kernel/kernel.dart' show Program, Library;
+import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -133,7 +135,7 @@ class CompileTask {
     }
     Uri platform = c.options.platform;
     if (platform != null) {
-      dillTarget.read(platform);
+      _appendDillForUri(dillTarget, platform);
     }
     String argument = c.options.arguments.first;
     Uri uri = Uri.base.resolve(argument);
@@ -143,10 +145,14 @@ class CompileTask {
     } else {
       inputError(uri, -1, "Unexpected input: $uri");
     }
-    await dillTarget.writeOutline(null);
-    await kernelTarget.writeOutline(output);
+    await dillTarget.buildOutlines();
+    var outline = await kernelTarget.buildOutlines();
     if (c.options.dumpIr && output != null) {
-      kernelTarget.dumpIr();
+      printProgramText(outline);
+    }
+    if (output != null) {
+      await writeProgramToFile(outline, output);
+      ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
     return kernelTarget;
   }
@@ -155,8 +161,10 @@ class CompileTask {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
-    await kernelTarget.writeProgram(uri,
-        dumpIr: c.options.dumpIr, verify: c.options.verify);
+    var program = await kernelTarget.buildProgram(verify: c.options.verify);
+    if (c.options.dumpIr) printProgramText(program);
+    await writeProgramToFile(program, uri);
+    ticker.logMs("Wrote program to ${uri.toFilePath()}");
     return uri;
   }
 }
@@ -164,8 +172,16 @@ class CompileTask {
 Future<CompilationResult> parseScript(
     Uri fileName, Uri packages, Uri patchedSdk,
     {bool verbose: false, bool strongMode: false}) async {
+  return parseScriptInFileSystem(
+      fileName, PhysicalFileSystem.instance, packages, patchedSdk,
+      verbose: verbose, strongMode: strongMode);
+}
+
+Future<CompilationResult> parseScriptInFileSystem(
+    Uri fileName, FileSystem fileSystem, Uri packages, Uri patchedSdk,
+    {bool verbose: false, bool strongMode: false}) async {
   try {
-    if (!await new File.fromUri(fileName).exists()) {
+    if (!await fileSystem.entityForUri(fileName).exists()) {
       return new CompilationResult.error(
           formatUnexpected(fileName, -1, "No such file."));
     }
@@ -177,20 +193,18 @@ Future<CompilationResult> parseScript(
     Program program;
     try {
       TranslateUri uriTranslator =
-          await TranslateUri.parse(PhysicalFileSystem.instance, null, packages);
+          await TranslateUri.parse(fileSystem, null, packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
       final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-      dillTarget.read(patchedSdk.resolve('platform.dill'));
-      final KernelTarget kernelTarget = new KernelTarget(
-          PhysicalFileSystem.instance, dillTarget, uriTranslator, strongMode);
+      _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
+      final KernelTarget kernelTarget =
+          new KernelTarget(fileSystem, dillTarget, uriTranslator, strongMode);
       kernelTarget.read(fileName);
-      await dillTarget.writeOutline(null);
-      program = await kernelTarget.writeOutline(null);
-      program = await kernelTarget.writeProgram(null);
+      await dillTarget.buildOutlines();
+      await kernelTarget.buildOutlines();
+      program = await kernelTarget.buildProgram();
       if (kernelTarget.errors.isNotEmpty) {
-        return new CompilationResult.errors(kernelTarget.errors
-            .map((err) => err.toString())
-            .toList(growable: false));
+        return new CompilationResult.errors(kernelTarget.errors);
       }
     } on InputError catch (e) {
       return new CompilationResult.error(e.format());
@@ -222,15 +236,16 @@ Future<CompilationResult> parseScript(
   }
 }
 
-Future compilePlatform(Uri patchedSdk, Uri output,
-    {Uri packages, bool verbose: false}) async {
+Future compilePlatform(Uri patchedSdk, Uri fullOutput,
+    {Uri outlineOutput, Uri packages, bool verbose: false}) async {
   Ticker ticker = new Ticker(isVerbose: verbose);
   await CompilerCommandLine.withGlobalOptions("", [""], (CompilerContext c) {
     c.options.options["--packages"] = packages;
     if (verbose) {
       c.options.options["--verbose"] = true;
     }
-    return compilePlatformInternal(c, ticker, patchedSdk, output);
+    return compilePlatformInternal(
+        c, ticker, patchedSdk, fullOutput, outlineOutput);
   });
 }
 
@@ -250,17 +265,26 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     TranslateUri uriTranslator = await TranslateUri.parse(
         c.fileSystem, c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = new DillTarget(ticker, uriTranslator)
-      ..read(platform);
+    DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+    _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(PhysicalFileSystem.instance,
         dillTarget, uriTranslator, false, c.uriToSource);
 
     kernelTarget.read(script);
-    await dillTarget.writeOutline(null);
+    await dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
     await kernelTarget.writeDepsFile(output, depsFile,
         extraDependencies: extraDependencies);
   });
+}
+
+/// Load the [Program] from the given [uri] and append its libraries
+/// to the [dillTarget].
+void _appendDillForUri(DillTarget dillTarget, Uri uri) {
+  var bytes = new File.fromUri(uri).readAsBytesSync();
+  var platformProgram = loadProgramFromBytes(bytes);
+  platformProgram.unbindCanonicalNames();
+  dillTarget.loader.appendLibraries(platformProgram);
 }
 
 // TODO(ahe): https://github.com/dart-lang/sdk/issues/28316

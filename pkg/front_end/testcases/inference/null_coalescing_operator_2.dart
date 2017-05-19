@@ -7,5 +7,5 @@ library test;
 
 main() {
   List<int> x;
-  List<num> y = /*@promotedType=none*/ x ?? /*@typeArgs=num*/ [];
+  List<num> y = x ?? /*@typeArgs=num*/ [];
 }

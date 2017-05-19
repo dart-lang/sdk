@@ -1,5 +1,7 @@
 library;
 import self as self;
+import "dart:core" as core;
 
+typedef Handle = (core::String) → dynamic;
 static method main() → dynamic
   ;

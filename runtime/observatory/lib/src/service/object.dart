@@ -1852,19 +1852,35 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     });
   }
 
-  Future<ServiceObject> eval(ServiceObject target, String expression) {
+  Future<ServiceObject> eval(ServiceObject target, String expression,
+      {Map<String, ServiceObject> scope}) {
     Map params = {
       'targetId': target.id,
       'expression': expression,
     };
+    if (scope != null) {
+      Map<String, String> scopeWithIds = new Map();
+      scope.forEach((String name, ServiceObject object) {
+        scopeWithIds[name] = object.id;
+      });
+      params["scope"] = scopeWithIds;
+    }
     return invokeRpc('evaluate', params);
   }
 
-  Future<ServiceObject> evalFrame(int frameIndex, String expression) {
+  Future<ServiceObject> evalFrame(int frameIndex, String expression,
+      {Map<String, ServiceObject> scope}) {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
     };
+    if (scope != null) {
+      Map<String, String> scopeWithIds = new Map();
+      scope.forEach((String name, ServiceObject object) {
+        scopeWithIds[name] = object.id;
+      });
+      params["scope"] = scopeWithIds;
+    }
     return invokeRpc('evaluateInFrame', params);
   }
 
@@ -2378,8 +2394,8 @@ class Library extends HeapObject implements M.Library {
     functions.sort(ServiceObject.LexicalSortName);
   }
 
-  Future<ServiceObject> evaluate(String expression) {
-    return isolate.eval(this, expression);
+  Future<ServiceObject> evaluate(String expression, {Map scope}) {
+    return isolate.eval(this, expression, scope: scope);
   }
 
   Script get rootScript {
@@ -2548,8 +2564,8 @@ class Class extends HeapObject implements M.Class {
     subclasses.sort(ServiceObject.LexicalSortName);
   }
 
-  Future<ServiceObject> evaluate(String expression) {
-    return isolate.eval(this, expression);
+  Future<ServiceObject> evaluate(String expression, {Map scope}) {
+    return isolate.eval(this, expression, scope: scope);
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
@@ -2902,8 +2918,8 @@ class Instance extends HeapObject implements M.Instance {
     return 'a ${clazz.name}';
   }
 
-  Future<ServiceObject> evaluate(String expression) {
-    return isolate.eval(this, expression);
+  Future<ServiceObject> evaluate(String expression, {Map scope}) {
+    return isolate.eval(this, expression, scope: scope);
   }
 
   String toString() => 'Instance($shortName)';

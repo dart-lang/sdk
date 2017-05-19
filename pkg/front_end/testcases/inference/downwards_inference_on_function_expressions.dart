@@ -55,7 +55,8 @@ void main() {
   }
   {
     Function2<int, int> l0 = /*@returnType=int*/ (/*@type=int*/ x) => x;
-    Function2<int, int> l1 = /*@returnType=int*/ (/*@type=int*/ x) => x + 1;
+    Function2<int, int> l1 = /*@returnType=int*/ (/*@type=int*/ x) =>
+        x /*@target=num::+*/ + 1;
     Function2<int, String>
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ (/*@type=int*/ x) =>
             x;
@@ -63,6 +64,7 @@ void main() {
         l3 = /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/ x
             .substring(3);
     Function2<String, String>
-        l4 = /*@returnType=String*/ (/*@type=String*/ x) => x.substring(3);
+        l4 = /*@returnType=String*/ (/*@type=String*/ x) =>
+            x. /*@target=String::substring*/ substring(3);
   }
 }

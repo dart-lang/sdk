@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:kernel/ast.dart';
 
@@ -241,12 +241,14 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
       Expression initializer,
       Token equalsToken,
       bool isFinal: false,
-      bool isConst: false}) {
+      bool isConst: false,
+      bool isLocalFunction: false}) {
     return new KernelVariableDeclaration(name, functionNestingLevel,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
-        isConst: isConst)
+        isConst: isConst,
+        isLocalFunction: isLocalFunction)
       ..fileOffset = offsetForToken(token)
       ..fileEqualsOffset = offsetForToken(equalsToken);
   }

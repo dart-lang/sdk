@@ -799,7 +799,7 @@ void FlowGraphCompiler::CopyParameters() {
     // Let R7 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
     __ add(R7, FP, Operand(R7, LSL, 2));
-    __ AddImmediate(R7, R7, kParamEndSlotFromFp * kWordSize);
+    __ AddImmediate(R7, kParamEndSlotFromFp * kWordSize);
     // Let R6 point to the entry of the first named argument.
     __ add(R6, R4, Operand(ArgumentsDescriptor::first_named_entry_offset() -
                            kHeapObjectTag));
@@ -1483,17 +1483,16 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid() {
 
 
 int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
-                                               const CidRangeTarget& target,
+                                               const CidRange& range,
                                                int bias) {
-  intptr_t cid_start = target.cid_start;
-  intptr_t cid_end = target.cid_end;
-  if (cid_start == cid_end) {
+  intptr_t cid_start = range.cid_start;
+  if (range.IsSingleCid()) {
     __ CompareImmediate(R2, cid_start - bias);
     __ b(next_label, NE);
   } else {
-    __ AddImmediate(R2, R2, bias - cid_start);
+    __ AddImmediate(R2, bias - cid_start);
     bias = cid_start;
-    __ CompareImmediate(R2, cid_end - cid_start);
+    __ CompareImmediate(R2, range.Extent());
     __ b(next_label, HI);  // Unsigned higher.
   }
   return bias;

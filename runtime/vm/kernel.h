@@ -190,6 +190,7 @@ class Ref {
 };
 
 
+// A list of pointers that are each deleted when the list is destroyed.
 template <typename T>
 class List {
  public:
@@ -230,11 +231,49 @@ class List {
 
   T** raw_array() { return array_; }
 
+  bool CanStream() {
+    for (intptr_t i = 0; i < length_; ++i) {
+      if (!array_[i]->can_stream()) return false;
+    }
+    return true;
+  }
+
  private:
   T** array_;
   int length_;
 
   DISALLOW_COPY_AND_ASSIGN(List);
+};
+
+
+// A list that cannot be resized and which, unlike List<T>, does not enforce
+// its members to be pointers and does not `delete` its members on destruction.
+template <typename T>
+class RawList {
+ public:
+  RawList() : pointer_(NULL) {}
+
+  ~RawList() {
+    if (pointer_ != NULL) {
+      delete[] pointer_;
+    }
+  }
+
+  void Initialize(int length) {
+    ASSERT(pointer_ == NULL);
+    pointer_ = new T[length];
+    length_ = length;
+  }
+
+  T& operator[](int index) { return pointer_[index]; }
+
+  int length() { return length_; }
+
+ private:
+  int length_;
+  T* pointer_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawList);
 };
 
 
@@ -348,6 +387,8 @@ class Class;
 class Constructor;
 class Field;
 class Library;
+class LibraryDependency;
+class Combinator;
 class LinkedNode;
 class Member;
 class Procedure;
@@ -387,13 +428,16 @@ class TreeNode : public Node {
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
   intptr_t kernel_offset() const { return kernel_offset_; }
+  bool can_stream() { return can_stream_; }
 
  protected:
-  TreeNode() : kernel_offset_(-1) {}
+  TreeNode() : kernel_offset_(-1), can_stream_(true) {}
 
   // Offset for this node in the kernel-binary. If this node has a tag the
   // offset includes the tag. Can be -1 to indicate "unknown" or invalid offset.
   intptr_t kernel_offset_;
+
+  bool can_stream_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TreeNode);
@@ -430,6 +474,7 @@ class Library : public LinkedNode {
   StringIndex import_uri() { return import_uri_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   StringIndex name() { return name_index_; }
+  List<LibraryDependency>& dependencies() { return dependency_; }
   List<Typedef>& typedefs() { return typedefs_; }
   List<Class>& classes() { return classes_; }
   List<Field>& fields() { return fields_; }
@@ -447,6 +492,7 @@ class Library : public LinkedNode {
   StringIndex name_index_;
   StringIndex import_uri_index_;
   intptr_t source_uri_index_;
+  List<LibraryDependency> dependency_;
   List<Typedef> typedefs_;
   List<Class> classes_;
   List<Field> fields_;
@@ -455,6 +501,56 @@ class Library : public LinkedNode {
   intptr_t kernel_data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(Library);
+};
+
+
+class LibraryDependency {
+ public:
+  enum Flags {
+    kFlagExport = 1 << 0,
+    kFlagDeferred = 1 << 1,
+  };
+
+  static LibraryDependency* ReadFrom(Reader* reader);
+
+  virtual ~LibraryDependency();
+
+  bool is_export() { return (flags_ & kFlagExport) != 0; }
+  bool is_import() { return (flags_ & kFlagExport) == 0; }
+  bool is_deferred() { return (flags_ & kFlagDeferred) != 0; }
+  List<Expression>& annotations() { return annotations_; }
+  NameIndex target() { return target_reference_; }
+  StringIndex name() { return name_index_; }
+
+ private:
+  LibraryDependency() {}
+
+  word flags_;
+  List<Expression> annotations_;
+  NameIndex target_reference_;
+  StringIndex name_index_;
+  List<Combinator> combinators_;
+
+  DISALLOW_COPY_AND_ASSIGN(LibraryDependency);
+};
+
+
+class Combinator {
+ public:
+  static Combinator* ReadFrom(Reader* reader);
+
+  virtual ~Combinator();
+
+  bool is_show() { return is_show_; }
+  RawList<intptr_t>& names() { return name_indices_; }
+
+ private:
+  Combinator() {}
+
+  bool is_show_;
+  RawList<intptr_t> name_indices_;
+
+  DISALLOW_COPY_AND_ASSIGN(Combinator);
 };
 
 
@@ -1018,6 +1114,7 @@ class VariableGet : public Expression {
   VariableGet() {}
 
   Ref<VariableDeclaration> variable_;
+  intptr_t variable_kernel_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableGet);
 };
@@ -1042,6 +1139,7 @@ class VariableSet : public Expression {
   VariableSet() {}
 
   Ref<VariableDeclaration> variable_;
+  intptr_t variable_kernel_offset_;
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableSet);
@@ -1152,7 +1250,9 @@ class DirectPropertySet : public Expression {
 
 class StaticGet : public Expression {
  public:
-  explicit StaticGet(NameIndex target) : target_reference_(target) {}
+  StaticGet(NameIndex target, bool can_stream) : target_reference_(target) {
+    can_stream_ = can_stream;
+  }
 
   static StaticGet* ReadFrom(Reader* reader);
 
@@ -1209,6 +1309,7 @@ class Arguments : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
+  // TODO(regis): Support type arguments of generic functions.
   List<DartType>& types() { return types_; }
   List<Expression>& positional() { return positional_; }
   List<NamedExpression>& named() { return named_; }
@@ -2174,12 +2275,12 @@ class BreakStatement : public Statement {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  LabeledStatement* target() { return target_; }
+  intptr_t target_index() { return target_index_; }
 
  private:
   BreakStatement() {}
 
-  Ref<LabeledStatement> target_;
+  intptr_t target_index_;
 
   DISALLOW_COPY_AND_ASSIGN(BreakStatement);
 };
@@ -2365,12 +2466,12 @@ class ContinueSwitchStatement : public Statement {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  SwitchCase* target() { return target_; }
+  intptr_t target_index() { return target_index_; }
 
  private:
   ContinueSwitchStatement() {}
 
-  Ref<SwitchCase> target_;
+  intptr_t target_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ContinueSwitchStatement);
 };
@@ -2404,7 +2505,10 @@ class IfStatement : public Statement {
 
 class ReturnStatement : public Statement {
  public:
-  explicit ReturnStatement(Expression* expression) : expression_(expression) {}
+  ReturnStatement(Expression* expression, bool can_stream)
+      : expression_(expression) {
+    can_stream_ = can_stream;
+  }
 
   static ReturnStatement* ReadFrom(Reader* reader);
 
@@ -2941,6 +3045,7 @@ class Reference : public AllStatic {
   static NameIndex ReadMemberFrom(Reader* reader, bool allow_null = false);
   static NameIndex ReadClassFrom(Reader* reader, bool allow_null = false);
   static NameIndex ReadTypedefFrom(Reader* reader);
+  static NameIndex ReadLibraryFrom(Reader* reader);
 };
 
 

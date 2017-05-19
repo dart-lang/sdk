@@ -616,7 +616,8 @@ class Parser : public ValueObject {
                                 ArgumentListNode* arguments,
                                 bool resolve_getter,
                                 bool* is_no_such_method);
-  AstNode* ParseSuperCall(const String& function_name);
+  AstNode* ParseSuperCall(const String& function_name,
+                          const TypeArguments& func_type_args);
   AstNode* ParseSuperFieldAccess(const String& field_name,
                                  TokenPosition field_pos);
   AstNode* ParseSuperOperator();
@@ -833,16 +834,20 @@ class Parser : public ValueObject {
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
+                                          const TypeArguments& func_type_args,
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
                            TokenPosition ident_pos,
+                           const TypeArguments& func_type_args,
                            const LibraryPrefix* prefix = NULL);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
                              TokenPosition ident_pos,
+                             const TypeArguments& func_type_args,
                              bool is_conditional);
-  AstNode* ParseClosureCall(AstNode* closure);
+  AstNode* ParseClosureCall(AstNode* closure,
+                            const TypeArguments& func_type_args);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      TokenPosition ident_pos);
   AstNode* GenerateStaticFieldAccess(const Class& cls,

@@ -4816,7 +4816,9 @@ void TypeArguments::set_instantiations(const Array& value) const {
 
 
 intptr_t TypeArguments::Length() const {
-  ASSERT(!IsNull());
+  if (IsNull()) {
+    return 0;
+  }
   return Smi::Value(raw_ptr()->length_);
 }
 
@@ -6198,9 +6200,24 @@ intptr_t Function::NumImplicitParameters() const {
 }
 
 
-bool Function::AreValidArgumentCounts(intptr_t num_arguments,
+bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
+                                      intptr_t num_arguments,
                                       intptr_t num_named_arguments,
                                       String* error_message) const {
+  if ((num_type_arguments != 0) &&
+      (num_type_arguments != NumTypeParameters())) {
+    if (error_message != NULL) {
+      const intptr_t kMessageBufferSize = 64;
+      char message_buffer[kMessageBufferSize];
+      OS::SNPrint(message_buffer, kMessageBufferSize,
+                  "%" Pd " type arguments passed, but %" Pd " expected",
+                  num_type_arguments, NumTypeParameters());
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
+    }
+    return false;  // Too many type arguments.
+  }
   if (num_named_arguments > NumOptionalNamedParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
@@ -6257,13 +6274,14 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
 }
 
 
-bool Function::AreValidArguments(intptr_t num_arguments,
+bool Function::AreValidArguments(intptr_t num_type_arguments,
+                                 intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
   const intptr_t num_named_arguments =
       argument_names.IsNull() ? 0 : argument_names.Length();
-  if (!AreValidArgumentCounts(num_arguments, num_named_arguments,
-                              error_message)) {
+  if (!AreValidArgumentCounts(num_type_arguments, num_arguments,
+                              num_named_arguments, error_message)) {
     return false;
   }
   // Verify that all argument names are valid parameter names.
@@ -6304,11 +6322,12 @@ bool Function::AreValidArguments(intptr_t num_arguments,
 
 bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
                                  String* error_message) const {
+  const intptr_t num_type_arguments = args_desc.TypeArgsLen();
   const intptr_t num_arguments = args_desc.Count();
   const intptr_t num_named_arguments = args_desc.NamedCount();
 
-  if (!AreValidArgumentCounts(num_arguments, num_named_arguments,
-                              error_message)) {
+  if (!AreValidArgumentCounts(num_type_arguments, num_arguments,
+                              num_named_arguments, error_message)) {
     return false;
   }
   // Verify that all argument names are valid parameter names.

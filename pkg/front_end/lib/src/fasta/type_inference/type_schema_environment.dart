@@ -158,13 +158,24 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     return const DynamicType();
   }
 
+  @override
+  DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
+    // TODO(paulberry): this matches what is defined in the spec.  It would be
+    // nice if we could change kernel to match the spec and not have to
+    // override.
+    if (type1 == intType) {
+      if (type2 == intType) return type2;
+      if (type2 == doubleType) return type2;
+    }
+    return numType;
+  }
+
   /// Infers a generic type, function, method, or list/map literal
   /// instantiation, using the downward context type as well as the argument
   /// types if available.
   ///
   /// For example, given a function type with generic type parameters, this
-  /// infers the type parameters from the actual argument types, and returns the
-  /// instantiated function type.
+  /// infers the type parameters from the actual argument types.
   ///
   /// Concretely, given a function type with parameter types P0, P1, ... Pn,
   /// result type R, and generic type parameters T0, T1, ... Tm, use the
@@ -180,20 +191,17 @@ class TypeSchemaEnvironment extends TypeEnvironment {
   /// argument values, type parameter "extends" clause, or the return type
   /// context.
   ///
-  /// TODO(paulberry): I think [formalTypes] and [actualTypes] might only be
-  /// used for upwards inference.  If this is the case, consider having the
-  /// caller to pass `null` for these to signal downwards inference, rather than
-  /// use an optional boolean parameter that might easily be missed.
-  DartType inferGenericFunctionOrType(
+  /// If non-null values for [formalTypes] and [actualTypes] are provided, this
+  /// is upwards inference.  Otherwise it is downward inference.
+  void inferGenericFunctionOrType(
+      DartType declaredReturnType,
       List<TypeParameter> typeParametersToInfer,
-      DartType genericType,
       List<DartType> formalTypes,
       List<DartType> actualTypes,
       DartType returnContextType,
-      List<DartType> typesFromDownwardsInference,
-      {bool downwards: false}) {
+      List<DartType> inferredTypes) {
     if (typeParametersToInfer.isEmpty) {
-      return genericType;
+      return;
     }
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -202,53 +210,43 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // are implied by this.
     var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
 
-    DartType declaredReturnType =
-        genericType is FunctionType ? genericType.returnType : genericType;
-
     if (returnContextType != null) {
       gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
     }
 
-    for (int i = 0; i < actualTypes.length; i++) {
-      // Try to pass each argument to each parameter, recording any type
-      // parameter bounds that were implied by this assignment.
-      gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+    if (formalTypes != null) {
+      for (int i = 0; i < formalTypes.length; i++) {
+        // Try to pass each argument to each parameter, recording any type
+        // parameter bounds that were implied by this assignment.
+        gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+      }
     }
 
-    return inferTypeFromConstraints(gatherer.computeConstraints(), genericType,
-        typeParametersToInfer, typesFromDownwardsInference,
-        downwardsInferPhase: downwards);
+    inferTypeFromConstraints(
+        gatherer.computeConstraints(), typeParametersToInfer, inferredTypes,
+        downwardsInferPhase: formalTypes == null);
   }
 
-  /// Use the given [constraints] to substitute for type variables in
-  /// [genericType].
+  /// Use the given [constraints] to substitute for type variables..
   ///
   /// [typeParametersToInfer] is the set of type parameters that should be
-  /// substituted for.  [typesFromDownwardsInference] should be a list of the
-  /// same length, initially filled with `null`.
+  /// substituted for.  [inferredTypes] should be a list of the same length.
   ///
   /// If [downwardsInferPhase] is `true`, then we are in the first pass of
   /// inference, pushing context types down.  This means we are allowed to push
-  /// down `?` to precisely represent an unknown type.  Also, any types that are
-  /// inferred during this stage will be stored in [typesFromDownwardsInference]
-  /// for later use.
+  /// down `?` to precisely represent an unknown type.  [inferredTypes] should
+  /// be initially populated with `?`.  These `?`s will be replaced, if
+  /// appropriate, with the types that were inferred by downwards inference.
   ///
   /// If [downwardsInferPhase] is `false`, then we are in the second pass of
   /// inference, and must not conclude `?` for any type formal.  In this pass,
-  /// values will be read from [typesFromDownwardsInference] to use as a
-  /// starting point for inference.
-  DartType inferTypeFromConstraints(
-      Map<TypeParameter, TypeConstraint> constraints,
-      DartType genericType,
-      List<TypeParameter> typeParametersToInfer,
-      List<DartType> typesFromDownwardsInference,
+  /// [inferredTypes] should contain the values from the first pass.  They will
+  /// be replaced with the final inferred types.
+  void inferTypeFromConstraints(Map<TypeParameter, TypeConstraint> constraints,
+      List<TypeParameter> typeParametersToInfer, List<DartType> inferredTypes,
       {bool downwardsInferPhase: false}) {
-    // Initialize the inferred type array.
-    //
-    // In the downwards phase, they all start as `?` to offer reasonable
-    // degradation for f-bounded type parameters.
-    var inferredTypes = new List<DartType>.filled(
-        typeParametersToInfer.length, const UnknownType());
+    List<DartType> typesFromDownwardsInference =
+        downwardsInferPhase ? null : inferredTypes.toList(growable: false);
 
     for (int i = 0; i < typeParametersToInfer.length; i++) {
       TypeParameter typeParam = typeParametersToInfer[i];
@@ -263,7 +261,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
 
       var constraint = constraints[typeParam];
       if (downwardsInferPhase) {
-        typesFromDownwardsInference[i] = inferredTypes[i] =
+        inferredTypes[i] =
             _inferTypeParameterFromContext(constraint, extendsConstraint);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
@@ -274,9 +272,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // If the downwards infer phase has failed, we'll catch this in the upwards
     // phase later on.
     if (downwardsInferPhase) {
-      return Substitution
-          .fromPairs(typeParametersToInfer, inferredTypes)
-          .substituteType(genericType);
+      return;
     }
 
     // Check the inferred types against all of the constraints.
@@ -310,12 +306,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       }
     }
 
-    // Use instantiate to bounds to finish things off.
-    var result = instantiateToBounds(genericType, knownTypes: knownTypes);
-
     // TODO(paulberry): report any errors from instantiateToBounds.
-
-    return result;
   }
 
   /// Given a [DartType] [type], if [type] is an uninstantiated
@@ -363,6 +354,9 @@ class TypeSchemaEnvironment extends TypeEnvironment {
   @override
   bool isBottom(DartType t) {
     if (t is UnknownType) {
+      return true;
+    } else if (t is InterfaceType &&
+        identical(t.classNode, coreTypes.nullClass)) {
       return true;
     } else {
       return super.isBottom(t);

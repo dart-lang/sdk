@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -31,6 +30,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
 
@@ -934,7 +934,7 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    SourceRange nodeRange = rangeNode(node);
+    SourceRange nodeRange = range.node(node);
     if (partRange.covers(nodeRange)) {
       Element element = _getLocalElement(node);
       if (element != null) {
@@ -1030,7 +1030,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
     if (ref._selectionFunctionExpression != null ||
         ref._selectionExpression != null &&
             node.runtimeType == ref._selectionExpression.runtimeType) {
-      SourceRange nodeRange = rangeNode(node);
+      SourceRange nodeRange = range.node(node);
       _tryToFindOccurrence(nodeRange);
     }
     return super.visitExpression(node);
@@ -1090,7 +1090,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
     int beginStatementIndex = 0;
     int selectionCount = ref._selectionStatements.length;
     while (beginStatementIndex + selectionCount <= statements.length) {
-      SourceRange nodeRange = rangeStartEnd(statements[beginStatementIndex],
+      SourceRange nodeRange = range.startEnd(statements[beginStatementIndex],
           statements[beginStatementIndex + selectionCount - 1]);
       bool found = _tryToFindOccurrence(nodeRange);
       // next statement
@@ -1111,7 +1111,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    SourceRange nodeRange = rangeNode(node);
+    SourceRange nodeRange = range.node(node);
     if (!ref.selectionRange.covers(nodeRange)) {
       return;
     }

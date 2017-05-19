@@ -51,6 +51,10 @@ class TypeConstraintGathererTest {
     classQ = _addClass(_class('Q'));
   }
 
+  Class get functionClass => coreTypes.functionClass;
+
+  InterfaceType get functionType => functionClass.rawType;
+
   Class get iterableClass => coreTypes.tryGetClass('dart:core', 'Iterable');
 
   Class get listClass => coreTypes.listClass;
@@ -89,6 +93,85 @@ class TypeConstraintGathererTest {
 
   void test_equal_types() {
     _checkConstraints(P, P, []);
+  }
+
+  void test_function_generic() {
+    var T = new TypeParameterType(new TypeParameter('T', objectType));
+    var U = new TypeParameterType(new TypeParameter('U', objectType));
+    // <T>() -> dynamic <: () -> dynamic, never
+    _checkConstraints(
+        new FunctionType([], dynamicType, typeParameters: [T.parameter]),
+        new FunctionType([], dynamicType),
+        null);
+    // () -> dynamic <: <T>() -> dynamic, never
+    _checkConstraints(new FunctionType([], dynamicType),
+        new FunctionType([], dynamicType, typeParameters: [T.parameter]), null);
+    // <T>(T) -> T <: <U>(U) -> U, always
+    _checkConstraints(new FunctionType([T], T, typeParameters: [T.parameter]),
+        new FunctionType([U], U, typeParameters: [U.parameter]), []);
+  }
+
+  void test_function_parameter_mismatch() {
+    // (P) -> dynamic <: () -> dynamic, never
+    _checkConstraints(new FunctionType([P], dynamicType),
+        new FunctionType([], dynamicType), null);
+    // () -> dynamic <: (P) -> dynamic, never
+    _checkConstraints(new FunctionType([], dynamicType),
+        new FunctionType([P], dynamicType), null);
+    // ([P]) -> dynamic <: () -> dynamic, always
+    _checkConstraints(
+        new FunctionType([P], dynamicType, requiredParameterCount: 0),
+        new FunctionType([], dynamicType), []);
+    // () -> dynamic <: ([P]) -> dynamic, never
+    _checkConstraints(new FunctionType([], dynamicType),
+        new FunctionType([P], dynamicType, requiredParameterCount: 0), null);
+    // ({x: P}) -> dynamic <: () -> dynamic, always
+    _checkConstraints(
+        new FunctionType([], dynamicType,
+            namedParameters: [new NamedType('x', P)]),
+        new FunctionType([], dynamicType),
+        []);
+    // () -> dynamic !<: ({x: P}) -> dynamic, never
+    _checkConstraints(
+        new FunctionType([], dynamicType),
+        new FunctionType([], dynamicType,
+            namedParameters: [new NamedType('x', P)]),
+        null);
+  }
+
+  void test_function_parameter_types() {
+    // (T1) -> dynamic <: (Q) -> dynamic, under constraint Q <: T1
+    _checkConstraints(new FunctionType([T1], dynamicType),
+        new FunctionType([Q], dynamicType), ['lib::Q <: T1']);
+    // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
+    _checkConstraints(
+        new FunctionType([], dynamicType,
+            namedParameters: [new NamedType('x', T1)]),
+        new FunctionType([], dynamicType,
+            namedParameters: [new NamedType('x', Q)]),
+        ['lib::Q <: T1']);
+  }
+
+  void test_function_return_type() {
+    // () -> T1 <: () -> Q, under constraint T1 <: Q
+    _checkConstraints(
+        new FunctionType([], T1), new FunctionType([], Q), ['T1 <: lib::Q']);
+    // () -> P <: () -> void, always
+    _checkConstraints(
+        new FunctionType([], P), new FunctionType([], voidType), []);
+    // () -> void <: () -> P, never
+    _checkConstraints(
+        new FunctionType([], voidType), new FunctionType([], P), null);
+  }
+
+  void test_function_trivial_cases() {
+    var F = new FunctionType([], dynamicType);
+    // () -> dynamic <: dynamic, always
+    _checkConstraints(F, dynamicType, []);
+    // () -> dynamic <: Function, always
+    _checkConstraints(F, functionType, []);
+    // () -> dynamic <: Object, always
+    _checkConstraints(F, objectType, []);
   }
 
   void test_nonInferredParameter_subtype_any() {
@@ -137,6 +220,7 @@ class TypeConstraintGathererTest {
       expect(constraints, isNull);
       return;
     }
+    expect(constraints, isNotNull);
     var constraintStrings = <String>[];
     constraints.forEach((t, constraint) {
       if (constraint.lower is! UnknownType ||

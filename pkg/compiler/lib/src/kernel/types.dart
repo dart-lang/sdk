@@ -36,8 +36,19 @@ class _KernelDartTypes implements DartTypes {
   }
 
   @override
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
+    return elementMap._getOrderedTypeSet(cls).supertypes;
+  }
+
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     return elementMap._asInstanceOf(type, cls);
+  }
+
+  @override
+  FunctionType getCallType(InterfaceType type) {
+    // TODO(johnniwinther): Compute the call type.
+    throw new UnimplementedError('_KernelDartTypes.getCallType');
   }
 
   @override

@@ -3653,27 +3653,32 @@ Future<Null> loadDeferredLibrary(String loadId) {
   // list of hashes. These are stored in the app-global scope.
   var urisMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_URIS);
   List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
+  if (uris == null) return new Future.value(null);
+
   var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
   List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
-  if (uris == null) return new Future.value(null);
-  // The indices into `uris` and `hashes` that we want to load.
-  List<int> indices = new List.generate(uris.length, (i) => i);
+
+  List<String> urisToLoad = <String>[];
+
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
-  var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
-  // Filter away indices for hunks that have already been loaded.
-  List<int> indicesToLoad = indices
-      .where((int i) => !JS('bool', '#(#)', isHunkLoaded, hashes[i]))
-      .toList();
-  return Future
-      .wait(indicesToLoad.map((int i) => _loadHunk(uris[i])))
-      .then((_) {
+  for (int i = 0; i < uris.length; ++i) {
+    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) continue;
+    urisToLoad.add(uris[i]);
+  }
+
+  return Future.wait(urisToLoad.map(_loadHunk)).then((_) {
     // Now all hunks have been loaded, we run the needed initializers.
-    List<int> indicesToInitialize = indices
-        .where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i]))
-        .toList(); // Load the needed hunks.
-    for (int i in indicesToInitialize) {
-      var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-      JS('void', '#(#)', initializer, hashes[i]);
+    var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
+    var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
+    for (String hash in hashes) {
+      // It is possible for a hash to be repeated. This happens when two
+      // different parts both end up empty. Checking in the loop rather than
+      // pre-filtering prevents duplicate hashes leading to duplicated
+      // initializations.
+      // TODO(29572): Merge small parts.
+      // TODO(29635): Remove duplicate parts from tables and output files.
+      if (JS('bool', '#(#)', isHunkInitialized, hash)) continue;
+      JS('void', '#(#)', initializer, hash);
     }
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {

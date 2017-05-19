@@ -43,7 +43,7 @@ class _TestOptionSpecification {
   String description;
   List<String> keys;
   List<String> values;
-  var defaultValue;
+  Object defaultValue;
   String type;
 }
 
@@ -560,8 +560,7 @@ Note: currently only implemented for dart2js.''',
         // The argument does not start with '-' or '--' and is
         // therefore not an option. We use it as a test selection
         // pattern.
-        configuration.putIfAbsent('selectors', () => []);
-        var patterns = configuration['selectors'];
+        var patterns = configuration.putIfAbsent('selectors', () => <String>[]);
         patterns.add(arg);
         continue;
       }
@@ -618,7 +617,7 @@ Note: currently only implemented for dart2js.''',
 
   // For printing out reproducing command lines, we don't want to add these
   // options.
-  Set<String> _blacklistedOptions = new Set<String>.from([
+  final _blacklistedOptions = [
     'append_logs',
     'build_directory',
     'chrome',
@@ -642,7 +641,7 @@ Note: currently only implemented for dart2js.''',
     'verbose',
     'write_debug_log',
     'write_test_outcome_log',
-  ]);
+  ].toSet();
 
   List<String> _constructReproducingCommandArguments(Map config) {
     var arguments = new List<String>();
@@ -813,13 +812,13 @@ Note: currently only implemented for dart2js.''',
           var suite_path = new Path(configuration['suite_dir']);
           selectors = [suite_path.filename];
         } else {
-          selectors = new List.from(defaultTestSelectors);
+          selectors = defaultTestSelectors.toList();
         }
 
-        var exclude_suites = configuration['exclude_suite'] != null
+        var excludeSuites = configuration['exclude_suite'] != null
             ? configuration['exclude_suite'].split(',')
             : [];
-        for (var exclude in exclude_suites) {
+        for (var exclude in excludeSuites) {
           if (selectors.contains(exclude)) {
             selectors.remove(exclude);
           } else {
@@ -827,7 +826,7 @@ Note: currently only implemented for dart2js.''',
           }
         }
       }
-      Map<String, RegExp> selectorMap = new Map<String, RegExp>();
+      var selectorMap = <String, RegExp>{};
       for (var i = 0; i < selectors.length; i++) {
         var pattern = selectors[i];
         var suite = pattern;

@@ -30,6 +30,7 @@ import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
+import 'runtime_types.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
@@ -152,8 +153,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    CallStructure callStructure =
-        _elementEnvironment.getCallStructure(mainMethod);
+    ParameterStructure parameterStructure = mainMethod.parameterStructure;
+    CallStructure callStructure = new CallStructure(
+        parameterStructure.positionalParameters +
+            parameterStructure.namedParameters.length,
+        parameterStructure.namedParameters);
     if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);

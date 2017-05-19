@@ -21,10 +21,12 @@ import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
+import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/sorter.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
@@ -64,6 +66,8 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
 
   @override
   ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
+
+  DartTypes get dartTypes => elementMap.types;
 
   @override
   AnnotationProcessor get annotationProcesser =>
@@ -108,38 +112,63 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelResolutionWorldBuilder(
-        elementMap, nativeBasicData, selectorConstraintsStrategy);
+        elementMap,
+        nativeBasicData,
+        nativeDataBuilder,
+        interceptorDataBuilder,
+        backendUsageBuilder,
+        selectorConstraintsStrategy);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer) {
-    return new KernelWorkItemBuilder(elementMap, impactTransformer);
+    return new KernelWorkItemBuilder(
+        elementMap, nativeBasicData, nativeDataBuilder, impactTransformer);
+  }
+
+  @override
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+    // TODO(johnniwinther): Compute source spans from kernel elements.
+    return new SourceSpan(null, null, null);
   }
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
+  final NativeMemberResolver _nativeMemberResolver;
 
-  KernelWorkItemBuilder(this._elementMap, this._impactTransformer);
+  KernelWorkItemBuilder(this._elementMap, NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder, this._impactTransformer)
+      : _nativeMemberResolver = new KernelNativeMemberResolver(
+            _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(_elementMap, _impactTransformer, entity);
+    return new KernelWorkItem(
+        _elementMap, _impactTransformer, _nativeMemberResolver, entity);
   }
 }
 
 class KernelWorkItem implements ResolutionWorkItem {
   final KernelToElementMapImpl _elementMap;
   final ImpactTransformer _impactTransformer;
+  final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
 
-  KernelWorkItem(this._elementMap, this._impactTransformer, this.element);
+  KernelWorkItem(this._elementMap, this._impactTransformer,
+      this._nativeMemberResolver, this.element);
 
   @override
   WorldImpact run() {
+    _nativeMemberResolver.resolveNativeMember(element);
     ResolutionImpact impact = _elementMap.computeWorldImpact(element);
     return _impactTransformer.transformResolutionImpact(impact);
   }

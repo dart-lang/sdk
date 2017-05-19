@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,6 +60,8 @@ void f(Derived d) {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
+    assertSuggestMethod('toString', 'Object', 'String');
+    // fails this assertion because type of const is not properly inferred
     assertSuggestGetter('length', 'int');
   }
 

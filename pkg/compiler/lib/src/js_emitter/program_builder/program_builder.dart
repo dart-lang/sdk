@@ -4,6 +4,9 @@
 
 library dart2js.js_emitter.program_builder;
 
+import 'dart:io';
+import 'dart:convert' show JSON;
+
 import '../../closure.dart' show ClosureTask, ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
@@ -31,13 +34,7 @@ import '../../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
 import '../../elements/types.dart' show DartType, DartTypes;
 import '../../js/js.dart' as js;
-import '../../js_backend/backend.dart'
-    show
-        RuntimeTypesChecks,
-        RuntimeTypesNeed,
-        RuntimeTypesEncoder,
-        RuntimeTypesSubstitutions,
-        SuperMemberData;
+import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
@@ -47,6 +44,12 @@ import '../../js_backend/native_data.dart';
 import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
+import '../../js_backend/runtime_types.dart'
+    show
+        RuntimeTypesChecks,
+        RuntimeTypesNeed,
+        RuntimeTypesEncoder,
+        RuntimeTypesSubstitutions;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
@@ -75,6 +78,7 @@ part 'registry.dart';
 /// emitted more easily by the individual emitters.
 class ProgramBuilder {
   final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final DartTypes _types;
@@ -117,6 +121,7 @@ class ProgramBuilder {
 
   ProgramBuilder(
       this._options,
+      this._reporter,
       this._elementEnvironment,
       this._commonElements,
       this._types,
@@ -184,8 +189,17 @@ class ProgramBuilder {
 
   Set<Class> _unneededNativeClasses;
 
+  /// Classes that have been allocated during a profile run.
+  ///
+  /// These classes should not be soft-deferred.
+  ///
+  /// Also contains classes that are not tracked by the profile run (like
+  /// interceptors, ...).
+  Set<ClassElement> _notSoftDeferred;
+
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
+    _initializeSoftDeferredMap();
 
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
@@ -266,11 +280,75 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
-        hasIsolateSupport: _backendUsage.isIsolateInUse);
+        hasIsolateSupport: _backendUsage.isIsolateInUse,
+        hasSoftDeferredClasses: _notSoftDeferred != null);
   }
 
   void _markEagerClasses() {
     _markEagerInterceptorClasses();
+  }
+
+  void _initializeSoftDeferredMap() {
+    var allocatedClassesPath = _options.experimentalAllocationsPath;
+    if (allocatedClassesPath != null) {
+      // TODO(29574): the following blacklist is ad-hoc and potentially
+      // incomplete. We need to mark all classes as black listed, that are
+      // used without code going through the class' constructor.
+      var blackList = [
+        'dart:_interceptors',
+        'dart:html',
+        'dart:typed_data_implementation',
+        'dart:_native_typed_data'
+      ].toSet();
+
+      // TODO(29574): the compiler should not just use dart:io to get the
+      // contents of a file.
+      File file = new File(allocatedClassesPath);
+
+      // TODO(29574): are the following checks necessary?
+      // To make compilation in build-systems easier, we ignore non-existing
+      // or empty profiles.
+      if (!file.existsSync()) {
+        _reporter.log("Profile file does not exist: $allocatedClassesPath");
+        return;
+      }
+      if (file.lengthSync() == 0) {
+        _reporter.log("Profile information (allocated classes) is empty.");
+        return;
+      }
+
+      String data = new File(allocatedClassesPath).readAsStringSync();
+      Set<String> allocatedClassesKeys = JSON.decode(data).keys.toSet();
+      Set<ClassElement> allocatedClasses = new Set<ClassElement>();
+
+      // Collects all super and mixin classes of a class.
+      void collect(ClassElement element) {
+        allocatedClasses.add(element);
+        if (element.isMixinApplication) {
+          collect(computeMixinClass(element));
+        }
+        if (element.superclass != null) {
+          collect(element.superclass);
+        }
+      }
+
+      // For every known class, see if it was allocated in the profile. If yes,
+      // collect its dependencies (supers and mixins) and mark them as
+      // not-soft-deferrable.
+      collector.outputClassLists.forEach((_, List<ClassElement> elements) {
+        for (ClassElement element in elements) {
+          // TODO(29574): share the encoding of the element with the code
+          // that emits the profile-run.
+          var key = "${element.library.canonicalUri}:${element.name}";
+          if (allocatedClassesKeys.contains(key) ||
+              _nativeData.isJsInteropClass(element) ||
+              blackList.contains(element.library.canonicalUri.toString())) {
+            collect(element);
+          }
+        }
+      });
+      _notSoftDeferred = allocatedClasses;
+    }
   }
 
   /// Builds a map from loadId to outputs-to-load.
@@ -293,7 +371,6 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
-        _interceptorData,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _worldBuilder,
@@ -583,6 +660,10 @@ class ProgramBuilder {
         library, uri, statics, classes, staticFieldsForReflection);
   }
 
+  bool _isSoftDeferred(ClassElement element) {
+    return _notSoftDeferred != null && !_notSoftDeferred.contains(element);
+  }
+
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
     bool hasRtiField = _rtiNeed.classNeedsRtiField(element);
@@ -597,12 +678,7 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        _task.emitter,
-        _commonElements,
-        _namer,
-        _worldBuilder,
-        _interceptorData,
-        _closedWorld,
+        _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
@@ -751,7 +827,8 @@ class ProgramBuilder {
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
           isNative: _nativeData.isNativeClass(element),
-          isClosureBaseClass: isClosureBaseClass);
+          isClosureBaseClass: isClosureBaseClass,
+          isSoftDeferred: _isSoftDeferred(element));
     }
     _classes[element] = result;
     return result;
@@ -936,7 +1013,6 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
-        _interceptorData,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _worldBuilder,
@@ -1015,7 +1091,6 @@ class ProgramBuilder {
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
-        _interceptorData,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _worldBuilder,

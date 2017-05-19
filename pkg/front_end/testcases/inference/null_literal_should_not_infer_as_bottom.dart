@@ -11,17 +11,18 @@ void foo(int f(Object _)) {}
 main() {
   var /*@type=(Object) -> dynamic*/ f = /*@returnType=dynamic*/ (Object x) =>
       null;
-  String y = /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ f(42);
+  String y = /*info:DYNAMIC_CAST*/ f(42);
 
   f = /*@returnType=String*/ (/*@type=Object*/ x) => 'hello';
 
   var /*@type=dynamic*/ g = null;
   g = 'hello';
-  (/*info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ g.foo());
+  (/*info:DYNAMIC_INVOKE*/ g.foo());
 
   h = 'hello';
   (/*info:DYNAMIC_INVOKE*/ h.foo());
 
   foo(/*@returnType=int*/ (/*@type=Object*/ x) => null);
-  foo(/*@returnType=<bottom>*/ (/*@type=Object*/ x) => throw "not implemented");
+  foo(/*@returnType=<BottomType>*/ (/*@type=Object*/ x) =>
+      throw "not implemented");
 }

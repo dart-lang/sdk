@@ -2,6 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
+typedef VoidFunction = () → void;
 class Fisk extends core::Object {
   constructor •() → void
     ;

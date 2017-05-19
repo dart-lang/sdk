@@ -4,6 +4,7 @@
 
 library fasta.dill_library_builder;
 
+import 'package:front_end/src/fasta/dill/dill_typedef_builder.dart';
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -15,7 +16,8 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         Member,
         Procedure,
-        StaticGet;
+        StaticGet,
+        Typedef;
 
 import '../errors.dart' show internalError;
 
@@ -104,8 +106,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     return builder;
   }
 
-  bool addToExportScope(String name, Builder member) {
-    return internalError("Not implemented yet.");
+  void addTypedef(Typedef typedef) {
+    var typedefBuilder = new DillFunctionTypeAliasBuilder(typedef, this);
+    addBuilder(typedef.name, typedefBuilder, typedef.fileOffset);
   }
 
   @override

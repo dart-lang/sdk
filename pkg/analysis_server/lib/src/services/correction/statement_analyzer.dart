@@ -6,7 +6,6 @@ library services.src.correction.statement_analyzer;
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * Returns [Token]s of the given Dart source, not `null`, may be empty if no
@@ -179,7 +179,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
     // some tokens before first selected node
     {
       AstNode firstNode = nodes[0];
-      SourceRange rangeBeforeFirstNode = rangeStartStart(selection, firstNode);
+      SourceRange rangeBeforeFirstNode =
+          range.startOffsetEndOffset(selection.offset, firstNode.offset);
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
             "The beginning of the selection contains characters that "
@@ -190,7 +191,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
     // some tokens after last selected node
     {
       AstNode lastNode = nodes.last;
-      SourceRange rangeAfterLastNode = rangeEndEnd(lastNode, selection);
+      SourceRange rangeAfterLastNode =
+          range.startOffsetEndOffset(lastNode.end, selection.end);
       if (_hasTokens(rangeAfterLastNode)) {
         invalidSelection(
             "The end of the selection contains characters that "

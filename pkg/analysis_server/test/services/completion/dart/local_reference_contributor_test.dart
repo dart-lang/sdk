@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
@@ -416,6 +415,37 @@ void main() {new B().bar(^);}''');
     assertNotSuggested('print');
   }
 
+  test_ArgumentList_namedFieldParam_tear_off() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  final VoidCallback onPressed;
+  Button({this.onPressed});
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
   test_ArgumentList_namedParam() async {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
@@ -473,6 +503,96 @@ void main() {expect(foo: ^)}''');
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     assertSuggestTopLevelVar('e', 'E',
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
+  test_ArgumentList_namedParam_tear_off() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  Button({VoidCallback onPressed});
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
+  test_ArgumentList_namedParam_tear_off_1() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  Button({VoidCallback onPressed, int x});
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
+  test_ArgumentList_namedParam_tear_off_2() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  Button({ int x, VoidCallback onPressed);
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
   }
 
   test_AsExpression_type() async {
@@ -2027,7 +2147,6 @@ class A {a(blat: ^) { }}''');
     assertSuggestClass('A');
     assertNotSuggested('String');
     assertNotSuggested('identical');
-    assertNotSuggested('bar');
   }
 
   test_doc_classMember() async {

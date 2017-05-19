@@ -63,5 +63,5 @@ Program createMockSdkProgram() {
   addClass(asyncLib, class_('Stream', typeParameters: [typeParam('T')]));
   addClass(internalLib, class_('Symbol'));
 
-  return new Program([coreLib, asyncLib, internalLib]);
+  return new Program(libraries: [coreLib, asyncLib, internalLib]);
 }

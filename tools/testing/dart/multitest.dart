@@ -72,36 +72,34 @@ void ExtractTestsFromMultitest(Path filePath, Map<String, String> tests,
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
-  List bytes = new File(filePath.toNativePath()).readAsBytesSync();
-  String contents = decodeUtf8(bytes);
-  int first_newline = contents.indexOf('\n');
-  final String line_separator =
-      (first_newline == 0 || contents[first_newline - 1] != '\r')
-          ? '\n'
-          : '\r\n';
-  List<String> lines = contents.split(line_separator);
+  var bytes = new File(filePath.toNativePath()).readAsBytesSync();
+  var contents = decodeUtf8(bytes);
+  var firstNewline = contents.indexOf('\n');
+  var lineSeparator =
+      (firstNewline == 0 || contents[firstNewline - 1] != '\r') ? '\n' : '\r\n';
+  var lines = contents.split(lineSeparator);
   if (lines.last == '') lines.removeLast();
   bytes = null;
   contents = null;
-  Set<String> validMultitestOutcomes = new Set<String>.from([
+  var validMultitestOutcomes = [
     'ok',
     'compile-time error',
     'runtime error',
     'static type warning',
     'dynamic type error',
     'checked mode compile-time error'
-  ]);
+  ].toSet();
 
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
-  Map<String, List<String>> testsAsLines = new Map<String, List<String>>();
+  var testsAsLines = <String, List<String>>{};
 
   // Add the default case with key "none".
-  testsAsLines['none'] = new List<String>();
+  testsAsLines['none'] = <String>[];
   outcomes['none'] = new Set<String>();
 
-  int lineCount = 0;
-  for (String line in lines) {
+  var lineCount = 0;
+  for (var line in lines) {
     lineCount++;
     var annotation = new _Annotation.from(line);
     if (annotation != null) {
@@ -131,10 +129,10 @@ void ExtractTestsFromMultitest(Path filePath, Map<String, String> tests,
   // joining the lines.
   var marker =
       '// Test created from multitest named ${filePath.toNativePath()}.'
-      '$line_separator';
+      '$lineSeparator';
   for (var test in testsAsLines.values) test.add(marker);
 
-  var keysToDelete = [];
+  var keysToDelete = <String>[];
   // Check that every key (other than the none case) has at least one outcome
   for (var outcomeKey in outcomes.keys) {
     if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty) {
@@ -151,8 +149,8 @@ void ExtractTestsFromMultitest(Path filePath, Map<String, String> tests,
   keysToDelete.forEach(testsAsLines.remove);
 
   // Copy all the tests into the output map tests, as multiline strings.
-  for (String key in testsAsLines.keys) {
-    tests[key] = testsAsLines[key].join(line_separator);
+  for (var key in testsAsLines.keys) {
+    tests[key] = testsAsLines[key].join(lineSeparator);
   }
 }
 
@@ -190,10 +188,10 @@ class _Annotation {
 // Find all relative imports and copy them into the dir that contains
 // the generated tests.
 Set<String> _findAllRelativeImports(Path topLibrary) {
-  Set<Path> toSearch = new Set<Path>.from([topLibrary]);
-  Set<String> foundImports = new Set<String>();
-  Path libraryDir = topLibrary.directoryPath;
-  RegExp relativeImportRegExp = new RegExp(
+  var toSearch = [topLibrary].toSet();
+  var foundImports = new Set<String>();
+  var libraryDir = topLibrary.directoryPath;
+  var relativeImportRegExp = new RegExp(
       '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
       '(import|part)'
       '\\s+["\']'

@@ -163,8 +163,8 @@ Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
   new TopLevelParser(listener).parseUnit(tokenize(contents));
   return new Set<String>()
-    ..addAll(listener.imports)
-    ..addAll(listener.exports)
+    ..addAll(listener.imports.map((directive) => directive.uri))
+    ..addAll(listener.exports.map((directive) => directive.uri))
     ..addAll(listener.parts);
 }
 
@@ -239,9 +239,9 @@ generateKernel(Uri entryUri,
     dillTarget.read(
         Uri.base.resolve(Platform.resolvedExecutable).resolve('platform.dill'));
   }
-  await dillTarget.writeOutline(null);
-  var program = await kernelTarget.writeOutline(null);
-  program = await kernelTarget.writeProgram(null);
+  await dillTarget.buildOutlines();
+  await kernelTarget.buildOutlines();
+  var program = await kernelTarget.buildProgram();
   if (kernelTarget.errors.isNotEmpty) {
     throw kernelTarget.errors.first;
   }

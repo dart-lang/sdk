@@ -286,9 +286,9 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load arguments descriptor in S4.
-  int argument_count = ArgumentCount();
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      ArgumentsDescriptor::New(argument_count, argument_names()));
+  const intptr_t argument_count = ArgumentCount();  // Includes type args.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(S4, arguments_descriptor);
 
   // Load closure function code in T2.
@@ -1135,11 +1135,12 @@ LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
 void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   __ Push(array);
+  const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               kNumberOfArguments, kNoArgumentNames, locs(),
-                               ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   ASSERT(locs()->out(0).reg() == V0);
 }
 
@@ -4681,12 +4682,12 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ICData& ic_data = *instance_call()->ic_data();
   ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-
-  const intptr_t kNumberOfArguments = 1;
+  const int kTypeArgsLen = 0;
+  const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
-                               kNumberOfArguments,
-                               Object::null_array(),  // No argument names.
-                               locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   __ Bind(&done);
 }
 
@@ -5063,7 +5064,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const bool need_mask_temp = IsDenseSwitch() && !IsDenseMask(ComputeCidMask());
+  const bool need_mask_temp = IsBitTest();
   const intptr_t kNumTemps = !IsNullCheck() ? (need_mask_temp ? 2 : 1) : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -5078,89 +5079,69 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
-  if (IsNullCheck()) {
-    if (DeoptIfNull()) {
-      __ BranchEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+void CheckClassInstr::EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt) {
+  if (IsDeoptIfNull()) {
+    __ BranchEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+  } else {
+    ASSERT(IsDeoptIfNotNull());
+    __ BranchNotEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+  }
+}
+
+
+void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
+                                  intptr_t min,
+                                  intptr_t max,
+                                  intptr_t mask,
+                                  Label* deopt) {
+  Register biased_cid = locs()->temp(0).reg();
+  __ LoadImmediate(TMP, min);
+  __ subu(biased_cid, biased_cid, TMP);
+  __ LoadImmediate(TMP, max - min);
+  __ BranchUnsignedGreater(biased_cid, TMP, deopt);
+
+  Register bit_reg = locs()->temp(1).reg();
+  __ LoadImmediate(bit_reg, 1);
+  __ sllv(bit_reg, bit_reg, biased_cid);
+  __ AndImmediate(bit_reg, bit_reg, mask);
+  __ beq(bit_reg, ZR, deopt);
+}
+
+
+int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
+                                  int bias,
+                                  intptr_t cid_start,
+                                  intptr_t cid_end,
+                                  bool is_last,
+                                  Label* is_ok,
+                                  Label* deopt,
+                                  bool use_near_jump) {
+  Register biased_cid = locs()->temp(0).reg();
+  if (cid_start == cid_end) {
+    __ LoadImmediate(TMP, cid_start - bias);
+    if (is_last) {
+      __ bne(biased_cid, TMP, deopt);
     } else {
-      ASSERT(DeoptIfNotNull());
-      __ BranchNotEqual(locs()->in(0).reg(), Object::null_object(), deopt);
-    }
-    return;
-  }
-
-  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
-         (unary_checks().NumberOfChecks() > 1));
-  Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
-  Label is_ok;
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) {
-    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, &is_ok);
-  } else {
-    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, deopt);
-  }
-  Register biased_cid = temp;
-  __ LoadClassId(biased_cid, value);
-
-  GrowableArray<CidRangeTarget> sorted_ic_data;
-  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                       /* drop_smi = */ true);
-
-  if (IsDenseSwitch()) {
-    ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ LoadImmediate(TMP, cids_[0]);
-    __ subu(biased_cid, biased_cid, TMP);
-    __ LoadImmediate(TMP, cids_[cids_.length() - 1] - cids_[0]);
-    __ BranchUnsignedGreater(biased_cid, TMP, deopt);
-
-    intptr_t mask = ComputeCidMask();
-    if (!IsDenseMask(mask)) {
-      // Only need mask if there are missing numbers in the range.
-      ASSERT(cids_.length() > 2);
-      Register mask_reg = locs()->temp(1).reg();
-      __ LoadImmediate(mask_reg, 1);
-      __ sllv(mask_reg, mask_reg, biased_cid);
-      __ AndImmediate(mask_reg, mask_reg, mask);
-      __ beq(mask_reg, ZR, deopt);
+      __ beq(biased_cid, TMP, is_ok);
     }
   } else {
-    const intptr_t num_checks = sorted_ic_data.length();
-    int bias = 0;
-    for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid_start = sorted_ic_data[i].cid_start;
-      const intptr_t cid_end = sorted_ic_data[i].cid_end;
-      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
-      if (cid_start == cid_end) {
-        __ LoadImmediate(TMP, cid_start - bias);
-        if (i == (num_checks - 1)) {
-          __ bne(biased_cid, TMP, deopt);
-        } else {
-          __ beq(biased_cid, TMP, &is_ok);
-        }
-      } else {
-        // For class ID ranges use a subtract followed by an unsigned
-        // comparison to check both ends of the ranges with one comparison.
-        __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
-        bias = cid_start;
-        // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
-        // the range is small enough.
-        __ LoadImmediate(TMP, cid_end - cid_start);
-        // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
-        // range.
-        __ sltu(TMP, TMP, biased_cid);
-        if (i == (num_checks - 1)) {
-          __ bne(TMP, ZR, deopt);
-        } else {
-          __ beq(TMP, ZR, &is_ok);
-        }
-      }
+    // For class ID ranges use a subtract followed by an unsigned
+    // comparison to check both ends of the ranges with one comparison.
+    __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
+    bias = cid_start;
+    // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+    // the range is small enough.
+    __ LoadImmediate(TMP, cid_end - cid_start);
+    // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
+    // range.
+    __ sltu(TMP, TMP, biased_cid);
+    if (is_last) {
+      __ bne(TMP, ZR, deopt);
+    } else {
+      __ beq(TMP, ZR, is_ok);
     }
   }
-  __ Bind(&is_ok);
+  return bias;
 }
 
 
@@ -5190,7 +5171,9 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(0, cids_.IsSingleCid() ? Location::RequiresRegister()
+                                         : Location::WritableRegister());
+
   return summary;
 }
 
@@ -5198,7 +5181,18 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
 void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
-  __ BranchNotEqual(value, Immediate(Smi::RawValue(cid_)), deopt);
+  if (cids_.IsSingleCid()) {
+    __ BranchNotEqual(value, Immediate(Smi::RawValue(cids_.cid_start)), deopt);
+  } else {
+    __ AddImmediate(value, value, -Smi::RawValue(cids_.cid_start));
+    // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+    // the range is small enough.
+    __ LoadImmediate(TMP, cids_.Extent());
+    // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
+    // range.
+    __ sltu(TMP, TMP, value);
+    __ bne(TMP, ZR, deopt);
+  }
 }
 
 

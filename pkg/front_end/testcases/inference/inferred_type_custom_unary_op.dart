@@ -9,5 +9,10 @@ class C {
   bool operator -() => true;
 }
 
-C c;
-var /*@topType=bool*/ x = -c;
+C c = new C();
+var /*@topType=bool*/ x = /*@target=C::unary-*/ -c;
+
+main() {
+  c;
+  x;
+}

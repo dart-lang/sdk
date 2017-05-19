@@ -294,7 +294,6 @@ def GetBuildConf(mode, arch, conf_os=None):
     host_arch = ARCH_GUESS
     cross_build = ''
     if GetArchFamily(host_arch) != GetArchFamily(arch):
-      print "GetBuildConf: Cross-build of %s on %s\n" % (arch, host_arch)
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
@@ -405,7 +404,7 @@ def GetArchiveVersion():
   version = ReadVersionFile()
   if not version:
     raise 'Could not get the archive version, parsing the version file failed'
-  if version.channel == 'be':
+  if version.channel in ['be', 'integration']:
     return GetGitNumber()
   return GetSemanticSDKVersion()
 

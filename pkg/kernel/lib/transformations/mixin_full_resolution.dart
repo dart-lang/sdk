@@ -281,6 +281,7 @@ class SuperCallResolutionTransformer extends Transformer {
     // The _InvocationMirror constructor takes the following arguments:
     // * Method name (a string).
     // * An arguments descriptor - a list consisting of:
+    //   - length of passed type argument vector, 0 if none passed.
     //   - number of arguments (including receiver).
     //   - number of positional arguments (including receiver).
     //   - pairs (2 entries in the list) of
@@ -289,9 +290,11 @@ class SuperCallResolutionTransformer extends Transformer {
     // * A list of arguments, where the first ones are the positional arguments.
     // * Whether it's a super invocation or not.
 
+    int typeArgsLen = 0; // TODO(regis): Type arguments of generic function.
     int numPositionalArguments = callArguments.positional.length + 1;
     int numArguments = numPositionalArguments + callArguments.named.length;
     List<Expression> argumentsDescriptor = [
+      new IntLiteral(typeArgsLen),
       new IntLiteral(numArguments),
       new IntLiteral(numPositionalArguments)
     ];

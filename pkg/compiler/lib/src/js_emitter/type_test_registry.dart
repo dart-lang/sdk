@@ -5,6 +5,7 @@
 library dart2js.js_emitter.type_test_registry;
 
 import '../common.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart'
     show ClassElement, Element, ElementKind, MemberElement, MethodElement;
 import '../elements/entities.dart';
@@ -15,7 +16,8 @@ import '../elements/resolution_types.dart'
         ResolutionInterfaceType,
         Types,
         ResolutionTypeVariableType;
-import '../js_backend/js_backend.dart'
+import '../elements/types.dart';
+import '../js_backend/runtime_types.dart'
     show
         RuntimeTypesChecks,
         RuntimeTypesChecksBuilder,
@@ -26,6 +28,8 @@ import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 
 class TypeTestRegistry {
+  final ElementEnvironment _elementEnvironment;
+
   /**
    * Raw ClassElement symbols occurring in is-checks and type assertions.  If the
    * program contains parameterized checks `x is Set<int>` and
@@ -61,7 +65,8 @@ class TypeTestRegistry {
 
   RuntimeTypesChecks _rtiChecks;
 
-  TypeTestRegistry(this._codegenWorldBuilder, this._closedWorld);
+  TypeTestRegistry(
+      this._codegenWorldBuilder, this._closedWorld, this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
     assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks != null,
@@ -104,8 +109,8 @@ class TypeTestRegistry {
       }
     }
 
-    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
-      for (ClassElement cls in classes) {
+    void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
+      for (ClassEntity cls in classes) {
         addClassWithSuperclasses(cls);
       }
     }
@@ -120,7 +125,7 @@ class TypeTestRegistry {
     //     their superclasses.
     TypeChecks requiredChecks =
         rtiSubstitutions.computeChecks(rtiNeededClasses, checkedClasses);
-    Set<ClassElement> classesUsedInSubstitutions =
+    Set<ClassEntity> classesUsedInSubstitutions =
         rtiSubstitutions.getClassesUsedInSubstitutions(requiredChecks);
     addClassesWithSuperclasses(classesUsedInSubstitutions);
 
@@ -163,11 +168,11 @@ class TypeTestRegistry {
     liveMembers.where((MemberElement element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((MethodElement function) {
-      ResolutionDartType type = function.type;
-      for (ClassElement cls in _rtiChecks.getReferencedClasses(type)) {
+      FunctionType type = function.type;
+      for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
           _rtiNeededClasses.add(cls);
-          cls = cls.superclass;
+          cls = _elementEnvironment.getSuperClass(cls);
         }
       }
     });
@@ -178,7 +183,7 @@ class TypeTestRegistry {
 
     rtiChecksBuilder.registerImplicitChecks(
         _codegenWorldBuilder, classesUsingTypeVariableTests);
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks();
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder);
 
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<ResolutionFunctionType>();

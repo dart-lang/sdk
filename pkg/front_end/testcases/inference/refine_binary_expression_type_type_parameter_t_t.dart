@@ -9,9 +9,9 @@ class C<T extends num> {
   T a;
 
   void op(T b) {
-    T r1 = a + b;
-    T r2 = a - b;
-    T r3 = a * b;
+    T r1 = a /*@target=num::+*/ + b;
+    T r2 = a /*@target=num::-*/ - b;
+    T r3 = a /*@target=num::**/ * b;
   }
 
   void opEq(T b) {

@@ -20,13 +20,11 @@ class DeltaProgram {
   /// are affected by the transitive change of API in the changed libraries.
   ///
   /// For VM reload purposes we need to provide also full kernels for the
-  /// libraries that are transitively imported by the library with `main()`
-  /// and transitively import a changed library.
-  /// TODO(scheglov) With `main()` or entry point URI?
+  /// libraries that are transitively imported by the entry point and
+  /// transitively import a changed library.
   ///
-  /// Also includes outlines for the transitive closure of libraries that are
-  /// referenced by previously specified changed, affected or VM-required
-  /// libraries.
+  /// Also includes external references to other libraries that were not
+  /// modified or affected.
   final Program newProgram;
 
   DeltaProgram(this.newProgram);
@@ -56,17 +54,6 @@ class DeltaProgram {
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class IncrementalKernelGenerator {
-  /// Creates an [IncrementalKernelGenerator] which is prepared to generate
-  /// kernel representations of the program whose main library is in the given
-  /// [source].
-  ///
-  /// No file system access is performed by this constructor; the initial
-  /// "previous program state" is an empty program containing no code, and the
-  /// initial set of valid sources is empty.  To obtain a kernel representation
-  /// of the program, call [computeDelta].
-  factory IncrementalKernelGenerator(Uri source, CompilerOptions options) =>
-      new IncrementalKernelGeneratorImpl(source, new ProcessedOptions(options));
-
   /// Generates a kernel representation of the changes to the program, assuming
   /// that all valid sources are unchanged since the last call to
   /// [computeDelta].
@@ -95,12 +82,10 @@ abstract class IncrementalKernelGenerator {
   /// errors, it is safe to call [computeDelta] again.
   Future<DeltaProgram> computeDelta({Future<Null> watch(Uri uri, bool used)});
 
-  /// Remove any source file(s) associated with the given file path from the set
-  /// of valid sources.  This guarantees that those files will be re-read on the
+  /// Remove the file associated with the given file [uri] from the set of
+  /// valid files.  This guarantees that those files will be re-read on the
   /// next call to [computeDelta]).
-  ///
-  /// TODO(scheglov) Update to use URI.
-  void invalidate(String path);
+  void invalidate(Uri uri);
 
   /// Remove all source files from the set of valid sources.  This guarantees
   /// that all files will be re-read on the next call to [computeDelta].
@@ -110,4 +95,19 @@ abstract class IncrementalKernelGenerator {
   /// unchanged, parts of the previous program state will still be re-used to
   /// speed up compilation.
   void invalidateAll();
+
+  /// Creates an [IncrementalKernelGenerator] which is prepared to generate
+  /// kernel representations of the program whose main library is in the given
+  /// [entryPoint].
+  ///
+  /// The initial "previous program state" is an empty program containing no
+  /// code, and the initial set of valid sources is empty.  To obtain a kernel
+  /// representation of the program, call [computeDelta].
+  static Future<IncrementalKernelGenerator> newInstance(
+      CompilerOptions options, Uri entryPoint) async {
+    var processedOptions = new ProcessedOptions(options);
+    var uriTranslator = await processedOptions.getUriTranslator();
+    return new IncrementalKernelGeneratorImpl(
+        processedOptions, uriTranslator, entryPoint);
+  }
 }

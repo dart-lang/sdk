@@ -367,7 +367,9 @@ class MyCompiler extends CompilerImpl {
           resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
-        resolveLibraryMetadata();
+        if (commonElements.mirrorsLibrary != null) {
+          resolveLibraryMetadata();
+        }
         reporter.log('Resolving...');
         processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
         resolutionEnqueuer.logSummary(reporter.log);
@@ -381,6 +383,7 @@ class MyCompiler extends CompilerImpl {
           exit(1);
         }
 
+        backend.onResolutionEnd();
         closeResolution();
         var program = (backend as dynamic).kernelTask.program;
         print('total libraries: ${program.libraries.length}');

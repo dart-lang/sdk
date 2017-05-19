@@ -910,11 +910,12 @@ LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
 void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   __ pushq(array);
+  const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               kNumberOfArguments, kNoArgumentNames, locs(),
-                               ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   ASSERT(locs()->out(0).reg() == RAX);
 }
 
@@ -5325,17 +5326,17 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
   __ jmp(&done);
   __ Bind(&do_call);
+  __ pushq(value_obj);
   ASSERT(instance_call()->HasICData());
   const ICData& ic_data = *instance_call()->ic_data();
   ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-
-  const intptr_t kNumberOfArguments = 1;
-  __ pushq(value_obj);
+  const int kTypeArgsLen = 0;
+  const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
-                               kNumberOfArguments,
-                               Object::null_array(),  // No argument names.
-                               locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   __ Bind(&done);
 }
 
@@ -5807,7 +5808,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const bool need_mask_temp = IsDenseSwitch() && !IsDenseMask(ComputeCidMask());
+  const bool need_mask_temp = IsBitTest();
   const intptr_t kNumTemps = !IsNullCheck() ? (need_mask_temp ? 2 : 1) : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -5822,84 +5823,64 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
-  if (IsNullCheck()) {
-    __ CompareObject(locs()->in(0).reg(), Object::null_object());
-    Condition cond = DeoptIfNull() ? EQUAL : NOT_EQUAL;
-    __ j(cond, deopt);
-    return;
+void CheckClassInstr::EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt) {
+  __ CompareObject(locs()->in(0).reg(), Object::null_object());
+  Condition cond = IsDeoptIfNull() ? EQUAL : NOT_EQUAL;
+  __ j(cond, deopt);
+}
+
+
+void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
+                                  intptr_t min,
+                                  intptr_t max,
+                                  intptr_t mask,
+                                  Label* deopt) {
+  Register biased_cid = locs()->temp(0).reg();
+  __ subq(biased_cid, Immediate(min));
+  __ cmpq(biased_cid, Immediate(max - min));
+  __ j(ABOVE, deopt);
+
+  Register mask_reg = locs()->temp(1).reg();
+  __ movq(mask_reg, Immediate(mask));
+  __ btq(mask_reg, biased_cid);
+  __ j(NOT_CARRY, deopt);
+}
+
+
+int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
+                                  int bias,
+                                  intptr_t cid_start,
+                                  intptr_t cid_end,
+                                  bool is_last,
+                                  Label* is_ok,
+                                  Label* deopt,
+                                  bool use_near_jump) {
+  Register biased_cid = locs()->temp(0).reg();
+  Condition no_match, match;
+  if (cid_start == cid_end) {
+    __ cmpl(biased_cid, Immediate(cid_start - bias));
+    no_match = NOT_EQUAL;
+    match = EQUAL;
+  } else {
+    // For class ID ranges use a subtract followed by an unsigned
+    // comparison to check both ends of the ranges with one comparison.
+    __ addl(biased_cid, Immediate(bias - cid_start));
+    bias = cid_start;
+    __ cmpl(biased_cid, Immediate(cid_end - cid_start));
+    no_match = ABOVE;
+    match = BELOW_EQUAL;
   }
 
-  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
-         (unary_checks().NumberOfChecks() > 1));
-  Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
-  Label is_ok;
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) {
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, &is_ok);
+  if (is_last) {
+    __ j(no_match, deopt);
   } else {
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);
-  }
-  __ LoadClassId(temp, value);
-
-  GrowableArray<CidRangeTarget> sorted_ic_data;
-  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                       /* drop_smi = */ true);
-
-  if (IsDenseSwitch()) {
-    ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ subq(temp, Immediate(cids_[0]));
-    __ cmpq(temp, Immediate(cids_[cids_.length() - 1] - cids_[0]));
-    __ j(ABOVE, deopt);
-
-    intptr_t mask = ComputeCidMask();
-    if (!IsDenseMask(mask)) {
-      // Only need mask if there are missing numbers in the range.
-      ASSERT(cids_.length() > 2);
-      Register mask_reg = locs()->temp(1).reg();
-      __ movq(mask_reg, Immediate(mask));
-      __ btq(mask_reg, temp);
-      __ j(NOT_CARRY, deopt);
-    }
-  } else {
-    const intptr_t num_checks = sorted_ic_data.length();
-    const bool use_near_jump = num_checks < 5;
-    int bias = 0;
-    for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid_start = sorted_ic_data[i].cid_start;
-      const intptr_t cid_end = sorted_ic_data[i].cid_end;
-      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
-      Condition no_match, match;
-      if (cid_start == cid_end) {
-        __ cmpl(temp, Immediate(cid_start - bias));
-        no_match = NOT_EQUAL;
-        match = EQUAL;
-      } else {
-        // For class ID ranges use a subtract followed by an unsigned
-        // comparison to check both ends of the ranges with one comparison.
-        __ addl(temp, Immediate(bias - cid_start));
-        bias = cid_start;
-        __ cmpl(temp, Immediate(cid_end - cid_start));
-        no_match = ABOVE;
-        match = BELOW_EQUAL;
-      }
-
-      if (i == num_checks - 1) {
-        __ j(no_match, deopt);
-      } else {
-        if (use_near_jump) {
-          __ j(match, &is_ok, Assembler::kNearJump);
-        } else {
-          __ j(match, &is_ok);
-        }
-      }
+    if (use_near_jump) {
+      __ j(match, is_ok, Assembler::kNearJump);
+    } else {
+      __ j(match, is_ok);
     }
   }
-  __ Bind(&is_ok);
+  return bias;
 }
 
 
@@ -5928,7 +5909,8 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(0, cids_.IsSingleCid() ? Location::RequiresRegister()
+                                         : Location::WritableRegister());
   return summary;
 }
 
@@ -5936,8 +5918,14 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
 void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
-  __ CompareImmediate(value, Immediate(Smi::RawValue(cid_)));
-  __ j(NOT_ZERO, deopt);
+  if (cids_.IsSingleCid()) {
+    __ CompareImmediate(value, Immediate(Smi::RawValue(cids_.cid_start)));
+    __ j(NOT_ZERO, deopt);
+  } else {
+    __ AddImmediate(value, Immediate(-Smi::RawValue(cids_.cid_start)));
+    __ cmpq(value, Immediate(Smi::RawValue(cids_.Extent())));
+    __ j(ABOVE, deopt);
+  }
 }
 
 
@@ -6711,9 +6699,9 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Arguments descriptor is expected in R10.
-  intptr_t argument_count = ArgumentCount();
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      ArgumentsDescriptor::New(argument_count, argument_names()));
+  const intptr_t argument_count = ArgumentCount();  // Includes type args.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(R10, arguments_descriptor);
 
   // Function in RAX.

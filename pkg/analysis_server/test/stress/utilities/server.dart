@@ -14,6 +14,7 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 
 import 'logger.dart';
@@ -624,7 +625,6 @@ class Server {
   Future<Null> start(
       {bool checked: true,
       int diagnosticPort,
-      bool enableNewAnalysisDriver: false,
       bool profileServer: false,
       String sdkPath,
       int servicesPort,
@@ -676,9 +676,6 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
-    }
-    if (!enableNewAnalysisDriver) {
-      arguments.add('--disable-new-analysis-driver');
     }
 //    stdout.writeln('Launching $serverPath');
 //    stdout.writeln('$dartBinary ${arguments.join(' ')}');

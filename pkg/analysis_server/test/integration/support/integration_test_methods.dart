@@ -17,6 +17,7 @@ import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 import 'protocol_matchers.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * Convenience methods for running integration tests

@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide Element, ElementKind;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -3557,12 +3554,6 @@ class C extends B with M1, M2 {
     // Resolve the source in the 2nd context and update the index
     var result = context2.performAnalysisTask();
     while (result.hasMoreWork) {
-      result.changeNotices.forEach((ChangeNotice notice) {
-        CompilationUnit unit = notice.resolvedDartUnit;
-        if (unit != null) {
-          index.indexUnit(unit);
-        }
-      });
       result = context2.performAnalysisTask();
     }
 

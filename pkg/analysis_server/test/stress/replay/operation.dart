@@ -5,8 +5,6 @@
 /**
  * Operations to be performed during the simulation.
  */
-library analysis_server.test.stress.replay.replay;
-
 import '../utilities/server.dart';
 
 /**

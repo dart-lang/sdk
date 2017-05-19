@@ -10,7 +10,7 @@ import 'package:bazel_worker/bazel_worker.dart';
 // TODO(jakemac): Remove once this is a part of the testing library.
 import 'package:bazel_worker/src/async_message_grouper.dart';
 import 'package:bazel_worker/testing.dart';
-import 'package:path/path.dart' show join, joinAll, toUri;
+import 'package:path/path.dart' show join, joinAll;
 import 'package:test/test.dart';
 
 File file(String path) => new File(joinAll(path.split('/'))).absolute;

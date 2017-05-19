@@ -6,8 +6,6 @@ import 'dart:async' show Future;
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'dart:isolate' show Isolate;
-
 import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
 
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
@@ -26,7 +24,6 @@ Future main() async {
   Uri sourceCompiler =
       Uri.base.resolve("pkg/front_end/tool/_fasta/compile.dart");
   Uri outline = Uri.base.resolve("pkg/front_end/tool/_fasta/outline.dart");
-  Uri packages = await Isolate.packageConfig;
   Directory tmp = await Directory.systemTemp.createTemp("fasta_bootstrap");
   Uri compiledOnceOutput = tmp.uri.resolve("fasta1.dill");
   Uri compiledTwiceOutput = tmp.uri.resolve("fasta2.dill");

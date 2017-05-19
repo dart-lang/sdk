@@ -2,21 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.optype;
+import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:plugin/manager.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../mock_sdk.dart';
+import '../../../abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -25,31 +20,22 @@ main() {
 }
 
 @reflectiveTest
-class OpTypeTest {
+class OpTypeTest extends AbstractContextTest {
+  static const testpath = '/completionTest.dart';
+  int completionOffset;
   OpType visitor;
 
-  void addTestSource(String content, {bool resolved: false}) {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
-
-    int offset = content.indexOf('^');
-    expect(offset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', offset + 1);
+  void addTestSource(String content) {
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    int nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
-    content = content.substring(0, offset) + content.substring(offset + 1);
-    Source source = new _TestSource('/completionTest.dart');
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory = new SourceFactory([new DartUriResolver(sdk)]);
-    context.setContents(source, content);
-    CompilationUnit unit = resolved
-        ? context.resolveCompilationUnit2(source, source)
-        : context.parseCompilationUnit(source);
-    CompletionTarget completionTarget =
-        new CompletionTarget.forOffset(unit, offset);
-    visitor = new OpType.forCompletion(completionTarget, offset);
+    content = content.substring(0, completionOffset) +
+        content.substring(completionOffset + 1);
+    super.addSource(testpath, content);
   }
 
-  void assertOpType(
+  Future<Null> assertOpType(
       {bool caseLabel: false,
       bool constructors: false,
       bool namedArgs: false,
@@ -60,7 +46,14 @@ class OpTypeTest {
       bool typeNames: false,
       bool varNames: false,
       bool voidReturn: false,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION}) {
+      CompletionSuggestionKind kind:
+          CompletionSuggestionKind.INVOCATION}) async {
+    AnalysisResult analysisResult = await driver.getResult(testpath);
+
+    CompletionTarget completionTarget =
+        new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
+    visitor = new OpType.forCompletion(completionTarget, completionOffset);
+
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
     expect(visitor.includeConstructorSuggestions, constructors,
         reason: 'constructors');
@@ -80,174 +73,165 @@ class OpTypeTest {
     expect(visitor.suggestKind, kind, reason: 'suggestion kind');
   }
 
-  void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-  }
-
-  void setUp() {
-    processRequiredPlugins();
-  }
-
-  test_Annotation() {
+  test_Annotation() async {
     // SimpleIdentifier  Annotation  MethodDeclaration  ClassDeclaration
     addTestSource('class C { @A^ }');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ArgumentList() {
+  test_ArgumentList() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('void main() {expect(^)}', resolved: false);
+    addTestSource('void main() {expect(^)}');
     // If "expect()" were resolved, then either namedArgs would be true
     // or returnValue and typeNames would be true.
-    assertOpType(namedArgs: true, returnValue: true, typeNames: true);
+    await assertOpType(namedArgs: true, returnValue: true, typeNames: true);
   }
 
-  test_ArgumentList_constructor_named_resolved_1_0() {
+  test_ArgumentList_constructor_named_resolved_1_0() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
-        'main() { new A.b(^); }'
-        'class A{ A.b({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A.b(^); }'
+          'class A{ A.b({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_constructor_named_resolved_1_1() {
+  test_ArgumentList_constructor_named_resolved_1_1() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
-        'main() { new A.b(o^); }'
-        'class A { A.b({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A.b(o^); }'
+          'class A { A.b({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_constructor_resolved_1_0() {
+  test_ArgumentList_constructor_resolved_1_0() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
-        'main() { new A(^); }'
-        'class A{ A({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A(^); }'
+          'class A{ A({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_constructor_resolved_1_1() {
+  test_ArgumentList_constructor_resolved_1_1() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
-        'main() { new A(o^); }'
-        'class A { A({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A(o^); }'
+          'class A { A({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_factory_named_resolved_1_0() {
+  test_ArgumentList_factory_named_resolved_1_0() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
-        'main() { new A.b(^); }'
-        'class A{ factory A.b({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A.b(^); }'
+          'class A{ factory A.b({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_factory_named_resolved_1_1() {
+  test_ArgumentList_factory_named_resolved_1_1() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
-        'main() { new A.b(o^); }'
-        'class A { factory A.b({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A.b(o^); }'
+          'class A { factory A.b({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_factory_resolved_1_0() {
+  test_ArgumentList_factory_resolved_1_0() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
-        'main() { new A(^); }'
-        'class A{ factory A({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A(^); }'
+          'class A{ factory A({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_factory_resolved_1_1() {
+  test_ArgumentList_factory_resolved_1_1() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
-        'main() { new A(o^); }'
-        'class A { factory A({one, two}) {} }',
-        resolved: true);
-    assertOpType(namedArgs: true);
+      'main() { new A(o^); }'
+          'class A { factory A({one, two}) {} }',
+    );
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_method_resolved_1_0() {
+  test_ArgumentList_method_resolved_1_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('main() { foo(^);} foo({one, two}) {}', resolved: true);
-    assertOpType(namedArgs: true);
+    addTestSource('main() { foo(^);} foo({one, two}) {}');
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_method_resolved_1_1() {
+  test_ArgumentList_method_resolved_1_1() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('main() { foo(o^);} foo({one, two}) {}', resolved: true);
-    assertOpType(namedArgs: true);
+    addTestSource('main() { foo(o^);} foo({one, two}) {}');
+    await assertOpType(namedArgs: true);
   }
 
-  test_ArgumentList_namedParam() {
+  test_ArgumentList_namedParam() async {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
     addTestSource('void main() {expect(foo: ^)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ArgumentList_prefixedIdentifier() {
+  test_ArgumentList_prefixedIdentifier() async {
     // SimpleIdentifier  PrefixedIdentifier  ArgumentList
     addTestSource('void main() {expect(aa.^)}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+    await assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
-  test_ArgumentList_resolved() {
+  test_ArgumentList_resolved() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('void main() {int.parse(^)}', resolved: true);
-    assertOpType(returnValue: true, typeNames: true);
+    addTestSource('void main() {int.parse(^)}');
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ArgumentList_resolved_2_0() {
+  test_ArgumentList_resolved_2_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('void main() {int.parse("16", ^)}', resolved: true);
-    assertOpType(namedArgs: true);
+    addTestSource('void main() {int.parse("16", ^)}');
+    await assertOpType(namedArgs: true);
   }
 
-  test_AsExpression() {
+  test_AsExpression() async {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('class A {var b; X _c; foo() {var a; (a as ^).foo();}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_AsIdentifier() {
+  test_AsIdentifier() async {
     addTestSource('class A {var asdf; foo() {as^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_AsIdentifier2() {
+  test_AsIdentifier2() async {
     addTestSource('class A {var asdf; foo() {A as^}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_Assert() {
+  test_Assert() async {
     addTestSource('main() {assert(^)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AssignmentExpression_name() {
+  test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int ^b = 1;}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_AssignmentExpression_RHS() {
+  test_AssignmentExpression_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int b = ^}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AssignmentExpression_type() {
+  test_AssignmentExpression_type() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -259,10 +243,10 @@ class OpTypeTest {
     // or (2) starting a new statement.
     // Consider suggesting only types
     // if only spaces separates the 1st and 2nd identifiers.
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_AssignmentExpression_type_newline() {
+  test_AssignmentExpression_type_newline() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -273,10 +257,10 @@ class OpTypeTest {
     // Allow non-types preceding an identifier on LHS of assignment
     // if newline follows first identifier
     // because user is probably starting a new statement
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_AssignmentExpression_type_partial() {
+  test_AssignmentExpression_type_partial() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -288,10 +272,10 @@ class OpTypeTest {
     // or (2) starting a new statement.
     // Consider suggesting only types
     // if only spaces separates the 1st and 2nd identifiers.
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_AssignmentExpression_type_partial_newline() {
+  test_AssignmentExpression_type_partial_newline() async {
     // SimpleIdentifier  TypeName  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('''
@@ -302,66 +286,66 @@ class OpTypeTest {
     // Allow non-types preceding an identifier on LHS of assignment
     // if newline follows first identifier
     // because user is probably starting a new statement
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_AwaitExpression() {
+  test_AwaitExpression() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
     addTestSource('main() async {A a; await ^}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AwaitExpression2() {
+  test_AwaitExpression2() async {
     addTestSource('main() async {A a; await c^ await}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AwaitExpression3() {
+  test_AwaitExpression3() async {
     addTestSource('main() async {A a; await ^ await foo;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AwaitExpression4() {
+  test_AwaitExpression4() async {
     addTestSource('main() async {A a; await ^ await bar();}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AwaitExpression_assignment() {
+  test_AwaitExpression_assignment() async {
     addTestSource('main() async {A a; int x = await ^}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AwaitExpression_assignment2() {
+  test_AwaitExpression_assignment2() async {
     addTestSource('main() async {A a; int x = await ^ await foo;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_AwaitExpression_assignment3() {
+  test_AwaitExpression_assignment3() async {
     addTestSource('main() async {A a; int x = await v^ int y = await foo;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_BinaryExpression_LHS() {
+  test_BinaryExpression_LHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = ^ + 2;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_BinaryExpression_RHS() {
+  test_BinaryExpression_RHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = 2 + ^;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_BinaryExpression_RHS2() {
+  test_BinaryExpression_RHS2() async {
     // SimpleIdentifier  BinaryExpression
     addTestSource('main() {if (c < ^)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_Block() {
+  test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('''
       class X {
@@ -372,1406 +356,1384 @@ class OpTypeTest {
           ^ var r;
         }
       }''');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_1a() async {
     // '}'  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} ^}');
     // Only return 'on', 'catch', and 'finally' keywords
-    assertOpType();
+    await assertOpType();
   }
 
   test_Block_catch_1b() async {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody
     addTestSource('main() {try {} c^}');
     // Only return 'on', 'catch', and 'finally' keywords
-    assertOpType();
+    await assertOpType();
   }
 
   test_Block_catch_1c() async {
     // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} ^;}');
     // Only return 'on', 'catch', and 'finally' keywords
-    assertOpType();
+    await assertOpType();
   }
 
   test_Block_catch_1d() async {
     // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
     addTestSource('main() {try {} ^ Foo foo;}');
     // Only return 'on', 'catch', and 'finally' keywords
-    assertOpType();
+    await assertOpType();
   }
 
   test_Block_catch_2a() async {
     // '}'  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} catch () {} ^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_2b() async {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody
     addTestSource('main() {try {} catch () {} c^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_2c() async {
     // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} catch () {} ^;}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_2d() async {
     // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
     addTestSource('main() {try {} catch () {} ^ Foo foo;}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_3a() async {
     // '}'  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} finally {} ^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_3b() async {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody
     addTestSource('main() {try {} finally {} c^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_3c() async {
     // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} finally {} ^;}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Block_catch_3d() async {
     // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
     addTestSource('main() {try {} finally {} ^ Foo foo;}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_catch_4a1() async {
-    addTestSource('main() {try {} ^ on SomeException {}}');
-    assertOpType();
-  }
-
-  test_catch_4a2() async {
-    addTestSource('main() {try {} c^ on SomeException {}}');
-    assertOpType();
-  }
-
-  test_catch_4b1() async {
-    addTestSource('main() {try {} ^ catch (e) {}}');
-    assertOpType();
-  }
-
-  test_catch_4b2() async {
-    addTestSource('main() {try {} c^ catch (e) {}}');
-    assertOpType();
-  }
-
-  test_catch_4c1() async {
-    addTestSource('main() {try {} ^ finally {}}');
-    assertOpType();
-  }
-
-  test_catch_4c2() async {
-    addTestSource('main() {try {} c^ finally {}}');
-    assertOpType();
-  }
-
-  test_catch_5a() async {
-    addTestSource('main() {try {} on ^ finally {}}');
-    assertOpType(typeNames: true);
-  }
-
-  test_catch_5b() async {
-    addTestSource('main() {try {} on E^ finally {}}');
-    assertOpType(typeNames: true);
-  }
-
-  test_Block_empty() {
+  test_Block_empty() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('class A extends E implements I with M {a() {^}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_Block_final() {
+  test_Block_final() async {
     addTestSource('main() {final ^}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Block_final2() {
+  test_Block_final2() async {
     addTestSource('main() {final S^ v;}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Block_final3() {
+  test_Block_final3() async {
     addTestSource('main() {final ^ v;}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Block_final_final() {
+  test_Block_final_final() async {
     addTestSource('main() {final ^ final S x;}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Block_final_final2() {
+  test_Block_final_final2() async {
     addTestSource('main() {final S^ final S x;}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Block_identifier_partial() {
+  test_Block_identifier_partial() async {
     addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_Block_keyword() {
+  test_Block_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
-    assertOpType(
+    await assertOpType(
         prefixed: true, returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_Block_static() {
+  test_Block_static() async {
     addTestSource('class A {static foo() {^}}');
-    assertOpType(
+    await assertOpType(
         returnValue: true,
         typeNames: true,
         staticMethodBody: true,
         voidReturn: true);
   }
 
-  test_Break_after_label() {
+  test_Break_after_label() async {
     addTestSource('main() { foo: while (true) { break foo ^ ; } }');
-    assertOpType(/* No valid completions */);
+    await assertOpType(/* No valid completions */);
   }
 
-  test_Break_before_label() {
+  test_Break_before_label() async {
     addTestSource('main() { foo: while (true) { break ^ foo; } }');
-    assertOpType(statementLabel: true);
+    await assertOpType(statementLabel: true);
   }
 
-  test_Break_no_label() {
+  test_Break_no_label() async {
     addTestSource('main() { foo: while (true) { break ^; } }');
-    assertOpType(statementLabel: true);
+    await assertOpType(statementLabel: true);
   }
 
-  test_CascadeExpression_selector1() {
+  test_CascadeExpression_selector1() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addTestSource('''
       // looks like a cascade to the parser
       // but the user is trying to get completions for a non-cascade
       main() {A a; a.^.z}''');
-    assertOpType(
+    await assertOpType(
         returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
-  test_CascadeExpression_selector2() {
+  test_CascadeExpression_selector2() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a..^z}');
-    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
+    await assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
-  test_CascadeExpression_selector2_withTrailingReturn() {
+  test_CascadeExpression_selector2_withTrailingReturn() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addTestSource('main() {A a; a..^ return}');
-    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
+    await assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
-  test_CascadeExpression_target() {
+  test_CascadeExpression_target() async {
     // SimpleIdentifier  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a^..b}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_CatchClause_onType() {
+  test_catch_4a1() async {
+    addTestSource('main() {try {} ^ on SomeException {}}');
+    await assertOpType();
+  }
+
+  test_catch_4a2() async {
+    addTestSource('main() {try {} c^ on SomeException {}}');
+    await assertOpType();
+  }
+
+  test_catch_4b1() async {
+    addTestSource('main() {try {} ^ catch (e) {}}');
+    await assertOpType();
+  }
+
+  test_catch_4b2() async {
+    addTestSource('main() {try {} c^ catch (e) {}}');
+    await assertOpType();
+  }
+
+  test_catch_4c1() async {
+    addTestSource('main() {try {} ^ finally {}}');
+    await assertOpType();
+  }
+
+  test_catch_4c2() async {
+    addTestSource('main() {try {} c^ finally {}}');
+    await assertOpType();
+  }
+
+  test_catch_5a() async {
+    addTestSource('main() {try {} on ^ finally {}}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_catch_5b() async {
+    addTestSource('main() {try {} on E^ finally {}}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_CatchClause_onType() async {
     // TypeName  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^ {}}}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_CatchClause_onType_noBrackets() {
+  test_CatchClause_onType_noBrackets() async {
     // TypeName  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on ^}}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_CatchClause_typed() {
+  test_CatchClause_typed() async {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_CatchClause_untyped() {
+  test_CatchClause_untyped() async {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} catch (e, s) {^}}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ClassDeclaration_body() {
+  test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('@deprecated class A {^}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ClassDeclaration_body2() {
+  test_ClassDeclaration_body2() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('@deprecated class A {^mth() {}}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Combinator_hide() {
+  test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addTestSource('''
       import "/testAB.dart" hide ^;
       class X {}''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_Combinator_show() {
+  test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addTestSource('''
       import "/testAB.dart" show ^;
       import "/testCD.dart";
       class X {}''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_CommentReference() {
+  test_CommentReference() async {
     // SimpleIdentifier  CommentReference  Comment  MethodDeclaration
     addTestSource('class A {/** [^] */ mth() {}');
-    assertOpType(
+    await assertOpType(
         returnValue: true,
         typeNames: true,
         voidReturn: true,
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 
-  test_ConditionalExpression_elseExpression() {
+  test_ConditionalExpression_elseExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T1 : T^}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConditionalExpression_elseExpression_empty() {
+  test_ConditionalExpression_elseExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T1 : ^}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConditionalExpression_partial_thenExpression() {
+  test_ConditionalExpression_partial_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T^}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConditionalExpression_partial_thenExpression_empty() {
+  test_ConditionalExpression_partial_thenExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? ^}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConditionalExpression_thenExpression() {
+  test_ConditionalExpression_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T^ : c}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ConstructorName() {
+  test_ConstructorName() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new X.^}');
-    assertOpType(constructors: true, prefixed: true);
+    await assertOpType(constructors: true, prefixed: true);
   }
 
-  test_ConstructorName_name_resolved() {
+  test_ConstructorName_name_resolved() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addTestSource('main() {new Str^ing.fromCharCodes([]);}', resolved: true);
-    assertOpType(constructors: true);
+    addTestSource('main() {new Str^ing.fromCharCodes([]);}');
+    await assertOpType(constructors: true);
   }
 
-  test_ConstructorName_resolved() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addTestSource('main() {new String.fr^omCharCodes([]);}', resolved: true);
-    assertOpType(constructors: true, prefixed: true);
-  }
-
-  test_ConstructorName_unresolved() {
+  test_ConstructorName_resolved() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
     addTestSource('main() {new String.fr^omCharCodes([]);}');
-    assertOpType(constructors: true, prefixed: true);
+    await assertOpType(constructors: true, prefixed: true);
   }
 
-  test_Continue_after_label() {
+  test_ConstructorName_unresolved() async {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('main() {new String.fr^omCharCodes([]);}');
+    await assertOpType(constructors: true, prefixed: true);
+  }
+
+  test_Continue_after_label() async {
     addTestSource('main() { foo: while (true) { continue foo ^ ; } }');
-    assertOpType(/* No valid completions */);
+    await assertOpType(/* No valid completions */);
   }
 
-  test_Continue_before_label() {
+  test_Continue_before_label() async {
     addTestSource('main() { foo: while (true) { continue ^ foo; } }');
-    assertOpType(statementLabel: true, caseLabel: true);
+    await assertOpType(statementLabel: true, caseLabel: true);
   }
 
-  test_Continue_no_label() {
+  test_Continue_no_label() async {
     addTestSource('main() { foo: while (true) { continue ^; } }');
-    assertOpType(statementLabel: true, caseLabel: true);
+    await assertOpType(statementLabel: true, caseLabel: true);
   }
 
-  test_DefaultFormalParameter_named_expression() {
+  test_DefaultFormalParameter_named_expression() async {
     // DefaultFormalParameter FormalParameterList MethodDeclaration
     addTestSource('class A {a(blat: ^) { }}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_DoStatement() {
+  test_DoStatement() async {
     // SimpleIdentifier  DoStatement  Block
     addTestSource('main() {do{} while(^x);}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ExpressionFunctionBody() {
+  test_ExpressionFunctionBody() async {
     // SimpleIdentifier  ExpressionFunctionBody  FunctionExpression
     addTestSource('m(){[1].forEach((x)=>^x);}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ExpressionStatement() {
+  test_ExpressionStatement() async {
     // ExpressionStatement  Block  BlockFunctionBody
     addTestSource('n(){f(3);^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ExpressionStatement_name() {
+  test_ExpressionStatement_name() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class C {a() {C ^}}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_ExpressionStatement_name_semicolon() {
+  test_ExpressionStatement_name_semicolon() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class C {a() {C ^;}}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_ExpressionStatement_prefixed_name() {
+  test_ExpressionStatement_prefixed_name() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class C {a() {x.Y ^}}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_ExpressionStatement_prefixed_name_semicolon() {
+  test_ExpressionStatement_prefixed_name_semicolon() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class C {a() {x.Y ^;}}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_ExtendsClause() {
+  test_ExtendsClause() async {
     // ExtendsClause  ClassDeclaration
     addTestSource('class x extends ^\n{}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FieldDeclaration_name_typed() {
+  test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
     addTestSource('class C {A ^}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_FieldDeclaration_name_var() {
+  test_FieldDeclaration_name_var() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
     addTestSource('class C {var ^}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_ForEachStatement() {
+  test_ForEachStatement() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main() {for(z in ^zs) {}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ForEachStatement_body_typed() {
+  test_ForEachStatement_body_typed() async {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ForEachStatement_body_untyped() {
+  test_ForEachStatement_body_untyped() async {
     // Block  ForEachStatement
     addTestSource('main(args) {for (foo in bar) {^}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ForEachStatement_iterable() {
+  test_ForEachStatement_iterable() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (int foo in ^) {}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ForEachStatement_loopVariable() {
+  test_ForEachStatement_loopVariable() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (^ in args) {}}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ForEachStatement_loopVariable_name() {
+  test_ForEachStatement_loopVariable_name() async {
     // DeclaredIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (String ^ in args) {}}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_ForEachStatement_loopVariable_name2() {
+  test_ForEachStatement_loopVariable_name2() async {
     // DeclaredIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (String f^ in args) {}}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_ForEachStatement_loopVariable_type() {
+  test_ForEachStatement_loopVariable_type() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (^ foo in args) {}}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ForEachStatement_loopVariable_type2() {
+  test_ForEachStatement_loopVariable_type2() async {
     // DeclaredIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (S^ foo in args) {}}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FormalParameter_partialType() {
+  test_FormalParameter_partialType() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^ f) { }}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+    await assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
-  test_FormalParameter_partialType2() {
+  test_FormalParameter_partialType2() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.z^ f) { }}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+    await assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
-  test_FormalParameter_partialType3() {
+  test_FormalParameter_partialType3() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^) { }}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+    await assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
-  test_FormalParameterList() {
+  test_FormalParameterList() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(^) { }}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ForStatement_condition() {
+  test_ForStatement_condition() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ForStatement_initializer() {
+  test_ForStatement_initializer() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (^)}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ForStatement_initializer_inKeyword() {
+  test_ForStatement_initializer_inKeyword() async {
     addTestSource('main() { for (var v i^) }');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_ForStatement_initializer_type() {
+  test_ForStatement_initializer_type() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (i^ v = 0;)}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ForStatement_initializer_variableNameEmpty_afterType() {
+  test_ForStatement_initializer_variableNameEmpty_afterType() async {
     addTestSource('main() { for (String ^) }');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_ForStatement_updaters() {
+  test_ForStatement_updaters() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
     // TODO (danrubel) may want to exclude methods/functions with void return
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_ForStatement_updaters_prefix_expression() {
+  test_ForStatement_updaters_prefix_expression() async {
     // SimpleIdentifier  PrefixExpression  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; ++i^)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_FunctionDeclaration1() {
+  test_FunctionDeclaration1() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     addTestSource('const ^Fara();');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration2() {
+  test_FunctionDeclaration2() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     addTestSource('const F^ara();');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_inLineComment() {
+  test_FunctionDeclaration_inLineComment() async {
     // Comment  CompilationUnit
     addTestSource('''
       // normal comment ^
       zoo(z) { } String name;''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inLineComment2() {
+  test_FunctionDeclaration_inLineComment2() async {
     // Comment  CompilationUnit
     addTestSource('''
       // normal ^comment
       zoo(z) { } String name;''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inLineComment3() {
+  test_FunctionDeclaration_inLineComment3() async {
     // Comment  CompilationUnit
     addTestSource('''
       // normal comment ^
       // normal comment 2
       zoo(z) { } String name;''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inLineComment4() {
+  test_FunctionDeclaration_inLineComment4() async {
     // Comment  CompilationUnit
     addTestSource('''
       // normal comment
       // normal comment 2^
       zoo(z) { } String name;''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inLineDocComment() {
+  test_FunctionDeclaration_inLineDocComment() async {
     // Comment  FunctionDeclaration  CompilationUnit
     addTestSource('''
       /// some dartdoc ^
       zoo(z) { } String name;''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inLineDocComment2() {
+  test_FunctionDeclaration_inLineDocComment2() async {
     // Comment  FunctionDeclaration  CompilationUnit
     addTestSource('''
       /// some ^dartdoc
       zoo(z) { } String name;''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inStarComment() {
+  test_FunctionDeclaration_inStarComment() async {
     // Comment  CompilationUnit
     addTestSource('/* ^ */ zoo(z) {} String name;');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inStarComment2() {
+  test_FunctionDeclaration_inStarComment2() async {
     // Comment  CompilationUnit
     addTestSource('/*  *^/ zoo(z) {} String name;');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inStarDocComment() {
+  test_FunctionDeclaration_inStarDocComment() async {
     // Comment  FunctionDeclaration  CompilationUnit
     addTestSource('/** ^ */ zoo(z) { } String name; ');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_inStarDocComment2() {
+  test_FunctionDeclaration_inStarDocComment2() async {
     // Comment  FunctionDeclaration  CompilationUnit
     addTestSource('/**  *^/ zoo(z) { } String name;');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionDeclaration_returnType() {
+  test_FunctionDeclaration_returnType() async {
     // CompilationUnit
     addTestSource('^ zoo(z) { } String name;');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterLineComment() {
+  test_FunctionDeclaration_returnType_afterLineComment() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('''
       // normal comment
       ^ zoo(z) {} String name;''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterLineComment2() {
+  test_FunctionDeclaration_returnType_afterLineComment2() async {
     // FunctionDeclaration  CompilationUnit
     // TOD(danrubel) left align all test source
     addTestSource('''
 // normal comment
 ^ zoo(z) {} String name;''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterLineDocComment() {
+  test_FunctionDeclaration_returnType_afterLineDocComment() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     addTestSource('''
       /// some dartdoc
       ^ zoo(z) { } String name;''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterLineDocComment2() {
+  test_FunctionDeclaration_returnType_afterLineDocComment2() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     addTestSource('''
 /// some dartdoc
 ^ zoo(z) { } String name;''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterStarComment() {
+  test_FunctionDeclaration_returnType_afterStarComment() async {
     // CompilationUnit
     addTestSource('/* */ ^ zoo(z) { } String name;');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterStarComment2() {
+  test_FunctionDeclaration_returnType_afterStarComment2() async {
     // CompilationUnit
     addTestSource('/* */^ zoo(z) { } String name;');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterStarDocComment() {
+  test_FunctionDeclaration_returnType_afterStarDocComment() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */ ^ zoo(z) { } String name;');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionDeclaration_returnType_afterStarDocComment2() {
+  test_FunctionDeclaration_returnType_afterStarDocComment2() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */^ zoo(z) { } String name;');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_FunctionExpression() {
+  test_FunctionExpression() async {
     // BlockFunctionBody  FunctionExpression  FunctionDeclaration
     addTestSource('main()^ { int b = 2; b++; b. }');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionExpressionInvocation() {
+  test_FunctionExpressionInvocation() async {
     // ArgumentList  FunctionExpressionInvocation  ExpressionStatement
     addTestSource('main() { ((x) => x + 7)^(2) }');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_FunctionTypeAlias() {
+  test_FunctionTypeAlias() async {
     // SimpleIdentifier  FunctionTypeAlias  CompilationUnit
     addTestSource('typedef n^ ;');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_IfStatement() {
+  test_IfStatement() async {
     // EmptyStatement  IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (true) ^}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_IfStatement_condition() {
+  test_IfStatement_condition() async {
     // SimpleIdentifier  IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (^)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_IfStatement_empty() {
+  test_IfStatement_empty() async {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('class A {foo() {A a; if (^) something}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_IfStatement_invocation() {
+  test_IfStatement_invocation() async {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('main() {var a; if (a.^) something}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+    await assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
-  test_ImplementsClause() {
+  test_ImplementsClause() async {
     // ImplementsClause  ClassDeclaration
     addTestSource('class x implements ^\n{}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ImportDirective_dart() {
+  test_ImportDirective_dart() async {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
       import "dart^";
       main() {}''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_IndexExpression() {
+  test_IndexExpression() async {
     addTestSource('class C {foo(){var f; {var x;} f[^]}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_IndexExpression2() {
+  test_IndexExpression2() async {
     addTestSource('class C {foo(){var f; {var x;} f[T^]}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_InstanceCreationExpression() {
+  test_InstanceCreationExpression() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^}}');
-    assertOpType(constructors: true);
+    await assertOpType(constructors: true);
   }
 
-  test_InstanceCreationExpression_keyword() {
+  test_InstanceCreationExpression_keyword() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ }}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_InstanceCreationExpression_keyword2() {
+  test_InstanceCreationExpression_keyword2() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_InstanceCreationExpression_trailingStmt() {
+  test_InstanceCreationExpression_trailingStmt() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class C {foo(){var f; {var x;} new ^ int x = 7;}}');
-    assertOpType(constructors: true);
+    await assertOpType(constructors: true);
   }
 
-  test_InterpolationExpression() {
+  test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');
-    assertOpType(returnValue: true);
+    await assertOpType(returnValue: true);
   }
 
-  test_InterpolationExpression_block() {
+  test_InterpolationExpression_block() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \${n^}");}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_InterpolationExpression_prefix_selector() {
+  test_InterpolationExpression_prefix_selector() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${name.^}");}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+    await assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
-  test_InterpolationExpression_prefix_target() {
+  test_InterpolationExpression_prefix_target() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${nam^e.length}");}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_IsExpression() {
+  test_IsExpression() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('main() {var x; if (x is ^) { }}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_IsExpression_target() {
+  test_IsExpression_target() async {
     // IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (^ is A)}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_IsExpression_type_partial() {
+  test_IsExpression_type_partial() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('main(){var a; if (a is Obj^)}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_Literal_list() {
+  test_Literal_list() async {
     // ']'  ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([^]);}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_Literal_list2() {
+  test_Literal_list2() async {
     // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([S^]);}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_Literal_string() {
+  test_Literal_string() async {
     // SimpleStringLiteral  ExpressionStatement  Block
     addTestSource('class A {a() {"hel^lo"}}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MapLiteralEntry() {
+  test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {^');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_MapLiteralEntry1() {
+  test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {T^');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_MapLiteralEntry2() {
+  test_MapLiteralEntry2() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {7:T^};');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_MethodDeclaration1() {
+  test_MethodDeclaration1() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const ^Fara();}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration2() {
+  test_MethodDeclaration2() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const F^ara();}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_inLineComment() {
+  test_MethodDeclaration_inLineComment() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         // normal comment ^
         zoo(z) { } String name; }''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inLineComment2() {
+  test_MethodDeclaration_inLineComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         // normal ^comment
         zoo(z) { } String name; }''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inLineComment3() {
+  test_MethodDeclaration_inLineComment3() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         // normal comment ^
         // normal comment 2
         zoo(z) { } String name; }''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inLineComment4() {
+  test_MethodDeclaration_inLineComment4() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         // normal comment
         // normal comment 2^
         zoo(z) { } String name; }''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inLineDocComment() {
+  test_MethodDeclaration_inLineDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         /// some dartdoc ^
         zoo(z) { } String name; }''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inLineDocComment2() {
+  test_MethodDeclaration_inLineDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         /// some ^dartdoc
         zoo(z) { } String name; }''');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inStarComment() {
+  test_MethodDeclaration_inStarComment() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/* ^ */ zoo(z) {} String name;}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inStarComment2() {
+  test_MethodDeclaration_inStarComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/*  *^/ zoo(z) {} String name;}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inStarDocComment() {
+  test_MethodDeclaration_inStarDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** ^ */ zoo(z) { } String name; }');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_inStarDocComment2() {
+  test_MethodDeclaration_inStarDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/**  *^/ zoo(z) { } String name; }');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_MethodDeclaration_returnType() {
+  test_MethodDeclaration_returnType() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('class C2 {^ zoo(z) { } String name; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineComment() {
+  test_MethodDeclaration_returnType_afterLineComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         // normal comment
         ^ zoo(z) {} String name;}''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineComment2() {
+  test_MethodDeclaration_returnType_afterLineComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     // TOD(danrubel) left align all test source
     addTestSource('''
 class C2 {
   // normal comment
 ^ zoo(z) {} String name;}''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineDocComment() {
+  test_MethodDeclaration_returnType_afterLineDocComment() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
         /// some dartdoc
         ^ zoo(z) { } String name; }''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineDocComment2() {
+  test_MethodDeclaration_returnType_afterLineDocComment2() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
 class C2 {
   /// some dartdoc
 ^ zoo(z) { } String name; }''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarComment() {
+  test_MethodDeclaration_returnType_afterStarComment() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/* */ ^ zoo(z) { } String name; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarComment2() {
+  test_MethodDeclaration_returnType_afterStarComment2() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/* */^ zoo(z) { } String name; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarDocComment() {
+  test_MethodDeclaration_returnType_afterStarDocComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */ ^ zoo(z) { } String name; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarDocComment2() {
+  test_MethodDeclaration_returnType_afterStarDocComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_MethodInvocation_no_semicolon() {
+  test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       class A implements I {
         // no semicolon between completion point and next statement
         set _s2(I x) {x.^ m(null);}
       }''');
-    assertOpType(
+    await assertOpType(
         returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
-  test_PostfixExpression() {
+  test_PostfixExpression() async {
     // SimpleIdentifier  PostfixExpression  ForStatement
     addTestSource('int x = 0; main() {ax+^+;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_PrefixedIdentifier_class_const() {
+  test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
     addTestSource('main() {A.^}');
-    assertOpType(
+    await assertOpType(
         returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
-  test_PrefixedIdentifier_class_imported() {
+  test_PrefixedIdentifier_class_imported() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('main() {A a; a.^}');
-    assertOpType(
+    await assertOpType(
         returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
-  test_PrefixedIdentifier_prefix() {
+  test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('class X {foo(){A^.bar}}');
-    assertOpType(typeNames: true, returnValue: true, voidReturn: true);
+    await assertOpType(typeNames: true, returnValue: true, voidReturn: true);
   }
 
-  test_PropertyAccess_expression() {
+  test_PropertyAccess_expression() async {
     // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
     addTestSource('class A {a() {"hello".to^String().length}}');
-    assertOpType(
+    await assertOpType(
         returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
-  test_PropertyAccess_noTarget() {
+  test_PropertyAccess_noTarget() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestSource('main() {.^}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_PropertyAccess_noTarget2() {
+  test_PropertyAccess_noTarget2() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpressions
     addTestSource('main() {.^.}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_PropertyAccess_noTarget3() {
+  test_PropertyAccess_noTarget3() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpressions
     addTestSource('main() {..^}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_PropertyAccess_selector() {
+  test_PropertyAccess_selector() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');
-    assertOpType(
+    await assertOpType(
         returnValue: true, typeNames: true, voidReturn: true, prefixed: true);
   }
 
-  test_ReturnStatement() {
+  test_ReturnStatement() async {
     // ReturnStatement  Block
     addTestSource('f() { var vvv = 42; return ^ }');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_SimpleFormalParameter_closure() {
+  test_SimpleFormalParameter_closure() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SimpleFormalParameter_name1() {
+  test_SimpleFormalParameter_name1() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(String na^) {}');
-    assertOpType(typeNames: false);
+    await assertOpType(typeNames: false);
   }
 
-  test_SimpleFormalParameter_name2() {
+  test_SimpleFormalParameter_name2() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(int first, String na^) {}');
-    assertOpType(typeNames: false);
+    await assertOpType(typeNames: false);
   }
 
-  test_SimpleFormalParameter_type_optionalNamed() {
+  test_SimpleFormalParameter_type_optionalNamed() async {
     // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
     addTestSource('m({Str^}) {}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SimpleFormalParameter_type_optionalPositional() {
+  test_SimpleFormalParameter_type_optionalPositional() async {
     // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
     addTestSource('m([Str^]) {}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SimpleFormalParameter_type_withName() {
+  test_SimpleFormalParameter_type_withName() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(Str^ name) {}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SimpleFormalParameter_type_withoutName1() {
+  test_SimpleFormalParameter_type_withoutName1() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(Str^) {}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SimpleFormalParameter_type_withoutName2() {
+  test_SimpleFormalParameter_type_withoutName2() async {
     // FormalParameterList
     addTestSource('m(^) {}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SimpleFormalParameter_type_withoutName3() {
+  test_SimpleFormalParameter_type_withoutName3() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(int first, Str^) {}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_SwitchCase_before() {
+  test_SwitchCase_before() async {
     // SwitchCase  SwitchStatement  Block
     addTestSource('main() {switch(k) {^case 1:}}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_SwitchCase_between() {
+  test_SwitchCase_between() async {
     // SwitchCase  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1: ^ case 2: return}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_SwitchCase_expression1() {
+  test_SwitchCase_expression1() async {
     // SimpleIdentifier  SwitchCase  SwitchStatement
     addTestSource('''m() {switch (x) {case ^D: return;}}''');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_SwitchCase_expression2() {
+  test_SwitchCase_expression2() async {
     // SimpleIdentifier  SwitchCase  SwitchStatement
     addTestSource('''m() {switch (x) {case ^}}''');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_SwitchDefault_before() {
+  test_SwitchDefault_before() async {
     // SwitchDefault  SwitchStatement  Block
     addTestSource('main() {switch(k) { ^ default: return;}}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_SwitchDefault_between() {
+  test_SwitchDefault_between() async {
     // SwitchDefault  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1: ^ default: return;}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_SwitchStatement_body_empty() {
+  test_SwitchStatement_body_empty() async {
     // Token('}')  SwitchStatement  Block
     addTestSource('main() {switch(k) {^}}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_SwitchStatement_body_end() {
+  test_SwitchStatement_body_end() async {
     // Token('}')  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1:^}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_SwitchStatement_body_end2() {
+  test_SwitchStatement_body_end2() async {
     addTestSource('main() {switch(k) {case 1:as^}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_SwitchStatement_expression1() {
+  test_SwitchStatement_expression1() async {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(^k) {case 1:{}}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_SwitchStatement_expression2() {
+  test_SwitchStatement_expression2() async {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(k^) {case 1:{}}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_SwitchStatement_expression_empty() {
+  test_SwitchStatement_expression_empty() async {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(^) {case 1:{}}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_ThisExpression_block() {
+  test_ThisExpression_block() async {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       class A implements I {
         // no semicolon between completion point and next statement
         set s1(I x) {} set _s2(I x) {this.^ m(null);}
       }''');
-    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
+    await assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
-  test_ThisExpression_constructor() {
+  test_ThisExpression_constructor() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestSource('''
       class A implements I {
         A() {this.^}
       }''');
-    assertOpType(returnValue: true, voidReturn: true, prefixed: true);
+    await assertOpType(returnValue: true, voidReturn: true, prefixed: true);
   }
 
-  test_ThisExpression_constructor_param() {
+  test_ThisExpression_constructor_param() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
       class A implements I {
         A(this.^) {}
       }''');
-    assertOpType(prefixed: true);
+    await assertOpType(prefixed: true);
   }
 
-  test_ThisExpression_constructor_param2() {
+  test_ThisExpression_constructor_param2() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
       class A implements I {
         A(this.f^) {}
       }''');
-    assertOpType(prefixed: true);
+    await assertOpType(prefixed: true);
   }
 
-  test_ThisExpression_constructor_param3() {
+  test_ThisExpression_constructor_param3() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
       class A implements I {
         A(this.^f) {}
       }''');
-    assertOpType(prefixed: true);
+    await assertOpType(prefixed: true);
   }
 
-  test_ThisExpression_constructor_param4() {
+  test_ThisExpression_constructor_param4() async {
     // FieldFormalParameter  FormalParameterList  ConstructorDeclaration
     addTestSource('''
       class A implements I {
         A(Str^ this.foo) {}
       }''');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_ThrowExpression() {
+  test_ThrowExpression() async {
     // SimpleIdentifier  ThrowExpression  ExpressionStatement
     addTestSource('main() {throw ^;}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_TopLevelVariableDeclaration_typed_name() {
+  test_TopLevelVariableDeclaration_typed_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
     // _OpTypeAstVisitor.visitVariableDeclarationList is executed with this
     // source, but _OpTypeAstVisitor.visitTopLevelVariableDeclaration is called
     // for test_TopLevelVariableDeclaration_typed_name_semicolon
     addTestSource('class A {} B ^');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_TopLevelVariableDeclaration_typed_name_semicolon() {
+  test_TopLevelVariableDeclaration_typed_name_semicolon() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
     // See comment in test_TopLevelVariableDeclaration_typed_name
     addTestSource('class A {} B ^;');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_TopLevelVariableDeclaration_untyped_name() {
+  test_TopLevelVariableDeclaration_untyped_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
     addTestSource('class A {} var ^');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_TypeArgumentList() {
+  test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
     addTestSource('main() { C<^> c; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_TypeArgumentList2() {
+  test_TypeArgumentList2() async {
     // TypeName  TypeArgumentList  TypeName
     addTestSource('main() { C<C^> c; }');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_TypeParameter() {
+  test_TypeParameter() async {
     // SimpleIdentifier  TypeParameter  TypeParameterList
     addTestSource('class tezetst <String, ^List> {}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_TypeParameterList_empty() {
+  test_TypeParameterList_empty() async {
     // SimpleIdentifier  TypeParameter  TypeParameterList
     addTestSource('class tezetst <^> {}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_VariableDeclaration_name() {
+  test_VariableDeclaration_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('main() {var ^}');
-    assertOpType();
+    await assertOpType();
   }
 
-  test_VariableDeclaration_name_hasSome_parameterizedType() {
+  test_VariableDeclaration_name_hasSome_parameterizedType() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('main() {List<int> m^}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_VariableDeclaration_name_hasSome_simpleType() {
+  test_VariableDeclaration_name_hasSome_simpleType() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('main() {String m^}');
-    assertOpType(varNames: true);
+    await assertOpType(varNames: true);
   }
 
-  test_VariableDeclarationList_final() {
+  test_VariableDeclarationList_final() async {
     // VariableDeclarationList  VariableDeclarationStatement  Block
     addTestSource('main() {final ^}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
 
-  test_VariableDeclarationStatement_afterSemicolon() {
+  test_VariableDeclarationStatement_afterSemicolon() async {
     // VariableDeclarationStatement  Block  BlockFunctionBody
     addTestSource('class A {var a; x() {var b;^}}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    await assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
-  test_VariableDeclarationStatement_RHS() {
+  test_VariableDeclarationStatement_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
     addTestSource('class C {bar(){var f; {var x;} var e = ^}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_VariableDeclarationStatement_RHS_missing_semicolon() {
+  test_VariableDeclarationStatement_RHS_missing_semicolon() async {
     // VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
     addTestSource('class C {bar(){var f; {var x;} var e = ^ var g}}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_WhileStatement() {
+  test_WhileStatement() async {
     // SimpleIdentifier  WhileStatement  Block
     addTestSource('mth() { while (b^) {} }}');
-    assertOpType(returnValue: true, typeNames: true);
+    await assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_WithClause() {
+  test_WithClause() async {
     // WithClause  ClassDeclaration
     addTestSource('class x extends Object with ^\n{}');
-    assertOpType(typeNames: true);
+    await assertOpType(typeNames: true);
   }
-}
-
-class _TestSource implements Source {
-  String fullName;
-  _TestSource(this.fullName);
-
-  @override
-  String get encoding => fullName;
-
-  @override
-  bool get isInSystemLibrary => false;
-
-  @override
-  String get shortName => fullName;
-
-  @override
-  Source get source => this;
-
-  @override
-  Uri get uri => new Uri.file(fullName);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

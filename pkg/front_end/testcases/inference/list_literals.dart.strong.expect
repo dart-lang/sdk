@@ -4,15 +4,15 @@ import "dart:core" as core;
 
 static method test1() → dynamic {
   core::List<core::int> x = <core::int>[1, 2, 3];
-  x.add("hi");
-  x.add(4.0);
-  x.add(4);
+  x.{core::List::add}("hi");
+  x.{core::List::add}(4.0);
+  x.{core::List::add}(4);
   core::List<core::num> y = x;
 }
 static method test2() → dynamic {
   core::List<core::num> x = <core::num>[1, 2.0, 3];
-  x.add("hi");
-  x.add(4.0);
+  x.{core::List::add}("hi");
+  x.{core::List::add}(4.0);
   core::List<core::int> y = x;
 }
 static method main() → dynamic {

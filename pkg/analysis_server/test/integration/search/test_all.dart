@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.search.all;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'find_element_references_test.dart' as find_element_references_test;

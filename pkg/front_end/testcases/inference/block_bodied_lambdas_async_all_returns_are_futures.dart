@@ -10,12 +10,12 @@ import 'dart:math' show Random;
 
 main() {
   var /*@type=() -> Future<num>*/ f = /*@returnType=Future<num>*/ () async {
-    if (new Random().nextBool()) {
+    if (new Random(). /*@target=dart.math::Random::nextBool*/ nextBool()) {
       return new Future<int>.value(1);
     } else {
       return new Future<double>.value(2.0);
     }
   };
-  Future<num> g = /*@promotedType=none*/ f();
-  Future<int> h = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ f();
+  Future<num> g = f();
+  Future<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }

@@ -15,6 +15,7 @@ application_snapshot("dartdevc") {
     rebase_path("../../pkg/dev_compiler"),
     "-o",
     "dartdevc.js",
+    "--unsafe-force-compile",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
   inputs = exec_script("../../tools/list_dart_files.py",

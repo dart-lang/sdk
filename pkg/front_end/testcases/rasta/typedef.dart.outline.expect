@@ -1,5 +1,6 @@
 library;
 import self as self;
 
+typedef Foo = () → void;
 static method main() → dynamic
   ;

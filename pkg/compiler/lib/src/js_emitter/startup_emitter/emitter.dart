@@ -33,8 +33,8 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(
-        task.compiler, namer, task.nativeEmitter, generateSourceMap);
+    return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
+        task, generateSourceMap);
   }
 }
 
@@ -45,12 +45,17 @@ class Emitter implements emitterTask.Emitter {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
+  Emitter(
+      Compiler compiler,
+      Namer namer,
+      NativeEmitter nativeEmitter,
+      ClosedWorld closedWorld,
+      CodeEmitterTask task,
       bool shouldGenerateSourceMap)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(
-            compiler, namer, nativeEmitter, shouldGenerateSourceMap);
+        _emitter = new ModelEmitter(compiler, namer, nativeEmitter, closedWorld,
+            task, shouldGenerateSourceMap);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 

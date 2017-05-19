@@ -1519,17 +1519,16 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid() {
 
 
 int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
-                                               const CidRangeTarget& target,
+                                               const CidRange& range,
                                                int bias) {
-  intptr_t cid_start = target.cid_start;
-  intptr_t cid_end = target.cid_end;
-  if (cid_start == cid_end) {
+  intptr_t cid_start = range.cid_start;
+  if (range.IsSingleCid()) {
     __ CompareImmediate(R2, cid_start - bias);
     __ b(next_label, NE);
   } else {
     __ AddImmediate(R2, R2, bias - cid_start);
     bias = cid_start;
-    __ CompareImmediate(R2, cid_end - cid_start);
+    __ CompareImmediate(R2, range.Extent());
     __ b(next_label, HI);  // Unsigned higher.
   }
   return bias;

@@ -24,8 +24,6 @@ export 'type_variable_builder.dart' show TypeVariableBuilder;
 
 export 'function_type_alias_builder.dart' show FunctionTypeAliasBuilder;
 
-export 'named_mixin_application_builder.dart' show NamedMixinApplicationBuilder;
-
 export 'mixin_application_builder.dart' show MixinApplicationBuilder;
 
 export 'enum_builder.dart' show EnumBuilder;
@@ -123,6 +121,8 @@ abstract class Builder {
   bool get isLocal => false;
 
   bool get isConst => false;
+
+  bool get isSynthetic => false;
 
   get target => internalError("Unsupported operation $runtimeType.");
 

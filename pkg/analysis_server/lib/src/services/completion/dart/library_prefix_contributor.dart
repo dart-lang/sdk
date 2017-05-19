@@ -25,7 +25,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<ImportElement> imports = await request.resolveImports();
+    List<ImportElement> imports = request.libraryElement.imports;
     if (imports == null) {
       return EMPTY_LIST;
     }

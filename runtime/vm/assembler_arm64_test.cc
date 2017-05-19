@@ -2341,7 +2341,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
   __ add(R2, SP, Operand(1));
   __ fstrd(V1, Address(R2, -1));
   __ fldrd(V0, Address(R2, -1));
-  __ AddImmediate(SP, SP, 1 * kWordSize);
+  __ AddImmediate(SP, 1 * kWordSize);
   __ RestoreCSP();
   __ ret();
 }

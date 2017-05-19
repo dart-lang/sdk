@@ -51,7 +51,9 @@ intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
 }
 
 
-FreeList::FreeList() : mutex_(new Mutex()) {
+FreeList::FreeList()
+    : mutex_(new Mutex()),
+      freelist_search_budget_(kInitialFreeListSearchBudget) {
   Reset();
 }
 
@@ -111,6 +113,16 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
 
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
+  // We are willing to search the freelist further for a big block.
+  // For each successful free-list search we:
+  //   * increase the search budget by #allocated-words
+  //   * decrease the search budget by #free-list-entries-traversed
+  //     which guarantees us to not waste more than around 1 search step per
+  //     word of allocation
+  //
+  // If we run out of search budget we fall back to allocating a new page and
+  // reset the search budget.
+  intptr_t tries_left = freelist_search_budget_ + (size >> kWordSizeLog2);
   while (current != NULL) {
     if (current->Size() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
@@ -159,7 +171,12 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         }
       }
       SplitElementAfterAndEnqueue(current, size, is_protected);
+      freelist_search_budget_ =
+          Utils::Minimum(tries_left, kInitialFreeListSearchBudget);
       return reinterpret_cast<uword>(current);
+    } else if (tries_left-- < 0) {
+      freelist_search_budget_ = kInitialFreeListSearchBudget;
+      return 0;  // Trigger allocation of new page.
     }
     previous = current;
     current = current->next();
@@ -382,6 +399,9 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
   // TODO(koda): Find largest.
+  // We are willing to search the freelist further for a big block.
+  intptr_t tries_left =
+      freelist_search_budget_ + (minimum_size >> kWordSizeLog2);
   while (current != NULL) {
     FreeListElement* next = current->next();
     if (current->Size() >= minimum_size) {
@@ -390,7 +410,12 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
       } else {
         previous->set_next(next);
       }
+      freelist_search_budget_ =
+          Utils::Minimum(tries_left, kInitialFreeListSearchBudget);
       return current;
+    } else if (tries_left-- < 0) {
+      freelist_search_budget_ = kInitialFreeListSearchBudget;
+      return 0;  // Trigger allocation of new page.
     }
     previous = current;
     current = next;

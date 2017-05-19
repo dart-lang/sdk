@@ -42,6 +42,8 @@ abstract class World {}
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
 abstract class ClosedWorld implements World {
+  BackendUsage get backendUsage;
+
   NativeData get nativeData;
 
   InterceptorData get interceptorData;
@@ -397,7 +399,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final ConstantSystem constantSystem;
   final NativeData nativeData;
   final InterceptorData interceptorData;
-  final BackendUsage _backendUsage;
+  final BackendUsage backendUsage;
 
   final FunctionSet _allFunctions;
 
@@ -436,7 +438,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.constantSystem,
       this.nativeData,
       this.interceptorData,
-      BackendUsage backendUsage,
+      this.backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
       FunctionSet functionSet,
       Iterable<TypedefElement> allTypedefs,
@@ -444,8 +446,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : this._backendUsage = backendUsage,
-        this._resolverWorld = resolutionWorldBuilder,
+      : this._resolverWorld = resolutionWorldBuilder,
         this._allFunctions = functionSet,
         this._allTypedefs = allTypedefs,
         this._mixinUses = mixinUses,
@@ -1004,7 +1005,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = _backendUsage.isInvokeOnUsed &&
+      canReachAll = backendUsage.isInvokeOnUsed &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? commonMasks.dynamicType : mask;

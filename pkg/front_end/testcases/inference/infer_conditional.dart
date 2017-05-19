@@ -5,8 +5,8 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=num*/ a = 1 == 2 ? 1 : 2.0;
-var /*@topType=num*/ b = 1 == 2 ? 1.0 : 2;
+var /*@topType=num*/ a = 1 /*@target=num::==*/ == 2 ? 1 : 2.0;
+var /*@topType=num*/ b = 1 /*@target=num::==*/ == 2 ? 1.0 : 2;
 
 main() {
   a;

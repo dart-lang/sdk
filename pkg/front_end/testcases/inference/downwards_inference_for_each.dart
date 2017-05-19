@@ -12,7 +12,6 @@ abstract class MyStream<T> extends Stream<T> {
 }
 
 Future main() async {
-  for (int /*@promotedType=none*/ x in /*@typeArgs=int*/ [1, 2, 3]) {}
-  await for (int /*@promotedType=none*/ x
-      in new /*@typeArgs=int*/ MyStream()) {}
+  for (int x in /*@typeArgs=int*/ [1, 2, 3]) {}
+  await for (int x in new /*@typeArgs=int*/ MyStream()) {}
 }

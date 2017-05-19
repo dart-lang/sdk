@@ -359,6 +359,13 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $compiler == none && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+# TODO(terry): Failing tests with Dartium 50 roll (NEED TO FIX All)
+# ---------------------------------------------
+mirrors/regress_16321_test/01: Timeout, Pass # Roll 50 crash works on full build
+# ---------------------------------------------
+# TODO(terry): End of Dartium 50 roll failures
+
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 mirrors/null_test: Fail # Issue 16831
@@ -497,6 +504,8 @@ mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_class_declaration_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_interface_test/01: RuntimeError
+mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_local_function_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError

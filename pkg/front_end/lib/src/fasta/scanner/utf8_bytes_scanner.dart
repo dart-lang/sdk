@@ -201,7 +201,8 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new StringToken.fromUtf8Bytes(
-        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+        type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
+        precedingComments: comments);
   }
 
   @override

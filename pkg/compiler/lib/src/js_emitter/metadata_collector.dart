@@ -26,9 +26,9 @@ import '../elements/elements.dart'
         ParameterElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/backend.dart' show RuntimeTypesEncoder;
 import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/mirrors_data.dart';
+import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
 import '../js_backend/type_variable_handler.dart'
     show TypeVariableCodegenAnalysis;
 import '../options.dart';

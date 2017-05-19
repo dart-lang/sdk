@@ -36,7 +36,7 @@ main() {
 /**
  * Type of the "parse..." methods defined in the Fasta parser.
  */
-typedef fasta.Token ParseFunction(fasta.Token token);
+typedef analyzer.Token ParseFunction(analyzer.Token token);
 
 /**
  * Proxy implementation of [Builder] used by Fasta parser tests.
@@ -464,7 +464,7 @@ class FastaParserTestCase extends Object
       List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
     return _runParser(
         code,
-        (parser) => (fasta.Token token) {
+        (parser) => (analyzer.Token token) {
               return parser.parseFormalParameters(token,
                   inFunctionType: inFunctionType);
             },
@@ -758,7 +758,7 @@ class ParserProxy implements analyzer.Parser {
   /**
    * The token to parse next.
    */
-  fasta.Token _currentFastaToken;
+  analyzer.Token _currentFastaToken;
 
   /**
    * The fasta parser being wrapped.
@@ -775,7 +775,7 @@ class ParserProxy implements analyzer.Parser {
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(fasta.Token startingToken,
+  factory ParserProxy(analyzer.Token startingToken,
       {bool enableGenericMethodComments: false}) {
     var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();

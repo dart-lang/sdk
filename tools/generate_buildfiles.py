@@ -46,6 +46,21 @@ def RunAndroidGn(options):
   return Execute(gn_command)
 
 
+def RunCrossGn(options):
+  if HOST_OS != 'linux':
+    return 0
+  gn_command = [
+    'python',
+    os.path.join(DART_ROOT, 'tools', 'gn.py'),
+    '-m', 'all',
+    '-a', 'arm,arm64',
+  ]
+  if options.verbose:
+    gn_command.append('-v')
+    print ' '.join(gn_command)
+  return Execute(gn_command)
+
+
 def RunHostGn(options):
   gn_command = [
     'python',
@@ -61,6 +76,9 @@ def RunHostGn(options):
 
 def RunGn(options):
   status = RunHostGn(options)
+  if status != 0:
+    return status
+  status = RunCrossGn(options)
   if status != 0:
     return status
   return RunAndroidGn(options)

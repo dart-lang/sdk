@@ -6,6 +6,10 @@
 /// the code here just has a dummy import to the rest of the code.
 library compiler.tool.perf_test;
 
+import 'dart:io';
 import 'perf.dart' as m;
 
-main() => print('done ${m.inputSize}');
+main() async {
+  var inputFile = Platform.script.resolve('track_memory.dart').path;
+  await m.main(['kernel_gen_e2e', inputFile]);
+}

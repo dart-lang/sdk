@@ -27,6 +27,8 @@ export 'package:compiler/src/types/types.dart' show TypeMask;
 import 'package:compiler/src/util/util.dart';
 export 'package:compiler/src/util/util.dart';
 
+import 'package:compiler/src/world.dart';
+
 import 'package:compiler/src/compiler.dart' show Compiler;
 
 export 'package:compiler/src/tree/tree.dart';
@@ -79,8 +81,9 @@ Future<String> compile(String code,
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);
     resolutionWork.run();
-    compiler.closeResolution();
-    CodegenWorkItem work = new CodegenWorkItem(compiler.backend, element);
+    ClosedWorld closedWorld = compiler.closeResolution().closedWorld;
+    CodegenWorkItem work =
+        new CodegenWorkItem(compiler.backend, closedWorld, element);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run();
     js.JavaScriptBackend backend = compiler.backend;

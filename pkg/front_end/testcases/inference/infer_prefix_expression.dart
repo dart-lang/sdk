@@ -6,5 +6,5 @@
 library test;
 
 var /*@topType=bool*/ a_not = !true;
-var /*@topType=int*/ a_complement = ~1;
-var /*@topType=int*/ a_negate = -1;
+var /*@topType=int*/ a_complement = /*@target=int::~*/ ~1;
+var /*@topType=int*/ a_negate = /*@target=int::unary-*/ -1;

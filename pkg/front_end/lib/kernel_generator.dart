@@ -62,12 +62,12 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
         options.fileSystem, dillTarget, uriTranslator, options.strongMode);
     kernelTarget.read(source);
 
-    await dillTarget.writeOutline(null);
-    await kernelTarget.writeOutline(null);
-    Program program = await kernelTarget.writeProgram(null);
+    await dillTarget.buildOutlines();
+    await kernelTarget.buildOutlines();
+    Program program = await kernelTarget.buildProgram();
 
     if (kernelTarget.errors.isNotEmpty) {
-      kernelTarget.errors.forEach((e) => report('$e'));
+      kernelTarget.errors.forEach(report);
       return null;
     }
 

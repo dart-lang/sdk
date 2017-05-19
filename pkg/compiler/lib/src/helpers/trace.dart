@@ -137,6 +137,10 @@ class StackTraceLines {
 
         // Strip index.
         line = line.replaceFirst(indexPattern, '');
+        if (line == '<asynchronous suspension>') {
+          lines.add(new StackTraceLine(index, '', '', '', line));
+          continue;
+        }
 
         int leftParenPos = line.indexOf('(');
         int rightParenPos = line.indexOf(')', leftParenPos);

@@ -106,7 +106,10 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln();
-    for (ImpliedType impliedType in computeImpliedTypes(api).values) {
+    List<ImpliedType> impliedTypes = computeImpliedTypes(api).values.toList();
+    impliedTypes.sort((ImpliedType first, ImpliedType second) =>
+        first.camelName.compareTo(second.camelName));
+    for (ImpliedType impliedType in impliedTypes) {
       makeMatcher(impliedType);
     }
   }

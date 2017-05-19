@@ -23,8 +23,13 @@ import 'text/ast_to_text.dart';
 export 'ast.dart';
 
 Program loadProgramFromBinary(String path, [Program program]) {
+  List<int> bytes = new File(path).readAsBytesSync();
+  return loadProgramFromBytes(bytes, program);
+}
+
+Program loadProgramFromBytes(List<int> bytes, [Program program]) {
   program ??= new Program();
-  new BinaryBuilder(new File(path).readAsBytesSync()).readProgram(program);
+  new BinaryBuilder(bytes).readProgram(program);
   return program;
 }
 

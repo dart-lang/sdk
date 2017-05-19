@@ -11,13 +11,14 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 
 import 'mock_sdk.dart';
 
@@ -79,7 +80,12 @@ class Required {
     driver.addFile(path);
     driver.changeFile(path);
     _fileContentOverlay[path] = content;
-    return null;
+    return provider.getFile(path).createSource();
+  }
+
+  Element findElementInUnit(CompilationUnit unit, String name,
+      [ElementKind kind]) {
+    return findChildElement(unit.element, name, kind);
   }
 
   File newFile(String path, [String content]) =>

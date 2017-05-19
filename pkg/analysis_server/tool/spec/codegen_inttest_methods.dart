@@ -111,6 +111,11 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln("import 'protocol_matchers.dart';");
+    for (String uri in api.types.importUris) {
+      write("import '");
+      write(uri);
+      writeln("';");
+    }
     writeln();
     writeln('/**');
     writeln(' * Convenience methods for running integration tests');

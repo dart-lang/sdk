@@ -26,13 +26,8 @@ class ClassEmitter extends CodeEmitterHelper {
 
   ClassEmitter(this.closedWorld);
 
-  ClassStubGenerator get _stubGenerator => new ClassStubGenerator(
-      task.emitter,
-      compiler.commonElements,
-      namer,
-      codegenWorldBuilder,
-      backend.interceptorData,
-      closedWorld,
+  ClassStubGenerator get _stubGenerator => new ClassStubGenerator(task.emitter,
+      compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
       enableMinification: compiler.options.enableMinification);
 
   /**
@@ -277,7 +272,7 @@ class ClassEmitter extends CodeEmitterHelper {
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
 
-    if (classElement.isObject && backend.backendUsage.isNoSuchMethodUsed) {
+    if (classElement.isObject && closedWorld.backendUsage.isNoSuchMethodUsed) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the

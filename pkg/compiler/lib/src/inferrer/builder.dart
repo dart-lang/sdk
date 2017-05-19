@@ -207,7 +207,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralString(ast.LiteralString node) {
-    return types.stringLiteralType(node.dartString);
+    return types.stringLiteralType(node.dartString.slowToString());
   }
 
   TypeInformation visitStringJuxtaposition(ast.StringJuxtaposition node) {
@@ -216,7 +216,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralBool(ast.LiteralBool node) {
-    return types.boolLiteralType(node);
+    return types.boolLiteralType(node.value);
   }
 
   TypeInformation visitLiteralDouble(ast.LiteralDouble node) {

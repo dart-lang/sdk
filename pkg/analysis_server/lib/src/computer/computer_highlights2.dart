@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library computer.highlights2;
-
-import 'package:analysis_server/protocol/protocol_generated.dart' hide Element;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /**
  * A computer for [HighlightRegion]s in a Dart [CompilationUnit].

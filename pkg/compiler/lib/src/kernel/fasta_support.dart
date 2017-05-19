@@ -19,6 +19,7 @@ import 'dart:async' show Future;
 import 'dart:io' show exitCode;
 
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' show Source;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
@@ -28,14 +29,15 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/loader.dart' show Loader;
 import 'package:front_end/src/fasta/parser/parser.dart' show optional;
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 
 /// Generates a platform.dill file containing the compiled Kernel IR of the
 /// dart2js SDK.
-Future compilePlatform(Uri patchedSdk, Uri output, {Uri packages}) async {
-  Uri deps = Uri.base.resolveUri(new Uri.file("${output.toFilePath()}.d"));
+Future compilePlatform(Uri patchedSdk, Uri fullOutput,
+    {Uri outlineOutput, Uri packages}) async {
+  Uri deps = Uri.base.resolveUri(new Uri.file("${fullOutput.toFilePath()}.d"));
   TranslateUri uriTranslator = await TranslateUri.parse(
       PhysicalFileSystem.instance, patchedSdk, packages);
   var ticker = new Ticker(isVerbose: false);
@@ -44,12 +46,16 @@ Future compilePlatform(Uri patchedSdk, Uri output, {Uri packages}) async {
       new KernelTargetForDart2js(dillTarget, uriTranslator, false);
 
   kernelTarget.read(Uri.parse("dart:core"));
-  await dillTarget.writeOutline(null);
-  await kernelTarget.writeOutline(output);
+  await dillTarget.buildOutlines();
+  var outline = await kernelTarget.buildOutlines();
+  await writeProgramToFile(outline, outlineOutput);
+  ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
   if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output);
-  await kernelTarget.writeDepsFile(output, deps);
+  var program = await kernelTarget.buildProgram();
+  await writeProgramToFile(program, fullOutput);
+  ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
+  await kernelTarget.writeDepsFile(fullOutput, deps);
 }
 
 /// Extends the internal fasta [CompileTask] to use a dart2js-aware [DillTarget]
@@ -136,16 +142,26 @@ void _loadExtras(Loader loader) {
 }
 
 const _extraDart2jsLibraries = const <String>[
-  'dart:async',
-  'dart:collection',
-  'dart:mirrors',
-  'dart:_native_typed_data',
-  'dart:_internal',
-  'dart:_js_helper',
-  'dart:_interceptors',
+  'dart:_chrome',
   'dart:_foreign_helper',
+  'dart:_interceptors',
+  'dart:_internal',
+  'dart:_isolate_helper',
+  'dart:_js_embedded_names',
+  'dart:_js_helper',
   'dart:_js_mirrors',
   'dart:_js_names',
-  'dart:_js_embedded_names',
-  'dart:_isolate_helper',
+  'dart:_native_typed_data',
+  'dart:async',
+  'dart:collection',
+  'dart:html',
+  'dart:html_common',
+  'dart:indexed_db',
+  'dart:js',
+  'dart:js_util',
+  'dart:mirrors',
+  'dart:svg',
+  'dart:web_audio',
+  'dart:web_gl',
+  'dart:web_sql',
 ];

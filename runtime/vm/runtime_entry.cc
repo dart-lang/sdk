@@ -858,9 +858,10 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      Function* result) {
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
+  const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
   const Function& getter =
       Function::Handle(Resolver::ResolveDynamicForReceiverClass(
           receiver_class, getter_name, args_desc));
@@ -930,7 +931,7 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
 
 
 static RawFunction* InlineCacheMissHandler(
-    const GrowableArray<const Instance*>& args,
+    const GrowableArray<const Instance*>& args,  // Checked arguments only.
     const ICData& ic_data) {
   const Instance& receiver = *args[0];
   ArgumentsDescriptor arguments_descriptor(
@@ -1144,8 +1145,11 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
-  const Array& descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(old_target.num_fixed_parameters()));
+  ASSERT(!old_target.IsGeneric());
+  const int kTypeArgsLen = 0;
+  const Array& descriptor =
+      Array::Handle(zone, ArgumentsDescriptor::New(
+                              kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
@@ -1241,7 +1245,8 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
   }
 
-  if (!target_function.IsNull() && !target_function.HasOptionalParameters()) {
+  if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
+      !target_function.IsGeneric()) {
     // Patch to monomorphic call.
     ASSERT(target_function.HasCode());
     const Code& target_code = Code::Handle(zone, target_function.CurrentCode());
@@ -1299,8 +1304,11 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
-  const Array& descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(old_target.num_fixed_parameters()));
+  ASSERT(!old_target.IsGeneric());
+  const int kTypeArgsLen = 0;
+  const Array& descriptor =
+      Array::Handle(zone, ArgumentsDescriptor::New(
+                              kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
@@ -1409,7 +1417,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     const ICData& ic_data = ICData::Cast(ic_data_or_cache);
     const intptr_t number_of_checks = ic_data.NumberOfChecks();
 
-    if (number_of_checks == 0 && !target_function.HasOptionalParameters() &&
+    if ((number_of_checks == 0) && !target_function.HasOptionalParameters() &&
+        !target_function.IsGeneric() &&
         !Isolate::Current()->compilation_allowed()) {
       // This call site is unlinked: transition to a monomorphic direct call.
       // Note we cannot do this if the target has optional parameters because

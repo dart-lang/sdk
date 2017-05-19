@@ -10,18 +10,19 @@ import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
-import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
+import 'runtime_types.dart';
 import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
@@ -54,12 +55,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._nativeEnqueuer);
 
   @override
-  WorldImpact registerClosurizedMember(MemberElement element) {
+  WorldImpact registerClosurizedMember(FunctionEntity element) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     impactBuilder
         .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
-    if (element.type.containsTypeVariables &&
-        _rtiNeed.methodNeedsRti(element)) {
+    FunctionType type = _elementEnvironment.getFunctionType(element);
+    if (type.containsTypeVariables && _rtiNeed.methodNeedsRti(element)) {
       impactBuilder.addImpact(_registerComputeSignature());
     }
     return impactBuilder;

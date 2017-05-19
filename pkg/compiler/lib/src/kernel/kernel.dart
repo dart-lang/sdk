@@ -254,7 +254,7 @@ class Kernel {
         });
       });
       addWork(cls.declaration, () {
-        for (MetadataAnnotation metadata in cls.declaration.metadata) {
+        for (MetadataAnnotation metadata in cls.implementation.metadata) {
           classNode.addAnnotation(
               const ConstantVisitor().visit(metadata.constant, this));
         }
@@ -476,7 +476,7 @@ class Kernel {
         });
       });
       addWork(function.declaration, () {
-        for (MetadataAnnotation metadata in function.declaration.metadata) {
+        for (MetadataAnnotation metadata in function.implementation.metadata) {
           member.addAnnotation(
               const ConstantVisitor().visit(metadata.constant, this));
         }
@@ -552,7 +552,7 @@ class Kernel {
         }
       });
       addWork(field.declaration, () {
-        for (MetadataAnnotation metadata in field.declaration.metadata) {
+        for (MetadataAnnotation metadata in field.implementation.metadata) {
           fieldNode.addAnnotation(
               const ConstantVisitor().visit(metadata.constant, this));
         }

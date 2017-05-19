@@ -18,9 +18,7 @@ import '../elements/resolution_types.dart'
         ResolutionFunctionType,
         ResolutionInterfaceType,
         ResolutionTypeKind;
-import '../js_backend/backend.dart';
-import '../tree/dartstring.dart' show DartString;
-import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
+import '../tree/tree.dart' as ast show Node, Send;
 import '../types/masks.dart'
     show
         CommonMasks,
@@ -463,7 +461,8 @@ class MemberTypeInformation extends ElementTypeInformation
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (element.isField &&
-        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(element) ||
+        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
+                element, inferrer.closedWorld) ||
             inferrer.assumeDynamic(element))) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
@@ -617,7 +616,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration) ||
+            element.functionDeclaration, inferrer.closedWorld) ||
         inferrer.assumeDynamic(declaration)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
@@ -976,12 +975,10 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     TypeMask typeMask = computeTypedSelector(inferrer);
     inferrer.updateSelectorInTree(caller, call, selector, typeMask);
 
-    Compiler compiler = inferrer.compiler;
-    JavaScriptBackend backend = compiler.backend;
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
-    bool canReachAll =
-        backend.backendUsage.isInvokeOnUsed && (maskToUse != typeMask);
+    bool canReachAll = inferrer.closedWorld.backendUsage.isInvokeOnUsed &&
+        (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`
@@ -1041,7 +1038,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           TypeMask arg = arguments.positional[0].type;
           if (arg is ValueTypeMask && arg.value.isString) {
             DictionaryTypeMask dictionaryTypeMask = typeMask;
-            String key = arg.value.primitiveValue.slowToString();
+            String key = arg.value.primitiveValue;
             if (dictionaryTypeMask.typeMap.containsKey(key)) {
               if (debug.VERBOSE) {
                 print("Dictionary lookup for $key yields "
@@ -1222,14 +1219,13 @@ class ConcreteTypeInformation extends TypeInformation {
 }
 
 class StringLiteralTypeInformation extends ConcreteTypeInformation {
-  final DartString value;
+  final String value;
 
-  StringLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask, new StringConstantValue(value))),
-        this.value = value;
+  StringLiteralTypeInformation(this.value, TypeMask mask)
+      : super(new ValueTypeMask(mask, new StringConstantValue(value)));
 
-  String asString() => value.slowToString();
-  String toString() => 'Type $type value ${value.slowToString()}';
+  String asString() => value;
+  String toString() => 'Type $type value ${value}';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStringLiteralTypeInformation(this);
@@ -1237,14 +1233,13 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
 }
 
 class BoolLiteralTypeInformation extends ConcreteTypeInformation {
-  final ast.LiteralBool value;
+  final bool value;
 
-  BoolLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask,
-            value.value ? new TrueConstantValue() : new FalseConstantValue())),
-        this.value = value;
+  BoolLiteralTypeInformation(this.value, TypeMask mask)
+      : super(new ValueTypeMask(
+            mask, value ? new TrueConstantValue() : new FalseConstantValue()));
 
-  String toString() => 'Type $type value ${value.value}';
+  String toString() => 'Type $type value ${value}';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitBoolLiteralTypeInformation(this);

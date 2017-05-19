@@ -347,9 +347,11 @@ class TranslationHelper {
 
   const dart::String& DartSetterName(NameIndex setter);
   const dart::String& DartSetterName(Name* setter_name);
+  const dart::String& DartSetterName(NameIndex parent, StringIndex setter);
 
   const dart::String& DartGetterName(NameIndex getter);
   const dart::String& DartGetterName(Name* getter_name);
+  const dart::String& DartGetterName(NameIndex parent, StringIndex getter);
 
   const dart::String& DartFieldName(Name* kernel_name);
 
@@ -357,6 +359,7 @@ class TranslationHelper {
 
   const dart::String& DartMethodName(NameIndex method);
   const dart::String& DartMethodName(Name* method_name);
+  const dart::String& DartMethodName(NameIndex parent, StringIndex method);
 
   const dart::String& DartFactoryName(NameIndex factory);
 
@@ -389,9 +392,6 @@ class TranslationHelper {
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
 
-  const dart::String& DartSetterName(NameIndex parent, StringIndex setter);
-  const dart::String& DartGetterName(NameIndex parent, StringIndex getter);
-  const dart::String& DartMethodName(NameIndex parent, StringIndex method);
 
   Thread* thread_;
   Zone* zone_;
@@ -770,6 +770,17 @@ class ScopeBuilder : public RecursiveVisitor {
   bool needs_expr_temp_;
 };
 
+struct YieldContinuation {
+  Instruction* entry;
+  intptr_t try_index;
+
+  YieldContinuation(Instruction* entry, intptr_t try_index)
+      : entry(entry), try_index(try_index) {}
+
+  YieldContinuation()
+      : entry(NULL), try_index(CatchClauseNode::kInvalidTryIndex) {}
+};
+
 class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
  public:
   FlowGraphBuilder(TreeNode* node,
@@ -880,7 +891,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment TranslateFunctionNode(FunctionNode* node, TreeNode* parent);
 
   Fragment EnterScope(TreeNode* node, bool* new_context = NULL);
+  Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
   Fragment ExitScope(TreeNode* node);
+  Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment LoadContextAt(int depth);
   Fragment AdjustContextTo(int depth);
@@ -983,6 +996,8 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment EvaluateAssertion();
   Fragment CheckReturnTypeInCheckedMode();
   Fragment CheckVariableTypeInCheckedMode(VariableDeclaration* variable);
+  Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
+                                          const dart::String& name_symbol);
   Fragment CheckBooleanInCheckedMode();
   Fragment CheckAssignableInCheckedMode(const dart::AbstractType& dst_type,
                                         const dart::String& dst_name);
@@ -1012,6 +1027,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                     LocalVariable* variable,
                     intptr_t pos);
   dart::LocalVariable* LookupVariable(VariableDeclaration* var);
+  dart::LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   void SetTempIndex(Definition* definition);
 
@@ -1055,17 +1071,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   GraphEntryInstr* graph_entry_;
 
   ScopeBuildingResult* scopes_;
-
-  struct YieldContinuation {
-    Instruction* entry;
-    intptr_t try_index;
-
-    YieldContinuation(Instruction* entry, intptr_t try_index)
-        : entry(entry), try_index(try_index) {}
-
-    YieldContinuation()
-        : entry(NULL), try_index(CatchClauseNode::kInvalidTryIndex) {}
-  };
 
   GrowableArray<YieldContinuation> yield_continuations_;
 
@@ -1118,6 +1123,199 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   friend class TryFinallyBlock;
 };
 
+
+class SwitchBlock {
+ public:
+  SwitchBlock(FlowGraphBuilder* builder, intptr_t num_cases)
+      : builder_(builder),
+        outer_(builder->switch_block_),
+        outer_finally_(builder->try_finally_block_),
+        num_cases_(num_cases),
+        context_depth_(builder->context_depth_),
+        try_index_(builder->CurrentTryIndex()) {
+    builder_->switch_block_ = this;
+    if (outer_ != NULL) {
+      depth_ = outer_->depth_ + outer_->num_cases_;
+    } else {
+      depth_ = 0;
+    }
+  }
+  ~SwitchBlock() { builder_->switch_block_ = outer_; }
+
+  bool HadJumper(intptr_t case_num) {
+    return destinations_.Lookup(case_num) != NULL;
+  }
+
+  // Get destination via absolute target number (i.e. the correct destination
+  // is not not necessarily in this block.
+  JoinEntryInstr* Destination(intptr_t target_index,
+                              TryFinallyBlock** outer_finally = NULL,
+                              intptr_t* context_depth = NULL) {
+    // Find corresponding [SwitchStatement].
+    SwitchBlock* block = this;
+    while (block->depth_ > target_index) {
+      block = block->outer_;
+    }
+
+    // Set the outer finally block.
+    if (outer_finally != NULL) {
+      *outer_finally = block->outer_finally_;
+      *context_depth = block->context_depth_;
+    }
+
+    // Ensure there's [JoinEntryInstr] for that [SwitchCase].
+    return block->EnsureDestination(target_index - block->depth_);
+  }
+
+  // Get destination via relative target number (i.e. relative to this block,
+  // 0 is first case in this block etc).
+  JoinEntryInstr* DestinationDirect(intptr_t case_num,
+                                    TryFinallyBlock** outer_finally = NULL,
+                                    intptr_t* context_depth = NULL) {
+    // Set the outer finally block.
+    if (outer_finally != NULL) {
+      *outer_finally = outer_finally_;
+      *context_depth = context_depth_;
+    }
+
+    // Ensure there's [JoinEntryInstr] for that [SwitchCase].
+    return EnsureDestination(case_num);
+  }
+
+ private:
+  JoinEntryInstr* EnsureDestination(intptr_t case_num) {
+    JoinEntryInstr* cached_inst = destinations_.Lookup(case_num);
+    if (cached_inst == NULL) {
+      JoinEntryInstr* inst = builder_->BuildJoinEntry(try_index_);
+      destinations_.Insert(case_num, inst);
+      return inst;
+    }
+    return cached_inst;
+  }
+
+  FlowGraphBuilder* builder_;
+  SwitchBlock* outer_;
+
+  IntMap<JoinEntryInstr*> destinations_;
+
+  TryFinallyBlock* outer_finally_;
+  intptr_t num_cases_;
+  intptr_t depth_;
+  intptr_t context_depth_;
+  intptr_t try_index_;
+};
+
+
+class TryCatchBlock {
+ public:
+  explicit TryCatchBlock(FlowGraphBuilder* builder,
+                         intptr_t try_handler_index = -1)
+      : builder_(builder),
+        outer_(builder->try_catch_block_),
+        try_index_(try_handler_index) {
+    if (try_index_ == -1) try_index_ = builder->AllocateTryIndex();
+    builder->try_catch_block_ = this;
+  }
+  ~TryCatchBlock() { builder_->try_catch_block_ = outer_; }
+
+  intptr_t try_index() { return try_index_; }
+  TryCatchBlock* outer() const { return outer_; }
+
+ private:
+  FlowGraphBuilder* builder_;
+  TryCatchBlock* outer_;
+  intptr_t try_index_;
+};
+
+
+class TryFinallyBlock {
+ public:
+  TryFinallyBlock(FlowGraphBuilder* builder,
+                  Statement* finalizer,
+                  intptr_t finalizer_kernel_offset)
+      : builder_(builder),
+        outer_(builder->try_finally_block_),
+        finalizer_(finalizer),
+        finalizer_kernel_offset_(finalizer_kernel_offset),
+        context_depth_(builder->context_depth_),
+        // Finalizers are executed outside of the try block hence
+        // try depth of finalizers are one less than current try
+        // depth.
+        try_depth_(builder->try_depth_ - 1),
+        try_index_(builder_->CurrentTryIndex()) {
+    builder_->try_finally_block_ = this;
+  }
+  ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }
+
+  Statement* finalizer() const { return finalizer_; }
+  intptr_t finalizer_kernel_offset() const { return finalizer_kernel_offset_; }
+  intptr_t context_depth() const { return context_depth_; }
+  intptr_t try_depth() const { return try_depth_; }
+  intptr_t try_index() const { return try_index_; }
+  TryFinallyBlock* outer() const { return outer_; }
+
+ private:
+  FlowGraphBuilder* const builder_;
+  TryFinallyBlock* const outer_;
+  Statement* const finalizer_;
+  intptr_t finalizer_kernel_offset_;
+  const intptr_t context_depth_;
+  const intptr_t try_depth_;
+  const intptr_t try_index_;
+};
+
+
+class BreakableBlock {
+ public:
+  explicit BreakableBlock(FlowGraphBuilder* builder)
+      : builder_(builder),
+        outer_(builder->breakable_block_),
+        destination_(NULL),
+        outer_finally_(builder->try_finally_block_),
+        context_depth_(builder->context_depth_),
+        try_index_(builder->CurrentTryIndex()) {
+    if (builder_->breakable_block_ == NULL) {
+      index_ = 0;
+    } else {
+      index_ = builder_->breakable_block_->index_ + 1;
+    }
+    builder_->breakable_block_ = this;
+  }
+  ~BreakableBlock() { builder_->breakable_block_ = outer_; }
+
+  bool HadJumper() { return destination_ != NULL; }
+
+  JoinEntryInstr* destination() { return destination_; }
+
+  JoinEntryInstr* BreakDestination(intptr_t label_index,
+                                   TryFinallyBlock** outer_finally,
+                                   intptr_t* context_depth) {
+    BreakableBlock* block = builder_->breakable_block_;
+    while (block->index_ != label_index) {
+      block = block->outer_;
+    }
+    ASSERT(block != NULL);
+    *outer_finally = block->outer_finally_;
+    *context_depth = block->context_depth_;
+    return block->EnsureDestination();
+  }
+
+ private:
+  JoinEntryInstr* EnsureDestination() {
+    if (destination_ == NULL) {
+      destination_ = builder_->BuildJoinEntry(try_index_);
+    }
+    return destination_;
+  }
+
+  FlowGraphBuilder* builder_;
+  intptr_t index_;
+  BreakableBlock* outer_;
+  JoinEntryInstr* destination_;
+  TryFinallyBlock* outer_finally_;
+  intptr_t context_depth_;
+  intptr_t try_index_;
+};
 
 class CatchBlock {
  public:

@@ -23,10 +23,10 @@ main() {
   final retainedSizes = new RetainedSizeRepositoryMock();
   final inbounds = new InboundReferencesRepositoryMock();
   final paths = new RetainingPathRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
     final e = new ObjectCommonElement(isolate, object, retainedSizes,
-        reachableSizes, inbounds, paths, instances);
+        reachableSizes, inbounds, paths, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.object, equals(object));
@@ -34,7 +34,7 @@ main() {
   group('elements', () {
     test('created after attachment', () async {
       final e = new ObjectCommonElement(isolate, object, retainedSizes,
-          reachableSizes, inbounds, paths, instances);
+          reachableSizes, inbounds, paths, objects);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
@@ -57,7 +57,7 @@ main() {
         return value;
       }, count: 1));
       final e = new ObjectCommonElement(isolate, object, retainedSizes,
-          reachableSizes, inbounds, paths, instances);
+          reachableSizes, inbounds, paths, objects);
       document.body.append(e);
       await e.onRendered.first;
       expect(invoked, isFalse);
@@ -84,7 +84,7 @@ main() {
         return value;
       }, count: 1));
       final e = new ObjectCommonElement(isolate, object, retainedSizes,
-          reachableSizes, inbounds, paths, instances);
+          reachableSizes, inbounds, paths, objects);
       document.body.append(e);
       await e.onRendered.first;
       expect(invoked, isFalse);

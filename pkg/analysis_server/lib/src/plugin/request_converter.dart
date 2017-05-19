@@ -46,27 +46,6 @@ class RequestConverter {
 
   plugin.AnalysisUpdateContentParams convertAnalysisUpdateContentParams(
       server.AnalysisUpdateContentParams params) {
-    Map<String, dynamic> serverOverlays = params.files;
-    Map<String, dynamic> pluginOverlays = <String, dynamic>{};
-    for (String file in serverOverlays.keys) {
-      pluginOverlays[file] = convertFileOverlay(serverOverlays[file]);
-    }
-    return new plugin.AnalysisUpdateContentParams(pluginOverlays);
-  }
-
-  Object convertFileOverlay(Object overlay) {
-    if (overlay is server.AddContentOverlay) {
-      return new plugin.AddContentOverlay(overlay.content);
-    } else if (overlay is server.ChangeContentOverlay) {
-      return new plugin.ChangeContentOverlay(
-          overlay.edits.map(convertSourceEdit).toList());
-    } else if (overlay is server.RemoveContentOverlay) {
-      return new plugin.RemoveContentOverlay();
-    }
-    return null;
-  }
-
-  plugin.SourceEdit convertSourceEdit(server.SourceEdit edit) {
-    return new plugin.SourceEdit(edit.offset, edit.length, edit.replacement);
+    return new plugin.AnalysisUpdateContentParams(params.files);
   }
 }

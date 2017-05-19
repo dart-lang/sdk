@@ -26,7 +26,8 @@ import 'package:compiler/src/universe/use.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
-import '../serialization/test_helper.dart';
+import '../equivalence/check_helpers.dart';
+import 'test_helpers.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
   // Pretend this is a dart2js_native test to allow use of 'native' keyword.
@@ -903,46 +904,4 @@ ResolutionImpact laxImpact(
   }
   impact.nativeData.forEach(builder.registerNativeData);
   return builder;
-}
-
-/// Visitor the performers unaliasing of all typedefs nested within a
-/// [ResolutionDartType].
-class Unaliaser
-    extends BaseResolutionDartTypeVisitor<dynamic, ResolutionDartType> {
-  const Unaliaser();
-
-  @override
-  ResolutionDartType visit(ResolutionDartType type, [_]) =>
-      type.accept(this, null);
-
-  @override
-  ResolutionDartType visitType(ResolutionDartType type, _) => type;
-
-  List<ResolutionDartType> visitList(List<ResolutionDartType> types) =>
-      types.map(visit).toList();
-
-  @override
-  ResolutionDartType visitInterfaceType(ResolutionInterfaceType type, _) {
-    return type.createInstantiation(visitList(type.typeArguments));
-  }
-
-  @override
-  ResolutionDartType visitTypedefType(ResolutionTypedefType type, _) {
-    return visit(type.unaliased);
-  }
-
-  @override
-  ResolutionDartType visitFunctionType(ResolutionFunctionType type, _) {
-    return new ResolutionFunctionType.synthesized(
-        visit(type.returnType),
-        visitList(type.parameterTypes),
-        visitList(type.optionalParameterTypes),
-        type.namedParameters,
-        visitList(type.namedParameterTypes));
-  }
-}
-
-/// Perform unaliasing of all typedefs nested within a [ResolutionDartType].
-ResolutionDartType unalias(ResolutionDartType type) {
-  return const Unaliaser().visit(type);
 }

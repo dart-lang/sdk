@@ -9,12 +9,10 @@ class A {
   int x = 2;
 }
 
-test() {
+main() {
   dynamic a = new A();
-  A b = /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ a;
-  print(/*info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ a.x);
+  A b = /*info:DYNAMIC_CAST*/ a;
+  print(/*info:DYNAMIC_INVOKE*/ a.x);
   print(
-      /*info:DYNAMIC_INVOKE*/ (/*info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ a
-              .x) +
-          2);
+      /*info:DYNAMIC_INVOKE*/ (/*info:DYNAMIC_INVOKE*/ a.x) + 2);
 }

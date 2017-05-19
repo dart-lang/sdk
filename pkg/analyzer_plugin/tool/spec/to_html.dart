@@ -344,9 +344,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('types', () => write('\u2191'));
       write(')');
     });
+    List<String> sortedTypes = types.toList();
+    sortedTypes.sort();
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
-        for (var type in types) {
+        for (var type in sortedTypes) {
           element('li', {}, () => link('type_$type', () => write(type)));
         }
       });
@@ -434,7 +436,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             generateIndex();
             break;
           default:
-            if (!specialElements.contains(node.localName)) {
+            if (!ApiReader.specialElements.contains(node.localName)) {
               element(node.localName, node.attributes, () {
                 translateHtml(node, squashParagraphs: squashParagraphs);
               });
@@ -655,7 +657,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypes(Types types) {
     translateHtml(types.html);
     dl(() {
-      super.visitTypes(types);
+      List<TypeDefinition> sortedTypes = types.toList();
+      sortedTypes.sort((TypeDefinition first, TypeDefinition second) =>
+          first.name.compareTo(second.name));
+      sortedTypes.forEach(visitTypeDefinition);
     });
   }
 }

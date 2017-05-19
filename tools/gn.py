@@ -141,6 +141,7 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['dart_target_arch'] = arch
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['host_cpu'] = HostCpuForArch(arch)
+  crossbuild = gn_args['target_cpu'] != gn_args['host_cpu']
 
   # See: runtime/observatory/BUILD.gn.
   # This allows the standalone build of the observatory to fall back on
@@ -197,7 +198,7 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
   # Setup the user-defined sysroot.
-  if gn_args['target_os'] == 'linux' and args.wheezy:
+  if gn_args['target_os'] == 'linux' and args.wheezy and not crossbuild:
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
     sysroot = TargetSysroot(args)

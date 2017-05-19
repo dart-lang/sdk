@@ -1782,19 +1782,19 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
   __ b(return_false, GT);
 
   if (receiver_cid == kOneByteStringCid) {
-    __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
     __ add(R0, R0, Operand(R1));
   } else {
     ASSERT(receiver_cid == kTwoByteStringCid);
-    __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R0, TwoByteString::data_offset() - kHeapObjectTag);
     __ add(R0, R0, Operand(R1));
     __ add(R0, R0, Operand(R1));
   }
   if (other_cid == kOneByteStringCid) {
-    __ AddImmediate(R2, R2, OneByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R2, OneByteString::data_offset() - kHeapObjectTag);
   } else {
     ASSERT(other_cid == kTwoByteStringCid);
-    __ AddImmediate(R2, R2, TwoByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R2, TwoByteString::data_offset() - kHeapObjectTag);
   }
 
   // i = 0
@@ -1818,9 +1818,9 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
   __ b(return_false, NE);
 
   // i++, while (i < len)
-  __ AddImmediate(R3, R3, 1);
-  __ AddImmediate(R0, R0, receiver_cid == kOneByteStringCid ? 1 : 2);
-  __ AddImmediate(R2, R2, other_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(R3, 1);
+  __ AddImmediate(R0, receiver_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(R2, other_cid == kOneByteStringCid ? 1 : 2);
   __ cmp(R3, Operand(R9));
   __ b(&loop, LT);
 
@@ -2236,7 +2236,7 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ ldr(R2, Address(SP, kRegExpParamOffset));
   __ ldr(R1, Address(SP, kStringParamOffset));
   __ LoadClassId(R1, R1);
-  __ AddImmediate(R1, R1, -kOneByteStringCid);
+  __ AddImmediate(R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
   __ ldr(R0,
          FieldAddress(R1, RegExp::function_offset(kOneByteStringCid, sticky)));

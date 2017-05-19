@@ -215,9 +215,20 @@ class ModuleCompiler {
         errors.any((e) => _isFatalError(e, options))) {
       return new JSModuleFile.invalid(unit.name, messages, options);
     }
-    var codeGenerator =
-        new CodeGenerator(context, summaryData, options, _extensionTypes);
-    return codeGenerator.compile(unit, trees, messages);
+
+    try {
+      var codeGenerator =
+          new CodeGenerator(context, summaryData, options, _extensionTypes);
+      return codeGenerator.compile(unit, trees, messages);
+    } catch (e) {
+      if (errors.any((e) => _isFatalError(e, options))) {
+        // Force compilation failed.  Suppress the exception and report
+        // the static errors instead.
+        assert(options.unsafeForceCompile);
+        return new JSModuleFile.invalid(unit.name, messages, options);
+      }
+      rethrow;
+    }
   }
 }
 

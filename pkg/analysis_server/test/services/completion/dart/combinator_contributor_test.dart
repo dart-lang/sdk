@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
@@ -37,7 +36,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    Source importedLibSource = addSource(
+    addSource(
         '/testAB.dart',
         '''
       library libAB;
@@ -61,11 +60,6 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       import "/testCD.dart";
       class X {}''');
 
-    // Assume that imported libraries have been resolved
-    if (!enableNewAnalysisDriver) {
-      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
-    }
-
     await computeSuggestions();
     assertSuggestClass('A',
         relevance: DART_RELEVANCE_DEFAULT,
@@ -88,7 +82,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    Source importedLibSource = addSource(
+    addSource(
         '/testAB.dart',
         '''
       library libAB;
@@ -114,11 +108,6 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       import "/testAB.dart" show ^;
       import "/testCD.dart";
       class X {}''');
-
-    // Assume that imported libraries have been resolved
-    if (!enableNewAnalysisDriver) {
-      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
-    }
 
     await computeSuggestions();
     assertSuggestClass('A',

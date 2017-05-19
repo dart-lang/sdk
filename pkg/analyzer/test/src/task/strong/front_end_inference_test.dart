@@ -30,11 +30,36 @@ main() {
     defineReflectiveSuite(() {
       defineReflectiveTests(RunFrontEndInferenceTest);
     });
-  }, timeout: new Timeout(const Duration(seconds: 60)));
+  }, timeout: new Timeout(const Duration(seconds: 120)));
 }
 
 /// Set this to `true` to cause expectation comments to be updated.
 const bool fixProblems = false;
+
+void _appendElementName(StringBuffer buffer, Element element) {
+  // Synthetic FunctionElement(s) don't have a name or enclosing library.
+  if (element.isSynthetic && element is FunctionElement) {
+    return;
+  }
+
+  LibraryElement library = element.library;
+  if (library == null) {
+    throw new StateError('Unexpected element without library: $element');
+  }
+  String libraryName = library.name;
+
+  String name = element.name ?? '';
+  if (libraryName != 'dart.core' &&
+      libraryName != 'dart.async' &&
+      libraryName != 'test') {
+    buffer.write('$libraryName::');
+  }
+  var enclosing = element.enclosingElement;
+  if (enclosing is ClassElement) {
+    buffer.write('${enclosing.name}::');
+  }
+  buffer.write('$name');
+}
 
 @reflectiveTest
 class RunFrontEndInferenceTest {
@@ -115,6 +140,20 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   }
 }
 
+/// Instance of [InstrumentationValue] describing a [MethodElement].
+class _InstrumentationValueForMethodElement extends fasta.InstrumentationValue {
+  final MethodElement element;
+
+  _InstrumentationValueForMethodElement(this.element);
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    _appendElementName(buffer, element);
+    return buffer.toString();
+  }
+}
+
 /**
  * Instance of [InstrumentationValue] describing a [DartType].
  */
@@ -128,28 +167,6 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
     StringBuffer buffer = new StringBuffer();
     _appendType(buffer, type);
     return buffer.toString();
-  }
-
-  void _appendElementName(StringBuffer buffer, Element element) {
-    // Synthetic FunctionElement(s) don't have a name or enclosing library.
-    if (element.isSynthetic && element is FunctionElement) {
-      return;
-    }
-
-    LibraryElement library = element.library;
-    if (library == null) {
-      throw new StateError('Unexpected element without library: $element');
-    }
-    String libraryName = library.name;
-
-    String name = element.name ?? '';
-    if (libraryName != 'dart.core' &&
-        libraryName != 'dart.async' &&
-        libraryName != 'test') {
-      buffer.write('$libraryName::$name');
-    } else {
-      buffer.write('$name');
-    }
   }
 
   void _appendList<T>(StringBuffer buffer, String open, String close,
@@ -180,8 +197,6 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
 
   void _appendType(StringBuffer buffer, DartType type) {
     if (type is FunctionType) {
-      Element element = type.element;
-      _appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
       _appendParameters(buffer, type.parameters);
       buffer.write(' -> ');
@@ -190,6 +205,8 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
       ClassElement element = type.element;
       _appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
+    } else if (type.isBottom) {
+      buffer.write('<BottomType>');
     } else {
       buffer.write(type.toString());
     }
@@ -224,6 +241,11 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   _InstrumentationVisitor(this._instrumentation, this.uri);
 
+  visitBinaryExpression(BinaryExpression node) {
+    super.visitBinaryExpression(node);
+    _recordMethodTarget(node.operator.charOffset, node.staticElement);
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     if (node.parent is! FunctionDeclaration) {
@@ -240,6 +262,11 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         }
       }
     }
+  }
+
+  visitIndexExpression(IndexExpression node) {
+    super.visitIndexExpression(node);
+    _recordMethodTarget(node.leftBracket.charOffset, node.staticElement);
   }
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -273,19 +300,44 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
+    _recordMethodTarget(node.methodName.offset, node.methodName.staticElement);
+    if (node.typeArguments == null) {
+      var inferredTypeArguments = _getInferredFunctionTypeArguments(
+              node.function.staticType,
+              node.staticInvokeType,
+              node.typeArguments)
+          .toList();
+      if (inferredTypeArguments.isNotEmpty) {
+        _recordTypeArguments(node.methodName.offset, inferredTypeArguments);
+      }
+    }
+  }
+
+  visitPrefixExpression(PrefixExpression node) {
+    super.visitPrefixExpression(node);
+    _recordMethodTarget(node.operator.charOffset, node.staticElement);
+  }
+
   visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     Element element = node.staticElement;
-    if (element is LocalVariableElement && node.inGetterContext()) {
-      int offset = node.offset;
-      DartType type = node.staticType;
-      if (identical(type, element.type)) {
-        _instrumentation.record(uri, offset, 'promotedType',
-            const fasta.InstrumentationValueLiteral('none'));
-      } else {
-        _instrumentation.record(uri, offset, 'promotedType',
-            new _InstrumentationValueForType(type));
+    void recordPromotions(DartType elementType) {
+      if (node.inGetterContext() && !node.inDeclarationContext()) {
+        int offset = node.offset;
+        DartType type = node.staticType;
+        if (!identical(type, elementType)) {
+          _instrumentation.record(uri, offset, 'promotedType',
+              new _InstrumentationValueForType(type));
+        }
       }
+    }
+
+    if (element is LocalVariableElement) {
+      recordPromotions(element.type);
+    } else if (element is ParameterElement) {
+      recordPromotions(element.type);
     }
   }
 
@@ -303,6 +355,26 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  /// Based on DDC code generator's `_emitFunctionTypeArguments`
+  Iterable<DartType> _getInferredFunctionTypeArguments(
+      DartType g, DartType f, TypeArgumentList typeArgs) {
+    if (g is FunctionType &&
+        g.typeFormals.isNotEmpty &&
+        f is FunctionType &&
+        f.typeFormals.isEmpty) {
+      return _recoverTypeArguments(g, f);
+    } else {
+      return const [];
+    }
+  }
+
+  void _recordMethodTarget(int offset, Element element) {
+    if (element is MethodElement) {
+      _instrumentation.record(uri, offset, 'target',
+          new _InstrumentationValueForMethodElement(element));
+    }
+  }
+
   void _recordTopType(int offset, DartType type) {
     _instrumentation.record(
         uri, offset, 'topType', new _InstrumentationValueForType(type));
@@ -316,5 +388,14 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   void _recordTypeArguments(int offset, List<DartType> typeArguments) {
     _instrumentation.record(uri, offset, 'typeArgs',
         new _InstrumentationValueForTypeArgs(typeArguments));
+  }
+
+  /// Based on DDC code generator's `_recoverTypeArguments`
+  Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
+    assert(identical(g.element, f.element));
+    assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
+    assert(g.typeFormals.length + g.typeArguments.length ==
+        f.typeArguments.length);
+    return f.typeArguments.skip(g.typeArguments.length);
   }
 }

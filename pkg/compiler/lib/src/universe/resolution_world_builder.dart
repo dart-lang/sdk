@@ -333,6 +333,9 @@ abstract class ResolutionWorldBuilderBase
   final CommonElements _commonElements;
 
   final NativeBasicData _nativeBasicData;
+  final NativeDataBuilder _nativeDataBuilder;
+  final InterceptorDataBuilder _interceptorDataBuilder;
+  final BackendUsageBuilder _backendUsageBuilder;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -359,8 +362,14 @@ abstract class ResolutionWorldBuilderBase
 
   bool get isClosed => _closed;
 
-  ResolutionWorldBuilderBase(this._elementEnvironment, this._commonElements,
-      this._nativeBasicData, this.selectorConstraintsStrategy) {
+  ResolutionWorldBuilderBase(
+      this._elementEnvironment,
+      this._commonElements,
+      this._nativeBasicData,
+      this._nativeDataBuilder,
+      this._interceptorDataBuilder,
+      this._backendUsageBuilder,
+      this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
 
@@ -915,8 +924,17 @@ abstract class KernelResolutionWorldBuilderBase
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(elementEnvironment, commonElements, nativeBasicData,
+      : super(
+            elementEnvironment,
+            commonElements,
+            nativeBasicData,
+            nativeDataBuilder,
+            interceptorDataBuilder,
+            backendUsageBuilder,
             selectorConstraintsStrategy);
 
   @override
@@ -924,14 +942,13 @@ abstract class KernelResolutionWorldBuilderBase
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
     _closed = true;
-    // TODO(johnniwinther): Implement this.
     return _closedWorldCache = new KernelClosedWorld(
         commonElements: _commonElements,
+        nativeData: _nativeDataBuilder.close(),
+        interceptorData: _interceptorDataBuilder.close(),
+        backendUsage: _backendUsageBuilder.close(),
         // TODO(johnniwinther): Compute these.
         constantSystem: null,
-        nativeData: null,
-        interceptorData: null,
-        backendUsage: null,
         resolutionWorldBuilder: this,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,

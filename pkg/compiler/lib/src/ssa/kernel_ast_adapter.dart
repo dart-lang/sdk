@@ -179,6 +179,12 @@ class KernelAstAdapter extends KernelToElementMapMixin {
   ConstructorElement getConstructor(ir.Member node) =>
       getElement(node).declaration;
 
+  @override
+  ConstructorEntity getSuperConstructor(
+      ir.Constructor constructor, ir.Member target) {
+    return getConstructor(target);
+  }
+
   MemberElement getMember(ir.Member node) => getElement(node).declaration;
 
   MethodElement getMethod(ir.Procedure node) => getElement(node).declaration;
@@ -361,15 +367,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     ResolutionDartType type = getDartType(irType);
     return _backend.constantSystem
         .createType(_compiler.commonElements, type.asRaw());
-  }
-
-  bool isIntercepted(ir.Node node) {
-    Selector selector = getSelector(node);
-    return _backend.interceptorData.isInterceptedSelector(selector);
-  }
-
-  bool isInterceptedSelector(Selector selector) {
-    return _backend.interceptorData.isInterceptedSelector(selector);
   }
 
   // Is the member a lazy initialized static or top-level member?

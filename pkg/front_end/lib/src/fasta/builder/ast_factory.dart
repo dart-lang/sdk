@@ -189,7 +189,8 @@ abstract class AstFactory<V> {
       Expression initializer,
       Token equalsToken,
       bool isFinal: false,
-      bool isConst: false});
+      bool isConst: false,
+      bool isLocalFunction: false});
 
   /// Creates a read of a local variable.
   VariableGet variableGet(VariableDeclaration variable,

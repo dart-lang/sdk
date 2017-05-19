@@ -85,16 +85,6 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   }
 
   @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
-
-  @override
   Token copy() =>
       new BeginTokenWithComment(type, offset, copyComments(precedingComments));
 }
@@ -382,6 +372,7 @@ class Keyword extends TokenType {
   /**
    * A flag indicating whether the keyword is "built-in" identifier.
    */
+  @override
   final bool isBuiltIn;
 
   @override
@@ -456,8 +447,6 @@ class KeywordToken extends SimpleToken {
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
-  // Changed return type from Keyword to Object because
-  // fasta considers pseudo-keywords to be keywords rather than identifiers
   Object value() => keyword;
 }
 
@@ -487,16 +476,6 @@ class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   void set precedingComments(CommentToken comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
-  }
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
   }
 
   @override
@@ -582,11 +561,6 @@ class SimpleToken implements Token {
   String get stringValue => type.stringValue;
 
   @override
-  void applyDelta(int delta) {
-    offset += delta;
-  }
-
-  @override
   Token copy() => new Token(type, offset);
 
   @override
@@ -631,7 +605,7 @@ class SimpleToken implements Token {
   String toString() => lexeme;
 
   @override
-  Object value() => type.lexeme;
+  Object value() => lexeme;
 
   /**
    * Sets the `parent` property to `this` for the given [comment] and all the
@@ -701,16 +675,6 @@ class StringTokenWithComment extends StringToken implements TokenWithComment {
   void set precedingComments(CommentToken comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
-  }
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
   }
 
   @override
@@ -896,11 +860,6 @@ abstract class Token implements SyntacticEntity {
   TokenType get type;
 
   /**
-   * Apply (add) the given [delta] to this token's offset.
-   */
-  void applyDelta(int delta);
-
-  /**
    * Return a newly created token that is a copy of this tokens
    * including any [preceedingComment] tokens,
    * but that is not a part of any token stream.
@@ -930,6 +889,17 @@ abstract class Token implements SyntacticEntity {
    * that was passed in.
    */
   Token setNextWithoutSettingPrevious(Token token);
+
+  /**
+   * Returns a textual representation of this token to be used for debugging
+   * purposes. The resulting string might contain information about the
+   * structure of the token, for example 'StringToken(foo)' for the identifier
+   * token 'foo'.
+   *
+   * Use [lexeme] for the text actually parsed by the token.
+   */
+  @override
+  String toString();
 
   /**
    * Return the value of this token. For keyword tokens, this is the keyword
@@ -1568,6 +1538,11 @@ class TokenType {
       this == TokenType.CARET ||
       this == TokenType.PLUS ||
       this == TokenType.STAR;
+
+  /**
+   * A flag indicating whether the keyword is a "built-in" identifier.
+   */
+  bool get isBuiltIn => false;
 
   /**
    * Return `true` if this type of token represents an equality operator.

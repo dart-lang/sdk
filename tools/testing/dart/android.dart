@@ -145,7 +145,7 @@ class AndroidEmulator {
   }
 
   Future<bool> kill() {
-    var completer = new Completer();
+    var completer = new Completer<bool>();
     if (_emulatorProcess.kill()) {
       _emulatorProcess.exitCode.then((exitCode) {
         // TODO: Should we use exitCode to do something clever?
@@ -209,22 +209,22 @@ class AdbDevice {
    * Polls the 'sys.boot_completed' property. Returns as soon as the property is
    * 1.
    */
-  Future waitForBootCompleted() async {
+  Future<Null> waitForBootCompleted() async {
     while (true) {
       try {
         AdbCommandResult result =
             await _adbCommand(['shell', 'getprop', 'sys.boot_completed']);
         if (result.stdout.trim() == '1') return;
       } catch (_) {}
-      await new Future.delayed(const Duration(seconds: 2));
+      await new Future<Null>.delayed(const Duration(seconds: 2));
     }
   }
 
   /**
    * Put adb in root mode.
    */
-  Future adbRoot() {
-    var adbRootCompleter = new Completer();
+  Future<bool> adbRoot() {
+    var adbRootCompleter = new Completer<bool>();
     _adbCommand(['root']).then((_) {
       // TODO: Figure out a way to wait until the adb daemon was restarted in
       // 'root mode' on the device.
@@ -435,7 +435,7 @@ class AdbDevicePool {
     if (_idleDevices.length > 0) {
       return _idleDevices.removeFirst();
     } else {
-      var completer = new Completer();
+      var completer = new Completer<AdbDevice>();
       _waiter.add(completer);
       return completer.future;
     }

@@ -10,336 +10,381 @@
 # significant time to build.
 # TODO(zra): Assemble the SDK completely with GN, and remove create_sdk.py.
 if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+  template("copy_tree") {
+    assert(defined(invoker.source), "copy_tree must define 'source'")
+    assert(defined(invoker.dest), "copy_tree must define 'dest'")
+    source = invoker.source
+    dest = invoker.dest
+    action(target_name) {
+      deps = []
+      if (defined(invoker.deps)) {
+        deps += invoker.deps
+      }
 
-template("copy_tree") {
-  assert(defined(invoker.source), "copy_tree must define 'source'")
-  assert(defined(invoker.dest), "copy_tree must define 'dest'")
-  source = invoker.source
-  dest = invoker.dest
-  action(target_name) {
-    deps = []
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
+      common_args = [
+        "--from",
+        rebase_path(source),
+        "--to",
+        rebase_path(dest),
+      ]
+      if (defined(invoker.exclude)) {
+        common_args += [
+          "--exclude",
+          invoker.exclude,
+        ]
+      }
+
+      dry_run_args = common_args + [ "--dry-run" ]
+      input_files =
+          exec_script("../tools/copy_tree.py", dry_run_args, "list lines")
+      inputs = input_files
+      relative_files = rebase_path(input_files, rebase_path(source))
+
+      output_files = []
+      foreach(input, relative_files) {
+        output_files += [ "$dest/$input" ]
+      }
+
+      outputs = output_files
+      script = "../tools/copy_tree.py"
+      args = common_args
     }
-    input_files = exec_script("../tools/list_files.py",
-                              [
-                                "absolute",
-                                "",
-                                rebase_path(source),
-                              ],
-                              "list lines")
-    inputs = input_files
-    relative_files = rebase_path(input_files, rebase_path(source))
+  }
 
-    output_files = []
-    foreach(input, relative_files) {
-      output_files += ["$dest/$input"]
-    }
-
-    outputs = output_files
-    script = "../tools/copy_tree.py"
-    args = [
-      "--from",
-      rebase_path(source),
-      "--to",
-      rebase_path(dest),
+  copy("copy_dart") {
+    deps = [
+      "../runtime/bin:dart",
     ]
-    if (defined(invoker.exclude)) {
-      args += [
-        "--exclude",
-        invoker.exclude,
+    dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
+    dart_name = get_label_info("../runtime/bin:dart", "name")
+    sources = [
+      "$dart_out/$dart_name",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/dart",
+    ]
+  }
+
+  copy("copy_dylibs") {
+    deps = [
+      "//third_party/boringssl:crypto",
+      "//third_party/boringssl:ssl",
+    ]
+    crypto_out =
+        get_label_info("//third_party/boringssl:crypto", "root_out_dir")
+    crypto_name = get_label_info("//third_party/boringssl:crypto", "name")
+    ssl_out = get_label_info("//third_party/boringssl:ssl", "root_out_dir")
+    ssl_name = get_label_info("//third_party/boringssl:ssl", "name")
+    sources = [
+      "$crypto_out/lib${crypto_name}.so",
+      "$ssl_out/lib${ssl_name}.so",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
+    ]
+  }
+
+  template("copy_sdk_script") {
+    assert(defined(invoker.name), "copy_sdk_script must define 'name'")
+    name = invoker.name
+    copy(target_name) {
+      sources = [
+        "bin/${name}_sdk",
+      ]
+      outputs = [
+        "$root_out_dir/dart-sdk/bin/${name}",
       ]
     }
   }
-}
 
-copy("copy_dart") {
-  deps = [ "../runtime/bin:dart" ]
-  dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
-  dart_name = get_label_info("../runtime/bin:dart", "name")
-  sources = [ "$dart_out/$dart_name" ]
-  outputs = [ "$root_out_dir/dart-sdk/bin/dart" ]
-}
-
-copy("copy_dylibs") {
-  deps = [
-    "//third_party/boringssl:crypto",
-    "//third_party/boringssl:ssl",
+  _sdk_scripts = [
+    "dartanalyzer",
+    "dartfmt",
+    "pub",
   ]
-  crypto_out = get_label_info("//third_party/boringssl:crypto", "root_out_dir")
-  crypto_name = get_label_info("//third_party/boringssl:crypto", "name")
-  ssl_out = get_label_info("//third_party/boringssl:ssl", "root_out_dir")
-  ssl_name = get_label_info("//third_party/boringssl:ssl", "name")
-  sources = [
-    "$crypto_out/lib${crypto_name}.so",
-    "$ssl_out/lib${ssl_name}.so"
-  ]
-  outputs = [ "$root_out_dir/dart-sdk/bin/{{source_file_part}}" ]
-}
 
-template("copy_sdk_script") {
-  assert(defined(invoker.name), "copy_sdk_script must define 'name'")
-  name = invoker.name
-  copy(target_name) {
-    sources = [ "bin/${name}_sdk" ]
-    outputs = [ "$root_out_dir/dart-sdk/bin/${name}"]
+  foreach(sdk_script, _sdk_scripts) {
+    copy_sdk_script("copy_${sdk_script}_script") {
+      name = sdk_script
+    }
   }
-}
 
-_sdk_scripts = [
-  "dartanalyzer",
-  "dartfmt",
-  "pub",
-]
-
-foreach(sdk_script, _sdk_scripts) {
-  copy_sdk_script("copy_${sdk_script}_script") {
-    name = sdk_script
-  }
-}
-
-group("copy_scripts") {
-  deps = [
-    ":copy_dartanalyzer_script",
-    ":copy_dartfmt_script",
-    ":copy_pub_script",
-  ]
-}
-
-_snapshots = [
-  ["analysis_server", "../utils/analysis_server"],
-  ["dartanalyzer", "../utils/dartanalyzer:generate_dartanalyzer_snapshot"],
-  ["dartfmt", "../utils/dartfmt"],
-  ["pub", "../utils/pub"],
-]
-
-foreach(snapshot, _snapshots) {
-  copy("copy_${snapshot[0]}_snapshot") {
+  group("copy_scripts") {
     deps = [
-      snapshot[1],
+      ":copy_dartanalyzer_script",
+      ":copy_dartfmt_script",
+      ":copy_pub_script",
     ]
-    sources = [ "$root_gen_dir/${snapshot[0]}.dart.snapshot" ]
-    outputs = [ "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}" ]
   }
-}
 
-group("copy_snapshots") {
-  deps = [
-    ":copy_analysis_server_snapshot",
-    ":copy_dartanalyzer_snapshot",
-    ":copy_dartfmt_snapshot",
-    ":copy_pub_snapshot",
+  _snapshots = [
+    [
+      "analysis_server",
+      "../utils/analysis_server",
+    ],
+    [
+      "dartanalyzer",
+      "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+    ],
+    [
+      "dartfmt",
+      "../utils/dartfmt",
+    ],
+    [
+      "pub",
+      "../utils/pub",
+    ],
   ]
-}
 
-copy("copy_analysis_summaries") {
-  deps = [
-    ":copy_libraries",
-    "../utils/dartanalyzer:generate_summary_spec",
-    "../utils/dartanalyzer:generate_summary_strong",
-  ]
-  sources = [
-    "$root_gen_dir/spec.sum",
-    "$root_gen_dir/strong.sum",
-  ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
-}
-
-copy("copy_headers") {
-  sources = [
-    "../runtime/include/dart_api.h",
-    "../runtime/include/dart_mirrors_api.h",
-    "../runtime/include/dart_native_api.h",
-    "../runtime/include/dart_tools_api.h",
-  ]
-  outputs = [ "$root_out_dir/dart-sdk/include/{{source_file_part}}" ]
-}
-
-copy("copy_platform_files") {
-  sources = [
-    "lib/dart_client.platform",
-    "lib/dart_server.platform",
-    "lib/dart_shared.platform",
-  ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/{{source_file_part}}" ]
-}
-
-copy_tree("copy_pub_assets") {
-  deps = [ ":copy_libraries" ]
-  source = "../third_party/pkg/pub/lib/src/asset"
-  dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset"
-}
-
-_libraries = [
-  "_internal",
-  "async",
-  "collection",
-  "convert",
-  "core",
-  "developer",
-  "internal",
-  "io",
-  "isolate",
-  "math",
-  "mirrors",
-  "profiler",
-  "typed_data",
-]
-
-foreach(library, _libraries) {
-  copy_tree("copy_${library}_library") {
-    source = "lib/$library"
-    dest = "$root_out_dir/dart-sdk/lib/$library"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+  foreach(snapshot, _snapshots) {
+    copy("copy_${snapshot[0]}_snapshot") {
+      deps = [
+        snapshot[1],
+      ]
+      sources = [
+        "$root_gen_dir/${snapshot[0]}.dart.snapshot",
+      ]
+      outputs = [
+        "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}",
+      ]
+    }
   }
-}
 
-group("copy_libraries") {
-  deps = [
-    ":copy__internal_library",
-    ":copy_async_library",
-    ":copy_collection_library",
-    ":copy_convert_library",
-    ":copy_core_library",
-    ":copy_developer_library",
-    ":copy_internal_library",
-    ":copy_io_library",
-    ":copy_isolate_library",
-    ":copy_math_library",
-    ":copy_mirrors_library",
-    ":copy_profiler_library",
-    ":copy_typed_data_library",
-  ]
-}
-
-action("write_version_file") {
-  output = "$root_out_dir/dart-sdk/version"
-  outputs = [ output ]
-  script = "../tools/write_version_file.py"
-  args = [
-    "--output",
-    rebase_path(output),
-  ]
-}
-
-action("write_revision_file") {
-  output = "$root_out_dir/dart-sdk/revision"
-  outputs = [ output ]
-  script = "../tools/write_revision_file.py"
-  args = [
-    "--output",
-    rebase_path(output)
-  ]
-}
-
-copy("copy_readme") {
-  sources = [ "../README.dart-sdk" ]
-  outputs = [ "$root_out_dir/dart-sdk/README" ]
-}
-
-
-copy("copy_license") {
-  sources = [ "../LICENSE" ]
-  outputs = [ "$root_out_dir/dart-sdk/LICENSE" ]
-}
-
-
-copy("copy_api_readme") {
-  sources = [ "api_readme.md" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/api_readme.md" ]
-}
-
-
-group("create_sdk") {
-  deps = [
-    ":copy_analysis_summaries",
-    ":copy_api_readme",
-    ":copy_dart",
-    ":copy_headers",
-    ":copy_libraries",
-    ":copy_license",
-    ":copy_platform_files",
-    ":copy_pub_assets",
-    ":copy_readme",
-    ":copy_scripts",
-    ":copy_snapshots",
-    ":write_revision_file",
-    ":write_version_file",
-  ]
-  if (is_fuchsia_host && is_linux) {
-    deps += [ ":copy_dylibs" ]
+  group("copy_snapshots") {
+    deps = [
+      ":copy_analysis_server_snapshot",
+      ":copy_dartanalyzer_snapshot",
+      ":copy_dartfmt_snapshot",
+      ":copy_pub_snapshot",
+    ]
   }
-}
 
+  copy("copy_analysis_summaries") {
+    deps = [
+      ":copy_libraries",
+      "../utils/dartanalyzer:generate_summary_spec",
+      "../utils/dartanalyzer:generate_summary_strong",
+    ]
+    sources = [
+      "$root_gen_dir/spec.sum",
+      "$root_gen_dir/strong.sum",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
+    ]
+  }
+
+  copy("copy_headers") {
+    sources = [
+      "../runtime/include/dart_api.h",
+      "../runtime/include/dart_mirrors_api.h",
+      "../runtime/include/dart_native_api.h",
+      "../runtime/include/dart_tools_api.h",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/include/{{source_file_part}}",
+    ]
+  }
+
+  copy("copy_platform_files") {
+    sources = [
+      "lib/dart_client.platform",
+      "lib/dart_server.platform",
+      "lib/dart_shared.platform",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/lib/{{source_file_part}}",
+    ]
+  }
+
+  copy_tree("copy_pub_assets") {
+    deps = [
+      ":copy_libraries",
+    ]
+    source = "../third_party/pkg/pub/lib/src/asset"
+    dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset"
+  }
+
+  _libraries = [
+    "_internal",
+    "async",
+    "collection",
+    "convert",
+    "core",
+    "developer",
+    "internal",
+    "io",
+    "isolate",
+    "math",
+    "mirrors",
+    "profiler",
+    "typed_data",
+  ]
+
+  foreach(library, _libraries) {
+    copy_tree("copy_${library}_library") {
+      source = "lib/$library"
+      dest = "$root_out_dir/dart-sdk/lib/$library"
+      exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+    }
+  }
+
+  group("copy_libraries") {
+    deps = [
+      ":copy__internal_library",
+      ":copy_async_library",
+      ":copy_collection_library",
+      ":copy_convert_library",
+      ":copy_core_library",
+      ":copy_developer_library",
+      ":copy_internal_library",
+      ":copy_io_library",
+      ":copy_isolate_library",
+      ":copy_math_library",
+      ":copy_mirrors_library",
+      ":copy_profiler_library",
+      ":copy_typed_data_library",
+    ]
+  }
+
+  action("write_version_file") {
+    output = "$root_out_dir/dart-sdk/version"
+    outputs = [
+      output,
+    ]
+    script = "../tools/write_version_file.py"
+    args = [
+      "--output",
+      rebase_path(output),
+    ]
+  }
+
+  action("write_revision_file") {
+    output = "$root_out_dir/dart-sdk/revision"
+    outputs = [
+      output,
+    ]
+    script = "../tools/write_revision_file.py"
+    args = [
+      "--output",
+      rebase_path(output),
+    ]
+  }
+
+  copy("copy_readme") {
+    sources = [
+      "../README.dart-sdk",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/README",
+    ]
+  }
+
+  copy("copy_license") {
+    sources = [
+      "../LICENSE",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/LICENSE",
+    ]
+  }
+
+  copy("copy_api_readme") {
+    sources = [
+      "api_readme.md",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/lib/api_readme.md",
+    ]
+  }
+
+  group("create_sdk") {
+    deps = [
+      ":copy_analysis_summaries",
+      ":copy_api_readme",
+      ":copy_dart",
+      ":copy_headers",
+      ":copy_libraries",
+      ":copy_license",
+      ":copy_platform_files",
+      ":copy_pub_assets",
+      ":copy_readme",
+      ":copy_scripts",
+      ":copy_snapshots",
+      ":write_revision_file",
+      ":write_version_file",
+    ]
+    if (is_fuchsia_host && is_linux) {
+      deps += [ ":copy_dylibs" ]
+    }
+  }
 } else {
+  action("create_sdk") {
+    deps = [
+      "../runtime/bin:dart",
+      "../utils/analysis_server",
+      "../utils/compiler:dart2js",
+      "../utils/compiler:utils_wrapper",
+      "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+      "../utils/dartanalyzer:generate_summary_spec",
+      "../utils/dartanalyzer:generate_summary_strong",
+      "../utils/dartdevc",
+      "../utils/dartdoc",
+      "../utils/dartfmt",
+      "../utils/pub",
+    ]
 
-action("create_sdk") {
-  deps = [
-    "../runtime/bin:dart",
-    "../utils/analysis_server",
-    "../utils/compiler:dart2js",
-    "../utils/compiler:utils_wrapper",
-    "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-    "../utils/dartanalyzer:generate_summary_spec",
-    "../utils/dartanalyzer:generate_summary_strong",
-    "../utils/dartdevc",
-    "../utils/dartdoc",
-    "../utils/dartfmt",
-    "../utils/pub",
-  ]
+    sdk_lib_files = exec_script("../tools/list_dart_files.py",
+                                [
+                                  "absolute",
+                                  rebase_path("lib"),
+                                ],
+                                "list lines")
 
-  sdk_lib_files = exec_script("../tools/list_dart_files.py",
-                              [
-                                "absolute",
-                                rebase_path("lib"),
-                              ],
-                              "list lines")
+    preamble_files =
+        exec_script("../tools/list_files.py",
+                    [
+                      "absolute",
+                      "",
+                      rebase_path("lib/_internal/js_runtime/lib/preambles"),
+                    ],
+                    "list lines")
 
-  preamble_files =
-      exec_script("../tools/list_files.py",
-                  [
-                    "absolute",
-                    "",
-                    rebase_path("lib/_internal/js_runtime/lib/preambles"),
-                  ],
-                  "list lines")
+    sdk_bin_files = exec_script("../tools/list_files.py",
+                                [
+                                  "absolute",
+                                  "",
+                                  rebase_path("bin"),
+                                ],
+                                "list lines")
 
-  sdk_bin_files = exec_script("../tools/list_files.py",
-                              [
-                                "absolute",
-                                "",
-                                rebase_path("bin"),
-                              ],
-                              "list lines")
+    inputs = sdk_lib_files + preamble_files + sdk_bin_files + [
+               "lib/dart_client.platform",
+               "lib/dart_server.platform",
+               "lib/dart_shared.platform",
+               "$root_gen_dir/dart2js.dart.snapshot",
+               "$root_gen_dir/utils_wrapper.dart.snapshot",
+               "$root_gen_dir/pub.dart.snapshot",
+               "$root_gen_dir/dartanalyzer.dart.snapshot",
+               "$root_gen_dir/dartdevc.dart.snapshot",
+               "$root_gen_dir/dartfmt.dart.snapshot",
+               "$root_gen_dir/analysis_server.dart.snapshot",
+               "$root_gen_dir/dartdoc.dart.snapshot",
+               "$root_gen_dir/spec.sum",
+               "$root_gen_dir/strong.sum",
+               "../tools/VERSION",
+             ]
 
-  inputs = sdk_lib_files + preamble_files + sdk_bin_files + [
-             "lib/dart_client.platform",
-             "lib/dart_server.platform",
-             "lib/dart_shared.platform",
-             "$root_gen_dir/dart2js.dart.snapshot",
-             "$root_gen_dir/utils_wrapper.dart.snapshot",
-             "$root_gen_dir/pub.dart.snapshot",
-             "$root_gen_dir/dartanalyzer.dart.snapshot",
-             "$root_gen_dir/dartdevc.dart.snapshot",
-             "$root_gen_dir/dartfmt.dart.snapshot",
-             "$root_gen_dir/analysis_server.dart.snapshot",
-             "$root_gen_dir/dartdoc.dart.snapshot",
-             "$root_gen_dir/spec.sum",
-             "$root_gen_dir/strong.sum",
-             "../tools/VERSION",
-           ]
+    outputs = [
+      "$root_out_dir/dart-sdk/README",
+    ]
 
-  outputs = [
-    "$root_out_dir/dart-sdk/README",
-  ]
-
-  script = "../tools/create_sdk.py"
-  args = [
-    "--sdk_output_dir",
-    rebase_path("$root_out_dir/dart-sdk"),
-    "--snapshot_location",
-    rebase_path("$root_gen_dir"),
-  ]
-}
-
+    script = "../tools/create_sdk.py"
+    args = [
+      "--sdk_output_dir",
+      rebase_path("$root_out_dir/dart-sdk"),
+      "--snapshot_location",
+      rebase_path("$root_gen_dir"),
+    ]
+  }
 }
