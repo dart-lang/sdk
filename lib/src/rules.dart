@@ -70,6 +70,7 @@ import 'package:linter/src/rules/prefer_initializing_formals.dart';
 import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
 import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
+import 'package:linter/src/rules/prefer_single_quotes.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
 import 'package:linter/src/rules/recursive_getters.dart';
@@ -166,6 +167,7 @@ void registerLintRules() {
     ..register(new PreferIsEmpty())
     ..register(new PreferIsNotEmpty())
     ..register(new PublicMemberApiDocs())
+    ..register(new PreferSingleQuotes())
     ..register(new PubPackageNames())
     ..register(new RecursiveGetters())
     ..registerDefault(new SlashForDocComments())
