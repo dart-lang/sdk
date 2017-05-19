@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
