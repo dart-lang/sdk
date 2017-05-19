@@ -2965,7 +2965,7 @@ RawObject* Simulator::Call(const Code& code,
       if (LIKELY(start != 0)) {
         const intptr_t cid = kArrayCid;
         uword tags = 0;
-        if (LIKELY(instance_size < RawObject::SizeTag::kMaxSizeTag)) {
+        if (LIKELY(instance_size <= RawObject::SizeTag::kMaxSizeTag)) {
           tags = RawObject::SizeTag::update(instance_size, tags);
         }
         tags = RawObject::ClassIdTag::update(cid, tags);
