@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.provisional.completion.dart.plugin;
-
 import 'package:analysis_server/src/provisional/completion/completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
