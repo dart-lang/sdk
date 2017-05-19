@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.parser;
-
 import 'dart:collection';
 import "dart:math" as math;
 
@@ -5517,7 +5515,7 @@ class Parser {
     if (!_tokenMatches(startToken, TokenType.OPEN_PAREN)) {
       return null;
     }
-    return (startToken as BeginToken).endToken.next;
+    return (startToken as BeginToken).endToken?.next;
   }
 
   /**
