@@ -497,7 +497,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'shadow_dom_test': firefox_fail,
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
-      'speechrecognition_test': 'fail',
       'svgelement_test': chrome_fail,
       'text_event_test': firefox_fail,
 
