@@ -156,6 +156,7 @@ class SimpleFormatter implements ReportFormatter {
     writeLints();
     writeSummary();
     if (showStatistics) {
+      out.writeln('');
       writeStatistics();
     }
     out.writeln('');
@@ -169,6 +170,8 @@ class SimpleFormatter implements ReportFormatter {
     var tableWidth = max(_summaryLength, longest + largestCountGuess);
     var pad = tableWidth - longest;
     var line = ''.padLeft(tableWidth, '-');
+    out.writeln(line);
+    out.writeln('Counts');
     out.writeln(line);
     codes.forEach((c) {
       out
@@ -254,11 +257,16 @@ class SimpleFormatter implements ReportFormatter {
       ..writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}')
       ..writeln(line);
     int totalTime = 0;
-    for (String name in names) {
-      Stopwatch stopwatch = timers[name];
-      totalTime += stopwatch.elapsedMilliseconds;
+    List<_Stat> timings = timers.keys.map((t) {
+      return new _Stat(t, timers[t].elapsedMilliseconds);
+    }).toList();
+    timings.sort();
+    for (_Stat stat in timings) {
+      totalTime += stat.elapsed;
+      // TODO: Shame timings slower than 100ms?
+      // TODO: Present both total times and time per count?
       out.writeln(
-          '${name.padRight(longestName)}${stopwatch.elapsedMilliseconds.toString().padLeft(pad)}');
+          '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
     }
     out
       ..writeln(line)
@@ -281,4 +289,14 @@ class SimpleFormatter implements ReportFormatter {
 
     writeLint(error, offset: offset, column: column, line: line);
   }
+}
+
+class _Stat implements Comparable<_Stat> {
+  final String name;
+  final int elapsed;
+
+  _Stat(this.name, this.elapsed);
+
+  @override
+  int compareTo(_Stat other) => other.elapsed - elapsed;
 }

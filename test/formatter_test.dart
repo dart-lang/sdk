@@ -74,6 +74,9 @@ defineTests() {
             startsWith('''/foo/bar/baz.dart 3:3 [test] MSG
 
 1 file analyzed, 1 issue found, in 13 ms.
+
+-----------------------------------------
+Counts
 -----------------------------------------
 mock_code                               1
 -----------------------------------------
