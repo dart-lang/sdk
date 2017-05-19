@@ -17,11 +17,9 @@ apostrophe isn't escaped (note: we don't lint the other way around, ie, a single
 quoted string with an escaped apostrophe is not flagged).
 
 Its also rare, but possible, to have strings within string interpolations. In
-this case, its more or less necessary to use a double quote somewhere (unless
-you want to do single quotes within triple single quotes, which most people
-don't, and then you still have an isue with strings within strings within
-strings). So double quotes are allowed either within, or containing, an
-interpolated string literal.
+this case, its much more readable to use a double quote somewhere. So double
+quotes are allowed either within, or containing, an interpolated string literal.
+Arguably strings within string interpolations should be its own type of lint.
 
 **BAD:**
 ```
