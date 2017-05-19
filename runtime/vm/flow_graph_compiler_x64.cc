@@ -1477,13 +1477,13 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
                                                int bias) {
   intptr_t cid_start = range.cid_start;
   intptr_t cid_end = range.cid_end;
-  if (cid_start == cid_end) {
+  if (range.IsSingleCid()) {
     __ cmpl(RDI, Immediate(cid_start - bias));
     __ j(NOT_EQUAL, next_label);
   } else {
     __ addl(RDI, Immediate(bias - cid_start));
     bias = cid_start;
-    __ cmpl(RDI, Immediate(cid_end - cid_start));
+    __ cmpl(RDI, Immediate(range.Extent()));
     __ j(ABOVE, next_label);  // Unsigned higher.
   }
   return bias;

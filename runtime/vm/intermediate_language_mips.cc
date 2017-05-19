@@ -5171,7 +5171,9 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(0, cids_.IsSingleCid() ? Location::RequiresRegister()
+                                         : Location::WritableRegister());
+
   return summary;
 }
 
@@ -5179,7 +5181,18 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
 void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
-  __ BranchNotEqual(value, Immediate(Smi::RawValue(cid_)), deopt);
+  if (cids_.IsSingleCid()) {
+    __ BranchNotEqual(value, Immediate(Smi::RawValue(cids_.cid_start)), deopt);
+  } else {
+    __ AddImmediate(value, value, -Smi::RawValue(cids_.cid_start));
+    // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+    // the range is small enough.
+    __ LoadImmediate(TMP, cids_.Extent());
+    // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
+    // range.
+    __ sltu(TMP, TMP, value);
+    __ bne(TMP, ZR, deopt);
+  }
 }
 
 

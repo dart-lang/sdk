@@ -144,8 +144,8 @@ bool Value::Equals(Value* other) const {
 
 static int OrderById(CidRange* const* a, CidRange* const* b) {
   // Negative if 'a' should sort before 'b'.
-  ASSERT((*a)->cid_start == (*a)->cid_end);
-  ASSERT((*b)->cid_start == (*b)->cid_end);
+  ASSERT((*a)->IsSingleCid());
+  ASSERT((*b)->IsSingleCid());
   return (*a)->cid_start - (*b)->cid_start;
 }
 
@@ -203,7 +203,7 @@ intptr_t Cids::ComputeHighestCid() const {
 
 bool Cids::HasClassId(intptr_t cid) const {
   for (int i = 0; i < length(); i++) {
-    if (cid_ranges_[i]->cid_start <= cid && cid <= cid_ranges_[i]->cid_end) {
+    if (cid_ranges_[i]->Contains(cid)) {
       return true;
     }
   }
@@ -277,7 +277,7 @@ void Cids::CreateHelper(Zone* zone,
 
 bool Cids::IsMonomorphic() const {
   if (length() != 1) return false;
-  return cid_ranges_[0]->cid_start == cid_ranges_[0]->cid_end;
+  return cid_ranges_[0]->IsSingleCid();
 }
 
 
@@ -301,7 +301,7 @@ CheckClassInstr::CheckClassInstr(Value* value,
   ASSERT(number_of_checks > 0);
   SetInputAt(0, value);
   // Otherwise use CheckSmiInstr.
-  ASSERT(number_of_checks != 1 || cids[0].cid_start != cids[0].cid_end ||
+  ASSERT(number_of_checks != 1 || !cids[0].IsSingleCid() ||
          cids[0].cid_start != kSmiCid);
 }
 
@@ -322,8 +322,10 @@ EffectSet CheckClassInstr::Dependencies() const {
 
 EffectSet CheckClassIdInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  return Field::IsExternalizableCid(cid_) ? EffectSet::Externalization()
-                                          : EffectSet::None();
+  for (intptr_t i = cids_.cid_start; i <= cids_.cid_end; i++) {
+    if (Field::IsExternalizableCid(i)) return EffectSet::Externalization();
+  }
+  return EffectSet::None();
 }
 
 
@@ -376,16 +378,14 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   intptr_t min = cids_.ComputeLowestCid();
   intptr_t mask = 0;
   for (intptr_t i = 0; i < cids_.length(); ++i) {
-    intptr_t cid_start = cids_[i].cid_start;
-    intptr_t cid_end = cids_[i].cid_end;
     intptr_t run;
-    uintptr_t range = 1ul + cid_end - cid_start;
+    uintptr_t range = 1ul + cids_[i].Extent();
     if (range >= kBitsPerWord) {
       run = -1;
     } else {
       run = (1 << range) - 1;
     }
-    mask |= run << (cid_start - min);
+    mask |= run << (cids_[i].cid_start - min);
   }
   return mask;
 }
@@ -2688,7 +2688,8 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
 Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
   if (value()->BindsToConstant()) {
     const Object& constant_value = value()->BoundConstant();
-    if (constant_value.IsSmi() && Smi::Cast(constant_value).Value() == cid_) {
+    if (constant_value.IsSmi() &&
+        cids_.Contains(Smi::Cast(constant_value).Value())) {
       return NULL;
     }
   }

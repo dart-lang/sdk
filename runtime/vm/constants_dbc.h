@@ -590,6 +590,12 @@ namespace dart {
 //    If the class id in FP[rA] matches the class id D, then skip the
 //    following instruction.
 //
+//  - CheckClassIdRange rA, D
+//
+//    Next instruction is a Nop with S, the size of the class-id range.
+//    If the class id in FP[rA] is between the D D + S, then skip the
+//    following instruction.
+//
 //  - CheckBitTest rA, D
 //
 //    Skips the next 3 instructions if the object at FP[rA] is a valid class for
@@ -841,6 +847,7 @@ namespace dart {
   V(CheckSmi,                              A, reg, ___, ___) \
   V(CheckEitherNonSmi,                   A_D, reg, reg, ___) \
   V(CheckClassId,                        A_D, reg, num, ___) \
+  V(CheckClassIdRange,                   A_D, reg, num, ___) \
   V(CheckBitTest,                        A_D, reg, num, ___) \
   V(CheckCids,                         A_B_C, reg, num, num) \
   V(CheckCidsByRange,                  A_B_C, reg, num, num) \

@@ -249,8 +249,8 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 
   LoadClassIdInstr* load_cid =
       check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL) {
-    SetCid(load_cid->object()->definition(), check->cid());
+  if (load_cid != NULL && check->cids().IsSingleCid()) {
+    SetCid(load_cid->object()->definition(), check->cids().cid_start);
   }
 }
 

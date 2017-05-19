@@ -212,7 +212,7 @@ static void PrintTargetsHelper(BufferFormatter* f,
     if (i > 0) {
       f->Print(" | ");
     }
-    if (range.cid_start == range.cid_end) {
+    if (range.IsSingleCid()) {
       const Class& cls =
           Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
       f->Print("%s", String::Handle(cls.Name()).ToCString());
@@ -249,7 +249,7 @@ static void PrintCidsHelper(BufferFormatter* f,
     const Class& cls =
         Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
     f->Print("%s etc. ", String::Handle(cls.Name()).ToCString());
-    if (range.cid_start == range.cid_end) {
+    if (range.IsSingleCid()) {
       f->Print(" cid %" Pd, range.cid_start);
     } else {
       f->Print(" cid %" Pd "-%" Pd, range.cid_start, range.cid_end);
@@ -1055,8 +1055,17 @@ void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 
   const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(cid()));
-  f->Print(", %s", String::Handle(cls.ScrubbedName()).ToCString());
+      Class::Handle(Isolate::Current()->class_table()->At(cids().cid_start));
+  const String& name = String::Handle(cls.ScrubbedName());
+  if (cids().IsSingleCid()) {
+    f->Print(", %s", name.ToCString());
+  } else {
+    const Class& cls2 =
+        Class::Handle(Isolate::Current()->class_table()->At(cids().cid_end));
+    const String& name2 = String::Handle(cls2.ScrubbedName());
+    f->Print(", cid %" Pd "-%" Pd " %s-%s", cids().cid_start, cids().cid_end,
+             name.ToCString(), name2.ToCString());
+  }
 }
 
 

@@ -557,6 +557,11 @@ struct CidRange : public ZoneAllocated {
       : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
   CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
       : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
+
+  bool IsSingleCid() const { return cid_start == cid_end; }
+  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  int32_t Extent() const { return cid_end - cid_start; }
+
   intptr_t cid_start;
   intptr_t cid_end;
 };
@@ -7772,13 +7777,13 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  CheckClassIdInstr(Value* value, intptr_t cid, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), cid_(cid) {
+  CheckClassIdInstr(Value* value, CidRange cids, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), cids_(cids) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  intptr_t cid() const { return cid_; }
+  const CidRange& cids() const { return cids_; }
 
   DECLARE_INSTRUCTION(CheckClassId)
 
@@ -7794,7 +7799,9 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  intptr_t cid_;
+  bool Contains(intptr_t cid) const;
+
+  CidRange cids_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };

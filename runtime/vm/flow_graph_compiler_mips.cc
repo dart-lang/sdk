@@ -1558,7 +1558,7 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
                                                int bias) {
   intptr_t cid_start = range.cid_start;
   intptr_t cid_end = range.cid_end;
-  if (cid_start == cid_end) {
+  if (range.IsSingleCid()) {
     __ BranchNotEqual(T2, Immediate(cid_start - bias), next_label);
   } else {
     __ AddImmediate(T2, T2, bias - cid_start);

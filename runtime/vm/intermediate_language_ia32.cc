@@ -5928,7 +5928,8 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(0, cids_.IsSingleCid() ? Location::RequiresRegister()
+                                         : Location::WritableRegister());
   return summary;
 }
 
@@ -5936,8 +5937,14 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
 void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
-  __ cmpl(value, Immediate(Smi::RawValue(cid_)));
-  __ j(NOT_ZERO, deopt);
+  if (cids_.IsSingleCid()) {
+    __ cmpl(value, Immediate(Smi::RawValue(cids_.cid_start)));
+    __ j(NOT_ZERO, deopt);
+  } else {
+    __ AddImmediate(value, Immediate(-Smi::RawValue(cids_.cid_start)));
+    __ cmpl(value, Immediate(Smi::RawValue(cids_.Extent())));
+    __ j(ABOVE, deopt);
+  }
 }
 
 

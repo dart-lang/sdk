@@ -3254,6 +3254,18 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(CheckClassIdRange, A_D);
+    const intptr_t actual_cid =
+        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
+    const uintptr_t cid_start = rD;
+    const uintptr_t cid_range = Bytecode::DecodeD(*pc);
+    // Unsigned comparison.  Skip either just the nop or both the nop and the
+    // following instruction.
+    pc += (actual_cid - cid_start <= cid_range) ? 2 : 1;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(CheckBitTest, A_D);
     const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
     const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
