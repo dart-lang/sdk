@@ -328,7 +328,9 @@ class ActivationFrame : public ZoneAllocated {
   const Context& GetSavedCurrentContext();
   RawObject* GetAsyncOperation();
 
-  RawObject* Evaluate(const String& expr);
+  RawObject* Evaluate(const String& expr,
+                      const GrowableObjectArray& names,
+                      const GrowableObjectArray& values);
 
   // Print the activation frame into |jsobj|. if |full| is false, script
   // and local variable objects are only references. if |full| is true,

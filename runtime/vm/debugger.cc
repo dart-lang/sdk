@@ -1290,13 +1290,12 @@ static bool IsPrivateVariableName(const String& var_name) {
 }
 
 
-RawObject* ActivationFrame::Evaluate(const String& expr) {
+RawObject* ActivationFrame::Evaluate(const String& expr,
+                                     const GrowableObjectArray& param_names,
+                                     const GrowableObjectArray& param_values) {
   GetDescIndices();
-  const GrowableObjectArray& param_names =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& param_values =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& name = String::Handle();
+  String& existing_name = String::Handle();
   Object& value = Instance::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
@@ -1306,8 +1305,21 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
-      param_names.Add(name);
-      param_values.Add(value);
+      bool conflict = false;
+      for (intptr_t j = 0; j < param_names.Length(); j++) {
+        existing_name ^= param_names.At(j);
+        if (name.Equals(existing_name)) {
+          conflict = true;
+          break;
+        }
+      }
+      // If local has the same name as a binding in the incoming scope, prefer
+      // the one from the incoming scope, since it is logically a child scope
+      // of the activation's current scope.
+      if (!conflict) {
+        param_names.Add(name);
+        param_values.Add(value);
+      }
     }
   }
 
