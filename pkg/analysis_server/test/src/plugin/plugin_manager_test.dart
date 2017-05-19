@@ -90,12 +90,12 @@ class BuiltInPluginInfoTest {
     expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
   }
 
-  test_stop_running() {
+  test_stop_running() async {
     PluginSession session = new PluginSession(plugin);
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
     plugin.currentSession = session;
-    plugin.stop();
+    await plugin.stop();
     expect(plugin.currentSession, isNull);
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
@@ -166,12 +166,12 @@ class DiscoveredPluginInfoTest {
     expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
   }
 
-  test_stop_running() {
+  test_stop_running() async {
     PluginSession session = new PluginSession(plugin);
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
     plugin.currentSession = session;
-    plugin.stop();
+    await plugin.stop();
     expect(plugin.currentSession, isNull);
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
@@ -492,10 +492,10 @@ class PluginSessionTest {
     expect(() => session.stop(), throwsA(new isInstanceOf<StateError>()));
   }
 
-  void test_stop_running() {
+  test_stop_running() async {
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
-    session.stop();
+    await session.stop();
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
   }
@@ -672,16 +672,21 @@ class TestNotificationManager implements NotificationManager {
 }
 
 class TestServerCommunicationChannel implements ServerCommunicationChannel {
+  final PluginSession session;
   int closeCount = 0;
   List<Request> sentRequests = <Request>[];
 
-  TestServerCommunicationChannel(PluginSession session) {
+  TestServerCommunicationChannel(this.session) {
     session.channel = this;
   }
 
   @override
   void close() {
     closeCount++;
+  }
+
+  void kill() {
+    fail('Unexpected invocation of kill');
   }
 
   @override
@@ -694,5 +699,8 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     sentRequests.add(request);
+    if (request.method == 'plugin.shutdown') {
+      session.handleOnDone();
+    }
   }
 }
