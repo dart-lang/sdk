@@ -387,4 +387,20 @@ if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
       rebase_path("$root_gen_dir"),
     ]
   }
+
+  copy("copy_dev_compiler_tools") {
+    deps = [
+      ":create_sdk",
+      "../utils/dartdevc:dartdevc_web",
+      "../utils/dartdevc:stack_trace_mapper",
+    ]
+    dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
+    sources = [
+      "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
+      "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/lib/dev_compiler/web/{{source_file_part}}",
+    ]
+  }
 }
