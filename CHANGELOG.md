@@ -1,3 +1,7 @@
+# 0.1.32
+
+* Lint stats (`-s`) output now sorted.
+
 # 0.1.31
 
 * New `prefer_foreach` lint.
