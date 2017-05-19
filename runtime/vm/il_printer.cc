@@ -545,9 +545,6 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
-  if (with_checks()) {
-    f->Print(" WITH-CHECKS");
-  }
   if (complete()) {
     f->Print(" COMPLETE");
   }

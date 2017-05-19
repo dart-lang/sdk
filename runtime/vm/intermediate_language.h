@@ -2913,6 +2913,10 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
 
+  virtual intptr_t CallCount() const {
+    return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
+  }
+
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -2950,12 +2954,10 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
                                const CallTargets& targets,
-                               bool with_checks,
                                bool complete)
       : TemplateDefinition(instance_call->deopt_id()),
         instance_call_(instance_call),
         targets_(targets),
-        with_checks_(with_checks),
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
     ASSERT(targets.length() != 0);
@@ -2963,8 +2965,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
-  bool with_checks() const { return with_checks_; }
-  void set_with_checks(bool b) { with_checks_ = b; }
   bool complete() const { return complete_; }
   virtual TokenPosition token_pos() const {
     return instance_call_->token_pos();
@@ -2978,6 +2978,10 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return instance_call()->PushArgumentAt(index);
   }
+  const Array& argument_names() const {
+    return instance_call()->argument_names();
+  }
+  intptr_t type_args_len() const { return instance_call()->type_args_len(); }
 
   bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 
@@ -3014,7 +3018,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  private:
   InstanceCallInstr* instance_call_;
   const CallTargets& targets_;
-  bool with_checks_;
   const bool complete_;
   intptr_t total_call_count_;
 
@@ -3332,6 +3335,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                          arguments,
                          token_pos),
         ic_data_(NULL),
+        call_count_(0),
         function_(function),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
@@ -3346,19 +3350,37 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   intptr_t type_args_len,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                  intptr_t deopt_id)
+                  intptr_t deopt_id,
+                  intptr_t call_count)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
                          token_pos),
         ic_data_(NULL),
+        call_count_(call_count),
         function_(function),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
+  }
+
+  // Generate a replacement call instruction for an instance call which
+  // has been found to have only one target.
+  template <class C>
+  static StaticCallInstr* FromCall(Zone* zone,
+                                   const C* call,
+                                   const Function& target) {
+    ZoneGrowableArray<PushArgumentInstr*>* args =
+        new (zone) ZoneGrowableArray<PushArgumentInstr*>(call->ArgumentCount());
+    for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+      args->Add(call->PushArgumentAt(i));
+    }
+    return new (zone) StaticCallInstr(
+        call->token_pos(), target, call->type_args_len(),
+        call->argument_names(), args, call->deopt_id(), call->CallCount());
   }
 
   // ICData for static calls carries call count.
@@ -3375,7 +3397,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const Function& function() const { return function_; }
 
   virtual intptr_t CallCount() const {
-    return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
+    return ic_data() == NULL ? call_count_ : ic_data()->AggregateCount();
   }
 
   virtual bool ComputeCanDeoptimize() const { return true; }
@@ -3404,6 +3426,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
  private:
   const ICData* ic_data_;
+  const intptr_t call_count_;
   const Function& function_;
   intptr_t result_cid_;  // For some library functions we know the result.
 

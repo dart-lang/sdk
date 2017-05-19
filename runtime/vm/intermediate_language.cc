@@ -3434,14 +3434,6 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(instance_call()->type_args_len(),
                           instance_call()->ArgumentCount(),
                           instance_call()->argument_names());
-  if (!with_checks()) {
-    ASSERT(targets().HasSingleTarget());
-    const Function& target = targets().FirstTarget();
-    compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(),
-                                 target, args_info, locs(), ICData::Handle());
-    return;
-  }
-
   compiler->EmitPolymorphicInstanceCall(
       targets_, *instance_call(), args_info, deopt_id(),
       instance_call()->token_pos(), locs(), complete(), total_call_count());
@@ -3502,10 +3494,10 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  const bool with_checks = false;
-  const bool complete = false;
-  PolymorphicInstanceCallInstr* specialized = new PolymorphicInstanceCallInstr(
-      this, *new_target, with_checks, complete);
+  ASSERT(new_target->HasSingleTarget());
+  const Function& target = new_target->FirstTarget();
+  StaticCallInstr* specialized =
+      StaticCallInstr::FromCall(flow_graph->zone(), this, target);
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
 }
@@ -3530,7 +3522,7 @@ Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
-  if (FLAG_precompiled_mode && with_checks()) return false;
+  if (FLAG_precompiled_mode && !complete()) return false;
   return targets_.HasSingleRecognizedTarget();
 }
 

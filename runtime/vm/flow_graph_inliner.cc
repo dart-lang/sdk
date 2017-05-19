@@ -297,14 +297,8 @@ class CallSites : public ValueObject {
 
     GrowableArray<intptr_t> static_call_counts(num_static_calls);
     for (intptr_t i = 0; i < num_static_calls; ++i) {
-      intptr_t aggregate_count = 0;
-      if (static_calls_[i + static_call_start_ix].call->ic_data() == NULL) {
-        aggregate_count = 0;
-      } else {
-        aggregate_count = static_calls_[i + static_call_start_ix]
-                              .call->ic_data()
-                              ->AggregateCount();
-      }
+      intptr_t aggregate_count =
+          static_calls_[i + static_call_start_ix].call->CallCount();
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -1296,46 +1290,18 @@ class CallSiteInliner : public ValueObject {
                              call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
-      if (call->with_checks()) {
-        // PolymorphicInliner introduces deoptimization paths.
-        if (!call->complete() && !FLAG_polymorphic_with_deopt) {
-          TRACE_INLINING(
-              THR_Print("  => %s\n     Bailout: call with checks\n",
-                        call->instance_call()->function_name().ToCString()));
-          continue;
-        }
-        const Function& cl = call_info[call_idx].caller();
-        intptr_t caller_inlining_id =
-            call_info[call_idx].caller_graph->inlining_id();
-        PolymorphicInliner inliner(this, call, cl, caller_inlining_id);
-        inliner.Inline();
+      // PolymorphicInliner introduces deoptimization paths.
+      if (!call->complete() && !FLAG_polymorphic_with_deopt) {
+        TRACE_INLINING(
+            THR_Print("  => %s\n     Bailout: call with checks\n",
+                      call->instance_call()->function_name().ToCString()));
         continue;
       }
-
-      const Function& target = call->targets().MostPopularTarget();
-      if (!inliner_->AlwaysInline(target) &&
-          (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
-        if (trace_inlining()) {
-          String& name = String::Handle(target.QualifiedUserVisibleName());
-          THR_Print("  => %s (deopt count %d)\n     Bailout: cold %f\n",
-                    name.ToCString(), target.deoptimization_counter(),
-                    call_info[call_idx].ratio);
-        }
-        PRINT_INLINING_TREE("Too cold", &call_info[call_idx].caller(), &target,
-                            call);
-        continue;
-      }
-      GrowableArray<Value*> arguments(call->ArgumentCount());
-      for (int arg_i = 0; arg_i < call->ArgumentCount(); ++arg_i) {
-        arguments.Add(call->PushArgumentAt(arg_i)->value());
-      }
-      InlinedCallData call_data(
-          call, &arguments, call_info[call_idx].caller(),
-          call_info[call_idx].caller_graph->inlining_id());
-      if (TryInlining(target, call->instance_call()->argument_names(),
-                      &call_data)) {
-        InlineCall(&call_data);
-      }
+      const Function& cl = call_info[call_idx].caller();
+      intptr_t caller_inlining_id =
+          call_info[call_idx].caller_graph->inlining_id();
+      PolymorphicInliner inliner(this, call, cl, caller_inlining_id);
+      inliner.Inline();
     }
   }
 
@@ -1895,8 +1861,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     }
     PolymorphicInstanceCallInstr* fallback_call =
         new PolymorphicInstanceCallInstr(
-            call_->instance_call(), *non_inlined_variants_,
-            /* with_checks = */ true, call_->complete());
+            call_->instance_call(), *non_inlined_variants_, call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
