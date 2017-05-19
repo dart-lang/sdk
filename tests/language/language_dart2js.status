@@ -316,7 +316,6 @@ await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 bound_closure_equality_test: RuntimeError # Issue 27394
-built_in_identifier_test/01: Crash # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
 canonical_const3_test: RuntimeError # Issue 27394
 canonical_const_test: RuntimeError # Issue 27394
@@ -343,15 +342,7 @@ constructor_redirect2_test/04: Crash # Issue 27394
 covariant_test/10: Crash # Issue 27394
 covariant_test/11: Crash # Issue 27394
 covariant_test/20b: Crash # Issue 27394
-covariant_test/21: Crash # Issue 27394
-covariant_test/21b: Crash # Issue 27394
 covariant_test/24: Crash # Issue 27394
-covariant_test/27: Crash # Issue 27394
-covariant_test/27b: Crash # Issue 27394
-covariant_test/30: Crash # Issue 27394
-covariant_test/30b: Crash # Issue 27394
-covariant_test/31: Crash # Issue 27394
-covariant_test/31b: Crash # Issue 27394
 ct_const_test: RuntimeError # Issue 27394
 cyclic_default_values_test: RuntimeError # Issue 27394
 deferred_constraints_constants_test/constructor1: Crash # Issue 27394
