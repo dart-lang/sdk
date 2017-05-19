@@ -2023,7 +2023,7 @@ void AotOptimizer::VisitPolymorphicInstanceCall(
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
-    const Function& function = Function::Handle(
+    const Function& function = Function::ZoneHandle(
         Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
       // Only one target. Replace by static call.

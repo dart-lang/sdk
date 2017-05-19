@@ -1489,7 +1489,8 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 
   if (has_one_target) {
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const Function& target =
+        Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     const RawFunction::Kind function_kind = target.kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
       StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
@@ -1516,7 +1517,8 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     // array, not the IC array.
     AddReceiverCheck(instr);
     // Call can still deoptimize, do not detach environment from instr.
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const Function& target =
+        Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
     instr->ReplaceWith(call, current_iterator());
   } else {
