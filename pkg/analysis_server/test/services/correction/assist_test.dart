@@ -3994,6 +3994,55 @@ class FakeFlutter {
 ''');
   }
 
+  test_reparentFlutterWidget_OK_multiLines_eol2() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';\r
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: new /*caret*/DefaultTextStyle(\r
+        child: new Row(\r
+          children: <Widget>[\r
+            new Container(\r
+            ),\r
+          ],\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';\r
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: new widget(\r
+        child: new /*caret*/DefaultTextStyle(\r
+          child: new Row(\r
+            children: <Widget>[\r
+              new Container(\r
+              ),\r
+            ],\r
+          ),\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+  }
+
   test_reparentFlutterWidget_OK_singleLine1() async {
     _configureFlutterPkg({
       'src/widgets/framework.dart': flutter_framework_code,

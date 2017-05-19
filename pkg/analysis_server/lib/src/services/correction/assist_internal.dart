@@ -1770,10 +1770,12 @@ class AssistProcessor {
     sb.append('(');
     if (newExprSrc.contains(eol)) {
       int newlineIdx = newExprSrc.lastIndexOf(eol);
-      if (newlineIdx == newExprSrc.length - 1) {
-        newlineIdx -= 1;
+      int eolLen = eol.length;
+      if (newlineIdx == newExprSrc.length - eolLen) {
+        newlineIdx -= eolLen;
       }
-      String indentOld = utils.getLinePrefix(newExpr.offset + 1 + newlineIdx);
+      String indentOld =
+          utils.getLinePrefix(newExpr.offset + eolLen + newlineIdx);
       String indentNew = '$indentOld${utils.getIndent(1)}';
       sb.append(eol);
       sb.append(indentNew);
