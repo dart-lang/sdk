@@ -1413,7 +1413,14 @@ An initializer list begins with a colon, and consists of a comma-separated list 
 \end{grammar}
 
 \LMHash{}
-Let $k$ be a generative constructor.  Then $k$ may include at most one  superinitializer in its initializer list or a compile-time error occurs. If no superinitializer is provided, an implicit superinitializer of the form \SUPER{}() is added at the end of $k$'s initializer list, unless the enclosing class is class \code{Object}. It is a compile-time error if more than one initializer corresponding to a given instance variable appears in $k$'s initializer list. It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is initialized by means of an initializing formal of $k$. % It is a compile-time error if  $k$'s initializer list contains an initializer for a final variable $f$ whose declaration includes an initialization expression.
+Let $k$ be a generative constructor.
+Then $k$ may include at most one superinitializer in its initializer list or a compile-time error occurs.
+If no superinitializer is provided, an implicit superinitializer of the form \SUPER{}() is added at the end of $k$'s initializer list,
+unless the enclosing class is class \code{Object}.
+It is a compile-time error if more than one initializer corresponding to a given instance variable appears in $k$'s initializer list.
+It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is initialized by means of an initializing formal of $k$.
+It is a compile-time error if $k$'s initializer list contains an initializer for a final variable $f$ whose declaration includes an initialization expression.
+It is a compile-time error if $k$ includes an initializing formal for a final variable $f$ whose declaration includes an initialization expression.
 
 \LMHash{}
 Each final instance variable $f$ declared in the immediately enclosing class must have an initializer in $k$'s initializer list unless it has already been initialized by one of the following means:
@@ -1499,8 +1506,7 @@ proceeds as follows:
 
 \LMHash{}
 First, the expression $e$ is evaluated to an object $o$.
-%%STRONG_MODE: The runtime error in the next sentence will be compile-time.
-Then, the instance variable $v$ of $i$ is bound to $o$, unless $v$ is a final variable that has already been initialized, in which case a runtime error occurs.
+Then, the instance variable $v$ of $i$ is bound to $o$.
 In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the instance variable $v$.
 
 \LMHash{}
