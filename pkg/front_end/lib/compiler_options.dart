@@ -4,12 +4,15 @@
 
 library front_end.compiler_options;
 
+import 'dart:async';
+
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 
 import 'compilation_error.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
+import 'src/simple_error.dart';
 
 /// Default error handler used by [CompilerOptions.onError].
 void defaultErrorHandler(CompilationError error) => throw error;
@@ -146,4 +149,25 @@ class CompilerOptions {
   // reachable and we can use kernelForBuildUnit when creating a snapshot of the
   // SDK itself.
   List<Uri> additionalLibraries = [];
+}
+
+Future<bool> validateOptions(CompilerOptions options) async {
+  var fs = options.fileSystem;
+  var root = options.sdkRoot;
+
+  bool _report(String msg) {
+    options.onError(new SimpleError(msg));
+    return false;
+  }
+
+  if (root != null && !await fs.entityForUri(root).exists()) {
+    return _report("SDK root directory not found: ${options.sdkRoot}");
+  }
+
+  var summary = options.sdkSummary;
+  if (summary != null && !await fs.entityForUri(summary).exists()) {
+    return _report("SDK summary not found: ${options.sdkSummary}");
+  }
+
+  return true;
 }

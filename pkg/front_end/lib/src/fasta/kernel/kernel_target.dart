@@ -83,8 +83,6 @@ import 'kernel_builder.dart'
         TypeVariableBuilder;
 
 import 'verifier.dart' show verifyProgram;
-import 'kernel_outline_shaker.dart'
-    show trimProgram, RetainedDataBuilder, RootsMarker;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
@@ -216,17 +214,13 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(InputError error,
-      {bool isFullProgram, bool trimDependencies: false}) {
+  void handleInputError(InputError error, {bool isFullProgram}) {
     if (error != null) {
       String message = error.format();
       print(message);
       errors.add(message);
     }
     _program = erroneousProgram(isFullProgram);
-    if (trimDependencies) {
-      trimDependenciesInProgram(_program, dillTarget.loader.libraries);
-    }
   }
 
   @override
@@ -262,30 +256,15 @@ class KernelTarget extends TargetImplementation {
     return _program;
   }
 
-  /// Build the kernel representation of the program loaded by this target. The
-  /// program will contain full bodies for the code loaded from sources, and
-  /// only references to the code loaded by the [DillTarget], which may or may
-  /// not include method bodies (depending on what was loaded into that target,
-  /// an outline or a full kernel program).
-  ///
-  /// When [trimDependencies] is true, this also runs a tree-shaker that deletes
-  /// anything from the [DillTarget] that is not needed for the source program,
-  /// this includes function bodies and types that are not reachable.
-  ///
-  /// If [verify], run the default kernel verification on the resulting program.
   @override
-  Future<Program> buildProgram(
-      {bool verify: false, bool trimDependencies: false}) async {
+  Future<Program> buildProgram({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      handleInputError(null,
-          isFullProgram: true, trimDependencies: trimDependencies);
+      handleInputError(null, isFullProgram: true);
       return _program;
     }
     try {
       await loader.buildBodies();
-      _program = link(new List<Library>.from(loader.libraries),
-          trimDependencies: trimDependencies);
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();
@@ -294,12 +273,10 @@ class KernelTarget extends TargetImplementation {
       if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
-        handleInputError(null,
-            isFullProgram: true, trimDependencies: trimDependencies);
+        handleInputError(null, isFullProgram: true);
       }
     } on InputError catch (e) {
-      handleInputError(e,
-          isFullProgram: true, trimDependencies: trimDependencies);
+      handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
@@ -373,13 +350,11 @@ class KernelTarget extends TargetImplementation {
 
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
-  Program link(List<Library> libraries,
-      {CanonicalName nameRoot, bool trimDependencies: false}) {
+  Program link(List<Library> libraries, {CanonicalName nameRoot}) {
     Map<String, Source> uriToSource =
         new Map<String, Source>.from(this.uriToSource);
 
-    List<Library> extraLibraries = dillTarget.loader.libraries;
-    libraries.addAll(extraLibraries);
+    libraries.addAll(dillTarget.loader.libraries);
     // TODO(scheglov) Should we also somehow update `uriToSource`?
 //    uriToSource.addAll(binary.uriToSource);
 
@@ -390,16 +365,14 @@ class KernelTarget extends TargetImplementation {
     Program program = new Program(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {
-      // TODO(sigmund): do only for full program
       Builder builder = loader.first.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
       }
     }
-    if (trimDependencies) {
-      trimDependenciesInProgram(program, extraLibraries);
+    if (errors.isEmpty || dillTarget.isLoaded) {
+      runLinkTransformations(program);
     }
-
     ticker.logMs("Linked program");
     return program;
   }
@@ -665,6 +638,9 @@ class KernelTarget extends TargetImplementation {
     otherTransformations();
   }
 
+  /// Run all transformations that are needed when linking a program.
+  void runLinkTransformations(Program program) {}
+
   void transformMixinApplications() {
     new MixinFullResolution().transform(_program);
     ticker.logMs("Transformed mixin applications");
@@ -704,18 +680,4 @@ Constructor defaultSuperConstructor(Class cls) {
     }
   }
   return null;
-}
-
-/// Tree-shakes most code from [librariesToShake] by visiting all other
-/// libraries in [program] and marking the APIs from [librariesToShake] that are
-/// in use.
-trimDependenciesInProgram(Program program, List<Library> librariesToShake) {
-  var toShake = librariesToShake.map((lib) => lib.importUri).toSet();
-  var isIncluded = (Uri uri) => !toShake.contains(uri);
-  var data = new RetainedDataBuilder();
-  // TODO(sigmund): replace this step with data that is directly computed from
-  // the builders: we should know the tree-shaking roots without having to do a
-  // second visit over the tree.
-  new RootsMarker(data).run(program, isIncluded);
-  trimProgram(program, data, isIncluded);
 }

@@ -44,7 +44,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:kernel/kernel.dart' show loadProgramFromBytes;
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -85,10 +85,11 @@ class FastaContext extends ChainContext {
   Uri sdk;
   Uri platformUri;
   Uri outlineUri;
-  List<int> outlineBytes;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
+
+  Future<Program> outline;
 
   FastaContext(
       this.vm,
@@ -124,16 +125,11 @@ class FastaContext extends ChainContext {
     }
   }
 
-  Future<Program> loadPlatformOutline() async {
-    if (outlineBytes == null) {
+  Future<Program> loadPlatformOutline() {
+    return outline ??= new Future<Program>(() async {
       await ensurePlatformUris();
-      outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
-    }
-    // Note: we rebuild the platform outline on every test because the compiler
-    // currently mutates the in-memory representation of the program without
-    // cloning it.
-    // TODO(sigmund): investigate alternatives to this approach.
-    return loadProgramFromBytes(outlineBytes);
+      return loadProgramFromBinary(outlineUri.toFilePath());
+    });
   }
 
   static Future<FastaContext> create(
@@ -229,7 +225,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       }
       p = await sourceTarget.buildOutlines();
       if (fullCompile) {
-        p = await sourceTarget.buildProgram(trimDependencies: true);
+        p = await sourceTarget.buildProgram();
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {

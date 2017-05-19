@@ -4,14 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
-import 'package:front_end/src/simple_error.dart';
 import 'package:package_config/packages_file.dart' as package_config;
-import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
 /// Wrapper around [CompilerOptions] which exposes the options in a form useful
 /// to the front end implementation.
@@ -33,17 +32,12 @@ class ProcessedOptions {
   /// or `null` if it has not been computed yet.
   TranslateUri _uriTranslator;
 
-  /// The SDK summary, or `null` if it has not been read yet.
-  Program _sdkSummaryProgram;
-
-  /// The summary for each uri in `options.inputSummaries`.
-  List<Program> _inputSummariesPrograms;
+  /// The summary bundle for the SDK, or `null` if it has not been read yet.
+  PackageBundle _sdkSummary;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
   Uri _sdkRoot;
-
-  Uri get sdkRoot => _sdkRoot ??= _normalizeSdkRoot();
 
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions(CompilerOptions rawOptions) : this._raw = rawOptions;
@@ -56,31 +50,6 @@ class ProcessedOptions {
   /// The byte storage to get and put serialized data.
   ByteStore get byteStore {
     return _raw.byteStore;
-  }
-
-  /// Runs various validations checks on the input options. For instance,
-  /// if an option is a path to a file, it checks that the file exists.
-  Future<bool> validateOptions() async {
-    var fs = _raw.fileSystem;
-    var root = _raw.sdkRoot;
-
-    bool _report(String msg) {
-      _raw.onError(new SimpleError(msg));
-      return false;
-    }
-
-    if (root != null && !await fs.entityForUri(root).exists()) {
-      return _report("SDK root directory not found: ${_raw.sdkRoot}");
-    }
-
-    var summary = _raw.sdkSummary;
-    if (summary != null && !await fs.entityForUri(summary).exists()) {
-      return _report("SDK summary not found: ${_raw.sdkSummary}");
-    }
-
-    // TODO(sigmund): add checks for options that are meant to be disjoint (like
-    // sdkRoot and sdkSummary).
-    return true;
   }
 
   /// Determine whether to generate code for the SDK when compiling a
@@ -101,29 +70,28 @@ class ProcessedOptions {
   /// Whether to interpret Dart sources in strong-mode.
   bool get strongMode => _raw.strongMode;
 
-  /// Get an outline program that summarizes the SDK.
-  Future<Program> get sdkSummaryProgram async {
-    if (_sdkSummaryProgram == null) {
-      if (_raw.sdkSummary == null) return null;
-      _sdkSummaryProgram = await _loadProgram(_raw.sdkSummary);
+  /// Get the summary bundle for the SDK.
+  ///
+  /// This is an asynchronous getter since file system operations are required.
+  Future<PackageBundle> getSdkSummary() async {
+    if (_sdkSummary == null) {
+      Uri summaryLocation;
+      if (_raw.sdkSummary != null) {
+        // Options sdkSummary and sdkRoot are mutually exclusive.
+        assert(_raw.sdkRoot == null);
+        // No need to look for the SDK; we were told where the SDK summary is.
+        summaryLocation = _raw.sdkSummary;
+      } else {
+        // Need to look for the SDK summary inside the SDK.
+        var sdkRoot = await _getSdkRoot();
+        summaryLocation = sdkRoot.resolve(
+            'lib/_internal/' + (_raw.strongMode ? 'strong.sum' : 'spec.sum'));
+      }
+      var summaryBytes =
+          await fileSystem.entityForUri(summaryLocation).readAsBytes();
+      _sdkSummary = new PackageBundle.fromBuffer(summaryBytes);
     }
-    return _sdkSummaryProgram;
-  }
-
-  /// Get the summary programs for each of the underlying `inputSummaries`
-  /// provided via [CompilerOptions].
-  Future<List<Program>> get inputSummariesPrograms async {
-    if (_inputSummariesPrograms == null) {
-      var uris = _raw.inputSummaries;
-      if (uris == null || uris.isEmpty) return const <Program>[];
-      _inputSummariesPrograms = await Future.wait(uris.map(_loadProgram));
-    }
-    return _inputSummariesPrograms;
-  }
-
-  Future<Program> _loadProgram(Uri uri) async {
-    var bytes = await fileSystem.entityForUri(uri).readAsBytes();
-    return loadProgramFromBytes(bytes)..unbindCanonicalNames();
+    return _sdkSummary;
   }
 
   /// Get the [TranslateUri] which resolves "package:" and "dart:" URIs.
@@ -164,19 +132,21 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous getter since file system operations may be
   /// required to locate the SDK.
-  Uri _normalizeSdkRoot() {
-    // If an SDK summary location was provided, the SDK itself should not be
-    // needed.
-    assert(_raw.sdkSummary == null);
-    if (_raw.sdkRoot == null) {
-      // TODO(paulberry): implement the algorithm for finding the SDK
-      // automagically.
-      throw new UnimplementedError();
+  Future<Uri> _getSdkRoot() async {
+    if (_sdkRoot == null) {
+      // If an SDK summary location was provided, the SDK itself should not be
+      // needed.
+      assert(_raw.sdkSummary == null);
+      if (_raw.sdkRoot == null) {
+        // TODO(paulberry): implement the algorithm for finding the SDK
+        // automagically.
+        throw new UnimplementedError();
+      }
+      _sdkRoot = _raw.sdkRoot;
+      if (!_sdkRoot.path.endsWith('/')) {
+        _sdkRoot = _sdkRoot.replace(path: _sdkRoot.path + '/');
+      }
     }
-    var root = _raw.sdkRoot;
-    if (!root.path.endsWith('/')) {
-      root = root.replace(path: _sdkRoot.path + '/');
-    }
-    return root;
+    return _sdkRoot;
   }
 }

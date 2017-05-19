@@ -97,6 +97,9 @@ class KernelTargetForDart2js extends KernelTarget {
 
   @override
   void runBuildTransformations() {}
+
+  @override
+  void runLinkTransformations(_) {}
 }
 
 /// Specializes [DillTarget] to build kernel for dart2js: JS-specific libraries

@@ -40,12 +40,9 @@ final subpackageRules = {
     'lib/src/fasta/source',
     'lib/src/incremental',
   ]),
-  'lib/src/base': new SubpackageRules(allowedDependencies: [
-    'lib',
-    'lib/src',
-    'lib/src/fasta',
-    'lib/src/incremental'
-  ]),
+  'lib/src/base': new SubpackageRules(
+      mayImportAnalyzer: true,
+      allowedDependencies: ['lib', "lib/src/fasta", 'lib/src/incremental']),
   'lib/src/codegen': new SubpackageRules(),
   'lib/src/fasta': new SubpackageRules(allowedDependencies: [
     'lib',

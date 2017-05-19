@@ -51,8 +51,7 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
-        "/testcases/shaker/"
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -68,8 +67,7 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
-        "/testcases/shaker/"
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -85,8 +83,7 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
-        "/testcases/shaker/"
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -102,22 +99,7 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
-        "/testcases/shaker/"
-      ]
-    },
-
-    {
-      "name": "shaker",
-      "kind": "Chain",
-      "source": "shaker_test.dart",
-      "path": "../../testcases/shaker/",
-      "status": "shaker.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": [
-        "/shaker/lib/lib.dart"
+        "/testcases/top_level_accessors_part\\.dart$"
       ]
     },
 
