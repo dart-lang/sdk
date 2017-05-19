@@ -53,6 +53,7 @@ void Library::AcceptTreeVisitor(TreeVisitor* visitor) {
 
 
 void Library::VisitChildren(Visitor* visitor) {
+  VisitList(&typedefs(), visitor);
   VisitList(&classes(), visitor);
   VisitList(&procedures(), visitor);
   VisitList(&fields(), visitor);

@@ -255,6 +255,7 @@ class BinaryPrinter extends Visitor {
     writeStringReference(node.name ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
+    writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);

@@ -265,6 +265,7 @@ class Printer extends Visitor<Null> {
   }
 
   void writeLibraryFile(Library library) {
+    writeAnnotationList(library.annotations);
     writeWord('library');
     if (library.name != null) {
       writeWord(library.name);
@@ -308,6 +309,7 @@ class Printer extends Visitor<Null> {
         }
         writeWord('external');
       }
+      writeAnnotationList(library.annotations);
       writeWord('library');
       if (library.name != null) {
         writeWord(library.name);

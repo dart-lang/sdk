@@ -166,6 +166,7 @@ type Library {
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
+  List<Expression> annotations;
   List<LibraryDependency> libraryDependencies;
   List<Class> classes;
   List<Field> fields;

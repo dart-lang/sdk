@@ -264,6 +264,7 @@ class Library extends NamedNode implements Comparable<Library> {
   bool isExternal;
 
   String name;
+  final List<Expression> annotations;
   final List<LibraryDependency> dependencies;
   final List<Typedef> typedefs;
   final List<Class> classes;
@@ -273,6 +274,7 @@ class Library extends NamedNode implements Comparable<Library> {
   Library(this.importUri,
       {this.name,
       this.isExternal: false,
+      List<Expression> annotations,
       List<LibraryDependency> dependencies,
       List<Typedef> typedefs,
       List<Class> classes,
@@ -280,7 +282,8 @@ class Library extends NamedNode implements Comparable<Library> {
       List<Field> fields,
       this.fileUri,
       Reference reference})
-      : this.dependencies = dependencies ?? <LibraryDependency>[],
+      : this.annotations = annotations ?? <Expression>[],
+        this.dependencies = dependencies ?? <LibraryDependency>[],
         this.typedefs = typedefs ?? <Typedef>[],
         this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
@@ -319,6 +322,11 @@ class Library extends NamedNode implements Comparable<Library> {
   void addTypedef(Typedef typedef_) {
     typedef_.parent = this;
     typedefs.add(typedef_);
+  }
+
+  void addAnnotation(Expression node) {
+    node.parent = this;
+    annotations.add(node);
   }
 
   void computeCanonicalNames() {

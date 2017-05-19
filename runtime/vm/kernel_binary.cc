@@ -182,6 +182,7 @@ Library* Library::ReadFrom(Reader* reader) {
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
+  annotations_.ReadFromStatic<Expression>(reader);
   dependencies().ReadFromStatic<LibraryDependency>(reader);
   int num_typedefs = reader->ReadUInt();
   typedefs().EnsureInitialized(num_typedefs);

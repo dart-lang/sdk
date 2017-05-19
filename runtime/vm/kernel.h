@@ -474,6 +474,7 @@ class Library : public LinkedNode {
   StringIndex import_uri() { return import_uri_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   StringIndex name() { return name_index_; }
+  List<Expression>& annotations() { return annotations_; }
   List<LibraryDependency>& dependencies() { return dependency_; }
   List<Typedef>& typedefs() { return typedefs_; }
   List<Class>& classes() { return classes_; }
@@ -492,6 +493,7 @@ class Library : public LinkedNode {
   StringIndex name_index_;
   StringIndex import_uri_index_;
   intptr_t source_uri_index_;
+  List<Expression> annotations_;
   List<LibraryDependency> dependency_;
   List<Typedef> typedefs_;
   List<Class> classes_;

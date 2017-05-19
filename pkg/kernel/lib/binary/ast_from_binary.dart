@@ -354,10 +354,10 @@ class BinaryBuilder {
       library.fileUri = fileUri;
     }
 
-    _readLibraryDependencies(library);
-
     debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
 
+    _fillTreeNodeList(library.annotations, readExpression, library);
+    _readLibraryDependencies(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
     _mergeNamedNodeList(library.fields, readField, library);
