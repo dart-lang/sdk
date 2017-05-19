@@ -47,7 +47,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   problem(TreeNode node, String details, {TreeNode context}) {
     context ??= this.context;
     VerificationError error = new VerificationError(context, node, details);
-    printUnexpected(Uri.parse(fileUri), node?.fileOffset ?? -1, "$error");
+    var uri = fileUri != null ? Uri.parse(fileUri) : null;
+    var offset = (uri != null && node != null) ? node.fileOffset : -1;
+    printUnexpected(uri, offset, "$error");
     errors.add(error);
   }
 
