@@ -208,6 +208,36 @@ static field core::int c;
     }
   }
 
+  test_compile_export_hideWithLocal() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'class A {} class B {}');
+    writeFile(bPath, 'export "a.dart"; class B {}');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'b.dart';
+A a;
+B b;
+''');
+
+    Program program = await getInitialState(cUri);
+    Library library = _getLibrary(program, cUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library;
+import self as self;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field a::A a;
+static field b::B b;
+''');
+  }
+
   test_compile_typedef() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';

@@ -98,6 +98,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     Builder existing = map[name];
     if (existing == member) return false;
     if (existing != null) {
+      // For each entry mapping key `k` to declaration `d` in `NS` an entry
+      // mapping `k` to `d` is added to the exported namespace of `L` unless a
+      // top-level declaration with the name `k` exists in `L`.
+      if (existing.parent == this) return false;
+
       Builder result =
           buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
       map[name] = result;
