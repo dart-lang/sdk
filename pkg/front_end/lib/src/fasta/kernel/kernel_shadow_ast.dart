@@ -90,9 +90,11 @@ class KernelBlock extends Block implements KernelStatement {
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.blockEnter(this);
     for (var statement in statements) {
       inferrer.inferStatement(statement);
     }
+    inferrer.listener.blockExit(this);
   }
 }
 
@@ -259,7 +261,9 @@ class KernelExpressionStatement extends ExpressionStatement
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.expressionStatementEnter(this);
     inferrer.inferExpression(expression, null, false);
+    inferrer.listener.expressionStatementExit(this);
   }
 }
 
@@ -304,10 +308,12 @@ class KernelFunctionDeclaration extends FunctionDeclaration
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.functionDeclarationEnter(this);
     var oldClosureContext = inferrer.closureContext;
     inferrer.closureContext = null;
     inferrer.inferStatement(function.body);
     inferrer.closureContext = oldClosureContext;
+    inferrer.listener.functionDeclarationExit(this);
   }
 }
 
@@ -489,10 +495,12 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.ifStatementEnter(this);
     inferrer.inferExpression(
         condition, inferrer.coreTypes.boolClass.rawType, false);
     inferrer.inferStatement(then);
     if (otherwise != null) inferrer.inferStatement(otherwise);
+    inferrer.listener.ifStatementExit(this);
   }
 }
 
@@ -762,6 +770,7 @@ class KernelReturnStatement extends ReturnStatement implements KernelStatement {
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.returnStatementEnter(this);
     var closureContext = inferrer.closureContext;
     var typeContext = closureContext != null && !closureContext.isGenerator
         ? closureContext.returnContext
@@ -770,13 +779,13 @@ class KernelReturnStatement extends ReturnStatement implements KernelStatement {
         ? inferrer.inferExpression(
             expression, typeContext, closureContext != null)
         : const VoidType();
-    if (expression == null) {
-      // Analyzer treats bare `return` statements as having no effect on the
-      // inferred type of the closure.  TODO(paulberry): is this what we want
-      // for Fasta?
-      return;
+    // Analyzer treats bare `return` statements as having no effect on the
+    // inferred type of the closure.  TODO(paulberry): is this what we want
+    // for Fasta?
+    if (expression != null) {
+      closureContext?.updateInferredReturnType(inferrer, inferredType);
     }
-    closureContext?.updateInferredReturnType(inferrer, inferredType);
+    inferrer.listener.returnStatementExit(this);
   }
 }
 
@@ -1229,15 +1238,18 @@ class KernelVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.variableDeclarationEnter(this);
     var declaredType = _implicitlyTyped ? null : type;
-    if (initializer == null) return;
-    var inferredType = inferrer.inferDeclarationType(
-        inferrer.inferExpression(initializer, declaredType, _implicitlyTyped));
-    if (inferrer.strongMode && _implicitlyTyped) {
-      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-          'type', new InstrumentationValueForType(inferredType));
-      type = inferredType;
+    if (initializer != null) {
+      var inferredType = inferrer.inferDeclarationType(inferrer.inferExpression(
+          initializer, declaredType, _implicitlyTyped));
+      if (inferrer.strongMode && _implicitlyTyped) {
+        inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+            'type', new InstrumentationValueForType(inferredType));
+        type = inferredType;
+      }
     }
+    inferrer.listener.variableDeclarationExit(this);
   }
 
   /// Determine whether the given [KernelVariableDeclaration] had an implicit
