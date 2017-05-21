@@ -60,6 +60,7 @@ Program createMockSdkProgram() {
   addClass(coreLib, class_('Function'));
   addClass(coreLib, class_('Invocation'));
   addClass(asyncLib, class_('Future', typeParameters: [typeParam('T')]));
+  addClass(asyncLib, class_('FutureOr', typeParameters: [typeParam('T')]));
   addClass(asyncLib, class_('Stream', typeParameters: [typeParam('T')]));
   addClass(internalLib, class_('Symbol'));
 

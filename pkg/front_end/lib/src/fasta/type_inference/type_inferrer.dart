@@ -321,8 +321,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   DartType wrapFutureType(DartType type) {
+    var typeWithoutFutureOr = type;
+    if (type is InterfaceType &&
+        identical(type.classNode, coreTypes.futureOrClass)) {
+      typeWithoutFutureOr = type.typeArguments[0];
+    }
     return new InterfaceType(coreTypes.futureClass,
-        <DartType>[typeSchemaEnvironment.flattenFutures(type)]);
+        <DartType>[typeSchemaEnvironment.flattenFutures(typeWithoutFutureOr)]);
   }
 
   DartType wrapType(DartType type, Class class_) {
