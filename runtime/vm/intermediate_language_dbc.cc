@@ -35,7 +35,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
   M(BoxInt64)                                                                  \
-  M(MergedMath)                                                                \
+  M(TruncDivMod)                                                               \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
   M(IfThenElse)                                                                \
@@ -1320,15 +1320,6 @@ CompileType ShiftUint32OpInstr::ComputeType() const {
 
 CompileType UnaryUint32OpInstr::ComputeType() const {
   return CompileType::Int();
-}
-
-
-static const intptr_t kMintShiftCountLimit = 63;
-
-
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(right()->definition()->range(), 0,
-                               kMintShiftCountLimit);
 }
 
 

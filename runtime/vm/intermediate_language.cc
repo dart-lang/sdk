@@ -1392,8 +1392,9 @@ bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
       return false;
 
     case Token::kSHL:
-      return can_overflow() ||
-             !RangeUtils::IsPositive(right()->definition()->range());
+      // Currently only shifts by in range constant are supported, see
+      // BinaryInt32OpInstr::IsSupported.
+      return can_overflow();
 
     case Token::kMOD: {
       UNREACHABLE();
@@ -1413,19 +1414,22 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
       return false;
 
     case Token::kSHR:
-      return !RangeUtils::IsPositive(right()->definition()->range());
+      return !RangeUtils::IsPositive(right_range());
 
     case Token::kSHL:
-      return can_overflow() ||
-             !RangeUtils::IsPositive(right()->definition()->range());
+      return can_overflow() || !RangeUtils::IsPositive(right_range());
 
-    case Token::kMOD: {
-      Range* right_range = this->right()->definition()->range();
-      return (right_range == NULL) || right_range->Overlaps(0, 0);
-    }
+    case Token::kMOD:
+      return RangeUtils::CanBeZero(right_range());
+
     default:
       return can_overflow();
   }
+}
+
+
+bool ShiftMintOpInstr::has_shift_count_check() const {
+  return !RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
 }
 
 
@@ -4246,33 +4250,14 @@ const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {
 }
 
 
-MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
-                                 intptr_t deopt_id,
-                                 MergedMathInstr::Kind kind)
-    : PureDefinition(deopt_id), inputs_(inputs), kind_(kind) {
-  ASSERT(inputs_->length() == InputCountFor(kind_));
-  for (intptr_t i = 0; i < inputs_->length(); ++i) {
-    ASSERT((*inputs)[i] != NULL);
-    (*inputs)[i]->set_instruction(this);
-    (*inputs)[i]->set_use_index(i);
-  }
+TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)
+    : TemplateDefinition(deopt_id) {
+  SetInputAt(0, lhs);
+  SetInputAt(1, rhs);
 }
 
 
-intptr_t MergedMathInstr::OutputIndexOf(MethodRecognizer::Kind kind) {
-  switch (kind) {
-    case MethodRecognizer::kMathSin:
-      return 1;
-    case MethodRecognizer::kMathCos:
-      return 0;
-    default:
-      UNIMPLEMENTED();
-      return -1;
-  }
-}
-
-
-intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
+intptr_t TruncDivModInstr::OutputIndexOf(Token::Kind token) {
   switch (token) {
     case Token::kTRUNCDIV:
       return 0;

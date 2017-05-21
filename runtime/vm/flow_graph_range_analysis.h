@@ -396,6 +396,9 @@ class Range : public ZoneAllocated {
   // Clamp this to be within size.
   void Clamp(RangeBoundary::RangeSize size);
 
+  // Clamp this to be within size and eliminate symbols.
+  void ClampToConstant(RangeBoundary::RangeSize size);
+
   static void Add(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
@@ -468,6 +471,16 @@ class RangeUtils : public AllStatic {
 
   static bool IsPositive(Range* range) {
     return !Range::IsUnknown(range) && range->IsPositive();
+  }
+
+  static bool Overlaps(Range* range, intptr_t min, intptr_t max) {
+    return Range::IsUnknown(range) || range->Overlaps(min, max);
+  }
+
+  static bool CanBeZero(Range* range) { return Overlaps(range, 0, 0); }
+
+  static bool OnlyLessThanOrEqualTo(Range* range, intptr_t value) {
+    return !Range::IsUnknown(range) && range->OnlyLessThanOrEqualTo(value);
   }
 };
 

@@ -2934,7 +2934,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right()->definition()->range();
+  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
@@ -2964,9 +2964,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      const bool right_may_be_negative =
-          (right_range == NULL) || !right_range->IsPositive();
-      if (right_may_be_negative) {
+      if (!RangeUtils::IsPositive(right_range)) {
         ASSERT(shift_left->CanDeoptimize());
         __ bltz(right, deopt);
       }
@@ -3423,7 +3421,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register right = locs()->in(1).reg();
-  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       if (deopt == NULL) {
@@ -3473,7 +3470,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ beq(right, ZR, deopt);
       }
@@ -3489,7 +3486,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ beq(right, ZR, deopt);
       }
@@ -3508,14 +3505,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       //  }
       Label done;
       __ bgez(result, &done);
-      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      if (RangeUtils::Overlaps(right_range(), -1, 1)) {
         Label subtract;
         __ bltz(right, &subtract);
         __ addu(result, result, TMP);
         __ b(&done);
         __ Bind(&subtract);
         __ subu(result, result, TMP);
-      } else if (right_range->IsPositive()) {
+      } else if (right_range()->IsPositive()) {
         // Right is positive.
         __ addu(result, result, TMP);
       } else {
@@ -3534,8 +3531,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(temp, right);
       // sra operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      if ((right_range == NULL) ||
-          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
         Label ok;
         __ BranchSignedLessEqual(temp, Immediate(kCountLimit), &ok);
         __ LoadImmediate(temp, kCountLimit);
@@ -4960,83 +4956,72 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MergedMathInstr::MakeLocationSummary(Zone* zone,
-                                                      bool opt) const {
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    // Output is a pair of registers.
-    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                       Location::RequiresRegister()));
-    return summary;
-  }
-  UNIMPLEMENTED();
-  return NULL;
+LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  // Output is a pair of registers.
+  summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+  return summary;
 }
 
 
-void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(CanDeoptimize());
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->out(0).IsPairLocation());
+  PairLocation* pair = locs()->out(0).AsPairLocation();
+  Register result_div = pair->At(0).reg();
+  Register result_mod = pair->At(1).reg();
+  if (RangeUtils::CanBeZero(divisor_range())) {
+    // Handle divide by zero in runtime.
+    __ beq(right, ZR, deopt);
   }
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    Register temp = locs()->temp(0).reg();
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* pair = locs()->out(0).AsPairLocation();
-    Register result_div = pair->At(0).reg();
-    Register result_mod = pair->At(1).reg();
-    Range* right_range = InputAt(1)->definition()->range();
-    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
-      // Handle divide by zero in runtime.
-      __ beq(right, ZR, deopt);
-    }
-    __ SmiUntag(temp, left);
-    __ SmiUntag(TMP, right);
-    __ div(temp, TMP);
-    __ mflo(result_div);
-    __ mfhi(result_mod);
-    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-    // case we cannot tag the result.
-    __ BranchEqual(result_div, Immediate(0x40000000), deopt);
-    //  res = left % right;
-    //  if (res < 0) {
-    //    if (right < 0) {
-    //      res = res - right;
-    //    } else {
-    //      res = res + right;
-    //    }
-    //  }
-    Label done;
-    __ bgez(result_mod, &done);
-    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
-      Label subtract;
-      __ bltz(right, &subtract);
-      __ addu(result_mod, result_mod, TMP);
-      __ b(&done);
-      __ Bind(&subtract);
-      __ subu(result_mod, result_mod, TMP);
-    } else if (right_range->IsPositive()) {
-      // Right is positive.
-      __ addu(result_mod, result_mod, TMP);
-    } else {
-      // Right is negative.
-      __ subu(result_mod, result_mod, TMP);
-    }
-    __ Bind(&done);
+  __ SmiUntag(temp, left);
+  __ SmiUntag(TMP, right);
+  __ div(temp, TMP);
+  __ mflo(result_div);
+  __ mfhi(result_mod);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+  // case we cannot tag the result.
+  __ BranchEqual(result_div, Immediate(0x40000000), deopt);
+  //  res = left % right;
+  //  if (res < 0) {
+  //    if (right < 0) {
+  //      res = res - right;
+  //    } else {
+  //      res = res + right;
+  //    }
+  //  }
+  Label done;
+  __ bgez(result_mod, &done);
+  if (RangeUtils::Overlaps(divisor_range(), -1, 1)) {
+    Label subtract;
+    __ bltz(right, &subtract);
+    __ addu(result_mod, result_mod, TMP);
+    __ b(&done);
+    __ Bind(&subtract);
+    __ subu(result_mod, result_mod, TMP);
+  } else if (divisor_range()->IsPositive()) {
+    // Right is positive.
+    __ addu(result_mod, result_mod, TMP);
+  } else {
+    // Right is negative.
+    __ subu(result_mod, result_mod, TMP);
+  }
+  __ Bind(&done);
 
-    __ SmiTag(result_div);
-    __ SmiTag(result_mod);
-    return;
-  }
-  UNIMPLEMENTED();
+  __ SmiTag(result_div);
+  __ SmiTag(result_mod);
 }
 
 
@@ -5419,14 +5404,6 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   return summary;
-}
-
-
-static const intptr_t kMintShiftCountLimit = 63;
-
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(right()->definition()->range(), 0,
-                               kMintShiftCountLimit);
 }
 
 

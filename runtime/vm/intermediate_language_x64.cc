@@ -2761,7 +2761,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right()->definition()->range();
+  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
@@ -3361,7 +3361,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
-  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       __ addq(left, right);
@@ -3402,7 +3401,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT((right != RDX) && (right != RAX));
       ASSERT(temp == RDX);
       ASSERT(result == RAX);
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ testq(right, right);
         __ j(ZERO, deopt);
@@ -3449,7 +3448,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT((right != RDX) && (right != RAX));
       ASSERT(temp == RAX);
       ASSERT(result == RDX);
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ testq(right, right);
         __ j(ZERO, deopt);
@@ -3494,7 +3493,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmpq(result, Immediate(0));
       __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
       // Result is negative, adjust it.
-      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      if (RangeUtils::Overlaps(right_range(), -1, 1)) {
         Label subtract;
         __ cmpq(right, Immediate(0));
         __ j(LESS, &subtract, Assembler::kNearJump);
@@ -3502,7 +3501,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&all_done, Assembler::kNearJump);
         __ Bind(&subtract);
         __ subq(result, right);
-      } else if (right_range->IsPositive()) {
+      } else if (right_range()->IsPositive()) {
         // Right is positive.
         __ addq(result, right);
       } else {
@@ -3521,8 +3520,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       // sarq operation masks the count to 6 bits.
       const intptr_t kCountLimit = 0x3F;
-      if ((right_range == NULL) ||
-          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
         __ CompareImmediate(right, Immediate(kCountLimit));
         Label count_ok;
         __ j(LESS, &count_ok, Assembler::kNearJump);
@@ -5669,119 +5667,108 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MergedMathInstr::MakeLocationSummary(Zone* zone,
-                                                      bool opt) const {
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 0;
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    // Both inputs must be writable because they will be untagged.
-    summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::WritableRegister());
-    summary->set_out(0, Location::Pair(Location::RegisterLocation(RAX),
-                                       Location::RegisterLocation(RDX)));
-    return summary;
-  }
-  UNIMPLEMENTED();
-  return NULL;
+LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // Both inputs must be writable because they will be untagged.
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_in(1, Location::WritableRegister());
+  summary->set_out(0, Location::Pair(Location::RegisterLocation(RAX),
+                                     Location::RegisterLocation(RDX)));
+  return summary;
 }
 
 
-void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(CanDeoptimize());
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  ASSERT(locs()->out(0).IsPairLocation());
+  PairLocation* pair = locs()->out(0).AsPairLocation();
+  Register result1 = pair->At(0).reg();
+  Register result2 = pair->At(1).reg();
+  Label not_32bit, done;
+  Register temp = RDX;
+  ASSERT(left == RAX);
+  ASSERT((right != RDX) && (right != RAX));
+  ASSERT(result1 == RAX);
+  ASSERT(result2 == RDX);
+  if (RangeUtils::CanBeZero(divisor_range())) {
+    // Handle divide by zero in runtime.
+    __ testq(right, right);
+    __ j(ZERO, deopt);
   }
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* pair = locs()->out(0).AsPairLocation();
-    Register result1 = pair->At(0).reg();
-    Register result2 = pair->At(1).reg();
-    Label not_32bit, done;
-    Register temp = RDX;
-    ASSERT(left == RAX);
-    ASSERT((right != RDX) && (right != RAX));
-    ASSERT(result1 == RAX);
-    ASSERT(result2 == RDX);
-    Range* right_range = InputAt(1)->definition()->range();
-    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
-      // Handle divide by zero in runtime.
-      __ testq(right, right);
-      __ j(ZERO, deopt);
-    }
-    // Check if both operands fit into 32bits as idiv with 64bit operands
-    // requires twice as many cycles and has much higher latency.
-    // We are checking this before untagging them to avoid corner case
-    // dividing INT_MAX by -1 that raises exception because quotient is
-    // too large for 32bit register.
-    __ movsxd(temp, left);
-    __ cmpq(temp, left);
-    __ j(NOT_EQUAL, &not_32bit);
-    __ movsxd(temp, right);
-    __ cmpq(temp, right);
-    __ j(NOT_EQUAL, &not_32bit);
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency.
+  // We are checking this before untagging them to avoid corner case
+  // dividing INT_MAX by -1 that raises exception because quotient is
+  // too large for 32bit register.
+  __ movsxd(temp, left);
+  __ cmpq(temp, left);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(temp, right);
+  __ cmpq(temp, right);
+  __ j(NOT_EQUAL, &not_32bit);
 
-    // Both operands are 31bit smis. Divide using 32bit idiv.
-    __ SmiUntag(left);
-    __ SmiUntag(right);
-    __ cdq();
-    __ idivl(right);
-    __ movsxd(RAX, RAX);
-    __ movsxd(RDX, RDX);
-    __ jmp(&done);
+  // Both operands are 31bit smis. Divide using 32bit idiv.
+  __ SmiUntag(left);
+  __ SmiUntag(right);
+  __ cdq();
+  __ idivl(right);
+  __ movsxd(RAX, RAX);
+  __ movsxd(RDX, RDX);
+  __ jmp(&done);
 
-    // Divide using 64bit idiv.
-    __ Bind(&not_32bit);
-    __ SmiUntag(left);
-    __ SmiUntag(right);
-    __ cqo();         // Sign extend RAX -> RDX:RAX.
-    __ idivq(right);  //  RAX: quotient, RDX: remainder.
-    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-    // case we cannot tag the result.
-    __ CompareImmediate(RAX, Immediate(0x4000000000000000));
-    __ j(EQUAL, deopt);
-    __ Bind(&done);
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(left);
+  __ SmiUntag(right);
+  __ cqo();         // Sign extend RAX -> RDX:RAX.
+  __ idivq(right);  //  RAX: quotient, RDX: remainder.
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+  // case we cannot tag the result.
+  __ CompareImmediate(RAX, Immediate(0x4000000000000000));
+  __ j(EQUAL, deopt);
+  __ Bind(&done);
 
-    // Modulo correction (RDX).
-    //  res = left % right;
-    //  if (res < 0) {
-    //    if (right < 0) {
-    //      res = res - right;
-    //    } else {
-    //      res = res + right;
-    //    }
-    //  }
-    Label all_done;
-    __ cmpq(RDX, Immediate(0));
-    __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
-    // Result is negative, adjust it.
-    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
-      Label subtract;
-      __ cmpq(right, Immediate(0));
-      __ j(LESS, &subtract, Assembler::kNearJump);
-      __ addq(RDX, right);
-      __ jmp(&all_done, Assembler::kNearJump);
-      __ Bind(&subtract);
-      __ subq(RDX, right);
-    } else if (right_range->IsPositive()) {
-      // Right is positive.
-      __ addq(RDX, right);
-    } else {
-      // Right is negative.
-      __ subq(RDX, right);
-    }
-    __ Bind(&all_done);
-
-    __ SmiTag(RAX);
-    __ SmiTag(RDX);
-    // Note that the result of an integer division/modulo of two
-    // in-range arguments, cannot create out-of-range result.
-    return;
+  // Modulo correction (RDX).
+  //  res = left % right;
+  //  if (res < 0) {
+  //    if (right < 0) {
+  //      res = res - right;
+  //    } else {
+  //      res = res + right;
+  //    }
+  //  }
+  Label all_done;
+  __ cmpq(RDX, Immediate(0));
+  __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
+  // Result is negative, adjust it.
+  if ((divisor_range() == NULL) || divisor_range()->Overlaps(-1, 1)) {
+    Label subtract;
+    __ cmpq(right, Immediate(0));
+    __ j(LESS, &subtract, Assembler::kNearJump);
+    __ addq(RDX, right);
+    __ jmp(&all_done, Assembler::kNearJump);
+    __ Bind(&subtract);
+    __ subq(RDX, right);
+  } else if (divisor_range()->IsPositive()) {
+    // Right is positive.
+    __ addq(RDX, right);
+  } else {
+    // Right is negative.
+    __ subq(RDX, right);
   }
-  UNIMPLEMENTED();
+  __ Bind(&all_done);
+
+  __ SmiTag(RAX);
+  __ SmiTag(RDX);
+  // Note that the result of an integer division/modulo of two
+  // in-range arguments, cannot create out-of-range result.
 }
 
 
@@ -6131,14 +6118,6 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   ASSERT(out == left);
   __ notq(left);
-}
-
-
-static const intptr_t kMintShiftCountLimit = 63;
-
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(right()->definition()->range(), 0,
-                               kMintShiftCountLimit);
 }
 
 

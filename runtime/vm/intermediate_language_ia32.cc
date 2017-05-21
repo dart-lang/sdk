@@ -2735,7 +2735,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right()->definition()->range();
+  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for can_overflow().
     // If left is constant, we know the maximal allowed size for right.
@@ -2766,9 +2766,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   ASSERT(right == ECX);  // Count must be in ECX
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      const bool right_may_be_negative =
-          (right_range == NULL) || !right_range->IsPositive();
-      if (right_may_be_negative) {
+      if (!RangeUtils::IsPositive(right_range)) {
         ASSERT(shift_left->CanDeoptimize());
         __ cmpl(right, Immediate(0));
         __ j(NEGATIVE, deopt);
@@ -3044,7 +3042,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
-  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD:
     case Token::kSUB:
@@ -3060,7 +3057,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
     case Token::kTRUNCDIV: {
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ testl(right, right);
         __ j(ZERO, deopt);
@@ -3081,7 +3078,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ testl(right, right);
         __ j(ZERO, deopt);
@@ -3107,7 +3104,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmpl(result, Immediate(0));
       __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
       // Result is negative, adjust it.
-      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      if (RangeUtils::Overlaps(right_range(), -1, 1)) {
         // Right can be positive and negative.
         Label subtract;
         __ cmpl(right, Immediate(0));
@@ -3116,7 +3113,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&done, Assembler::kNearJump);
         __ Bind(&subtract);
         __ subl(result, right);
-      } else if (right_range->IsPositive()) {
+      } else if (right_range()->IsPositive()) {
         // Right is positive.
         __ addl(result, right);
       } else {
@@ -3135,8 +3132,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      if ((right_range == NULL) ||
-          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
         __ cmpl(right, Immediate(kCountLimit));
         Label count_ok;
         __ j(LESS, &count_ok, Assembler::kNearJump);
@@ -5709,95 +5705,83 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MergedMathInstr::MakeLocationSummary(Zone* zone,
-                                                      bool opt) const {
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 0;
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    // Both inputs must be writable because they will be untagged.
-    summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::WritableRegister());
-    // Output is a pair of registers.
-    summary->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
-                                       Location::RegisterLocation(EDX)));
-    return summary;
-  }
-  UNIMPLEMENTED();
-  return NULL;
+LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // Both inputs must be writable because they will be untagged.
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_in(1, Location::WritableRegister());
+  // Output is a pair of registers.
+  summary->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
+                                     Location::RegisterLocation(EDX)));
+  return summary;
 }
 
 
-void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(CanDeoptimize());
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  ASSERT(locs()->out(0).IsPairLocation());
+  PairLocation* pair = locs()->out(0).AsPairLocation();
+  Register result1 = pair->At(0).reg();
+  Register result2 = pair->At(1).reg();
+  if (RangeUtils::CanBeZero(divisor_range())) {
+    // Handle divide by zero in runtime.
+    __ testl(right, right);
+    __ j(ZERO, deopt);
   }
-
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* pair = locs()->out(0).AsPairLocation();
-    Register result1 = pair->At(0).reg();
-    Register result2 = pair->At(1).reg();
-    Range* right_range = InputAt(1)->definition()->range();
-    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
-      // Handle divide by zero in runtime.
-      __ testl(right, right);
-      __ j(ZERO, deopt);
-    }
-    ASSERT(left == EAX);
-    ASSERT((right != EDX) && (right != EAX));
-    ASSERT(result1 == EAX);
-    ASSERT(result2 == EDX);
-    __ SmiUntag(left);
-    __ SmiUntag(right);
-    __ cdq();         // Sign extend EAX -> EDX:EAX.
-    __ idivl(right);  //  EAX: quotient, EDX: remainder.
-    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-    // case we cannot tag the result.
-    // TODO(srdjan): We could store instead untagged intermediate results in a
-    // typed array, but then the load indexed instructions would need to be
-    // able to deoptimize.
-    __ cmpl(EAX, Immediate(0x40000000));
-    __ j(EQUAL, deopt);
-    // Modulo result (EDX) correction:
-    //  res = left % right;
-    //  if (res < 0) {
-    //    if (right < 0) {
-    //      res = res - right;
-    //    } else {
-    //      res = res + right;
-    //    }
-    //  }
-    Label done;
-    __ cmpl(EDX, Immediate(0));
-    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
-    // Result is negative, adjust it.
-    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
-      Label subtract;
-      __ cmpl(right, Immediate(0));
-      __ j(LESS, &subtract, Assembler::kNearJump);
-      __ addl(EDX, right);
-      __ jmp(&done, Assembler::kNearJump);
-      __ Bind(&subtract);
-      __ subl(EDX, right);
-    } else if (right_range->IsPositive()) {
-      // Right is positive.
-      __ addl(EDX, right);
-    } else {
-      // Right is negative.
-      __ subl(EDX, right);
-    }
-    __ Bind(&done);
-
-    __ SmiTag(EAX);
-    __ SmiTag(EDX);
-    return;
+  ASSERT(left == EAX);
+  ASSERT((right != EDX) && (right != EAX));
+  ASSERT(result1 == EAX);
+  ASSERT(result2 == EDX);
+  __ SmiUntag(left);
+  __ SmiUntag(right);
+  __ cdq();         // Sign extend EAX -> EDX:EAX.
+  __ idivl(right);  //  EAX: quotient, EDX: remainder.
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+  // case we cannot tag the result.
+  // TODO(srdjan): We could store instead untagged intermediate results in a
+  // typed array, but then the load indexed instructions would need to be
+  // able to deoptimize.
+  __ cmpl(EAX, Immediate(0x40000000));
+  __ j(EQUAL, deopt);
+  // Modulo result (EDX) correction:
+  //  res = left % right;
+  //  if (res < 0) {
+  //    if (right < 0) {
+  //      res = res - right;
+  //    } else {
+  //      res = res + right;
+  //    }
+  //  }
+  Label done;
+  __ cmpl(EDX, Immediate(0));
+  __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+  // Result is negative, adjust it.
+  if (RangeUtils::Overlaps(divisor_range(), -1, 1)) {
+    Label subtract;
+    __ cmpl(right, Immediate(0));
+    __ j(LESS, &subtract, Assembler::kNearJump);
+    __ addl(EDX, right);
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&subtract);
+    __ subl(EDX, right);
+  } else if (divisor_range()->IsPositive()) {
+    // Right is positive.
+    __ addl(EDX, right);
+  } else {
+    // Right is negative.
+    __ subl(EDX, right);
   }
-  UNIMPLEMENTED();
+  __ Bind(&done);
+
+  __ SmiTag(EAX);
+  __ SmiTag(EDX);
 }
 
 
@@ -6162,14 +6146,6 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
   }
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
-}
-
-
-static const intptr_t kMintShiftCountLimit = 63;
-
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(right()->definition()->range(), 0,
-                               kMintShiftCountLimit);
 }
 
 

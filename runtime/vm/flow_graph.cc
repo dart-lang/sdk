@@ -2280,20 +2280,18 @@ void FlowGraph::TryMergeTruncDivMod(
         (*merge_candidates)[k] = NULL;  // Clear it.
         ASSERT(curr_instr->HasUses());
         AppendExtractNthOutputForMerged(
-            curr_instr, MergedMathInstr::OutputIndexOf(curr_instr->op_kind()),
+            curr_instr, TruncDivModInstr::OutputIndexOf(curr_instr->op_kind()),
             kTagged, kSmiCid);
         ASSERT(other_binop->HasUses());
         AppendExtractNthOutputForMerged(
-            other_binop, MergedMathInstr::OutputIndexOf(other_binop->op_kind()),
-            kTagged, kSmiCid);
-
-        ZoneGrowableArray<Value*>* args = new (Z) ZoneGrowableArray<Value*>(2);
-        args->Add(new (Z) Value(curr_instr->left()->definition()));
-        args->Add(new (Z) Value(curr_instr->right()->definition()));
+            other_binop,
+            TruncDivModInstr::OutputIndexOf(other_binop->op_kind()), kTagged,
+            kSmiCid);
 
         // Replace with TruncDivMod.
-        MergedMathInstr* div_mod = new (Z) MergedMathInstr(
-            args, curr_instr->deopt_id(), MergedMathInstr::kTruncDivMod);
+        TruncDivModInstr* div_mod = new (Z) TruncDivModInstr(
+            curr_instr->left()->CopyWithType(),
+            curr_instr->right()->CopyWithType(), curr_instr->deopt_id());
         curr_instr->ReplaceWith(div_mod, NULL);
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();

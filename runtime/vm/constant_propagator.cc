@@ -1119,7 +1119,7 @@ void ConstantPropagator::VisitInvokeMathCFunction(
 }
 
 
-void ConstantPropagator::VisitMergedMath(MergedMathInstr* instr) {
+void ConstantPropagator::VisitTruncDivMod(TruncDivModInstr* instr) {
   // TODO(srdjan): Handle merged instruction.
   SetValue(instr, non_constant_);
 }

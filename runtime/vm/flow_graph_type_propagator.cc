@@ -1520,7 +1520,7 @@ CompileType InvokeMathCFunctionInstr::ComputeType() const {
 }
 
 
-CompileType MergedMathInstr::ComputeType() const {
+CompileType TruncDivModInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
