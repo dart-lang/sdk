@@ -135,7 +135,7 @@ config("dart_config") {
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
-  if (defined(is_fuchsia) && is_fuchsia) {
+  if (is_fuchsia) {
     defines += [ "DART_USE_JEMALLOC" ]
     include_dirs += [ "//magenta/third_party/ulib/jemalloc/include" ]
   }

@@ -153,6 +153,8 @@ declare_args() {
 if (current_os == "win") {
   is_android = false
   is_chromeos = false
+  is_fuchsia = false
+  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = false
@@ -162,6 +164,8 @@ if (current_os == "win") {
 } else if (current_os == "mac") {
   is_android = false
   is_chromeos = false
+  is_fuchsia = false
+  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = true
@@ -171,6 +175,8 @@ if (current_os == "win") {
 } else if (current_os == "android") {
   is_android = true
   is_chromeos = false
+  is_fuchsia = false
+  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = false
@@ -180,6 +186,8 @@ if (current_os == "win") {
 } else if (current_os == "linux") {
   is_android = false
   is_chromeos = false
+  is_fuchsia = false
+  is_fuchsia_host = false
   is_ios = false
   is_linux = true
   is_mac = false
@@ -227,9 +235,7 @@ if (is_win) {
   ]
 }
 if (is_posix) {
-  _native_compiler_configs += [
-    "//build/config/gcc:no_exceptions",
-  ]
+  _native_compiler_configs += [ "//build/config/gcc:no_exceptions" ]
 }
 
 if (is_linux) {
