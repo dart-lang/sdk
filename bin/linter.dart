@@ -12,6 +12,7 @@ import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 
@@ -54,6 +55,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         abbr: "h", negatable: false, help: "Show usage information.")
     ..addFlag("stats",
         abbr: "s", negatable: false, help: "Show lint statistics.")
+    ..addFlag("benchmark", negatable: false, help: "Show lint benchmarks.")
     ..addFlag('visit-transitive-closure',
         help: 'Visit the transitive closure of imported/exported libraries.')
     ..addFlag('quiet', abbr: 'q', help: "Don't show individual lint errors.")
@@ -141,7 +143,8 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   }
 
   var stats = options['stats'];
-  if (stats == true) {
+  var benchmark = options['benchmark'];
+  if (stats || benchmark) {
     lintOptions.enableTiming = true;
   }
 
@@ -149,12 +152,17 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     ..packageConfigPath = packageConfigFile
     ..visitTransitiveClosure = options['visit-transitive-closure'];
 
-  final linter = new DartLinter(lintOptions);
-
   List<File> filesToLint = [];
   for (var path in options.rest) {
     filesToLint.addAll(collectFiles(path));
   }
+
+  if (benchmark) {
+    writeBenchmarks(outSink, filesToLint, lintOptions);
+    return;
+  }
+
+  final linter = new DartLinter(lintOptions);
 
   try {
     final timer = new Stopwatch()..start();
@@ -173,7 +181,8 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         fileRoot: commonRoot,
         showStatistics: stats,
         machineOutput: options['machine'],
-        quiet: options['quiet'])..write();
+        quiet: options['quiet'])
+      ..write();
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
   Please report it at: github.com/dart-lang/linter/issues

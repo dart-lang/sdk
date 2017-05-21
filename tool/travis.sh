@@ -20,8 +20,8 @@ if [ "$LINTER_BOT" = "benchmark" ]; then
   # The actual lints can have errors - we don't want to fail the benchmark bot.
   set +e
 
-  # Run linter with all lints enabled.
-  dart bin/linter.dart -s -q -c example/all.yaml .
+  # Benchmark linter with all lints enabled.
+  dart bin/linter.dart --benchmark -q -c example/all.yaml .
 
   echo ""
 else
