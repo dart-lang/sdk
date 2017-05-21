@@ -35,12 +35,10 @@ class ScannerTest_Replacement extends ScannerTest {
   analyzer.Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
-    // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
-    // so we can ignore the `lazyAssignmentOperators` flag.
-    // TODO(danrubel): once lazyAssignmentOperators are fully supported by
-    // Dart, remove this flag.
     fasta.ScannerResult result = fasta.scanString(source,
-        includeComments: true, scanGenericMethodComments: genericMethodComments,
+        includeComments: true,
+        scanGenericMethodComments: genericMethodComments,
+        scanLazyAssignmentOperators: lazyAssignmentOperators,
         recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
       // perform recovery as a separate step
       // so that the token stream can be validated before and after recovery
@@ -55,22 +53,6 @@ class ScannerTest_Replacement extends ScannerTest {
       assertValidTokenStream(tokens, errorsFirst: true);
     }
     return extractErrors(tokens, listener);
-  }
-
-  @override
-  @failingTest
-  void test_ampersand_ampersand_eq() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
-    // operators.
-    super.test_ampersand_ampersand_eq();
-  }
-
-  @override
-  @failingTest
-  void test_bar_bar_eq() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
-    // operators.
-    super.test_bar_bar_eq();
   }
 
   void _assertOpenClosePair(String source) {

@@ -77,11 +77,13 @@ ScannerResult scan(List<int> bytes,
 ScannerResult scanString(String source,
     {bool includeComments: false,
     bool scanGenericMethodComments: false,
+    bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
       includeComments: includeComments,
-      scanGenericMethodComments: scanGenericMethodComments);
+      scanGenericMethodComments: scanGenericMethodComments,
+      scanLazyAssignmentOperators: scanLazyAssignmentOperators);
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

@@ -28,29 +28,13 @@ class ScannerTest_Fasta extends ScannerTestBase {
   Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
-    // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
-    // so we can ignore the `lazyAssignmentOperators` flag.
-    // TODO(paulberry): once lazyAssignmentOperators are fully supported by
-    // Dart, remove this flag.
-    var scanner = new fasta.StringScanner(source, includeComments: true);
-    scanner.scanGenericMethodComments = genericMethodComments;
+    var scanner = new fasta.StringScanner(source,
+        includeComments: true,
+        scanGenericMethodComments: genericMethodComments,
+        scanLazyAssignmentOperators: lazyAssignmentOperators);
     var token = scanner.tokenize();
     return new ToAnalyzerTokenStreamConverter_WithListener(listener)
         .convertTokens(token);
-  }
-
-  @override
-  @failingTest
-  void test_ampersand_ampersand_eq() {
-    // TODO(paulberry,ahe): Fasta doesn't support `&&=` yet
-    super.test_ampersand_ampersand_eq();
-  }
-
-  @override
-  @failingTest
-  void test_bar_bar_eq() {
-    // TODO(paulberry,ahe): Fasta doesn't support `||=` yet
-    super.test_bar_bar_eq();
   }
 
   void test_comments() {
