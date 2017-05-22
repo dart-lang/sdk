@@ -146,6 +146,14 @@ def ToGnArgs(args, mode, arch, target_os):
   else:
     gn_args['target_os'] = target_os
 
+  if arch.startswith('mips'):
+    bold  = '\033[1m'
+    reset = '\033[0m'
+    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
+          "upcoming releases. Please consider using another architecture "
+          "and/or file an issue explaining your specific use of and need for "
+          "MIPS support." + reset)
+
   gn_args['dart_target_arch'] = arch
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['host_cpu'] = HostCpuForArch(arch)
@@ -250,7 +258,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
   if args.arch == 'all':
-    args.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
+    args.arch = 'ia32,x64,simarm,simarm64,simdbc64'
   if args.mode == 'all':
     args.mode = 'debug,release,product'
   if args.os == 'all':

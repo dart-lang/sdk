@@ -46,7 +46,6 @@ entirely to allow inference to fill in the type.
       1.24, violations are only reported (on stdout or stderr), but a future
       version of the Dart SDK will change this to throwing a `StateError`.
 
-
 ### Dart VM
 
 ### Tool Changes
@@ -60,6 +59,12 @@ entirely to allow inference to fill in the type.
     * Preserve type parameters in new generic function typedef syntax.
     * Add self-test validation to ensure formatter bugs do not cause user code
       to be lost.
+
+### Infrastructure changes
+
+* As of this release, we'll show a warning when using the MIPS architecture.
+  Unless we learn about any critical use of Dart on MIPS in the meantime, we're
+  planning to deprecate support for MIPS starting with the next stable release.
 
 ## 1.23.0
 
