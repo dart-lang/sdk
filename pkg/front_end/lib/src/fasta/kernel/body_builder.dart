@@ -1477,6 +1477,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleFunctionType(Token functionToken, Token endToken) {
+    debugEvent("FunctionType");
     FormalParameters formals = pop();
     ignore(Unhandled.TypeVariables);
     DartType returnType = pop();
@@ -1590,9 +1591,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     variable ??= astFactory.variableDeclaration(
-        name.name, name.token, functionNestingLevel,
+        name?.name, name?.token, functionNestingLevel,
         type: type,
-        initializer: name.initializer,
+        initializer: name?.initializer,
         isFinal: isFinal,
         isConst: isConst);
     push(variable);
@@ -1657,7 +1658,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         optional,
         beginToken.charOffset);
     push(formals);
-    if (inCatchClause || functionNestingLevel != 0) {
+    if ((inCatchClause || functionNestingLevel != 0) &&
+        kind != MemberKind.GeneralizedFunctionType) {
       enterLocalScope(formals.computeFormalParameterScope(
           scope, member ?? classBuilder ?? library));
     }

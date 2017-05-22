@@ -20,6 +20,8 @@ function stop {
   exit 1
 }
 
+DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+
 case "${1//_/-}" in
   abcompile) SCRIPT="${TOOL_DIR}/abcompile.dart";;
   analyzer-compile) SCRIPT="${TOOL_DIR}/analyzer_compile.dart";;
@@ -49,7 +51,11 @@ case "${1//_/-}" in
     ;;
   kernel-service)
     shift
+    PATCHED_SDK_DIR=$(
+      ls -d {xcodebuild,out}/${DART_CONFIGURATION}/patched_sdk 2>/dev/null \
+        | head -1)
     exec "${DART_VM}" -c -DDFE_VERBOSE=true \
+         --platform=${PATCHED_SDK_DIR}/platform.dill \
          --dfe="${REPO_DIR}/utils/kernel-service/kernel-service.dart" "$@"
     ;;
   testing)
@@ -64,4 +70,4 @@ esac
 
 shift
 
-DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64} exec "${DART_VM}" -c "${SCRIPT}" "$@"
+exec "${DART_VM}" -c "${SCRIPT}" "$@"
