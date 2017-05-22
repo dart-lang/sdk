@@ -206,7 +206,9 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       print('${color(message)}');
     } else {
       SourceFile file = provider.sourceFiles[uri];
-      if (file != null) {
+      // TODO(johnniwinther): Remove the '.dill' hack; add support for binary
+      // files to avoid crashes on trying to decode .dill binaries as utf8.
+      if (file != null && !file.filename.endsWith('.dill')) {
         print(file.getLocationMessage(color(message), begin, end,
             colorize: color));
       } else {

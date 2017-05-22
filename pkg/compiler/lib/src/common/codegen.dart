@@ -5,7 +5,7 @@
 library dart2js.common.codegen;
 
 import '../elements/elements.dart'
-    show AsyncMarker, ClassElement, LocalFunctionElement, MemberElement;
+    show AsyncMarker, ClassElement, LocalFunctionElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -110,12 +110,11 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry {
-  final MemberElement currentElement;
+  final MemberEntity currentElement;
   final _CodegenImpact worldImpact;
 
-  CodegenRegistry(MemberElement currentElement)
-      : this.currentElement = currentElement,
-        this.worldImpact = new _CodegenImpact();
+  CodegenRegistry(this.currentElement)
+      : this.worldImpact = new _CodegenImpact();
 
   bool get isForResolution => false;
 

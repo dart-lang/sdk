@@ -9,6 +9,7 @@ import '../common.dart' show invariant;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../inferrer/type_system.dart';
 import '../tree/tree.dart';
@@ -171,7 +172,7 @@ class GlobalTypeInferenceElementData {
 
 /// API to interact with the global type-inference engine.
 abstract class TypesInferrer {
-  void analyzeMain(Element element);
+  void analyzeMain(FunctionEntity element);
   TypeMask getReturnTypeOfElement(Element element);
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeForNewList(Element owner, Node node);
@@ -271,7 +272,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(MethodElement mainElement,
+  void runGlobalTypeInference(FunctionEntity mainElement,
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     measure(() {
       typesInferrerInternal ??=

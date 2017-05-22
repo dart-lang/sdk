@@ -239,16 +239,15 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  WorldImpact registerUsedElement(MemberElement member) {
+  WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
-      MethodElement method = member;
-      ClassElement cls = method.enclosingClass;
-      if (method.name == Identifiers.call &&
-          !cls.typeVariables.isEmpty &&
-          _rtiNeed.methodNeedsRti(method)) {
+      ClassEntity cls = member.enclosingClass;
+      if (member.name == Identifiers.call &&
+          _elementEnvironment.isGenericClass(cls) &&
+          _rtiNeed.methodNeedsRti(member)) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }
