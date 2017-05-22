@@ -68,6 +68,8 @@ def ToCommandLine(gn_args):
   def merge(key, value):
     if type(value) is bool:
       return '%s=%s' % (key, 'true' if value else 'false')
+    elif type(value) is int:
+      return '%s=%d' % (key, value)
     return '%s="%s"' % (key, value)
   return [merge(x, y) for x, y in gn_args.iteritems()]
 
@@ -174,13 +176,17 @@ def ToGnArgs(args, mode, arch, target_os):
 
   if gn_args['target_os'] == 'linux':
     if gn_args['target_cpu'] == 'arm':
-      # Force -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
-      # specifying a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
-      gn_args['arm_arch'] = 'armv7'
-      gn_args['arm_float_abi'] = 'hard'
+      # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
+      # specifying a gnueabihf compiler in //build/toolchain/linux/BUILD.gn.
+      floatabi = 'hard' if args.arm_float_abi == '' else args.arm_float_abi
+      gn_args['arm_version'] = 7
+      gn_args['arm_float_abi'] = floatabi
       gn_args['arm_use_neon'] = True
     elif gn_args['target_cpu'] == 'armv6':
-      raise Exception("GN support for armv6 unimplemented")
+      floatabi = 'softfp' if args.arm_float_abi == '' else args.arm_float_abi
+      gn_args['target_cpu'] = 'arm'
+      gn_args['arm_version'] = 6
+      gn_args['arm_float_abi'] = floatabi
     elif gn_args['target_cpu'] == 'armv5te':
       raise Exception("GN support for armv5te unimplemented")
 
@@ -323,8 +329,14 @@ def parse_args(args):
       default='host')
   common_group.add_argument("-v", "--verbose",
       help='Verbose output.',
-      default=False, action="store_true")
+      default=False,
+      action="store_true")
 
+  other_group.add_argument('--arm-float-abi',
+      type=str,
+      help='The ARM float ABI (soft, softfp, hard)',
+      metavar='[soft,softfp,hard]',
+      default='')
   other_group.add_argument('--asan',
       help='Build with ASAN',
       default=UseASAN(),

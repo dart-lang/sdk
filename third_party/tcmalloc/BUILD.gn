@@ -32,6 +32,9 @@ config("internal_config") {
   if (is_clang) {
     cflags += [ "-Wno-unused-const-variable" ]
   }
+  if (current_cpu == "arm" && !is_clang) {
+    cflags += [ "-Wno-psabi" ]
+  }
 }
 
 config("link_config") {

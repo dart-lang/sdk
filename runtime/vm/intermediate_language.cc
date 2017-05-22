@@ -380,7 +380,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   for (intptr_t i = 0; i < cids_.length(); ++i) {
     intptr_t run;
     uintptr_t range = 1ul + cids_[i].Extent();
-    if (range >= kBitsPerWord) {
+    if (range >= static_cast<uintptr_t>(kBitsPerWord)) {
       run = -1;
     } else {
       run = (1 << range) - 1;

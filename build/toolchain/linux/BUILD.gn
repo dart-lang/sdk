@@ -10,6 +10,7 @@ import("//build/toolchain/goma.gni")
 
 declare_args() {
   toolchain_prefix = ""
+  # TODO(zra): Add an argument for overriding the host toolchain.
 }
 
 if (use_goma) {
@@ -64,9 +65,6 @@ gcc_toolchain("arm64") {
 gcc_toolchain("clang_x86") {
   prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-linux/bin",
                        root_build_dir)
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
-  }
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
   readelf = "readelf"
@@ -82,9 +80,6 @@ gcc_toolchain("clang_x86") {
 
 gcc_toolchain("x86") {
   prefix = ""
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
-  }
   cc = "${compiler_prefix}${prefix}gcc"
   cxx = "${compiler_prefix}${prefix}g++"
 
@@ -102,9 +97,6 @@ gcc_toolchain("x86") {
 gcc_toolchain("clang_x64") {
   prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-linux/bin",
                        root_build_dir)
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
-  }
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
 
@@ -121,9 +113,6 @@ gcc_toolchain("clang_x64") {
 
 gcc_toolchain("x64") {
   prefix = ""
-  if (toolchain_prefix != "") {
-    prefix = toolchain_prefix
-  }
   cc = "${compiler_prefix}${prefix}gcc"
   cxx = "${compiler_prefix}${prefix}g++"
 

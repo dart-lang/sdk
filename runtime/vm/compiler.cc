@@ -474,7 +474,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
-    Error& error = Error::Handle(zone.GetZone());
+    Thread* thread = Thread::Current();
+    Error& error = Error::Handle(thread->zone());
     error = thread->sticky_error();
     thread->clear_sticky_error();
     return error.raw();
