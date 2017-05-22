@@ -62,7 +62,7 @@ abstract class FixContext {
   AnalysisDriver get analysisDriver;
 
   /**
-   * The error to fix, should be reported in the given [analysisContext].
+   * The error to fix, should be reported by the given [analysisDriver].
    */
   AnalysisError get error;
 

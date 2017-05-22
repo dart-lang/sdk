@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
@@ -56,9 +56,9 @@ class Assist {
  */
 abstract class AssistContext {
   /**
-   * The [AnalysisContext] to get assists in.
+   * The analysis driver used to access analysis results.
    */
-  AnalysisContext get analysisContext;
+  AnalysisDriver get analysisDriver;
 
   /**
    * The length of the selection.

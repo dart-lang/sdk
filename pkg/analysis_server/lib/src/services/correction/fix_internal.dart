@@ -165,9 +165,6 @@ class FixProcessor {
   TypeProvider get typeProvider {
     if (_typeProvider == null) {
       _typeProvider = unitElement.context.typeProvider;
-//      LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
-//      LibraryElement asyncLibrary = await driver.getLibraryByUri('dart:async');
-//      _typeProvider = new TypeProviderImpl(coreLibrary, asyncLibrary);
     }
     return _typeProvider;
   }

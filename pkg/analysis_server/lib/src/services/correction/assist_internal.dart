@@ -21,10 +21,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
@@ -35,7 +36,10 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
-  AnalysisContext analysisContext;
+  /**
+   * The analysis driver being used to perform analysis.
+   */
+  AnalysisDriver driver;
 
   Source source;
   String file;
@@ -62,12 +66,14 @@ class AssistProcessor {
 
   SourceChange change = new SourceChange('<message>');
 
+  TypeProvider _typeProvider;
+
   AssistProcessor(DartAssistContext dartContext) {
-    analysisContext = dartContext.analysisContext;
+    driver = dartContext.analysisDriver;
     // source
     source = dartContext.source;
     file = dartContext.source.fullName;
-    fileStamp = analysisContext.getModificationStamp(source);
+    fileStamp = _modificationStamp(file);
     // unit
     unit = dartContext.unit;
     unitElement = dartContext.unit.element;
@@ -88,10 +94,17 @@ class AssistProcessor {
    */
   String get eol => utils.endOfLine;
 
+  TypeProvider get typeProvider {
+    if (_typeProvider == null) {
+      _typeProvider = unitElement.context.typeProvider;
+    }
+    return _typeProvider;
+  }
+
   Future<List<Assist>> compute() async {
     // If the source was changed between the constructor and running
     // this asynchronous method, it is not safe to use the unit.
-    if (analysisContext.getModificationStamp(source) != fileStamp) {
+    if (_modificationStamp(file) != fileStamp) {
       return const <Assist>[];
     }
 
@@ -849,7 +862,7 @@ class AssistProcessor {
     // iterable should be List
     {
       DartType iterableType = iterable.bestType;
-      InterfaceType listType = analysisContext.typeProvider.listType;
+      InterfaceType listType = typeProvider.listType;
       if (iterableType is! InterfaceType ||
           iterableType.element != listType.element) {
         _coverageMarker();
@@ -2394,6 +2407,12 @@ class AssistProcessor {
     }
   }
 
+  int _modificationStamp(String filePath) {
+    // TODO(brianwilkerson) We have lost the ability for clients to know whether
+    // it is safe to apply an edit.
+    return driver.fsState.getFileForPath(filePath).exists ? 0 : -1;
+  }
+
   Position _newPosition(int offset) {
     return new Position(file, offset);
   }
@@ -2403,7 +2422,7 @@ class AssistProcessor {
       InstanceCreationExpression exprGoingUp,
       NamedExpression stableChild,
       AssistKind assistKind) {
-    String currentSource = analysisContext.getContents(source).data;
+    String currentSource = unitElement.context.getContents(source).data;
     // TODO(messick) Find a better way to get LineInfo for the source.
     LineInfo lineInfo = new LineInfo.fromContent(currentSource);
     int currLn = lineInfo.getLocation(exprGoingUp.offset).lineNumber;
