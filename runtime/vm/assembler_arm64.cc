@@ -973,12 +973,12 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
 
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
-  ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
+  ASSERT(RawObject::kClassIdTagPos == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
-                 kUnsignedWord);
+                 kUnsignedHalfword);
 }
 
 

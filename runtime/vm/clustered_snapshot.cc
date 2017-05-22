@@ -1911,20 +1911,20 @@ class RODataSerializationCluster : public SerializationCluster {
     // will be loaded into read-only memory.
     if (cid_ == kOneByteStringCid) {
       RawOneByteString* str = static_cast<RawOneByteString*>(object);
-      if (str->ptr()->hash_ == Smi::New(0)) {
+      if (String::GetCachedHash(str) == 0) {
         intptr_t hash =
             String::Hash(str->ptr()->data(), Smi::Value(str->ptr()->length_));
-        str->ptr()->hash_ = Smi::New(hash);
+        String::SetCachedHash(str, hash);
       }
-      ASSERT(str->ptr()->hash_ != Smi::New(0));
+      ASSERT(String::GetCachedHash(str) != 0);
     } else if (cid_ == kTwoByteStringCid) {
       RawTwoByteString* str = static_cast<RawTwoByteString*>(object);
-      if (str->ptr()->hash_ == Smi::New(0)) {
+      if (String::GetCachedHash(str) == 0) {
         intptr_t hash = String::Hash(str->ptr()->data(),
                                      Smi::Value(str->ptr()->length_) * 2);
-        str->ptr()->hash_ = Smi::New(hash);
+        String::SetCachedHash(str, hash);
       }
-      ASSERT(str->ptr()->hash_ != Smi::New(0));
+      ASSERT(String::GetCachedHash(str) != 0);
     }
   }
 
@@ -4359,7 +4359,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
       intptr_t length = Smi::Value(str->ptr()->length_);
       s->Write<int32_t>(length);
       s->Write<bool>(str->IsCanonical());
-      intptr_t hash = Smi::Value(str->ptr()->hash_);
+      intptr_t hash = String::GetCachedHash(str);
       s->Write<int32_t>(hash);
       s->WriteBytes(str->ptr()->data(), length);
     }
@@ -4399,7 +4399,7 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
                                      OneByteString::InstanceSize(length),
                                      is_vm_object, is_canonical);
       str->ptr()->length_ = Smi::New(length);
-      str->ptr()->hash_ = Smi::New(d->Read<int32_t>());
+      String::SetCachedHash(str, d->Read<int32_t>());
       for (intptr_t j = 0; j < length; j++) {
         str->ptr()->data()[j] = d->Read<uint8_t>();
       }
@@ -4438,7 +4438,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
       intptr_t length = Smi::Value(str->ptr()->length_);
       s->Write<int32_t>(length);
       s->Write<bool>(str->IsCanonical());
-      intptr_t hash = Smi::Value(str->ptr()->hash_);
+      intptr_t hash = String::GetCachedHash(str);
       s->Write<int32_t>(hash);
       s->WriteBytes(reinterpret_cast<uint8_t*>(str->ptr()->data()), length * 2);
     }
@@ -4478,7 +4478,7 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
                                      TwoByteString::InstanceSize(length),
                                      is_vm_object, is_canonical);
       str->ptr()->length_ = Smi::New(length);
-      str->ptr()->hash_ = Smi::New(d->Read<int32_t>());
+      String::SetCachedHash(str, d->Read<int32_t>());
       uint8_t* cdata = reinterpret_cast<uint8_t*>(str->ptr()->data());
       d->ReadBytes(cdata, length * 2);
     }

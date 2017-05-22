@@ -448,13 +448,7 @@ typedef intptr_t word;
 typedef uintptr_t uword;
 
 // Size of a class id.
-#if defined(ARCH_IS_32_BIT)
 typedef uint16_t classid_t;
-#elif defined(ARCH_IS_64_BIT)
-typedef uint32_t classid_t;
-#else
-#error Unexpected architecture word size
-#endif
 
 // Byte sizes.
 const int kWordSize = sizeof(word);
