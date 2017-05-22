@@ -209,7 +209,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       TestDescription description, FastaContext context) async {
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer

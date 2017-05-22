@@ -53,7 +53,7 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
     TranslateUri uriTranslator = await pOptions.getUriTranslator();
 
     var dillTarget =
-        new DillTarget(new Ticker(isVerbose: false), uriTranslator);
+        new DillTarget(new Ticker(isVerbose: false), uriTranslator, "vm");
     var summary = await pOptions.sdkSummaryProgram;
     if (summary != null) {
       dillTarget.loader.appendLibraries(summary);
@@ -149,7 +149,7 @@ Future<Program> kernelForBuildUnit(
     TranslateUri uriTranslator = await pOptions.getUriTranslator();
 
     var dillTarget =
-        new DillTarget(new Ticker(isVerbose: false), uriTranslator);
+        new DillTarget(new Ticker(isVerbose: false), uriTranslator, "vm");
     var summary = await pOptions.sdkSummaryProgram;
     if (summary != null) {
       dillTarget.loader.appendLibraries(summary);

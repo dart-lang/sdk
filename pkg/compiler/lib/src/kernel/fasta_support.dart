@@ -103,7 +103,7 @@ class KernelTargetForDart2js extends KernelTarget {
 /// are included in the SDK, and native clauses have no string parameter.
 class DillTargetForDart2js extends DillTarget {
   DillTargetForDart2js(Ticker ticker, TranslateUri uriTranslator)
-      : super(ticker, uriTranslator);
+      : super(ticker, uriTranslator, "none");
 
   @override
   Token skipNativeClause(Token token) => _skipNative(token);

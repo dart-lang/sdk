@@ -110,7 +110,7 @@ class KernelTarget extends TargetImplementation {
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
-        super(dillTarget.ticker, uriTranslator) {
+        super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
   }
@@ -660,7 +660,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void transformMixinApplications() {
-    new MixinFullResolution().transform(_program);
+    new MixinFullResolution(backendTarget).transform(_program);
     ticker.logMs("Transformed mixin applications");
   }
 

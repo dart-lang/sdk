@@ -141,8 +141,8 @@ class C extends self::B {
     self::use(this.{=self::A::[]}(87).call());
     this.{=self::A::m}();
     self::use(this.{=self::A::m}());
-    this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("m", core::List::from<dynamic>(<dynamic>[0, 2, 2], growable: false), core::List::from<dynamic>(<dynamic>[this, 87], growable: false), true));
-    self::use(this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("m", core::List::from<dynamic>(<dynamic>[0, 2, 2], growable: false), core::List::from<dynamic>(<dynamic>[this, 87], growable: false), true)));
+    this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, 87].toList(growable: false), true));
+    self::use(this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, 87].toList(growable: false), true)));
     this.{=self::A::a} = 42;
     self::use(this.{=self::A::a} = 42);
     this.{=self::A::b} = 42;

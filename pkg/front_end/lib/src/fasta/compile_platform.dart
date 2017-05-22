@@ -6,20 +6,21 @@ library fasta.compile_platform;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'ticker.dart' show Ticker;
-
 import 'dart:io' show exitCode;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
 
+import 'dill/dill_target.dart' show DillTarget;
+
 import 'errors.dart' show InputError;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
-import 'dill/dill_target.dart' show DillTarget;
+import 'kernel/utils.dart' show printProgramText, writeProgramToFile;
+
+import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
 
@@ -70,7 +71,8 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
       await TranslateUri.parse(c.fileSystem, patchedSdk, c.options.packages);
   ticker.logMs("Read packages file");
 
-  DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+  DillTarget dillTarget =
+      new DillTarget(ticker, uriTranslator, c.options.target);
   KernelTarget kernelTarget = new KernelTarget(c.fileSystem, dillTarget,
       uriTranslator, c.options.strongMode, c.uriToSource);
 
