@@ -818,7 +818,7 @@ class KernelReturnStatement extends ReturnStatement implements KernelStatement {
     // inferred type of the closure.  TODO(paulberry): is this what we want
     // for Fasta?
     if (expression != null) {
-      closureContext?.updateInferredReturnType(inferrer, inferredType);
+      closureContext?.handleReturn(inferrer, inferredType);
     }
     inferrer.listener.returnStatementExit(this);
   }
@@ -1342,5 +1342,35 @@ class KernelVariableSet extends VariableSet implements KernelExpression {
         inferrer.inferExpression(value, variable._declaredType, typeNeeded);
     inferrer.listener.variableSetExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a yield statement in kernel form.
+class KernelYieldStatement extends YieldStatement implements KernelStatement {
+  KernelYieldStatement(Expression expression, {bool isYieldStar: false})
+      : super(expression, isYieldStar: isYieldStar);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.yieldStatementEnter(this);
+    var closureContext = inferrer.closureContext;
+    var typeContext = closureContext != null && closureContext.isGenerator
+        ? closureContext.returnContext
+        : null;
+    if (isYieldStar && typeContext != null) {
+      if (closureContext == null) {
+        typeContext = null;
+      } else {
+        typeContext = inferrer.wrapType(
+            typeContext,
+            closureContext.isAsync
+                ? inferrer.coreTypes.streamClass
+                : inferrer.coreTypes.iterableClass);
+      }
+    }
+    var inferredType = inferrer.inferExpression(
+        expression, typeContext, closureContext != null);
+    closureContext?.handleYield(inferrer, isYieldStar, inferredType);
+    inferrer.listener.yieldStatementExit(this);
   }
 }

@@ -18,7 +18,8 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelArguments,
         KernelField,
         KernelFunctionDeclaration,
-        KernelReturnStatement;
+        KernelReturnStatement,
+        KernelYieldStatement;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -2318,7 +2319,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement");
-    push(new YieldStatement(popForValue(), isYieldStar: starToken != null)
+    push(new KernelYieldStatement(popForValue(), isYieldStar: starToken != null)
       ..fileOffset = yieldToken.charOffset);
   }
 

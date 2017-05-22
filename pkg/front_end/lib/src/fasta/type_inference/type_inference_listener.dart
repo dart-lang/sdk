@@ -215,4 +215,10 @@ class TypeInferenceListener
 
   void variableSetExit(VariableSet expression, DartType inferredType) =>
       debugExpressionExit("variableSet", expression, inferredType);
+
+  void yieldStatementEnter(YieldStatement statement) =>
+      debugStatementEnter('yieldStatement', statement);
+
+  void yieldStatementExit(YieldStatement statement) =>
+      debugStatementExit('yieldStatement', statement);
 }

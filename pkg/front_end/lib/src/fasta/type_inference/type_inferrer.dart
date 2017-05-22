@@ -51,7 +51,28 @@ class ClosureContext {
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
-  void updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
+  void handleReturn(TypeInferrerImpl inferrer, DartType type) {
+    if (isGenerator) return;
+    if (isAsync) {
+      type = inferrer.typeSchemaEnvironment.flattenFutures(type);
+    }
+    _updateInferredReturnType(inferrer, type);
+  }
+
+  void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type) {
+    if (!isGenerator) return;
+    if (isYieldStar) {
+      type = inferrer.getTypeArgumentOf(
+          type,
+          isAsync
+              ? inferrer.coreTypes.streamClass
+              : inferrer.coreTypes.iterableClass);
+      if (type == null) return;
+    }
+    _updateInferredReturnType(inferrer, type);
+  }
+
+  void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
     if (_inferredReturnType == null) {
       _inferredReturnType = type;
     } else {
@@ -192,6 +213,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       return null;
     }
+  }
+
+  DartType getDerivedTypeArgumentOf(DartType type, Class class_) {
+    if (type is InterfaceType) {
+      var typeAsInstanceOfClass =
+          classHierarchy.getTypeAsInstanceOf(type, class_);
+      if (typeAsInstanceOfClass != null) {
+        return typeAsInstanceOfClass.typeArguments[0];
+      }
+    }
+    return null;
   }
 
   /// Modifies a type as appropriate when inferring a declared variable's type.
