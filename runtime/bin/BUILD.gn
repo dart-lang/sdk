@@ -804,6 +804,10 @@ executable("run_vm_tests") {
   vm_tests = rebase_path(vm_tests_list, ".", "../vm")
 
   sources = [
+              "error_exit.cc",
+              "error_exit.h",
+              "snapshot_utils.cc",
+              "snapshot_utils.h",
               "builtin_nolib.cc",
               "run_vm_tests.cc",
             ] + builtin_impl_tests_list + vm_tests
