@@ -8,7 +8,7 @@ import 'package:js_runtime/shared/embedded_names.dart';
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
@@ -27,6 +27,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
@@ -65,7 +66,7 @@ class SsaBuilderTask extends CompilerTask {
 
   DiagnosticReporter get reporter => backend.reporter;
 
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
       MemberElement element = work.element.implementation;
       return reporter.withCurrentElement(element, () {

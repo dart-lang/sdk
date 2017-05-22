@@ -40,6 +40,7 @@ import 'frontend_strategy.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/element_strategy.dart' show ElementBackendStrategy;
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart'
     show

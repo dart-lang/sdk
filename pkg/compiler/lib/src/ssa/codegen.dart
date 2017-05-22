@@ -19,6 +19,7 @@ import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/checked_mode_helpers.dart';
+import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
@@ -63,7 +64,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateCode(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     if (work.element.isField) {
       return generateLazyInitializer(work, graph, closedWorld);
     } else {
@@ -72,7 +73,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateLazyInitializer(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
       backend.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
@@ -97,7 +98,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateMethod(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
       MethodElement element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {

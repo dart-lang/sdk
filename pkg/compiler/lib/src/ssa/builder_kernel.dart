@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
@@ -22,6 +22,7 @@ import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -53,7 +54,7 @@ class SsaKernelBuilderTask extends CompilerTask {
       : backend = backend,
         super(backend.compiler.measurer);
 
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
       MemberElement element = work.element.implementation;
       Kernel kernel = backend.kernelTask.kernel;

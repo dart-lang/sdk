@@ -7,7 +7,7 @@ library dart2js.js_emitter.type_test_registry;
 import '../common.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart'
-    show ClassElement, Element, ElementKind, MemberElement, MethodElement;
+    show ClassElement, ElementKind, MemberElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show
@@ -138,7 +138,7 @@ class TypeTestRegistry {
       }
     }
 
-    bool canTearOff(Element function) {
+    bool canTearOff(MemberElement function) {
       if (!function.isFunction ||
           function.isConstructor ||
           function.isAccessor) {

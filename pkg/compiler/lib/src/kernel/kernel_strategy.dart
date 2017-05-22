@@ -9,6 +9,7 @@ import '../backend_strategy.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
+import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
@@ -255,5 +256,26 @@ class KernelBackendStrategy implements BackendStrategy {
     // TODO(johnniwinther,efortuna): Compute closure classes for kernel based
     // elements.
     throw new UnimplementedError('KernelBackendStrategy.createClosureClasses');
+  }
+
+  @override
+  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
+    return new KernelCodegenWorkItemBuilder();
+  }
+
+  @override
+  CodegenWorldBuilder createCodegenWorldBuilder(
+      NativeBasicData nativeBasicData,
+      ClosedWorld closedWorld,
+      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+    return new KernelCodegenWorldBuilder(
+        null, nativeBasicData, closedWorld, selectorConstraintsStrategy);
+  }
+}
+
+class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
+  @override
+  CodegenWorkItem createWorkItem(MemberEntity entity) {
+    throw new UnimplementedError('KernelCodegenWorkItemBuilder.createWorkItem');
   }
 }

@@ -105,13 +105,14 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
-  WorldImpact _computeMainImpact(MethodElement mainMethod) {
+  WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    if (mainMethod.parameters.isNotEmpty) {
+    CallStructure callStructure = mainMethod.parameterStructure.callStructure;
+    if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);
       mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
+          new StaticUse.staticInvoke(mainMethod, callStructure));
       // If the main method takes arguments, this compilation could be the
       // target of Isolate.spawnUri. Strictly speaking, that can happen also if
       // main takes no arguments, but in this case the spawned isolate can't

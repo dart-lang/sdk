@@ -5,6 +5,7 @@
 library entities;
 
 import '../common.dart';
+import '../universe/call_structure.dart' show CallStructure;
 
 /// Abstract interface for entities.
 ///
@@ -183,4 +184,11 @@ class ParameterStructure {
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>
       positionalParameters - requiredParameters + namedParameters.length;
+
+  /// Returns the [CallStructure] corresponding to a call site passing all
+  /// parameters both required and optional.
+  CallStructure get callStructure {
+    return new CallStructure(
+        positionalParameters + namedParameters.length, namedParameters);
+  }
 }

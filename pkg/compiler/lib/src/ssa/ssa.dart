@@ -4,12 +4,12 @@
 
 library ssa;
 
-import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../elements/elements.dart' show Element, FunctionElement;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
+import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../world.dart' show ClosedWorld;
 
 import 'builder.dart';
@@ -37,7 +37,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and codegenerator.
-  js.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld) {
+  js.Fun compile(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     HGraph graph = useKernel
         ? builderKernel.build(work, closedWorld)
         : builder.build(work, closedWorld);

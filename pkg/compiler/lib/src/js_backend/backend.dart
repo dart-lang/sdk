@@ -893,9 +893,9 @@ class JavaScriptBackend {
         task,
         compiler.options,
         const TreeShakingEnqueuerStrategy(),
-        new CodegenWorldBuilderImpl(
-            nativeBasicData, closedWorld, constants, const TypeMaskStrategy()),
-        new CodegenWorkItemBuilder(this, closedWorld, compiler.options),
+        compiler.backendStrategy.createCodegenWorldBuilder(
+            nativeBasicData, closedWorld, const TypeMaskStrategy()),
+        compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
         new CodegenEnqueuerListener(
             compiler.elementEnvironment,
             commonElements,

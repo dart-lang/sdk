@@ -246,7 +246,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       this._nativeData)
       : super(options, elementEnvironment, commonElements, dartTypes);
 
-  WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) {
+  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _unusedClasses.addAll(_resolutionEnqueuer._nativeClasses);
 

@@ -203,7 +203,7 @@ class Collector {
         .toList());
 
     // Compute needed classes.
-    Set<ClassElement> instantiatedClasses =
+    Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.directlyInstantiatedClasses
@@ -219,7 +219,7 @@ class Collector {
       }
     }
 
-    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
+    void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
       for (ClassElement cls in classes) {
         addClassWithSuperclasses(cls);
       }

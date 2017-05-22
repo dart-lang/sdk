@@ -6,17 +6,14 @@ library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../common_elements.dart' show ElementEnvironment;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../elements/elements.dart' show MemberElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../options.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart'
@@ -31,7 +28,6 @@ import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
-import '../world.dart' show ClosedWorld;
 
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
@@ -267,32 +263,4 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   @override
   Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
-}
-
-/// Builder that creates the work item necessary for the code generation of a
-/// [MemberElement].
-class CodegenWorkItemBuilder extends WorkItemBuilder {
-  final JavaScriptBackend _backend;
-  final ClosedWorld _closedWorld;
-  final CompilerOptions _options;
-
-  CodegenWorkItemBuilder(this._backend, this._closedWorld, this._options);
-
-  @override
-  WorkItem createWorkItem(MemberElement element) {
-    assert(invariant(element, element.isDeclaration));
-    // Don't generate code for foreign elements.
-    if (_backend.isForeign(element)) return null;
-    if (element.isAbstract) return null;
-
-    // Codegen inlines field initializers. It only needs to generate
-    // code for checked setters.
-    if (element.isField && element.isInstanceMember) {
-      if (!_options.enableTypeAssertions ||
-          element.enclosingElement.isClosure) {
-        return null;
-      }
-    }
-    return new CodegenWorkItem(_backend, _closedWorld, element);
-  }
 }
