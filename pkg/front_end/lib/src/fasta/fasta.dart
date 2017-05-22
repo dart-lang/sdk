@@ -148,7 +148,7 @@ class CompileTask {
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.dumpIr && output != null) {
-      printProgramText(outline);
+      printProgramText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
       await writeProgramToFile(outline, output);
@@ -162,7 +162,9 @@ class CompileTask {
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
     var program = await kernelTarget.buildProgram(verify: c.options.verify);
-    if (c.options.dumpIr) printProgramText(program);
+    if (c.options.dumpIr) {
+      printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
+    }
     await writeProgramToFile(program, uri);
     ticker.logMs("Wrote program to ${uri.toFilePath()}");
     return uri;

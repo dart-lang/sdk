@@ -695,6 +695,12 @@ class KernelTarget extends TargetImplementation {
     new RootsMarker(data).run(_program, isIncluded);
     trimProgram(_program, data, isIncluded);
   }
+
+  /// Return `true` if the given [library] was built by this [KernelTarget]
+  /// from sources, and not loaded from a [DillTarget].
+  bool isSourceLibrary(Library library) {
+    return loader.libraries.contains(library);
+  }
 }
 
 /// Looks for a constructor call that matches `super()` from a constructor in
