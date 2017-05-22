@@ -622,7 +622,6 @@ Because Dart is optionally typed, we cannot guarantee that a function that does 
 
 OR
 \item of the form \code{=> $e$} or the form \code{\ASYNC{} => $e$}, which both return the value of the expression $e$ as if by a \code{return $e$}. \commentary{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow to return a value, values are added to the generated stream or iterable using \YIELD{} instead.}
-}
 Let $R$ be the static type of $e$
 and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
 of the function that has this body.
