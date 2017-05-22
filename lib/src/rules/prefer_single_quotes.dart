@@ -93,53 +93,56 @@ class _Visitor extends SimpleAstVisitor {
 
   /// Strings can be within interpolations (ie, nested). Check like this.
   bool isNestedString(AstNode node) {
-    final checkWithinString = new _WithinStringVisitor();
-    node.parent?.accept(checkWithinString);
-
-    return checkWithinString.withinString;
+    // careful: node.getAncestor will check the node itself.
+    return node.parent?.getAncestor((p) => p is StringInterpolation) != null;
   }
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
     final checkHasString = new _HasStringVisitor();
-    for (final child in string.elements) {
-      child.accept(checkHasString);
-    }
-
-    return checkHasString.hasString;
+    return string.elements.any((child) => child.accept(checkHasString));
   }
 }
 
 /// Do a top-down analysis to search for string nodes. Note, do not pass in
 /// string nodes directly to this visitor, or you will always get true. Pass in
 /// its children.
-class _HasStringVisitor extends RecursiveAstVisitor {
-  bool hasString = false;
-
+class _HasStringVisitor extends UnifyingAstVisitor<bool> {
+  /// Scan as little of the tree as possible, by bailing out on first match. For
+  /// all leaf nodes, they will either have a method defined here and return
+  /// true, or they will return false because leaves have no children.
   @override
-  visitSimpleStringLiteral(SimpleStringLiteral string) {
-    hasString = true;
+  bool visitNode(AstNode node) {
+    return _ImmediateChildrenVisitor
+        .getChildren(node)
+        .any((child) => child.accept(this));
   }
 
   @override
-  visitStringInterpolation(StringInterpolation string) {
-    hasString = true;
+  bool visitSimpleStringLiteral(SimpleStringLiteral string) {
+    return true;
+  }
+
+  @override
+  bool visitStringInterpolation(StringInterpolation string) {
+    return true;
   }
 }
 
-/// Do a bottom-up analysis to search for string nodes. Note, do not pass in
-/// string nodes directly to this visitor, or you will always get true. Pass in
-/// its parent.
-class _WithinStringVisitor extends UnifyingAstVisitor {
-  bool withinString = false;
-
-  @override
-  visitNode(AstNode n) {
-    n.parent?.accept(this);
+/// The only way to get children in a unified, typesafe way, is to call
+/// visitChildren on that node, and pass in a visitor. This collects at the top
+/// level and stops.
+class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
+  static List<AstNode> getChildren(AstNode node) {
+    final visitor = new _ImmediateChildrenVisitor();
+    node.visitChildren(visitor);
+    return visitor._children;
   }
 
+  List<AstNode> _children = [];
+
   @override
-  visitStringInterpolation(StringInterpolation string) {
-    withinString = true;
+  visitNode(AstNode node) {
+    _children.add(node);
   }
 }
