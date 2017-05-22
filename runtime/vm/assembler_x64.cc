@@ -3341,7 +3341,6 @@ void Assembler::MonomorphicCheckedEntry() {
   Bind(&have_cid);
   cmpq(R10, RBX);
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
-  nop();
 
   // Fall through to unchecked entry.
   ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
