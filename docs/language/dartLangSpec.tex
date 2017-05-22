@@ -614,14 +614,22 @@ Functions include  function declarations (\ref{functionDeclarations}), methods (
 \LMHash{}
 All functions have a signature and a body. The signature describes the formal parameters of the function, and possibly its name and return type.  A function body is either:
 \begin{itemize}
-\item A block statement  (\ref{blocks}) containing the statements  (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*. In this case, if the last statement of a function is not a return statement (\ref{return}), the statement \code{\RETURN{};} is implicitly appended to the function body.
+\item A block statement (\ref{blocks}) containing the statements (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*.
 
-\rationale{
-Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A \RETURN{} without an expression returns \NULL{}. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
+\commentary{
+Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A function body that ends without doing a throw or return will cause the function to return \NULL{}, as will a \RETURN{} without an expression. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
 }
 
 OR
-\item of the form   \code{=> $e$} which is equivalent to a body of the form \code{\{\RETURN{} $e$;\}} or the form \code{\ASYNC{} => $e$} which is equivalent to a body of the form \code{\ASYNC{} \{\RETURN{} $e$;\}}. \rationale{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow the form \code{\RETURN{} $e$}; values are added to the generated stream or iterable using \YIELD{} instead.}
+\item of the form \code{=> $e$} or the form \code{\ASYNC{} => $e$}, which both return the value of the expression $e$ as if by a \code{return $e$}. \commentary{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow to return a value, values are added to the generated stream or iterable using \YIELD{} instead.}
+}
+Let $R$ be the static type of $e$
+and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
+of the function that has this body.
+It is a static warning if $T$ is not \VOID{} and either
+the function is synchronous and the static type of $R$ is not assignable to $T$,
+or the function is asynchronous and \code{Future<$flatten${$R$}>}
+is not assignable to $T$.
 
 \end{itemize}
 
@@ -3716,6 +3724,10 @@ As discussed in section \ref{errorsAndWarnings}, the handling of a suspended iso
 Function invocation occurs in the following cases: when a function expression  (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}), when a method (\ref{methodInvocation}), getter (\ref{topLevelGetterInvocation}, \ref{propertyExtraction}) or setter (\ref{assignment}) is invoked or when a constructor is invoked (either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization). The various kinds of function invocation differ as to how the function to be invoked, $f$,  is determined, as well as whether \THIS{} (\ref{this}) is bound. Once $f$ has been determined, the formal parameters of $f$ are bound to corresponding actual arguments. When the body of $f$ is executed it will be executed with the aforementioned bindings.
 
 \LMHash{}
+Executing a body of the form \code{=> $e$} is equivalent to executing a body of the form \code{\{ return $e$; \}}.
+Execution a body of the form \code{async => $e$} is equivalent to executing a body of the form \code{async \{ return $e$; \}}.
+
+\LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
 If the execution of the body of $f$ returns a value, $v$, (\ref{completion}), the invocation evaluates to $v$.
 If the execution completes normally or it returns without a value, the invocation evaluates to \NULL (\ref{null}).
@@ -6456,7 +6468,7 @@ Then the return statement returns the value $o$ (\ref{completion}).
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
 
 \LMHash{}
-It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<flatten(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
+It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten$(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
 
 \LMHash{}
 Let $S$ be the runtime type of $o$. In checked mode:
@@ -6464,7 +6476,7 @@ Let $S$ be the runtime type of $o$. In checked mode:
 \item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
 it is a dynamic type error if $o$ is not \NULL{} (\ref{null}),
 the actual return type (\ref{actualTypeOfADeclaration}) of $f$ is not \VOID,
-and \code{Future<flatten(S)>} is not a subtype of the actual return type of $f$.
+and \code{Future<$flatten$(S)>} is not a subtype of the actual return type of $f$.
 % TODO(lrn): The "void foo() async { return e }" case is somewhat speculative.
 % When we disallow "return e" in a void function, we might also want to revisit
 % this rule. Currently it also covers the "void foo() async => e;" case, which
