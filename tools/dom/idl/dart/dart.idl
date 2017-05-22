@@ -463,9 +463,6 @@ interface RTCPeerConnection {
 };
 
 [DartSuppress]
-interface DragEvent {};
-
-[DartSuppress]
 interface InputEvent {};
 
 Element implements GlobalEventHandlers;
