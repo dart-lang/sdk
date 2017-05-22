@@ -230,7 +230,7 @@ mac_toolchain("clang_x64") {
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ld = cxx
-  strip = "${prefix}/strip"
+  strip = "strip"
   is_clang = true
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }
@@ -244,7 +244,7 @@ mac_toolchain("clang_x86") {
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ld = cxx
-  strip = "${prefix}/strip"
+  strip = "strip"
   is_clang = true
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }
