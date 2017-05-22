@@ -126,6 +126,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       }
 
       // TODO(scheglov) Add libraries which import changed libraries.
+      // For now the corresponding test works because we use full library
+      // contents to compute signatures (not just API parts). So, every library
+      // that imports a changed one, is affected.
 
       return new DeltaProgram(program);
     });

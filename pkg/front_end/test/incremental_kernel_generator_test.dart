@@ -238,6 +238,59 @@ static field b::B b;
 ''');
   }
 
+  test_compile_includePathToMain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    String dPath = '/test/lib/d.dart';
+
+    // A --> B -> C
+    //   \-> D
+
+    Uri aUri = writeFile(
+        aPath,
+        r'''
+import 'b.dart';
+import 'd.dart';
+main() {
+  b();
+  d();
+}
+''');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'c.dart';
+b() {
+  c();
+}
+''');
+    Uri cUri = writeFile(cPath, 'c() { print(0); }');
+    Uri dUri = writeFile(dPath, 'd() {}');
+
+    {
+      Program program = await getInitialState(aUri);
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, dUri, Uri.parse('dart:core')]);
+    }
+
+    // Update c.dart and compute the delta.
+    // It should include the changed c.dart, the affected b.dart, and
+    // also a.dart because VM requires this (because of possible inlining).
+    // But d.dart is not on the path from main() to the changed c.dart,
+    // so it is not included.
+    writeFile(cPath, 'c() { print(1); }');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri],
+          excludes: [dUri, Uri.parse('dart:core')]);
+    }
+  }
+
   test_compile_typedef() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
