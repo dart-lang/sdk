@@ -22176,10 +22176,10 @@ class KeyboardEvent extends UIEvent {
   }
 
   @DomName('KeyboardEvent.keyCode')
-  int get keyCode => _keyCode;
+  final int keyCode;
 
   @DomName('KeyboardEvent.charCode')
-  int get charCode => _charCode;
+  final int charCode;
 
   @DomName('KeyboardEvent.which')
   int get which => _which;
