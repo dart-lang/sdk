@@ -267,6 +267,42 @@ class KernelExpressionStatement extends ExpressionStatement
   }
 }
 
+/// Shadow object for [StaticInvocation] when the procedure being invoked is a
+/// factory constructor.
+class KernelFactoryConstructorInvocation extends StaticInvocation
+    implements KernelExpression {
+  KernelFactoryConstructorInvocation(Procedure target, Arguments arguments,
+      {bool isConst: false})
+      : super(target, arguments, isConst: isConst);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        inferrer.listener.constructorInvocationEnter(this, typeContext) ||
+            typeNeeded;
+    var returnType = target.enclosingClass.thisType;
+    if (target.enclosingClass.typeParameters.isNotEmpty) {
+      // target.enclosingClass.typeParameters is not the same as
+      // target.function.functionType.typeParameters, so we have to substitute.
+      // TODO(paulberrry): it would be easier if we could just use
+      // target.function.functionType.returnType, but that's `dynamic` for
+      // factory constructors.  Investigate whether this can be changed.
+      returnType = Substitution
+          .fromPairs(
+              target.enclosingClass.typeParameters,
+              target.function.functionType.typeParameters
+                  .map((p) => new TypeParameterType(p))
+                  .toList())
+          .substituteType(returnType);
+    }
+    var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
+        fileOffset, target.function.functionType, returnType, arguments);
+    inferrer.listener.constructorInvocationExit(this, inferredType);
+    return inferredType;
+  }
+}
+
 /// Concrete shadow object representing a field in kernel form.
 class KernelField extends Field {
   bool _implicitlyTyped = true;

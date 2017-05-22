@@ -87,11 +87,11 @@ class TypeInferenceListener
       debugExpressionExit("conditionalExpression", expression, inferredType);
 
   bool constructorInvocationEnter(
-          ConstructorInvocation expression, DartType typeContext) =>
+          InvocationExpression expression, DartType typeContext) =>
       debugExpressionEnter("constructorInvocation", expression, typeContext);
 
   void constructorInvocationExit(
-          ConstructorInvocation expression, DartType inferredType) =>
+          InvocationExpression expression, DartType inferredType) =>
       debugExpressionExit("constructorInvocation", expression, inferredType);
 
   bool doubleLiteralEnter(DoubleLiteral expression, DartType typeContext) =>
