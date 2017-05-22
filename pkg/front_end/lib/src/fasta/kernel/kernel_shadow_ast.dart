@@ -1269,8 +1269,6 @@ class KernelVariableDeclaration extends VariableDeclaration
             isFinal: isFinal,
             isConst: isConst);
 
-  DartType get _declaredType => _implicitlyTyped ? null : type;
-
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.variableDeclarationEnter(this);
@@ -1339,7 +1337,7 @@ class KernelVariableSet extends VariableSet implements KernelExpression {
     typeNeeded =
         inferrer.listener.variableSetEnter(this, typeContext) || typeNeeded;
     var inferredType =
-        inferrer.inferExpression(value, variable._declaredType, typeNeeded);
+        inferrer.inferExpression(value, variable.type, typeNeeded);
     inferrer.listener.variableSetExit(this, inferredType);
     return inferredType;
   }
