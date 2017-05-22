@@ -27,6 +27,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -40,6 +41,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -59,13 +61,17 @@ typedef bool ElementPredicate(Element argument);
  * Clients may not extend, implement or mix-in this class.
  */
 class DartFixContextImpl extends FixContextImpl implements DartFixContext {
-  final GetTopLevelDeclarations getTopLevelDeclarations;
+  @override
   final AstProvider astProvider;
+
+  @override
   final CompilationUnit unit;
 
-  DartFixContextImpl(FixContext fixContext, this.getTopLevelDeclarations,
-      this.astProvider, this.unit)
+  DartFixContextImpl(FixContext fixContext, this.astProvider, this.unit)
       : super.from(fixContext);
+
+  GetTopLevelDeclarations get getTopLevelDeclarations =>
+      analysisDriver.getTopLevelNameDeclarations;
 }
 
 /**
@@ -95,7 +101,12 @@ class FixProcessor {
   GetTopLevelDeclarations getTopLevelDeclarations;
   CompilationUnit unit;
   AnalysisError error;
-  AnalysisContext context;
+
+  /**
+   * The analysis driver being used to perform analysis.
+   */
+  AnalysisDriver driver;
+
   String file;
   int fileStamp;
   CompilationUnitElement unitElement;
@@ -120,18 +131,21 @@ class FixProcessor {
   AstNode node;
   AstNode coveredNode;
 
+  TypeProvider _typeProvider;
+  TypeSystem _typeSystem;
+
   FixProcessor(DartFixContext dartContext) {
     resourceProvider = dartContext.resourceProvider;
     astProvider = dartContext.astProvider;
     getTopLevelDeclarations = dartContext.getTopLevelDeclarations;
-    context = dartContext.analysisContext;
+    driver = dartContext.analysisDriver;
     // unit
     unit = dartContext.unit;
     unitElement = unit.element;
     unitSource = unitElement.source;
     // file
     file = unitSource.fullName;
-    fileStamp = context.getModificationStamp(unitSource);
+    fileStamp = _modificationStamp(file);
     // library
     unitLibraryElement = unitElement.library;
     String unitLibraryPath = unitLibraryElement.source.fullName;
@@ -148,10 +162,31 @@ class FixProcessor {
    */
   String get eol => utils.endOfLine;
 
+  TypeProvider get typeProvider {
+    if (_typeProvider == null) {
+      _typeProvider = unitElement.context.typeProvider;
+//      LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
+//      LibraryElement asyncLibrary = await driver.getLibraryByUri('dart:async');
+//      _typeProvider = new TypeProviderImpl(coreLibrary, asyncLibrary);
+    }
+    return _typeProvider;
+  }
+
+  TypeSystem get typeSystem {
+    if (_typeSystem == null) {
+      if (driver.analysisOptions.strongMode) {
+        _typeSystem = new StrongTypeSystemImpl(typeProvider);
+      } else {
+        _typeSystem = new TypeSystemImpl(typeProvider);
+      }
+    }
+    return _typeSystem;
+  }
+
   Future<List<Fix>> compute() async {
     // If the source was changed between the constructor and running
     // this asynchronous method, it is not safe to use the unit.
-    if (context.getModificationStamp(unitSource) != fileStamp) {
+    if (_modificationStamp(unitSource.fullName) != fileStamp) {
       return const <Fix>[];
     }
 
@@ -178,7 +213,7 @@ class FixProcessor {
       _addFix_replaceWithConstInstanceCreation();
     }
     if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT) {
-      _addFix_addAsync_asyncFor();
+      _addFix_addAsync();
     }
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
       if (node is Annotation) {
@@ -459,23 +494,12 @@ class FixProcessor {
   /**
    * Returns `true` if the `async` proposal was added.
    */
-  bool _addFix_addAsync() {
+  void _addFix_addAsync() {
     AstNode node = this.node;
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     if (body != null && body.keyword == null) {
       _addReplaceEdit(range.startLength(body, 0), 'async ');
-      _replaceReturnTypeWithFuture(body);
-      _addFix(DartFixKind.ADD_ASYNC, []);
-      return true;
-    }
-    return false;
-  }
-
-  void _addFix_addAsync_asyncFor() {
-    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
-    if (body != null && body.keyword == null) {
-      _addReplaceEdit(range.startLength(body, 0), 'async ');
-      _replaceReturnTypeWithFuture(body);
+      _replaceReturnTypeWithFuture(body, typeProvider);
       _addFix(DartFixKind.ADD_ASYNC, []);
     }
   }
@@ -1420,9 +1444,9 @@ class FixProcessor {
     utils.targetClassElement = targetClassElement;
     List<ExecutableElement> elements = ErrorVerifier
         .computeMissingOverrides(
-            context.analysisOptions.strongMode,
-            context.typeProvider,
-            context.typeSystem,
+            driver.analysisOptions.strongMode,
+            typeProvider,
+            typeSystem,
             new InheritanceManager(unitLibraryElement),
             targetClassElement)
         .toList();
@@ -1591,7 +1615,7 @@ class FixProcessor {
   void _addFix_illegalAsyncReturnType() {
     // prepare the existing type
     TypeAnnotation typeName = node.getAncestor((n) => n is TypeAnnotation);
-    _replaceTypeWithFuture(typeName);
+    _replaceTypeWithFuture(typeName, typeProvider);
     // add proposal
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
@@ -3105,6 +3129,12 @@ class FixProcessor {
         .isWithin(packageRoot.path, source.fullName);
   }
 
+  int _modificationStamp(String filePath) {
+    // TODO(brianwilkerson) We have lost the ability for clients to know whether
+    // it is safe to apply an edit.
+    return driver.fsState.getFileForPath(filePath).exists ? 0 : -1;
+  }
+
   /**
    * Removes any [ParenthesizedExpression] enclosing [expr].
    *
@@ -3123,20 +3153,21 @@ class FixProcessor {
     }
   }
 
-  void _replaceReturnTypeWithFuture(AstNode node) {
+  void _replaceReturnTypeWithFuture(AstNode node, TypeProvider typeProvider) {
     for (; node != null; node = node.parent) {
       if (node is FunctionDeclaration) {
-        _replaceTypeWithFuture(node.returnType);
+        _replaceTypeWithFuture(node.returnType, typeProvider);
         return;
       } else if (node is MethodDeclaration) {
-        _replaceTypeWithFuture(node.returnType);
+        _replaceTypeWithFuture(node.returnType, typeProvider);
         return;
       }
     }
   }
 
-  void _replaceTypeWithFuture(TypeAnnotation typeName) {
-    InterfaceType futureType = context.typeProvider.futureType;
+  void _replaceTypeWithFuture(
+      TypeAnnotation typeName, TypeProvider typeProvider) {
+    InterfaceType futureType = typeProvider.futureType;
     // validate the type
     DartType type = typeName?.type;
     if (type == null ||

@@ -14,9 +14,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -164,20 +164,9 @@ bool test() {
    * Computes fixes for the given [error] in [testUnit].
    */
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    if (enableNewAnalysisDriver) {
-      DartFixContext fixContext = new _DartFixContextImpl(
-          provider,
-          driver.getTopLevelNameDeclarations,
-          resolutionMap.elementDeclaredByCompilationUnit(testUnit).context,
-          new AstProviderForDriver(driver),
-          testUnit,
-          error);
-      return await new DefaultFixContributor().internalComputeFixes(fixContext);
-    } else {
-      FixContextImpl fixContext = new FixContextImpl(provider, context, error);
-      DefaultFixContributor contributor = new DefaultFixContributor();
-      return contributor.computeFixes(fixContext);
-    }
+    DartFixContext fixContext = new _DartFixContextImpl(
+        provider, driver, new AstProviderForDriver(driver), testUnit, error);
+    return await new DefaultFixContributor().internalComputeFixes(fixContext);
   }
 
   /**
@@ -6902,10 +6891,7 @@ class _DartFixContextImpl implements DartFixContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final GetTopLevelDeclarations getTopLevelDeclarations;
-
-  @override
-  final AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final AstProvider astProvider;
@@ -6916,6 +6902,10 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
-  _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
-      this.analysisContext, this.astProvider, this.unit, this.error);
+  _DartFixContextImpl(this.resourceProvider, this.analysisDriver,
+      this.astProvider, this.unit, this.error);
+
+  @override
+  GetTopLevelDeclarations get getTopLevelDeclarations =>
+      analysisDriver.getTopLevelNameDeclarations;
 }

@@ -18,7 +18,6 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
@@ -227,93 +226,58 @@ class EditDomainHandler extends AbstractRequestHandler {
     int offset = params.offset;
 
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
-    if (server.options.enableNewAnalysisDriver) {
-      //
-      // Allow plugins to start computing fixes.
-      //
-      Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-      plugin.EditGetFixesParams requestParams =
-          new plugin.EditGetFixesParams(file, offset);
-      AnalysisDriver driver = server.getAnalysisDriver(file);
-      if (driver == null) {
-        pluginFutures = <PluginInfo, Future<plugin.Response>>{};
-      } else {
-        pluginFutures = server.pluginManager
-            .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
-      }
-      //
-      // Compute fixes associated with server-generated errors.
-      //
-      AnalysisResult result = await server.getAnalysisResult(file);
-      if (result != null) {
-        CompilationUnit unit = result.unit;
-        LineInfo lineInfo = result.lineInfo;
-        int requestLine = lineInfo.getLocation(offset).lineNumber;
-        for (engine.AnalysisError error in result.errors) {
-          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-          if (errorLine == requestLine) {
-            var context = new _DartFixContextImpl(
-                server.resourceProvider,
-                result.driver.getTopLevelNameDeclarations,
-                resolutionMap.elementDeclaredByCompilationUnit(unit).context,
-                server.getAstProvider(file),
-                unit,
-                error);
-            List<Fix> fixes =
-                await new DefaultFixContributor().internalComputeFixes(context);
-            if (fixes.isNotEmpty) {
-              fixes.sort(Fix.SORT_BY_RELEVANCE);
-              AnalysisError serverError =
-                  newAnalysisError_fromEngine(lineInfo, error);
-              AnalysisErrorFixes errorFixes =
-                  new AnalysisErrorFixes(serverError);
-              errorFixesList.add(errorFixes);
-              fixes.forEach((fix) {
-                errorFixes.fixes.add(fix.change);
-              });
-            }
-          }
-        }
-      }
-      //
-      // Add the fixes produced by plugins to the server-generated fixes.
-      //
-      List<plugin.Response> responses = await waitForResponses(pluginFutures,
-          requestParameters: requestParams);
-      ResultConverter converter = new ResultConverter();
-      for (plugin.Response response in responses) {
-        plugin.EditGetFixesResult result =
-            new plugin.EditGetFixesResult.fromResponse(response);
-        errorFixesList
-            .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
-      }
+    //
+    // Allow plugins to start computing fixes.
+    //
+    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
+    plugin.EditGetFixesParams requestParams =
+        new plugin.EditGetFixesParams(file, offset);
+    AnalysisDriver driver = server.getAnalysisDriver(file);
+    if (driver == null) {
+      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
     } else {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-      LineInfo lineInfo = errorInfo?.lineInfo;
-      if (unit != null && errorInfo != null && lineInfo != null) {
-        int requestLine = lineInfo.getLocation(offset).lineNumber;
-        for (engine.AnalysisError error in errorInfo.errors) {
-          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-          if (errorLine == requestLine) {
-            List<Fix> fixes = await computeFixes(
-                server.serverPlugin,
-                server.resourceProvider,
-                resolutionMap.elementDeclaredByCompilationUnit(unit).context,
-                error);
-            if (fixes.isNotEmpty) {
-              AnalysisError serverError =
-                  newAnalysisError_fromEngine(lineInfo, error);
-              AnalysisErrorFixes errorFixes =
-                  new AnalysisErrorFixes(serverError);
-              errorFixesList.add(errorFixes);
-              fixes.forEach((fix) {
-                errorFixes.fixes.add(fix.change);
-              });
-            }
+      pluginFutures = server.pluginManager
+          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+    }
+    //
+    // Compute fixes associated with server-generated errors.
+    //
+    AnalysisResult result = await server.getAnalysisResult(file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      LineInfo lineInfo = result.lineInfo;
+      int requestLine = lineInfo.getLocation(offset).lineNumber;
+      for (engine.AnalysisError error in result.errors) {
+        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+        if (errorLine == requestLine) {
+          var context = new _DartFixContextImpl(server.resourceProvider,
+              result.driver, server.getAstProvider(file), unit, error);
+          List<Fix> fixes =
+              await new DefaultFixContributor().internalComputeFixes(context);
+          if (fixes.isNotEmpty) {
+            fixes.sort(Fix.SORT_BY_RELEVANCE);
+            AnalysisError serverError =
+                newAnalysisError_fromEngine(lineInfo, error);
+            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+            errorFixesList.add(errorFixes);
+            fixes.forEach((fix) {
+              errorFixes.fixes.add(fix.change);
+            });
           }
         }
       }
+    }
+    //
+    // Add the fixes produced by plugins to the server-generated fixes.
+    //
+    List<plugin.Response> responses =
+        await waitForResponses(pluginFutures, requestParameters: requestParams);
+    ResultConverter converter = new ResultConverter();
+    for (plugin.Response response in responses) {
+      plugin.EditGetFixesResult result =
+          new plugin.EditGetFixesResult.fromResponse(response);
+      errorFixesList
+          .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
     }
     //
     // Send the response.
@@ -611,10 +575,7 @@ class _DartFixContextImpl implements DartFixContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final GetTopLevelDeclarations getTopLevelDeclarations;
-
-  @override
-  final engine.AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final AstProvider astProvider;
@@ -625,8 +586,12 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final engine.AnalysisError error;
 
-  _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
-      this.analysisContext, this.astProvider, this.unit, this.error);
+  _DartFixContextImpl(this.resourceProvider, this.analysisDriver,
+      this.astProvider, this.unit, this.error);
+
+  @override
+  GetTopLevelDeclarations get getTopLevelDeclarations =>
+      analysisDriver.getTopLevelNameDeclarations;
 }
 
 /**
