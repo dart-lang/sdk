@@ -1,0 +1,28 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic b = throw new core::NoSuchMethodError::•(null, #Future<B>.value, <dynamic>[throw new core::NoSuchMethodError::•(null, #B, <dynamic>[], <dynamic, dynamic>{}, null)], <dynamic, dynamic>{}, null);
+  dynamic c = throw new core::NoSuchMethodError::•(null, #Future<C>.value, <dynamic>[throw new core::NoSuchMethodError::•(null, #C, <dynamic>[], <dynamic, dynamic>{}, null)], <dynamic, dynamic>{}, null);
+  dynamic lll = <dynamic>[b, c];
+  dynamic result = await throw new core::NoSuchMethodError::•(null, #wait, <dynamic>[lll], <dynamic, dynamic>{}, null);
+  dynamic result2 = await throw new core::NoSuchMethodError::•(null, #wait, <dynamic>[<dynamic>[b, c]], <dynamic, dynamic>{}, null);
+  core::List<dynamic> list = result;
+  list = result2;
+}

@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static method main() → dynamic
+  throw "lib/_internal/js_runtime/lib/foreign_helper.dart: \u0027[31mError: No such file or directory\u0027[39;49m";
