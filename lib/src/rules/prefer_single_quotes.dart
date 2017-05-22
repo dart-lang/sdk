@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor {
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
-    final checkHasString = new _HasStringVisitor();
+    final checkHasString = new _IsOrContainsStringVisitor();
     return string.elements.any((child) => child.accept(checkHasString));
   }
 }
@@ -107,16 +107,16 @@ class _Visitor extends SimpleAstVisitor {
 /// Do a top-down analysis to search for string nodes. Note, do not pass in
 /// string nodes directly to this visitor, or you will always get true. Pass in
 /// its children.
-class _HasStringVisitor extends UnifyingAstVisitor<bool> {
+class _IsOrContainsStringVisitor extends UnifyingAstVisitor<bool> {
   /// Scan as little of the tree as possible, by bailing out on first match. For
   /// all leaf nodes, they will either have a method defined here and return
   /// true, or they will return false because leaves have no children.
   @override
-  bool visitNode(AstNode node) {
-    return _ImmediateChildrenVisitor
-        .getChildren(node)
-        .any((child) => child.accept(this));
-  }
+  bool visitNode(AstNode node) =>
+      _ImmediateChildrenVisitor.childrenOf(node).any(isOrContainsString);
+
+  /// Different way to express `accept` in a way that's clearer in this visitor.
+  bool isOrContainsString(AstNode node) => node.accept(this);
 
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral string) {
@@ -129,17 +129,17 @@ class _HasStringVisitor extends UnifyingAstVisitor<bool> {
   }
 }
 
-/// The only way to get children in a unified, typesafe way, is to call
-/// visitChildren on that node, and pass in a visitor. This collects at the top
-/// level and stops.
+/// The only way to get immediate children in a unified, typesafe way, is to
+/// call visitChildren on that node, and pass in a visitor. This collects at the
+/// top level and stops.
 class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
-  static List<AstNode> getChildren(AstNode node) {
+  static List<AstNode> childrenOf(AstNode node) {
     final visitor = new _ImmediateChildrenVisitor();
     node.visitChildren(visitor);
     return visitor._children;
   }
 
-  List<AstNode> _children = [];
+  final _children = <AstNode>[];
 
   @override
   visitNode(AstNode node) {
