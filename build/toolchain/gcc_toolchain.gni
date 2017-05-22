@@ -149,7 +149,7 @@ template("gcc_toolchain") {
       temporary_tocname = sofile + ".tmp"
       link_command =
           "$ld -shared {{ldflags}} -o $sofile -Wl,-soname=$soname @$rspfile"
-      toc_command = "{ $readelf -d $sofile | grep SONAME ; $nm -gD -f p $sofile | cut -f1-2 -d' '; } > $temporary_tocname"
+      toc_command = "{ $readelf -d $sofile | grep SONAME ; $nm -gD -f posix $sofile | cut -f1-2 -d' '; } > $temporary_tocname"
       replace_command = "if ! cmp -s $temporary_tocname $tocfile; then mv $temporary_tocname $tocfile; fi"
 
       command = "$link_command && $toc_command && $replace_command"
