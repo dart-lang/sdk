@@ -81,7 +81,7 @@ class ClosureContext {
   void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type) {
     if (!isGenerator) return;
     if (isYieldStar) {
-      type = inferrer.getTypeArgumentOf(
+      type = inferrer.getDerivedTypeArgumentOf(
           type,
           isAsync
               ? inferrer.coreTypes.streamClass

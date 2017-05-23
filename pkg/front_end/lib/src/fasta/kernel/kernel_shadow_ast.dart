@@ -1324,7 +1324,7 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
     }
     var inferredType = inferrer.inferExpression(
         expression, typeContext, closureContext != null);
-    closureContext?.handleYield(inferrer, isYieldStar, inferredType);
+    closureContext.handleYield(inferrer, isYieldStar, inferredType);
     inferrer.listener.yieldStatementExit(this);
   }
 }
