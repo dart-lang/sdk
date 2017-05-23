@@ -3001,6 +3001,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitConstructorInvocation(ir.ConstructorInvocation invocation) {
     ir.Constructor target = invocation.target;
+    if (invocation.isConst) {
+      ConstantValue constant = astAdapter.getConstantFor(invocation);
+      stack.add(graph.addConstant(constant, closedWorld));
+      return;
+    }
+
     // TODO(sra): For JS-interop targets, process arguments differently.
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
