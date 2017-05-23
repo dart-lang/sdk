@@ -411,11 +411,37 @@ defineTests() {
           'test/_data/always_require_non_null_named_parameters',
           '--rules=always_require_non_null_named_parameters'
         ], new LinterOptions()..enableAssertInitializer = true);
-        // expect(exitCode, 1);
+        expect(exitCode, 1);
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
                 ['b, // LINT', '1 file analyzed, 1 issue found, in']));
+      });
+    });
+
+    group('prefer_asserts_in_initializer_list', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('only throw errors', () {
+        dartlint.runLinter([
+          'test/_data/prefer_asserts_in_initializer_list',
+          '--rules=prefer_asserts_in_initializer_list'
+        ], new LinterOptions()..enableAssertInitializer = true);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder(
+                ['A.c2(a) { // LINT', '1 file analyzed, 1 issue found, in']));
       });
     });
 
