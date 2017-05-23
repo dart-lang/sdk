@@ -62,7 +62,7 @@ import 'dart:_interceptors' show
     getNativeInterceptor,
     setDispatchProperty;
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 
 export 'dart:math' show Rectangle, Point;
 
@@ -155,4 +155,3 @@ createCustomUpgrader(Type customElementClass, $this) => $this;
 @Experimental() // untriaged
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
-

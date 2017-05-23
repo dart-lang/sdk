@@ -42,7 +42,7 @@ import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -135,7 +135,6 @@ createCustomUpgrader(Type customElementClass, $this) => $this;
 @Experimental() // untriaged
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -4357,10 +4356,11 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   static String _camelCase(String hyphenated) {
     var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
-
-    var fToUpper =
-        const JS_CONST(r'function(_, letter) { return letter.toUpperCase(); }');
-    return JS('String', r'#.replace(/-([\da-z])/ig, #)', replacedMs, fToUpper);
+    return JS(
+        'String',
+        r'#.replace(/-([\da-z])/ig,'
+        r'function(_, letter) { return letter.toUpperCase();})',
+        replacedMs);
   }
 
   void _setPropertyHelper(String propertyName, String value,
