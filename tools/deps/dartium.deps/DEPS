@@ -191,25 +191,6 @@ hooks[0:0] = [{
   }]
 
 hooks.append({
-  # Set the revision for a lazily downloaded reference build of chromium,
-  # with which to run perf tests.
-  'name': 'set_reference_build',
-  'pattern': '.',
-  'action': ['python',
-             'src/dart/tools/bots/set_reference_build_revision.py',
-             Var('chromium_base_revision')],
-})
-#hooks.append({
-  # Peg the blink version number in LASTCHANGE.blink to be the upstream
-  # webkit_revision number so that chrome remote devtools pulls assets from
-  # the right place.
-#  "name": "lastchange",
-#  "pattern": ".",
-#  "action": ["python", "-c",
-#      "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
-#      Var('webkit_revision') + "\\n')" ],
-#})
-hooks.append({
   "name": "checked_in_dart_sdks",
   "pattern": ".",
   "action": [
