@@ -648,10 +648,36 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Procedures.
   void buildFunctionNode(ir.FunctionNode functionNode) {
     openFunction();
-    if (functionNode.parent is ir.Procedure &&
-        (functionNode.parent as ir.Procedure).kind ==
-            ir.ProcedureKind.Factory) {
+    ir.TreeNode parent = functionNode.parent;
+    if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
       _addClassTypeVariablesIfNeeded(functionNode.parent);
+    }
+
+    // If [functionNode] is `operator==` we explicitly add a null check at the
+    // beginning of the method. This is to avoid having call sites do the null
+    // check.
+    if (parent is ir.Procedure &&
+        parent.kind == ir.ProcedureKind.Operator &&
+        parent.name.name == '==') {
+      if (!backend
+          .operatorEqHandlesNullArgument(astAdapter.getMethod(parent))) {
+        handleIf(
+          visitCondition: () {
+            HParameterValue parameter = parameters.values.first;
+            push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+                null, commonMasks.boolType));
+          },
+          visitThen: () {
+            closeAndGotoExit(new HReturn(
+                graph.addConstantBool(false, closedWorld),
+                sourceInformationBuilder
+                    .buildImplicitReturn(astAdapter.getElement(parent))));
+          },
+          visitElse: null,
+          // TODO(27394): Add sourceInformation via
+          // `sourceInformationBuilder.buildIf(?)`.
+        );
+      }
     }
     functionNode.body.accept(this);
     closeFunction();

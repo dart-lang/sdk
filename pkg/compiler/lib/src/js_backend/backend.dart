@@ -706,7 +706,7 @@ class JavaScriptBackend {
     return class_;
   }
 
-  bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
+  bool operatorEqHandlesNullArgument(FunctionEntity operatorEqfunction) {
     return specialOperatorEqClasses.contains(operatorEqfunction.enclosingClass);
   }
 
