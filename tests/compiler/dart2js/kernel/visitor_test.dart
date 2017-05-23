@@ -8,14 +8,12 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:path/path.dart' as pathlib;
+import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
 import '../memory_compiler.dart';
@@ -71,7 +69,7 @@ scheduleTest(String name, {bool selected}) async {
     JavaScriptBackend backend = compiler.backend;
     StringBuffer buffer = new StringBuffer();
     Program program = backend.kernelTask.buildProgram(library);
-    new MixinFullResolution().transform(program);
+    new MixinFullResolution(new NoneTarget(null)).transform(program);
     new Printer(buffer).writeLibraryFile(program.mainMethod.enclosingLibrary);
     String actual = buffer.toString();
     String expected =
