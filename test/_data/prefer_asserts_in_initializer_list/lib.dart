@@ -4,8 +4,8 @@ class A {
     assert(a != null);
   }
   A.c3(a) {} // OK
-  A.c4(a) { // LINT
+  A.c4(a) { // OK
     print('');
-    assert(a != null); // OK
+    assert(a != null);
   }
 }
