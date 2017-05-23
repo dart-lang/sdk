@@ -8,10 +8,12 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsyncMarker,
         BottomType,
         Class,
         DartType,
@@ -25,7 +27,8 @@ import 'package:kernel/ast.dart'
         Procedure,
         Statement,
         TypeParameterType,
-        VariableDeclaration;
+        VariableDeclaration,
+        VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -41,13 +44,29 @@ class ClosureContext {
 
   DartType _inferredReturnType;
 
-  ClosureContext(this.isAsync, this.isGenerator, this.returnContext);
-
-  /// Gets the return type that was inferred for the current closure, or `null`
-  /// if there were no `return` statements.
-  get inferredReturnType {
-    return _inferredReturnType;
+  factory ClosureContext(TypeInferrerImpl inferrer, AsyncMarker asyncMarker,
+      DartType returnContext) {
+    bool isAsync = asyncMarker == AsyncMarker.Async ||
+        asyncMarker == AsyncMarker.AsyncStar;
+    bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
+        asyncMarker == AsyncMarker.AsyncStar;
+    if (isGenerator) {
+      if (isAsync) {
+        returnContext = inferrer.getTypeArgumentOf(
+            returnContext, inferrer.coreTypes.streamClass);
+      } else {
+        returnContext = inferrer.getTypeArgumentOf(
+            returnContext, inferrer.coreTypes.iterableClass);
+      }
+    } else if (isAsync) {
+      // TODO(paulberry): do we have to handle FutureOr<> here?
+      returnContext = inferrer.getTypeArgumentOf(
+          returnContext, inferrer.coreTypes.futureClass);
+    }
+    return new ClosureContext._(isAsync, isGenerator, returnContext);
   }
+
+  ClosureContext._(this.isAsync, this.isGenerator, this.returnContext);
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
@@ -70,6 +89,37 @@ class ClosureContext {
       if (type == null) return;
     }
     _updateInferredReturnType(inferrer, type);
+  }
+
+  DartType inferReturnType(
+      TypeInferrerImpl inferrer, bool isExpressionFunction) {
+    DartType inferredReturnType =
+        inferrer.inferReturnType(_inferredReturnType, isExpressionFunction);
+    if (!isExpressionFunction &&
+        returnContext != null &&
+        (!inferrer.typeSchemaEnvironment
+                .isSubtypeOf(inferredReturnType, returnContext) ||
+            returnContext is VoidType)) {
+      // For block-bodied functions, if the inferred return type isn't a
+      // subtype of the context (or the context is void), we use the context.
+      // TODO(paulberry): this is inherited from analyzer; it's not part of
+      // the spec.  See also dartbug.com/29606.
+      inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
+    }
+
+    if (isGenerator) {
+      if (isAsync) {
+        inferredReturnType = inferrer.wrapType(
+            inferredReturnType, inferrer.coreTypes.streamClass);
+      } else {
+        inferredReturnType = inferrer.wrapType(
+            inferredReturnType, inferrer.coreTypes.iterableClass);
+      }
+    } else if (isAsync) {
+      inferredReturnType = inferrer.wrapFutureType(inferredReturnType);
+    }
+
+    return inferredReturnType;
   }
 
   void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
@@ -99,11 +149,9 @@ abstract class TypeInferrer {
   /// Gets the [FieldNode] corresponding to the given [readTarget], if any.
   FieldNode getFieldNodeForReadTarget(Member readTarget);
 
-  /// Performs type inference on the given [statement].
-  ///
-  /// Derived classes should override this method with logic that dispatches on
-  /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement(Statement statement);
+  /// Performs type inference on the given function body.
+  void inferFunctionBody(
+      DartType returnType, AsyncMarker asyncMarker, Statement body);
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -191,6 +239,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  DartType getDerivedTypeArgumentOf(DartType type, Class class_) {
+    if (type is InterfaceType) {
+      var typeAsInstanceOfClass =
+          classHierarchy.getTypeAsInstanceOf(type, class_);
+      if (typeAsInstanceOfClass != null) {
+        return typeAsInstanceOfClass.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
   Expression getFieldInitializer(KernelField field);
@@ -213,17 +272,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       return null;
     }
-  }
-
-  DartType getDerivedTypeArgumentOf(DartType type, Class class_) {
-    if (type is InterfaceType) {
-      var typeAsInstanceOfClass =
-          classHierarchy.getTypeAsInstanceOf(type, class_);
-      if (typeAsInstanceOfClass != null) {
-        return typeAsInstanceOfClass.typeArguments[0];
-      }
-    }
-    return null;
   }
 
   /// Modifies a type as appropriate when inferring a declared variable's type.
@@ -258,6 +306,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldInitializer(
       KernelField field, DartType type, bool typeNeeded);
+
+  @override
+  void inferFunctionBody(
+      DartType returnType, AsyncMarker asyncMarker, Statement body) {
+    assert(closureContext == null);
+    closureContext = new ClosureContext(this, asyncMarker, returnType);
+    inferStatement(body);
+    closureContext = null;
+  }
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
@@ -351,6 +408,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     return returnType;
   }
+
+  /// Performs type inference on the given [statement].
+  ///
+  /// Derived classes should override this method with logic that dispatches on
+  /// the statement type and calls the appropriate specialized "infer" method.
+  void inferStatement(Statement statement);
 
   DartType wrapFutureType(DartType type) {
     var typeWithoutFutureOr = type;

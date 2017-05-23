@@ -346,7 +346,8 @@ class KernelFunctionDeclaration extends FunctionDeclaration
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
     var oldClosureContext = inferrer.closureContext;
-    inferrer.closureContext = null;
+    inferrer.closureContext =
+        new ClosureContext(inferrer, function.asyncMarker, function.returnType);
     inferrer.inferStatement(function.body);
     inferrer.closureContext = oldClosureContext;
     inferrer.listener.functionDeclarationExit(this);
@@ -361,11 +362,6 @@ class KernelFunctionExpression extends FunctionExpression
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    var asyncMarker = function.asyncMarker;
-    bool isAsync = asyncMarker == AsyncMarker.Async ||
-        asyncMarker == AsyncMarker.AsyncStar;
-    bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
-        asyncMarker == AsyncMarker.AsyncStar;
     typeNeeded = inferrer.listener.functionExpressionEnter(this, typeContext) ||
         typeNeeded;
     // TODO(paulberry): do we also need to visit default parameter values?
@@ -444,23 +440,11 @@ class KernelFunctionExpression extends FunctionExpression
       }
     }
 
-    // Let `N’` be `N[T/S]`, adjusted accordingly if the closure is declared
-    // with `async`, `async*`, or `sync*`.
+    // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
+    // accordingly if the closure is declared with `async`, `async*`, or
+    // `sync*`.
     if (returnContext != null) {
       returnContext = substitution.substituteType(returnContext);
-    }
-    if (isGenerator) {
-      if (isAsync) {
-        returnContext = inferrer.getTypeArgumentOf(
-            returnContext, inferrer.coreTypes.streamClass);
-      } else {
-        returnContext = inferrer.getTypeArgumentOf(
-            returnContext, inferrer.coreTypes.iterableClass);
-      }
-    } else if (isAsync) {
-      // TODO(paulberry): do we have to handle FutureOr<> here?
-      returnContext = inferrer.getTypeArgumentOf(
-          returnContext, inferrer.coreTypes.futureClass);
     }
 
     // Apply type inference to `B` in return context `N’`, with any references
@@ -468,8 +452,9 @@ class KernelFunctionExpression extends FunctionExpression
     bool isExpressionFunction = function.body is ReturnStatement;
     bool needToSetReturnType = isExpressionFunction || inferrer.strongMode;
     ClosureContext oldClosureContext = inferrer.closureContext;
-    inferrer.closureContext =
-        new ClosureContext(isAsync, isGenerator, returnContext);
+    ClosureContext closureContext =
+        new ClosureContext(inferrer, function.asyncMarker, returnContext);
+    inferrer.closureContext = closureContext;
     inferrer.inferStatement(function.body);
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the least
@@ -479,33 +464,8 @@ class KernelFunctionExpression extends FunctionExpression
     // if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType || typeNeeded) {
-      inferredReturnType = inferrer.inferReturnType(
-          inferrer.closureContext.inferredReturnType, isExpressionFunction);
-      if (!isExpressionFunction &&
-          returnContext != null &&
-          (!inferrer.typeSchemaEnvironment
-                  .isSubtypeOf(inferredReturnType, returnContext) ||
-              returnContext is VoidType)) {
-        // For block-bodied functions, if the inferred return type isn't a
-        // subtype of the context (or the context is void), we use the context.
-        // TODO(paulberry): this is inherited from analyzer; it's not part of
-        // the spec.  See also dartbug.com/29606.
-        inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
-      }
-
-      // Let `M’` be `M`, adjusted accordingly if the closure is declared with
-      // `async`, `async*`, or `sync*`.
-      if (isGenerator) {
-        if (isAsync) {
-          inferredReturnType = inferrer.wrapType(
-              inferredReturnType, inferrer.coreTypes.streamClass);
-        } else {
-          inferredReturnType = inferrer.wrapType(
-              inferredReturnType, inferrer.coreTypes.iterableClass);
-        }
-      } else if (isAsync) {
-        inferredReturnType = inferrer.wrapFutureType(inferredReturnType);
-      }
+      inferredReturnType =
+          closureContext.inferReturnType(inferrer, isExpressionFunction);
     }
 
     // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
@@ -807,18 +767,16 @@ class KernelReturnStatement extends ReturnStatement implements KernelStatement {
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.returnStatementEnter(this);
     var closureContext = inferrer.closureContext;
-    var typeContext = closureContext != null && !closureContext.isGenerator
-        ? closureContext.returnContext
-        : null;
+    var typeContext =
+        !closureContext.isGenerator ? closureContext.returnContext : null;
     var inferredType = expression != null
-        ? inferrer.inferExpression(
-            expression, typeContext, closureContext != null)
+        ? inferrer.inferExpression(expression, typeContext, true)
         : const VoidType();
     // Analyzer treats bare `return` statements as having no effect on the
     // inferred type of the closure.  TODO(paulberry): is this what we want
     // for Fasta?
     if (expression != null) {
-      closureContext?.handleReturn(inferrer, inferredType);
+      closureContext.handleReturn(inferrer, inferredType);
     }
     inferrer.listener.returnStatementExit(this);
   }
@@ -1352,19 +1310,14 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.yieldStatementEnter(this);
     var closureContext = inferrer.closureContext;
-    var typeContext = closureContext != null && closureContext.isGenerator
-        ? closureContext.returnContext
-        : null;
+    var typeContext =
+        closureContext.isGenerator ? closureContext.returnContext : null;
     if (isYieldStar && typeContext != null) {
-      if (closureContext == null) {
-        typeContext = null;
-      } else {
-        typeContext = inferrer.wrapType(
-            typeContext,
-            closureContext.isAsync
-                ? inferrer.coreTypes.streamClass
-                : inferrer.coreTypes.iterableClass);
-      }
+      typeContext = inferrer.wrapType(
+          typeContext,
+          closureContext.isAsync
+              ? inferrer.coreTypes.streamClass
+              : inferrer.coreTypes.iterableClass);
     }
     var inferredType = inferrer.inferExpression(
         expression, typeContext, closureContext != null);
