@@ -9,6 +9,7 @@
 #error Do not include os_thread_fuchsia.h directly; use os_thread.h instead.
 #endif
 
+#include <magenta/syscalls/object.h>
 #include <pthread.h>
 
 #include "platform/assert.h"
@@ -17,7 +18,7 @@
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef pthread_t ThreadId;
+typedef mx_koid_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
 
