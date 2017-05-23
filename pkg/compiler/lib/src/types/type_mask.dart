@@ -85,8 +85,11 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
   factory TypeMask.exact(ClassEntity base, ClosedWorld closedWorld) {
-    assert(invariant(base, closedWorld.isInstantiated(base),
-        message: () => "Cannot create exact type mask for uninstantiated "
+    assert(
+        closedWorld.isInstantiated(base),
+        failedAt(
+            base,
+            "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
@@ -97,8 +100,11 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   }
 
   factory TypeMask.subclass(ClassEntity base, ClosedWorld closedWorld) {
-    assert(invariant(base, closedWorld.isInstantiated(base),
-        message: () => "Cannot create subclass type mask for uninstantiated "
+    assert(
+        closedWorld.isInstantiated(base),
+        failedAt(
+            base,
+            "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
@@ -128,8 +134,11 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
 
   factory TypeMask.nonNullExact(ClassEntity base, ClosedWorld closedWorld) {
-    assert(invariant(base, closedWorld.isInstantiated(base),
-        message: () => "Cannot create exact type mask for uninstantiated "
+    assert(
+        closedWorld.isInstantiated(base),
+        failedAt(
+            base,
+            "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
@@ -143,8 +152,11 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   }
 
   factory TypeMask.nonNullSubclass(ClassEntity base, ClosedWorld closedWorld) {
-    assert(invariant(base, closedWorld.isInstantiated(base),
-        message: () => "Cannot create subclass type mask for uninstantiated "
+    assert(
+        closedWorld.isInstantiated(base),
+        failedAt(
+            base,
+            "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
@@ -195,8 +207,9 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   static bool assertIsNormalized(TypeMask mask, ClosedWorld closedWorld) {
     String reason = getNotNormalizedReason(mask, closedWorld);
-    return invariant(NO_LOCATION_SPANNABLE, reason == null,
-        message: () => '$mask is not normalized: $reason');
+    assert(reason == null,
+        failedAt(NO_LOCATION_SPANNABLE, '$mask is not normalized: $reason'));
+    return true;
   }
 
   static String getNotNormalizedReason(TypeMask mask, ClosedWorld closedWorld) {
