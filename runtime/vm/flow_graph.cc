@@ -1018,7 +1018,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
       if (i == CurrentContextEnvIndex()) {
         if (function().IsClosureFunction()) {
-          CurrentContextInstr* context = new CurrentContextInstr();
+          CurrentContextInstr* context =
+              new CurrentContextInstr(Thread::kNoDeoptId);
           context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
           AddToInitialDefinitions(context);
           env.Add(context);

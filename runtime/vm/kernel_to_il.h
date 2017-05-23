@@ -1042,6 +1042,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   void InlineBailout(const char* reason);
 
   TranslationHelper translation_helper_;
+  Thread* thread_;
   Zone* zone_;
 
   // The node we are currently compiling (e.g. FunctionNode, Constructor,
@@ -1055,6 +1056,11 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   intptr_t next_block_id_;
   intptr_t AllocateBlockId() { return next_block_id_++; }
+
+  intptr_t GetNextDeoptId() {
+    // TODO(rmacnak): Record current scope / context level.
+    return thread_->GetNextDeoptId();
+  }
 
   intptr_t next_function_id_;
   intptr_t AllocateFunctionId() { return next_function_id_++; }

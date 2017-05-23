@@ -710,7 +710,7 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
-                               false);  // No number check.
+                               /* number_check = */ false, Thread::kNoDeoptId);
         ReplaceCall(call, comp);
         return true;
       }
@@ -1441,10 +1441,9 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid =
-        new (Z) StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
-                                   new (Z) Value(left_cid), new (Z) Value(cid),
-                                   false);  // No number check.
+    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+        call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
+        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
     ReplaceCall(call, check_cid);
     return;
   }

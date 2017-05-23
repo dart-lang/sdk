@@ -2214,9 +2214,15 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(compiler->zone(),
                                       StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
-  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  *StubCode::AllocateArray_entry(),
-                                  RawPcDescriptors::kOther, locs());
+  if (deopt_id() == Thread::kNoDeoptId) {
+    ASSERT(compiler->is_optimizing());
+    compiler->GenerateCall(token_pos(), *StubCode::AllocateArray_entry(),
+                           RawPcDescriptors::kOther, locs());
+  } else {
+    compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                    *StubCode::AllocateArray_entry(),
+                                    RawPcDescriptors::kOther, locs());
+  }
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
