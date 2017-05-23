@@ -362,7 +362,6 @@ deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_static_seperate_test: RuntimeError # Issue 27394
 deferred_super_dependency_test/01: Crash # Issue 27394
 enum_mirror_test: Crash # Issue 27394
-equality_test: RuntimeError # Issue 27394
 export_ambiguous_main_negative_test: Crash # Issue 27394
 f_bounded_quantification5_test: RuntimeError # Issue 27394
 final_for_in_variable_test/01: MissingRuntimeError # Issue 27394
@@ -486,7 +485,6 @@ null_test/02: Crash # Issue 27394
 null_test/03: Crash # Issue 27394
 null_test/none: Crash # Issue 27394
 nullaware_opt_test: RuntimeError # Issue 27394
-operator_equals_test: RuntimeError # Issue 27394
 optional_named_parameters_test/none: RuntimeError # Issue 27394
 private_mixin2_test: Crash # Issue 27394
 redirecting_constructor_initializer_test: RuntimeError # Issue 27394
