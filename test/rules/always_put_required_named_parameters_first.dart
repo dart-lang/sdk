@@ -24,12 +24,29 @@ m1(
   @required f, // LINT
 }) {}
 
+m2({
+  @required a, // OK
+  @required b, // OK
+  c, // OK
+  @required d, // LINT
+  e, // OK
+  @required f, // LINT
+}) {}
+
 class A {
-  A(
+  A.c1(
     a, // OK
     {
     b, // OK
     @required c, // LINT
+    @required d, // LINT
+    e, // OK
+    @required f, // LINT
+  });
+  A.c2({
+    @required a, // OK
+    @required b, // OK
+    c, // OK
     @required d, // LINT
     e, // OK
     @required f, // LINT

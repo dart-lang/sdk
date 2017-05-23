@@ -61,7 +61,7 @@ class Visitor extends SimpleAstVisitor {
         in node.parameters.where((p) => p.kind == ParameterKind.NAMED)) {
       if (param.metadata.any((a) => _isRequired(a.element))) {
         if (nonRequiredSeen) {
-          rule.reportLintForToken(param.identifier.beginToken);
+          rule.reportLintForToken(param.identifier.token);
         }
       } else {
         nonRequiredSeen = true;
