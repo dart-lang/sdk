@@ -349,7 +349,7 @@ enum MessageKind {
   PRIVATE_ACCESS,
   PRIVATE_IDENTIFIER,
   PRIVATE_NAMED_PARAMETER,
-  READ_SCRIPT_ERROR,
+  READ_URI_ERROR,
   READ_SELF_ERROR,
   REDIRECTING_CONSTRUCTOR_CYCLE,
   REDIRECTING_CONSTRUCTOR_HAS_BODY,
@@ -2605,8 +2605,8 @@ main() {}
 """
           ]),
 
-      MessageKind.READ_SCRIPT_ERROR: const MessageTemplate(
-          MessageKind.READ_SCRIPT_ERROR, "Can't read '#{uri}' (#{exception}).",
+      MessageKind.READ_URI_ERROR: const MessageTemplate(
+          MessageKind.READ_URI_ERROR, "Can't read '#{uri}' (#{exception}).",
           // Don't know how to fix since the underlying error is unknown.
           howToFix: DONT_KNOW_HOW_TO_FIX,
           examples: const [

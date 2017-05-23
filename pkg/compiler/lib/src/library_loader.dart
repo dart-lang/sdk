@@ -30,6 +30,7 @@ import 'elements/modelx.dart'
         SyntheticImportElement;
 import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
+import 'io/source_file.dart' show Binary;
 import 'kernel/element_map_impl.dart' show KernelToElementMapImpl;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
@@ -839,13 +840,9 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         'Invalid uri: $resolvedUri');
     Uri readableUri = uriTranslator.translate(null, resolvedUri, null);
     return measure(() async {
-      Script script = await scriptLoader.readScript(readableUri, null);
+      Binary binary = await scriptLoader.readBinary(readableUri, null);
       ir.Program program = new ir.Program();
-      // Hack because the existing file has a terminating 0 and the
-      // BinaryBuilder doesn't expect that.
-      var bytes = new List<int>.from(script.file.slowUtf8ZeroTerminatedBytes());
-      bytes.removeLast();
-      new BinaryBuilder(bytes).readProgram(program);
+      new BinaryBuilder(binary.data).readProgram(program);
       return measure(() {
         return createLoadedLibraries(program);
       });
@@ -1657,6 +1654,10 @@ abstract class ScriptLoader {
   /// Load script from a readable [uri], report any errors using the location of
   /// the given [spannable].
   Future<Script> readScript(Uri uri, [Spannable spannable]);
+
+  /// Load a binary from a readable [uri], report any errors using the location
+  /// of the given [spannable].
+  Future<Binary> readBinary(Uri uri, [Spannable spannable]);
 }
 
 /// API used by the library loader to synchronously scan a library or

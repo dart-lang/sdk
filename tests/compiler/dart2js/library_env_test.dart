@@ -5,7 +5,9 @@
 /// Check that 'dart:' libraries have their corresponding dart.library.X
 /// environment variable set.
 
-import "memory_source_file_helper.dart";
+import 'dart:async';
+
+import 'memory_source_file_helper.dart';
 
 import "package:async_helper/async_helper.dart";
 
@@ -15,10 +17,12 @@ import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
-import 'package:compiler/compiler_new.dart'
-    show CompilerInput, CompilerDiagnostics;
+import 'package:compiler/src/io/source_file.dart' show Binary;
 
-const clientPlatform = r'''
+import 'package:compiler/compiler_new.dart'
+    show CompilerInput, CompilerDiagnostics, Input, InputKind;
+
+const String clientPlatform = r'''
 [dart-spec]
 spec: 3rd edition.
 
@@ -32,7 +36,7 @@ collection: collection/collection.dart
 html: html/dart2js/html_dart2js.dart
 ''';
 
-const serverPlatform = r'''
+const String serverPlatform = r'''
 [dart-spec]
 spec: 3rd edition.
 
@@ -49,11 +53,12 @@ io: io/io.dart
 class DummyCompilerInput implements CompilerInput {
   const DummyCompilerInput();
 
-  readFromUri(uri) async {
+  Future<Input> readFromUri(Uri uri,
+      {InputKind inputKind: InputKind.utf8}) async {
     if (uri.toString().endsWith("dart_client.platform")) {
-      return clientPlatform;
+      return new Binary(uri, clientPlatform.codeUnits);
     } else if (uri.toString().endsWith("dart_server.platform")) {
-      return serverPlatform;
+      return new Binary(uri, serverPlatform.codeUnits);
     } else {
       throw "should not be needed $uri";
     }
