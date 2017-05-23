@@ -234,7 +234,7 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
       }
       Element element = currentElement;
       uri = element.compilationUnit.script.resourceUri;
-      assert(invariant(currentElement, () {
+      assert(() {
         bool sameToken(Token token, Token sought) {
           if (token == sought) return true;
           if (token.stringValue == '>>') {
@@ -309,7 +309,9 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
           }
         }
         return true;
-      }, message: "Invalid current element: $element [$begin,$end]."));
+      },
+          failedAt(currentElement,
+              "Invalid current element: $element [$begin,$end]."));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
@@ -618,8 +620,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     _compiler.reporter.withCurrentElement(element, () {
       for (MetadataAnnotation metadata in element.implementation.metadata) {
         metadata.ensureResolved(_compiler.resolution);
-        assert(invariant(metadata, metadata.constant != null,
-            message: "Unevaluated metadata constant."));
+        assert(metadata.constant != null,
+            failedAt(metadata, "Unevaluated metadata constant."));
         ConstantValue value =
             _compiler.constants.getConstantValue(metadata.constant);
         values.add(value);
@@ -830,11 +832,11 @@ class ResolutionWorkItemBuilder extends WorkItemBuilder {
 
   @override
   WorkItem createWorkItem(MemberElement element) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
     if (element.isMalformed) return null;
 
-    assert(invariant(element, element is AnalyzableElement,
-        message: 'Element $element is not analyzable.'));
+    assert(element is AnalyzableElement,
+        failedAt(element, 'Element $element is not analyzable.'));
     return _resolution.createWorkItem(element);
   }
 }

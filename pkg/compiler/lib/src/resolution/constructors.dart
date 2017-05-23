@@ -568,8 +568,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
               ConstructorResultKind.GENERATIVE, prefix, constructor, type);
         }
       } else {
-        assert(invariant(diagnosticNode, constructor.isFactoryConstructor,
-            message: "Unexpected constructor $constructor."));
+        assert(constructor.isFactoryConstructor,
+            failedAt(diagnosticNode, "Unexpected constructor $constructor."));
         return new ConstructorResult(
             ConstructorResultKind.FACTORY, prefix, constructor, type);
       }
@@ -579,8 +579,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     ConstructorResult result = visit(selector);
-    assert(invariant(selector, result != null,
-        message: 'No result returned for $selector.'));
+    assert(result != null,
+        failedAt(selector, 'No result returned for $selector.'));
     return finishConstructorReference(result, node.send.selector, node);
   }
 
@@ -588,8 +588,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   /// type of the constructed instance on [expression].
   ConstructorResult finishConstructorReference(
       ConstructorResult result, Node diagnosticNode, Node expression) {
-    assert(invariant(diagnosticNode, result != null,
-        message: 'No result returned for $diagnosticNode.'));
+    assert(result != null,
+        failedAt(diagnosticNode, 'No result returned for $diagnosticNode.'));
 
     if (result.kind != null) {
       resolver.registry.setType(expression, result.type);
@@ -642,11 +642,11 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ConstructorResult visitSend(Send node) {
     ConstructorResult receiver = visit(node.receiver);
-    assert(invariant(node.receiver, receiver != null,
-        message: 'No result returned for $node.receiver.'));
+    assert(receiver != null,
+        failedAt(node.receiver, 'No result returned for $node.receiver.'));
     if (receiver.kind != null) {
-      assert(invariant(node, receiver.element.isMalformed,
-          message: "Unexpected prefix result: $receiver."));
+      assert(receiver.element.isMalformed,
+          failedAt(node, "Unexpected prefix result: $receiver."));
       // We have already found an error.
       return receiver;
     }
