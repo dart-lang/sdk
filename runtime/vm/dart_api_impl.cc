@@ -6129,6 +6129,11 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_mod_callback) {
 }
 
 
+DART_EXPORT bool Dart_IsReloading() {
+  return false;
+}
+
+
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   return;
 }
@@ -6261,6 +6266,14 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
   return Api::Success();
+}
+
+
+DART_EXPORT bool Dart_IsReloading() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  return isolate->IsReloading();
 }
 
 
