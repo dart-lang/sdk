@@ -222,7 +222,7 @@ class TreeShaker {
         new _ExternalTypeVisitor(this, isContravariant: true);
     _invariantVisitor = new _ExternalTypeVisitor(this,
         isCovariant: true, isContravariant: true);
-    _mirrorsLibrary = coreTypes.tryGetLibrary('dart:mirrors');
+    _mirrorsLibrary = coreTypes.mirrorsLibrary;
     try {
       _build();
     } on _UsingMirrorsException {

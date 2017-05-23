@@ -612,8 +612,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   finishSend(Object receiver, Arguments arguments, int charOffset) {
     bool isIdentical(Object receiver) {
       return receiver is StaticAccessor &&
-          receiver.readTarget ==
-              coreTypes.tryGetTopLevelMember("dart:core", null, "identical");
+          receiver.readTarget == coreTypes.identicalProcedure;
     }
 
     if (receiver is FastaAccessor) {
@@ -784,7 +783,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     warning(message, charOffset);
     Constructor constructor =
-        coreTypes.getClass("dart:core", "NoSuchMethodError").constructors.first;
+        coreTypes.noSuchMethodErrorClass.constructors.first;
     return new Throw(new ConstructorInvocation(
         constructor,
         astFactory.arguments(<Expression>[

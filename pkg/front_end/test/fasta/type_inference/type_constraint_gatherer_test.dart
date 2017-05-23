@@ -55,7 +55,7 @@ class TypeConstraintGathererTest {
 
   InterfaceType get functionType => functionClass.rawType;
 
-  Class get iterableClass => coreTypes.tryGetClass('dart:core', 'Iterable');
+  Class get iterableClass => coreTypes.iterableClass;
 
   Class get listClass => coreTypes.listClass;
 

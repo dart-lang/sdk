@@ -279,7 +279,7 @@ class SuperCallResolutionTransformer extends Transformer {
   ConstructorInvocation _createInvocation(String methodName,
       Arguments callArguments, bool isSuperInvocation, Expression receiver) {
     if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.getClass('dart:core', '_InvocationMirror');
+      Class clazz = coreTypes.invocationMirrorClass;
       _invocationMirrorConstructor = clazz.constructors[0];
     }
 

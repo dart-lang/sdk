@@ -202,29 +202,26 @@ class RootsMarker extends RecursiveVisitor {
     data.markClass(coreTypes.typeClass);
     data.markClass(coreTypes.functionClass);
     data.markClass(coreTypes.invocationClass);
-    data.markMember(coreTypes.getMember("dart:_internal", "ExternalName", ""));
+    data.markMember(coreTypes.externalNameDefaultConstructor);
 
     // These are needed by the continuation (async/await) transformer:
-    data.markClass(coreTypes.getClass('dart:core', 'Iterator'));
-    data.markClass(coreTypes.getClass('dart:async', 'Future'));
-    data.markClass(coreTypes.getClass('dart:async', 'FutureOr'));
-    data.markClass(coreTypes.getClass('dart:async', 'Completer'));
-    data.markMember(coreTypes.getMember('dart:async', 'Completer', 'sync'));
-    data.markMember(coreTypes.getMember('dart:core', '_SyncIterable', ''));
-    data.markMember(coreTypes.getMember('dart:async', '_StreamIterator', ''));
-    data.markMember(coreTypes.getMember('dart:async', 'Future', 'microtask'));
-    data.markMember(
-        coreTypes.getMember('dart:async', '_AsyncStarStreamController', ''));
-    data.markMember(coreTypes.getTopLevelMember('dart:core', 'print'));
-    data.markMember(
-        coreTypes.getTopLevelMember('dart:async', '_asyncThenWrapperHelper'));
-    data.markMember(
-        coreTypes.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper'));
-    data.markMember(coreTypes.getTopLevelMember('dart:async', '_awaitHelper'));
+    data.markClass(coreTypes.iteratorClass);
+    data.markClass(coreTypes.futureClass);
+    data.markClass(coreTypes.futureOrClass);
+    data.markClass(coreTypes.completerClass);
+    data.markMember(coreTypes.completerSyncConstructor);
+    data.markMember(coreTypes.syncIterableDefaultConstructor);
+    data.markMember(coreTypes.streamIteratorDefaultConstructor);
+    data.markMember(coreTypes.futureMicrotaskConstructor);
+    data.markMember(coreTypes.asyncStarStreamControllerDefaultConstructor);
+    data.markMember(coreTypes.printProcedure);
+    data.markMember(coreTypes.asyncThenWrapperHelperProcedure);
+    data.markMember(coreTypes.asyncErrorWrapperHelperProcedure);
+    data.markMember(coreTypes.awaitHelperProcedure);
 
     // These are needed by the mixin transformer
-    data.markMember(coreTypes.getMember('dart:core', '_InvocationMirror', ''));
-    data.markMember(coreTypes.getMember('dart:core', 'List', 'from'));
+    data.markMember(coreTypes.invocationMirrorDefaultConstructor);
+    data.markMember(coreTypes.listFromConstructor);
   }
 
   visitConstructor(Constructor node) {
