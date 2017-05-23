@@ -473,6 +473,12 @@ class CCTestSuite extends TestSuite {
     var expectations = testExpectations.expectations('$testPrefix$testName');
 
     var args = TestUtils.standardOptions(configuration);
+    var compilerConfiguration = new CompilerConfiguration(configuration);
+    if (compilerConfiguration.useDFE) {
+      args.add('--use-dart-frontend');
+      // '--dfe' has to be the first argument for run_vm_test to pick it up.
+      args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
+    }
     args.add(testName);
 
     var command = CommandBuilder.instance.getProcessCommand(
