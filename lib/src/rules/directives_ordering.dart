@@ -148,6 +148,8 @@ bool _isExportDirective(Directive node) => node is ExportDirective;
 
 bool _isImportDirective(Directive node) => node is ImportDirective;
 
+bool _isPartDirective(Directive node) => node is PartDirective;
+
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
 bool _isPackageDirective(NamespaceDirective node) =>
@@ -316,6 +318,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     node.directives.reversed
+        .skipWhile(_isPartDirective)
         .skipWhile(_isExportDirective)
         .where(_isExportDirective)
         .forEach(reportDirective);

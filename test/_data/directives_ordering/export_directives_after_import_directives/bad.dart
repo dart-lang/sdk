@@ -13,3 +13,5 @@ export 'dummy2.dart';  // LINT
 import 'dummy3.dart';
 
 export 'dummy3.dart';  // OK
+
+part 'dummy4.dart';  // Language requires export before part directivess.

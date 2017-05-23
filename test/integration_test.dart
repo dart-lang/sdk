@@ -300,7 +300,7 @@ defineTests() {
               "export 'dummy.dart';  // LINT",
               "Specify exports in a separate section after all imports.",
               "export 'dummy2.dart';  // LINT",
-              '4 files analyzed, 2 issues found, in'
+              '5 files analyzed, 2 issues found, in'
             ]));
       });
 
