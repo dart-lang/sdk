@@ -56,8 +56,6 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void-methods: Fail
 
-inference/circular_reference_via_closures: Fail
-inference/circular_reference_via_closures_initializer_types: Fail
 inference/constructors_infer_from_arguments: Fail
 inference/constructors_infer_from_arguments_const: Fail
 inference/constructors_infer_from_arguments_const_with_upper_bound: Fail

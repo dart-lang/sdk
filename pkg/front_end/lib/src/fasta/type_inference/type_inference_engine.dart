@@ -130,13 +130,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   String getFieldUri(KernelField field);
 
   /// Performs type inference on the given [field].
-  void inferField(KernelField field) {
+  void inferField(KernelField field, bool updateType) {
     if (fieldHasInitializer(field)) {
       var typeInferrer = getFieldTypeInferrer(field);
       var type = getFieldDeclaredType(field);
       var inferredType = typeInferrer.inferDeclarationType(
           typeInferrer.inferFieldInitializer(field, type, type == null));
-      if (type == null && strongMode) {
+      if (type == null && strongMode && updateType) {
         instrumentation?.record(
             Uri.parse(typeInferrer.uri),
             getFieldOffset(field),
@@ -159,9 +159,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): report the appropriate error.
     if (getFieldDeclaredType(field) == null) {
       var uri = getFieldTypeInferrer(field).uri;
+      var inferredType = const DynamicType();
       instrumentation?.record(Uri.parse(uri), getFieldOffset(field), 'topType',
-          const InstrumentationValueLiteral('circular'));
-      setFieldInferredType(field, const DynamicType());
+          new InstrumentationValueForType(inferredType));
+      setFieldInferredType(field, inferredType);
     }
   }
 
@@ -192,16 +193,19 @@ class _FieldWalker extends dependencyWalker.DependencyWalker<FieldNode> {
 
   @override
   void evaluate(FieldNode f) {
-    f._typeInferenceEngine.inferField(f._field);
+    f._typeInferenceEngine.inferField(f._field, true);
   }
 
   @override
   void evaluateScc(List<FieldNode> scc) {
+    // Mark every field as part of a circularity.
     for (var f in scc) {
       f._typeInferenceEngine.inferFieldCircular(f._field);
     }
+    // Perform type inference on the initializers of every field, but don't
+    // update the inferred types.
     for (var f in scc) {
-      f._typeInferenceEngine.inferField(f._field);
+      f._typeInferenceEngine.inferField(f._field, false);
     }
   }
 }

@@ -7,3 +7,5 @@ library test;
 
 var /*@topType=dynamic*/ x = /*@returnType=dynamic*/ () => /*error:TOP_LEVEL_CYCLE*/ y;
 var /*@topType=dynamic*/ y = /*@returnType=dynamic*/ () => /*error:TOP_LEVEL_CYCLE*/ x;
+
+main() {}
