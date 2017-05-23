@@ -427,16 +427,19 @@ class KernelFunctionExpression extends FunctionExpression
     for (int i = 0; i < formals.length; i++) {
       KernelVariableDeclaration formal = formals[i];
       if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+        DartType inferredType;
         if (formalTypesFromContext[i] != null) {
-          var inferredType = greatestClosure(inferrer.coreTypes,
+          inferredType = greatestClosure(inferrer.coreTypes,
               substitution.substituteType(formalTypesFromContext[i]));
-          inferrer.instrumentation?.record(
-              Uri.parse(inferrer.uri),
-              formal.fileOffset,
-              'type',
-              new InstrumentationValueForType(inferredType));
-          formal.type = inferredType;
+        } else {
+          inferredType = const DynamicType();
         }
+        inferrer.instrumentation?.record(
+            Uri.parse(inferrer.uri),
+            formal.fileOffset,
+            'type',
+            new InstrumentationValueForType(inferredType));
+        formal.type = inferredType;
       }
     }
 
