@@ -56,15 +56,6 @@ void f(Derived d) {
     return new TypeMemberContributor();
   }
 
-  fail_test_PrefixedIdentifier_trailingStmt_const_untyped() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
-    await computeSuggestions();
-    assertSuggestMethod('toString', 'Object', 'String');
-    // fails this assertion because type of const is not properly inferred
-    assertSuggestGetter('length', 'int');
-  }
-
   test_ArgDefaults_method() async {
     addTestSource('''
 class A {
@@ -3558,6 +3549,14 @@ void main() {C.^ print("something");}''');
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const String g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
+    assertSuggestGetter('length', 'int');
+  }
+
+  test_PrefixedIdentifier_trailingStmt_const_untyped() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
+    await computeSuggestions();
+    assertSuggestMethod('toString', 'Object', 'String');
     assertSuggestGetter('length', 'int');
   }
 

@@ -3828,6 +3828,7 @@ final V = 1;
   }
 
   test_reparentFlutterList_BAD_multiLine() async {
+    verifyNoTestUnitErrors = false;
     _configureFlutterPkg({
       'src/widgets/framework.dart': flutter_framework_code,
     });

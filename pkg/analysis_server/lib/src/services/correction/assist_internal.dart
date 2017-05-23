@@ -290,8 +290,8 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    // prepare propagated type
-    DartType type = name.propagatedType;
+    // prepare the type
+    DartType type = parameter.element.type;
     // TODO(scheglov) If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden

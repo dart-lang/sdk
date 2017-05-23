@@ -167,7 +167,7 @@ class Required {
           _fileContentOverlay,
           null,
           sourceFactory,
-          new AnalysisOptionsImpl());
+          new AnalysisOptionsImpl()..strongMode = true);
       scheduler.start();
     } else {
       _context = AnalysisEngine.instance.createAnalysisContext();
