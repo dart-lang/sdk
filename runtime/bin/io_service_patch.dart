@@ -3,23 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _IOServicePorts {
-  List<SendPort> _freeServicePorts = <SendPort>[];
-  HashMap<int, SendPort> _usedBy = new HashMap<int, SendPort>();
+  // We limit the number of IO Service ports per isolate so that we don't
+  // spawn too many threads all at once, which can crash the VM on Windows.
+  static const int maxPorts = 32;
+  List<SendPort> _ports = <SendPort>[];
+  List<SendPort> _freePorts = <SendPort>[];
+  HashMap<int, SendPort> _usedPorts = new HashMap<int, SendPort>();
 
   _IOServicePorts();
 
-  SendPort _getFreePort(int forRequestId) {
-    if (_freeServicePorts.isEmpty) {
-      _freeServicePorts.add(_newServicePort());
+  SendPort _getPort(int forRequestId) {
+    if (_freePorts.isEmpty && _usedPorts.length < maxPorts) {
+      final SendPort port = _newServicePort();
+      _ports.add(port);
+      _freePorts.add(port);
     }
-    SendPort freePort = _freeServicePorts.removeLast();
-    assert(!_usedBy.containsKey(forRequestId));
-    _usedBy[forRequestId] = freePort;
-    return freePort;
+    if (!_freePorts.isEmpty) {
+      final SendPort port = _freePorts.removeLast();
+      assert(!_usedPorts.containsKey(forRequestId));
+      _usedPorts[forRequestId] = port;
+      return port;
+    }
+    // We have already allocated the max number of ports. Re-use an
+    // existing one.
+    final SendPort port = _ports[forRequestId % maxPorts];
+    _usedPorts[forRequestId] = port;
+    return port;
   }
 
   void _returnPort(int forRequestId) {
-    _freeServicePorts.add(_usedBy.remove(forRequestId));
+    final SendPort port = _usedPorts.remove(forRequestId);
+    if (!_usedPorts.values.contains(port)) {
+      _freePorts.add(port);
+    }
   }
 
   static SendPort _newServicePort() native "IOService_NewServicePort";
@@ -39,9 +55,9 @@ class _IOService {
     do {
       id = _getNextId();
     } while (_messageMap.containsKey(id));
-    SendPort servicePort = _servicePorts._getFreePort(id);
+    final SendPort servicePort = _servicePorts._getPort(id);
     _ensureInitialize();
-    var completer = new Completer();
+    final Completer completer = new Completer();
     _messageMap[id] = completer;
     try {
       servicePort.send([id, _replyToPort, request, data]);
