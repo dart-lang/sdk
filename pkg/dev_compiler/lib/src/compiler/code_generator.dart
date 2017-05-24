@@ -6033,9 +6033,7 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
   } else if (isWithin(libraryRoot, uri.toFilePath())) {
-    qualifiedPath = uri
-        .toFilePath()
-        .substring(libraryRoot.length)
+    qualifiedPath = relative(uri.toFilePath(), from: libraryRoot)
         .replaceAll(separator, encodedSeparator);
   } else {
     // We don't have a unique name.
@@ -6058,30 +6056,6 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
   }
   // Relative path to the library.
   return relative(filePath, from: libraryRoot);
-}
-
-String jsDebuggingLibraryName(String libraryRoot, LibraryElement library) {
-  var uri = library.source.uri;
-  if (uri.scheme == 'dart') {
-    return uri.path;
-  }
-  // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-  var separator = '__';
-  String qualifiedPath;
-  if (uri.scheme == 'package') {
-    // Strip the package name.
-    // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-    // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
-    qualifiedPath = uri.pathSegments.skip(1).join(separator);
-  } else if (uri.toFilePath().startsWith(libraryRoot)) {
-    qualifiedPath =
-        uri.path.substring(libraryRoot.length).replaceAll('/', separator);
-  } else {
-    // We don't have a unique name.
-    throw 'Invalid library root. $libraryRoot does not contain ${uri
-        .toFilePath()}';
-  }
-  return pathToJSIdentifier(qualifiedPath);
 }
 
 /// Shorthand for identifier-like property names.
