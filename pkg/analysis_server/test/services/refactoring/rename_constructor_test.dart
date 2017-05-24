@@ -100,10 +100,10 @@ class A {
     await indexTestUnit('''
 class A {
   A() {} // marker
+  factory A._() = A;
 }
 class B extends A {
   B() : super() {}
-  factory B._() = A;
 }
 main() {
   new A();
@@ -119,10 +119,10 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   A.newName() {} // marker
+  factory A._() = A.newName;
 }
 class B extends A {
   B() : super.newName() {}
-  factory B._() = A.newName;
 }
 main() {
   new A.newName();
@@ -136,7 +136,6 @@ class A {
 }
 class B extends A {
   B() : super() {}
-  factory B._() = A;
 }
 main() {
   new A();
@@ -155,7 +154,6 @@ class A {
 }
 class B extends A {
   B() : super.newName() {}
-  factory B._() = A.newName;
 }
 main() {
   new A.newName();
@@ -167,10 +165,10 @@ main() {
     await indexTestUnit('''
 class A {
   A.test() {} // marker
+  factory A._() = A.test;
 }
 class B extends A {
   B() : super.test() {}
-  factory B._() = A.test;
 }
 main() {
   new A.test();
@@ -186,10 +184,10 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   A.newName() {} // marker
+  factory A._() = A.newName;
 }
 class B extends A {
   B() : super.newName() {}
-  factory B._() = A.newName;
 }
 main() {
   new A.newName();
@@ -201,10 +199,10 @@ main() {
     await indexTestUnit('''
 class A {
   A.test() {} // marker
+  factory A._() = A.test;
 }
 class B extends A {
   B() : super.test() {}
-  factory B._() = A.test;
 }
 main() {
   new A.test();
@@ -220,10 +218,10 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   A() {} // marker
+  factory A._() = A;
 }
 class B extends A {
   B() : super() {}
-  factory B._() = A;
 }
 main() {
   new A();

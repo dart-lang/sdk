@@ -650,6 +650,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:core", "AbstractClassInstantiationError",
      "AbstractClassInstantiationError._create"},
     {"dart:core", "ArgumentError", "ArgumentError."},
+    {"dart:core", "ArgumentError", "ArgumentError.value"},
     {"dart:core", "CyclicInitializationError", "CyclicInitializationError."},
     {"dart:core", "FallThroughError", "FallThroughError._create"},
     {"dart:core", "FormatException", "FormatException."},

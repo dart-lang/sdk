@@ -39,7 +39,9 @@ import 'environment.dart';
 import 'frontend_strategy.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
+import 'io/source_file.dart' show Binary;
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/element_strategy.dart' show ElementBackendStrategy;
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart'
     show
@@ -196,7 +198,7 @@ abstract class Compiler {
         ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
-        ? new KernelBackendStrategy()
+        ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
     _elementEnvironment = frontEndStrategy.elementEnvironment;
@@ -259,8 +261,7 @@ abstract class Compiler {
         generateSourceMap: options.generateSourceMap,
         useStartupEmitter: options.useStartupEmitter,
         useMultiSourceInfo: options.useMultiSourceInfo,
-        useNewSourceInfo: options.useNewSourceInfo,
-        useKernel: options.useKernel);
+        useNewSourceInfo: options.useNewSourceInfo);
   }
 
   /// Creates the scanner task.
@@ -853,6 +854,11 @@ abstract class Compiler {
   Future<Script> readScript(Uri readableUri, [Spannable node]) {
     throw new SpannableAssertionFailure(
         node, 'Compiler.readScript not implemented.');
+  }
+
+  Future<Binary> readBinary(Uri readableUri, [Spannable node]) {
+    throw new SpannableAssertionFailure(
+        node, 'Compiler.readBinary not implemented.');
   }
 
   Element lookupElementIn(ScopeContainerElement container, String name) {
@@ -1541,6 +1547,9 @@ class _ScriptLoader implements ScriptLoader {
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) =>
       compiler.readScript(uri, spannable);
+
+  Future<Binary> readBinary(Uri uri, [Spannable spannable]) =>
+      compiler.readBinary(uri, spannable);
 }
 
 /// [ScriptLoader] used to ensure that scripts are not loaded accidentally
@@ -1550,6 +1559,11 @@ class _NoScriptLoader implements ScriptLoader {
   _NoScriptLoader(this.compiler);
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) {
+    throw compiler.reporter
+        .internalError(spannable, "Script loading of '$uri' is not enabled.");
+  }
+
+  Future<Binary> readBinary(Uri uri, [Spannable spannable]) {
     throw compiler.reporter
         .internalError(spannable, "Script loading of '$uri' is not enabled.");
   }

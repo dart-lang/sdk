@@ -49,7 +49,8 @@ void testTypeRepresentations() {
         env.compiler.enqueuer.createCodegenEnqueuer(closedWorld);
         env.compiler.backend.onCodegenStart(
             closedWorld,
-            new CodegenWorldBuilderImpl(
+            new ElementCodegenWorldBuilderImpl(
+                env.compiler.elementEnvironment,
                 env.compiler.backend.nativeBasicData,
                 closedWorld,
                 env.compiler.backend.constants,

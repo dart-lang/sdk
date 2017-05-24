@@ -51,7 +51,6 @@ indexeddb_3_test: Pass, Timeout # Roll 50 failure
 indexeddb_4_test: Pass, Timeout # Roll 50 failure
 indexeddb_5_test: Pass, Timeout # Roll 50 failure
 js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
-keyboard_event_test: Pass, RuntimeError # Roll 50 failure
 svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 websql_test/functional: Pass, Timeout # Roll 50 failure
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure

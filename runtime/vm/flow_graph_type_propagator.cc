@@ -1024,7 +1024,9 @@ CompileType StaticCallInstr::ComputeType() const {
     return CompileType::FromAbstractType(result_type);
   }
 
-  return CompileType::Dynamic();
+  return (function_.recognized_kind() != MethodRecognizer::kUnknown)
+             ? CompileType::FromCid(MethodRecognizer::ResultCid(function_))
+             : CompileType::Dynamic();
 }
 
 
@@ -1518,7 +1520,7 @@ CompileType InvokeMathCFunctionInstr::ComputeType() const {
 }
 
 
-CompileType MergedMathInstr::ComputeType() const {
+CompileType TruncDivModInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 

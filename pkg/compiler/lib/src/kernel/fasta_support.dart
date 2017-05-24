@@ -97,16 +97,13 @@ class KernelTargetForDart2js extends KernelTarget {
 
   @override
   void runBuildTransformations() {}
-
-  @override
-  void runLinkTransformations(_) {}
 }
 
 /// Specializes [DillTarget] to build kernel for dart2js: JS-specific libraries
 /// are included in the SDK, and native clauses have no string parameter.
 class DillTargetForDart2js extends DillTarget {
   DillTargetForDart2js(Ticker ticker, TranslateUri uriTranslator)
-      : super(ticker, uriTranslator);
+      : super(ticker, uriTranslator, "none");
 
   @override
   Token skipNativeClause(Token token) => _skipNative(token);

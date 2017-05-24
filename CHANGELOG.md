@@ -4,9 +4,10 @@
 * During a dynamic type check, `void` is not required to be `null` anymore.
   In practice, this makes overriding `void` functions with non-`void` functions
   safer.
-* During static analysis, a function declared using `=>` with return type `void`
-  now allows the returned expression to have any type. For example, assuming the
-  declaration `int x;`, it is now type correct to have `void f() => ++x;`.
+* During static analysis, a function or setter declared using `=>` with return
+  type `void` now allows the returned expression to have any type. For example,
+  assuming the declaration `int x;`, it is now type correct to have
+  `void f() => ++x;`.
 
 #### Strong Mode
 
@@ -21,8 +22,8 @@ Packages that implement `Future` must either type the `onValue` parameter to
 entirely to allow inference to fill in the type.
 
 * The following is also a change in strong mode: During static analysis, a
-  function declared using `=>` with return type `void` now allows the returned
-  expression to have any type.
+  function or setter declared using `=>` with return type `void` now allows the
+  returned expression to have any type.
 
 ### Core library changes
 
@@ -45,7 +46,6 @@ entirely to allow inference to fill in the type.
       1.24, violations are only reported (on stdout or stderr), but a future
       version of the Dart SDK will change this to throwing a `StateError`.
 
-
 ### Dart VM
 
 ### Tool Changes
@@ -59,6 +59,12 @@ entirely to allow inference to fill in the type.
     * Preserve type parameters in new generic function typedef syntax.
     * Add self-test validation to ensure formatter bugs do not cause user code
       to be lost.
+
+### Infrastructure changes
+
+* As of this release, we'll show a warning when using the MIPS architecture.
+  Unless we learn about any critical use of Dart on MIPS in the meantime, we're
+  planning to deprecate support for MIPS starting with the next stable release.
 
 ## 1.23.0
 

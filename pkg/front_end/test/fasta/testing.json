@@ -51,7 +51,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -67,7 +68,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -83,7 +85,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -99,7 +102,22 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
+      ]
+    },
+
+    {
+      "name": "shaker",
+      "kind": "Chain",
+      "source": "shaker_test.dart",
+      "path": "../../testcases/shaker/",
+      "status": "shaker.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/shaker/lib/lib.dart"
       ]
     },
 
@@ -167,9 +185,12 @@
       "kompile_test.dart",
       "outline_test.dart",
       "sdk_test.dart",
+      "../incremental_kernel_generator_test.dart",
       "../../../analyzer/lib/src/fasta",
+      "../../../analyzer/lib/src/summary/fasta",
       "../../../analyzer/lib/src/dart/analysis/file_state.dart",
       "../../../analyzer/test/generated/parser_fasta_test.dart",
+      "../../../analyzer/tool/summary/mini_ast.dart",
       "../../../../utils/kernel-service/kernel-service.dart",
       "../../../../tools/patch_sdk.dart"
     ],

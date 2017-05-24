@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
-import '../parser/parser.dart' show FormalParameterType, optional;
+import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -458,8 +458,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
@@ -484,7 +484,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
@@ -517,7 +517,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     List formals = popList(count);
     if (formals != null && formals.isNotEmpty) {
@@ -549,9 +550,9 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     push(token.charOffset);
-    super.handleNoFormalParameters(token);
+    super.handleNoFormalParameters(token, kind);
   }
 
   @override
@@ -634,8 +635,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantToken, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List namesOffsetsAndInitializers = popList(count * 4);
     TypeBuilder type = pop();

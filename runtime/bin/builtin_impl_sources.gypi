@@ -55,8 +55,6 @@
     'io_buffer.h',
     'isolate_data.cc',
     'isolate_data.h',
-    'loader.cc',
-    'loader.h',
     'lockers.h',
     'thread.h',
     'thread_android.cc',

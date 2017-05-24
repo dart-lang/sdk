@@ -894,7 +894,7 @@ main(int k) {
     await indexTestUnit('''
 var X = 1;
 
-var Y = () {
+dynamic Y = () {
   return 1 + X;
 };
 ''');
@@ -903,11 +903,11 @@ var Y = () {
     return _assertSuccessfulRefactoring('''
 var X = 1;
 
-var Y = () {
+dynamic Y = () {
   return res();
 };
 
-num res() => 1 + X;
+int res() => 1 + X;
 ''');
   }
 

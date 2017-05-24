@@ -332,7 +332,7 @@ class A {
       expect(location.startColumn, 16);
     }
     expect(element.parameters, isNull);
-    expect(element.returnType, 'dynamic');
+    expect(element.returnType, 'int');
     expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
   }
 

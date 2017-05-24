@@ -915,21 +915,21 @@ class HelperNodes {
   factory HelperNodes.fromProgram(Program program) {
     var coreTypes = new CoreTypes(program);
     return new HelperNodes(
-        coreTypes.getLibrary('dart:async'),
-        coreTypes.getLibrary('dart:core'),
-        coreTypes.getClass('dart:core', 'Iterator'),
-        coreTypes.getClass('dart:async', 'Future'),
-        coreTypes.getClass('dart:async', 'FutureOr'),
-        coreTypes.getClass('dart:async', 'Completer'),
-        coreTypes.getTopLevelMember('dart:core', 'print'),
-        coreTypes.getMember('dart:async', 'Completer', 'sync'),
-        coreTypes.getMember('dart:core', '_SyncIterable', ''),
-        coreTypes.getMember('dart:async', '_StreamIterator', ''),
-        coreTypes.getMember('dart:async', 'Future', 'microtask'),
-        coreTypes.getMember('dart:async', '_AsyncStarStreamController', ''),
-        coreTypes.getTopLevelMember('dart:async', '_asyncThenWrapperHelper'),
-        coreTypes.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper'),
-        coreTypes.getTopLevelMember('dart:async', '_awaitHelper'),
+        coreTypes.asyncLibrary,
+        coreTypes.coreLibrary,
+        coreTypes.iteratorClass,
+        coreTypes.futureClass,
+        coreTypes.futureOrClass,
+        coreTypes.completerClass,
+        coreTypes.printProcedure,
+        coreTypes.completerSyncConstructor,
+        coreTypes.syncIterableDefaultConstructor,
+        coreTypes.streamIteratorDefaultConstructor,
+        coreTypes.futureMicrotaskConstructor,
+        coreTypes.asyncStarStreamControllerDefaultConstructor,
+        coreTypes.asyncThenWrapperHelperProcedure,
+        coreTypes.asyncErrorWrapperHelperProcedure,
+        coreTypes.awaitHelperProcedure,
         coreTypes);
   }
 }

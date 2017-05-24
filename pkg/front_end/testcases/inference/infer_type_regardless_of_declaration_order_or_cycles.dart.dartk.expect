@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "./infer_type_regardless_of_declaration_order_or_cycles_b.dart" as inf;
+import "dart:core" as core;
+
+class C extends inf::B {
+  constructor •() → void
+    : super inf::B::•()
+    ;
+  get x() → dynamic
+    return null;
+}
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 0;
+}
+static method foo() → dynamic {
+  core::int y = (throw new core::NoSuchMethodError::•(null, #C, <dynamic>[], <dynamic, dynamic>{}, null)).x;
+  core::String z = (throw new core::NoSuchMethodError::•(null, #C, <dynamic>[], <dynamic, dynamic>{}, null)).x;
+}
+static method main() → dynamic {
+  self::foo();
+}

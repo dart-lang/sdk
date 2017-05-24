@@ -18,14 +18,37 @@ export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
 // Unless explicitly allowed, passing `null` for any argument to the
 // methods of library will result in an Error being thrown.
 
+/// Input kinds used by [CompilerInput.readFromUri].
+enum InputKind {
+  /// Data is read as UTF8 either as a [String] or a zero-terminated
+  /// `List<int>`.
+  utf8,
+
+  /// Data is read as bytes in a `List<int>`.
+  binary,
+}
+
+/// Interface for data read through [CompilerInput.readFromUri].
+abstract class Input<T> {
+  /// The URI from which data was read.
+  Uri get uri;
+
+  /// The format of the read [data].
+  InputKind get inputKind;
+
+  /// The raw data read from [uri].
+  T get data;
+}
+
 /// Interface for providing the compiler with input. That is, Dart source files,
 /// package config files, etc.
 abstract class CompilerInput {
   /// Returns a future that completes to the source corresponding to [uri].
   /// If an exception occurs, the future completes with this exception.
   ///
-  /// The source can be represented either as a [:List<int>:] of UTF-8 bytes or
-  /// as a [String].
+  /// If [inputKind] is `InputKind.utf8` the source can be represented either as
+  /// a zero-terminated `List<int>` of UTF-8 bytes or as a [String]. If
+  /// [inputKind] is `InputKind.binary` the source is a read a `List<int>`.
   ///
   /// The following text is non-normative:
   ///
@@ -33,7 +56,7 @@ abstract class CompilerInput {
   /// scanner is more efficient in this case. In either case, the data structure
   /// is expected to hold a zero element at the last position. If this is not
   /// the case, the entire data structure is copied before scanning.
-  Future /* <String | List<int>> */ readFromUri(Uri uri);
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.utf8});
 }
 
 /// Output types used in `CompilerOutput.createOutputSink`.

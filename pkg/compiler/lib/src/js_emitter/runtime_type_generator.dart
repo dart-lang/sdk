@@ -99,7 +99,7 @@ class RuntimeTypeGenerator {
   /// type variables.
   TypeTestProperties generateIsTests(ClassElement classElement,
       {bool storeFunctionTypeInMetadata: true}) {
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     TypeTestProperties result = new TypeTestProperties();
 

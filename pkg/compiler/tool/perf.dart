@@ -294,13 +294,7 @@ class _Loader {
   }
 
   Future<SourceFile> _readFile(Uri uri) async {
-    var data = await inputProvider.readFromUri(uri);
-    if (data is List<int>) return new Utf8BytesSourceFile(uri, data);
-    if (data is String) return new StringSourceFile.fromUri(uri, data);
-    // TODO(sigmund): properly handle errors, just report, return null, wrap
-    // above and continue...
-    throw "Expected a 'String' or a 'List<int>' from the input "
-        "provider, but got: ${data.runtimeType}.";
+    return await inputProvider.readFromUri(uri, inputKind: InputKind.utf8);
   }
 
   Uri _translateUri(Uri uri) {

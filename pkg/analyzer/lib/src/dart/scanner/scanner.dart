@@ -147,8 +147,9 @@ class _Scanner2 implements Scanner {
       // TODO(danrubel): remove this once fasts support has been added.
       throw 'No generic method comment support in Fasta';
     }
-    fasta.ScannerResult result =
-        fasta.scanString(_contents, includeComments: _preserveComments);
+    fasta.ScannerResult result = fasta.scanString(_contents,
+        includeComments: _preserveComments,
+        scanLazyAssignmentOperators: scanLazyAssignmentOperators);
     // fasta pretends there is an additional line at EOF
     lineStarts
         .addAll(result.lineStarts.sublist(1, result.lineStarts.length - 1));

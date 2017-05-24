@@ -25,8 +25,6 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.analysis.analysis_domain;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart'

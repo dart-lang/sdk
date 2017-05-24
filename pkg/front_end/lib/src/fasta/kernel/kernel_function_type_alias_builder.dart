@@ -10,25 +10,23 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InvalidType,
-        NamedType,
         TypeParameter,
         Typedef;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../messages.dart' show warning;
-
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
         FunctionTypeAliasBuilder,
-        KernelFormalParameterBuilder,
         KernelTypeBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeVariableBuilder,
         computeDefaultTypeArguments;
+
+import 'kernel_function_type_builder.dart' show buildFunctionType;
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelTypeBuilder, DartType> {
@@ -67,37 +65,8 @@ class KernelFunctionTypeAliasBuilder
       return thisType;
     }
     thisType = const InvalidType();
-    DartType returnType =
-        this.returnType?.build(library) ?? const DynamicType();
-    List<DartType> positionalParameters = <DartType>[];
-    List<NamedType> namedParameters;
-    int requiredParameterCount = 0;
-    if (formals != null) {
-      for (KernelFormalParameterBuilder formal in formals) {
-        DartType type = formal.type?.build(library) ?? const DynamicType();
-        if (formal.isPositional) {
-          positionalParameters.add(type);
-          if (formal.isRequired) requiredParameterCount++;
-        } else if (formal.isNamed) {
-          namedParameters ??= <NamedType>[];
-          namedParameters.add(new NamedType(formal.name, type));
-        }
-      }
-      if (namedParameters != null) {
-        namedParameters.sort();
-      }
-    }
-    List<TypeParameter> typeParameters;
-    if (typeVariables != null) {
-      typeParameters = <TypeParameter>[];
-      for (KernelTypeVariableBuilder t in typeVariables) {
-        typeParameters.add(t.parameter);
-      }
-    }
-    return thisType = new FunctionType(positionalParameters, returnType,
-        namedParameters: namedParameters ?? const <NamedType>[],
-        typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount);
+    return thisType =
+        buildFunctionType(library, returnType, typeVariables, formals);
   }
 
   /// [arguments] have already been built.

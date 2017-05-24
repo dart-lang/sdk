@@ -536,7 +536,7 @@ class ResolvedAstDeserializer {
             }
           }
           return doParse((parser) {
-            parser.parseFunction(beginToken, getOrSet);
+            parser.parseMember(beginToken);
           });
       }
     }

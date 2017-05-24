@@ -235,6 +235,14 @@ abstract class PluginInfo {
  */
 class PluginManager {
   /**
+   * A table, keyed by both a plugin and a request method, to a list of the
+   * times that it took the plugin to return a response to requests with the
+   * method.
+   */
+  static Map<PluginInfo, Map<String, List<int>>> pluginResponseTimes =
+      <PluginInfo, Map<String, List<int>>>{};
+
+  /**
    * The resource provider used to access the file system.
    */
   final ResourceProvider resourceProvider;
@@ -259,6 +267,11 @@ class PluginManager {
    * The instrumentation service that is being used by the analysis server.
    */
   final InstrumentationService instrumentationService;
+
+  /**
+   * The list of globs used to match plugin paths that have been whitelisted.
+   */
+  List<Glob> _whitelistGlobs;
 
   /**
    * A table mapping the paths of plugins to information about those plugins.
@@ -291,7 +304,13 @@ class PluginManager {
    * running plugins will be handled by the given [notificationManager].
    */
   PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
-      this.notificationManager, this.instrumentationService);
+      this.notificationManager, this.instrumentationService) {
+    // TODO(brianwilkerson) Figure out the right list of plugin paths.
+    _whitelistGlobs = <Glob>[
+      new Glob(resourceProvider.pathContext.separator,
+          '**/analyze_angular/tools/analysis_plugin')
+    ];
+  }
 
   /**
    * Add the plugin with the given [path] to the list of plugins that should be
@@ -300,6 +319,9 @@ class PluginManager {
    */
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
+    if (!_isWhitelisted(path)) {
+      return;
+    }
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
@@ -475,6 +497,16 @@ class PluginManager {
     return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
   }
 
+  /**
+   * Whitelist all plugins.
+   */
+  @visibleForTesting
+  void whitelistEverything() {
+    _whitelistGlobs = <Glob>[
+      new Glob(resourceProvider.pathContext.separator, '**/*')
+    ];
+  }
+
   WatchEventType _convertChangeType(watcher.ChangeType type) {
     switch (type) {
       case watcher.ChangeType.ADD:
@@ -490,6 +522,18 @@ class PluginManager {
 
   WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {
     return new WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
+  }
+
+  /**
+   * Return `true` if the plugin with the given [path] has been whitelisted.
+   */
+  bool _isWhitelisted(String path) {
+    for (Glob glob in _whitelistGlobs) {
+      if (glob.matches(path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -567,6 +611,17 @@ class PluginManager {
     List<int> bytes = md5.convert(path.codeUnits).bytes;
     return hex.encode(bytes);
   }
+
+  /**
+   * Record the fact that the given [plugin] responded to a request with the
+   * given [method] in the given [time].
+   */
+  static void recordResponseTime(PluginInfo plugin, String method, int time) {
+    pluginResponseTimes
+        .putIfAbsent(plugin, () => <String, List<int>>{})
+        .putIfAbsent(method, () => <int>[])
+        .add(time);
+  }
 }
 
 /**
@@ -574,6 +629,19 @@ class PluginManager {
  */
 @visibleForTesting
 class PluginSession {
+  /**
+   * The maximum number of milliseconds that server should wait for a response
+   * from a plugin before deciding that the plugin is hung.
+   */
+  static const Duration MAXIMUM_RESPONSE_TIME = const Duration(minutes: 2);
+
+  /**
+   * The length of time to wait after sending a 'plugin.shutdown' request before
+   * a failure to terminate will cause the isolate to be killed.
+   */
+  static const Duration WAIT_FOR_SHUTDOWN_DURATION =
+      const Duration(seconds: 10);
+
   /**
    * The information about the plugin being executed.
    */
@@ -598,8 +666,7 @@ class PluginSession {
    * A table mapping the id's of requests to the functions used to handle the
    * response to those requests.
    */
-  Map<String, Completer<Response>> pendingRequests =
-      <String, Completer<Response>>{};
+  Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
 
   /**
    * A boolean indicating whether the plugin is compatible with the version of
@@ -689,10 +756,31 @@ class PluginSession {
    * created when the request was sent.
    */
   void handleResponse(Response response) {
-    Completer<Response> completer = pendingRequests.remove(response.id);
+    _PendingRequest requestData = pendingRequests.remove(response.id);
+    int responseTime = new DateTime.now().millisecondsSinceEpoch;
+    int duration = responseTime - requestData.requestTime;
+    PluginManager.recordResponseTime(info, requestData.method, duration);
+    Completer<Response> completer = requestData.completer;
     if (completer != null) {
       completer.complete(response);
     }
+  }
+
+  /**
+   * Return `true` if there are any requests that have not been responded to
+   * within the maximum allowed amount of time.
+   */
+  bool isNonResponsive() {
+    // TODO(brianwilkerson) Figure out when to invoke this method in order to
+    // identify non-responsive plugins and kill them.
+    int cutOffTime = new DateTime.now().millisecondsSinceEpoch -
+        MAXIMUM_RESPONSE_TIME.inMilliseconds;
+    for (var requestData in pendingRequests.values) {
+      if (requestData.requestTime < cutOffTime) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -706,8 +794,11 @@ class PluginSession {
     }
     String id = nextRequestId;
     Completer<Response> completer = new Completer();
-    pendingRequests[id] = completer;
-    channel.sendRequest(parameters.toRequest(id));
+    int requestTime = new DateTime.now().millisecondsSinceEpoch;
+    Request request = parameters.toRequest(id);
+    pendingRequests[id] =
+        new _PendingRequest(request.method, requestTime, completer);
+    channel.sendRequest(request);
     return completer.future;
   }
 
@@ -757,9 +848,40 @@ class PluginSession {
     if (channel == null) {
       throw new StateError('Cannot stop a plugin that is not running.');
     }
-    // TODO(brianwilkerson) Ensure that the isolate is killed if it does not
-    // terminate normally.
     sendRequest(new PluginShutdownParams());
+    new Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
+      if (channel != null) {
+        channel.kill();
+        channel = null;
+      }
+    });
     return pluginStoppedCompleter.future;
   }
+}
+
+/**
+ * Information about a request that has been sent but for which a response has
+ * not yet been received.
+ */
+class _PendingRequest {
+  /**
+   * The method of the request.
+   */
+  final String method;
+
+  /**
+   * The time at which the request was sent to the plugin.
+   */
+  final int requestTime;
+
+  /**
+   * The completer that will be used to complete the future when the response is
+   * received from the plugin.
+   */
+  final Completer<Response> completer;
+
+  /**
+   * Initialize a pending request.
+   */
+  _PendingRequest(this.method, this.requestTime, this.completer);
 }

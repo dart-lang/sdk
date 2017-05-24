@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object>() → dynamic
+    return null;
+}
+static method main() → asy::Future<dynamic> {
+  for (core::int x in <dynamic>[1, 2, 3]) {
+  }
+  await for (core::int x in throw new core::NoSuchMethodError::•(null, #MyStream, <dynamic>[], <dynamic, dynamic>{}, null)) {
+  }
+}

@@ -556,6 +556,12 @@ if (is_win) {
     default_warning_flags += [ "-Wno-psabi" ]
   }
 
+  # The Raspberry Pi 1 toolchain enables this warning, but Dart doesn't build
+  # cleanly with it.
+  if (is_linux && !is_clang && current_cpu == "arm" && arm_version == 6) {
+    default_warning_flags += [ "-Wno-type-limits" ]
+  }
+
   if (is_android) {
     # Disable any additional warnings enabled by the Android build system but
     # which chromium does not build cleanly with (when treating warning as

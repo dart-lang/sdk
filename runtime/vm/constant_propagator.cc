@@ -831,30 +831,33 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
     }
   }
 
-  if (instr->IsImmutableLengthLoad()) {
-    ConstantInstr* constant =
-        instance->definition()->OriginalDefinition()->AsConstant();
-    if (constant != NULL) {
-      if (constant->value().IsString()) {
+  const Object& constant = instance->definition()->constant_value();
+  if (IsConstant(constant)) {
+    if (instr->IsImmutableLengthLoad()) {
+      if (constant.IsString()) {
         SetValue(instr,
-                 Smi::ZoneHandle(
-                     Z, Smi::New(String::Cast(constant->value()).Length())));
+                 Smi::ZoneHandle(Z, Smi::New(String::Cast(constant).Length())));
         return;
       }
-      if (constant->value().IsArray()) {
+      if (constant.IsArray()) {
         SetValue(instr,
-                 Smi::ZoneHandle(
-                     Z, Smi::New(Array::Cast(constant->value()).Length())));
+                 Smi::ZoneHandle(Z, Smi::New(Array::Cast(constant).Length())));
         return;
       }
-      if (constant->value().IsTypedData()) {
-        SetValue(instr,
-                 Smi::ZoneHandle(
-                     Z, Smi::New(TypedData::Cast(constant->value()).Length())));
+      if (constant.IsTypedData()) {
+        SetValue(instr, Smi::ZoneHandle(
+                            Z, Smi::New(TypedData::Cast(constant).Length())));
+        return;
+      }
+    } else {
+      Object& value = Object::Handle();
+      if (instr->Evaluate(constant, &value)) {
+        SetValue(instr, Object::ZoneHandle(Z, value.raw()));
         return;
       }
     }
   }
+
   SetValue(instr, non_constant_);
 }
 
@@ -1119,7 +1122,7 @@ void ConstantPropagator::VisitInvokeMathCFunction(
 }
 
 
-void ConstantPropagator::VisitMergedMath(MergedMathInstr* instr) {
+void ConstantPropagator::VisitTruncDivMod(TruncDivModInstr* instr) {
   // TODO(srdjan): Handle merged instruction.
   SetValue(instr, non_constant_);
 }
@@ -1548,7 +1551,8 @@ void ConstantPropagator::EliminateRedundantBranches() {
         // Drop the comparison, which does not have side effects
         JoinEntryInstr* join = if_true->AsJoinEntry();
         if (join->phis() == NULL) {
-          GotoInstr* jump = new (Z) GotoInstr(if_true->AsJoinEntry());
+          GotoInstr* jump =
+              new (Z) GotoInstr(if_true->AsJoinEntry(), Thread::kNoDeoptId);
           jump->InheritDeoptTarget(Z, branch);
 
           Instruction* previous = branch->previous();
@@ -1691,16 +1695,16 @@ void ConstantPropagator::Transform() {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
-        join =
-            new (Z) JoinEntryInstr(if_false->block_id(), if_false->try_index());
+        join = new (Z) JoinEntryInstr(
+            if_false->block_id(), if_false->try_index(), Thread::kNoDeoptId);
         join->InheritDeoptTarget(Z, if_false);
         if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
-        join =
-            new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index());
+        join = new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index(),
+                                      Thread::kNoDeoptId);
         join->InheritDeoptTarget(Z, if_true);
         if_true->UnuseAllInputs();
         next = if_true->next();
@@ -1711,7 +1715,7 @@ void ConstantPropagator::Transform() {
         // Drop the comparison, which does not have side effects as long
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
-        GotoInstr* jump = new (Z) GotoInstr(join);
+        GotoInstr* jump = new (Z) GotoInstr(join, Thread::kNoDeoptId);
         jump->InheritDeoptTarget(Z, branch);
 
         Instruction* previous = branch->previous();

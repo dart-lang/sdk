@@ -67,14 +67,16 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   NativeEmitter get nativeEmitter {
-    assert(invariant(NO_LOCATION_SPANNABLE, _nativeEmitter != null,
-        message: "NativeEmitter has not been created yet."));
+    assert(
+        _nativeEmitter != null,
+        failedAt(
+            NO_LOCATION_SPANNABLE, "NativeEmitter has not been created yet."));
     return _nativeEmitter;
   }
 
   Emitter get emitter {
-    assert(invariant(NO_LOCATION_SPANNABLE, _emitter != null,
-        message: "Emitter has not been created yet."));
+    assert(_emitter != null,
+        failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
     return _emitter;
   }
 

@@ -186,6 +186,10 @@ class KernelAstFactory implements AstFactory<VariableDeclaration> {
   @override
   StaticInvocation staticInvocation(Procedure target, Arguments arguments,
       {bool isConst: false}) {
+    if (target.kind == ProcedureKind.Factory) {
+      return new KernelFactoryConstructorInvocation(target, arguments,
+          isConst: isConst);
+    }
     return new KernelStaticInvocation(target, arguments, isConst: isConst);
   }
 

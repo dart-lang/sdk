@@ -321,7 +321,8 @@ Token fromAnalyzerToken(analyzer.Token token) {
       return symbol(TokenType.AMPERSAND);
     case TokenType.AMPERSAND_AMPERSAND:
       return symbol(TokenType.AMPERSAND_AMPERSAND);
-    // case TokenType.AMPERSAND_AMPERSAND_EQ
+    case TokenType.AMPERSAND_AMPERSAND_EQ:
+      return symbol(TokenType.AMPERSAND_AMPERSAND_EQ);
     case TokenType.AMPERSAND_EQ:
       return symbol(TokenType.AMPERSAND_EQ);
     case TokenType.AT:
@@ -334,7 +335,8 @@ Token fromAnalyzerToken(analyzer.Token token) {
       return symbol(TokenType.BAR);
     case TokenType.BAR_BAR:
       return symbol(TokenType.BAR_BAR);
-    // case TokenType.BAR_BAR_EQ
+    case TokenType.BAR_BAR_EQ:
+      return symbol(TokenType.BAR_BAR_EQ);
     case TokenType.BAR_EQ:
       return symbol(TokenType.BAR_EQ);
     case TokenType.COLON:

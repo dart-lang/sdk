@@ -12,3 +12,8 @@ var /*@topType=() -> FutureOr<int>*/ f = /*@returnType=FutureOr<int>*/ () =>
     futureOrInt;
 var /*@topType=() -> Future<int>*/ g = /*@returnType=Future<int>*/ () async =>
     futureOrInt;
+
+main() {
+  f;
+  g;
+}

@@ -223,6 +223,11 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   }
 
   @override
+  void kill() {
+    _isolate.kill(priority: Isolate.IMMEDIATE);
+  }
+
+  @override
   Future<Null> listen(void onResponse(Response response),
       void onNotification(Notification notification),
       {Function onError, void onDone()}) async {

@@ -7,7 +7,7 @@ library dart2js.js_emitter.type_test_registry;
 import '../common.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart'
-    show ClassElement, Element, ElementKind, MemberElement, MethodElement;
+    show ClassElement, ElementKind, MemberElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show
@@ -69,14 +69,18 @@ class TypeTestRegistry {
       this._codegenWorldBuilder, this._closedWorld, this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks != null,
-        message: "RuntimeTypesChecks has not been computed yet."));
+    assert(
+        _rtiChecks != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "RuntimeTypesChecks has not been computed yet."));
     return _rtiChecks;
   }
 
   Iterable<ClassEntity> get rtiNeededClasses {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeededClasses != null,
-        message: "rtiNeededClasses has not been computed yet."));
+    assert(
+        _rtiNeededClasses != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "rtiNeededClasses has not been computed yet."));
     return _rtiNeededClasses;
   }
 
@@ -97,7 +101,7 @@ class TypeTestRegistry {
   }
 
   void computeRtiNeededClasses(RuntimeTypesSubstitutions rtiSubstitutions,
-      MirrorsData mirrorsData, Iterable<MemberElement> liveMembers) {
+      MirrorsData mirrorsData, Iterable<MemberEntity> liveMembers) {
     _rtiNeededClasses = new Set<ClassEntity>();
 
     void addClassWithSuperclasses(ClassElement cls) {
@@ -138,7 +142,7 @@ class TypeTestRegistry {
       }
     }
 
-    bool canTearOff(Element function) {
+    bool canTearOff(MemberElement function) {
       if (!function.isFunction ||
           function.isConstructor ||
           function.isAccessor) {

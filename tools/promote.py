@@ -143,9 +143,8 @@ def _PromoteDartArchiveBuild(channel, revision):
     Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
     # Copy wheezy linux deb and src packages.
-    from_loc = raw_namer.linux_packages_directory(revision, 'debian_wheezy')
-    to_loc = release_namer.linux_packages_directory(to_revision,
-                                                    'debian_wheezy')
+    from_loc = raw_namer.linux_packages_directory(revision)
+    to_loc = release_namer.linux_packages_directory(to_revision)
     remove_gs_directory(to_loc)
     Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 

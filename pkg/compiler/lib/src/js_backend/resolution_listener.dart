@@ -153,11 +153,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    ParameterStructure parameterStructure = mainMethod.parameterStructure;
-    CallStructure callStructure = new CallStructure(
-        parameterStructure.positionalParameters +
-            parameterStructure.namedParameters.length,
-        parameterStructure.namedParameters);
+    CallStructure callStructure = mainMethod.parameterStructure.callStructure;
     if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);

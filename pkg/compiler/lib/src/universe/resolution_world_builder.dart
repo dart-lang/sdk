@@ -630,8 +630,7 @@ abstract class ResolutionWorldBuilderBase
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.DIRECT_INVOKE:
-        invariant(
-            element, 'Direct static use is not supported for resolution.');
+        failedAt(element, 'Direct static use is not supported for resolution.');
         break;
       case StaticUseKind.INLINING:
         throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,

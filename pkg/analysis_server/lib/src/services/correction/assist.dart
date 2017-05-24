@@ -2,55 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.correction.assist;
-
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * Compute and return the assists available at the given selection (described by
- * the [offset] and [length]) in the given [source]. The source was analyzed in
- * the given [analysisContext]. The [plugin] is used to get the list of assist
- * contributors.
- */
-Future<List<Assist>> computeAssists(
-    ServerPlugin plugin,
-    AnalysisContext analysisContext,
-    Source source,
-    int offset,
-    int length) async {
-  List<Assist> assists = <Assist>[];
-  List<AssistContributor> contributors = plugin.assistContributors;
-  AssistContextImpl assistContext =
-      new AssistContextImpl(analysisContext, source, offset, length);
-  for (AssistContributor contributor in contributors) {
-    try {
-      List<Assist> contributedAssists =
-          await contributor.computeAssists(assistContext);
-      if (contributedAssists != null) {
-        assists.addAll(contributedAssists);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Exception from assist contributor: ${contributor.runtimeType}',
-          new CaughtException(exception, stackTrace));
-    }
-  }
-  assists.sort(Assist.SORT_BY_RELEVANCE);
-  return assists;
-}
 
 /**
  * The implementation of [AssistContext].
  */
 class AssistContextImpl implements AssistContext {
   @override
-  final AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final Source source;
@@ -61,7 +22,7 @@ class AssistContextImpl implements AssistContext {
   @override
   final int selectionLength;
 
-  AssistContextImpl(this.analysisContext, this.source, this.selectionOffset,
+  AssistContextImpl(this.analysisDriver, this.source, this.selectionOffset,
       this.selectionLength);
 }
 

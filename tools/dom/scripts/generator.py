@@ -295,8 +295,6 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'IDBOpenDBRequest':
         'IDBOpenDBRequest,IDBVersionChangeRequest',
 
-    'MouseEvent': 'MouseEvent,DragEvent',
-
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
     'NamedNodeMap': 'NamedNodeMap,MozNamedAttrMap',

@@ -5,7 +5,7 @@
 library dart2js.parser.node_listener;
 
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType;
+    show FormalParameterType, MemberKind;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/scanner.dart' show SymbolToken, Token;
@@ -229,8 +229,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -248,12 +248,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     pushNode(null);
   }
 
@@ -668,8 +669,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
@@ -768,7 +768,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     NodeList formals = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();

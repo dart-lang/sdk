@@ -21,7 +21,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
-import '../parser/parser.dart' show Parser, optional;
+import '../parser/parser.dart' show MemberKind, Parser, optional;
 
 import '../scanner/token.dart' show BeginGroupToken;
 
@@ -154,10 +154,13 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     assert(count == 0); // Count is always 0 as the diet parser skips formals.
-    if (identical(peek(), "-") && identical(beginToken.next, endToken)) {
+    if (kind != MemberKind.GeneralizedFunctionType &&
+        identical(peek(), "-") &&
+        identical(beginToken.next, endToken)) {
       pop();
       push("unary-");
     }
@@ -165,7 +168,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
     if (identical(peek(), "-")) {
       pop();
@@ -177,15 +180,15 @@ class DietListener extends StackListener {
   @override
   void handleFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
+    discard(1);
   }
 
   @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
-    if (stack.length == 1) {
-      // TODO(ahe): This happens when recovering from `typedef I = A;`. Find a
-      // different way to track tokens of formal parameters.
+    if (equals != null) {
+      // This is a `typedef NAME = TYPE`.
       discard(1); // Name.
     } else {
       discard(2); // Name + endToken.
@@ -194,8 +197,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantToken, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
     Builder builder = lookupBuilder(beginToken, null, names.first);
@@ -213,7 +215,8 @@ class DietListener extends StackListener {
     Token bodyToken = pop();
     String name = pop();
     checkEmpty(beginToken.charOffset);
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
+    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name),
+        MemberKind.TopLevelMethod);
   }
 
   @override
@@ -373,7 +376,8 @@ class DietListener extends StackListener {
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       return;
     }
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, null, name));
+    buildFunctionBody(
+        bodyToken, lookupBuilder(beginToken, null, name), MemberKind.Factory);
   }
 
   @override
@@ -391,7 +395,13 @@ class DietListener extends StackListener {
     if (bodyToken == null) {
       return;
     }
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
+    ProcedureBuilder builder = lookupBuilder(beginToken, getOrSet, name);
+    buildFunctionBody(
+        bodyToken,
+        builder,
+        builder.isStatic
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod);
   }
 
   StackListener createListener(
@@ -415,7 +425,8 @@ class DietListener extends StackListener {
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }
 
-  void buildFunctionBody(Token token, ProcedureBuilder builder) {
+  void buildFunctionBody(
+      Token token, ProcedureBuilder builder, MemberKind kind) {
     Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
     Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
@@ -424,7 +435,8 @@ class DietListener extends StackListener {
     parseFunctionBody(
         createListener(builder, typeParameterScope, builder.isInstanceMember,
             formalParameterScope),
-        token);
+        token,
+        kind);
   }
 
   void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
@@ -503,10 +515,10 @@ class DietListener extends StackListener {
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
 
-  void parseFunctionBody(StackListener listener, Token token) {
+  void parseFunctionBody(StackListener listener, Token token, MemberKind kind) {
     try {
       Parser parser = new Parser(listener);
-      token = parser.parseFormalParametersOpt(token);
+      token = parser.parseFormalParametersOpt(token, kind);
       var formals = listener.pop();
       listener.checkEmpty(token.charOffset);
       listener.prepareInitializers();

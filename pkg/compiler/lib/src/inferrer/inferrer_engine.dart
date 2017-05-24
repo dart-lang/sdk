@@ -46,7 +46,7 @@ class InferrerEngine {
   final Map<Element, TypeInformation> defaultTypeOfParameter =
       new Map<Element, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
-  final Element mainElement;
+  final FunctionEntity mainElement;
   final Set<Element> analyzedElements = new Set<Element>();
 
   /// The maximum number of times we allow a node in the graph to

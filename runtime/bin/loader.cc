@@ -140,7 +140,7 @@ void Loader::Init(const char* package_root,
   // Keep in sync with loader.dart.
   const intptr_t _Dart_kInitLoader = 4;
 
-  Dart_Handle request = Dart_NewList(8);
+  Dart_Handle request = Dart_NewList(9);
   Dart_ListSetAt(request, 0, trace_loader ? Dart_True() : Dart_False());
   Dart_ListSetAt(request, 1, Dart_NewInteger(Dart_GetMainPortId()));
   Dart_ListSetAt(request, 2, Dart_NewInteger(_Dart_kInitLoader));
@@ -155,6 +155,8 @@ void Loader::Init(const char* package_root,
   Dart_ListSetAt(request, 7, (root_script_uri == NULL)
                                  ? Dart_Null()
                                  : Dart_NewStringFromCString(root_script_uri));
+  Dart_ListSetAt(request, 8, Dart_NewBoolean(Dart_IsReloading()));
+
 
   bool success = Dart_Post(loader_port, request);
   ASSERT(success);
@@ -617,7 +619,22 @@ Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
                              payload_length);
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
+                                      Dart_Handle library,
+                                      Dart_Handle url) {
+  return Dart_Null();
+}
 
+
+Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
+                                               Dart_Handle library,
+                                               Dart_Handle url,
+                                               const char* library_url_string,
+                                               const char* url_string) {
+  return Dart_Null();
+}
+#else
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
@@ -803,6 +820,7 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   UNREACHABLE();
   return Dart_Null();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 void Loader::InitOnce() {

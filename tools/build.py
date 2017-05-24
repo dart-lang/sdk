@@ -99,7 +99,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
+    options.arch = 'ia32,x64,simarm,simarm64,simdbc64'
   if options.mode == 'all':
     options.mode = 'debug,release,product'
   if options.os == 'all':
@@ -484,6 +484,13 @@ def BuildNinjaCommand(options, target, target_os, mode, arch):
 filter_xcodebuild_output = False
 def BuildOneConfig(options, target, target_os, mode, arch):
   global filter_xcodebuild_output
+  if arch.startswith('mips'):
+    bold  = '\033[1m'
+    reset = '\033[0m'
+    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
+          "upcoming releases. Please consider using another architecture "
+          "and/or file an issue explaining your specific use of and need for "
+          "MIPS support." + reset)
   start_time = time.time()
   args = []
   build_config = utils.GetBuildConf(mode, arch, target_os)

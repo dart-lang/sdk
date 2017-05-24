@@ -21,13 +21,11 @@ class LibraryIndex {
 
   /// Indexes the libraries with the URIs given in [libraryUris].
   LibraryIndex(Program program, Iterable<String> libraryUris) {
-    for (var uri in libraryUris) {
-      _libraries[uri] = new _ClassTable();
-    }
+    var libraryUriSet = libraryUris.toSet();
     for (var library in program.libraries) {
-      var index = _libraries['${library.importUri}'];
-      if (index != null) {
-        index.build(library);
+      var uri = '${library.importUri}';
+      if (libraryUriSet.contains(uri)) {
+        _libraries[uri] = new _ClassTable(library);
       }
     }
   }
@@ -36,11 +34,11 @@ class LibraryIndex {
   LibraryIndex.byUri(Program program, Iterable<Uri> libraryUris)
       : this(program, libraryUris.map((uri) => '$uri'));
 
-  /// Indexes the libraries with the URIs given in [libraryUris].
+  /// Indexes `dart:` libraries.
   LibraryIndex.coreLibraries(Program program) {
     for (var library in program.libraries) {
       if (library.importUri.scheme == 'dart') {
-        _libraries['${library.importUri}'] = new _ClassTable()..build(library);
+        _libraries['${library.importUri}'] = new _ClassTable(library);
       }
     }
   }
@@ -51,7 +49,7 @@ class LibraryIndex {
   /// are needed.
   LibraryIndex.all(Program program) {
     for (var library in program.libraries) {
-      _libraries['${library.importUri}'] = new _ClassTable()..build(library);
+      _libraries['${library.importUri}'] = new _ClassTable(library);
     }
   }
 
@@ -130,15 +128,21 @@ class LibraryIndex {
 }
 
 class _ClassTable {
-  Library library;
-  final Map<String, _MemberTable> classes = <String, _MemberTable>{};
+  final Library library;
 
-  void build(Library library) {
-    this.library = library;
-    classes[LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
-    for (var class_ in library.classes) {
-      classes[class_.name] = new _MemberTable(this, class_);
+  Map<String, _MemberTable> _classes;
+
+  _ClassTable(this.library);
+
+  Map<String, _MemberTable> get classes {
+    if (_classes == null) {
+      _classes = <String, _MemberTable>{};
+      _classes[LibraryIndex.topLevel] = new _MemberTable.topLevel(this);
+      for (var class_ in library.classes) {
+        _classes[class_.name] = new _MemberTable(this, class_);
+      }
     }
+    return _classes;
   }
 
   String get containerName {
@@ -179,19 +183,27 @@ class _ClassTable {
 class _MemberTable {
   final _ClassTable parent;
   final Class class_; // Null for top-level.
-  final Map<String, Member> members = <String, Member>{};
+  Map<String, Member> _members;
 
   Library get library => parent.library;
 
-  _MemberTable(this.parent, this.class_) {
-    class_.procedures.forEach(addMember);
-    class_.fields.forEach(addMember);
-    class_.constructors.forEach(addMember);
-  }
+  _MemberTable(this.parent, this.class_);
 
-  _MemberTable.topLevel(this.parent) : class_ = null {
-    library.procedures.forEach(addMember);
-    library.fields.forEach(addMember);
+  _MemberTable.topLevel(this.parent) : class_ = null;
+
+  Map<String, Member> get members {
+    if (_members == null) {
+      _members = <String, Member>{};
+      if (class_ != null) {
+        class_.procedures.forEach(addMember);
+        class_.fields.forEach(addMember);
+        class_.constructors.forEach(addMember);
+      } else {
+        library.procedures.forEach(addMember);
+        library.fields.forEach(addMember);
+      }
+    }
+    return _members;
   }
 
   String getDisambiguatedName(Member member) {
@@ -208,7 +220,7 @@ class _MemberTable {
       // be found with the LibraryIndex class.
       return;
     }
-    members[getDisambiguatedName(member)] = member;
+    _members[getDisambiguatedName(member)] = member;
   }
 
   String get containerName {

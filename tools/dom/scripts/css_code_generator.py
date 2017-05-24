@@ -194,10 +194,11 @@ $endif
   static String _camelCase(String hyphenated) {
 $if DART2JS
     var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
-
-    var fToUpper = const JS_CONST(
-        r'function(_, letter) { return letter.toUpperCase(); }');
-    return JS('String', r'#.replace(/-([\da-z])/ig, #)', replacedMs, fToUpper);
+    return JS(
+        'String',
+        r'#.replace(/-([\da-z])/ig,'
+            r'function(_, letter) { return letter.toUpperCase();})',
+        replacedMs);
 $else
     // The "ms" prefix is always lowercased.
     return hyphenated.replaceFirst(new RegExp('^-ms-'), 'ms-').replaceAllMapped(

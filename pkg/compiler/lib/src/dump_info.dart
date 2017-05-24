@@ -415,7 +415,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // inlined inside of it.
   final Map<Element, List<Element>> inlineMap = <Element, List<Element>>{};
 
-  final Map<Element, WorldImpact> impacts = <Element, WorldImpact>{};
+  final Map<MemberEntity, WorldImpact> impacts = <MemberEntity, WorldImpact>{};
 
   /// Register the size of the generated output.
   void reportSize(int programSize) {
@@ -432,7 +432,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     inlineMap[inlinedFrom].add(element);
   }
 
-  void registerImpact(Element element, WorldImpact impact) {
+  void registerImpact(MemberEntity element, WorldImpact impact) {
     if (compiler.options.dumpInfo) {
       impacts[element] = impact;
     }

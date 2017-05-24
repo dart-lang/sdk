@@ -25,7 +25,6 @@ import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
-import '../universe/side_effects.dart';
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart' show SwitchCaseJumpHandler;
@@ -92,12 +91,12 @@ class KernelAstAdapter extends KernelToElementMapMixin {
 
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
-  ir.Node getInitialKernelNode(Element originTarget) {
+  ir.Node getInitialKernelNode(MemberElement originTarget) {
     ir.Node target;
     if (originTarget.isPatch) {
       originTarget = originTarget.origin;
     }
-    if (originTarget is FunctionElement) {
+    if (originTarget is MethodElement) {
       if (originTarget is ConstructorBodyElement) {
         ConstructorBodyElement body = originTarget;
         originTarget = body.constructor;
@@ -105,7 +104,7 @@ class KernelAstAdapter extends KernelToElementMapMixin {
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
-        FunctionElement originTargetFunction = originTarget;
+        MethodElement originTargetFunction = originTarget;
         ClosureClassMap classMap = _compiler.closureToClassMapper
             .getClosureToClassMapping(originTargetFunction.resolvedAst);
         if (classMap.closureElement != null) {
@@ -182,7 +181,15 @@ class KernelAstAdapter extends KernelToElementMapMixin {
   @override
   ConstructorEntity getSuperConstructor(
       ir.Constructor constructor, ir.Member target) {
+    assert(target != null);
     return getConstructor(target);
+  }
+
+  @override
+  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+      {bool setter: false}) {
+    assert(target != null);
+    return getMember(target);
   }
 
   MemberElement getMember(ir.Member node) => getElement(node).declaration;
@@ -218,23 +225,14 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
       return _syntheticLocals.putIfAbsent(
-          variable, () => new SyntheticLocal("x", null));
+          variable, () => new SyntheticLocal("x", null, null));
     }
     return getElement(variable) as LocalElement;
   }
 
-  bool getCanThrow(ir.Node procedure, ClosedWorld closedWorld) {
-    FunctionElement function = getElement(procedure);
-    return !closedWorld.getCannotThrow(function);
-  }
-
-  TypeMask returnTypeOf(ir.Procedure node) {
+  TypeMask getReturnTypeOf(FunctionEntity function) {
     return TypeMaskFactory.inferredReturnTypeForElement(
-        getMethod(node), _globalInferenceResults);
-  }
-
-  SideEffects getSideEffects(ir.Node node, ClosedWorld closedWorld) {
-    return closedWorld.getSideEffectsOfElement(getElement(node));
+        function, _globalInferenceResults);
   }
 
   FunctionSignature getFunctionSignature(ir.FunctionNode function) {
@@ -269,8 +267,8 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     return _resultOf(_target).typeOfSend(getNode(send));
   }
 
-  TypeMask typeOfListLiteral(
-      Element owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
+  TypeMask typeOfListLiteral(MemberElement owner, ir.ListLiteral listLiteral,
+      ClosedWorld closedWorld) {
     ast.Node node = getNodeOrNull(listLiteral);
     if (node == null) {
       assertNodeIsSynthetic(listLiteral);
@@ -323,9 +321,9 @@ class KernelAstAdapter extends KernelToElementMapMixin {
         typeOfIterator(forInStatement), _globalInferenceResults);
   }
 
-  TypeMask inferredTypeOf(ir.Member node) {
+  TypeMask getInferredTypeOf(MemberEntity member) {
     return TypeMaskFactory.inferredTypeForMember(
-        getMember(node), _globalInferenceResults);
+        member, _globalInferenceResults);
   }
 
   TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
@@ -391,135 +389,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
           makeContinueLabel: isContinueTarget);
     });
   }
-
-  ir.Procedure get checkDeferredIsLoaded =>
-      kernel.functions[_compiler.commonElements.checkDeferredIsLoaded];
-
-  TypeMask get checkDeferredIsLoadedType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.checkDeferredIsLoaded,
-          _globalInferenceResults);
-
-  ir.Procedure get createInvocationMirror =>
-      kernel.functions[_compiler.commonElements.createInvocationMirror];
-
-  ir.Class get mapLiteralClass =>
-      kernel.classes[_compiler.commonElements.mapLiteralClass];
-
-  ir.Procedure get mapLiteralConstructor =>
-      kernel.functions[_compiler.commonElements.mapLiteralConstructor];
-
-  ir.Procedure get mapLiteralConstructorEmpty =>
-      kernel.functions[_compiler.commonElements.mapLiteralConstructorEmpty];
-
-  ir.Procedure get mapLiteralUntypedEmptyMaker =>
-      kernel.functions[_compiler.commonElements.mapLiteralUntypedEmptyMaker];
-
-  ir.Procedure get exceptionUnwrapper =>
-      kernel.functions[_compiler.commonElements.exceptionUnwrapper];
-
-  TypeMask get exceptionUnwrapperType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.exceptionUnwrapper, _globalInferenceResults);
-
-  ir.Procedure get traceFromException =>
-      kernel.functions[_compiler.commonElements.traceFromException];
-
-  TypeMask get traceFromExceptionType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.traceFromException, _globalInferenceResults);
-
-  ir.Procedure get streamIteratorConstructor =>
-      kernel.functions[_compiler.commonElements.streamIteratorConstructor];
-
-  TypeMask get streamIteratorConstructorType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          // ignore: UNNECESSARY_CAST
-          _compiler.commonElements.streamIteratorConstructor as FunctionEntity,
-          _globalInferenceResults);
-
-  ir.Procedure get fallThroughError =>
-      kernel.functions[_compiler.commonElements.fallThroughError];
-
-  TypeMask get fallThroughErrorType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.fallThroughError, _globalInferenceResults);
-
-  ir.Procedure get mapLiteralUntypedMaker =>
-      kernel.functions[_compiler.commonElements.mapLiteralUntypedMaker];
-
-  ir.Procedure get checkConcurrentModificationError => kernel
-      .functions[_compiler.commonElements.checkConcurrentModificationError];
-
-  TypeMask get checkConcurrentModificationErrorReturnType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.checkConcurrentModificationError,
-          _globalInferenceResults);
-
-  ir.Procedure get checkSubtype =>
-      kernel.functions[_compiler.commonElements.checkSubtype];
-
-  ir.Procedure get checkSubtypeOfRuntimeType =>
-      kernel.functions[_compiler.commonElements.checkSubtypeOfRuntimeType];
-
-  ir.Procedure get functionTypeTest =>
-      kernel.functions[_compiler.commonElements.functionTypeTest];
-
-  ir.Procedure get throwTypeError =>
-      kernel.functions[_compiler.commonElements.throwTypeError];
-
-  TypeMask get throwTypeErrorType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.throwTypeError, _globalInferenceResults);
-
-  ir.Procedure get assertHelper =>
-      kernel.functions[_compiler.commonElements.assertHelper];
-
-  TypeMask get assertHelperReturnType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.assertHelper, _globalInferenceResults);
-
-  ir.Procedure get assertTest =>
-      kernel.functions[_compiler.commonElements.assertTest];
-
-  TypeMask get assertTestReturnType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.assertTest, _globalInferenceResults);
-
-  ir.Procedure get assertThrow =>
-      kernel.functions[_compiler.commonElements.assertThrow];
-
-  ir.Procedure get setRuntimeTypeInfo =>
-      kernel.functions[_compiler.commonElements.setRuntimeTypeInfo];
-
-  TypeMask get assertThrowReturnType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.assertThrow, _globalInferenceResults);
-
-  ir.Procedure get runtimeTypeToString =>
-      kernel.functions[_compiler.commonElements.runtimeTypeToString];
-
-  ir.Procedure get createRuntimeType =>
-      kernel.functions[_compiler.commonElements.createRuntimeType];
-
-  TypeMask get createRuntimeTypeReturnType =>
-      TypeMaskFactory.inferredReturnTypeForElement(
-          _compiler.commonElements.createRuntimeType, _globalInferenceResults);
-
-  ir.Class get objectClass =>
-      kernel.classes[_compiler.commonElements.objectClass];
-
-  ir.Class get futureClass =>
-      kernel.classes[_compiler.commonElements.futureClass];
-
-  TypeMask makeSubtypeOfObject(ClosedWorld closedWorld) =>
-      new TypeMask.subclass(_compiler.commonElements.objectClass, closedWorld);
-
-  ir.Procedure get currentIsolate =>
-      kernel.functions[_compiler.commonElements.currentIsolate];
-
-  ir.Procedure get callInIsolate =>
-      kernel.functions[_compiler.commonElements.callInIsolate];
 
   bool isInForeignLibrary(ir.Member member) =>
       _backend.isForeign(getElement(member));

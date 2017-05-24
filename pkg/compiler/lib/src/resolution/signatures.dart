@@ -134,8 +134,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     } else {
       // Is node.definitions exactly one FunctionExpression?
       Link<Node> link = currentDefinitions.definitions.nodes;
-      assert(invariant(currentDefinitions, !link.isEmpty));
-      assert(invariant(currentDefinitions, link.tail.isEmpty));
+      assert(!link.isEmpty, failedAt(currentDefinitions));
+      assert(link.tail.isEmpty, failedAt(currentDefinitions));
       if (link.head.asFunctionExpression() != null) {
         // Inline function typed parameter, like `void m(int f(String s))`.
         computeInlineFunctionType(link.head);

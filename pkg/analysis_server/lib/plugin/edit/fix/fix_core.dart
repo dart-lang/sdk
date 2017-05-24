@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
 
@@ -57,12 +57,12 @@ class Fix {
  */
 abstract class FixContext {
   /**
-   * The [AnalysisContext] to get fixes in.
+   * The analysis driver used to access analysis results.
    */
-  AnalysisContext get analysisContext;
+  AnalysisDriver get analysisDriver;
 
   /**
-   * The error to fix, should be reported in the given [analysisContext].
+   * The error to fix, should be reported by the given [analysisDriver].
    */
   AnalysisError get error;
 

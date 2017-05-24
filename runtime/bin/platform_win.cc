@@ -78,10 +78,16 @@ class PlatformWin {
     // Set both the input and output code pages to UTF8.
     ASSERT(saved_output_cp_ == -1);
     ASSERT(saved_input_cp_ == -1);
-    saved_output_cp_ = GetConsoleOutputCP();
-    saved_input_cp_ = GetConsoleCP();
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
+    const int output_cp = GetConsoleOutputCP();
+    const int input_cp = GetConsoleCP();
+    if (output_cp != CP_UTF8) {
+      SetConsoleOutputCP(CP_UTF8);
+      saved_output_cp_ = output_cp;
+    }
+    if (input_cp != CP_UTF8) {
+      SetConsoleCP(CP_UTF8);
+      saved_input_cp_ = input_cp;
+    }
 
     // Try to set the bits for ANSI support, but swallow any failures.
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);

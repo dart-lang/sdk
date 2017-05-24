@@ -107,6 +107,10 @@ final global_ = JS(
     $ignoreWhitelistedErrors(
         'ignoreWhitelistedErrors' in settings ?
             settings.ignoreWhitelistedErrors : true);
+
+    $ignoreAllErrors(
+        'ignoreAllErrors' in settings ?settings.ignoreAllErrors : false);
+
     $failForWeakModeIsChecks(
         'failForWeakModeIsChecks' in settings ?
             settings.failForWeakModeIsChecks : true);

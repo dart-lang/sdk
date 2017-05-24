@@ -380,7 +380,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   for (intptr_t i = 0; i < cids_.length(); ++i) {
     intptr_t run;
     uintptr_t range = 1ul + cids_[i].Extent();
-    if (range >= kBitsPerWord) {
+    if (range >= static_cast<uintptr_t>(kBitsPerWord)) {
       run = -1;
     } else {
       run = (1 << range) - 1;
@@ -604,7 +604,9 @@ const Object& Value::BoundConstant() const {
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
-    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
+    : BlockEntryInstr(0,
+                      CatchClauseNode::kInvalidTryIndex,
+                      Thread::Current()->GetNextDeoptId()),
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
@@ -1109,7 +1111,8 @@ bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
-      GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
+      GotoInstr* goto_join =
+          new GotoInstr(AsJoinEntry(), Thread::Current()->GetNextDeoptId());
       goto_join->CopyDeoptIdFrom(*parent);
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
@@ -1336,7 +1339,7 @@ BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
 
 
 void Instruction::Goto(JoinEntryInstr* entry) {
-  LinkTo(new GotoInstr(entry));
+  LinkTo(new GotoInstr(entry, Thread::Current()->GetNextDeoptId()));
 }
 
 
@@ -1392,8 +1395,9 @@ bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
       return false;
 
     case Token::kSHL:
-      return can_overflow() ||
-             !RangeUtils::IsPositive(right()->definition()->range());
+      // Currently only shifts by in range constant are supported, see
+      // BinaryInt32OpInstr::IsSupported.
+      return can_overflow();
 
     case Token::kMOD: {
       UNREACHABLE();
@@ -1413,19 +1417,22 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
       return false;
 
     case Token::kSHR:
-      return !RangeUtils::IsPositive(right()->definition()->range());
+      return !RangeUtils::IsPositive(right_range());
 
     case Token::kSHL:
-      return can_overflow() ||
-             !RangeUtils::IsPositive(right()->definition()->range());
+      return can_overflow() || !RangeUtils::IsPositive(right_range());
 
-    case Token::kMOD: {
-      Range* right_range = this->right()->definition()->range();
-      return (right_range == NULL) || right_range->Overlaps(0, 0);
-    }
+    case Token::kMOD:
+      return RangeUtils::CanBeZero(right_range());
+
     default:
       return can_overflow();
   }
+}
+
+
+bool ShiftMintOpInstr::has_shift_count_check() const {
+  return !RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
 }
 
 
@@ -2121,40 +2128,72 @@ Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
+  if (field() == NULL || !field()->is_final() || !instance.IsInstance()) {
+    return false;
+  }
+
+  // Check that instance really has the field which we
+  // are trying to load from.
+  Class& cls = Class::Handle(instance.clazz());
+  while (cls.raw() != Class::null() && cls.raw() != field()->Owner()) {
+    cls = cls.SuperClass();
+  }
+  if (cls.raw() != field()->Owner()) {
+    // Failed to find the field in class or its superclasses.
+    return false;
+  }
+
+  // Object has the field: execute the load.
+  *result = Instance::Cast(instance).GetField(*field());
+  return true;
+}
+
+
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
-  if (!IsImmutableLengthLoad()) return this;
 
-  // For fixed length arrays if the array is the result of a known constructor
-  // call we can replace the length load with the length argument passed to
-  // the constructor.
-  StaticCallInstr* call =
-      instance()->definition()->OriginalDefinition()->AsStaticCall();
-  if (call != NULL) {
-    if (call->is_known_list_constructor() &&
-        IsFixedLengthArrayCid(call->Type()->ToCid())) {
-      return call->ArgumentAt(1);
+  if (IsImmutableLengthLoad()) {
+    // For fixed length arrays if the array is the result of a known constructor
+    // call we can replace the length load with the length argument passed to
+    // the constructor.
+    StaticCallInstr* call =
+        instance()->definition()->OriginalDefinition()->AsStaticCall();
+    if (call != NULL) {
+      if (call->is_known_list_constructor() &&
+          IsFixedLengthArrayCid(call->Type()->ToCid())) {
+        return call->ArgumentAt(1);
+      }
+    }
+
+    CreateArrayInstr* create_array =
+        instance()->definition()->OriginalDefinition()->AsCreateArray();
+    if ((create_array != NULL) &&
+        (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
+      return create_array->num_elements()->definition();
+    }
+
+    // For arrays with guarded lengths, replace the length load
+    // with a constant.
+    LoadFieldInstr* load_array =
+        instance()->definition()->OriginalDefinition()->AsLoadField();
+    if (load_array != NULL) {
+      const Field* field = load_array->field();
+      if ((field != NULL) && (field->guarded_list_length() >= 0)) {
+        return flow_graph->GetConstant(
+            Smi::Handle(Smi::New(field->guarded_list_length())));
+      }
     }
   }
 
-  CreateArrayInstr* create_array =
-      instance()->definition()->OriginalDefinition()->AsCreateArray();
-  if ((create_array != NULL) &&
-      (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
-    return create_array->num_elements()->definition();
-  }
-
-  // For arrays with guarded lengths, replace the length load
-  // with a constant.
-  LoadFieldInstr* load_array =
-      instance()->definition()->OriginalDefinition()->AsLoadField();
-  if (load_array != NULL) {
-    const Field* field = load_array->field();
-    if ((field != NULL) && (field->guarded_list_length() >= 0)) {
-      return flow_graph->GetConstant(
-          Smi::Handle(Smi::New(field->guarded_list_length())));
+  // Try folding away loads from constant objects.
+  if (instance()->BindsToConstant()) {
+    Object& result = Object::Handle();
+    if (Evaluate(instance()->BoundConstant(), &result)) {
+      return flow_graph->GetConstant(result);
     }
   }
+
   return this;
 }
 
@@ -3186,8 +3225,9 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Token::Kind kind,
                                        Value* left,
                                        Value* right,
-                                       bool needs_number_check)
-    : TemplateComparison(token_pos, kind, Thread::Current()->GetNextDeoptId()),
+                                       bool needs_number_check,
+                                       intptr_t deopt_id)
+    : TemplateComparison(token_pos, kind, deopt_id),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
   SetInputAt(0, left);
@@ -3434,14 +3474,6 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(instance_call()->type_args_len(),
                           instance_call()->ArgumentCount(),
                           instance_call()->argument_names());
-  if (!with_checks()) {
-    ASSERT(targets().HasSingleTarget());
-    const Function& target = targets().FirstTarget();
-    compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(),
-                                 target, args_info, locs(), ICData::Handle());
-    return;
-  }
-
   compiler->EmitPolymorphicInstanceCall(
       targets_, *instance_call(), args_info, deopt_id(),
       instance_call()->token_pos(), locs(), complete(), total_call_count());
@@ -3502,10 +3534,10 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  const bool with_checks = false;
-  const bool complete = false;
-  PolymorphicInstanceCallInstr* specialized = new PolymorphicInstanceCallInstr(
-      this, *new_target, with_checks, complete);
+  ASSERT(new_target->HasSingleTarget());
+  const Function& target = new_target->FirstTarget();
+  StaticCallInstr* specialized =
+      StaticCallInstr::FromCall(flow_graph->zone(), this, target);
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
 }
@@ -3530,7 +3562,7 @@ Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
-  if (FLAG_precompiled_mode && with_checks()) return false;
+  if (FLAG_precompiled_mode && !complete()) return false;
   return targets_.HasSingleRecognizedTarget();
 }
 
@@ -3806,7 +3838,7 @@ ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
                                                          Value* new_right) {
   return new StrictCompareInstr(token_pos(), kind(), new_left, new_right,
-                                needs_number_check());
+                                needs_number_check(), Thread::kNoDeoptId);
 }
 
 
@@ -4254,33 +4286,14 @@ const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {
 }
 
 
-MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
-                                 intptr_t deopt_id,
-                                 MergedMathInstr::Kind kind)
-    : PureDefinition(deopt_id), inputs_(inputs), kind_(kind) {
-  ASSERT(inputs_->length() == InputCountFor(kind_));
-  for (intptr_t i = 0; i < inputs_->length(); ++i) {
-    ASSERT((*inputs)[i] != NULL);
-    (*inputs)[i]->set_instruction(this);
-    (*inputs)[i]->set_use_index(i);
-  }
+TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)
+    : TemplateDefinition(deopt_id) {
+  SetInputAt(0, lhs);
+  SetInputAt(1, rhs);
 }
 
 
-intptr_t MergedMathInstr::OutputIndexOf(MethodRecognizer::Kind kind) {
-  switch (kind) {
-    case MethodRecognizer::kMathSin:
-      return 1;
-    case MethodRecognizer::kMathCos:
-      return 0;
-    default:
-      UNIMPLEMENTED();
-      return -1;
-  }
-}
-
-
-intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
+intptr_t TruncDivModInstr::OutputIndexOf(Token::Kind token) {
   switch (token) {
     case Token::kTRUNCDIV:
       return 0;

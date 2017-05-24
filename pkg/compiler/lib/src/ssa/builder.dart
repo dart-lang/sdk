@@ -8,7 +8,7 @@ import 'package:js_runtime/shared/embedded_names.dart';
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
@@ -27,6 +27,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
@@ -47,26 +48,84 @@ import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
 import 'optimize.dart';
+import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
 import 'types.dart';
 
-class SsaBuilderTask extends CompilerTask {
-  final CodeEmitterTask emitter;
+abstract class SsaAstBuilderBase extends CompilerTask
+    implements SsaBuilderTask {
   final JavaScriptBackend backend;
+
+  SsaAstBuilderBase(this.backend) : super(backend.compiler.measurer);
+
+  /// Handle field initializer of `work.element`. Returns `true` if no code
+  /// is needed for the field.
+  ///
+  /// If `work.element` is a field with a constant initializer, the value is
+  /// registered with the world impact. Otherwise the cyclic-throw helper is
+  /// registered for the lazy value computation.
+  ///
+  /// If the field is constant, no code is needed for the field and the method
+  /// return `true`.
+  bool handleConstantField(ElementCodegenWorkItem work) {
+    MemberElement element = work.element;
+    if (element.isField) {
+      FieldElement field = element;
+      ConstantExpression constant = field.constant;
+      if (constant != null) {
+        ConstantValue initialValue =
+            backend.constants.getConstantValue(constant);
+        if (initialValue != null) {
+          work.registry.worldImpact
+              .registerConstantUse(new ConstantUse.init(initialValue));
+          // We don't need to generate code for static or top-level
+          // variables. For instance variables, we may need to generate
+          // the checked setter.
+          if (field.isStatic || field.isTopLevel) {
+            /// No code is created for this field.
+            return true;
+          }
+        } else {
+          assert(invariant(
+              field,
+              field.isInstanceMember ||
+                  constant.isImplicit ||
+                  constant.isPotential,
+              message: "Constant expression without value: "
+                  "${constant.toStructuredText()}."));
+        }
+      } else {
+        // If the constant-handler was not able to produce a result we have to
+        // go through the builder (below) to generate the lazy initializer for
+        // the static variable.
+        // We also need to register the use of the cyclic-error helper.
+        work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
+            backend.commonElements.cyclicThrowHelper, CallStructure.ONE_ARG));
+      }
+    }
+    return false;
+  }
+}
+
+class SsaAstBuilderTask extends SsaAstBuilderBase {
+  final CodeEmitterTask emitter;
   final SourceInformationStrategy sourceInformationFactory;
 
   String get name => 'SSA builder';
 
-  SsaBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
+  SsaAstBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
       : emitter = backend.emitter,
-        backend = backend,
-        super(backend.compiler.measurer);
+        super(backend);
 
   DiagnosticReporter get reporter => backend.reporter;
 
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
+      if (handleConstantField(work)) {
+        // No code is generated for `work.element`.
+        return null;
+      }
       MemberElement element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
         SsaBuilder builder = new SsaBuilder(
@@ -215,13 +274,19 @@ class SsaBuilder extends ast.Visitor
         sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
-    localsHandler = new LocalsHandler(this, target, null,
-        closedWorld.nativeData, closedWorld.interceptorData);
+    localsHandler = new LocalsHandler(
+        this,
+        target,
+        target.memberContext,
+        target.contextClass,
+        null,
+        closedWorld.nativeData,
+        closedWorld.interceptorData);
     loopHandler = new SsaLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
   }
 
-  Element get targetElement => target;
+  MemberElement get targetElement => target;
 
   /// Reference to resolved elements in [target]'s AST.
   TreeElements get elements => resolvedAst.elements;
@@ -795,11 +860,12 @@ class SsaBuilder extends ast.Visitor
       {ResolutionInterfaceType instanceType}) {
     ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
-    localsHandler = new LocalsHandler(
-        this, function, instanceType, nativeData, interceptorData);
+    localsHandler = new LocalsHandler(this, function, function.memberContext,
+        function.contextClass, instanceType, nativeData, interceptorData);
     localsHandler.closureData =
         closureToClassMapper.getClosureToClassMapping(resolvedAst);
-    returnLocal = new SyntheticLocal("result", function);
+    returnLocal =
+        new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
 
     inTryStatement = false; // TODO(lry): why? Document.
@@ -5449,8 +5515,9 @@ class SsaBuilder extends ast.Visitor
     //       <declaredIdentifier> = a[i];
     //       <body>
     //     }
-    Element loopVariable = elements.getForInVariable(node);
-    SyntheticLocal indexVariable = new SyntheticLocal('_i', loopVariable);
+    ExecutableElement loopVariable = elements.getForInVariable(node);
+    SyntheticLocal indexVariable =
+        new SyntheticLocal('_i', loopVariable, target);
     TypeMask boolType = commonMasks.boolType;
 
     // These variables are shared by initializer, condition, body and update.
@@ -6174,8 +6241,7 @@ class SsaBuilder extends ast.Visitor
       startCatchBlock = graph.addNewBlock();
       open(startCatchBlock);
       // Note that the name of this local is irrelevant.
-      SyntheticLocal local =
-          new SyntheticLocal('exception', localsHandler.executableContext);
+      SyntheticLocal local = localsHandler.createLocal('exception');
       exception = new HLocalValue(local, commonMasks.nonNullType);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;

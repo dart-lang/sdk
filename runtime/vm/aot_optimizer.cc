@@ -116,16 +116,8 @@ bool AotOptimizer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   const Function& function =
       Function::Handle(Z, call->ResolveForReceiverClass(cls));
   ASSERT(!function.IsNull());
-  const intptr_t kTypeArgsLen = 0;
-  ASSERT(call->type_args_len() == kTypeArgsLen);
-  ZoneGrowableArray<PushArgumentInstr*>* args =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(call->PushArgumentAt(i));
-  }
-  StaticCallInstr* static_call = new (Z) StaticCallInstr(
-      call->token_pos(), Function::ZoneHandle(Z, function.raw()), kTypeArgsLen,
-      call->argument_names(), args, call->deopt_id());
+  const Function& target = Function::ZoneHandle(Z, function.raw());
+  StaticCallInstr* static_call = StaticCallInstr::FromCall(Z, call, target);
   static_call->set_result_cid(kTypeCid);
   call->ReplaceWith(static_call, current_iterator());
   return true;
@@ -641,7 +633,7 @@ bool AotOptimizer::TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call) {
     StaticCallInstr* static_call = new (Z)
         StaticCallInstr(call->token_pos(), have_same_runtime_type, kTypeArgsLen,
                         Object::null_array(),  // argument_names
-                        args, call->deopt_id());
+                        args, call->deopt_id(), call->CallCount());
     static_call->set_result_cid(kBoolCid);
     ReplaceCall(call, static_call);
     return true;
@@ -718,7 +710,7 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
-                               false);  // No number check.
+                               /* number_check = */ false, Thread::kNoDeoptId);
         ReplaceCall(call, comp);
         return true;
       }
@@ -1449,10 +1441,9 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid =
-        new (Z) StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
-                                   new (Z) Value(left_cid), new (Z) Value(cid),
-                                   false);  // No number check.
+    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+        call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
+        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1498,7 +1489,7 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       StaticCallInstr* new_call =
           new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
                                   Object::null_array(),  // argument_names
-                                  args, call->deopt_id());
+                                  args, call->deopt_id(), call->CallCount());
       Environment* copy = call->env()->DeepCopy(
           Z, call->env()->Length() - call->ArgumentCount());
       for (intptr_t i = 0; i < args->length(); ++i) {
@@ -1592,7 +1583,7 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     StaticCallInstr* new_call =
         new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
                                 Object::null_array(),  // argument_names
-                                args, call->deopt_id());
+                                args, call->deopt_id(), call->CallCount());
     Environment* copy =
         call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
     for (intptr_t i = 0; i < args->length(); ++i) {
@@ -1656,7 +1647,7 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
       StaticCallInstr* new_call =
           new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
                                   Object::null_array(),  // argument_names
-                                  args, call->deopt_id());
+                                  args, call->deopt_id(), call->CallCount());
       Environment* copy = call->env()->DeepCopy(
           Z, call->env()->Length() - call->ArgumentCount());
       for (intptr_t i = 0; i < args->length(); ++i) {
@@ -1829,10 +1820,9 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
       CallTargets* targets = CallTargets::Create(Z, unary_checks);
-      PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, *targets,
-                                               /* with_checks = */ false,
-                                               /* complete = */ true);
+      ASSERT(targets->HasSingleTarget());
+      const Function& target = targets->FirstTarget();
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1889,14 +1879,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     const Function& function =
         Function::Handle(Z, instr->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
-      CallTargets* targets = new (Z) CallTargets(Z);
-      Function& target = Function::ZoneHandle(Z, function.raw());
-      targets->Add(new (Z) TargetInfo(receiver_class.id(), receiver_class.id(),
-                                      &target, /*count = */ 1));
-      PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, *targets,
-                                               /* with_checks = */ false,
-                                               /* complete = */ true);
+      const Function& target = Function::ZoneHandle(Z, function.raw());
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1999,15 +1983,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
-        ZoneGrowableArray<PushArgumentInstr*>* args = new (Z)
-            ZoneGrowableArray<PushArgumentInstr*>(instr->ArgumentCount());
-        for (intptr_t i = 0; i < instr->ArgumentCount(); i++) {
-          args->Add(instr->PushArgumentAt(i));
-        }
-        StaticCallInstr* call = new (Z) StaticCallInstr(
-            instr->token_pos(), Function::ZoneHandle(Z, single_target.raw()),
-            instr->type_args_len(), instr->argument_names(), args,
-            instr->deopt_id());
+        const Function& target = Function::ZoneHandle(Z, single_target.raw());
+        StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
         instr->ReplaceWith(call, current_iterator());
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
@@ -2015,7 +1992,6 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         CallTargets* targets = CallTargets::Create(Z, ic_data);
         PolymorphicInstanceCallInstr* call =
             new (Z) PolymorphicInstanceCallInstr(instr, *targets,
-                                                 /* with_checks = */ true,
                                                  /* complete = */ true);
         instr->ReplaceWith(call, current_iterator());
         return;
@@ -2032,7 +2008,6 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     CallTargets* targets = CallTargets::Create(Z, *instr->ic_data());
     PolymorphicInstanceCallInstr* call =
         new (Z) PolymorphicInstanceCallInstr(instr, *targets,
-                                             /* with_checks = */ true,
                                              /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
@@ -2042,17 +2017,17 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 void AotOptimizer::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
-  if (call->with_checks()) {
-    const intptr_t receiver_cid =
-        call->PushArgumentAt(0)->value()->Type()->ToCid();
-    if (receiver_cid != kDynamicCid) {
-      const Class& receiver_class =
-          Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
-      const Function& function = Function::Handle(
-          Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
-      if (!function.IsNull()) {
-        call->set_with_checks(false);
-      }
+  const intptr_t receiver_cid =
+      call->PushArgumentAt(0)->value()->Type()->ToCid();
+  if (receiver_cid != kDynamicCid) {
+    const Class& receiver_class =
+        Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
+    const Function& function = Function::ZoneHandle(
+        Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
+    if (!function.IsNull()) {
+      // Only one target. Replace by static call.
+      StaticCallInstr* new_call = StaticCallInstr::FromCall(Z, call, function);
+      call->ReplaceWith(new_call, current_iterator());
     }
   }
 }

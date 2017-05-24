@@ -719,8 +719,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, T4, &slow_case));
 
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(T2, fixed_size);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(T2, fixed_size_plus_alignment_padding);
   __ sll(T3, T3, 1);  // T3 is  a Smi.
   __ addu(T2, T2, T3);
   ASSERT(kSmiTagShift == 1);
@@ -981,8 +982,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // T1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(T2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(T2, fixed_size_plus_alignment_padding);
     __ sll(T0, T1, 2);
     __ addu(T2, T2, T0);
     ASSERT(kSmiTagShift == 1);

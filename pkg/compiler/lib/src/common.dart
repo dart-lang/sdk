@@ -9,7 +9,7 @@ library dart2js.common;
 export 'diagnostics/diagnostic_listener.dart'
     show DiagnosticMessage, DiagnosticReporter;
 export 'diagnostics/invariant.dart'
-    show assertDebugMode, InternalErrorFunction, invariant;
+    show assertDebugMode, InternalErrorFunction, invariant, failedAt;
 export 'diagnostics/messages.dart' show MessageKind;
 export 'diagnostics/source_span.dart' show SourceSpan;
 export 'diagnostics/spannable.dart'

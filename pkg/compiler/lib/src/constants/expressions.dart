@@ -560,8 +560,8 @@ class ConstructedConstantExpression extends ConstantExpression {
       EvaluationEnvironment environment) {
     ConstantConstructor constantConstructor =
         environment.getConstructorConstant(target);
-    assert(invariant(target, constantConstructor != null,
-        message: "No constant constructor computed for $target."));
+    assert(constantConstructor != null,
+        failedAt(target, "No constant constructor computed for $target."));
     return constantConstructor.computeInstanceFields(
         environment, arguments, callStructure);
   }

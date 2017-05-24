@@ -133,12 +133,12 @@ class TreeElementMapping extends TreeElements {
   operator []=(Node node, Element element) {
     // TODO(johnniwinther): Simplify this invariant to use only declarations in
     // [TreeElements].
-    assert(invariant(node, () {
+    assert(() {
       if (!element.isMalformed && analyzedElement != null && element.isPatch) {
         return analyzedElement.implementationLibrary.isPatch;
       }
       return true;
-    }));
+    }, failedAt(node));
     // TODO(ahe): Investigate why the invariant below doesn't hold.
     // assert(invariant(node,
     //                  getTreeElement(node) == element ||

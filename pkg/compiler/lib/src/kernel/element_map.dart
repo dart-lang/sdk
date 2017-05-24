@@ -78,6 +78,15 @@ abstract class KernelToElementMap {
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);
 
+  /// Returns the super [MemberEntity] for a super invocation, get or set of
+  /// [name] from the member [context].
+  ///
+  /// The IR doesn't always resolve super accesses to the corresponding
+  /// [target]. If not, the target is computed using [name] and [setter] from
+  /// the enclosing class of [context].
+  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+      {bool setter: false});
+
   /// Returns the [FieldEntity] corresponding to the field [node].
   FieldEntity getField(ir.Field node);
 
@@ -133,6 +142,10 @@ abstract class KernelToElementMap {
 
   /// Computes the [ConstantValue] for the constant [expression].
   ConstantValue getConstantValue(ir.Expression expression);
+
+  /// Returns the `noSuchMethod` [FunctionEntity] call from a
+  /// `super.noSuchMethod` invocation within [cls].
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
 }
 
 /// Kinds of foreign functions.
@@ -462,6 +475,31 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
+  }
+
+  @override
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
+    while (cls != null) {
+      cls = elementEnvironment.getSuperClass(cls);
+      MemberEntity member =
+          elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      if (member != null) {
+        if (member.isFunction) {
+          FunctionEntity function = member;
+          if (function.parameterStructure.positionalParameters >= 1) {
+            return function;
+          }
+        }
+        // If [member] is not a valid `noSuchMethod` the target is
+        // `Object.superNoSuchMethod`.
+        break;
+      }
+    }
+    FunctionEntity function = elementEnvironment.lookupClassMember(
+        commonElements.objectClass, Identifiers.noSuchMethod_);
+    assert(invariant(cls, function != null,
+        message: "No super noSuchMethod found for class $cls."));
+    return function;
   }
 }
 

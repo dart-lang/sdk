@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis.server;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
@@ -691,7 +689,7 @@ class AnalysisServer {
     Iterable<nd.AnalysisDriver> drivers = driverMap.values;
     if (drivers.isNotEmpty) {
       nd.AnalysisDriver driver = drivers.firstWhere(
-          (driver) => driver.addedFiles.contains(path),
+          (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
           (driver) => driver.knownFiles.contains(path),

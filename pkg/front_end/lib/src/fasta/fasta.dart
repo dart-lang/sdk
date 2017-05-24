@@ -114,7 +114,7 @@ class CompileTask {
   CompileTask(this.c, this.ticker);
 
   DillTarget createDillTarget(TranslateUri uriTranslator) {
-    return new DillTarget(ticker, uriTranslator);
+    return new DillTarget(ticker, uriTranslator, c.options.target);
   }
 
   KernelTarget createKernelTarget(
@@ -148,7 +148,7 @@ class CompileTask {
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.dumpIr && output != null) {
-      printProgramText(outline);
+      printProgramText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
       await writeProgramToFile(outline, output);
@@ -162,7 +162,9 @@ class CompileTask {
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
     var program = await kernelTarget.buildProgram(verify: c.options.verify);
-    if (c.options.dumpIr) printProgramText(program);
+    if (c.options.dumpIr) {
+      printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
+    }
     await writeProgramToFile(program, uri);
     ticker.logMs("Wrote program to ${uri.toFilePath()}");
     return uri;
@@ -179,7 +181,8 @@ Future<CompilationResult> parseScript(
 
 Future<CompilationResult> parseScriptInFileSystem(
     Uri fileName, FileSystem fileSystem, Uri packages, Uri patchedSdk,
-    {bool verbose: false, bool strongMode: false}) async {
+    {bool verbose: false, bool strongMode: false, String backendTarget}) async {
+  backendTarget ??= "vm";
   try {
     if (!await fileSystem.entityForUri(fileName).exists()) {
       return new CompilationResult.error(
@@ -195,7 +198,8 @@ Future<CompilationResult> parseScriptInFileSystem(
       TranslateUri uriTranslator =
           await TranslateUri.parse(fileSystem, null, packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
-      final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+      final DillTarget dillTarget =
+          new DillTarget(ticker, uriTranslator, backendTarget);
       _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
       final KernelTarget kernelTarget =
           new KernelTarget(fileSystem, dillTarget, uriTranslator, strongMode);
@@ -253,7 +257,9 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     {Uri packages,
     Uri platform,
     Iterable<Uri> extraDependencies,
-    bool verbose: false}) async {
+    bool verbose: false,
+    String backendTarget}) async {
+  backendTarget ??= "vm";
   Ticker ticker = new Ticker(isVerbose: verbose);
   await CompilerCommandLine.withGlobalOptions("", [""],
       (CompilerContext c) async {
@@ -265,7 +271,8 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     TranslateUri uriTranslator = await TranslateUri.parse(
         c.fileSystem, c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+    DillTarget dillTarget =
+        new DillTarget(ticker, uriTranslator, backendTarget);
     _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(PhysicalFileSystem.instance,
         dillTarget, uriTranslator, false, c.uriToSource);

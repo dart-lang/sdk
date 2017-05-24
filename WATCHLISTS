@@ -38,7 +38,7 @@
 
   'WATCHLISTS': {
     'runtime': ['vm-dev@dartlang.org'],
-    'observatory': ['johnmccutchan@google.com', 'turnidge@google.com', 'rmacnak@google.com'],
+    'observatory': ['turnidge@google.com', 'rmacnak@google.com'],
     'front_end': ['dart-fe-team+reviews@google.com'],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],
   },

@@ -44,17 +44,6 @@ generic_function_typedef2_test/03: Crash # Issue 28214
 generic_function_typedef2_test/05: Crash # Issue 28214
 generic_function_typedef2_test/06: Crash # Issue 28214
 
-covariant_test/02: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/08: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/12: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/14: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/16: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/22: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/28: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/32: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/34: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-covariant_test/36: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
-
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
 
 [ $compiler == dart2js && $fast_startup ]
@@ -251,7 +240,6 @@ external_test/10: CompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
 external_test/20: CompileTimeError # Issue 12887
 list_literal4_test: RuntimeError # Issue 12890
-built_in_identifier_test/01: CompileTimeError # Issue 13022
 
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 
@@ -327,25 +315,15 @@ async_star_test: RuntimeError # Issue 27394
 await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
-bound_closure_equality_test: RuntimeError # Issue 27394
-built_in_identifier_test/01: Crash # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
-canonical_const3_test: RuntimeError # Issue 27394
-canonical_const_test: RuntimeError # Issue 27394
 closure_in_constructor_test: RuntimeError # Issue 27394
 closures_initializer_test: RuntimeError # Issue 27394
-compile_time_constant9_test: RuntimeError # Issue 27394
 conditional_property_assignment_test/07: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/01: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/05: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/09: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/13: RuntimeError # Issue 27394
-const_escape_frog_test: RuntimeError # Issue 27394
 const_evaluation_test/01: Crash # Issue 27394
-const_locals_test: RuntimeError # Issue 27394
-const_map2_test/none: RuntimeError # Issue 27394
-const_map3_test/none: RuntimeError # Issue 27394
-const_nested_test: RuntimeError # Issue 27394
 const_qq_test: Crash # Issue 27394
 constructor10_test/01: Crash # Issue 27394
 constructor10_test/02: Crash # Issue 27394
@@ -355,16 +333,7 @@ constructor_redirect2_test/04: Crash # Issue 27394
 covariant_test/10: Crash # Issue 27394
 covariant_test/11: Crash # Issue 27394
 covariant_test/20b: Crash # Issue 27394
-covariant_test/21: Crash # Issue 27394
-covariant_test/21b: Crash # Issue 27394
 covariant_test/24: Crash # Issue 27394
-covariant_test/27: Crash # Issue 27394
-covariant_test/27b: Crash # Issue 27394
-covariant_test/30: Crash # Issue 27394
-covariant_test/30b: Crash # Issue 27394
-covariant_test/31: Crash # Issue 27394
-covariant_test/31b: Crash # Issue 27394
-ct_const_test: RuntimeError # Issue 27394
 cyclic_default_values_test: RuntimeError # Issue 27394
 deferred_constraints_constants_test/constructor1: Crash # Issue 27394
 deferred_constraints_constants_test/constructor2: Crash # Issue 27394
@@ -380,10 +349,8 @@ deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
 deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
 deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
 deferred_load_constants_test/none: RuntimeError # Issue 27394
-deferred_static_seperate_test: RuntimeError # Issue 27394
 deferred_super_dependency_test/01: Crash # Issue 27394
 enum_mirror_test: Crash # Issue 27394
-equality_test: RuntimeError # Issue 27394
 export_ambiguous_main_negative_test: Crash # Issue 27394
 f_bounded_quantification5_test: RuntimeError # Issue 27394
 final_for_in_variable_test/01: MissingRuntimeError # Issue 27394
@@ -447,7 +414,6 @@ malformed_test/06: Crash # Issue 27394
 malformed_test/none: Crash # Issue 27394
 many_generic_instanceof_test: RuntimeError # Issue 27394
 many_method_calls_test: Pass # Issue 27394
-map_literal6_test: RuntimeError # Issue 27394
 metadata_test: Crash # Issue 27394
 mixin_black_listed_test/08: Crash # Issue 27394
 mixin_cyclic_test/01: Crash # Issue 27394
@@ -507,7 +473,6 @@ null_test/02: Crash # Issue 27394
 null_test/03: Crash # Issue 27394
 null_test/none: Crash # Issue 27394
 nullaware_opt_test: RuntimeError # Issue 27394
-operator_equals_test: RuntimeError # Issue 27394
 optional_named_parameters_test/none: RuntimeError # Issue 27394
 private_mixin2_test: Crash # Issue 27394
 redirecting_constructor_initializer_test: RuntimeError # Issue 27394

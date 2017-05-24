@@ -821,7 +821,9 @@ intptr_t RawOneByteString::VisitOneByteStringPointers(
     RawOneByteString* raw_obj,
     ObjectPointerVisitor* visitor) {
   ASSERT(!raw_obj->ptr()->length_->IsHeapObject());
+#if !defined(HASH_IN_OBJECT_HEADER)
   ASSERT(!raw_obj->ptr()->hash_->IsHeapObject());
+#endif
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
   return OneByteString::InstanceSize(length);
 }
@@ -831,7 +833,9 @@ intptr_t RawTwoByteString::VisitTwoByteStringPointers(
     RawTwoByteString* raw_obj,
     ObjectPointerVisitor* visitor) {
   ASSERT(!raw_obj->ptr()->length_->IsHeapObject());
+#if !defined(HASH_IN_OBJECT_HEADER)
   ASSERT(!raw_obj->ptr()->hash_->IsHeapObject());
+#endif
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
   return TwoByteString::InstanceSize(length);
 }

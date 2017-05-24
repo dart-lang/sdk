@@ -19,6 +19,7 @@ import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/checked_mode_helpers.dart';
+import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
@@ -63,7 +64,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateCode(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     if (work.element.isField) {
       return generateLazyInitializer(work, graph, closedWorld);
     } else {
@@ -72,7 +73,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateLazyInitializer(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
       backend.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
@@ -97,7 +98,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateMethod(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
       MethodElement element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
@@ -1788,8 +1789,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
-        assert(invariant(node, _closedWorld.isUsedAsMixin(enclosing),
-            message: "Element ${node.element} from $enclosing expected "
+        assert(
+            _closedWorld.isUsedAsMixin(enclosing),
+            failedAt(
+                node,
+                "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
         return _closedWorld.commonMasks.createNonNullSubtype(enclosing);
       }
@@ -1818,8 +1822,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
       // for this to work.
-      assert(invariant(node, selector.applies(target),
-          message: '$selector does not apply to $target'));
+      assert(selector.applies(target),
+          failedAt(node, '$selector does not apply to $target'));
       _registry.registerStaticUse(
           new StaticUse.directInvoke(target, selector.callStructure));
     } else {

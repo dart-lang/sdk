@@ -40,10 +40,21 @@ class Mixin {
   method1() {}
   method2() {}
   method3() {}
+  method4() {}
+  var field;
+  get property => 0;
+  set property(_) {}
 }
 class Class1 = Object with Mixin;
 class Class2 extends Object with Mixin {
   method3() {}
+  method5() {
+    super.method4();
+    super.property;
+    super.property = null;
+    super.field;
+    super.field = null;
+  }
 }
 
 main() {
@@ -53,6 +64,7 @@ main() {
   new Class1().method1();
   new Class2().method2();
   new Class2().method3();
+  new Class2().method5();
 }
 '''
 };

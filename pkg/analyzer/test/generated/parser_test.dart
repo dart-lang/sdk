@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.parser_test;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -628,6 +626,33 @@ Function(int, String) v;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_generic_comment_parameterType() {
+    enableGenericMethodComments = true;
+    createParser('m/*<T>*/(dynamic /*=T*/ p) => null;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+
+    FormalParameterList parameters = method.parameters;
+    expect(parameters, isNotNull);
+    expect(parameters.parameters, hasLength(1));
+    var parameter = parameters.parameters[0] as SimpleFormalParameter;
+    var parameterType = parameter.type as TypeName;
+    expect(parameterType.name.name, 'T');
+
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_generic_comment_returnType() {
     enableGenericMethodComments = true;
     createParser('/*=T*/ m/*<T>*/() {}');
@@ -649,9 +674,9 @@ Function(int, String) v;
     expect(method.body, isNotNull);
   }
 
-  void test_parseClassMember_method_static_generic_comment_returnType() {
+  void test_parseClassMember_method_generic_comment_returnType_bound() {
     enableGenericMethodComments = true;
-    createParser('static /*=T*/ m/*<T>*/() {}');
+    createParser('num/*=T*/ m/*<T extends num>*/() {}');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();
@@ -659,13 +684,16 @@ Function(int, String) v;
     MethodDeclaration method = member;
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
+    expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
     expect((method.returnType as TypeName).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
+    TypeParameter tp = method.typeParameters.typeParameters[0];
+    expect(tp.name.name, 'T');
+    expect(tp.extendsKeyword, isNotNull);
+    expect((tp.bound as TypeName).name.name, 'num');
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -697,57 +725,6 @@ Function(int, String) v;
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_parameterType() {
-    enableGenericMethodComments = true;
-    createParser('m/*<T>*/(dynamic /*=T*/ p) => null;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new isInstanceOf<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-
-    FormalParameterList parameters = method.parameters;
-    expect(parameters, isNotNull);
-    expect(parameters.parameters, hasLength(1));
-    var parameter = parameters.parameters[0] as SimpleFormalParameter;
-    var parameterType = parameter.type as TypeName;
-    expect(parameterType.name.name, 'T');
-
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_returnType_bound() {
-    enableGenericMethodComments = true;
-    createParser('num/*=T*/ m/*<T extends num>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new isInstanceOf<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect((method.returnType as TypeName).name.name, 'T');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    TypeParameter tp = method.typeParameters.typeParameters[0];
-    expect(tp.name.name, 'T');
-    expect(tp.extendsKeyword, isNotNull);
-    expect((tp.bound as TypeName).name.name, 'num');
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -1068,6 +1045,27 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_static_generic_comment_returnType() {
+    enableGenericMethodComments = true;
+    createParser('static /*=T*/ m/*<T>*/() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect((method.returnType as TypeName).name.name, 'T');
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -2859,6 +2857,18 @@ class Foo {
   void test_functionTypedParameter_final() {
     parseCompilationUnit(
         "void f(final x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
+  }
+
+  void test_functionTypedParameter_incomplete1() {
+    // This caused an exception at one point.
+    parseCompilationUnit("void f(int Function(", [
+      ParserErrorCode.MISSING_FUNCTION_BODY,
+      ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+      ParserErrorCode.EXPECTED_EXECUTABLE,
+      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_functionTypedParameter_var() {
@@ -14551,22 +14561,6 @@ enum E {
     expect(declaration.propertyKeyword, isNotNull);
   }
 
-  void test_parseFunctionDeclaration_setter() {
-    createParser('/// Doc\nT set p(v) {}');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expect(declaration, isNotNull);
-    assertNoErrors();
-    expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNull);
-    expect(expression.parameters, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
   void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
     enableGenericMethodComments = true;
     createParser('/*=T*/ f/*<S, T>*/(/*=S*/ s) => null;');
@@ -14583,6 +14577,22 @@ enum E {
     expect(functionExpression.typeParameters, isNotNull);
     expect(functionExpression.parameters, isNotNull);
     expect(functionExpression.body, isNotNull);
+  }
+
+  void test_parseFunctionDeclaration_setter() {
+    createParser('/// Doc\nT set p(v) {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
   }
 
   @failingTest

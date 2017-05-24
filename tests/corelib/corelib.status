@@ -227,7 +227,6 @@ bool_from_environment_test: RuntimeError # Issue 27394
 data_uri_test: RuntimeError # Issue 27394
 date_time7_test: RuntimeError # Issue 27394
 date_time_test: RuntimeError # Issue 27394
-duration_test: RuntimeError # Issue 27394
 growable_list_test: RuntimeError # Issue 27394
 int_from_environment2_test: RuntimeError # Issue 27394
 int_from_environment_test: RuntimeError # Issue 27394

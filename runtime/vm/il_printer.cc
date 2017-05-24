@@ -545,9 +545,6 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
-  if (with_checks()) {
-    f->Print(" WITH-CHECKS");
-  }
   if (complete()) {
     f->Print(" COMPLETE");
   }
@@ -741,8 +738,7 @@ void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void MergedMathInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("'%s', ", MergedMathInstr::KindToCString(kind()));
+void TruncDivModInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 

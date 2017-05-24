@@ -251,8 +251,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type
@@ -261,7 +261,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
   }
 

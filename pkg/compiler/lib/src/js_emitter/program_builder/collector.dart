@@ -25,7 +25,7 @@ class Collector {
   final MirrorsData _mirrorsData;
   final ClosedWorld _closedWorld;
   final Set<ClassEntity> _rtiNeededClasses;
-  final Map<MemberElement, js.Expression> _generatedCode;
+  final Map<MemberEntity, js.Expression> _generatedCode;
   final Sorter _sorter;
 
   final Set<ClassEntity> neededClasses = new Set<ClassEntity>();
@@ -203,7 +203,7 @@ class Collector {
         .toList());
 
     // Compute needed classes.
-    Set<ClassElement> instantiatedClasses =
+    Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.directlyInstantiatedClasses
@@ -219,7 +219,7 @@ class Collector {
       }
     }
 
-    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
+    void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
       for (ClassElement cls in classes) {
         addClassWithSuperclasses(cls);
       }
@@ -280,7 +280,7 @@ class Collector {
           !classesOnlyNeededForRti.contains(cls)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(cls);
-        assert(invariant(cls, !_deferredLoadTask.isDeferredClass(cls)));
+        assert(!_deferredLoadTask.isDeferredClass(cls), failedAt(cls));
         outputClassLists
             .putIfAbsent(_deferredLoadTask.mainOutputUnit,
                 () => new List<ClassElement>())

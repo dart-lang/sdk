@@ -906,6 +906,11 @@ typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 DART_EXPORT Dart_Handle
 Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
 
+/**
+ * Returns true if isolate is currently reloading.
+ */
+DART_EXPORT bool Dart_IsReloading();
+
 /*
  * ========
  * Timeline

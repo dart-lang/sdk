@@ -113,6 +113,12 @@ class IdentifierContext {
       inDeclaration: true,
       isBuiltInIdentifierAllowed: false);
 
+  /// Identifier is the start of a reference to a type that starts with prefix.
+  static const prefixedTypeReference = const IdentifierContext._(
+      'prefixedTypeReference',
+      isScopeReference: true,
+      isBuiltInIdentifierAllowed: true);
+
   /// Identifier is the start of a reference to a type declared elsewhere.
   static const typeReference = const IdentifierContext._('typeReference',
       isScopeReference: true, isBuiltInIdentifierAllowed: false);

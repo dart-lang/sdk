@@ -12,7 +12,7 @@ import '../scanner/token.dart' show BeginGroupToken, SymbolToken;
 
 import '../util/link.dart' show Link;
 
-import 'parser.dart' show FormalParameterType;
+import 'parser.dart' show FormalParameterType, MemberKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
@@ -63,6 +63,12 @@ class Listener {
 
   void endCascade() {
     logEvent("Cascade");
+  }
+
+  void beginCaseExpression(Token caseKeyword) {}
+
+  void endCaseExpression(Token colon) {
+    // logEvent("CaseExpression");
   }
 
   void beginClassBody(Token token) {}
@@ -180,20 +186,21 @@ class Listener {
     logEvent("FactoryMethod");
   }
 
-  void beginFormalParameter(Token token) {}
+  void beginFormalParameter(Token token, MemberKind kind) {}
 
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     logEvent("NoFormalParameters");
   }
 
-  void beginFormalParameters(Token token) {}
+  void beginFormalParameters(Token token, MemberKind kind) {}
 
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     logEvent("FormalParameters");
   }
 
@@ -204,8 +211,7 @@ class Listener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     logEvent("Fields");
   }
 
@@ -815,7 +821,7 @@ class Listener {
   /// - type parameters
   /// - formal parameters
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     logEvent("FunctionTypedFormalParameter");
   }
 

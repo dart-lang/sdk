@@ -2350,7 +2350,7 @@ unwrapException(ex) {
     // argument to a function that does not allow a range that includes that
     // number. Translate to a Dart ArgumentError with the same message.
     // TODO(sra): Translate to RangeError.
-    String message = tryStringifyException(ex);
+    message = tryStringifyException(ex);
     if (message is String) {
       message = JS('String', r'#.replace(/^RangeError:\s*/, "")', message);
     }

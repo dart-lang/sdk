@@ -122,7 +122,7 @@ String compileTemplate(String name, String template, String tip,
   return """
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_$name> code$name =
-    const FastaCode<_$name>(${codeArguments.join(', ')});
+    const FastaCode<_$name>(\"$name\", ${codeArguments.join(', ')});
 
 typedef FastaMessage _$name(${parameters.join(', ')});
 

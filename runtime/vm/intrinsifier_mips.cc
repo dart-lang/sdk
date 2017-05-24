@@ -167,8 +167,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* T2: untagged array length. */                                             \
   __ BranchSignedGreater(T2, Immediate(max_len), &fall_through);               \
   __ sll(T2, T2, scale_shift);                                                 \
-  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
-  __ AddImmediate(T2, fixed_size);                                             \
+  const intptr_t fixed_size_plus_alignment_padding =                           \
+      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
+  __ AddImmediate(T2, fixed_size_plus_alignment_padding);                      \
   __ LoadImmediate(TMP, -kObjectAlignment);                                    \
   __ and_(T2, T2, TMP);                                                        \
   Heap::Space space = Heap::kNew;                                              \
@@ -2131,8 +2132,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ mov(T6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
-  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
-  __ AddImmediate(length_reg, fixed_size);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawString) + kObjectAlignment - 1;
+  __ AddImmediate(length_reg, fixed_size_plus_alignment_padding);
   __ LoadImmediate(TMP, ~(kObjectAlignment - 1));
   __ and_(length_reg, length_reg, TMP);
 

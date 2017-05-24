@@ -191,7 +191,8 @@ String modifiersToString(
     bool isVar: false,
     bool isConst: false,
     bool isFactory: false,
-    bool isExternal: false}) {
+    bool isExternal: false,
+    bool isCovariant: false}) {
   LinkBuilder<String> builder = new LinkBuilder<String>();
   if (isStatic) builder.addLast('static');
   if (isAbstract) builder.addLast('abstract');
@@ -200,6 +201,7 @@ String modifiersToString(
   if (isConst) builder.addLast('const');
   if (isFactory) builder.addLast('factory');
   if (isExternal) builder.addLast('external');
+  if (isCovariant) builder.addLast('covariant');
   StringBuffer buffer = new StringBuffer();
   builder.toLink().printOn(buffer, ', ');
   return buffer.toString();

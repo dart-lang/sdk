@@ -15,11 +15,14 @@ import 'package:kernel/text/ast_to_text.dart';
 int offsetForToken(Token token) =>
     token == null ? TreeNode.noOffset : token.offset;
 
-/// Print the given [program].  Do nothing if it is `null`.
-void printProgramText(Program program) {
+/// Print the given [program].  Do nothing if it is `null`.  If the
+/// [libraryFilter] is provided, then only libraries that satisfy it are
+/// printed.
+void printProgramText(Program program, {bool libraryFilter(Library library)}) {
   if (program == null) return;
   StringBuffer sb = new StringBuffer();
   for (Library library in program.libraries) {
+    if (libraryFilter != null && !libraryFilter(library)) continue;
     Printer printer = new Printer(sb);
     printer.writeLibraryFile(library);
   }

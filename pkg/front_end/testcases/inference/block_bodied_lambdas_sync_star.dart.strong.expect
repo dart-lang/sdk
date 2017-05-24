@@ -1,0 +1,27 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  () → core::Iterable<core::num> f = () → core::Iterable<core::num> /* originally sync* */ {
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :sync_op(core::Iterator<dynamic> :iterator) → core::bool yielding {
+      {
+        {
+          :iterator._current = 1;
+          [yield] true;
+        }
+        {
+          :iterator.isYieldEach = true;
+          :iterator._current = <core::num>[3, 4.0];
+          [yield] true;
+        }
+      }
+      return false;
+    }
+    return new core::_SyncIterable::•(:sync_op);
+  };
+  core::Iterable<core::num> g = f.call();
+  core::Iterable<core::int> h = f.call();
+}

@@ -511,9 +511,14 @@ instanceOf(obj, type) => JS(
   if (result !== null) return result;
   if (!dart.__failForWeakModeIsChecks) return false;
   let actual = $getReifiedType($obj);
-  $throwStrongModeError('Strong mode is-check failure: ' +
-    $typeName(actual) + ' does not soundly subtype ' +
-    $typeName($type));
+  let message = 'Strong mode is-check failure: ' +
+      $typeName(actual) + ' does not soundly subtype ' +
+      $typeName($type);
+  if (!dart.__ignoreAllErrors) {
+    $throwStrongModeError(message);
+  }
+  console.error(message);
+  return true; // Match Dart 1.0 Semantics when ignoring errors.
 })()''');
 
 @JSExportName('as')
@@ -521,14 +526,24 @@ cast(obj, type) {
   if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
   bool result = strongInstanceOf(obj, type, true);
   if (JS('bool', '#', result)) return obj;
-  _throwCastError(obj, type, result);
+  if (JS('bool', '!dart.__ignoreAllErrors')) {
+    _throwCastError(obj, type, result);
+  }
+  JS('', 'console.error(#)',
+      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
+  return obj;
 }
 
 check(obj, type) {
   if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
   bool result = strongInstanceOf(obj, type, true);
   if (JS('bool', '#', result)) return obj;
-  _throwTypeError(obj, type, result);
+  if (JS('bool', '!dart.__ignoreAllErrors')) {
+    _throwTypeError(obj, type, result);
+  }
+  JS('', 'console.error(#)',
+      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
+  return obj;
 }
 
 bool test(obj) {

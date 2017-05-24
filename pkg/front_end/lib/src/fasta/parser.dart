@@ -12,13 +12,16 @@ import 'parser/parser.dart' show Parser;
 
 import 'parser/listener.dart' show ParserError;
 
-export 'parser/parser.dart' show Parser, optional;
+export 'parser/parser.dart'
+    show FormalParameterType, MemberKind, Parser, optional;
 
 export 'parser/listener.dart' show Listener, ParserError;
 
 export 'parser/top_level_parser.dart' show TopLevelParser;
 
 export 'parser/class_member_parser.dart' show ClassMemberParser;
+
+export 'parser/identifier_context.dart' show IdentifierContext;
 
 List<ParserError> parse(Token tokens) {
   Listener listener = new Listener();

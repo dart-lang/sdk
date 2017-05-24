@@ -54,7 +54,7 @@ Future runTest(Uri main, {MessageKind error, MessageKind info}) async {
 void main() {
   asyncTest(() async {
     await runTest(Uri.parse('memory:main.dart'),
-        error: MessageKind.READ_SCRIPT_ERROR);
+        error: MessageKind.READ_URI_ERROR);
 
     await runTest(Uri.parse('memory:foo.dart'),
         error: MessageKind.READ_SELF_ERROR);

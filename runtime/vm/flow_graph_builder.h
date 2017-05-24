@@ -114,6 +114,11 @@ class FlowGraphBuilder : public ValueObject {
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   void SetInitialBlockId(intptr_t id) { last_used_block_id_ = id; }
 
+  intptr_t GetNextDeoptId() {
+    // TODO(rmacnak): Record current scope / context level.
+    return thread()->GetNextDeoptId();
+  }
+
   intptr_t context_level() const;
 
   void IncrementLoopDepth() { ++loop_depth_; }

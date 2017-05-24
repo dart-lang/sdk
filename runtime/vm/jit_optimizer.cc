@@ -199,9 +199,6 @@ void JitOptimizer::SpecializePolymorphicInstanceCall(
     // Specialization adds receiver checks which can lead to deoptimization.
     return;
   }
-  if (!call->with_checks()) {
-    return;  // Already specialized.
-  }
 
   const intptr_t receiver_cid =
       call->PushArgumentAt(0)->value()->Type()->ToCid();
@@ -220,11 +217,9 @@ void JitOptimizer::SpecializePolymorphicInstanceCall(
     return;
   }
 
-  const bool with_checks = false;
-  const bool complete = false;
-  PolymorphicInstanceCallInstr* specialized =
-      new (Z) PolymorphicInstanceCallInstr(call->instance_call(), *targets,
-                                           with_checks, complete);
+  ASSERT(targets->HasSingleTarget());
+  const Function& target = targets->FirstTarget();
+  StaticCallInstr* specialized = StaticCallInstr::FromCall(Z, call, target);
   call->ReplaceWith(specialized, current_iterator());
 }
 
@@ -607,7 +602,7 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
-                               false);  // No number check.
+                               /* number_check = */ false, Thread::kNoDeoptId);
         ReplaceCall(call, comp);
         return true;
       }
@@ -1361,10 +1356,9 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid =
-        new (Z) StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
-                                   new (Z) Value(left_cid), new (Z) Value(cid),
-                                   false);  // No number check.
+    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+        call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
+        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1494,13 +1488,11 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 
   if (has_one_target) {
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const Function& target =
+        Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     const RawFunction::Kind function_kind = target.kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
-      PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, targets,
-                                               /* call_with_checks = */ false,
-                                               /* complete = */ false);
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1516,7 +1508,6 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   // very polymorphic sites we don't make this optimization, keeping it as a
   // regular checked PolymorphicInstanceCall, which falls back to the slow but
   // non-deopting megamorphic call stub when it sees new receiver classes.
-  bool call_with_checks;
   if (has_one_target && FLAG_polymorphic_with_deopt &&
       (!instr->ic_data()->HasDeoptReason(ICData::kDeoptCheckClass) ||
        unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
@@ -1525,14 +1516,16 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     // array, not the IC array.
     AddReceiverCheck(instr);
     // Call can still deoptimize, do not detach environment from instr.
-    call_with_checks = false;
+    const Function& target =
+        Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
+    StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
+    instr->ReplaceWith(call, current_iterator());
   } else {
-    call_with_checks = true;
+    PolymorphicInstanceCallInstr* call =
+        new (Z) PolymorphicInstanceCallInstr(instr, targets,
+                                             /* complete = */ false);
+    instr->ReplaceWith(call, current_iterator());
   }
-  PolymorphicInstanceCallInstr* call =
-      new (Z) PolymorphicInstanceCallInstr(instr, targets, call_with_checks,
-                                           /* complete = */ false);
-  instr->ReplaceWith(call, current_iterator());
 }
 
 

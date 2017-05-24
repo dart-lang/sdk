@@ -92,7 +92,7 @@ class FastaCompile
       TestDescription description, ClosureConversionContext context) async {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
     platform.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platform);
     KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,

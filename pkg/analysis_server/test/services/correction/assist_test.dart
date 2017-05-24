@@ -14,8 +14,8 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -3828,6 +3828,7 @@ final V = 1;
   }
 
   test_reparentFlutterList_BAD_multiLine() async {
+    verifyNoTestUnitErrors = false;
     _configureFlutterPkg({
       'src/widgets/framework.dart': flutter_framework_code,
     });
@@ -3991,6 +3992,55 @@ class FakeFlutter {
     );
   }
 }
+''');
+  }
+
+  test_reparentFlutterWidget_OK_multiLines_eol2() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';\r
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: new /*caret*/DefaultTextStyle(\r
+        child: new Row(\r
+          children: <Widget>[\r
+            new Container(\r
+            ),\r
+          ],\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';\r
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: new widget(\r
+        child: new /*caret*/DefaultTextStyle(\r
+          child: new Row(\r
+            children: <Widget>[\r
+              new Container(\r
+              ),\r
+            ],\r
+          ),\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
 ''');
   }
 
@@ -4648,23 +4698,8 @@ main() {
     CompilationUnitElement testUnitElement =
         resolutionMap.elementDeclaredByCompilationUnit(testUnit);
     DartAssistContext assistContext;
-    if (enableNewAnalysisDriver) {
-      assistContext = new _DartAssistContextForValues(
-          testUnitElement.source,
-          offset,
-          length,
-          testUnitElement.context,
-          new AstProviderForDriver(driver),
-          testUnit);
-    } else {
-      assistContext = new _DartAssistContextForValues(
-          testUnitElement.source,
-          offset,
-          length,
-          testUnitElement.context,
-          new AstProviderForContext(testUnitElement.context),
-          testUnit);
-    }
+    assistContext = new _DartAssistContextForValues(testUnitElement.source,
+        offset, length, driver, new AstProviderForDriver(driver), testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
   }
@@ -4728,7 +4763,7 @@ class _DartAssistContextForValues implements DartAssistContext {
   final int selectionLength;
 
   @override
-  final AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final AstProvider astProvider;
@@ -4737,5 +4772,5 @@ class _DartAssistContextForValues implements DartAssistContext {
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisContext, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
 }

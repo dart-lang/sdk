@@ -21,3 +21,5 @@ test2() {
   Iterable<num> w = y;
   Iterable<int> z = /*info:ASSIGNMENT_CAST*/ y;
 }
+
+main() {}

@@ -35,7 +35,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
   M(BoxInt64)                                                                  \
-  M(MergedMath)                                                                \
+  M(TruncDivMod)                                                               \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
   M(IfThenElse)                                                                \
@@ -244,42 +244,36 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
   // Push the target onto the stack.
-  if (with_checks()) {
-    const intptr_t length = targets_.length();
-    if (!Utils::IsUint(8, length)) {
-      Unsupported(compiler);
-      UNREACHABLE();
-    }
-    bool using_ranges = false;
-    for (intptr_t i = 0; i < length; i++) {
-      if (!targets_[i].IsSingleCid()) {
-        using_ranges = true;
-        break;
-      }
-    }
-
-    if (using_ranges) {
-      __ PushPolymorphicInstanceCallByRange(instance_call()->ArgumentCount(),
-                                            length);
-    } else {
-      __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(), length);
-    }
-    for (intptr_t i = 0; i < length; i++) {
-      const Function& target = *targets_.TargetAt(i)->target;
-
-      __ Nop(compiler->ToEmbeddableCid(targets_[i].cid_start, this));
-      if (using_ranges) {
-        __ Nop(compiler->ToEmbeddableCid(1 + targets_[i].Extent(), this));
-      }
-      __ Nop(__ AddConstant(target));
-    }
-    compiler->EmitDeopt(deopt_id(),
-                        ICData::kDeoptPolymorphicInstanceCallTestFail, 0);
-  } else {
-    ASSERT(targets().HasSingleTarget());
-    const Function& target = targets().FirstTarget();
-    __ PushConstant(target);
+  const intptr_t length = targets_.length();
+  if (!Utils::IsUint(8, length)) {
+    Unsupported(compiler);
+    UNREACHABLE();
   }
+  bool using_ranges = false;
+  for (intptr_t i = 0; i < length; i++) {
+    if (!targets_[i].IsSingleCid()) {
+      using_ranges = true;
+      break;
+    }
+  }
+
+  if (using_ranges) {
+    __ PushPolymorphicInstanceCallByRange(instance_call()->ArgumentCount(),
+                                          length);
+  } else {
+    __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(), length);
+  }
+  for (intptr_t i = 0; i < length; i++) {
+    const Function& target = *targets_.TargetAt(i)->target;
+
+    __ Nop(compiler->ToEmbeddableCid(targets_[i].cid_start, this));
+    if (using_ranges) {
+      __ Nop(compiler->ToEmbeddableCid(1 + targets_[i].Extent(), this));
+    }
+    __ Nop(__ AddConstant(target));
+  }
+  compiler->EmitDeopt(deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail,
+                      0);
 
   // Call the function.
   __ StaticCall(instance_call()->ArgumentCount(), argdesc_kidx);
@@ -1326,15 +1320,6 @@ CompileType ShiftUint32OpInstr::ComputeType() const {
 
 CompileType UnaryUint32OpInstr::ComputeType() const {
   return CompileType::Int();
-}
-
-
-static const intptr_t kMintShiftCountLimit = 63;
-
-
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(right()->definition()->range(), 0,
-                               kMintShiftCountLimit);
 }
 
 

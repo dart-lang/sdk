@@ -10,6 +10,8 @@
 
 #include <errno.h>  // NOLINT
 #include <magenta/syscalls.h>
+#include <magenta/syscalls/object.h>
+#include <magenta/threads.h>
 #include <magenta/types.h>
 
 #include "platform/assert.h"
@@ -121,7 +123,7 @@ int OSThread::Start(const char* name,
 }
 
 
-const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
+const ThreadId OSThread::kInvalidThreadId = MX_KOID_INVALID;
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
@@ -156,7 +158,12 @@ intptr_t OSThread::GetMaxStackSize() {
 
 
 ThreadId OSThread::GetCurrentThreadId() {
-  return pthread_self();
+  mx_info_handle_basic_t info;
+  mx_handle_t thread_handle = thrd_get_mx_handle(thrd_current());
+  mx_status_t status =
+      mx_object_get_info(thread_handle, MX_INFO_HANDLE_BASIC, &info,
+                         sizeof(info), nullptr, nullptr);
+  return status == NO_ERROR ? info.koid : MX_KOID_INVALID;
 }
 
 

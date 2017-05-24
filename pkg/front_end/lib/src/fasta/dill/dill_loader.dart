@@ -34,9 +34,7 @@ class DillLoader extends Loader<Library> {
     return builders;
   }
 
-  Future<Null> buildBody(DillLibraryBuilder builder) {
-    return buildOutline(builder);
-  }
+  DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     builder.library.classes.forEach(builder.addClass);
@@ -45,5 +43,7 @@ class DillLoader extends Loader<Library> {
     builder.library.fields.forEach(builder.addMember);
   }
 
-  DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
+  Future<Null> buildBody(DillLibraryBuilder builder) {
+    return buildOutline(builder);
+  }
 }

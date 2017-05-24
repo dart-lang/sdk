@@ -24,6 +24,7 @@ import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart'
     show
         Builder,
+        InvalidTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
@@ -120,6 +121,13 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   Builder buildAmbiguousBuilder(
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
+    if (builder == other) return builder;
+    if (builder is InvalidTypeBuilder) return builder;
+    if (other is InvalidTypeBuilder) return other;
+    // For each entry mapping key `k` to declaration `d` in `NS` an entry
+    // mapping `k` to `d` is added to the exported namespace of `L` unless a
+    // top-level declaration with the name `k` exists in `L`.
+    if (builder.parent == this) return builder;
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 

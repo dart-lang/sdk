@@ -29,10 +29,16 @@ mixin(base, @rest mixins) => JS(
 
   // Create a class that will hold all of the mixin methods.
   class Mixin extends $base {}
+  // Save the original constructor.  For ClassTypeAlias definitions, this
+  // is the concrete type.  We embed metadata (e.g., implemented interfaces)
+  // on this constructor and need to access that from runtime instances.
+  let constructor = Mixin.prototype.constructor;
   // Copy each mixin's methods, with later ones overwriting earlier entries.
   for (let m of $mixins) {
     $copyProperties(Mixin.prototype, m.prototype);
   }
+  // Restore original Mixin constructor.
+  Mixin.prototype.constructor = constructor;  
   // Initializer methods: run mixin initializers, then the base.
   Mixin.prototype.new = function(...args) {
     // Run mixin initializers. They cannot have arguments.
@@ -55,6 +61,7 @@ mixin(base, @rest mixins) => JS(
         // Run base initializer.
         $base.prototype[namedCtor].apply(this, args);
       };
+      $defineNamedConstructor(Mixin, namedCtor);
     }
   }
 
@@ -626,6 +633,10 @@ defineNamedConstructorCallable(clazz, name, ctor) => JS(
   // Use defineProperty so we don't hit a property defined on Function,
   // like `caller` and `arguments`.
   $defineProperty($clazz, $name, { value: ctor, configurable: true });
+
+  let namedCtors = ${safeGetOwnProperty(clazz, _namedConstructors)};
+  if (namedCtors == null) $clazz[$_namedConstructors] = namedCtors = [];
+  namedCtors.push($name);
 })()''');
 
 defineEnumValues(enumClass, names) => JS(
