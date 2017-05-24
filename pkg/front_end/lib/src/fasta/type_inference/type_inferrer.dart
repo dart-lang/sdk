@@ -59,9 +59,9 @@ class ClosureContext {
             returnContext, inferrer.coreTypes.iterableClass);
       }
     } else if (isAsync) {
-      // TODO(paulberry): do we have to handle FutureOr<> here?
-      returnContext = inferrer.getTypeArgumentOf(
-          returnContext, inferrer.coreTypes.futureClass);
+      returnContext = inferrer.wrapType(
+          inferrer.typeSchemaEnvironment.flattenFutures(returnContext),
+          inferrer.coreTypes.futureOrClass);
     }
     return new ClosureContext._(isAsync, isGenerator, returnContext);
   }
@@ -416,7 +416,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferStatement(Statement statement);
 
   DartType wrapFutureType(DartType type) {
-    var typeWithoutFutureOr = type;
+    var typeWithoutFutureOr = type ?? const DynamicType();
     if (type is InterfaceType &&
         identical(type.classNode, coreTypes.futureOrClass)) {
       typeWithoutFutureOr = type.typeArguments[0];
@@ -426,7 +426,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   DartType wrapType(DartType type, Class class_) {
-    return new InterfaceType(class_, <DartType>[type]);
+    return new InterfaceType(class_, <DartType>[type ?? const DynamicType()]);
   }
 
   void _forEachArgument(
