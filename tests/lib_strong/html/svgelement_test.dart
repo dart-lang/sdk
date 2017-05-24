@@ -477,14 +477,4 @@ main() {
       expect(rect.height, closeTo(100, 1));
     });
   });
-
-  group('PathElement', () {
-    test('pathSegList', () {
-      svg.PathElement path =
-          new svg.SvgElement.svg('<path d="M 100 100 L 300 100 L 200 300 z"/>');
-      for (var seg in path.pathSegList) {
-        expect(seg is svg.PathSeg, isTrue);
-      }
-    });
-  });
 }
