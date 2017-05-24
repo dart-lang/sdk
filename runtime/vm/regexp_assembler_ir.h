@@ -132,8 +132,6 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   void FinalizeRegistersArray();
 
  private:
-  intptr_t GetNextDeoptId() const { return thread_->GetNextDeoptId(); }
-
   // Generate the contents of preset blocks. The entry block is the entry point
   // of the generated code.
   void GenerateEntryBlock();
@@ -360,8 +358,6 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
    private:
     intptr_t next_id;
   };
-
-  Thread* thread_;
 
   // Which mode to generate code for (ASCII or UC16).
   Mode mode_;

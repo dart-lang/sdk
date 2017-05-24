@@ -604,9 +604,7 @@ const Object& Value::BoundConstant() const {
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
-    : BlockEntryInstr(0,
-                      CatchClauseNode::kInvalidTryIndex,
-                      Thread::Current()->GetNextDeoptId()),
+    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
@@ -1111,8 +1109,7 @@ bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
-      GotoInstr* goto_join =
-          new GotoInstr(AsJoinEntry(), Thread::Current()->GetNextDeoptId());
+      GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
       goto_join->CopyDeoptIdFrom(*parent);
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
@@ -1339,7 +1336,7 @@ BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
 
 
 void Instruction::Goto(JoinEntryInstr* entry) {
-  LinkTo(new GotoInstr(entry, Thread::Current()->GetNextDeoptId()));
+  LinkTo(new GotoInstr(entry));
 }
 
 
@@ -3225,9 +3222,8 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Token::Kind kind,
                                        Value* left,
                                        Value* right,
-                                       bool needs_number_check,
-                                       intptr_t deopt_id)
-    : TemplateComparison(token_pos, kind, deopt_id),
+                                       bool needs_number_check)
+    : TemplateComparison(token_pos, kind, Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
   SetInputAt(0, left);
@@ -3838,7 +3834,7 @@ ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
                                                          Value* new_right) {
   return new StrictCompareInstr(token_pos(), kind(), new_left, new_right,
-                                needs_number_check(), Thread::kNoDeoptId);
+                                needs_number_check());
 }
 
 

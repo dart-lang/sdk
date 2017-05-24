@@ -3554,7 +3554,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
     Fragment loop(join);
     loop += CheckStackOverflow();
     loop += condition;
-    entry = new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId());
+    entry = new (Z) GotoInstr(join);
   } else {
     entry = condition.entry;
   }
@@ -3588,8 +3588,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
   repeat += Goto(join);
 
   loop_depth_dec();
-  return Fragment(new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId()),
-                  loop_exit);
+  return Fragment(new (Z) GotoInstr(join), loop_exit);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildForStatement() {
