@@ -72,6 +72,8 @@ abstract class Stream<T> {
                                { Function onError,
                                  void onDone(),
                                  bool cancelOnError});
+  Stream();
+  factory Stream.fromIterable(Iterable<T> data);
 }
 
 abstract class StreamSubscription<T> {

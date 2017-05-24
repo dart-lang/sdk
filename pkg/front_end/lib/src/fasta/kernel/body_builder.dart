@@ -484,8 +484,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
-    // TODO(paulberry): get function return type from the outline.
-    _typeInferrer.inferFunctionBody(null, asyncModifier, body);
+    _typeInferrer.inferFunctionBody(
+        member.target.function.returnType, asyncModifier, body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
     if (formals?.optional != null) {
