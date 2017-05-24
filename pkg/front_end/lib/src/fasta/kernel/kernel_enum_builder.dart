@@ -4,8 +4,6 @@
 
 library fasta.kernel_enum_builder;
 
-import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -88,7 +86,6 @@ class KernelEnumBuilder extends SourceClassBuilder
             null, charOffset, cls);
 
   factory KernelEnumBuilder(
-      AstFactory astFactory,
       List<MetadataBuilder> metadata,
       String name,
       List<Object> constantNamesAndOffsets,

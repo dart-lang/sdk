@@ -11,11 +11,6 @@ import 'dart:typed_data' show Uint8List;
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
 
-import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
-
-import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
-    show KernelAstFactory;
-
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelTypeInferenceEngine;
 
@@ -72,8 +67,6 @@ class SourceLoader<L> extends Loader<L> {
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
-
-  final AstFactory astFactory = new KernelAstFactory();
 
   TypeInferenceEngine typeInferenceEngine;
 

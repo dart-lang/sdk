@@ -593,8 +593,8 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(loader.astFactory, metadata, name,
-            constantNamesAndOffsets, this, charOffset, charEndOffset),
+        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
+            charOffset, charEndOffset),
         charOffset);
   }
 

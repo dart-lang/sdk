@@ -72,7 +72,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
       // should it be the part URI?
       var typeInferenceEngine = library.loader.typeInferenceEngine;
-      var astFactory = library.loader.astFactory;
       var listener = new TypeInferenceListener();
       var typeInferrer =
           typeInferenceEngine.createTopLevelTypeInferrer(field, listener);
@@ -87,7 +86,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
           isInstanceMember,
           library.uri,
           typeInferrer,
-          astFactory,
           fieldDependencies: typeInferenceEngine.getFieldDependencies(field));
       Parser parser = new Parser(bodyBuilder);
       Token token = parser.parseExpression(initializerToken);

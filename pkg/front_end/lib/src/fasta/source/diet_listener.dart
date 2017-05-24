@@ -4,9 +4,6 @@
 
 library fasta.diet_listener;
 
-import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
-    show KernelAstFactory;
-
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show TypeInferenceEngine;
 
@@ -410,18 +407,8 @@ class DietListener extends StackListener {
     var listener = new TypeInferenceListener();
     var typeInferrer =
         typeInferenceEngine.createLocalTypeInferrer(uri, listener);
-    return new BodyBuilder(
-        library,
-        builder,
-        memberScope,
-        formalParameterScope,
-        hierarchy,
-        coreTypes,
-        currentClass,
-        isInstanceMember,
-        uri,
-        typeInferrer,
-        new KernelAstFactory())
+    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
+        hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }
 
