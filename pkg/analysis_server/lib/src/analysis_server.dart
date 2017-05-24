@@ -689,7 +689,7 @@ class AnalysisServer {
     Iterable<nd.AnalysisDriver> drivers = driverMap.values;
     if (drivers.isNotEmpty) {
       nd.AnalysisDriver driver = drivers.firstWhere(
-          (driver) => driver.addedFiles.contains(path),
+          (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
           (driver) => driver.knownFiles.contains(path),
