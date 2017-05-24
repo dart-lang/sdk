@@ -220,7 +220,7 @@ class JSNumber extends Interceptor implements num {
       // Then we don't know how to handle it at all.
       throw new UnsupportedError("Unexpected toString result: $result");
     }
-    String result = JS('String', '#', match[1]);
+    result = JS('String', '#', match[1]);
     int exponent = JS("int", "+#", match[3]);
     if (match[2] != null) {
       result = JS('String', '# + #', result, match[2]);
