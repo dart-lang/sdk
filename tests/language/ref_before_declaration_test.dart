@@ -43,11 +43,11 @@ class C {
 
   void test4() {
     void Q() {
-      P(); // Refers to non-existing top-level function P
+      P(); //# 06: compile-time error
     }
-    void P() { // //# 06: compile-time error
-      Q(); //     //# 06: continued
-    } //          //# 06: continued
+    void P() {
+      Q();
+    }
 
     Function f = () {x = f;}; // //# 07: compile-time error
   }

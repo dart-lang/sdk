@@ -2,27 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// If a constant constructor contains an initializer, or an initializing
-// formal, for a final field which itself has an initializer at its
-// declaration, then a runtime error should occur if that constructor is
-// invoked using "new", but there should be no compile-time error.  However, if
-// the constructor is invoked using "const", there should be a compile-time
-// error, since it is a compile-time error for evaluation of a constant object
-// to result in an uncaught exception.
-
 import "package:expect/expect.dart";
 
 class C {
+  // Since this field is final and already initialized, the specification says
+  // that a runtime error occurs when attempting to initialize it in the
+  // constructor. When used as a compile-time constant, this causes a
+  // compile-time error.
   final x = 1;
-  const C() : x = 2; //# 01: compile-time error
-  const C() : x = 2; //# 02: static type warning
-  const C(this.x); //# 03: compile-time error
-  const C(this.x); //# 04: static type warning
+
+  const C(
+      this. //# 01: compile-time error
+      this. //# 02: static type warning
+      x
+    )
+    : x = 2 //# 03: compile-time error
+    : x = 2 //# 04: static type warning
+    ;
+}
+
+instantiateC() {
+  const C(0); //# 01: continued
+  const C(0); //# 03: continued
+  new C(0);
 }
 
 main() {
-  const C(); //# 01: continued
-  Expect.throws(() => new C()); //# 02: continued
-  const C(2); //# 03: continued
-  Expect.throws(() => new C(2)); //# 04: continued
+  bool shouldThrow = false;
+  shouldThrow = true; //# 02: continued
+  shouldThrow = true; //# 04: continued
+  if (shouldThrow) {
+    Expect.throws(instantiateC);
+  } else {
+    instantiateC();
+  }
 }

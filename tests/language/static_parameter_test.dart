@@ -4,7 +4,7 @@
 
 foo(x
     , static int y // //# 01: compile-time error
-    , final static y // //# 02: compile-time error
+    , static final y // //# 02: compile-time error
     , {static y} // //# 03: compile-time error
     , [static y] // //# 04: compile-time error
     ) {}
@@ -12,14 +12,14 @@ foo(x
 class C {
   bar(x
       , static int y // //# 05: compile-time error
-      , final static y // //# 06: compile-time error
+      , static final y // //# 06: compile-time error
       , {static y} // //# 07: compile-time error
       , [static y] // //# 08: compile-time error
       ) {}
 
   static baz(x
       , static int y // //# 09: compile-time error
-      , final static y // //# 10: compile-time error
+      , static final y // //# 10: compile-time error
       , {static y} // //# 11: compile-time error
       , [static y] // //# 12: compile-time error
       ) {}
